@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IConversion Conversion => new Conversion(this.ConversionKind);
+        public IConversion Conversion => new Conversion(this.ConversionKind, this.SymbolOpt, isExtensionMethod: false);
 
         bool IConversionExpression.IsExplicit => this.ExplicitCastInCode;
 

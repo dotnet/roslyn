@@ -874,6 +874,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Returns true if the conversion is an implicit default ('null' in C#, 'nothing' in VB) literal conversion.
         /// </summary>
         bool IsDefault { get; }
+
+        /// <summary>
+        /// Returns the method that defines the user defined conversion, if any..
+        /// </summary>
+        IMethodSymbol MethodSymbol { get; }
     }
 
     /// <summary>

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' <summary>
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' </summary>
     Friend Class SpeculationAnalyzer
         Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
+                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.
@@ -523,8 +524,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            Dim originalConversion As Conversion?
-            Dim newConversion As Conversion?
+            Dim originalConversion As IConversion
+            Dim newConversion As IConversion
 
             Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
 
@@ -543,12 +544,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Me.OriginalSemanticModel.Compilation, newExpressionType, newTargetType)
             End If
 
-            Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
+            Return ConversionsAreCompatible(originalConversion, newConversion)
         End Function
 
-        Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean
+        Private Overloads Function ConversionsAreCompatible(originalConversion As IConversion, newConversion As IConversion) As Boolean
             If originalConversion.Exists <> newConversion.Exists OrElse
-                ((Not originalConversion.IsNarrowing) AndAlso newConversion.IsNarrowing) Then
+                ((Not originalConversion.IsExplicit) AndAlso newConversion.IsExplicit) Then
                 Return False
             End If
 
@@ -582,11 +583,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return compilation.ClassifyConversion(sourceType, targetType).IsReference
         End Function
 
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As Conversion
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As IConversion
             Return model.ClassifyConversion(expression, targetType)
         End Function
 
-        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As IConversion
             Return VisualBasicExtensions.ClassifyConversion(
                 model.Compilation, originalType, targetType)
         End Function

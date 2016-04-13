@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// </summary>
     internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
         SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-        ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion>
+        ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax>
     {
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.
@@ -650,8 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
-            Conversion? originalConversion = null;
-            Conversion? newConversion = null;
+            IConversion originalConversion = null;
+            IConversion newConversion = null;
 
             this.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, out originalConversion, out newConversion);
 
@@ -660,10 +661,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            return ConversionsAreCompatible(originalConversion.Value, newConversion.Value);
+            return ConversionsAreCompatible(originalConversion, newConversion);
         }
 
-        private bool ConversionsAreCompatible(Conversion originalConversion, Conversion newConversion)
+        private bool ConversionsAreCompatible(IConversion originalConversion, IConversion newConversion)
         {
             if (originalConversion.Exists != newConversion.Exists ||
                 (!originalConversion.IsExplicit && newConversion.IsExplicit))
@@ -707,10 +708,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return compilation.ClassifyConversion(sourceType, targetType).IsReference;
         }
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
+        protected override IConversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
             model.ClassifyConversion(expression, targetType);
 
-        protected override Conversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
-            CSharpExtensions.ClassifyConversion(model.Compilation, originalType, targetType);
+        protected override IConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType) =>
+            model.Compilation.ClassifyConversion(originalType, targetType);
     }
 }

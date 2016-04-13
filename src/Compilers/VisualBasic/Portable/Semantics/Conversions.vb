@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns the method that defines the user defined conversion, if any. Otherwise returns Nothing.
         ''' </summary>
-        Public ReadOnly Property MethodSymbol As IMethodSymbol
+        Public ReadOnly Property MethodSymbol As IMethodSymbol Implements IConversion.MethodSymbol
             Get
                 Return _method
             End Get
