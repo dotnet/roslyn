@@ -5,7 +5,7 @@
     "System.Collections.Immutable": "1.2.0-rc3-24005-00"
   },
   "frameworks": {
-    "net452": {}
+    "net46": {}
   },
   "runtimes": {
     "win7": {},
