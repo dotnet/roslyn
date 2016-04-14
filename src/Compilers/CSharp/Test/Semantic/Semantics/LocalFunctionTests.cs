@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    static class LocalFunctionTestsExt
+    public static class LocalFunctionTestsExt
     {
         public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
         {
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : CSharpTestBase
     {
         private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
@@ -63,13 +64,13 @@ class Program
             return VerifyOutput(source, output);
         }
 
-        void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
+        private void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
-        void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
+        private void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
             comp.VerifyDiagnostics(expected);
@@ -97,6 +98,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBody()
         {
             var source = @"
@@ -123,6 +125,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void Params()
         {
             var source = @"
@@ -1262,6 +1265,7 @@ Console.Write(x);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorBasic()
         {
             var source = @"
@@ -1275,6 +1279,7 @@ Console.Write(string.Join("","", Local()));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorGeneric()
         {
             var source = @"
@@ -1288,6 +1293,7 @@ Console.Write(string.Join("","", LocalGeneric(2)));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorNonGeneric()
         {
             var source = @"
@@ -1304,6 +1310,7 @@ foreach (int x in LocalNongen())
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorEnumerator()
         {
             var source = @"
@@ -1319,6 +1326,7 @@ Console.Write(y.Current);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncBasic()
         {
             var source = @"
@@ -1345,6 +1353,7 @@ Console.Write(LocalParam(2).Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncGeneric()
         {
             var source = @"
@@ -1358,6 +1367,7 @@ Console.Write(LocalGeneric(2).Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncVoid()
         {
             var source = @"
@@ -1373,6 +1383,7 @@ LocalVoid();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncAwaitAwait()
         {
             var source = @"
@@ -1392,6 +1403,7 @@ Console.WriteLine(AwaitAwait().Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncKeyword()
         {
             var source = @"
@@ -1460,6 +1472,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncUnsafeKeyword()
         {
             var source = @"
@@ -2277,6 +2290,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameter()
         {
             var source = @"
@@ -2297,6 +2311,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicReturn()
         {
             var source = @"
@@ -2310,6 +2325,7 @@ Console.Write(RetDyn());
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicDelegate()
         {
             var source = @"

@@ -104,6 +104,7 @@
     </Compile>
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />
