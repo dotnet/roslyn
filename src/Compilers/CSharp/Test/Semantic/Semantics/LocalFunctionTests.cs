@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
@@ -3672,6 +3673,29 @@ class Program
     Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
         {
         }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        public void LocalFunctionInIf()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        if () // typing at this point
+        int Add(int x, int y) => x + y;
+    }
+}
+";
+            VerifyDiagnostics(source,
+                // (6,13): error CS1525: Invalid expression term ')'
+                //         if () // typing at this point
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 13),
+                // (7,9): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9)
                 );
         }
     }

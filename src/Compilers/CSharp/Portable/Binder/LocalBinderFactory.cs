@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // rather than add, semantics.
             Binder existing;
             // Note that a lock statement has two outer binders (a second one for pattern variable scope)
-            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder.Next || existing == binder.Next?.Next);
+            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder || existing == binder.Next || existing == binder.Next?.Next);
 
             _map[node] = binder;
         }
@@ -741,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.LocalDeclarationStatement:
                     case SyntaxKind.LetStatement:
                     case SyntaxKind.LabeledStatement:
+                    case SyntaxKind.LocalFunctionStatement:
                         // It is an error to have a declaration or a label in an embedded statement,
                         // but we still want to bind it.  We'll pretend that the statement was
                         // inside a block.
