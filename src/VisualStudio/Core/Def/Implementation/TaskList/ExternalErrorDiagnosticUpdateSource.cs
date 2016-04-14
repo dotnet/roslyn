@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -79,12 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void ClearErrors(ProjectId projectId)
         {
+            // capture state if it exists
+            var state = _state;
+
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
             {
                 // record the project as built only if we are in build.
                 // otherwise (such as closing solution or removing project), no need to record it
-                _state?.Built(projectId);
+                state?.Built(projectId);
 
                 ClearProjectErrors(projectId);
             }).CompletesAsyncOperation(asyncToken);
@@ -149,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var inprogressState = _state;
 
             // building is done. reset the state.
-            _state = null;
+            Interlocked.CompareExchange(ref _state, null, inprogressState);
 
             // enqueue build/live sync in the queue.
             var asyncToken = _listener.BeginAsyncOperation("OnSolutionBuild");
@@ -320,20 +322,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
+            var state = GetOrCreateInprogressState();
+
             var asyncToken = _listener.BeginAsyncOperation("Document New Errors");
             _taskQueue.ScheduleTask(() =>
             {
-                GetOrCreateInprogressState().AddError(documentId, diagnostic);
+                state.AddError(documentId, diagnostic);
             }).CompletesAsyncOperation(asyncToken);
         }
 
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
+            var state = GetOrCreateInprogressState();
+
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
             {
-                var state = GetOrCreateInprogressState();
                 foreach (var kv in documentErrorMap)
                 {
                     state.AddErrors(kv.Key, kv.Value);
@@ -347,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             if (_state == null)
             {
-                _state = new InprogressState(this);
+                Interlocked.CompareExchange(ref _state, new InprogressState(this), null);
             }
 
             return _state;
