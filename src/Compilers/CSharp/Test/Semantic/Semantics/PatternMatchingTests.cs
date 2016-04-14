@@ -15318,5 +15318,38 @@ namespace IsOperatorBugDemo
 1
 1");
         }
+
+        [Fact, WorkItem(10529, "https://github.com/dotnet/roslyn/issues/10529")]
+        public void MissingTypeAndProperty()
+        {
+            var source =
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        {
+            if (obj.Property is var o) { } // `obj` doesn't exist.
+        }
+        {
+            var obj = new object();
+            if (obj. is var o) { }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (11,22): error CS1001: Identifier expected
+                //             if (obj. is var o) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(11, 22),
+                // (7,17): error CS0103: The name 'obj' does not exist in the current context
+                //             if (obj.Property is var o) { } // `obj` doesn't exist.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "obj").WithArguments("obj").WithLocation(7, 17),
+                // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             if (obj.Property is var o) { } // `obj` doesn't exist.
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "obj.Property is var o").WithLocation(7, 17)
+                );
+        }
     }
 }

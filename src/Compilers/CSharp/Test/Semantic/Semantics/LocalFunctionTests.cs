@@ -3676,7 +3676,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10521"), WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
         public void LocalFunctionInIf()
         {
             var source = @"

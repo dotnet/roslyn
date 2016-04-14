@@ -620,6 +620,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar && operandType != null) declType = operandType;
+            if (declType == (object)null)
+            {
+                Debug.Assert(hasErrors);
+                declType = this.CreateErrorType();
+            }
+
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declType);
             if (IsOperatorErrors(node, operandType, boundDeclType, diagnostics))
             {
@@ -627,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors = CheckValidPatternType(typeSyntax, operand, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
                                                   isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
