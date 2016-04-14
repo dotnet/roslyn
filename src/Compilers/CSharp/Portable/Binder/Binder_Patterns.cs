@@ -524,10 +524,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            bool wasExpression;
+            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression);
+        }
+
+        private BoundPattern BindConstantPattern(
+            CSharpSyntaxNode node,
+            BoundExpression left,
+            TypeSymbol leftType,
+            ExpressionSyntax right,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out bool wasExpression)
+        {
+            var expression = BindValue(right, diagnostics, BindValueKind.RValue);
+            wasExpression = expression.Type?.IsErrorType() != true;
             if (!node.HasErrors && expression.ConstantValue == null)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, node.Expression.Location);
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, right.Location);
                 hasErrors = true;
             }
 
