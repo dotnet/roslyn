@@ -5371,6 +5371,32 @@ public class X
 True");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10487"), WorkItem(10487, "https://github.com/dotnet/roslyn/issues/10487")]
+        public void FieldInitializers_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1);
+    }
+
+    static bool Test1 = 1 is int x1 && Dummy(() => x1); 
+
+    static bool Dummy(System.Func<int> x) 
+    {
+        System.Console.WriteLine(x());
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
         [Fact]
         public void ScopeOfPatternVariables_FieldInitializers_01()
         {
@@ -15191,6 +15217,9 @@ public class X
         Console.WriteLine(1 is 1); // true
         Console.WriteLine(1L is int.MaxValue); // OK, but false
         Console.WriteLine(1 is int.MaxValue); // false
+        Console.WriteLine(int.MaxValue is int.MaxValue); // true
+        Console.WriteLine(""foo"" is System.String); // true
+        Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
         Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
         switch (o)
@@ -15214,6 +15243,9 @@ public class X
 @"True
 False
 False
+True
+True
+True
 True
 null");
         }

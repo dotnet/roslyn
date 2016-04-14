@@ -12,31 +12,102 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class PatternVariableFinder : CSharpSyntaxWalker
     {
-        private ArrayBuilder<DeclarationPatternSyntax> _declarationPatterns;
+        private Binder _binder;
+        private ArrayBuilder<LocalSymbol> _declarationPatterns;
 
         internal static void FindPatternVariables(
-            ArrayBuilder<DeclarationPatternSyntax> builder,
-            CSharpSyntaxNode node = null,
-            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
+            Binder binder,
+            ArrayBuilder<LocalSymbol> builder,
+            CSharpSyntaxNode node)
         {
-            var finder = s_poolInstance.Allocate();
-            finder._declarationPatterns = builder;
-            finder.Visit(node);
-            if (!nodes.IsDefaultOrEmpty)
+            if (node == null)
             {
-                foreach (var n in nodes)
-                {
-                    finder.Visit(n);
-                }
+                return;
             }
 
+            var finder = s_poolInstance.Allocate();
+            finder._binder = binder;
+            finder._declarationPatterns = builder;
+
+            finder.Visit(node);
+
+            finder._binder = null;
             finder._declarationPatterns = null;
             s_poolInstance.Free(finder);
         }
 
+        internal static void FindPatternVariables(
+            Binder binder,
+            ArrayBuilder<LocalSymbol> builder,
+            SeparatedSyntaxList<ExpressionSyntax> nodes)
+        {
+            if (nodes.Count == 0)
+            {
+                return;
+            }
+
+            var finder = s_poolInstance.Allocate();
+            finder._binder = binder;
+            finder._declarationPatterns = builder;
+
+            foreach (var n in nodes)
+            {
+                finder.Visit(n);
+            }
+
+            finder._binder = null;
+            finder._declarationPatterns = null;
+            s_poolInstance.Free(finder);
+        }
+
+        public override void VisitLetStatement(LetStatementSyntax node)
+        {
+            Visit(node.Expression);
+            Visit(node.WhenClause?.Condition);
+        }
+
+        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            foreach (var decl in node.Declaration.Variables)
+            {
+                Visit(decl.Initializer?.Value);
+            }
+        }
+
+        public override void VisitSwitchSection(SwitchSectionSyntax node)
+        {
+            foreach (var label in node.Labels)
+            {
+                var match = label as CasePatternSwitchLabelSyntax;
+                if (match != null)
+                {
+                    Visit(match.Pattern);
+                    if (match.WhenClause != null)
+                    {
+                        Visit(match.WhenClause.Condition);
+                    }
+                }
+            }
+        }
+
+        public override void VisitWhileStatement(WhileStatementSyntax node)
+        {
+            Visit(node.Condition);
+        }
+
+        public override void VisitDoStatement(DoStatementSyntax node)
+        {
+            Visit(node.Condition);
+        }
+
+        public override void VisitLockStatement(LockStatementSyntax node)
+        {
+            Visit(node.Expression);
+        }
+
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _declarationPatterns.Add(node);
+            _declarationPatterns.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.PatternVariable));
             base.VisitDeclarationPattern(node);
         }
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }

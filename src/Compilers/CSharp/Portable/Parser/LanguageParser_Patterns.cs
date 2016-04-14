@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (node == null)
                     {
                         Debug.Assert(Precedence.Shift == Precedence.Relational + 1);
-                        if (IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational ||
-                            tk == SyntaxKind.DotToken)
+                        if ((IsExpectedBinaryOperator(tk) && GetPrecedence(SyntaxFacts.GetBinaryExpression(tk)) > Precedence.Relational) ||
+                            tk == SyntaxKind.DotToken) // member selection is not formally a binary operator but has higher precedence than relational
                         {
                             this.Reset(ref resetPoint);
                             // We parse a shift-expression ONLY (nothing looser) - i.e. not a relational expression
