@@ -7684,57 +7684,69 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
-    // (19,15): error CS0103: The name 'x1' does not exist in the current context
-    //         Dummy(x1, 1);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
-    // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         switch (4 is var x4 ? x4 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
-    // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         switch (5 is var x5 ? x5 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
-    // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
-    //         switch (x6 + 6 is var x6 ? x6 : 0)
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
-    // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 var x7 = 12;
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
-    // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 switch (9 is var x9 ? x9 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
-    // (85,17): error CS0103: The name 'y10' does not exist in the current context
-    //         switch (y10 + 10 is var x10 ? x10 : 0)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
-    // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
-    //             case 0 when y10:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
-    // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
-    //             case y10:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
-    // (98,17): error CS0103: The name 'y11' does not exist in the current context
-    //         switch (y11 + 11 is var x11 ? x11 : 0)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
-    // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
-    //             case 0 when y11 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
-    // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
-    //             case y11:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
-    // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
-    //                   2 is var x14, 
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
-    // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
-    //             case 0 when y15 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
-    // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
-    //             case y15: 
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
-    // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
-    //             case 0 when y16 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
-    // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
-    //             case y16: 
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18)
+                // (19,15): error CS0103: The name 'x1' does not exist in the current context
+                //         Dummy(x1, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
+                // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         switch (4 is var x4 ? x4 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
+                // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         switch (5 is var x5 ? x5 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
+                // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         switch (x6 + 6 is var x6 ? x6 : 0)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
+                // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
+                // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 switch (9 is var x9 ? x9 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
+                // (85,17): error CS0103: The name 'y10' does not exist in the current context
+                //         switch (y10 + 10 is var x10 ? x10 : 0)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
+                // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
+                //             case 0 when y10:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
+                // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
+                //             case y10:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
+                // (89,18): error CS0150: A constant value is expected
+                //             case y10:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
+                // (98,17): error CS0103: The name 'y11' does not exist in the current context
+                //         switch (y11 + 11 is var x11 ? x11 : 0)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
+                // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
+                //             case 0 when y11 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
+                // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
+                //             case y11:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
+                // (102,18): error CS0150: A constant value is expected
+                //             case y11:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
+                // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                   2 is var x14, 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
+                // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
+                //             case 0 when y15 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
+                // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
+                //             case y15: 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+                // (127,18): error CS0150: A constant value is expected
+                //             case y15: 
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y15").WithLocation(127, 18),
+                // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
+                //             case 0 when y16 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
+                // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
+                //             case y16: 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18),
+                // (140,18): error CS0150: A constant value is expected
+                //             case y16: 
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y16").WithLocation(140, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

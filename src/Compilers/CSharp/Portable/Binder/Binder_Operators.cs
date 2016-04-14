@@ -2602,7 +2602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // it did not bind as a type; try binding as a constant expression pattern
                     bool wasExpression;
                     var tempBag2 = DiagnosticBag.GetInstance();
-                    var boundConstantPattern = BindConstantPattern(node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression);
+                    var boundConstantPattern = BindConstantPattern(
+                        node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitch: false);
                     if (wasExpression)
                     {
                         tempBag.Free();
