@@ -540,19 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool wasExpression,
             bool wasSwitch)
         {
-            bool wasExpression;
-            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression);
-        }
-
-        private BoundPattern BindConstantPattern(
-            CSharpSyntaxNode node,
-            BoundExpression left,
-            TypeSymbol leftType,
-            ExpressionSyntax right,
-            bool hasErrors,
-            DiagnosticBag diagnostics,
-            out bool wasExpression)
-        {
             var expression = BindValue(right, diagnostics, BindValueKind.RValue);
             wasExpression = expression.Type?.IsErrorType() != true;
             if (!node.HasErrors && expression.ConstantValue == null)
