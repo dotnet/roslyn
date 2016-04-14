@@ -145,9 +145,11 @@
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
+    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
