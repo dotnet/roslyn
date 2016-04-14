@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -59,6 +58,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 return solution.WithAdditionalDocumentText(documentId, text, mode);
+            }
+        }
+
+        public static IEnumerable<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
+        {
+            foreach (var documentId in documentIds)
+            {
+                var document = solution.GetDocument(documentId);
+                if (document != null &&
+                    StringComparer.OrdinalIgnoreCase.Equals(document.Project.Language, language))
+                {
+                    yield return documentId;
+                }
             }
         }
     }

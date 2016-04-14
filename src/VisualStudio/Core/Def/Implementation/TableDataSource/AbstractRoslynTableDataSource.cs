@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -14,6 +15,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
         {
             ConnectToSolutionCrawlerService(workspace);
+        }
+
+        protected ImmutableArray<DocumentId> GetDocumentGroupKey(Solution solution, DocumentId documentId)
+        {
+            var document = solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
 
         private void ConnectToSolutionCrawlerService(Workspace workspace)

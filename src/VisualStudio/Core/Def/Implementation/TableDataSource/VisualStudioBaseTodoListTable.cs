@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                var documents = GetDocumentGroupKey(args.Solution, args.DocumentId);
                 return key == documents;
             }
 
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                return args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                return GetDocumentGroupKey(args.Solution, args.DocumentId);
             }
 
             public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)
