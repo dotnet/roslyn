@@ -15218,6 +15218,8 @@ public class X
         Console.WriteLine(1L is int.MaxValue); // OK, but false
         Console.WriteLine(1 is int.MaxValue); // false
         Console.WriteLine(int.MaxValue is int.MaxValue); // true
+        Console.WriteLine(""foo"" is System.String); // true
+        Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
         Console.WriteLine(new int[] {1, 2} is int[] a); // true
         object o = null;
         switch (o)
@@ -15241,6 +15243,8 @@ public class X
 @"True
 False
 False
+True
+True
 True
 True
 null");
