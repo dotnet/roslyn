@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool wasSwitch = false)
         {
             switch (node.Kind())
             {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitch);
 
                 case SyntaxKind.PropertyPattern:
                     return BindPropertyPattern(
@@ -522,30 +523,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool wasSwitch = false)
         {
-            var expression = BindPatternConstant(node.Expression, diagnostics);
-
-            // PROTOTYPE(patterns): we still need to check that the constant is valid for the given operand or operandType.
-            return new BoundConstantPattern(node, expression, hasErrors);
+            bool wasExpression;
+            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitch);
         }
 
-        internal BoundExpression BindPatternConstant(ExpressionSyntax expression, DiagnosticBag diagnostics)
+        internal BoundPattern BindConstantPattern(
+            CSharpSyntaxNode node,
+            BoundExpression left,
+            TypeSymbol leftType,
+            ExpressionSyntax right,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out bool wasExpression,
+            bool wasSwitch)
         {
-            var result = BindValue(expression, diagnostics, BindValueKind.RValue);
-
-            if ((object)result.Type == null && result.ConstantValue?.IsNull == true)
+            var expression = BindValue(right, diagnostics, BindValueKind.RValue);
+            wasExpression = expression.Type?.IsErrorType() != true;
+            if (!node.HasErrors && expression.ConstantValue == null)
             {
-                // until we've implemeneted covnersions for the case expressions, ensure each has a type.
-                result = CreateConversion(result, GetSpecialType(SpecialType.System_Object, diagnostics, expression), diagnostics);
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, right.Location);
+                hasErrors = true;
             }
 
-            if (!result.HasAnyErrors && result.ConstantValue == null)
-            {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, expression.Location);
-            }
-
-            return result;
+            // PROTOTYPE(patterns): we still need to check that the constant is valid for the given operand or operandType.
+            // PROTOTYPE(patterns): How that works may depend on the parameter wasSwich.
+            return new BoundConstantPattern(node, expression, hasErrors);
         }
 
         private bool CheckValidPatternType(

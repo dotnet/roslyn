@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is ExpressionSyntax)
             {
-                var binder = new PatternVariableBinder(syntax, (ExpressionSyntax)syntax, enclosing);
+                var binder = new PatternVariableBinder(syntax, enclosing);
                 builder.AddToMap(syntax, binder);
                 builder.Visit(syntax, binder);
             }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var binder = new PatternVariableBinder(body, (ExpressionSyntax)body, _enclosing);
+                var binder = new PatternVariableBinder(body, _enclosing);
                 AddToMap(body, binder);
                 Visit(body, binder);
             }
@@ -227,14 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
-            var arrowBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var arrowBinder = new PatternVariableBinder(node, _enclosing);
             AddToMap(node, arrowBinder);
             Visit(node.Expression, arrowBinder);
         }
 
         public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
         {
-            var valueBinder = new PatternVariableBinder(node, node.Value, _enclosing);
+            var valueBinder = new PatternVariableBinder(node, _enclosing);
             AddToMap(node, valueBinder);
             Visit(node.Value, valueBinder);
         }
@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_root == node)
             {
                 // We are supposed to get here only for constructor initializers
-                var argBinder = new PatternVariableBinder(node, node.Arguments, _enclosing);
+                Debug.Assert(node.Parent is ConstructorInitializerSyntax);
+                var argBinder = new PatternVariableBinder(node, _enclosing);
                 AddToMap(node, argBinder);
 
                 foreach (var arg in node.Arguments)
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
             var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
 
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node, node.Condition, _enclosing);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
             var whileBinder = new WhileBinder(patternBinder, node);
             AddToMap(node, whileBinder);
 
@@ -397,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node.Expression, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node.Expression, _enclosing);
 
             AddToMap(node.Expression, patternBinder);
             Visit(node.Expression, patternBinder);
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLockStatement(LockStatementSyntax node)
         {
-            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
             var lockBinder = new LockBinder(patternBinder, node);
             AddToMap(node, lockBinder);
 
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var patternBinder = new PatternVariableBinder(node.Expression, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node.Expression, _enclosing);
             AddToMap(node.Expression, patternBinder);
 
             Visit(node.Expression, patternBinder);
@@ -505,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            var ifBinder = new PatternVariableBinder(node.Condition, node.Condition, _enclosing);
+            var ifBinder = new PatternVariableBinder(node.Condition, _enclosing);
             AddToMap(node.Condition, ifBinder);
             Visit(node.Condition, ifBinder);
             VisitPossibleEmbeddedStatement(node.Statement, ifBinder);
@@ -519,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Note that we do *not* include variables defined in a let statement's pattern in the let statement's scope.
             // Those are instead included in the enclosing scope.
-            var letBinder = new PatternVariableBinder(node, ImmutableArray.Create(node.Expression, node.WhenClause?.Condition), _enclosing);
+            var letBinder = new PatternVariableBinder(node, _enclosing);
             Visit(node.Expression, letBinder);
 
             if (node.WhenClause != null)
@@ -616,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                var patternBinder = new PatternVariableBinder(node, _enclosing);
                 AddToMap(node, patternBinder);
                 Visit(node.Expression, patternBinder);
             }
@@ -626,14 +627,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
         {
-            var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
             AddToMap(node, patternBinder);
             Visit(node.Expression, patternBinder);
         }
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            var patternBinder = new PatternVariableBinder(node, node.Declaration.Variables, _enclosing);
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
             AddToMap(node, patternBinder);
 
             foreach (var decl in node.Declaration.Variables)
@@ -650,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                var patternBinder = new PatternVariableBinder(node, _enclosing);
                 AddToMap(node, patternBinder);
                 Visit(node.Expression, patternBinder);
             }
@@ -660,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Expression != null)
             {
-                var patternBinder = new PatternVariableBinder(node, node.Expression, _enclosing);
+                var patternBinder = new PatternVariableBinder(node, _enclosing);
                 AddToMap(node, patternBinder);
                 Visit(node.Expression, patternBinder);
             }
@@ -726,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // rather than add, semantics.
             Binder existing;
             // Note that a lock statement has two outer binders (a second one for pattern variable scope)
-            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder.Next || existing == binder.Next?.Next);
+            Debug.Assert(!_map.TryGetValue(node, out existing) || existing == binder || existing == binder.Next || existing == binder.Next?.Next);
 
             _map[node] = binder;
         }
