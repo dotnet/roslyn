@@ -27,9 +27,9 @@ class CSharpCompilerTest: PerfTest
         ShellOutVital(ReleaseCscPath, args, executeInDirectory);
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 2;
     public override string Name => "csharp " + _rspFile;
-    public override string MeasuredProc => "csc.exe";
+    public override string MeasuredProc => "csc";
 }
 
 TestThisPlease(
