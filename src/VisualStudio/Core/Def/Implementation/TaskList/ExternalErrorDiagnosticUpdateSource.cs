@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -406,12 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
             {
-                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-
-                builder.AddRange(_projectMap.Values.SelectMany(d => d));
-                builder.AddRange(_documentMap.Values.SelectMany(d => d));
-
-                return builder.ToImmutable();
+                return ImmutableArray.CreateRange(_projectMap.Values.SelectMany(d => d).Concat(_documentMap.Values.SelectMany(d => d)));
             }
 
             public void Built(ProjectId projectId)
@@ -426,7 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public IEnumerable<ProjectId> GetProjectsWithErrors(Solution solution)
             {
-                return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
+                return GetProjectIds().Where(p => solution.GetProject(p) != null);
             }
 
             public IEnumerable<ProjectId> GetProjectsWithoutErrors(Solution solution)
@@ -437,11 +433,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> GetLiveDiagnosticsPerProject(Func<DiagnosticData, bool> liveDiagnosticChecker)
             {
                 var builder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
-                foreach (var projectKv in _projectMap)
+                foreach (var projectId in GetProjectIds())
                 {
-                    // get errors that can be reported by live diagnostic analyzer
-                    var diagnostics = ImmutableArray.CreateRange(projectKv.Value.Concat(_documentMap.Where(kv => kv.Key.ProjectId == projectKv.Key).SelectMany(kv => kv.Value)).Where(liveDiagnosticChecker));
-                    builder.Add(projectKv.Key, diagnostics);
+                    var diagnostics = ImmutableArray.CreateRange(
+                        _projectMap.Where(kv => kv.Key == projectId).SelectMany(kv => kv.Value).Concat(
+                            _documentMap.Where(kv => kv.Key.ProjectId == projectId).SelectMany(kv => kv.Value)).Where(liveDiagnosticChecker));
+
+                    builder.Add(projectId, diagnostics);
                 }
 
                 return builder.ToImmutable();
@@ -472,6 +470,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 var errors = GetErrorSet(map, key);
                 errors.Add(diagnostic);
+            }
+
+            private IEnumerable<ProjectId> GetProjectIds()
+            {
+                return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
             }
 
             private HashSet<DiagnosticData> GetErrorSet<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key)
