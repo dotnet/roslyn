@@ -1000,6 +1000,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundInstrumentationPayload(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression GreatestMethodDefinitionToken()
+        {
+            return new BoundGreatestMethodDefinitionToken(
+                Syntax,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
         public BoundExpression MethodInfo(MethodSymbol method)
         {
             // The least overridden virtual method is only called for value type receivers
@@ -1130,6 +1138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
         
+        public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
+        {
+            return new BoundArrayCreation(
+               Syntax,
+               ImmutableArray.Create<BoundExpression>(length),
+               null,
+               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
+        }
+
         internal BoundExpression Default(TypeSymbol type)
         {
             return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };

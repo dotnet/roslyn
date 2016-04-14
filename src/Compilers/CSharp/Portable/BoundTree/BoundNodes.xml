@@ -450,6 +450,12 @@
     <Field Name="Method" Type="MethodSymbol"/>
   </Node>
 
+  <!-- Represents the greatest raw metadata token value for any method definition in the current module. -->
+  <Node Name="BoundGreatestMethodDefinitionToken" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
   <!-- Represents the GUID that is the current module's MVID. Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
   <Node Name="BoundInstrumentationPayload" Base="BoundExpression">
     <Field Name="AnalysisKind" Type="int"/>

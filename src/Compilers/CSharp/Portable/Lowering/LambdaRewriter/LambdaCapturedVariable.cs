@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                 }
+
+                if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
+                {
+                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalName(uniqueId++);
+                }
             }
 
             Debug.Assert(variable.Name != null);

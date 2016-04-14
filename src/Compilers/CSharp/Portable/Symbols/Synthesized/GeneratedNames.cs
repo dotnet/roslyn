@@ -393,9 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal static string MakeSynthesizedInstrumentationPayloadFieldName(MethodSymbol method, int methodOrdinal)
+        internal static string MakeSynthesizedInstrumentationPayloadLocalName(int uniqueId)
         {
-            return "<" + method.Name + ">" + methodOrdinal.ToString() + "ipayload__Field";
+            return SynthesizedLocalNamePrefix + "InstrumentationPayload" + StringExtensions.GetNumeral(uniqueId);
         }
 
         internal static string MakeLambdaDisplayLocalName(int uniqueId)

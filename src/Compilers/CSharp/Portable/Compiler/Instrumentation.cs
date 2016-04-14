@@ -31,11 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
                     bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
-                    LocalSymbol methodPayload = factory.SynthesizedLocal(payloadType);
+                    LocalSymbol methodPayload = factory.SynthesizedLocal(payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
                     ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadType);
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
                     int analysisKind = 0;
                     // Synthesize the instrumentation and collect the spans of interest.
+
+                    PrivateImplementationDetails privateImplementationDetails = compilationState.ModuleBuilderOpt.GetPrivateImplClass(methodBody.Syntax, diagnostics);
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
                     BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodHasExplicitBlock, methodPayload, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (payload == null)
                     //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadField[methodIndex], payloadLength);
 
-                    var payloadInitialization = factory.Assignment(factory.Local(methodPayload), factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method))));
+                    BoundStatement payloadInitialization = factory.Assignment(factory.Local(methodPayload), factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method))));
                     BoundExpression mvid = factory.ModuleVersionId();
                     BoundExpression methodToken = factory.MethodDefinitionToken(method);
                     BoundExpression payloadSlot = factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method)));
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         payloadIf = factory.SequencePoint(payloadIf.Syntax, payloadIf);
                     }
 
-                    ImmutableArray<BoundStatement> newStatements = newMethodBody.Statements.Insert(0, payloadIf);
+                    ImmutableArray<BoundStatement> newStatements = ImmutableArray.Create<BoundStatement>(payloadInitialization, payloadIf).AddRange(newMethodBody.Statements);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals.Add(methodPayload), newMethodBody.LocalFunctions, newStatements);
 
                     if (IsTestMethod(method))

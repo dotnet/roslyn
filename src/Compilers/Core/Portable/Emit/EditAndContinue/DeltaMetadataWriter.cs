@@ -378,6 +378,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return _methodSpecIndex.Rows;
         }
 
+        protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
+
         protected override bool TryGetTypeRefIndex(ITypeReference reference, out int index)
         {
             return _typeRefIndex.TryGetValue(reference, out index);

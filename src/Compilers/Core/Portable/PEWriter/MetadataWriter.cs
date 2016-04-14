@@ -331,6 +331,11 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs();
 
         /// <summary>
+        /// The greatest index given to any method definition.
+        /// </summary>
+        protected abstract int GreatestMethodDefIndex { get; }
+
+        /// <summary>
         /// Return true and the 1-based index of the type reference
         /// if the reference is available in the current generation.
         /// The index is into the full metadata. However, deltas
@@ -4565,6 +4570,9 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
+        internal const uint LiteralMethodDefinitionToken = 0x80000000;
+        internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
+
         private void WriteMethodBodyIL(BlobBuilder builder, IMethodBody methodBody)
         {
             ImmutableArray<byte> methodBodyIL = methodBody.IL;
@@ -4585,21 +4593,33 @@ namespace Microsoft.Cci
                     case OperandType.InlineType:
                         {
                             int pseudoToken = ReadInt32(methodBodyIL, offset);
-                            // If the high-order bit of the pseudotoken is 1, replace the opcode with Ldc_i4
-                            // and clear the high-order bit in the pseudotoken.
-                            // This is a trick to enable loading raw metadata token values as integers.
+                            int token = 0;
+                            // If any bits in the high-order byte of the pseudotoken are nonzero, replace the opcode with Ldc_i4
+                            // and clear the high-order byte in the pseudotoken.
+                            // This is a trick to enable loading raw metadata token indices as integers.
                             if (operandType == OperandType.InlineTok)
                             {
-                                if ((pseudoToken & 0x80000000) != 0 && (uint)pseudoToken != 0xffffffff)
+                                int tokenMask = pseudoToken & unchecked((int)0xff000000);
+                                if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
                                 {
                                     Debug.Assert(ReadByte(methodBodyIL, offset - 1) == (byte)ILOpCode.Ldtoken);
                                     writer.Offset = offset - 1;
                                     writer.WriteByte((byte)ILOpCode.Ldc_i4);
-                                    pseudoToken &= 0x7fffffff;
+                                    switch ((uint)tokenMask)
+                                    {
+                                        case LiteralMethodDefinitionToken:
+                                            token = ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken & 0x00ffffff) & 0x00ffffff;
+                                            break;
+                                        case LiteralGreatestMethodDefinitionToken:
+                                            token = GreatestMethodDefIndex;
+                                            break;
+                                        default:
+                                            throw ExceptionUtilities.UnexpectedValue(tokenMask);
+                                    }
                                 }
                             }
                             writer.Offset = offset;
-                            writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken));
+                            writer.WriteInt32(token == 0 ? ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken) : token);
                             offset += 4;
                             break;
                         }

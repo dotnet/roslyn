@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
-        // Dictionary that maps from analysis kind (which is an arbitrary unique integer) to the greatest assigned payload index for the analysis kind.
-        private readonly ConcurrentDictionary<int, int> _instrumentationPayloadIndices = new ConcurrentDictionary<int, int>();
         // Dictionary that maps from analysis kind to instrumentation payload field.
         private readonly ConcurrentDictionary<int, InstrumentationPayloadField> _instrumentationPayloadFields = new ConcurrentDictionary<int, InstrumentationPayloadField>();
 
@@ -175,6 +173,36 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _mvidField;
         }
 
+        internal Cci.IFieldReference GetInstrumentationPayload(int analysisKind, Cci.ITypeReference payloadType)
+        {
+            InstrumentationPayloadField payloadField;
+            if (!_instrumentationPayloadFields.TryGetValue(analysisKind, out payloadField))
+            {
+                payloadField = new InstrumentationPayloadField(this, analysisKind, payloadType);
+                if (!_instrumentationPayloadFields.TryAdd(analysisKind, payloadField))
+                {
+                    // Another thread added the field.
+                    payloadField = _instrumentationPayloadFields[analysisKind];
+                }
+            }
+
+            return payloadField;
+        }
+
+        internal ImmutableArray<InstrumentationPayloadField> GetInstrumentationPayloads()
+        {
+            Debug.Assert(IsFrozen);
+            int payloadsLength = _instrumentationPayloadFields.Keys.Max() + 1;
+            ArrayBuilder<InstrumentationPayloadField> payloadsBuilder = ArrayBuilder<InstrumentationPayloadField>.GetInstance(payloadsLength, null);
+            foreach (KeyValuePair<int, InstrumentationPayloadField> payloads in _instrumentationPayloadFields)
+            {
+                payloadsBuilder[payloads.Key] = payloads.Value;
+            }
+
+            return payloadsBuilder.ToImmutableAndFree();
+        }
+
+        /* 
         // Every method instrumented for a given analysis kind has a payload index for that analysis kind. The payload index
         // gives the entry for that method in the payloads array.
         // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10386):
@@ -210,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
         }
+        */
 
         // Add a new synthesized method indexed by its name if the method isn't already present.
         internal bool TryAddSynthesizedMethod(Cci.IMethodDefinition method)
