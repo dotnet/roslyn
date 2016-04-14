@@ -327,6 +327,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (assemblySymbol == null)
+            {
+                return null;
+            }
+
             ProjectId id;
             s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out id);
             return id == null ? null : this.GetProject(id);
