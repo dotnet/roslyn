@@ -1529,6 +1529,66 @@ End Class
 
 #End Region
 
+#Region "IParameterKind.GetParameterArrayCount tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_0() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 0)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String()())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_1_Multi() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,))
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 1)
+        End Function
+
+#End Region
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.VisualBasic

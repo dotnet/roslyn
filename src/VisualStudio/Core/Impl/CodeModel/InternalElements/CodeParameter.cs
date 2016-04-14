@@ -201,7 +201,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         int IParameterKind.GetParameterArrayCount()
         {
-            throw new NotImplementedException();
+            var type = ParameterSymbol.Type;
+            int count = 0;
+            while (type?.TypeKind == TypeKind.Array)
+            {
+                count++;
+                type = ((IArrayTypeSymbol)type).ElementType;
+            }
+
+            return count;
         }
 
         int IParameterKind.GetParameterArrayDimensions(int index)

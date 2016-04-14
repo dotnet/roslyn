@@ -131,5 +131,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     action(passingMode, setter)
                 End Sub)
         End Function
+
+        Friend Async Function TestGetParameterArrayCount(code As XElement, expected As Integer) As Task
+            Await TestElement(code,
+                Sub(codeElement)
+                    Dim parameterKind = TryCast(codeElement, IParameterKind)
+                    Assert.NotNull(parameterKind)
+
+                    Dim actual = parameterKind.GetParameterArrayCount()
+                    Assert.Equal(expected, actual)
+                End Sub)
+        End Function
     End Class
 End Namespace
