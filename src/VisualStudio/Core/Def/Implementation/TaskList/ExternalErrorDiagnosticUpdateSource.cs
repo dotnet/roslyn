@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
-    internal class ExternalErrorDiagnosticUpdateSource : ForegroundThreadAffinitizedObject, IDiagnosticUpdateSource
+    internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -79,8 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void ClearErrors(ProjectId projectId)
         {
-            AssertIsForeground();
-
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
             {
@@ -140,8 +138,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         internal void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
         {
-            AssertIsForeground();
-
             if (e.Activated)
             {
                 // build just started, create the state and fire build in progress event.
@@ -324,8 +320,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
-            AssertIsForeground();
-
             var asyncToken = _listener.BeginAsyncOperation("Document New Errors");
             _taskQueue.ScheduleTask(() =>
             {
@@ -336,8 +330,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
-            AssertIsForeground();
-
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
             _taskQueue.ScheduleTask(() =>
             {
