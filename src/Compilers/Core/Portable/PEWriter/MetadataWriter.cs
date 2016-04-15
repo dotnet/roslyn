@@ -4595,7 +4595,7 @@ namespace Microsoft.Cci
                             int pseudoToken = ReadInt32(methodBodyIL, offset);
                             int token = 0;
                             // If any bits in the high-order byte of the pseudotoken are nonzero, replace the opcode with Ldc_i4
-                            // and clear the high-order byte in the pseudotoken.
+                            // and either clear the high-order byte in the pseudotoken or ignore the pseudotoken.
                             // This is a trick to enable loading raw metadata token indices as integers.
                             if (operandType == OperandType.InlineTok)
                             {

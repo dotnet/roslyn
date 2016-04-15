@@ -254,7 +254,7 @@ public class Program
     }
 }
 ";
-            // All instrumentation points in method 2 are be True because they are covered by at least one specialization.
+            // All instrumentation points in method 2 are True because they are covered by at least one specialization.
             //
             // This test verifies that the payloads of methods of generic types are in terms of method definitions and
             // not method references -- the indices for the methods would be different for references.

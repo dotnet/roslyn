@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Local(methodPayload), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
 
-                    // There mustbe a sequence point before any executable code. A sequence point
+                    // There must be a sequence point before any executable code. A sequence point
                     // won't be generated automatically for the synthesized prologue because the prologue is compiler generated, so
                     // force the generation of a sequence point for the prologue.
                     payloadInitialization = factory.SequencePoint(payloadInitialization.Syntax, payloadInitialization);
