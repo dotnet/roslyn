@@ -31,6 +31,7 @@ bool ConvertConsumptionToCsv(string source, string destination, string requiredM
                     if (xmlReader.Name.Equals("ScenarioResult"))
                     {
                         currentScenarioName = xmlReader.GetAttribute("Name");
+                        currentScenarioName = new string(currentScenarioName.TakeWhile(c => !Char.IsDigit(c)).ToArray());
 
                         // These are not test results
                         if (string.Equals(currentScenarioName, "..TestDiagnostics.."))
@@ -132,16 +133,26 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
     Log("Uploading traces");
     if (Directory.Exists(sourceFolderPath))
     {
-        // Get the latest written databackup
-        var directoryToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*").OrderByDescending(d=>d.LastWriteTimeUtc).FirstOrDefault();
-        if (directoryToUpload == null)
+        var directoriesToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*");
+        if (directoriesToUpload.Count() == 0)
         {
             Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
             return;
         }
 
-        var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
-        CopyDirectory(directoryToUpload.FullName, destination);
+        var perfResultDestinationFolderName = string.Format("PerfResults-{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
+        
+       var destination = Path.Combine(destinationFolderPath, perfResultDestinationFolderName);
+        foreach (var directoryToUpload in directoriesToUpload)
+        {
+            var destinationDataBackupDirectory = Path.Combine(destination, directoryToUpload.Name);
+            if (Directory.Exists(destinationDataBackupDirectory))
+            {
+                Directory.CreateDirectory(destinationDataBackupDirectory);
+            }
+            
+            CopyDirectory(directoryToUpload.FullName, destinationDataBackupDirectory);
+        }
 
         foreach(var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
         {

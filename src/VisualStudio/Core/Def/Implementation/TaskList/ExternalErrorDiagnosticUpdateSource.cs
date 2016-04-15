@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -203,13 +204,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
                     if (diagnosticService != null)
                     {
-                        using (var batchUpdateToken = diagnosticService.BeginBatchBuildDiagnosticsUpdate(solution))
-                        {
-                            await CleanupAllLiveErrorsIfNeededAsync(diagnosticService, batchUpdateToken, solution, inprogressState).ConfigureAwait(false);
-
-                            await SyncBuildErrorsAndReportAsync(diagnosticService, batchUpdateToken, solution, liveDiagnosticChecker, inprogressState.GetDocumentAndErrors(solution)).ConfigureAwait(false);
-                            await SyncBuildErrorsAndReportAsync(diagnosticService, batchUpdateToken, solution, liveDiagnosticChecker, inprogressState.GetProjectAndErrors(solution)).ConfigureAwait(false);
-                        }
+                        await CleanupAllLiveErrorsIfNeededAsync(diagnosticService, solution, inprogressState).ConfigureAwait(false);
+                        await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
                     }
 
                     inprogressState.Done();
@@ -217,90 +213,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }).CompletesAsyncOperation(asyncToken);
         }
 
-        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(
-            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
-            Solution solution, InprogressState state)
+        private async System.Threading.Tasks.Task CleanupAllLiveErrorsIfNeededAsync(DiagnosticAnalyzerService diagnosticService, Solution solution, InprogressState state)
         {
             if (_workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod))
             {
-                await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, solution.Projects).ConfigureAwait(false);
+                await CleanupAllLiveErrors(diagnosticService, solution.ProjectIds).ConfigureAwait(false);
                 return;
             }
 
             if (_workspace.Options.GetOption(InternalDiagnosticsOptions.ClearLiveErrorsForProjectBuilt))
             {
-                await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, state.GetProjectsBuilt(solution)).ConfigureAwait(false);
+                await CleanupAllLiveErrors(diagnosticService, state.GetProjectsBuilt(solution)).ConfigureAwait(false);
                 return;
             }
 
-            await CleanupAllLiveErrors(diagnosticService, batchUpdateToken, solution, state, state.GetProjectsWithoutErrors(solution)).ConfigureAwait(false);
+            await CleanupAllLiveErrors(diagnosticService, state.GetProjectsWithoutErrors(solution)).ConfigureAwait(false);
             return;
         }
 
-        private static async System.Threading.Tasks.Task CleanupAllLiveErrors(
-            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
-            Solution solution, InprogressState state, IEnumerable<Project> projects)
+        private System.Threading.Tasks.Task CleanupAllLiveErrors(DiagnosticAnalyzerService diagnosticService, IEnumerable<ProjectId> projects)
         {
-            foreach (var project in projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, document, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
-                }
-
-                await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, project, ImmutableArray<DiagnosticData>.Empty).ConfigureAwait(false);
-            }
+            var map = projects.ToImmutableDictionary(p => p, _ => ImmutableArray<DiagnosticData>.Empty);
+            return diagnosticService.SynchronizeWithBuildAsync(_workspace, map);
         }
 
-        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync<T>(
-            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken, Solution solution,
-            Func<DiagnosticData, bool> liveDiagnosticChecker, IEnumerable<KeyValuePair<T, HashSet<DiagnosticData>>> items)
+        private async System.Threading.Tasks.Task SyncBuildErrorsAndReportAsync(DiagnosticAnalyzerService diagnosticService, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
-            foreach (var kv in items)
+            // make those errors live errors
+            await diagnosticService.SynchronizeWithBuildAsync(_workspace, map).ConfigureAwait(false);
+
+            // raise events for ones left-out
+            var buildErrors = GetBuildErrors().Except(map.Values.SelectMany(v => v)).GroupBy(k => k.DocumentId);
+            foreach (var group in buildErrors)
             {
-                // get errors that can be reported by live diagnostic analyzer
-                var liveErrors = kv.Value.Where(liveDiagnosticChecker).ToImmutableArray();
-
-                // make those errors live errors
-                await SynchronizeWithBuildAsync(diagnosticService, batchUpdateToken, kv.Key, liveErrors).ConfigureAwait(false);
-
-                // raise events for ones left-out
-                if (liveErrors.Length != kv.Value.Count)
+                if (group.Key == null)
                 {
-                    var buildErrors = kv.Value.Except(liveErrors).ToImmutableArray();
-                    ReportBuildErrors(kv.Key, buildErrors);
+                    foreach (var projectGroup in group.GroupBy(g => g.ProjectId))
+                    {
+                        Contract.ThrowIfNull(projectGroup.Key);
+                        ReportBuildErrors(projectGroup.Key, projectGroup.ToImmutableArray());
+                    }
+
+                    continue;
                 }
-            }
-        }
 
-        private static async System.Threading.Tasks.Task SynchronizeWithBuildAsync<T>(
-            DiagnosticAnalyzerService diagnosticService, IDisposable batchUpdateToken,
-            T item, ImmutableArray<DiagnosticData> liveErrors)
-        {
-            var project = item as Project;
-            if (project != null)
-            {
-                await diagnosticService.SynchronizeWithBuildAsync(batchUpdateToken, project, liveErrors).ConfigureAwait(false);
-                return;
+                ReportBuildErrors(group.Key, group.ToImmutableArray());
             }
-
-            // must be not null
-            var document = item as Document;
-            await diagnosticService.SynchronizeWithBuildAsync(batchUpdateToken, document, liveErrors).ConfigureAwait(false);
         }
 
         private void ReportBuildErrors<T>(T item, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var project = item as Project;
-            if (project != null)
+            var projectId = item as ProjectId;
+            if (projectId != null)
             {
-                RaiseDiagnosticsCreated(project.Id, project.Id, null, buildErrors);
+                RaiseDiagnosticsCreated(projectId, projectId, null, buildErrors);
                 return;
             }
 
             // must be not null
-            var document = item as Document;
-            RaiseDiagnosticsCreated(document.Id, document.Project.Id, document.Id, buildErrors);
+            var documentId = item as DocumentId;
+            RaiseDiagnosticsCreated(documentId, documentId.ProjectId, documentId, buildErrors);
         }
 
         private Dictionary<ProjectId, HashSet<string>> GetSupportedLiveDiagnosticId(Solution solution, InprogressState state)
@@ -308,8 +280,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var map = new Dictionary<ProjectId, HashSet<string>>();
 
             // here, we don't care about perf that much since build is already expensive work
-            foreach (var project in state.GetProjectsWithErrors(solution))
+            foreach (var projectId in state.GetProjectsWithErrors(solution))
             {
+                var project = solution.GetProject(projectId);
+                if (project == null)
+                {
+                    continue;
+                }
+
                 var descriptorMap = _diagnosticService.GetDiagnosticDescriptors(project);
                 map.Add(project.Id, new HashSet<string>(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id))));
             }
@@ -429,12 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()
             {
-                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-
-                builder.AddRange(_projectMap.Values.SelectMany(d => d));
-                builder.AddRange(_documentMap.Values.SelectMany(d => d));
-
-                return builder.ToImmutable();
+                return ImmutableArray.CreateRange(_projectMap.Values.SelectMany(d => d).Concat(_documentMap.Values.SelectMany(d => d)));
             }
 
             public void Built(ProjectId projectId)
@@ -442,56 +415,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _builtProjects.Add(projectId);
             }
 
-            public IEnumerable<Project> GetProjectsBuilt(Solution solution)
+            public IEnumerable<ProjectId> GetProjectsBuilt(Solution solution)
             {
-                return solution.Projects.Where(p => _builtProjects.Contains(p.Id));
+                return solution.ProjectIds.Where(p => _builtProjects.Contains(p));
             }
 
-            public IEnumerable<Project> GetProjectsWithErrors(Solution solution)
+            public IEnumerable<ProjectId> GetProjectsWithErrors(Solution solution)
             {
-                foreach (var projectId in _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct())
-                {
-                    var project = solution.GetProject(projectId);
-                    if (project == null)
-                    {
-                        continue;
-                    }
-
-                    yield return project;
-                }
+                return GetProjectIds().Where(p => solution.GetProject(p) != null);
             }
 
-            public IEnumerable<Project> GetProjectsWithoutErrors(Solution solution)
+            public IEnumerable<ProjectId> GetProjectsWithoutErrors(Solution solution)
             {
                 return GetProjectsBuilt(solution).Except(GetProjectsWithErrors(solution));
             }
 
-            public IEnumerable<KeyValuePair<Document, HashSet<DiagnosticData>>> GetDocumentAndErrors(Solution solution)
+            public ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> GetLiveDiagnosticsPerProject(Func<DiagnosticData, bool> liveDiagnosticChecker)
             {
-                foreach (var kv in _documentMap)
+                var builder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
+                foreach (var projectId in GetProjectIds())
                 {
-                    var document = solution.GetDocument(kv.Key);
-                    if (document == null)
-                    {
-                        continue;
-                    }
+                    var diagnostics = ImmutableArray.CreateRange(
+                        _projectMap.Where(kv => kv.Key == projectId).SelectMany(kv => kv.Value).Concat(
+                            _documentMap.Where(kv => kv.Key.ProjectId == projectId).SelectMany(kv => kv.Value)).Where(liveDiagnosticChecker));
 
-                    yield return KeyValuePair.Create(document, kv.Value);
+                    builder.Add(projectId, diagnostics);
                 }
-            }
 
-            public IEnumerable<KeyValuePair<Project, HashSet<DiagnosticData>>> GetProjectAndErrors(Solution solution)
-            {
-                foreach (var kv in _projectMap)
-                {
-                    var project = solution.GetProject(kv.Key);
-                    if (project == null)
-                    {
-                        continue;
-                    }
-
-                    yield return KeyValuePair.Create(project, kv.Value);
-                }
+                return builder.ToImmutable();
             }
 
             public void AddErrors(DocumentId key, HashSet<DiagnosticData> diagnostics)
@@ -511,17 +462,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             private void AddErrors<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key, HashSet<DiagnosticData> diagnostics)
             {
-                var errors = GetErrors(map, key);
+                var errors = GetErrorSet(map, key);
                 errors.UnionWith(diagnostics);
             }
 
             private void AddError<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key, DiagnosticData diagnostic)
             {
-                var errors = GetErrors(map, key);
+                var errors = GetErrorSet(map, key);
                 errors.Add(diagnostic);
             }
 
-            private HashSet<DiagnosticData> GetErrors<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key)
+            private IEnumerable<ProjectId> GetProjectIds()
+            {
+                return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
+            }
+
+            private HashSet<DiagnosticData> GetErrorSet<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key)
             {
                 return map.GetOrAdd(key, _ => new HashSet<DiagnosticData>(DiagnosticDataComparer.Instance));
             }
