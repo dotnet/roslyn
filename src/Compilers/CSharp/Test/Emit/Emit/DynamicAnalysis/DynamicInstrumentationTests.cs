@@ -8,7 +8,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicInstrumentationTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"namespace Microsoft.CodeAnalysis.Runtime
+        const string InstrumentationHelperSource = @"
+namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
     {

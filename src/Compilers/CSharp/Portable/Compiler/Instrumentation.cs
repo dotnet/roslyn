@@ -57,14 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Local(methodPayload), factory.Null(payloadType));
                     BoundStatement payloadIf = factory.If(payloadNullTest, createPayloadCall);
 
-                    // Methods defined without block syntax won't naturally get a sequence point for the entry of the method.
-                    // It is a requirement that there be a sequence point before any executable code. A sequence point
-                    // won't be generated automatically for the synthesized if statement because the if statement is compiler generated, so
-                    // force the generation of a sequence point for the if statement.
-                    if (!methodHasExplicitBlock)
-                    {
-                        payloadInitialization = factory.SequencePoint(payloadInitialization.Syntax, payloadInitialization);
-                    }
+                    // There mustbe a sequence point before any executable code. A sequence point
+                    // won't be generated automatically for the synthesized prologue because the prologue is compiler generated, so
+                    // force the generation of a sequence point for the prologue.
+                    payloadInitialization = factory.SequencePoint(payloadInitialization.Syntax, payloadInitialization);
 
                     ImmutableArray<BoundStatement> newStatements = ImmutableArray.Create<BoundStatement>(payloadInitialization, payloadIf).AddRange(newMethodBody.Statements);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals.Add(methodPayload), newMethodBody.LocalFunctions, newStatements);
@@ -271,7 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!statement.WasCompilerGenerated)
                 {
-                    return CollectDynamicAnalysis(visited);
+                    // Do not instrument implicit constructor initializers
+                    if (!statement.IsConstructorInitializer() || statement.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)
+                    {
+                        return CollectDynamicAnalysis(visited);
+                    }
                 }
             }
 

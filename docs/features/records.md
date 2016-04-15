@@ -223,6 +223,7 @@ For a *record struct* or a `sealed` *record class*, implementations of the metho
 - [ ] **Open issue**: We should also specify that we implement every `IEquatable<T>.Equals`.
 - [ ] **Open issue**: We should specify precisely how we solve the problem of Equals in the face of record inheritance: specifically how we generate equality methods such that they are symmetric, transitive, reflexive, etc.
 - [ ] **Open issue**: It has been proposed that we implement `operator ==` and `operator !=` for record types.
+- [ ] **Open issue**: Should we auto-generate an implementation of `object.ToString`?
 
 #### `operator is`
 
@@ -234,9 +235,9 @@ See [the pattern-matching specification](patterns.md) for the semantics of `oper
 
 Unless there is a user-declared member named `With` declared, a record type has a compiler-provided method named `With` whose return type is the record type itself, and containing one value parameter corresponding to each *record-parameter* in the same order that these parameters appear in the record type declaration. Each parameter shall have a *caller-receiver default-argument* of the corresponding property.
 
-In an `abstract` record class, the compiler-provided `With` method is abstract. Otherwise the compiler-provided `With` method's implementation shall return a new instance produced by invoking the the primary constructor with the parameters as arguments to create a new instance from the parameters, and return that new instance.
+In an `abstract` record class, the compiler-provided `With` method is abstract. In a record struct, or a sealed record class, the compiler-provided `With` method is `sealed`. Otherwise the compiler-provided `With` method is `virtual and its implementation shall return a new instance produced by invoking the the primary constructor with the parameters as arguments to create a new instance from the parameters, and return that new instance.
 
-- [ ] **Open issue**: We should also specify when we override or implement inherited virtual `With` methods.
+- [ ] **Open issue**: We should also specify under what conditions we override or implement inherited virtual `With` methods or `With` methods from implemented interfaces.
 - [ ] **Open issue**: We should say what happens when we inherit a non-virtual `With` method.
 
 > **Design notes**: Because record types are by default immutable, the `With` method provides a way of creating a new instance that is the same as an existing instance but with selected properties given new values. For example, given
@@ -245,7 +246,7 @@ In an `abstract` record class, the compiler-provided `With` method is abstract. 
 > ```
 > there is a compiler-provided member
 > ```cs
->     public Point With(int X = this.X, int Y = this.Y) => new Point(X, Y);
+>     public virtual Point With(int X = this.X, int Y = this.Y) => new Point(X, Y);
 > ```
 > Which enables an variable of the record type
 > ```cs

@@ -826,8 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // INamespaceTypeReference is a type contained in a namespace
                 // if this method is called for a nested type, we are in big trouble.
                 Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
-                return this.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
-            }
+
+                return this.ContainingNamespace.QualifiedName;
+           }
         }
 
         bool Cci.INamespaceTypeDefinition.IsPublic
