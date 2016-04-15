@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal static readonly string SyntaxNodeAnalysisContextFullName = typeof(SyntaxNodeAnalysisContext).FullName;
         internal static readonly string SyntaxTreeAnalysisContextFullName = typeof(SyntaxTreeAnalysisContext).FullName;
         internal static readonly string CodeBlockStartAnalysisContextFullName = typeof(CodeBlockStartAnalysisContext<>).FullName;
-        internal static readonly string CodeBlockEndAnalysisContextFullName = typeof(CodeBlockAnalysisContext).FullName;
+        internal static readonly string CodeBlockAnalysisContextFullName = typeof(CodeBlockAnalysisContext).FullName;
+        internal static readonly string OperationBlockStartAnalysisContextFullName = typeof(OperationBlockStartAnalysisContext).FullName;
+        internal static readonly string OperationBlockAnalysisContextFullName = typeof(OperationBlockAnalysisContext).FullName;
+        internal static readonly string OperationAnalysisContextFullName = typeof(OperationAnalysisContext).FullName;
         internal static readonly string SymbolKindFullName = typeof(SymbolKind).FullName;
 
         internal const string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
@@ -28,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal const string RegisterCodeBlockStartActionName = nameof(AnalysisContext.RegisterCodeBlockStartAction);
         internal const string RegisterCodeBlockEndActionName = nameof(CodeBlockStartAnalysisContext<int>.RegisterCodeBlockEndAction);
         internal const string RegisterCodeBlockActionName = nameof(AnalysisContext.RegisterCodeBlockAction);
+        internal const string RegisterOperationBlockStartActionName = nameof(AnalysisContext.RegisterOperationBlockStartAction);
+        internal const string RegisterOperationBlockEndActionName = nameof(OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction);
+        internal const string RegisterOperationBlockActionName = nameof(AnalysisContext.RegisterOperationBlockAction);
+        internal const string RegisterOperationActionName = nameof(AnalysisContext.RegisterOperationAction);
         internal const string RegisterCompilationStartActionName = nameof(AnalysisContext.RegisterCompilationStartAction);
         internal const string RegisterCompilationEndActionName = nameof(CompilationStartAnalysisContext.RegisterCompilationEndAction);
         internal const string RegisterCompilationActionName = nameof(AnalysisContext.RegisterCompilationAction);

@@ -53,13 +53,23 @@ class MyAnalyzer : DiagnosticAnalyzer
         Diagnostic diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None); 
         context.ReportDiagnostic(diag);
     }
+
+    private static void AnalyzeOperation(OperationAnalysisContext context)
+    {
+        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+
+        var diag = Diagnostic.Create(descriptor2, Location.None);
+        context.ReportDiagnostic(diag);
+    }
 }";
             DiagnosticResult[] expected = new[]
             {
                 GetCSharpExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
                 GetCSharpExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
                 GetCSharpExpectedDiagnostic(35, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2")
+                GetCSharpExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(43, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(46, 9, unsupportedDescriptorName: "descriptor2")
             };
 
             VerifyCSharp(source, expected);
@@ -103,6 +113,13 @@ Class MyAnalyzer
         Dim diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None)
         context.ReportDiagnostic(diag)
     End Sub
+
+    Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
+        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
+
+        Dim diag = Diagnostic.Create(descriptor2, Location.None)
+        context.ReportDiagnostic(diag)
+    End Sub
 End Class
 ";
             DiagnosticResult[] expected = new[]
@@ -110,7 +127,9 @@ End Class
                 GetBasicExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2"),
                 GetBasicExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
                 GetBasicExpectedDiagnostic(31, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2")
+                GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(41, 9, unsupportedDescriptorName: "descriptor2")
             };
 
             VerifyBasic(source, expected);
