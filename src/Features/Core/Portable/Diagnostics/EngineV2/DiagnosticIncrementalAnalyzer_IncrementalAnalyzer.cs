@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -101,95 +102,110 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            // let other component knows about this event
-            _compilationManager.OnDocumentOpened();
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
+            {
+                // let other component knows about this event
+                _compilationManager.OnDocumentOpened();
 
-            // here we dont need to raise any event, it will be taken cared by analyze methods.
-            return SpecializedTasks.EmptyTask;
+                // here we dont need to raise any event, it will be taken cared by analyze methods.
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            var stateSets = _stateManager.GetStateSets(document.Project);
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
+            {
+                var stateSets = _stateManager.GetStateSets(document.Project);
 
-            // let other components knows about this event
-            _compilationManager.OnDocumentClosed();
-            var changed = _stateManager.OnDocumentClosed(stateSets, document.Id);
+                // let other components knows about this event
+                _compilationManager.OnDocumentClosed();
+                var changed = _stateManager.OnDocumentClosed(stateSets, document.Id);
 
-            // replace diagnostics from project state over active file state
-            RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
+                // replace diagnostics from project state over active file state
+                RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
 
-            return SpecializedTasks.EmptyTask;
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
-            var stateSets = _stateManager.GetStateSets(document.Project);
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
+            {
+                var stateSets = _stateManager.GetStateSets(document.Project);
 
-            // let other components knows about this event
-            _compilationManager.OnDocumentReset();
-            var changed = _stateManager.OnDocumentReset(stateSets, document.Id);
+                // let other components knows about this event
+                _compilationManager.OnDocumentReset();
+                var changed = _stateManager.OnDocumentReset(stateSets, document.Id);
 
-            // replace diagnostics from project state over active file state
-            RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
+                // replace diagnostics from project state over active file state
+                RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
 
-            return SpecializedTasks.EmptyTask;
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
-
-            // let other components knows about this event
-            _compilationManager.OnDocumentRemoved();
-            var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
-
-            // if there was no diagnostic reported for this document, nothing to clean up
-            if (!changed)
+            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
             {
-                // this is Perf to reduce raising events unnecessarily.
-                return;
-            }
+                var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
 
-            // remove all diagnostics for the document
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                Solution nullSolution = null;
-                foreach (var stateSet in stateSets)
+                // let other components knows about this event
+                _compilationManager.OnDocumentRemoved();
+                var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
+
+                // if there was no diagnostic reported for this document, nothing to clean up
+                if (!changed)
                 {
-                    // clear all doucment diagnostics
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                    // this is Perf to reduce raising events unnecessarily.
+                    return;
                 }
-            });
+
+                // remove all diagnostics for the document
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    Solution nullSolution = null;
+                    foreach (var stateSet in stateSets)
+                    {
+                        // clear all doucment diagnostics
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                    }
+                });
+            }
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            var stateSets = _stateManager.GetStateSets(projectId);
-
-            // let other components knows about this event
-            _compilationManager.OnProjectRemoved();
-            var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
-
-            // if there was no diagnostic reported for this project, nothing to clean up
-            if (!changed)
+            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
-                // this is Perf to reduce raising events unnecessarily.
-                return;
-            }
+                var stateSets = _stateManager.GetStateSets(projectId);
 
-            // remove all diagnostics for the project
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                Solution nullSolution = null;
-                foreach (var stateSet in stateSets)
+                // let other components knows about this event
+                _compilationManager.OnProjectRemoved();
+                var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
+
+                // if there was no diagnostic reported for this project, nothing to clean up
+                if (!changed)
                 {
-                    // clear all project diagnostics
-                    RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+                    // this is Perf to reduce raising events unnecessarily.
+                    return;
                 }
-            });
+
+                // remove all diagnostics for the project
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    Solution nullSolution = null;
+                    foreach (var stateSet in stateSets)
+                    {
+                        // clear all project diagnostics
+                        RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+                    }
+                });
+            }
         }
 
         public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

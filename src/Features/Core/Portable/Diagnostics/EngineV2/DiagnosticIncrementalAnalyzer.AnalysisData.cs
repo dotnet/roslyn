@@ -122,15 +122,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (!version.HasValue)
                     {
-                        if (result.Version != VersionStamp.Default)
-                        {
-                            version = result.Version;
-                        }
+                        version = result.Version;
                     }
-                    else
+                    else if (version.Value != VersionStamp.Default && version.Value != result.Version)
                     {
-                        // all version must be same or default (means not there yet)
-                        Contract.Requires(version == result.Version || result.Version == VersionStamp.Default);
+                        // if not all version is same, set version as default.
+                        // this can happen at the initial data loading or
+                        // when document is closed and we put active file state to project state (not implemented yet)
+                        version = VersionStamp.Default;
                     }
 
                     builder.Add(stateSet.Analyzer, result);
