@@ -14,8 +14,5 @@ ShellOutVital(Path.Combine(directoryUtil.RoslynDirectory, "Restore.cmd"), "", wo
 // Build Roslyn in Release Mode
 ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: directoryUtil.RoslynDirectory);
 
-// Run DownloadTools before using the TraceManager because TraceManager uses the downloaded CPC binaries
-DownloadTools();
-
 // Run run_and_report.csx
 await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "run_and_report.csx"));
