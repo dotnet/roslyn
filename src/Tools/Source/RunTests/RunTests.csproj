@@ -12,7 +12,7 @@
     <RootNamespace>RunTests</RootNamespace>
     <AssemblyName>RunTests</AssemblyName>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>false</SignAssembly>
     <OutDir>$(OutDir)RunTests\</OutDir>
   </PropertyGroup>
