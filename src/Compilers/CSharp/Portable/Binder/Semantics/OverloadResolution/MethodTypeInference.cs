@@ -718,15 +718,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
+                // TODO: VS can this be ever different from argument.Type ?
+                var argumentType = _argumentTypes[arg];
+
+                MakeOutputTypeInferences(binder, argument, argumentType, formalType, ref useSiteDiagnostics);
+            }
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeSymbol argumentType, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // recurse into tuples
+            // TODO: VS no need if has type
+            if (argument.Kind == BoundKind.TupleLiteral)
+            {
+                MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, argumentType, formalType, ref useSiteDiagnostics);
+            }
+            else
+            {
                 if (HasUnfixedParamInOutputType(argument, formalType) && !HasUnfixedParamInInputType(argument, formalType))
                 {
-                    var argumentType = _argumentTypes[arg];
                     //UNDONE: if (argument->isTYPEORNAMESPACEERROR() && argumentType->IsErrorType())
                     //UNDONE: {
                     //UNDONE:     argumentType = GetTypeManager().GetErrorSym();
                     //UNDONE: }
                     OutputTypeInference(binder, argument, argumentType, formalType, ref useSiteDiagnostics);
                 }
+            }
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol argumentType, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (formalType.Kind != SymbolKind.NamedType)
+            {
+                // tuples can only cast to tuples or tuple underlying types.
+                return;
+            }
+
+            var destination = (NamedTypeSymbol)formalType;
+
+            if (destination.IsTupleType)
+            {
+                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
+            }
+
+            Debug.Assert(argument.Type == null, "should not need dig into elements if tuple has natural type");
+            var sourceArguments = argument.Arguments;
+
+            // check if underlying type is actually a possible underlying type for a tuple of given arity
+            if (!binder.Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
+            {
+                return;
+            }
+
+            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
+            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+
+            try
+            {
+                if (sourceArguments.Length != destTypes.Count)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < sourceArguments.Length; i++)
+                {
+                    var sourceArgument = sourceArguments[i];
+                    var destType = destTypes[i];
+                    OutputTypeInference(binder, sourceArgument, sourceArgument.Type, destType, ref useSiteDiagnostics);
+                }
+            }
+            finally
+            {
+                destTypes.Free();
             }
         }
 
@@ -1390,6 +1453,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // SPEC: PROTOTYPE(tuples): spec quote here
+
+            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise, if V is a constructed type C<V1...Vk> and U is a constructed
             // SPEC:   type C<U1...Uk> then an exact inference is made
             // SPEC:    from each Ui to the corresponding Vi.
@@ -1594,8 +1664,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     return;
             // }
 
-            // SPEC: Otherwise... many cases for constructed generic types.
 
+            // SPEC: PROTOTYPE(tuples) spec quote here.
+
+            // NOTE: Tuple inference is exact since tuples are non-variant.
+            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
+            // SPEC: Otherwise... many cases for constructed generic types.
             if (LowerBoundConstructedInference(source, target, ref useSiteDiagnostics))
             {
                 return;
@@ -1713,6 +1791,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        private bool ExactTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)target != null);
+
+            // SPEC: PROTOTYPE(tuples): would be nice to quote spec here
+            
+            // NOTE: we are losing tuple element names when unwrapping tuples to underlying types.
+            //       that is ok, because ExactTypeArgumentInference only cares about 
+            //       type arguments, not the types themselves
+
+            bool hasTuples = false;
+            if (source.IsTupleType)
+            {
+                source = ((TupleTypeSymbol)source).UnderlyingTupleType;
+                hasTuples = true;
+            }
+
+            if (target.IsTupleType)
+            {
+                target = ((TupleTypeSymbol)target).UnderlyingTupleType;
+                hasTuples = true;
+            }
+
+            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
+            {
+                return false;
+            }
+            
+            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            return true;
+        }
+
         private bool LowerBoundConstructedInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
@@ -1722,16 +1833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)constructedTarget == null)
             {
                 return false;
-            }
-
-            if (constructedTarget.IsTupleType)
-            {
-                //PROTOTYPE(tuples): we are losing tuple names here
-                //                   need to figure what to do with names. 
-                //                   in particular what if we have conflicting inference 
-                //                   differing in names only.
-                //                   From compat/interop point of view that should be somehow allowed
-                constructedTarget = ((TupleTypeSymbol)constructedTarget).UnderlyingTupleType;
             }
 
             if (constructedTarget.AllTypeArgumentCount() == 0)
@@ -1749,12 +1850,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   is made from each Ui to the corresponding Vi.
 
             var constructedSource = source as NamedTypeSymbol;
-            if (constructedSource?.IsTupleType == true)
-            {
-                //PROTOTYPE(tuples): we are losing tuple names here
-                constructedSource = ((TupleTypeSymbol)constructedSource).UnderlyingTupleType;
-            }
-
             if ((object)constructedSource != null &&
                 constructedSource.OriginalDefinition == constructedTarget.OriginalDefinition)
             {
