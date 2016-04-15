@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NamedTypeSymbol _underlyingType;
         private readonly ImmutableArray<TupleFieldSymbol> _fields;
+        private readonly bool _hasFriendlyNames;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
 
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblySymbol accessWithin)
         {
             _underlyingType = underlyingType;
+            _hasFriendlyNames = !elementNames.IsDefault;
 
             // build the fields
             int approxSize = elementNames.IsDefault ? underlyingType.Arity : elementNames.Length;
@@ -97,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 NamedTypeSymbol newUnderlyingType)
         {
             _underlyingType = newUnderlyingType;
+            _hasFriendlyNames = originalTuple._hasFriendlyNames;
 
             var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
 
@@ -133,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ImmutableArray<string> newElementNames)
         {
             _underlyingType = originalTuple._underlyingType;
+            _hasFriendlyNames = !newElementNames.IsDefault;
 
             var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
             var originalFields = originalTuple._fields;
@@ -507,6 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingType;
             }
         }
+
+        internal bool HasFriendlyNames => _hasFriendlyNames;
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
