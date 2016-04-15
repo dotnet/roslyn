@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
             }
 
-            Debug.Assert(tupleSource.Type == null, "should not need dig into elements if tuple has natural type");
+            Debug.Assert(tupleSource.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = tupleSource.Arguments;
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
