@@ -225,6 +225,8 @@ System.Console.Error.WriteLine(""error-\u7890!"");
                 return;
             }
 
+            var process = _host.TryGetProcess();
+
             Execute(@"
 int foo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
@@ -234,8 +236,10 @@ foo(0,1,2,3,4,5,6,7,8,9)
             ");
 
             Assert.Equal("", ReadOutputToEnd());
-            // Hosting process exited with exit code -1073741571.
-            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.HostingProcessExitedWithExitCode, -1073741571), ReadErrorOutputToEnd().Trim());
+
+            // Hosting process exited with exit code ###.
+            var errorOutput = ReadErrorOutputToEnd().Trim();
+            Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(FeaturesResources.HostingProcessExitedWithExitCode, process.ExitCode), errorOutput);
 
             Execute(@"1+1");
 

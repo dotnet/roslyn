@@ -115,6 +115,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTestBase.cs" />
+    <Compile Include="CoreCLRRuntimeEnvironment.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="ModuleData.cs" />
@@ -136,9 +138,5 @@
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties project_1json__JSONSchema="http://json.schemastore.org/launchsettings" />
-    </VisualStudio>
-  </ProjectExtensions>
+  <ProjectExtensions />
 </Project>

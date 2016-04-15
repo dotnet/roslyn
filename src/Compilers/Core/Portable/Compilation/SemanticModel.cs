@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetOperationCore(node, cancellationToken);
+            return this.GetOperationCore(node, cancellationToken);
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);

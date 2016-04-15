@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal class DiagnosticAnalyzerDriver
     {
+        private readonly Project _project;
         private readonly Document _document;
 
         // The root of the document.  May be null for documents without a root.
@@ -23,8 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         // The span of the documents we want diagnostics for.  If null, then we want diagnostics 
         // for the entire file.
         private readonly TextSpan? _span;
-        private readonly Project _project;
+
         private readonly DiagnosticIncrementalAnalyzer _owner;
+        private readonly IEnumerable<DiagnosticAnalyzer> _analyzers;
+
         private readonly bool _concurrentAnalysis;
         private readonly bool _reportSuppressedDiagnostics;
         private readonly CancellationToken _cancellationToken;
@@ -36,10 +39,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             TextSpan? span,
             SyntaxNode root,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CancellationToken cancellationToken)
-            : this(document, span, root, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
+            : this(document, span, root, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
         {
         }
 
@@ -48,11 +53,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             TextSpan? span,
             SyntaxNode root,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CompilationWithAnalyzers cachedCompilationWithAnalyzersOpt,
             CancellationToken cancellationToken)
-            : this(document.Project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt, cancellationToken)
+            : this(document.Project, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt, cancellationToken)
         {
             _document = document;
             _span = span;
@@ -62,16 +69,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         public DiagnosticAnalyzerDriver(
             Project project,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CancellationToken cancellationToken)
-            : this(project, owner, concurrentAnalysis, reportSuppressedDiagnostics, cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
+            : this(project, owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics,
+                   cachedCompilationWithAnalyzersOpt: null, cancellationToken: cancellationToken)
         {
         }
 
         public DiagnosticAnalyzerDriver(
             Project project,
             DiagnosticIncrementalAnalyzer owner,
+            IEnumerable<DiagnosticAnalyzer> analyzers,
             bool concurrentAnalysis,
             bool reportSuppressedDiagnostics,
             CompilationWithAnalyzers cachedCompilationWithAnalyzersOpt,
@@ -79,10 +89,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             _project = project;
             _owner = owner;
+            _analyzers = analyzers;
+
             _concurrentAnalysis = concurrentAnalysis;
             _reportSuppressedDiagnostics = reportSuppressedDiagnostics;
             _cancellationToken = cancellationToken;
             _lazyCompilationWithAnalyzers = cachedCompilationWithAnalyzersOpt;
+
+#if DEBUG
+            // this is a bit wierd, but if both analyzers and compilationWithAnalyzers are given,
+            // make sure both are same.
+            // We also need to handle the fact that compilationWithAnalyzers is created with all non-supprssed analyzers.
+            if (_lazyCompilationWithAnalyzers != null)
+            {
+                var filteredAnalyzers = _analyzers
+                    .Where(a => !CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(a, _lazyCompilationWithAnalyzers.Compilation.Options, _lazyCompilationWithAnalyzers.AnalysisOptions.OnAnalyzerException))
+                    .Distinct();
+                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(filteredAnalyzers));
+            }
+#endif
         }
 
         public Document Document
@@ -128,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 Interlocked.CompareExchange(
                     ref _lazyCompilationWithAnalyzers,
-                    _owner.GetCompilationWithAnalyzers(_project, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
+                    _owner.GetCompilationWithAnalyzers(_project, _analyzers, compilation, _concurrentAnalysis, _reportSuppressedDiagnostics),
                     null);
             }
 
@@ -270,12 +295,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                 {
-                    if (_project.SupportsCompilation)
+                    var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
+                    if (projectAnalyzer != null)
                     {
-                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                        await this.GetProjectDiagnosticsWorkerAsync(projectAnalyzer, diagnostics.Object).ConfigureAwait(false);
+                        return diagnostics.Object.ToImmutableArray();
                     }
 
-                    await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(_project.SupportsCompilation);
+                    await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
 
                     return diagnostics.Object.ToImmutableArray();
                 }
@@ -286,29 +314,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task GetProjectDiagnosticsWorkerAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
+        private async Task GetProjectDiagnosticsWorkerAsync(ProjectDiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
+
             try
             {
-                var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                if (projectAnalyzer == null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    OnAnalyzerException(e, analyzer, compilation);
-                }
+                await analyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                OnAnalyzerException(e, analyzer, compilation);
             }
         }
 

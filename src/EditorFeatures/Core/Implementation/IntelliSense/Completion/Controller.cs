@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -123,12 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var selectedItem = modelOpt.SelectedItem;
-                var viewSpan = modelOpt.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(viewSpan, this.TextView.TextSnapshot)
+                var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
                                           .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.Builder, this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode), modelOpt.IsSoftSelection);
+                    triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.Builder,
+                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode), 
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
             }
         }
 
@@ -146,6 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (this.TextView.Selection.Mode == TextSelectionMode.Box)
             {
+                Trace.WriteLine("Box selection, cannot have completion");
+
                 // No completion with multiple selection
                 return false;
             }
@@ -154,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var caret = TextView.GetCaretPoint(SubjectBuffer);
             if (!caret.HasValue)
             {
+                Trace.WriteLine("Caret is not mappable to subject buffer, cannot have completion");
+
                 return false;
             }
 
@@ -197,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
+                Trace.WriteLine("Failed to get a workspace, cannot have a completion session.");
                 return null;
             }
 

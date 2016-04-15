@@ -13,12 +13,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' there is no fancy logic applied to it.
     ''' </summary>
     Partial Public Class RenameEngineTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
 
         <WorkItem(543661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543661")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CannotRenameNamespaceAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
                        <Project Language="C#" CommonReferences="true">
                            <Document>
@@ -39,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <WorkItem(813409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813409")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeDoesNotRenameGeneratedConstructorCalls()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                    <Workspace>
                        <Project Language="C#" CommonReferences="true">
                            <Document>
@@ -58,7 +63,7 @@ struct [|$$Type|]
         <WorkItem(856078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/856078")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub UnmodifiedDocumentsAreNotCheckedOutBySourceControl()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document FilePath="Test1.cs">
@@ -86,7 +91,7 @@ class C2
         <WorkItem(773400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773400")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ReferenceConflictInsideDelegateLocalNotRenamed()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -116,7 +121,7 @@ class C
         <WorkItem(773673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773673")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMoreThanOneTokenInUnResolvedStatement()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
@@ -144,7 +149,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInvocationExpressionAcrossProjects()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test1.cs">
@@ -176,7 +181,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInvocationExpressionAcrossProjectsWithPartialClass()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test1.cs">
@@ -212,7 +217,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInvocationExpressionAcrossProjectsWithConflictResolve()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test1.cs">
@@ -256,7 +261,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RollBackExpandedConflicts_WithinInvocationExpression()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="C#" CommonReferences="true">
                                     <Document>
@@ -285,7 +290,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RollBackExpandedConflicts_WithinQuery()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="Visual Basic" CommonReferences="true">
                                     <Document>
@@ -307,7 +312,7 @@ class {|unresolve3:$$D|} // Rename to C
         Public Sub RenameOverloadCSharp()
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="C#" CommonReferences="true">
                                     <Document>
@@ -345,7 +350,7 @@ class {|unresolve3:$$D|} // Rename to C
         Public Sub RenameOverloadVisualBasic()
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="Visual Basic" CommonReferences="true">
                                     <Document>
@@ -384,7 +389,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, WorkItem(761929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761929"), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictCheckInInvocationCSharp()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -417,7 +422,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, WorkItem(761922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761922"), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictCheckInInvocationVisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -443,7 +448,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameType()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -468,7 +473,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossFiles()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#">
                         <Document>
@@ -501,7 +506,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeAcrossProjectsAndLanguages()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document>
@@ -539,7 +544,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorDefinition()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -565,7 +570,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromConstructorUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -591,7 +596,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromDestructor()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -611,7 +616,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpTypeFromSynthesizedConstructorUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -633,7 +638,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -657,7 +662,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -681,7 +686,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpPredefinedTypeVariables3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -705,7 +710,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -725,7 +730,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -745,7 +750,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicPredefinedTypeVariables3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -765,7 +770,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(539801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539801")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpEnumMemberToContainingEnumName()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -785,7 +790,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(5886, "https://github.com/dotnet/roslyn/pull/5886")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpEnumToEnumMemberName()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -804,7 +809,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromConstructorUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -828,7 +833,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicTypeFromSynthesizedConstructorUse()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -848,7 +853,7 @@ class {|unresolve3:$$D|} // Rename to C
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespace()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -869,7 +874,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnum()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -889,7 +894,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(6874, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/6874")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicEnumMember()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -909,7 +914,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(539525, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539525")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNothingRename()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -931,7 +936,7 @@ class {|unresolve3:$$D|} // Rename to C
         <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpBugfix553631()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -959,7 +964,7 @@ class Program
         <WorkItem(553631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553631")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicBugfix553631()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -991,7 +996,7 @@ End Class
         <WorkItem(541697, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541697")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExtensionMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1020,7 +1025,7 @@ End Class
         <WorkItem(542202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542202")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1046,7 +1051,7 @@ End Class
         <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCSharpIndexerNamedArgument2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1071,7 +1076,7 @@ End Class
         <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameRangeVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1098,7 +1103,7 @@ End Class
         <WorkItem(542106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542106")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicParameterizedPropertyNamedArgument()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1128,7 +1133,7 @@ End Class
         <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromDeclaration()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1153,7 +1158,7 @@ class Program
         <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideGetAccessor()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1178,7 +1183,7 @@ class Program
         <WorkItem(543340, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543340")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIndexerParameterFromUseInsideSetAccessor()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1203,7 +1208,7 @@ class Program
         <WorkItem(542492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542492")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethodParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1233,7 +1238,7 @@ partial class Test
         <WorkItem(528820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528820")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVisualBasicAnonymousKey()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1258,7 +1263,7 @@ partial class Test
         <WorkItem(542543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542543")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIncludesPreviouslyInvalidReference()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1285,7 +1290,7 @@ partial class Test
         <WorkItem(543027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543027")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameVariableInQueryAsUsingStatement()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -1322,7 +1327,7 @@ class MyManagedType : System.IDisposable
         <WorkItem(543169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543169")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub LambdaWithOutParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -1352,7 +1357,7 @@ class D
         <WorkItem(543567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543567")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CascadeBetweenOverridingProperties()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document FilePath="Test.vb">
@@ -1390,7 +1395,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(529799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529799")>
         Public Sub CascadeBetweenImplementedInterfaceEvent()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document FilePath="Test.vb">
@@ -1415,7 +1420,7 @@ End Class
         <WorkItem(543567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543567")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CascadeBetweenEventParameters()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -1442,7 +1447,7 @@ class Bar : IFoo
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(531260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531260")>
         Public Sub DoNotCascadeToMetadataSymbols()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1463,7 +1468,7 @@ class Bar : IFoo
         <WorkItem(545473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545473")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialTypeParameter_CSharp1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -1484,7 +1489,7 @@ partial class Class1
         <WorkItem(545473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545473")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialTypeParameter_CSharp2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document><![CDATA[
@@ -1505,7 +1510,7 @@ partial class Class1
         <WorkItem(545472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545472")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialTypeParameter_VB1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -1526,7 +1531,7 @@ End Module
         <WorkItem(545472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545472")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialTypeParameter_VB2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -1548,7 +1553,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1571,7 +1576,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub AmbiguousBeforeRenameHandledCorrectly_Bug11516_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1595,7 +1600,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_CS()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1622,7 +1627,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_CS()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1649,7 +1654,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_1_VB()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1673,7 +1678,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamePartialMethods_2_VB()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1697,7 +1702,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug530740()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1736,7 +1741,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodThatImplementsInterfaceMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1769,7 +1774,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotRemoveAttributeSuffixOn__Attribute()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1792,7 +1797,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEventParameterOnUsage()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1816,7 +1821,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedBackingFieldForNonCustomEvent()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1840,7 +1845,7 @@ End Module
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCompilerGeneratedEventHandlerForNonCustomEvent()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1866,7 +1871,7 @@ End Module
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpRenameParenthesizedFunctionName()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1890,7 +1895,7 @@ End Module
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VisualBasicAwaitAsIdentifierInAsyncShouldBeEscaped()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1915,7 +1920,7 @@ End Module
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncMethodShouldBeEscaped0()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1950,7 +1955,7 @@ class M
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -1984,7 +1989,7 @@ class s
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldBeEscaped1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -2019,7 +2024,7 @@ class s
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharpAwaitAsIdentifierInAsyncLambdaShouldNotBeEscaped()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -2053,7 +2058,7 @@ class s
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VBRoundTripMissingModuleName_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -2084,7 +2089,7 @@ class s
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VBRoundTripMissingModuleName_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -2115,7 +2120,7 @@ class s
         <WorkItem(603767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603767")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603767_RenamePartialAttributeDeclarationWithDifferentCasingAndCSharpUsage()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2147,7 +2152,7 @@ class s
         <WorkItem(603371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603371")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603371_VisualBasicRenameAttributeToGlobal()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2168,7 +2173,7 @@ class s
         <WorkItem(603371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/603371")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug603371_VisualBasicRenameAttributeToGlobal_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2189,7 +2194,7 @@ class s
         <WorkItem(602494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602494")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug602494_RenameOverrideWithNoOverriddenMember()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2208,7 +2213,7 @@ class s
         <WorkItem(576607, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576607")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug576607()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2233,7 +2238,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2264,7 +2269,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2295,7 +2300,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_VisualBasicOverrideImplicitPropertyAccessor_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2335,7 +2340,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2380,7 +2385,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2429,7 +2434,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2478,7 +2483,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_4()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2544,7 +2549,7 @@ End Class
         <WorkItem(529765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529765")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug529765_CrossLanguageOverrideImplicitPropertyAccessor_5()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2603,7 +2608,7 @@ End Class
         <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug610120_CrossLanguageOverrideImplicitPropertyAccessorConflictWithVBProperty()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2666,7 +2671,7 @@ End Class
         <WorkItem(612380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612380")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug612380_CrossLanguageOverrideImplicitPropertyAccessorCascadesToInterface()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2723,7 +2728,7 @@ End Class
         <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug866094()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2751,7 +2756,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameDynamicallyBoundFunction()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2781,7 +2786,7 @@ class A
         <WorkItem(529989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529989")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_RenameToIdentifierWithUnicodeEscaping()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2804,7 +2809,7 @@ public class A
         <WorkItem(576966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576966")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_RenameParenthesizedMethodNames()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2827,7 +2832,7 @@ class C
         <WorkItem(632052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632052")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CSharp_RenameParameterUsedInObjectInitializer()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2857,7 +2862,7 @@ class C
         <WorkItem(624092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624092")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub LocationsIssue()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -2896,7 +2901,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameParam1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -2923,7 +2928,7 @@ class Program
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameParam1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -2945,7 +2950,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameParam2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -2974,7 +2979,7 @@ End Class]]>
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameParam2_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -2996,7 +3001,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeParam1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -3025,7 +3030,7 @@ class B<[|T|]>
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeParam1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -3056,7 +3061,7 @@ End Class]]>
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug624310_VBCascadeLambdaParameterInFieldInitializer()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                         <Document>
@@ -3080,7 +3085,7 @@ End Class]]>
         <WorkItem(624310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624310")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug624310_CSNoCascadeLambdaParameterInFieldInitializer()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3101,7 +3106,7 @@ class Program
         <WorkItem(633582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633582")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug633582_CSDoNotAddParenthesesInExpansionForParenthesizedBinaryExpression()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3128,9 +3133,10 @@ class Program
         End Sub
 
         <WorkItem(622086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622086")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/9412")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameExplicitInterfaceImplementation()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3159,7 +3165,7 @@ namespace X
         <WorkItem(8139, "https://github.com/dotnet/roslyn/issues/8139")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameExplicitInterfaceImplementationFromDifferentProject()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -3201,7 +3207,7 @@ public interface IInterface
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingEventCascadesToCSUsingEventHandlerDelegate()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3251,7 +3257,7 @@ class Program : IA
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3301,7 +3307,7 @@ class Program : IA
         <WorkItem(529803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529803")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3351,7 +3357,7 @@ class Program : IA
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3383,7 +3389,7 @@ class C
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_4()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3413,9 +3419,9 @@ class C
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621"), WorkItem(762094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762094")>
-        <WpfFact(Skip:="762094"), Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3447,7 +3453,7 @@ Class C
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameVarNotSupported()
             Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(
+                                                       Dim result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3473,7 +3479,7 @@ namespace X
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameCustomTypeNamedVarSupported()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3506,7 +3512,7 @@ namespace X
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameDynamicNotSupported()
             Assert.ThrowsAny(Of ArgumentException)(Sub()
-                                                       Dim result = RenameEngineResult.Create(
+                                                       Dim result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3532,7 +3538,7 @@ namespace X
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToVarSupported()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3556,7 +3562,7 @@ class [|Program|]
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToVarSupportedButConflictsWithOtherVar()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3582,7 +3588,7 @@ class [|Program|]
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToVarSupportedButDoesntConflictsWithOtherVarOfSameType()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3608,7 +3614,7 @@ class [|Program|]
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToDynamicSupported()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3632,7 +3638,7 @@ class [|Program|]
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3658,7 +3664,7 @@ class [|Program|]
         <WorkItem(627297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627297")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub Bug622086_CSRenameToDynamicSupportedButConflictsWithOtherDynamic_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document><![CDATA[
@@ -3686,7 +3692,7 @@ class [|Program|]
         <WorkItem(608989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608989")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNamespaceInVbFromCSharReference()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
 
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -3715,7 +3721,7 @@ class Y : [|$$N|].X { }
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeFromCref()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3739,7 +3745,7 @@ class [|Program|]
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameTypeFromCref_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document>
@@ -3760,7 +3766,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMemberFromCref()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3784,7 +3790,7 @@ class Program
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMemberFromCref_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document>
@@ -3805,7 +3811,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefFromMember()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3829,7 +3835,7 @@ class Program
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefFromMember_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document>
@@ -3851,7 +3857,7 @@ End Class
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIncludingCrefContainingAttribute()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3879,7 +3885,7 @@ class {|yAttribute:F$$ooAttribute|} : Attribute
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameIncludingCrefContainingAttribute_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document>
@@ -3904,7 +3910,7 @@ End Class
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFromCrefContainingAttribute()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3931,7 +3937,7 @@ class {|yAttribute:FooAttribute|} : Attribute
         <WorkItem(546952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546952"), WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameFromCrefContainingAttribute_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                         <Document FilePath="Test.vb">
@@ -3956,7 +3962,7 @@ End Class
         <WorkItem(531015, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531015")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefTypeParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                         <Document FilePath="Test.cs">
@@ -3974,7 +3980,7 @@ class C<T> { }
         <WorkItem(640373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640373")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4009,7 +4015,7 @@ class Tester
         <WorkItem(640373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640373")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4040,7 +4046,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4076,7 +4082,7 @@ class Tester
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref2_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4109,7 +4115,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4130,7 +4136,7 @@ class C<[|$$T|]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref3_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4152,7 +4158,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref4()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4175,7 +4181,7 @@ class C<T>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref4_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4200,7 +4206,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref5()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4222,7 +4228,7 @@ class {|Resolve:C|}<T>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref5_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4244,7 +4250,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref6()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4272,7 +4278,7 @@ class [|C|]
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref6_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4298,7 +4304,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref7()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4343,7 +4349,7 @@ namespace Test
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref7_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4381,7 +4387,7 @@ End Namespace]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref8()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4415,7 +4421,7 @@ class B : C, I
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref8_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4446,7 +4452,7 @@ End Class]]>
 
         <WpfFact(Skip:="640502"), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref9()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4481,7 +4487,7 @@ class B : C, I
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref9_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4513,7 +4519,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref10()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4547,7 +4553,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref10_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4578,7 +4584,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref11()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4605,7 +4611,7 @@ class Test
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref11_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4628,7 +4634,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref12()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4663,7 +4669,7 @@ class Bar
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref12_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4694,7 +4700,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref13()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4729,7 +4735,7 @@ public class Bar
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref13_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4759,7 +4765,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref14()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4796,7 +4802,7 @@ public class A
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref14_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4825,7 +4831,7 @@ End Class]]>
         <WorkItem(673562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673562")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref15()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4857,7 +4863,7 @@ namespace N
         <WorkItem(673562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673562")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref15_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4886,7 +4892,7 @@ End Namespace]]>
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667"), WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref17()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4919,7 +4925,7 @@ class P
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667"), WorkItem(760850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760850")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref17_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -4950,7 +4956,7 @@ End Class]]>
         <WorkItem(673667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673667")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCref18()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -4983,7 +4989,7 @@ namespace N
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithUsing1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5017,7 +5023,7 @@ namespace N1
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithUsing1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5050,7 +5056,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithUsing2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5089,7 +5095,7 @@ namespace N2
         <WorkItem(767163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767163")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithUsing2_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5125,7 +5131,7 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithInterface()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5160,7 +5166,7 @@ namespace N
         <WorkItem(569103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569103")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefWithInterface_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5190,7 +5196,7 @@ End Namespace]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefCrossAssembly()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <ProjectReference>VBAssembly</ProjectReference>
@@ -5236,7 +5242,7 @@ End Namespace
         <WorkItem(767163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767163")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameCrefCrossAssembly_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <ProjectReference>CSAssembly</ProjectReference>
@@ -5279,7 +5285,7 @@ namespace [|$$N|]
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameStaticConstructorInsideCref1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5308,7 +5314,7 @@ class [|P|]
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameStaticConstructorInsideCref1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5334,7 +5340,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameStaticConstructorInsideCref2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5363,7 +5369,7 @@ class [|P|]
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameStaticConstructorInsideCref2_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5389,7 +5395,7 @@ End Class]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInheritanceCref1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5417,7 +5423,7 @@ class Q : P
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInheritanceCref1_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5444,7 +5450,7 @@ End Class]]>
         <WorkItem(673858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673858"), WorkItem(666167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666167")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameGenericTypeCrefWithConflict()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5485,7 +5491,7 @@ namespace N
         <WorkItem(673858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673858"), WorkItem(666167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666167"), WorkItem(768000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768000")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameGenericTypeCrefWithConflict_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5522,7 +5528,7 @@ End Namespace]]>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNestedNamespaceToParent1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5544,7 +5550,7 @@ namespace N
         <WorkItem(673641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673641")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameNestedNamespaceToParent2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5574,7 +5580,7 @@ namespace N
         <WorkItem(673809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673809")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameStaticConstructor()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5599,7 +5605,7 @@ class [|Simple|]
         <WorkItem(675882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675882")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub SingleOnlyLocalDeclarationInsideLambdaRecurseInfinitely()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5624,7 +5630,7 @@ End Module
         <WorkItem(641231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameDontReplaceBaseConstructorToken_CSharp()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document><![CDATA[
@@ -5654,7 +5660,7 @@ class Program
         <WorkItem(641231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameDontReplaceBaseConstructorToken_VisualBasic()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document><![CDATA[
@@ -5685,7 +5691,7 @@ End Class
         <WorkItem(674762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674762")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMergedNamespaceAcrossProjects()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5711,7 +5717,7 @@ namespace [|N|] { }
         <WorkItem(674764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674764")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMergedNamespaceAcrossProjects_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5737,7 +5743,7 @@ namespace [|N|] { }
         <WorkItem(716278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716278")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMainWithoutAssertFailureVB()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5761,7 +5767,7 @@ End Module
         <WorkItem(716278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716278")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMainWithoutAssertFailureCSharp()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -5787,7 +5793,7 @@ class Program
         <WorkItem(719062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719062")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierToUnescapedIdentifier()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5811,7 +5817,7 @@ End Module
         <WorkItem(719062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719062")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierToUnescapedIdentifierKeyword()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5836,7 +5842,7 @@ End Module
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedTypeNew()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5858,7 +5864,7 @@ End Class
         <WorkItem(767187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameConstructorInCref()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5877,7 +5883,7 @@ class [|C|]
         <WorkItem(1009633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009633")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithTryCatchBlock1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5900,7 +5906,7 @@ End Class
         <WorkItem(1009633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009633")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameWithTryCatchBlock2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5928,7 +5934,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5958,7 +5964,7 @@ End Module
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -5990,7 +5996,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6022,7 +6028,7 @@ End Module
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6054,7 +6060,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6078,7 +6084,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6104,7 +6110,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6129,7 +6135,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, False)
             renamingOptions.Add(RenameOptions.RenameInComments, False)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6157,7 +6163,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6191,7 +6197,7 @@ End Module
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6224,7 +6230,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6257,7 +6263,7 @@ End Module
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6290,7 +6296,7 @@ public class [|$$Program|]
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6329,7 +6335,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6369,7 +6375,7 @@ public class AnotherFile
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6414,7 +6420,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6458,7 +6464,7 @@ public class AnotherFile
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6529,7 +6535,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6597,7 +6603,7 @@ public class NotReferencingProject
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6640,7 +6646,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6676,7 +6682,7 @@ End Class
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6708,7 +6714,7 @@ End Module
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameInStrings, True)
             renamingOptions.Add(RenameOptions.RenameInComments, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6738,7 +6744,7 @@ class {|Conflict:foo|}
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_NoOverloads_CSharp()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6759,7 +6765,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_WithOverloads_CSharp()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[
@@ -6786,7 +6792,7 @@ class C
         Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp()
             Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
             renamingOptions.Add(RenameOptions.RenameOverloads, True)
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                             <Document><![CDATA[

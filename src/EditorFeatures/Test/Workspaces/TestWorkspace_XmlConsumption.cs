@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             public override bool Equals(object obj)
             {
-                return ReferenceEquals(this, obj);
+                return (object)this == obj;
             }
 
             public override int GetHashCode()
@@ -342,12 +342,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (languageVersionAttribute != null)
             {
                 parseOptions = GetParseOptionsWithLanguageVersion(language, parseOptions, languageVersionAttribute);
-            }
-
-            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
-            if (featuresAttribute != null)
-            {
-                parseOptions = GetParseOptionsWithFeatures(parseOptions, featuresAttribute);
             }
 
             var documentationMode = GetDocumentationMode(projectElement);
