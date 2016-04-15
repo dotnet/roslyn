@@ -322,6 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
+            // capture state that will be processed in background thread.
             var state = GetOrCreateInprogressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Document New Errors");
@@ -334,6 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public void AddNewErrors(
             ProjectId projectId, HashSet<DiagnosticData> projectErrors, Dictionary<DocumentId, HashSet<DiagnosticData>> documentErrorMap)
         {
+            // capture state that will be processed in background thread
             var state = GetOrCreateInprogressState();
 
             var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
