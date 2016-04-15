@@ -39,10 +39,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        hierarchy As IVsHierarchy,
                        serviceProvider As IServiceProvider,
                        reportExternalErrorCreatorOpt As Func(Of ProjectId, IVsReportExternalErrors),
-                       miscellaneousFilesWorkspaceOpt As MiscellaneousFilesWorkspace,
                        visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
                        hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
-            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, miscellaneousFilesWorkspaceOpt, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
+            MyBase.New(projectTracker, reportExternalErrorCreatorOpt, ProjectSystemName, hierarchy, LanguageNames.VisualBasic, serviceProvider, visualStudioWorkspaceOpt, hostDiagnosticUpdateSourceOpt)
 
             _compilerHost = compilerHost
 
@@ -234,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Sub GetEntryPointsList(cItems As Integer, strList() As String, ByVal pcActualItems As IntPtr) Implements IVbCompilerProject.GetEntryPointsList
             Try
-                Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+                Dim project = Workspace.CurrentSolution.GetProject(Id)
                 Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
                 GetEntryPointsWorker(cItems, strList, pcActualItems, findFormsOnly:=False)
@@ -247,7 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                strList() As String,
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
-            Dim project = VisualStudioWorkspace.CurrentSolution.GetProject(Id)
+            Dim project = Workspace.CurrentSolution.GetProject(Id)
             Dim compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
 
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.

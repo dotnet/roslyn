@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
             Return service.GenerateVariableAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
             If TypeOf node Is QualifiedNameSyntax OrElse TypeOf node Is MemberAccessExpressionSyntax Then
                 Return True
             End If

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using System.Reflection;
 using System.IO;
+using EnvDTE;
 
 namespace Roslyn.Compilers.Extension
 {
@@ -110,7 +111,32 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             }
         }
 
-        private static void WriteMSBuildFile(string content, string relativeFilePath)
+        private string GetMSBuildVersionString()
+        {
+            var dte = (DTE)GetService(typeof(SDTE));
+            var parts = dte.Version.Split('.');
+            if (parts.Length == 0)
+            {
+                throw GetBadVisualStudioVersionException(dte.Version);
+            }
+
+            switch (parts[0])
+            {
+                case "14":
+                    return "14.0";
+                case "15":
+                    return "15.0";
+                default:
+                    throw GetBadVisualStudioVersionException(dte.Version);
+            }
+        }
+
+        private static Exception GetBadVisualStudioVersionException(string version)
+        {
+            return new Exception($"Unrecoginzed Visual Studio Version: {version}");
+        }
+
+        private void WriteMSBuildFile(string content, string relativeFilePath)
         {
             var fileFullPath = Path.Combine(GetMSBuildPath(), relativeFilePath);
             var directory = new DirectoryInfo(Path.GetDirectoryName(fileFullPath));
@@ -122,10 +148,11 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             File.WriteAllText(fileFullPath, content);
         }
 
-        private static string GetMSBuildPath()
+        private string GetMSBuildPath()
         {
+            var version = GetMSBuildVersionString();
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            return Path.Combine(localAppData, @"Microsoft\MSBuild\14.0");
+            return Path.Combine(localAppData, $@"Microsoft\MSBuild\{version}");
         }
     }
 }

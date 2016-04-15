@@ -1,225 +1,217 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    internal class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
+    /// <summary>
+    /// Diagnostic Analyzer Engine V2
+    /// 
+    /// This one follows pattern compiler has set for diagnostic analyzer.
+    /// </summary>
+    internal partial class DiagnosticIncrementalAnalyzer : BaseDiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
 
-        public DiagnosticIncrementalAnalyzer(DiagnosticAnalyzerService owner, int correlationId, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        private readonly StateManager _stateManager;
+        private readonly Executor _executor;
+        private readonly CompilationManager _compilationManager;
+
+        public DiagnosticIncrementalAnalyzer(
+            DiagnosticAnalyzerService owner,
+            int correlationId,
+            Workspace workspace,
+            HostAnalyzerManager hostAnalyzerManager,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
         {
             _correlationId = correlationId;
+
+            _stateManager = new StateManager(hostAnalyzerManager);
+            _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
+
+            _executor = new Executor(this);
+            _compilationManager = new CompilationManager(this);
         }
 
-        #region IIncrementalAnalyzer
-        public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
-        {
-            var diagnostics = await GetDiagnosticsAsync(project.Solution, project.Id, null, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            RaiseEvents(project, diagnostics);
-        }
-
-        public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override void RemoveDocument(DocumentId documentId)
-        {
-            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                ValueTuple.Create(this, documentId), Workspace, null, null, null));
-        }
-
-        public override void RemoveProject(ProjectId projectId)
-        {
-            Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                ValueTuple.Create(this, projectId), Workspace, null, null, null));
-        }
-        #endregion
-
-        public override Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
-        }
-
-        public override Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return GetSpecificDiagnosticsAsync(solution, id, includeSuppressedDiagnostics, cancellationToken);
-        }
-
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (documentId != null)
+            foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
-                var diagnostics = await GetProjectDiagnosticsAsync(solution.GetProject(projectId), includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                return diagnostics.Where(d => d.DocumentId == documentId).ToImmutableArrayOrEmpty();
+                if (stateSet.ContainsAnyDocumentOrProjectDiagnostics(projectId))
+                {
+                    return true;
+                }
             }
 
-            if (projectId != null)
+            return false;
+        }
+
+        private bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
+        {
+            // compiler diagnostic analyzer always support all kinds
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer))
             {
-                return await GetProjectDiagnosticsAsync(solution.GetProject(projectId), includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                return true;
             }
 
-            var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-            foreach (var project in solution.Projects)
+            switch (kind)
             {
-                builder.AddRange(await GetProjectDiagnosticsAsync(project, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
+                case AnalysisKind.Syntax:
+                    return analyzer.SupportsSyntaxDiagnosticAnalysis();
+                case AnalysisKind.Semantic:
+                    return analyzer.SupportsSemanticDiagnosticAnalysis();
+                default:
+                    return Contract.FailWithReturn<bool>("shouldn't reach here");
+            }
+        }
+
+        private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
+        {
+            if (e.Removed.Length == 0)
+            {
+                // nothing to refresh
+                return;
             }
 
-            return builder.ToImmutable();
-        }
+            // events will be automatically serialized.
+            var project = e.Project;
+            var stateSets = e.Removed;
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (id is ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)
+            // make sure we drop cache related to the analyzers
+            foreach (var stateSet in stateSets)
             {
-                var key = (ValueTuple<DiagnosticIncrementalAnalyzer, DocumentId>)id;
-                return await GetDiagnosticsAsync(solution, key.Item2.ProjectId, key.Item2, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                stateSet.OnRemoved();
             }
 
-            if (id is ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)
+            ClearAllDiagnostics(stateSets, project.Id);
+        }
+
+        private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
+        {
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
-                var key = (ValueTuple<DiagnosticIncrementalAnalyzer, ProjectId>)id;
-                var diagnostics = await GetDiagnosticsAsync(solution, key.Item2, null, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
+                var handleActiveFile = true;
+                foreach (var stateSet in stateSets)
+                {
+                    // PERF: don't fire events for ones that we dont have any diagnostics on
+                    if (!stateSet.ContainsAnyDocumentOrProjectDiagnostics(projectId))
+                    {
+                        continue;
+                    }
+
+                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                }
+            });
+        }
+
+        private void RaiseDiagnosticsCreated(
+            Project project, StateSet stateSet, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
+
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                CreateId(stateSet.Analyzer, project.Id, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                project.Solution.Workspace,
+                project.Solution,
+                project.Id,
+                documentId: null,
+                diagnostics: items));
+        }
+
+        private void RaiseDiagnosticsRemoved(
+            ProjectId projectId, Solution solution, StateSet stateSet, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
+
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                CreateId(stateSet.Analyzer, projectId, AnalysisKind.NonLocal, stateSet.ErrorSourceName),
+                Workspace,
+                solution,
+                projectId,
+                documentId: null));
+        }
+
+        private void RaiseDiagnosticsCreated(
+            Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
+
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                CreateId(stateSet.Analyzer, document.Id, kind, stateSet.ErrorSourceName),
+                document.Project.Solution.Workspace,
+                document.Project.Solution,
+                document.Project.Id,
+                document.Id,
+                items));
+        }
+
+        private void RaiseDiagnosticsRemoved(
+            DocumentId documentId, Solution solution, StateSet stateSet, AnalysisKind kind, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        {
+            Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
+
+            raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                CreateId(stateSet.Analyzer, documentId, kind, stateSet.ErrorSourceName),
+                Workspace,
+                solution,
+                documentId.ProjectId,
+                documentId));
+        }
+
+        private object CreateId(DiagnosticAnalyzer analyzer, DocumentId key, AnalysisKind kind, string errorSourceName)
+        {
+            return CreateIdInternal(analyzer, key, kind, errorSourceName);
+        }
+
+        private object CreateId(DiagnosticAnalyzer analyzer, ProjectId key, AnalysisKind kind, string errorSourceName)
+        {
+            return CreateIdInternal(analyzer, key, kind, errorSourceName);
+        }
+
+        private static object CreateIdInternal(DiagnosticAnalyzer analyzer, object key, AnalysisKind kind, string errorSourceName)
+        {
+            return new LiveDiagnosticUpdateArgsId(analyzer, key, (int)kind, errorSourceName);
+        }
+
+        public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
+        {
+            return project.GetDependentVersionAsync(cancellationToken);
+        }
+
+        private static AnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        {
+            AnalysisResult result;
+            if (map.TryGetValue(analyzer, out result))
+            {
+                return result;
             }
 
-            return ImmutableArray<DiagnosticData>.Empty;
+            return new AnalysisResult(projectId, version);
         }
 
-        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
+        private static ImmutableArray<DiagnosticData> GetResult(AnalysisResult result, AnalysisKind kind, DocumentId id)
         {
-            var diagnostics = await GetDiagnosticsAsync(solution, projectId, documentId, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            return diagnostics.Where(d => diagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
-        }
-
-        public override async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, ImmutableHashSet<string> diagnosticIds = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var diagnostics = await GetDiagnosticsForIdsAsync(solution, projectId, null, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            return diagnostics.Where(d => d.DocumentId == null).ToImmutableArray();
-        }
-
-        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            result.AddRange(await GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
-            return true;
-        }
-
-        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var diagnostics = await GetDiagnosticsAsync(document.Project.Solution, document.Project.Id, document.Id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            return diagnostics.Where(d => range.IntersectsWith(d.TextSpan));
-        }
-
-        private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(Project project, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            if (project == null)
+            if (result.IsEmpty || !result.DocumentIds.Contains(id) || result.IsAggregatedForm)
             {
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var analyzers = HostAnalyzerManager.CreateDiagnosticAnalyzers(project);
-
-            var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
-
-            // REVIEW: this API is a bit strange. 
-            //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scratch again?
-            var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
-
-            return dxs;
-        }
-
-        private IEnumerable<DiagnosticData> GetDiagnosticData(Project project, ImmutableArray<Diagnostic> diagnostics)
-        {
-            foreach (var diagnostic in diagnostics)
+            switch (kind)
             {
-                if (diagnostic.Location == Location.None)
-                {
-                    yield return DiagnosticData.Create(project, diagnostic);
-                    continue;
-                }
-
-                var document = project.GetDocument(diagnostic.Location.SourceTree);
-                if (document == null)
-                {
-                    continue;
-                }
-
-                yield return DiagnosticData.Create(document, diagnostic);
-            }
-        }
-
-        public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            // V2 engine doesn't do anything. 
-            // it means live error always win over build errors. build errors that can't be reported by live analyzer
-            // are already taken cared by engine
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            // V2 engine doesn't do anything. 
-            // it means live error always win over build errors. build errors that can't be reported by live analyzer
-            // are already taken cared by engine
-            return SpecializedTasks.EmptyTask;
-        }
-
-        private void RaiseEvents(Project project, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            var groups = diagnostics.GroupBy(d => d.DocumentId);
-
-            var solution = project.Solution;
-            var workspace = solution.Workspace;
-
-            foreach (var kv in groups)
-            {
-                if (kv.Key == null)
-                {
-                    Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
-                    continue;
-                }
-
-                Owner.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                        ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+                case AnalysisKind.Syntax:
+                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
+                case AnalysisKind.Semantic:
+                    return result.GetResultOrEmpty(result.SemanticLocals, id);
+                case AnalysisKind.NonLocal:
+                    return result.GetResultOrEmpty(result.NonLocals, id);
+                default:
+                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
             }
         }
     }

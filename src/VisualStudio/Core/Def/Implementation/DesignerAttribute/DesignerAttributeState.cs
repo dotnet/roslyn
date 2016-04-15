@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 }
             }
 
+            protected override int GetCount(Data data)
+            {
+                return 1;
+            }
+
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
                 try

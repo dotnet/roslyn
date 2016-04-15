@@ -10,23 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
 {
     public static class Program
     {
-        public static void Main()
+        public static int Main(string[] args)
         {
-            var args = Environment.GetCommandLineArgs();
-
-            if (args.Length != 3)
+            if (args.Length != 2)
             {
                 Console.WriteLine(
-@"Usage: {0} input output
+@"Usage: CSharpErrorFactsGenerator.exe input output
   input     The path to ErrorCode.cs
-  output    The path to GeneratedErrorFacts.cs",
-                Path.GetFileNameWithoutExtension(args[0]));
+  output    The path to GeneratedErrorFacts.cs");
 
-                Environment.Exit(-1);
+                return -1;
             }
 
-            string inputPath = args[1];
-            string outputPath = args[2];
+            string inputPath = args[0];
+            string outputPath = args[1];
 
             var outputText = new StringBuilder();
             outputText.AppendLine("namespace Microsoft.CodeAnalysis.CSharp");
@@ -132,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             outputText.AppendLine("}");
 
             File.WriteAllText(outputPath, outputText.ToString());
+
+            return 0;
         }
     }
 }

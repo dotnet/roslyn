@@ -17,9 +17,9 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
+      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
+      <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
@@ -183,6 +183,7 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
@@ -349,6 +350,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
     <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />

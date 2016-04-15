@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        protected override ISymbol GenerateMember(ISymbol member, INamedTypeSymbol containingType, Document document, MemberInsertionCompletionItem item, CancellationToken cancellationToken)
+        protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, MemberInsertionCompletionItem item, CancellationToken cancellationToken)
         {
             var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
-            var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(attributes: new List<AttributeData>(),
                 accessibility: Accessibility.NotApplicable,

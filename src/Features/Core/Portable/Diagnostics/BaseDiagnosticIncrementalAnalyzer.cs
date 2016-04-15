@@ -184,6 +184,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// True if given project has any diagnostics
+        /// </summary>
+        public abstract bool ContainsDiagnostics(Workspace workspace, ProjectId projectId);
         #endregion
 
         #region build error synchronization
@@ -194,22 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is up to each incremental analyzer how they will merge this information with live diagnostic info.
         /// 
         /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are project wide diagnostics that doesn't contain a source location.
         /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
-
-        /// <summary>
-        /// Callback from build listener.
-        /// 
-        /// Given diagnostics are errors host got from explicit build.
-        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info
-        /// 
-        /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are ones that has a source location.
-        /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics);
+        public abstract Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics);
         #endregion
 
         internal DiagnosticAnalyzerService Owner { get; }

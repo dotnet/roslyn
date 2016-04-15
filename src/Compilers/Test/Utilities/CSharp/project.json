@@ -1,6 +1,10 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "System.Reflection.TypeExtensions": "4.0.0"
+  },
   "frameworks": {
-    "net45": { }
+    "netstandard1.3": {
+      "imports": [ "portable-net452", "dotnet5.4" ]
+    }
   }
 }

@@ -369,63 +369,7 @@ class Program
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
-
-        [WpfFact(Skip = "908023"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderCollectionInitializerAddMethodParametersAndArguments()
-        {
-            var markup = @"
-using System;
-using System.Collections;
-
-class Program : IEnumerable
-{
-    static void Main(string[] args)
-    {
-        new Program { { 1, 2 }, { ""three"", ""four"" }, { 5, 6 } };
-    }
-
-    public void Add(int x, int y)$$
-    {
-    }
-
-    public void Add(string x, string y)
-    {
-    }
-
-    public IEnumerator GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-}";
-            var permutation = new[] { 1, 0 };
-            var updatedCode = @"
-using System;
-using System.Collections;
-
-class Program : IEnumerable
-{
-    static void Main(string[] args)
-    {
-        new Program { { 2, 1 }, { ""three"", ""four"" }, { 6, 5 } };
-    }
-
-    public void Add(int y, int x)
-    {
-    }
-
-    public void Add(string x, string y)
-    {
-    }
-
-    public IEnumerator GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-}";
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
+        
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {

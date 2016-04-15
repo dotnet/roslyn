@@ -1,17 +1,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.2.0</RoslynSemanticVersion>
-    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.2.0</SystemReflectionMetadataAssemblyVersion>
-    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.37</SystemCollectionsImmutableAssemblyVersion>
-    <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
-    <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.3.0</RoslynSemanticVersion>
+    <!-- Currently we version IW the same as Roslyn. -->
+    <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
+    <!-- These are the versions of dependencies we insert into VS -->
+    <SystemReflectionMetadataVersion>1.2.0</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>1.1.37</SystemCollectionsImmutableVersion>
+    <MicrosoftDiaSymReaderVersion>1.0.7</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.3.3</MicrosoftDiaSymReaderNativeVersion>
-    <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
-    <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
-    <!-- Versioning is independent, this should not be the Roslyn semantic version -->
-    <CodeAnalysisAnalyzersVersion Condition="'$(CodeAnalysisAnalyzersVersion)' == ''">1.1.0</CodeAnalysisAnalyzersVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.0.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
+    <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
+    <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
   </PropertyGroup>
   
   <Choose>

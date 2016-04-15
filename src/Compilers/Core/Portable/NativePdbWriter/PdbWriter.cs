@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly PooledBlobBuilder _logData;
+        private readonly BlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,7 +57,11 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = PooledBlobBuilder.GetInstance();
+                // do not get this from pool
+                // we need a fairly large buffer here (where the pool typically contains small ones)
+                // and we need just one per compile session
+                // pooling will be couter-productive in such scenario
+                _logData = new BlobBuilder(bufferFlushLimit);
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
@@ -68,9 +72,11 @@ namespace Microsoft.Cci
             }
         }
 
-        private void MaybeFlush()
+        private void EnsureSpace(int space)
         {
-            if (_logData.Count >= bufferFlushLimit)
+            // note that if space > bufferFlushLimit, the buffer will need to expand anyways
+            // that should be very rare though.
+            if (_logData.Count + space >= bufferFlushLimit)
             {
                 foreach (var blob in _logData.GetBlobs())
                 {
@@ -110,7 +116,6 @@ namespace Microsoft.Cci
         internal void Close()
         {
             _hashAlgorithm?.Dispose();
-            _logData?.Free();
         }
 
         internal enum PdbWriterOperation : byte
@@ -146,54 +151,55 @@ namespace Microsoft.Cci
             return logging;
         }
 
-        public void LogArgument(uint[] data)
+        public void LogArgument(uint[] data, int cnt)
         {
-            _logData.WriteInt32(data.Length);
-            for (int i = 0; i < data.Length; i++)
+            EnsureSpace((cnt + 1) * 4);
+            _logData.WriteInt32(cnt);
+            for (int i = 0; i < cnt; i++)
             {
                 _logData.WriteUInt32(data[i]);
             }
-            MaybeFlush();
         }
 
         public void LogArgument(string data)
         {
+            EnsureSpace(data.Length * 2);
             _logData.WriteUTF8(data, allowUnpairedSurrogates: true);
-            MaybeFlush();
         }
 
         public void LogArgument(uint data)
         {
+            EnsureSpace(4);
             _logData.WriteUInt32(data);
         }
 
         public void LogArgument(byte data)
         {
+            EnsureSpace(1);
             _logData.WriteByte(data);
         }
 
         public void LogArgument(byte[] data)
         {
-            LogArgument(data.Length);
+            EnsureSpace(data.Length + 4);
+            _logData.WriteInt32(data.Length);
             _logData.WriteBytes(data);
-            MaybeFlush();
         }
 
         public void LogArgument(int[] data)
         {
-            LogArgument(data.Length);
-            foreach (int d in data) LogArgument(d);
-            MaybeFlush();
+            EnsureSpace((data.Length + 1) * 4);
+            _logData.WriteInt32(data.Length);
+            foreach (int d in data)
+            {
+                _logData.WriteInt32(d);
+            }
         }
 
         public void LogArgument(long data)
         {
+            EnsureSpace(8);
             _logData.WriteInt64(data);
-        }
-
-        public void LogArgument(int data)
-        {
-            _logData.WriteInt32(data);
         }
 
         public void LogArgument(object data)
@@ -213,10 +219,12 @@ namespace Microsoft.Cci
             }
             else
             {
+                // being conservative here
+                // string and decimal are handled above, 
+                // everything else is 8 bytes or less.
+                EnsureSpace(8);
                 _logData.WriteConstant(data);
             }
-
-            MaybeFlush();
         }
     }
 
@@ -350,8 +358,10 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureToken);
-
-            EmitSequencePoints(methodBody.GetSequencePoints());
+            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            methodBody.GetSequencePoints(sequencePoints);
+            EmitSequencePoints(sequencePoints);
+            sequencePoints.Free();
 
             AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
             if (asyncDebugInfo != null)
@@ -755,6 +765,8 @@ namespace Microsoft.Cci
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
+        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+
         private static Type GetCorSymWriterSxSType()
         {
             if (s_lazyCorSymWriterSxSType == null)
@@ -805,7 +817,16 @@ namespace Microsoft.Cci
         {
             try
             {
-                var symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                ISymUnmanagedWriter5 symWriter;
+
+                try
+                {
+                    symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                }
+                catch (Exception)
+                {
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
@@ -815,7 +836,7 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
@@ -1097,7 +1118,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;
@@ -1153,11 +1174,11 @@ namespace Microsoft.Cci
                 if (_callLogger.LogOperation(OP.DefineSequencePoints))
                 {
                     _callLogger.LogArgument((uint)count);
-                    _callLogger.LogArgument(_sequencePointOffsets);
-                    _callLogger.LogArgument(_sequencePointStartLines);
-                    _callLogger.LogArgument(_sequencePointStartColumns);
-                    _callLogger.LogArgument(_sequencePointEndLines);
-                    _callLogger.LogArgument(_sequencePointEndColumns);
+                    _callLogger.LogArgument(_sequencePointOffsets, count);
+                    _callLogger.LogArgument(_sequencePointStartLines, count);
+                    _callLogger.LogArgument(_sequencePointStartColumns, count);
+                    _callLogger.LogArgument(_sequencePointEndLines, count);
+                    _callLogger.LogArgument(_sequencePointEndColumns, count);
                 }
             }
             catch (Exception ex)
@@ -1345,9 +1366,9 @@ namespace Microsoft.Cci
                         if (_callLogger.LogOperation(OP.DefineAsyncStepInfo))
                         {
                             _callLogger.LogArgument((uint)count);
-                            _callLogger.LogArgument(yields);
-                            _callLogger.LogArgument(resumes);
-                            _callLogger.LogArgument(methods);
+                            _callLogger.LogArgument(yields, count);
+                            _callLogger.LogArgument(resumes, count);
+                            _callLogger.LogArgument(methods, count);
                         }
                     }
                     catch (Exception ex)

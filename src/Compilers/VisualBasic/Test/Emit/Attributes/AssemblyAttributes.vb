@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
@@ -456,7 +457,8 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
 
     End Sub
 
-    <Fact(Skip:=("https://github.com/dotnet/roslyn/issues/5866"))>
+    <Fact>
+    <WorkItem(5866, "https://github.com/dotnet/roslyn/issues/5866")>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">
@@ -532,7 +534,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -552,15 +554,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch2">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
-        CompileAndVerify(compilation).VerifyDiagnostics()
+        CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_usRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)}).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch3">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -580,12 +587,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch4">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_UKRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False),
+                                        New ModuleData(neutralRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       neutralRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 
@@ -596,7 +611,8 @@ end class
                          symbolValidator:=Sub(m As ModuleSymbol)
                                               Assert.Equal(2, m.GetReferencedAssemblySymbols().Length)
                                               Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()(1).ToTestDisplayString())
-                                          End Sub).VerifyDiagnostics()
+                                          End Sub).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
 <compilation>

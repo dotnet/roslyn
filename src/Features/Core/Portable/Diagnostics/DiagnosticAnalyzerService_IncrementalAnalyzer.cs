@@ -172,17 +172,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return Analyzer.GetDiagnosticsForSpanAsync(document, range, includeSuppressedDiagnostics, cancellationToken);
             }
+
+            public override bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+            {
+                return Analyzer.ContainsDiagnostics(workspace, projectId);
+            }
             #endregion
 
             #region build synchronization
-            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            public override Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics)
             {
-                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
-            }
-
-            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
-            {
-                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
+                return Analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
             #endregion
 

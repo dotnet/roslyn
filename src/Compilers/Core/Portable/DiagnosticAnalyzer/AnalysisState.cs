@@ -63,6 +63,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
+        // Create static pools for heavily allocated per-analyzer state objects - this helps in reducing allocations across CompilationWithAnalyzer instances.
+        private const int PoolSize = 5000;
+        private static readonly ObjectPool<AnalyzerStateData> s_analyzerStateDataPool = new ObjectPool<AnalyzerStateData>(() => new AnalyzerStateData(), PoolSize);
+        private static readonly ObjectPool<DeclarationAnalyzerStateData> s_declarationAnalyzerStateDataPool = new ObjectPool<DeclarationAnalyzerStateData>(() => new DeclarationAnalyzerStateData(), PoolSize);
+        private static readonly ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>> s_currentlyAnalyzingDeclarationsMapPool = new ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>>(() => new Dictionary<int, DeclarationAnalyzerStateData>(), PoolSize);
+        private static readonly ObjectPool<PerAnalyzerState> s_perAnalyzerStatePool = new ObjectPool<PerAnalyzerState>(() => new PerAnalyzerState(s_analyzerStateDataPool, s_declarationAnalyzerStateDataPool, s_currentlyAnalyzingDeclarationsMapPool), PoolSize);
+
         public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData)
         {
             _gate = new object();
@@ -80,19 +87,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pooledEventsWithAnyActionsSet = new HashSet<CompilationEvent>();
         }
 
+        ~AnalysisState()
+        {
+            // Free the per-analyzer state tracking objects.
+            foreach (var analyzerState in _analyzerStates)
+            {
+                var shouldReturnToPool = analyzerState.Free();
+
+                // If we have too many symbols then just discard the state object from the pool - we don't want to hold onto really large dictionaries.
+                if (shouldReturnToPool)
+                {
+                    s_perAnalyzerStatePool.Free(analyzerState);
+                }
+                else
+                {
+                    s_perAnalyzerStatePool.ForgetTrackedObject(analyzerState);
+                }
+            }
+        }
+
         private static ImmutableDictionary<DiagnosticAnalyzer, int> CreateAnalyzerStateMap(ImmutableArray<DiagnosticAnalyzer> analyzers, out ImmutableArray<PerAnalyzerState> analyzerStates)
         {
-            var analyzerStateDataPool = new ObjectPool<AnalyzerStateData>(() => new AnalyzerStateData());
-            var declarationAnalyzerStateDataPool = new ObjectPool<DeclarationAnalyzerStateData>(() => new DeclarationAnalyzerStateData());
-            var currentlyAnalyzingDeclarationsMapPool = new ObjectPool<Dictionary<int, DeclarationAnalyzerStateData>>(
-                () => new Dictionary<int, DeclarationAnalyzerStateData>());
-
             var statesBuilder = ImmutableArray.CreateBuilder<PerAnalyzerState>();
             var map = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, int>();
             var index = 0;
             foreach (var analyzer in analyzers)
             {
-                statesBuilder.Add(new PerAnalyzerState(analyzerStateDataPool, declarationAnalyzerStateDataPool, currentlyAnalyzingDeclarationsMapPool));
+                statesBuilder.Add(s_perAnalyzerStatePool.Allocate());
                 map[analyzer] = index;
                 index++;
             }

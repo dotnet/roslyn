@@ -70,6 +70,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // this is based on finding on https://github.com/dotnet/roslyn/issues/6802
             // one of reason we do this here is so that GC do compact on fragmented memory.
             // which will in return let us have bigger continuous free memory chunk.
+            //
+            // we do this 5 times to make sure we release all pending memories. something
+            // most of our tests do. previous collect can put objects in finalizer and running
+            // finalizer can release even more memory so we repeat this 5 times.
             for (var i = 0; i < 5; i++)
             {
                 GC.Collect();

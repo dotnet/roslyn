@@ -24,12 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
         End Function
 
         Private Function ShouldPreselect(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
-            Dim documentId = context?.Workspace?.CurrentSolution.GetDocumentIdsWithFilePath(context.SyntaxTree.FilePath).FirstOrDefault()
-            If documentId Is Nothing Then
+            ' The Workspace might be null in the keyword recommender tests, since we don't create one for those.
+            ' This function still gets test coverage through the all-up completion tests.
+            Dim document = context.Workspace?.CurrentSolution.GetDocument(context.SyntaxTree)
+
+            If document Is Nothing Then
                 Return False
             End If
 
-            Dim document = context.Workspace.CurrentSolution.GetDocument(documentId)
             Dim typeInferenceService = document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
             Dim types = typeInferenceService.InferTypes(context.SemanticModel, context.Position, cancellationToken)
 

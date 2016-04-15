@@ -11,6 +11,7 @@ namespace Microsoft.Cci
     {
         /// <summary>
         /// Zero or more used namespaces. These correspond to using directives in C# or Imports syntax in VB.
+        /// Multiple invocations return the same array instance.
         /// </summary>
         ImmutableArray<UsedNamespaceOrType> GetUsedNamespaces();
 

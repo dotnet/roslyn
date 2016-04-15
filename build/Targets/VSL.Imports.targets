@@ -90,13 +90,21 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
 
-  <PropertyGroup Condition="
-      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
-      '$(TargetFrameworkVersion)' == 'v5.0' AND
-      '$(OutputType)' == 'Exe'">
-    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+                     '$(TargetFrameworkVersion)' == 'v5.0'">
+      <!-- Treat portable exes as CoreClr-targeting-exes -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
+        <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+        <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+      </PropertyGroup>
+
+      <!-- Upgrade portable projects to .NETStandard 1.3 -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Library'">
+        <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
+      </PropertyGroup>
+    </When>
+  </Choose>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'
@@ -173,11 +181,16 @@
 
   <!-- ====================================================================================
 
-         Force-include our NuGet-consumed assets into VSIX projects
+         Include some of our NuGet-consumed assets into VSIX projects
 
-         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
-           It should not be copied into other projects without careful thought and
-           understanding of the VSSDK VSIX targets.
+         This exists for two reasons:
+
+         1) In some cases, we need to include the contents of a NuGet package that is otherwise
+            contained within the SuppressFromVsix list, because we're actually the component
+            inside Visual Studio that ships that component
+         
+         2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+            by the NuGet build task.
 
        ==================================================================================== -->
 
@@ -185,15 +198,25 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
-    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
-      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+    <ItemGroup>
+      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
+        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
+      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+
+      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
+       Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
 
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
 
   <!-- ====================================================================================
 

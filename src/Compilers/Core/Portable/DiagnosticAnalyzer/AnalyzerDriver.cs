@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolEvent.Symbol;
             var executeSyntaxNodeActions = ShouldExecuteSyntaxNodeActions(analysisScope);
             var executeCodeBlockActions = ShouldExecuteCodeBlockActions(analysisScope, symbol);
-            var executeOperationActions = this.analyzerExecutor.Compilation.IsIOperationFeatureEnabled() && ShouldExecuteOperationActions(analysisScope);
+            var executeOperationActions = ShouldExecuteOperationActions(analysisScope);
             var executeOperationBlockActions = ShouldExecuteOperationBlockActions(analysisScope, symbol);
 
             if (executeSyntaxNodeActions || executeOperationActions || executeCodeBlockActions || executeOperationBlockActions)
@@ -1557,6 +1557,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind;
                     if (this.NodeActionsByAnalyzerAndKind.TryGetValue(analyzer, out nodeActionsByKind))
                     {
+                        if (nodeActionsByKind.IsEmpty)
+                        {
+                            continue;
+                        }
+
                         analyzerExecutor.ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind,
                             analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                             decl, declarationIndex, symbol, analysisScope, analysisStateOpt, isInGeneratedCode);
@@ -1610,6 +1615,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                             ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
                                             if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
                                             {
+                                                if (operationActionsByKind.IsEmpty)
+                                                {
+                                                    continue;
+                                                }
+
                                                 analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
                                                     analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                                                     decl, declarationIndex, symbol, analysisScope, analysisStateOpt, isInGeneratedCode);
@@ -1621,6 +1631,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     {
                                         foreach (var analyzerActions in codeBlockActions)
                                         {
+                                            if (analyzerActions.OperationBlockStartActions.IsEmpty &&
+                                                analyzerActions.OperationBlockActions.IsEmpty &&
+                                                analyzerActions.OpererationBlockEndActions.IsEmpty)
+                                            {
+                                                continue;
+                                            }
+
                                             analyzerExecutor.ExecuteOperationBlockActions(
                                                 analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
                                                 analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
@@ -1639,6 +1656,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var analyzerActions in codeBlockActions)
                     {
+                        if (analyzerActions.CodeBlockStartActions.IsEmpty &&
+                            analyzerActions.CodeBlockActions.IsEmpty &&
+                            analyzerActions.CodeBlockEndActions.IsEmpty)
+                        {
+                            continue;
+                        }
+
                         analyzerExecutor.ExecuteCodeBlockActions(
                             analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
                             analyzerActions.CodeBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,

@@ -2939,14 +2939,14 @@ End Module
             Dim emitResult As EmitResult
 
             Using output = New BrokenStream()
-                output.BreakHow = 0
+                output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
                 emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
-            End Using
 
-            CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics,
+                CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics,
 <expected>
-BC37256: An error occurred while writing the output file.
+BC37256: An error occurred while writing the output file: <%= output.ThrownException.ToString() %>
 </expected>)
+            End Using
         End Sub
     End Class
 End Namespace

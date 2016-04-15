@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -21,14 +23,38 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public PatternMatchKind Kind { get; }
 
+        /// <summary>
+        /// The spans in the original text that were matched.  Only returned if the 
+        /// pattern matcher is asked to collect these spans.
+        /// </summary>
+        public IReadOnlyList<TextSpan> MatchedSpans { get; }
+
         private readonly bool _punctuationStripped;
 
-        internal PatternMatch(PatternMatchKind resultType, bool punctuationStripped, bool isCaseSensitive, int? camelCaseWeight = null)
+        internal PatternMatch(
+            PatternMatchKind resultType,
+            bool punctuationStripped,
+            bool isCaseSensitive,
+            TextSpan? matchedSpan,
+            int? camelCaseWeight = null)
+            : this(resultType, punctuationStripped, isCaseSensitive, 
+                  matchedSpan == null ? null : new[] { matchedSpan.Value },
+                  camelCaseWeight)
+        {
+        }
+
+        internal PatternMatch(
+            PatternMatchKind resultType,
+            bool punctuationStripped,
+            bool isCaseSensitive,
+            TextSpan[] matchedSpans,
+            int? camelCaseWeight = null)
             : this()
         {
             this.Kind = resultType;
             this.IsCaseSensitive = isCaseSensitive;
             this.CamelCaseWeight = camelCaseWeight;
+            this.MatchedSpans = matchedSpans;
             _punctuationStripped = punctuationStripped;
 
             if ((resultType == PatternMatchKind.CamelCase) != camelCaseWeight.HasValue)

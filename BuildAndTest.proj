@@ -17,6 +17,7 @@
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <XunitVersion>2.1.0</XunitVersion>
+    <CoreClrTestDirectory>$(OutputDirectory)\CoreClrTest</CoreClrTestDirectory>
     <MSBuildCommonProperties>
       RestorePackages=false;
       TreatWarningsAsErrors=true;
@@ -71,18 +72,58 @@
           SkipUnchangedFiles="true"
           UseHardlinksIfPossible="true" />
 
+    <MakeDir Directories="$(CoreClrTestDirectory)\xUnitResults" />
+
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
       <TestAssemblies Condition="'$(Test64)' != 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" />
 
       <TestAssemblies Condition="'$(Test64)' == 'true'" 
-                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
-                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
+                      Include="$(OutputDirectory)\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\Roslyn.Interactive*" />
+
+      <CoreTestAssemblies Include="$(CoreClrTestDirectory)\$(IncludePattern)" />
+
+      <MisplacedTestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)"
+                               Exclude="$(OutputDirectory)\$(IncludePattern);@(CoreTestAssemblies)" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Error Condition="'@(MisplacedTestAssemblies->Count())' &gt; 0"
+        Text="Found test assemblies outside a well-known test directory: 
+@(MisplacedTestAssemblies, '%0a')" />
+
+    <PropertyGroup>
+      <CoreRunExe>$(CoreClrTestDirectory)\CoreRun.exe</CoreRunExe>
+      <CoreRunArgs>$(CoreClrTestDirectory)\xunit.console.netcore.exe @(CoreTestAssemblies, ' ') -parallel all -xml $(CoreClrTestDirectory)\xUnitResults\TestResults.xml</CoreRunArgs>
+      <RunTestsExe>Binaries\$(Configuration)\RunTests\RunTests.exe</RunTestsExe>
+      <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
+    </PropertyGroup>
+    
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
+
+    <Exec Condition="'$(RunProcessWatchdog)' != 'true'" Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
+
+    <PropertyGroup Condition="'$(RunProcessWatchdog)' == 'true'">
+      <ProcessWatchDogExe>$(OutputDirectory)\ProcessWatchdog\ProcessWatchdog.exe</ProcessWatchDogExe>
+      <ProcessWatchdogOutputDirectory Condition="'$(ProcessWatchdogOutputDirectory)' == ''">$(OutputDirectory)\ProcessWatchdogOutput</ProcessWatchdogOutputDirectory>
+      <ProcDumpExe Condition="'$(ProcDumpExe)' == ''">C:\Sysinternals\Procdump.exe</ProcDumpExe>
+
+      <!--
+      The time reserved for the process watchdog to kill all test processes and obtain crash
+      dumps from them, measure in seconds.
+      -->
+      <BufferTime>300</BufferTime>
+
+      <!--
+      The fully constructed command line which runs a PowerShell script that runs both the
+      Core CLR unit tests and the desktop unit tests under the control of the process watchdog.
+      -->
+      <RunProcessWatchdogScriptCommand>PowerShell.exe -ExecutionPolicy RemoteSigned -NoProfile .\build\scripts\Run-TestsWithProcessWatchdog.ps1 -ProcessWatchDogExe $(ProcessWatchDogExe) -ProcessWatchdogOutputDirectory $(ProcessWatchdogOutputDirectory) -ProcDumpExe $(ProcDumpExe) -CoreRunExe '$(CoreRunExe)' -CoreRunArgs '$(CoreRunArgs)' -RunTestsExe '$(RunTestsExe)' -RunTestsArgs '$(RunTestsArgs)' -BuildStartTime $(BuildStartTime) -BuildTimeLimit $(BuildTimeLimit) -BufferTime $(BufferTime)</RunProcessWatchdogScriptCommand>
+    </PropertyGroup>
+
+    <Exec Condition="'$(RunProcessWatchdog)' == 'true'" Command="$(RunProcessWatchdogScriptCommand)" />
 
   </Target>
 
