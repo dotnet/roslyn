@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 var updatedMember = updatedMembers[updatedMemberIndex];
 
-                                ReportStateMachineRudeEdits(updatedMember, oldSymbol, diagnostics);
+                                ReportStateMachineRudeEdits(oldModel.Compilation, updatedMember, oldSymbol, diagnostics);
 
                                 bool newBodyHasLambdas;
                                 ReportLambdaAndClosureRudeEdits(
@@ -3703,6 +3703,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region State Machines
 
         private void ReportStateMachineRudeEdits(
+            Compilation oldCompilation,
             UpdatedMemberInfo updatedInfo, 
             ISymbol oldMember, 
             List<RudeEditDiagnostic> diagnostics)
@@ -3719,7 +3720,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We assume that the attributes, if exist, are well formed.
             // If not an error will be reported during EnC delta emit.
-            if (oldMember.ContainingAssembly.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
+            if (oldCompilation.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.UpdatingStateMachineMethodMissingAttribute,

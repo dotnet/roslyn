@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="EnableApplicationServices.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TableLayoutPanel1.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="HelpLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="HelpLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="HelpLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 6</value>
+  </data>
+  <data name="HelpLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>475, 26</value>
+  </data>
+  <data name="HelpLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="HelpLabel.Text" xml:space="preserve">
+    <value>Client application services enable your Windows-based applications to use the ASP.NET login (authentication), roles, and profile (settings) services.  Learn more about client application services...</value>
+  </data>
+  <data name="&gt;&gt;HelpLabel.Name" xml:space="preserve">
+    <value>HelpLabel</value>
+  </data>
+  <data name="&gt;&gt;HelpLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.LinkLabel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;HelpLabel.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;HelpLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TableLayoutPanel2.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TableLayoutPanel2.ColumnCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="WindowsBasedAuth.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WindowsBasedAuth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="WindowsBasedAuth.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 3</value>
+  </data>
+  <data name="WindowsBasedAuth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>161, 17</value>
+  </data>
+  <data name="WindowsBasedAuth.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="WindowsBasedAuth.Text" xml:space="preserve">
+    <value>Use &amp;Windows authentication</value>
+  </data>
+  <data name="&gt;&gt;WindowsBasedAuth.Name" xml:space="preserve">
+    <value>WindowsBasedAuth</value>
+  </data>
+  <data name="&gt;&gt;WindowsBasedAuth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WindowsBasedAuth.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;WindowsBasedAuth.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="CustomCredentialProviderType.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="CustomCredentialProviderType.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 121</value>
+  </data>
+  <data name="CustomCredentialProviderType.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 0</value>
+  </data>
+  <data name="CustomCredentialProviderType.Size" type="System.Drawing.Size, System.Drawing">
+    <value>473, 20</value>
+  </data>
+  <data name="CustomCredentialProviderType.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderType.Name" xml:space="preserve">
+    <value>CustomCredentialProviderType</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderType.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderType.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderType.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="FormBasedAuth.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="FormBasedAuth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 23</value>
+  </data>
+  <data name="FormBasedAuth.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="FormBasedAuth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>145, 17</value>
+  </data>
+  <data name="FormBasedAuth.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="FormBasedAuth.Text" xml:space="preserve">
+    <value>Use &amp;Forms authentication</value>
+  </data>
+  <data name="&gt;&gt;FormBasedAuth.Name" xml:space="preserve">
+    <value>FormBasedAuth</value>
+  </data>
+  <data name="&gt;&gt;FormBasedAuth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.RadioButton, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FormBasedAuth.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;FormBasedAuth.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 92</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 0, 0</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>473, 26</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="CustomCredentialProviderTypeLabel.Text" xml:space="preserve">
+    <value>Optional: Credentials &amp;provider
+(for example: MyNamespace.MyLoginClass, MyAssembly):</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderTypeLabel.Name" xml:space="preserve">
+    <value>CustomCredentialProviderTypeLabel</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderTypeLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderTypeLabel.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;CustomCredentialProviderTypeLabel.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 48</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 0, 0</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>473, 13</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="AuthenticationServiceUrlLabel.Text" xml:space="preserve">
+    <value>&amp;Authentication service location:</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrlLabel.Name" xml:space="preserve">
+    <value>AuthenticationServiceUrlLabel</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrlLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrlLabel.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrlLabel.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="AuthenticationServiceUrl.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="AuthenticationServiceUrl.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 64</value>
+  </data>
+  <data name="AuthenticationServiceUrl.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="AuthenticationServiceUrl.Size" type="System.Drawing.Size, System.Drawing">
+    <value>473, 20</value>
+  </data>
+  <data name="AuthenticationServiceUrl.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrl.Name" xml:space="preserve">
+    <value>AuthenticationServiceUrl</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrl.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrl.Parent" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationServiceUrl.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="TableLayoutPanel2.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="TableLayoutPanel2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>9, 22</value>
+  </data>
+  <data name="TableLayoutPanel2.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="TableLayoutPanel2.RowCount" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="TableLayoutPanel2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>473, 141</value>
+  </data>
+  <data name="TableLayoutPanel2.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel2.Name" xml:space="preserve">
+    <value>TableLayoutPanel2</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel2.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel2.Parent" xml:space="preserve">
+    <value>AuthenticationProviderGroupBox</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel2.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TableLayoutPanel2.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="WindowsBasedAuth" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CustomCredentialProviderType" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="FormBasedAuth" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CustomCredentialProviderTypeLabel" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AuthenticationServiceUrlLabel" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AuthenticationServiceUrl" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>22, 61</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>9, 9, 9, 11</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>491, 174</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="AuthenticationProviderGroupBox.Text" xml:space="preserve">
+    <value>Authentication</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationProviderGroupBox.Name" xml:space="preserve">
+    <value>AuthenticationProviderGroupBox</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationProviderGroupBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationProviderGroupBox.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;AuthenticationProviderGroupBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="RolesServiceUrlLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RolesServiceUrlLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>22, 238</value>
+  </data>
+  <data name="RolesServiceUrlLabel.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 10, 0, 0</value>
+  </data>
+  <data name="RolesServiceUrlLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 23</value>
+  </data>
+  <data name="RolesServiceUrlLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="RolesServiceUrlLabel.Text" xml:space="preserve">
+    <value>&amp;Roles service location:</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrlLabel.Name" xml:space="preserve">
+    <value>RolesServiceUrlLabel</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrlLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrlLabel.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrlLabel.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="RolesServiceUrl.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="RolesServiceUrl.Location" type="System.Drawing.Point, System.Drawing">
+    <value>22, 264</value>
+  </data>
+  <data name="RolesServiceUrl.Size" type="System.Drawing.Size, System.Drawing">
+    <value>491, 20</value>
+  </data>
+  <data name="RolesServiceUrl.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrl.Name" xml:space="preserve">
+    <value>RolesServiceUrl</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrl.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrl.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;RolesServiceUrl.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="WebSettingsUrlLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WebSettingsUrlLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>22, 287</value>
+  </data>
+  <data name="WebSettingsUrlLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>149, 13</value>
+  </data>
+  <data name="WebSettingsUrlLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="WebSettingsUrlLabel.Text" xml:space="preserve">
+    <value>We&amp;b settings service location:</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrlLabel.Name" xml:space="preserve">
+    <value>WebSettingsUrlLabel</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrlLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrlLabel.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrlLabel.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="WebSettingsUrl.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="WebSettingsUrl.Location" type="System.Drawing.Point, System.Drawing">
+    <value>22, 303</value>
+  </data>
+  <data name="WebSettingsUrl.Size" type="System.Drawing.Size, System.Drawing">
+    <value>491, 20</value>
+  </data>
+  <data name="WebSettingsUrl.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrl.Name" xml:space="preserve">
+    <value>WebSettingsUrl</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrl.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrl.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;WebSettingsUrl.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="AdvancedSettings.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AdvancedSettings.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="AdvancedSettings.Location" type="System.Drawing.Point, System.Drawing">
+    <value>438, 349</value>
+  </data>
+  <data name="AdvancedSettings.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 23, 3, 3</value>
+  </data>
+  <data name="AdvancedSettings.Size" type="System.Drawing.Size, System.Drawing">
+    <value>75, 23</value>
+  </data>
+  <data name="AdvancedSettings.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="AdvancedSettings.Text" xml:space="preserve">
+    <value>A&amp;dvanced...</value>
+  </data>
+  <data name="&gt;&gt;AdvancedSettings.Name" xml:space="preserve">
+    <value>AdvancedSettings</value>
+  </data>
+  <data name="&gt;&gt;AdvancedSettings.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AdvancedSettings.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;AdvancedSettings.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="TableLayoutPanel1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="TableLayoutPanel1.RowCount" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="TableLayoutPanel1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>516, 443</value>
+  </data>
+  <data name="TableLayoutPanel1.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Name" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;TableLayoutPanel1.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TableLayoutPanel1.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="HelpLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="EnableApplicationServices" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="AuthenticationProviderGroupBox" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="RolesServiceUrlLabel" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="RolesServiceUrl" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="WebSettingsUrlLabel" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="WebSettingsUrl" Row="6" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="AdvancedSettings" Row="7" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Absolute,19,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,100" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="EnableApplicationServices.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 38</value>
+  </data>
+  <data name="EnableApplicationServices.Size" type="System.Drawing.Size, System.Drawing">
+    <value>183, 17</value>
+  </data>
+  <data name="EnableApplicationServices.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="EnableApplicationServices.Text" xml:space="preserve">
+    <value>&amp;Enable client application services</value>
+  </data>
+  <data name="&gt;&gt;EnableApplicationServices.Name" xml:space="preserve">
+    <value>EnableApplicationServices</value>
+  </data>
+  <data name="&gt;&gt;EnableApplicationServices.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;EnableApplicationServices.Parent" xml:space="preserve">
+    <value>TableLayoutPanel1</value>
+  </data>
+  <data name="&gt;&gt;EnableApplicationServices.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 13</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>529, 446</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>ServicesPropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

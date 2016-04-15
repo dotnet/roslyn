@@ -1,13 +1,23 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
+import jobs.generation.Utilities;
+import static Constants.*;
+
+def project = GithubProject
+
+class Constants {
+    // Number of minutes a build job is given to complete.
+    static final BuildTimeLimit = 120;
+}
+
 static void addLogRotator(def myJob) {
   myJob.with {
     logRotator {
-      daysToKeep(21)
+      daysToKeep(90)
       numToKeep(-1)
-      artifactDaysToKeep(5)
-      artifactNumToKeep(25)
+      artifactDaysToKeep(21)
+      artifactNumToKeep(-1)
     }
   }
 }
@@ -47,7 +57,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(120)
+        absolute(BuildTimeLimit)
         abortBuild()
       }
       timestamps()
@@ -218,7 +228,6 @@ def branchNames = []
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn')
                   steps {
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -226,6 +235,7 @@ set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
                 // Generic throttling for Windows, no category
                 addConcurrentBuild(myJob, null)
                 break;
@@ -273,6 +283,7 @@ set TMP=%TEMP%
     }
   }
 
+  Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
   addConcurrentBuild(determinismJob, null)
   addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }

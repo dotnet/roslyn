@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "..\util\test_util.csx"
+#load "../util/test_util.csx"
 using System.IO;
 using System;
 
-InitUtilities();
+var directoryUtil = new RelativeDirectory();
 
-string FirstLine(string input) {
+string FirstLine(string input)
+{
     return input.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0];
 }
 
@@ -19,7 +20,7 @@ string machineName = StdoutFrom("hostname");
 string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
 // File locations
-string workingDir = Path.Combine(MyWorkingDirectory(), "..", "temp");
+string workingDir = Path.Combine(directoryUtil.MyWorkingDirectory, "..", "temp");
 string inCompilerTime = Path.Combine(workingDir, "compiler_time.csv");
 string inRunTime = Path.Combine(workingDir, "run_time.csv");
 string inFileSize = Path.Combine(workingDir, "file_size.csv");
@@ -27,13 +28,16 @@ string outJson = Path.Combine(workingDir, $"Roslyn-{longHash}.json");
 
 // ViBenchToJson does not like empty csv files.
 string files = "";
-if (new FileInfo(inCompilerTime).Length != 0) {
+if (new FileInfo(inCompilerTime).Length != 0)
+{
     files += $@"compilertime:""{inCompilerTime}""";
 }
-if (new FileInfo(inRunTime).Length != 0) {
+if (new FileInfo(inRunTime).Length != 0)
+{
     files += $@"exectime:""{inRunTime}""";
 }
-if (new FileInfo(inFileSize).Length != 0) {
+if (new FileInfo(inFileSize).Length != 0)
+{
     files += $@"filesize:""{inFileSize}""";
 }
 
