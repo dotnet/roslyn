@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                var documents = GetDocumentGroupKey(args.Solution, args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key.DocumentIds == documents;
             }
 
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var documents = GetDocumentGroupKey(args.Solution, args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 

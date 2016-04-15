@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ConnectToSolutionCrawlerService(workspace);
         }
 
-        protected ImmutableArray<DocumentId> GetDocumentGroupKey(Solution solution, DocumentId documentId)
+        protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
         {
             var document = solution.GetDocument(documentId);
             if (document == null)
