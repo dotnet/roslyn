@@ -14,6 +14,10 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
+      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
+      <Name>DiaSymReader</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
