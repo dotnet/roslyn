@@ -2454,5 +2454,15 @@ class C
             Verify(evalResult,
                 EvalResult("o", "3", "int", "o, nq"));
         }
+
+        [Fact(Skip = "9895"), WorkItem(9895, "https://github.com/dotnet/roslyn/issues/9895")]
+        public void ErrorValueWithNoType()
+        {
+            var rootExpr = "e";
+            var message = "The system is down.";
+            var value = CreateErrorValue(type: null, message: message);
+            Verify(FormatResult(rootExpr, value),
+                EvalResult(rootExpr, message, "", rootExpr));
+        }
     }
 }

@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             BuildPaths buildPaths,
             string keepAlive,
             string libEnvVariable,
-            CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
+            CancellationToken cancellationToken) => Task.FromResult<BuildResponse>(null);
     }
 }

@@ -138,6 +138,31 @@ End Module
             End Using
         End Sub
 
+        <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                  <Document><![CDATA[
+Class C
+    Public Fuction F() As Boolean
+        If $$
+    End Function
+End Class
+            ]]></Document>)
+
+                state.SendTypeChars("tru")
+                Await state.AssertCompletionSession()
+                state.SendLeftKey()
+                state.SendLeftKey()
+                state.SendLeftKey()
+                Await state.AssertSelectedCompletionItem(isSoftSelected:=True)
+                state.SendTypeChars("(")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("If (tru", state.GetLineTextFromCaretPosition().Trim())
+                Assert.Equal("t", state.GetCaretPoint().BufferPosition.GetChar())
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionAdjustInsertionText_CommitsOnOpenParens2() As Task
             Using state = TestState.CreateVisualBasicTestState(
@@ -371,7 +396,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="xunit"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)
@@ -408,7 +433,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="xunit wait"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)

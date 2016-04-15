@@ -81,10 +81,16 @@ properly commented with their release version, and contain only mandatory parame
 
 ## NOTE ##
 
-After this change, if Public API Analyzer complains about it, you should copy the entry for your change from PublicAPI.Shipped.txt and then put that entry in PublicAPI.Unshipped.txt with *REMOVED* prefix.
+After this change, if Public API Analyzer complains about it, you should copy the entry for your change from PublicAPI.Shipped.txt and then put that entry in PublicAPI.Unshipped.txt with `*REMOVED*` prefix.
 
 PublicAPI.Shipped.txt
+
+``` txt
 Example.O(string o1 = null, string o2 = null) -> void
+```
 
 PublicAPI.Unshipped.txt
+
+``` txt
 *REMOVED*Example.O(string o1 = null, string o2 = null) -> void
+```

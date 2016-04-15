@@ -358,8 +358,10 @@ namespace Microsoft.Cci
             }
 
             DefineLocalScopes(localScopes, localSignatureToken);
-
-            EmitSequencePoints(methodBody.GetSequencePoints());
+            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
+            methodBody.GetSequencePoints(sequencePoints);
+            EmitSequencePoints(sequencePoints);
+            sequencePoints.Free();
 
             AsyncMethodBodyDebugInfo asyncDebugInfo = methodBody.AsyncDebugInfo;
             if (asyncDebugInfo != null)
@@ -763,6 +765,8 @@ namespace Microsoft.Cci
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
+        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+
         private static Type GetCorSymWriterSxSType()
         {
             if (s_lazyCorSymWriterSxSType == null)
@@ -813,7 +817,16 @@ namespace Microsoft.Cci
         {
             try
             {
-                var symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                ISymUnmanagedWriter5 symWriter;
+
+                try
+                {
+                    symWriter = (ISymUnmanagedWriter5)(_symWriterFactory != null ? _symWriterFactory() : CreateSymWriterWorker());
+                }
+                catch (Exception)
+                {
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
@@ -823,7 +836,7 @@ namespace Microsoft.Cci
                 {
                     if (!(symWriter is ISymUnmanagedWriter7))
                     {
-                        throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
+                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
                     }
 
                     ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
@@ -1105,7 +1118,7 @@ namespace Microsoft.Cci
             Array.Resize(ref _sequencePointEndColumns, newCapacity);
         }
 
-        private void EmitSequencePoints(ImmutableArray<SequencePoint> sequencePoints)
+        private void EmitSequencePoints(ArrayBuilder<Cci.SequencePoint> sequencePoints)
         {
             DebugSourceDocument document = null;
             ISymUnmanagedDocumentWriter symDocumentWriter = null;

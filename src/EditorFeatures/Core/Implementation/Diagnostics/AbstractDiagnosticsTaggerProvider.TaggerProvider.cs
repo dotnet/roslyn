@@ -124,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     if (_owner.IncludeDiagnostic(diagnosticData))
                     {
-                        var actualSpan = AdjustSpan(diagnosticData.GetExistingOrCalculatedTextSpan(sourceText), sourceText)
+                        var actualSpan = diagnosticData
+                            .GetExistingOrCalculatedTextSpan(sourceText)
                             .ToSnapshotSpan(editorSnapshot)
                             .TranslateTo(requestedSnapshot, SpanTrackingMode.EdgeExclusive);
 

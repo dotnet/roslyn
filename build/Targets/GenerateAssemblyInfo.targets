@@ -68,21 +68,11 @@
 
     <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
     <WriteCodeFragmentEx 
-        Condition="'$(OS)' == 'Windows_NT'"
         AssemblyAttributes="@(AssemblyVersionAttribute)"
         Language="$(Language)"
         OutputFile="$(GeneratedAssemblyInfoFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragmentEx>
-
-    <WriteCodeFragment 
-        Condition="'$(OS)' != 'Windows_NT'"
-        AssemblyAttributes="@(AssemblyVersionAttribute)"
-        Language="$(Language)"
-        OutputFile="$(GeneratedAssemblyInfoFile)">
-      <Output TaskParameter="OutputFile" ItemName="Compile" />
-      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
-    </WriteCodeFragment>
   </Target>
 </Project>
