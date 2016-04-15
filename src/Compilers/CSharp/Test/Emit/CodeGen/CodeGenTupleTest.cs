@@ -3181,5 +3181,190 @@ class C
             CompileAndVerify(comp, expectedOutput: "{1, qq1}");
         }
 
+        [Fact]
+        public void Inference01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((null, null));
+        Test((1, 1));
+        Test((()=>7, ()=>8), 2);
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x, T y)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+second
+first
+third
+7
+");
+        }
+
+        [Fact]
+        public void Inference02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((()=>7, ()=>8));
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+third
+7
+");
+        }
+
+        [Fact]
+        public void Inference03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(((x)=>x, (x)=>x));
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<int, T>, Func<T, T>) x)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1(5).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+third
+5
+");
+        }
+
+        [Fact]
+        public void Inference04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test( (x)=>x.y );
+        Test( (x)=>x.bob );
+    }
+
+    static void Test<T>( Func<(byte x, byte y), T> x)
+    {
+        System.Console.WriteLine(""first"");
+        System.Console.WriteLine(x((2,3)).ToString());
+    }
+
+    static void Test<T>( Func<(int alice, int bob), T> x)
+    {
+        System.Console.WriteLine(""second"");
+        System.Console.WriteLine(x((4,5)).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+first
+3
+second
+5
+");
+        }
+
+        [Fact]
+        public void Inference05()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test( ((x)=>x.x, (x)=>x.Item2) );
+        Test( ((x)=>x.bob, (x)=>x.Item1) );
+    }
+
+    static void Test<T>( (Func<(byte x, byte y), T> f1, Func<(int, int), T> f2) x)
+    {
+        System.Console.WriteLine(""first"");
+        System.Console.WriteLine(x.f1((2,3)).ToString());
+        System.Console.WriteLine(x.f2((2,3)).ToString());
+    }
+
+    static void Test<T>( (Func<(int alice, int bob), T> f1, Func<(int, int), T> f2) x)
+    {
+        System.Console.WriteLine(""second"");
+        System.Console.WriteLine(x.f1((4,5)).ToString());
+        System.Console.WriteLine(x.f2((4,5)).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+first
+2
+3
+second
+5
+4
+");
+        }
     }
 }

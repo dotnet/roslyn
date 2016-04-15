@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: phase. The first phase makes some initial inferences of bounds, whereas
             // SPEC: the second phase fixes type parameters to specific types and infers further
             // SPEC: bounds. The second phase may have to be repeated a number of times.
-            InferTypeArgsFirstPhase(ref useSiteDiagnostics);
+            InferTypeArgsFirstPhase(binder, ref useSiteDiagnostics);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
             return new MethodTypeInferenceResult(success, GetResults());
         }
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The first phase
         //
 
-        private void InferTypeArgsFirstPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void InferTypeArgsFirstPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
@@ -541,69 +541,126 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = _arguments[arg];
 
-                bool isOutOrRef = GetRefKind(arg) != RefKind.None;
+                bool isExactInference = GetRefKind(arg) != RefKind.None;
 
                 TypeSymbol target = _formalParameterTypes[arg];
                 TypeSymbol source = _arguments[arg].Type;
 
-
-                // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
-                // error type, then we want to set it to the generic error type 
-                // that has no name text. This is because of the following scenario:
-                //
-                // void M<T>(T t) { }
-                // void Foo()
-                // {
-                //     UnknownType t;
-                //     M(t);
-                //     M(undefinedVariable);
-                // }
-                //
-                // In the first call to M, we'll have an EXPRLOCAL with an error type,
-                // which is correct - we want the parameter help to display that we've
-                // got an inferred type of UnknownType, which is an error type since 
-                // its undefined.
-                //
-                // However, for the M in the second call, we DON'T want to display parameter
-                // help that gives undefinedVariable as the type parameter for T, because
-                // there is no parameter of that name, let alone that type. This appears
-                // as an EXPRTYPEORNAMESPACEERROR with an ErrorType. We create a new error sym
-                // without the type name.
-
-                // UNDONE: if (pExpr->isTYPEORNAMESPACEERROR() && pSource->IsErrorType())
-                // UNDONE:{
-                // UNDONE:    pSource = GetTypeManager().GetErrorSym();
-                // UNDONE:}
-
-                // SPEC: * If Ei is an anonymous function, an explicit type parameter
-                // SPEC:   inference is made from Ei to Ti.
-
-                // (We cannot make an output type inference from a method group
-                // at this time because we have no fixed types yet to use for
-                // overload resolution.)
-
-                // SPEC: * Otherwise, if Ei has a type U then a lower-bound inference 
-                // SPEC:   or exact inference is made from U to Ti.
-
-                // SPEC: * Otherwise, no inference is made for this argument
-
-                if (argument.Kind == BoundKind.UnboundLambda)
-                {
-                    ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
-                }
-                else if (IsReallyAType(source))
-                {
-                    if (isOutOrRef)
-                    {
-                        ExactInference(source, target, ref useSiteDiagnostics);
-                    }
-                    else
-                    {
-                        LowerBoundInference(source, target, ref useSiteDiagnostics);
-                    }
-                }
+                MakeExplicitParameterTypeInferences(binder, argument, source, target, isExactInference, ref useSiteDiagnostics);
             }
         }
+
+        private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeSymbol source, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
+            // error type, then we want to set it to the generic error type 
+            // that has no name text. This is because of the following scenario:
+            //
+            // void M<T>(T t) { }
+            // void Foo()
+            // {
+            //     UnknownType t;
+            //     M(t);
+            //     M(undefinedVariable);
+            // }
+            //
+            // In the first call to M, we'll have an EXPRLOCAL with an error type,
+            // which is correct - we want the parameter help to display that we've
+            // got an inferred type of UnknownType, which is an error type since 
+            // its undefined.
+            //
+            // However, for the M in the second call, we DON'T want to display parameter
+            // help that gives undefinedVariable as the type parameter for T, because
+            // there is no parameter of that name, let alone that type. This appears
+            // as an EXPRTYPEORNAMESPACEERROR with an ErrorType. We create a new error sym
+            // without the type name.
+
+            // UNDONE: if (pExpr->isTYPEORNAMESPACEERROR() && pSource->IsErrorType())
+            // UNDONE:{
+            // UNDONE:    pSource = GetTypeManager().GetErrorSym();
+            // UNDONE:}
+
+            // SPEC: * If Ei is an anonymous function, an explicit type parameter
+            // SPEC:   inference is made from Ei to Ti.
+
+            // (We cannot make an output type inference from a method group
+            // at this time because we have no fixed types yet to use for
+            // overload resolution.)
+
+            // SPEC: * Otherwise, if Ei has a type U then a lower-bound inference 
+            // SPEC:   or exact inference is made from U to Ti.
+
+            // SPEC: * Otherwise, no inference is made for this argument
+
+            if (argument.Kind == BoundKind.UnboundLambda)
+            {
+                ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
+            }
+            else if (IsReallyAType(source))
+            {
+                if (isExactInference)
+                {
+                    ExactInference(source, target, ref useSiteDiagnostics);
+                }
+                else
+                {
+                    LowerBoundInference(source, target, ref useSiteDiagnostics);
+                }
+            }
+            else if (argument.Kind== BoundKind.TupleLiteral)
+            {
+                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, ref useSiteDiagnostics);
+            }
+        }
+
+        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (target.Kind != SymbolKind.NamedType)
+            {
+                // tuples can only cast to tuples or tuple underlying types.
+                return;
+            }
+
+            var destination = (NamedTypeSymbol)target;
+
+            if (destination.IsTupleType)
+            {
+                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
+            }
+
+            Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
+            var sourceArguments = argument.Arguments;
+
+            // check if underlying type is actually a possible underlying type for a tuple of given arity
+            if (!binder.Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
+            {
+                return;
+            }
+
+            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
+            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+
+            try
+            {
+                if (sourceArguments.Length != destTypes.Count)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < sourceArguments.Length; i++)
+                {
+                    var sourceArgument = sourceArguments[i];
+                    var destType = destTypes[i];
+                    MakeExplicitParameterTypeInferences(binder, sourceArgument, sourceArgument.Type, destType, isExactInference: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                }
+            }
+            finally
+            {
+                destTypes.Free();
+            }
+        }
+
+
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -727,11 +784,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeSymbol argumentType, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // recurse into tuples
-            // TODO: VS no need if has type
-            if (argument.Kind == BoundKind.TupleLiteral)
+            if (argument.Kind == BoundKind.TupleLiteral && (object)argument.Type == null)
             {
-                MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, argumentType, formalType, ref useSiteDiagnostics);
+                MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteDiagnostics);
             }
             else
             {
@@ -746,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol argumentType, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (formalType.Kind != SymbolKind.NamedType)
             {
@@ -761,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
             }
 
-            Debug.Assert(argument.Type == null, "should not need dig into elements if tuple has natural type");
+            Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
@@ -784,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var sourceArgument = sourceArguments[i];
                     var destType = destTypes[i];
-                    OutputTypeInference(binder, sourceArgument, sourceArgument.Type, destType, ref useSiteDiagnostics);
+                    MakeOutputTypeInferences(binder, sourceArgument, sourceArgument.Type, destType, ref useSiteDiagnostics);
                 }
             }
             finally
