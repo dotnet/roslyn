@@ -855,57 +855,589 @@ End Class</x>.Value)
 
         End Sub
 
-        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
         <Fact>
-        Public Sub TestAddingStatementsToAbstractMethodChangesToMustOverride()
+        Public Sub TestAddingRemovingMethodStatements()
             Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
             Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(ms))
             VerifySyntax(Of MethodStatementSyntax)(
                 ms,
 <x>MustOverride Sub m()</x>.Value)
 
+            ' adding statements to MustOverride does not change modifiers
             Dim mb = _g.WithStatements(ms, {})
             VerifySyntax(Of MethodBlockSyntax)(
                 mb,
+<x>MustOverride Sub m()
+End Sub</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsAbstract()
+            Dim m = _g.MethodDeclaration("m")
+            Assert.False(_g.GetModifiers(m).IsAbstract)
+            Dim ma = _g.AsAbstractMember(m)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            VerifySyntax(Of MethodStatementSyntax)(ma,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim mv = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Virtual)
+            Assert.False(_g.GetModifiers(mv).IsAbstract)
+            ma = _g.AsAbstractMember(mv)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            VerifySyntax(Of MethodStatementSyntax)(ma,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim mo = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Override)
+            Assert.False(_g.GetModifiers(mo).IsAbstract)
+            ma = _g.AsAbstractMember(mo)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            VerifySyntax(Of MethodStatementSyntax)(ma,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim mn = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.[New])
+            Assert.False(_g.GetModifiers(mn).IsAbstract)
+            ma = _g.AsAbstractMember(mn)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            VerifySyntax(Of MethodStatementSyntax)(ma,
+<x>MustOverride Sub m()</x>.Value)
+
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.False(_g.GetModifiers(ms).IsAbstract)
+            ma = _g.AsAbstractMember(ms)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            VerifySyntax(Of MethodStatementSyntax)(ma,
+<x>MustOverride Sub m()</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsVirtual()
+            Dim m = _g.MethodDeclaration("m")
+            Assert.False(_g.GetModifiers(m).IsVirtual)
+            Dim mv = _g.AsVirtualMember(m)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mv,
 <x>Overridable Sub m()
 End Sub</x>.Value)
-        End Sub
 
-        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
-        <Fact>
-        Public Sub TestMakingMethodAbstractChangesToStatement()
-            Dim ms = _g.MethodDeclaration("m")
-            VerifySyntax(Of MethodBlockSyntax)(
-                ms,
-<x>Sub m()
-End Sub</x>.Value)
-
-            Dim mb = _g.WithModifiers(ms, DeclarationModifiers.Abstract)
-            VerifySyntax(Of MethodStatementSyntax)(
-                mb,
-<x>MustOverride Sub m()</x>.Value)
-        End Sub
-
-        <WorkItem(0, "https://github.com/dotnet/roslyn/issues/10327")>
-        <Fact>
-        Public Sub TestMakingMethodNotAbstractChangesToBlock()
             Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
-            Assert.Equal(DeclarationModifiers.Abstract, _g.GetModifiers(ma))
-            VerifySyntax(Of MethodStatementSyntax)(
-                ma,
-<x>MustOverride Sub m()</x>.Value)
-
-            Dim mv = _g.WithModifiers(ma, DeclarationModifiers.Virtual)
-            VerifySyntax(Of MethodBlockSyntax)(
-                mv,
+            Assert.False(_g.GetModifiers(ma).IsVirtual)
+            mv = _g.AsVirtualMember(ma)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mv,
 <x>Overridable Sub m()
 End Sub</x>.Value)
 
-            Dim mn = _g.WithModifiers(ma, DeclarationModifiers.None)
-            VerifySyntax(Of MethodBlockSyntax)(
-                mn,
+            Dim mo = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Override)
+            Assert.False(_g.GetModifiers(mo).IsVirtual)
+            mv = _g.AsVirtualMember(mo)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mv,
+<x>Overridable Sub m()
+End Sub</x>.Value)
+
+            Dim mn = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.[New])
+            Assert.False(_g.GetModifiers(mn).IsVirtual)
+            mv = _g.AsVirtualMember(mn)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mv,
+<x>Overridable Sub m()
+End Sub</x>.Value)
+
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.False(_g.GetModifiers(ms).IsVirtual)
+            mv = _g.AsVirtualMember(ms)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mv,
+<x>Overridable Sub m()
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsOverride()
+            Dim m = _g.MethodDeclaration("m")
+            Assert.False(_g.GetModifiers(m).IsOverride)
+            Dim mo = _g.AsOverrideMember(m)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mo,
+<x>Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim mv = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Virtual)
+            Assert.False(_g.GetModifiers(mv).IsOverride)
+            mo = _g.AsOverrideMember(mv)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mo,
+<x>Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(ma).IsOverride)
+            mo = _g.AsOverrideMember(ma)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mo,
+<x>Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim mn = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.[New])
+            Assert.False(_g.GetModifiers(mn).IsOverride)
+            mo = _g.AsOverrideMember(mn)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mo,
+<x>Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.False(_g.GetModifiers(ms).IsOverride)
+            mo = _g.AsOverrideMember(ms)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mo,
+<x>NotOverridable Overrides Sub m()
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsNew()
+            Dim m = _g.MethodDeclaration("m")
+            Assert.False(_g.GetModifiers(m).IsNew)
+            Dim mn = _g.AsNewMember(m)
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mn,
+<x>Shadows Sub m()
+End Sub</x>.Value)
+
+            Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(ma).IsNew)
+            mn = _g.AsNewMember(ma)
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mn,
+<x>Shadows Sub m()
+End Sub</x>.Value)
+
+            Dim mo = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Override)
+            Assert.False(_g.GetModifiers(mo).IsNew)
+            mn = _g.AsNewMember(mo)
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mn,
+<x>Shadows Sub m()
+End Sub</x>.Value)
+
+            Dim mv = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Virtual)
+            Assert.False(_g.GetModifiers(mv).IsNew)
+            mn = _g.AsNewMember(mv)
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mn,
+<x>Shadows Sub m()
+End Sub</x>.Value)
+
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.False(_g.GetModifiers(ms).IsNew)
+            mn = _g.AsNewMember(ms)
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(mn,
+<x>Shadows Sub m()
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsSealed()
+            Dim m = _g.MethodDeclaration("m")
+            Assert.False(_g.GetModifiers(m).IsSealed)
+            Dim ms = _g.AsSealedMember(m)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(ms,
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+            Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(ma).IsSealed)
+            ms = _g.AsSealedMember(ma)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(ms,
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+            Dim mo = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Override)
+            Assert.False(_g.GetModifiers(mo).IsSealed)
+            ms = _g.AsSealedMember(mo)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(ms,
+<x>NotOverridable Overrides Sub m()
+End Sub</x>.Value)
+
+            Dim mn = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.[New])
+            Assert.False(_g.GetModifiers(mn).IsSealed)
+            ms = _g.AsSealedMember(mn)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(ms,
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+            Dim mv = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Virtual)
+            Assert.False(_g.GetModifiers(mv).IsSealed)
+            ms = _g.AsSealedMember(mv)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(ms,
+<x>NotOverridable Sub m()
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsNormal()
+            Dim mv = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Virtual)
+            Assert.True(_g.GetModifiers(mv).IsVirtual)
+            Dim m = _g.AsNormalMember(mv)
+            Assert.False(_g.GetModifiers(m).IsVirtual)
+            VerifySyntax(Of MethodBlockBaseSyntax)(m,
 <x>Sub m()
 End Sub</x>.Value)
+
+            Dim ma = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Abstract)
+            Assert.True(_g.GetModifiers(ma).IsAbstract)
+            m = _g.AsNormalMember(ma)
+            Assert.False(_g.GetModifiers(m).IsAbstract)
+            VerifySyntax(Of MethodBlockBaseSyntax)(m,
+<x>Sub m()
+End Sub</x>.Value)
+
+            Dim mo = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Override)
+            Assert.True(_g.GetModifiers(mo).IsOverride)
+            m = _g.AsNormalMember(mo)
+            Assert.False(_g.GetModifiers(m).IsOverride)
+            VerifySyntax(Of MethodBlockBaseSyntax)(m,
+<x>Sub m()
+End Sub</x>.Value)
+
+            Dim mn = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.[New])
+            Assert.True(_g.GetModifiers(mn).IsNew)
+            m = _g.AsNormalMember(mn)
+            Assert.False(_g.GetModifiers(m).IsNew)
+            VerifySyntax(Of MethodBlockBaseSyntax)(m,
+<x>Sub m()
+End Sub</x>.Value)
+
+            Dim ms = _g.MethodDeclaration("m", modifiers:=DeclarationModifiers.Sealed)
+            Assert.True(_g.GetModifiers(ms).IsSealed)
+            m = _g.AsNormalMember(ms)
+            Assert.False(_g.GetModifiers(m).IsSealed)
+            VerifySyntax(Of MethodBlockBaseSyntax)(m,
+<x>Sub m()
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingMethodsVirtualDoesNotLoseExistingStatments()
+            Dim m = _g.MethodDeclaration("m", statements:={_g.ReturnStatement()})
+            VerifySyntax(Of MethodBlockSyntax)(m,
+<x>Sub m()
+    Return
+End Sub</x>.Value)
+
+            Dim mv = _g.AsVirtualMember(m)
+            VerifySyntax(Of MethodBlockSyntax)(mv,
+<x>Overridable Sub m()
+    Return
+End Sub</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesAbstract()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsAbstract)
+
+            Dim pa = _g.AsAbstractMember(p)
+            Assert.True(_g.GetModifiers(pa).IsAbstract)
+            VerifySyntax(Of PropertyStatementSyntax)(pa,
+<x>MustOverride Property p As t</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesOverride()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsOverride)
+
+            Dim po = _g.AsOverrideMember(p)
+            Assert.True(_g.GetModifiers(po).IsOverride)
+            VerifySyntax(Of PropertyBlockSyntax)(po,
+<x>Overrides Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            ' converting from abstract to override adds accessors
+            Dim pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(p).IsOverride)
+            po = _g.AsOverrideMember(pa)
+            Assert.True(_g.GetModifiers(po).IsOverride)
+            VerifySyntax(Of PropertyBlockSyntax)(po,
+<x>Overrides Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesVirtual()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsVirtual)
+
+            Dim pv = _g.AsVirtualMember(p)
+            Assert.True(_g.GetModifiers(pv).IsVirtual)
+            VerifySyntax(Of PropertyBlockSyntax)(pv,
+<x>Overridable Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            ' converting from abstract to virtual adds accessors
+            Dim pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(p).IsVirtual)
+            pv = _g.AsVirtualMember(pa)
+            Assert.True(_g.GetModifiers(pv).IsVirtual)
+            VerifySyntax(Of PropertyBlockSyntax)(pv,
+<x>Overridable Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesVirtualDoesNotLoseExistingBodies()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"),
+                getAccessorStatements:={_g.ReturnStatement()},
+                setAccessorStatements:={_g.ReturnStatement()})
+            VerifySyntax(Of PropertyBlockSyntax)(p,
+<x>Property p As t
+    Get
+        Return
+    End Get
+
+    Set(value As t)
+        Return
+    End Set
+End Property</x>.Value)
+
+            Dim pv = _g.AsVirtualMember(p)
+            VerifySyntax(Of PropertyBlockSyntax)(pv,
+<x>Overridable Property p As t
+    Get
+        Return
+    End Get
+
+    Set(value As t)
+        Return
+    End Set
+End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesNew()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsNew)
+
+            Dim pn = _g.AsNewMember(p)
+            Assert.True(_g.GetModifiers(pn).IsNew)
+            VerifySyntax(Of PropertyBlockSyntax)(pn,
+<x>Shadows Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            ' converting from abstract to new adds accessors
+            Dim pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(p).IsNew)
+            pn = _g.AsNewMember(pa)
+            Assert.True(_g.GetModifiers(pn).IsNew)
+            VerifySyntax(Of PropertyBlockSyntax)(pn,
+<x>Shadows Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesSealed()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsSealed)
+
+            Dim ps = _g.AsSealedMember(p)
+            Assert.True(_g.GetModifiers(ps).IsSealed)
+            VerifySyntax(Of PropertyBlockSyntax)(ps,
+<x>NotOverridable Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            ' converting from abstract to sealed adds accessors
+            Dim pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)
+            Assert.False(_g.GetModifiers(p).IsSealed)
+            ps = _g.AsSealedMember(pa)
+            Assert.True(_g.GetModifiers(ps).IsSealed)
+            VerifySyntax(Of PropertyBlockSyntax)(ps,
+<x>NotOverridable Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesNormal()
+            Dim pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Abstract)
+            Dim p = _g.AsNormalMember(pa)
+            Assert.False(_g.GetModifiers(p).IsAbstract)
+            VerifySyntax(Of PropertyBlockSyntax)(p,
+<x>Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+            Dim pv = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Virtual)
+            p = _g.AsNormalMember(pv)
+            Assert.False(_g.GetModifiers(p).IsVirtual)
+
+            Dim po = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Override)
+            p = _g.AsNormalMember(po)
+            Assert.False(_g.GetModifiers(p).IsOverride)
+
+            Dim pn = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.[New])
+            p = _g.AsNormalMember(pn)
+            Assert.False(_g.GetModifiers(p).IsNew)
+
+            Dim ps = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.Sealed)
+            p = _g.AsNormalMember(ps)
+            Assert.False(_g.GetModifiers(p).IsSealed)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesReadOnly()
+            Dim p = _g.PropertyDeclaration("p", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(p).IsReadOnly)
+
+            ' convert to read-only, prove it has only get accessor
+            Dim pr = _g.AsReadOnlyMember(p)
+            Assert.True(_g.GetModifiers(pr).IsReadOnly)
+            VerifySyntax(Of PropertyBlockSyntax)(pr,
+<x>ReadOnly Property p As t
+    Get
+    End Get
+End Property</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingPropertiesReadWrite()
+            Dim pr = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.ReadOnly)
+            Assert.True(_g.GetModifiers(pr).IsReadOnly)
+
+            ' convert to normal read/write, prove it has set accessor now
+            Dim p = _g.AsReadWriteMember(pr)
+            Assert.False(_g.GetModifiers(p).IsReadOnly)
+            VerifySyntax(Of PropertyBlockSyntax)(p,
+<x>Property p As t
+    Get
+    End Get
+
+    Set(value As t)
+    End Set
+End Property</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingFieldsReadOnly()
+            Dim f = _g.FieldDeclaration("f", _g.IdentifierName("t"))
+            Assert.False(_g.GetModifiers(f).IsReadOnly)
+
+            ' make read-only
+            Dim fr = _g.AsReadOnlyMember(f)
+            Assert.True(_g.GetModifiers(fr).IsReadOnly)
+            VerifySyntax(Of FieldDeclarationSyntax)(fr,
+<x>ReadOnly f As t</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMakingFieldsReadWrite()
+            Dim fr = _g.FieldDeclaration("f", _g.IdentifierName("t"), modifiers:=DeclarationModifiers.ReadOnly)
+            Assert.True(_g.GetModifiers(fr).IsReadOnly)
+
+            ' convert back to normal read/write
+            Dim f = _g.AsReadWriteMember(fr)
+            Assert.False(_g.GetModifiers(f).IsReadOnly)
+            VerifySyntax(Of FieldDeclarationSyntax)(f,
+<x>Dim f As t</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestWithoutBodies()
+            Dim m = _g.MethodDeclaration("m")
+            Dim mx = _g.WithoutBodies(m)
+            VerifySyntax(Of MethodStatementSyntax)(mx,
+<x>Sub m()</x>.Value)
+
+            Dim c = _g.ConstructorDeclaration("c")
+            Dim cx = _g.WithoutBodies(c)
+            VerifySyntax(Of SubNewStatementSyntax)(cx,
+<x>Sub New()</x>.Value)
+
+            Dim o = _g.OperatorDeclaration(OperatorKind.Addition)
+            Dim ox = _g.WithoutBodies(o)
+            VerifySyntax(Of OperatorStatementSyntax)(ox,
+<x>Operator +()</x>.Value)
+
+            Dim p = _g.PropertyDeclaration("p", type:=_g.IdentifierName("t"))
+            Dim px = _g.WithoutBodies(p)
+            VerifySyntax(Of PropertyStatementSyntax)(px,
+<x>Property p As t</x>.Value)
+
+            Dim pr = _g.PropertyDeclaration("p", type:=_g.IdentifierName("t"), modifiers:=DeclarationModifiers.ReadOnly)
+            Dim prx = _g.WithoutBodies(pr)
+            VerifySyntax(Of PropertyStatementSyntax)(prx,
+<x>ReadOnly Property p As t</x>.Value)
+
+            Dim i = _g.IndexerDeclaration(parameters:={_g.ParameterDeclaration("i", type:=_g.TypeExpression(SpecialType.System_Int32))}, type:=_g.IdentifierName("t"))
+            Dim ix = _g.WithoutBodies(i)
+            VerifySyntax(Of PropertyStatementSyntax)(ix,
+<x>Default Property Item(i As Integer) As t</x>.Value)
+
+            Dim e = _g.CustomEventDeclaration("e", _g.IdentifierName("t"))
+            Dim ex = _g.WithoutBodies(e)
+            VerifySyntax(Of EventStatementSyntax)(ex,
+<x>Custom Event e As t</x>.Value)
+
         End Sub
 
         <Fact>
@@ -2856,9 +3388,13 @@ End Get</x>.Value)
             Assert.Equal(0, _g.GetStatements(getAccessor).Count)
             Assert.Equal(0, _g.GetStatements(setAccessor).Count)
 
-            Dim newGetAccessor = _g.WithStatements(getAccessor, Nothing)
-            VerifySyntax(Of AccessorBlockSyntax)(newGetAccessor,
+            VerifySyntax(Of AccessorBlockSyntax)(_g.WithStatements(getAccessor, Nothing),
 <x>Get
+End Get</x>.Value)
+
+            VerifySyntax(Of AccessorBlockSyntax)(_g.WithStatements(getAccessor, {_g.ReturnStatement(_g.IdentifierName("a"))}),
+<x>Get
+    Return a
 End Get</x>.Value)
 
             ' change accessors

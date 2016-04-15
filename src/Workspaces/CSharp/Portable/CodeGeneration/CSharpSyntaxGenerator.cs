@@ -570,6 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        /// <summary>
+        /// Returns true if the declaration currently has a body.
+        /// </summary>
+        /// <param name="declaration"></param>
+        /// <returns></returns>
         private bool HasBody(SyntaxNode declaration)
         {
             switch (declaration.Kind())
@@ -577,6 +582,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)declaration;
                     return method.Body != null;
+                case SyntaxKind.ConstructorDeclaration:
+                    var cons = (ConstructorDeclarationSyntax)declaration;
+                    return cons.Body != null;
+                case SyntaxKind.DestructorDeclaration:
+                    var dest = (DestructorDeclarationSyntax)declaration;
+                    return dest.Body != null;
                 case SyntaxKind.OperatorDeclaration:
                     var op = (OperatorDeclarationSyntax)declaration;
                     return op.Body != null;
@@ -595,37 +606,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private SyntaxNode WithoutBody(SyntaxNode declaration)
+        public override SyntaxNode WithoutBodies(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.MethodDeclaration:
-                    var method = (MethodDeclarationSyntax)declaration;
-                    return (method.Body != null) ? method.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : method;
-                case SyntaxKind.OperatorDeclaration:
-                    var op = (OperatorDeclarationSyntax)declaration;
-                    return op.Body != null ? op.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : op;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    var cop = (ConversionOperatorDeclarationSyntax)declaration;
-                    return cop.Body == null ? cop.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : cop;
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    var acc = (AccessorDeclarationSyntax)declaration;
-                    return this.WithoutBody(acc);
-            }
-
-            return declaration;
+            return Isolate(declaration, WithoutBodiesInternal);
         }
 
-        private SyntaxNode WithoutBodies(SyntaxNode declaration)
+        private SyntaxNode WithoutBodiesInternal(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)declaration;
                     return (method.Body != null) ? method.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : method;
+                case SyntaxKind.ConstructorDeclaration:
+                    var cons = (ConstructorDeclarationSyntax)declaration;
+                    return (cons.Body != null) ? cons.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : cons;
+                case SyntaxKind.DestructorDeclaration:
+                    var dest = (DestructorDeclarationSyntax)declaration;
+                    return (dest.Body != null) ? dest.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : dest;
                 case SyntaxKind.OperatorDeclaration:
                     var op = (OperatorDeclarationSyntax)declaration;
                     return op.Body != null ? op.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : op;
@@ -641,6 +639,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.EventDeclaration:
                     var ev = (EventDeclarationSyntax)declaration;
                     return ev.WithAccessorList(WithoutBodies(ev.AccessorList));
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    var acc = (AccessorDeclarationSyntax)declaration;
+                    return this.WithoutBody(acc);
             }
 
             return declaration;
@@ -1539,10 +1543,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static DeclarationModifiers s_fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.New | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
         private static DeclarationModifiers s_methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
         private static DeclarationModifiers s_constructorModifiers = DeclarationModifiers.Static;
-        private static DeclarationModifiers s_propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
         private static DeclarationModifiers s_eventModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
         private static DeclarationModifiers s_eventFieldModifiers = DeclarationModifiers.New | DeclarationModifiers.Static;
-        private static DeclarationModifiers s_indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
+        private static DeclarationModifiers s_indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
         private static DeclarationModifiers s_classModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
         private static DeclarationModifiers s_structModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
         private static DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial;
@@ -1611,6 +1615,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Accessibility accessibility;
             DeclarationModifiers modifiers;
             GetAccessibilityAndModifiers(modifierTokens, out accessibility, out modifiers);
+
+            // adjust modifiers to include readonly & writeonly indicators for properties & indexers (matching VB)
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                    var hasGetAccessor = this.GetAccessor(declaration, DeclarationKind.GetAccessor) != null;
+                    var hasSetAccessor = this.GetAccessor(declaration, DeclarationKind.SetAccessor) != null;
+                    if (hasGetAccessor && !hasSetAccessor)
+                    {
+                        modifiers = modifiers.WithIsReadOnly(true);
+                    }
+                    else if (!hasGetAccessor && hasSetAccessor)
+                    {
+                        modifiers = modifiers.WithIsWriteOnly(true);
+                    }
+                    break;
+            }
+
             return modifiers;
         }
 
@@ -1633,7 +1656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     DeclarationModifiers tmp;
                     this.GetAccessibilityAndModifiers(tokens, out accessibility, out tmp);
                     var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
-                    return FixWithModifiers(existingModifiers, SetModifierTokens(d, newTokens));
+                    return SetModifierTokens(d, newTokens);
                 });
             }
             else
@@ -1643,16 +1666,138 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private SyntaxNode FixWithModifiers(DeclarationModifiers originalMods, SyntaxNode declaration)
+        public override SyntaxNode AsAbstractMember(SyntaxNode declaration)
         {
-            var currentMods = this.GetModifiers(declaration);
-            if (currentMods.IsAbstract && HasBody(declaration))
+            return Isolate(declaration, AsAbstractMemberInternal);
+        }
+
+        private SyntaxNode AsAbstractMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(false).WithIsOverride(false).WithIsAbstract(true).WithIsNew(false).WithIsSealed(false);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithoutBodies(declaration);
+            return declaration;
+        }
+
+        public override SyntaxNode AsVirtualMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsVirtualMemberInternal);
+        }
+
+        private SyntaxNode AsVirtualMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(true).WithIsOverride(false).WithIsAbstract(false).WithIsNew(false).WithIsSealed(false);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithBodies(declaration);
+            return declaration;
+        }
+
+        public override SyntaxNode AsOverrideMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsOverrideMemberInternal);
+        }
+
+        private SyntaxNode AsOverrideMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(false).WithIsOverride(true).WithIsAbstract(false).WithIsNew(false);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithBodies(declaration);
+            return declaration;
+        }
+
+        public override SyntaxNode AsNewMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsNewMemberInternal);
+        }
+
+        private SyntaxNode AsNewMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(false).WithIsOverride(false).WithIsAbstract(false).WithIsNew(true).WithIsSealed(false);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithBodies(declaration);
+            return declaration;
+        }
+
+        public override SyntaxNode AsSealedMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsSealedMemberInternal);
+        }
+
+        private SyntaxNode AsSealedMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(false).WithIsAbstract(false).WithIsNew(false).WithIsSealed(true);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithBodies(declaration);
+            return declaration;
+
+        }
+
+        public override SyntaxNode AsNormalMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsNormalMemberInternal);
+        }
+
+        private SyntaxNode AsNormalMemberInternal(SyntaxNode declaration)
+        {
+            var newMods = GetModifiers(declaration).WithIsVirtual(false).WithIsOverride(false).WithIsAbstract(false).WithIsNew(false).WithIsSealed(false);
+            declaration = WithModifiers(declaration, newMods);
+            declaration = WithBodies(declaration);
+            return declaration;
+        }
+
+        public override SyntaxNode AsReadOnlyMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsReadOnlyMemberInternal);
+        }
+
+        private SyntaxNode AsReadOnlyMemberInternal(SyntaxNode declaration)
+        {
+            switch (GetDeclarationKind(declaration))
             {
-                return this.WithoutBody(declaration);
+                case DeclarationKind.Field:
+                    declaration = WithModifiers(declaration, GetModifiers(declaration) + DeclarationModifiers.ReadOnly);
+                    break;
+
+                case DeclarationKind.Property:
+                case DeclarationKind.Indexer:
+                    var setAccessor = GetAccessor(declaration, DeclarationKind.SetAccessor);
+                    if (setAccessor != null)
+                    {
+                        declaration = RemoveNode(declaration, setAccessor);
+                    }
+                    break;
             }
-            else if (!currentMods.IsAbstract && originalMods.IsAbstract)
+
+            return declaration;
+        }
+
+        public override SyntaxNode AsReadWriteMember(SyntaxNode declaration)
+        {
+            return Isolate(declaration, AsReadWriteMemberInternal);
+        }
+
+        private SyntaxNode AsReadWriteMemberInternal(SyntaxNode declaration)
+        {
+            switch (GetDeclarationKind(declaration))
             {
-                return this.WithBody(declaration);
+                case DeclarationKind.Field:
+                    declaration = WithModifiers(declaration, GetModifiers(declaration) - DeclarationModifiers.ReadOnly);
+                    break;
+
+                case DeclarationKind.Property:
+                case DeclarationKind.Indexer:
+                    var getAccessor = GetAccessor(declaration, DeclarationKind.GetAccessor);
+                    var setAccessor = GetAccessor(declaration, DeclarationKind.SetAccessor);
+                    if (getAccessor == null)
+                    {
+                        declaration = WithGetAccessorStatements(declaration, new SyntaxNode[] { });
+                    }
+
+                    if (setAccessor == null)
+                    {
+                        declaration = WithSetAccessorStatements(declaration, new SyntaxNode[] { });
+                    }
+                    break;
             }
 
             return declaration;
@@ -1792,6 +1937,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
             }
 
+            if (modifiers.IsSealed)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+            }
+
             if (modifiers.IsAbstract)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
@@ -1800,11 +1950,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (modifiers.IsNew)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
-            }
-
-            if (modifiers.IsSealed)
-            {
-                list = list.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
             }
 
             if (modifiers.IsOverride)
@@ -2872,27 +3017,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            return Isolate(declaration, d => FixDeclarationWithStatements(WithStatementsInternal(d, statements)));
+            return Isolate(declaration, d => WithStatementsInternal(d, statements));
         }
 
         private SyntaxNode WithStatementsInternal(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
             BlockSyntax body = CreateBlock(statements);
-            BlockSyntax somebody = statements != null ? body : null;
-            SyntaxToken semicolon = statements == null ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken);
+            SyntaxToken semicolon = default(SyntaxToken);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((MethodDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((OperatorDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((ConversionOperatorDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((ConstructorDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((DestructorDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2901,24 +3045,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon);
+                    return ((AccessorDeclarationSyntax)declaration).WithBody(body).WithSemicolonToken(semicolon);
                 default:
                     return declaration;
             }
-        }
-
-        private SyntaxNode FixDeclarationWithStatements(SyntaxNode declaration)
-        {
-            if (HasBody(declaration))
-            {
-                var mods = GetModifiers(declaration);
-                if (mods.IsAbstract)
-                {
-                    return WithModifiers(declaration, mods.WithIsAbstract(false).WithIsVirtual(true));
-                }
-            }
-
-            return declaration;
         }
 
         public override IReadOnlyList<SyntaxNode> GetAccessors(SyntaxNode declaration)
@@ -3169,9 +3299,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        #endregion
+#endregion
 
-        #region Remove, Replace, Insert
+#region Remove, Replace, Insert
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
@@ -3509,9 +3639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return root;
         }
-        #endregion
+#endregion
 
-        #region Statements and Expressions
+#region Statements and Expressions
 
         public override SyntaxNode AwaitExpression(SyntaxNode expression)
         {
@@ -4131,6 +4261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
-        #endregion
+#endregion
     }
 }

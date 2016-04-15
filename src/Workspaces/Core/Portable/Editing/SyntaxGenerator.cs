@@ -1094,9 +1094,55 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType);
 
-        #endregion
+        /// <summary>
+        /// Converts a member declaration into its abstract form.
+        /// </summary>
+        public abstract SyntaxNode AsAbstractMember(SyntaxNode declaration);
 
-        #region Remove, Replace, Insert
+        /// <summary>
+        /// Converts a member declaration into its virtual form.
+        /// </summary>
+        public abstract SyntaxNode AsVirtualMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Converts a member declaration into its override form.
+        /// </summary>
+        public abstract SyntaxNode AsOverrideMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Converts a member declaration into its new form (not abstract, virtual, or override)
+        /// </summary>
+        public abstract SyntaxNode AsNewMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Converts a member declaration into its sealed form.
+        /// </summary>
+        public abstract SyntaxNode AsSealedMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Converts a member declaration into its normal form (not abstract, virtual or override).
+        /// </summary>
+        public abstract SyntaxNode AsNormalMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Converts a field, property or indexer into its read-only form.
+        /// </summary>
+        public abstract SyntaxNode AsReadOnlyMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Coverts a field, property or indexer into its read/write form.
+        /// </summary>
+        public abstract SyntaxNode AsReadWriteMember(SyntaxNode declaration);
+
+        /// <summary>
+        /// Removes the statement bodies from the declaration.
+        /// Note: this may result in syntax that is not otherwise legal.
+        /// </summary>
+        public abstract SyntaxNode WithoutBodies(SyntaxNode declaration);
+
+#endregion
+
+#region Remove, Replace, Insert
         /// <summary>
         /// Replaces the node in the root's tree with the new node.
         /// </summary>
@@ -1158,9 +1204,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return newRoot;
         }
-        #endregion
+#endregion
 
-        #region Utility
+#region Utility
 
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
@@ -1253,9 +1299,9 @@ namespace Microsoft.CodeAnalysis.Editing
             return list;
         }
 
-        #endregion
+#endregion
 
-        #region Statements
+#region Statements
         /// <summary>
         /// Creates statement that allows an expression to execute in a statement context.
         /// This is typically an invocation or assignment expression.
@@ -1408,9 +1454,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WhileStatement(SyntaxNode condition, IEnumerable<SyntaxNode> statements);
 
-        #endregion
+#endregion
 
-        #region Expressions
+#region Expressions
         /// <summary>
         /// An expression that represents the default value of a type.
         /// This is typically a null value for reference types or a zero-filled value for value types.
@@ -1943,6 +1989,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AwaitExpression(SyntaxNode expression);
 
-        #endregion
+#endregion
     }
 }

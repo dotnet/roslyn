@@ -2359,18 +2359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If (currentMods <> modifiers) Then
                 Dim newTokens = GetModifierList(acc, modifiers And GetAllowedModifiers(declaration.Kind), GetDeclarationKind(declaration), isDefault)
-                Return FixDeclarationWithModifiers(currentMods, WithModifierTokens(declaration, Merge(tokens, newTokens)))
-            Else
-                Return declaration
-            End If
-        End Function
-
-        Private Function FixDeclarationWithModifiers(originalMods As DeclarationModifiers, declaration As SyntaxNode) As SyntaxNode
-            Dim currentMods = Me.GetModifiers(declaration)
-            If currentMods.IsAbstract AndAlso Me.HasStatementBlock(declaration.Kind) Then
-                Return Me.WithoutStatements(declaration)
-            ElseIf Not currentMods.IsAbstract And originalMods.IsAbstract Then
-                Return Me.WithStatements(declaration, {})
+                Return WithModifierTokens(declaration, Merge(tokens, newTokens))
             Else
                 Return declaration
             End If
@@ -3243,7 +3232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithStatements(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Isolate(declaration, Function(d) FixDeclarationsWithStatements(WithStatementsInternal(d, statements)))
+            Return Isolate(declaration, Function(d) WithStatementsInternal(d, statements))
         End Function
 
         Private Function WithStatementsInternal(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -3290,14 +3279,138 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function FixDeclarationsWithStatements(declaration As SyntaxNode) As SyntaxNode
-            If HasStatementBlock(declaration.Kind) Then
-                Dim mods = GetModifiers(declaration)
-                If mods.IsAbstract Then
-                    ' declarations with statement blocks cannot be abstract: convert to virtual (must override) instead
-                    Return WithModifiers(declaration, mods.WithIsAbstract(False).WithIsVirtual(True))
-                End If
-            End If
+        Public Overrides Function AsAbstractMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsAbstractMemberInternal)
+        End Function
+
+        Private Function AsAbstractMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(False).WithIsOverride(False).WithIsAbstract(True).WithIsNew(False).WithIsSealed(False)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithoutBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsVirtualMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsVirtualMemberInternal)
+        End Function
+
+        Private Function AsVirtualMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(True).WithIsOverride(False).WithIsAbstract(False).WithIsNew(False).WithIsSealed(False)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsOverrideMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsOverrideMemberInternal)
+        End Function
+
+        Private Function AsOverrideMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(False).WithIsOverride(True).WithIsAbstract(False).WithIsNew(False)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsNewMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsNewMemberInternal)
+        End Function
+
+        Private Function AsNewMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(False).WithIsOverride(False).WithIsAbstract(False).WithIsNew(True).WithIsSealed(False)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsSealedMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsSealedMemberInternal)
+        End Function
+
+        Private Function AsSealedMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(False).WithIsAbstract(False).WithIsNew(False).WithIsSealed(True)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsNormalMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsNormalMemberInternal)
+        End Function
+
+        Private Function AsNormalMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Dim newMods = GetModifiers(declaration).WithIsVirtual(False).WithIsOverride(False).WithIsAbstract(False).WithIsNew(False).WithIsSealed(False)
+            declaration = WithModifiers(declaration, newMods)
+            declaration = WithBodies(declaration)
+            Return declaration
+        End Function
+
+        Public Overrides Function AsReadOnlyMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsReadOnlyMemberInternal)
+        End Function
+
+        Private Function AsReadOnlyMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.FieldDeclaration,
+                     SyntaxKind.PropertyStatement,
+                     SyntaxKind.PropertyBlock
+                    declaration = WithModifiers(declaration, GetModifiers(declaration) + DeclarationModifiers.ReadOnly)
+                    Dim setAccessor = GetAccessor(declaration, DeclarationKind.SetAccessor)
+                    If setAccessor IsNot Nothing Then
+                        declaration = RemoveNode(declaration, setAccessor)
+                    End If
+            End Select
+
+            Return declaration
+        End Function
+
+        Public Overrides Function AsReadWriteMember(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf AsReadWriteMemberInternal)
+        End Function
+
+        Private Function AsReadWriteMemberInternal(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.FieldDeclaration,
+                     SyntaxKind.PropertyStatement
+                    declaration = WithModifiers(declaration, GetModifiers(declaration) - DeclarationModifiers.ReadOnly)
+
+                Case SyntaxKind.PropertyBlock
+                    declaration = WithModifiers(declaration, GetModifiers(declaration) - DeclarationModifiers.ReadOnly)
+                    Dim _getAccessor = GetAccessor(declaration, DeclarationKind.GetAccessor)
+                    If _getAccessor Is Nothing Then
+                        declaration = WithGetAccessorStatements(declaration, {})
+                    End If
+                    Dim _setAccessor = GetAccessor(declaration, DeclarationKind.SetAccessor)
+                    If _setAccessor Is Nothing Then
+                        declaration = WithSetAccessorStatements(declaration, {})
+                    End If
+            End Select
+
+            Return declaration
+        End Function
+
+        ''' <summary>
+        ''' Converts declarations in statement form into block form
+        ''' </summary>
+        Private Function WithBodies(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf WithBodiesInternal)
+        End Function
+
+        Private Function WithBodiesInternal(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.FunctionStatement,
+                     SyntaxKind.SubStatement
+                    Return WithStatements(declaration, {})
+                Case SyntaxKind.PropertyStatement
+                    Dim mods = GetModifiers(declaration)
+                    declaration = SyntaxFactory.PropertyBlock(DirectCast(declaration, PropertyStatementSyntax), Nothing)
+                    If Not mods.IsWriteOnly Then
+                        declaration = WithGetAccessorStatements(declaration, {})
+                    End If
+                    If Not mods.IsReadOnly Then
+                        declaration = WithSetAccessorStatements(declaration, {})
+                    End If
+            End Select
 
             Return declaration
         End Function
@@ -3305,15 +3418,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         ''' <summary>
         ''' Converts declarations in block form into declarations in statement form
         ''' </summary>
-        Private Function WithoutStatements(declaration As SyntaxNode) As SyntaxNode
-            Return Isolate(declaration, Function(d) FixDeclarationsWithoutStatements(WithoutStatementsInternal(d)))
+        Public Overrides Function WithoutBodies(declaration As SyntaxNode) As SyntaxNode
+            Return Isolate(declaration, AddressOf WithoutBodiesInternal)
         End Function
 
-        Private Function WithoutStatementsInternal(declaration As SyntaxNode) As SyntaxNode
+        Private Function WithoutBodiesInternal(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
                     Return DirectCast(declaration, MethodBlockSyntax).BlockStatement
+                Case SyntaxKind.ConstructorBlock
+                    Return DirectCast(declaration, ConstructorBlockSyntax).BlockStatement
+                Case SyntaxKind.OperatorBlock
+                    Return DirectCast(declaration, OperatorBlockSyntax).BlockStatement
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(declaration, PropertyBlockSyntax).PropertyStatement
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(declaration, EventBlockSyntax).EventStatement
                 Case SyntaxKind.GetAccessorStatement,
                     SyntaxKind.SetAccessorStatement,
                     SyntaxKind.AddHandlerAccessorStatement,
@@ -3323,18 +3444,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Else
                     Return declaration
             End Select
-        End Function
-
-        Private Function FixDeclarationsWithoutStatements(declaration As SyntaxNode) As SyntaxNode
-            If Not HasStatementBlock(declaration.Kind) Then
-                Dim mods = GetModifiers(declaration)
-                If mods.IsVirtual Then
-                    ' declarations without statement blocks cannot be virtual: convert to abstract instead
-                    Return WithModifiers(declaration, mods.WithIsVirtual(False).WithIsAbstract(True))
-                End If
-            End If
-
-            Return declaration
         End Function
 
         Public Overrides Function GetAccessors(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)

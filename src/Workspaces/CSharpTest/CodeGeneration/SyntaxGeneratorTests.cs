@@ -2153,54 +2153,746 @@ public class C
             Assert.Equal(DeclarationModifiers.None, _g.GetModifiers(_g.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)));
         }
 
-        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
         [Fact]
-        public void TestMakingMethodAbstractRemovesStatementBlock()
+        public void TestMakingMethodsAbstract()
         {
-            var mn = _g.MethodDeclaration("m");
-            VerifySyntax<MethodDeclarationSyntax>(mn,
-@"void m()
-{
-}");
+            var m = _g.MethodDeclaration("m");
+            Assert.False(_g.GetModifiers(m).IsAbstract);
+            var ma = _g.AsAbstractMember(m);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
 
-            var ma = _g.WithModifiers(mn, DeclarationModifiers.Abstract);
+            var mv = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Virtual);
+            Assert.False(_g.GetModifiers(mv).IsAbstract);
+            ma = _g.AsAbstractMember(mv);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+
+            var mo = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Override);
+            Assert.False(_g.GetModifiers(mo).IsAbstract);
+            ma = _g.AsAbstractMember(mo);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+
+            var mn = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.New);
+            Assert.False(_g.GetModifiers(mn).IsAbstract);
+            ma = _g.AsAbstractMember(mn);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
+            VerifySyntax<MethodDeclarationSyntax>(ma,
+@"abstract void m();");
+
+            var ms = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Sealed);
+            Assert.False(_g.GetModifiers(ms).IsAbstract);
+            ma = _g.AsAbstractMember(ms);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
             VerifySyntax<MethodDeclarationSyntax>(ma,
 @"abstract void m();");
         }
 
-        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
         [Fact]
-        public void TestMakingMethodNotAbstractAddsStatementBlock()
+        public void TestMakingMethodsVirtual()
         {
-            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
-            VerifySyntax<MethodDeclarationSyntax>(ma,
-@"abstract void m();");
-
-            var mv = _g.WithModifiers(ma, DeclarationModifiers.Virtual);
+            var m = _g.MethodDeclaration("m");
+            Assert.False(_g.GetModifiers(m).IsVirtual);
+            var mv = _g.AsVirtualMember(m);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
             VerifySyntax<MethodDeclarationSyntax>(mv,
 @"virtual void m()
 {
 }");
 
-            var mn = _g.WithModifiers(ma, DeclarationModifiers.None);
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(ma).IsVirtual);
+            mv = _g.AsVirtualMember(ma);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
+@"virtual void m()
+{
+}");
+
+            var mo = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Override);
+            Assert.False(_g.GetModifiers(mo).IsVirtual);
+            mv = _g.AsVirtualMember(mo);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
+@"virtual void m()
+{
+}");
+
+            var mn = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.New);
+            Assert.False(_g.GetModifiers(mn).IsVirtual);
+            mv = _g.AsVirtualMember(mn);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
+@"virtual void m()
+{
+}");
+
+            var ms = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Sealed);
+            Assert.False(_g.GetModifiers(ms).IsVirtual);
+            mv = _g.AsVirtualMember(ms);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
+@"virtual void m()
+{
+}");
+        }
+
+        [Fact]
+        public void TestMakingMethodsOverride()
+        {
+            var m = _g.MethodDeclaration("m");
+            Assert.False(_g.GetModifiers(m).IsOverride);
+            var mo = _g.AsOverrideMember(m);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(mo,
+@"override void m()
+{
+}");
+
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(ma).IsOverride);
+            mo = _g.AsOverrideMember(ma);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(mo,
+@"override void m()
+{
+}");
+
+            var mv = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Virtual);
+            Assert.False(_g.GetModifiers(mv).IsOverride);
+            mo = _g.AsOverrideMember(mv);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(mo,
+@"override void m()
+{
+}");
+
+            var mn = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.New);
+            Assert.False(_g.GetModifiers(mn).IsOverride);
+            mo = _g.AsOverrideMember(mn);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(mo,
+@"override void m()
+{
+}");
+
+            var ms = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Sealed);
+            Assert.False(_g.GetModifiers(ms).IsOverride);
+            mo = _g.AsOverrideMember(ms);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(mo,
+@"sealed override void m()
+{
+}");
+        }
+
+        [Fact]
+        public void TestMakingMethodsNew()
+        {
+            var m = _g.MethodDeclaration("m");
+            Assert.False(_g.GetModifiers(m).IsNew);
+            var mn = _g.AsNewMember(m);
+            Assert.True(_g.GetModifiers(mn).IsNew);
             VerifySyntax<MethodDeclarationSyntax>(mn,
+@"new void m()
+{
+}");
+
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(ma).IsNew);
+            mn = _g.AsNewMember(ma);
+            Assert.True(_g.GetModifiers(mn).IsNew);
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"new void m()
+{
+}");
+
+            var mv = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Virtual);
+            Assert.False(_g.GetModifiers(mv).IsNew);
+            mn = _g.AsNewMember(mv);
+            Assert.True(_g.GetModifiers(mn).IsNew);
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"new void m()
+{
+}");
+
+            var mo = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Override);
+            Assert.False(_g.GetModifiers(mo).IsNew);
+            mn = _g.AsNewMember(mo);
+            Assert.True(_g.GetModifiers(mn).IsNew);
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"new void m()
+{
+}");
+
+            var ms = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Sealed);
+            Assert.False(_g.GetModifiers(ms).IsNew);
+            mn = _g.AsNewMember(ms);
+            Assert.True(_g.GetModifiers(mn).IsNew);
+            VerifySyntax<MethodDeclarationSyntax>(mn,
+@"new void m()
+{
+}");
+        }
+
+        [Fact]
+        public void TestMakingMethodsSealed()
+        {
+            var m = _g.MethodDeclaration("m");
+            Assert.False(_g.GetModifiers(m).IsSealed);
+            var ms = _g.AsSealedMember(m);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"sealed void m()
+{
+}");
+
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(ma).IsSealed);
+            ms = _g.AsSealedMember(ma);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"sealed void m()
+{
+}");
+
+            var mv = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Virtual);
+            Assert.False(_g.GetModifiers(mv).IsSealed);
+            ms = _g.AsSealedMember(ma);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"sealed void m()
+{
+}");
+
+            var mo = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Override);
+            Assert.False(_g.GetModifiers(mo).IsSealed);
+            ms = _g.AsSealedMember(mo);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"sealed override void m()
+{
+}");
+
+            var mn = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.New);
+            Assert.False(_g.GetModifiers(mn).IsSealed);
+            ms = _g.AsSealedMember(mn);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(ms,
+@"sealed void m()
+{
+}");
+        }
+
+        [Fact]
+        public void TestMakingMethodsNormal()
+        {
+            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
+            Assert.True(_g.GetModifiers(ma).IsAbstract);
+            var m = _g.AsNormalMember(ma);
+            Assert.False(_g.GetModifiers(m).IsAbstract);
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+}");
+
+            var ms = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Sealed);
+            Assert.True(_g.GetModifiers(ms).IsSealed);
+            m = _g.AsNormalMember(ms);
+            Assert.False(_g.GetModifiers(m).IsSealed);
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+}");
+
+            var mv = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Virtual);
+            Assert.True(_g.GetModifiers(mv).IsVirtual);
+            m = _g.AsNormalMember(mv);
+            Assert.False(_g.GetModifiers(m).IsVirtual);
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+}");
+
+            var mo = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Override);
+            Assert.True(_g.GetModifiers(mo).IsOverride);
+            m = _g.AsNormalMember(mo);
+            Assert.False(_g.GetModifiers(m).IsOverride);
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+}");
+
+            var mn = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.New);
+            Assert.True(_g.GetModifiers(mn).IsNew);
+            m = _g.AsNormalMember(mn);
+            Assert.False(_g.GetModifiers(m).IsNew);
+            VerifySyntax<MethodDeclarationSyntax>(m,
 @"void m()
 {
 }");
         }
 
-        [WorkItem(10327, "https://github.com/dotnet/roslyn/issues/10327")]
         [Fact]
-        public void TestAddingStatementsToAbstractMethodChangesToVirtual()
+        public void TestMakingMethodsVirtualDoesNotLoseExistingStatements()
         {
-            var ma = _g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract);
-            VerifySyntax<MethodDeclarationSyntax>(ma,
-@"abstract void m();");
+            var m = _g.MethodDeclaration("m", statements: new[] { _g.ReturnStatement() });
+            VerifySyntax<MethodDeclarationSyntax>(m,
+@"void m()
+{
+    return;
+}");
 
-            var ms = _g.WithStatements(ma, new SyntaxNode[] { });
-            VerifySyntax<MethodDeclarationSyntax>(ms,
+            var mv = _g.AsVirtualMember(m);
+            VerifySyntax<MethodDeclarationSyntax>(mv,
 @"virtual void m()
 {
+    return;
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesAbstract()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsAbstract);
+
+            var pa = _g.AsAbstractMember(p);
+            Assert.True(_g.GetModifiers(pa).IsAbstract);
+            VerifySyntax<PropertyDeclarationSyntax>(pa,
+@"abstract t p
+{
+    get;
+    set;
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesOverride()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsOverride);
+            var po = _g.AsOverrideMember(p);
+            Assert.True(_g.GetModifiers(po).IsOverride);
+            VerifySyntax<PropertyDeclarationSyntax>(po,
+@"override t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+
+            // converting abstract to override adds statements
+            var pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(pa).IsOverride);
+            po = _g.AsOverrideMember(pa);
+            Assert.True(_g.GetModifiers(po).IsOverride);
+            VerifySyntax<PropertyDeclarationSyntax>(po,
+@"override t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesVirtual()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsVirtual);
+
+            var pv = _g.AsVirtualMember(p);
+            Assert.True(_g.GetModifiers(pv).IsVirtual);
+            VerifySyntax<PropertyDeclarationSyntax>(pv,
+@"virtual t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+
+            // converting abstract to virtual adds statements
+            var pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(pa).IsVirtual);
+            pv = _g.AsVirtualMember(pa);
+            Assert.True(_g.GetModifiers(pv).IsVirtual);
+            VerifySyntax<PropertyDeclarationSyntax>(pv,
+@"virtual t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesVirtualDoesNotLoseExistingBodies()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"),
+                getAccessorStatements: new[] { _g.ReturnStatement() }, 
+                setAccessorStatements: new [] {_g.ReturnStatement() });
+            VerifySyntax<PropertyDeclarationSyntax>(p,
+@"t p
+{
+    get
+    {
+        return;
+    }
+
+    set
+    {
+        return;
+    }
+}");
+
+            var pv = _g.AsVirtualMember(p);
+            VerifySyntax<PropertyDeclarationSyntax>(pv,
+@"virtual t p
+{
+    get
+    {
+        return;
+    }
+
+    set
+    {
+        return;
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesNew()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsNew);
+
+            var pn = _g.AsNewMember(p);
+            Assert.True(_g.GetModifiers(pn).IsNew);
+            VerifySyntax<PropertyDeclarationSyntax>(pn,
+@"new t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+
+            // converting abstract to new adds statements
+            var pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(pa).IsNew);
+            pn = _g.AsNewMember(pa);
+            Assert.True(_g.GetModifiers(pn).IsNew);
+            VerifySyntax<PropertyDeclarationSyntax>(pn,
+@"new t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesSealed()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsSealed);
+
+            var ps = _g.AsSealedMember(p);
+            Assert.True(_g.GetModifiers(ps).IsSealed);
+            VerifySyntax<PropertyDeclarationSyntax>(ps,
+@"sealed t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+
+            // converting abstract to sealed adds statements
+            var pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            Assert.False(_g.GetModifiers(pa).IsSealed);
+            ps = _g.AsSealedMember(pa);
+            Assert.True(_g.GetModifiers(ps).IsSealed);
+            VerifySyntax<PropertyDeclarationSyntax>(ps,
+@"sealed t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesNormal()
+        {
+            var pa = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            var p = _g.AsNormalMember(pa);
+            Assert.False(_g.GetModifiers(p).IsAbstract);
+            VerifySyntax<PropertyDeclarationSyntax>(p,
+@"t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+
+            var pv = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Virtual);
+            p = _g.AsNormalMember(pv);
+            Assert.False(_g.GetModifiers(p).IsVirtual);
+
+            var po = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Override);
+            p = _g.AsNormalMember(po);
+            Assert.False(_g.GetModifiers(p).IsOverride);
+
+            var pn = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.New);
+            p = _g.AsNormalMember(pn);
+            Assert.False(_g.GetModifiers(p).IsNew);
+
+            var ps = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.Sealed);
+            p = _g.AsNormalMember(ps);
+            Assert.False(_g.GetModifiers(p).IsSealed);
+        }
+
+        [Fact]
+        public void TestMakingIndexersAbstract()
+        {
+            var p = _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("index", _g.TypeExpression(SpecialType.System_Int32)) }, type: _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(p).IsAbstract);
+
+            var pa = _g.AsAbstractMember(p);
+            Assert.True(_g.GetModifiers(pa).IsAbstract);
+            VerifySyntax<IndexerDeclarationSyntax>(pa,
+@"abstract t this[int index]
+{
+    get;
+    set;
+}");
+        }
+
+        [Fact]
+        public void TestMakingAbstractIndexersNormal()
+        {
+            var pa = _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("index", _g.TypeExpression(SpecialType.System_Int32)) }, type: _g.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract);
+            VerifySyntax<IndexerDeclarationSyntax>(pa,
+@"abstract t this[int index]
+{
+    get;
+    set;
+}");
+            Assert.True(_g.GetModifiers(pa).IsAbstract);
+
+            var p = _g.AsNormalMember(pa);
+            Assert.False(_g.GetModifiers(p).IsAbstract);
+            VerifySyntax<IndexerDeclarationSyntax>(p,
+@"t this[int index]
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingPropertiesReadOnly()
+        {
+            var p = _g.PropertyDeclaration("p", _g.IdentifierName("t"));
+
+            // make read-only, prove it has only get accessor
+            var pr = _g.AsReadOnlyMember(p);
+            VerifySyntax<PropertyDeclarationSyntax>(pr,
+@"t p
+{
+    get
+    {
+    }
+}");
+
+            Assert.True(_g.GetModifiers(pr).IsReadOnly);
+        }
+
+        [Fact]
+        public void TestMakingPropertiesReadWrite()
+        {
+            var pr = _g.PropertyDeclaration("p", _g.IdentifierName("t"), modifiers: DeclarationModifiers.ReadOnly);
+            Assert.True(_g.GetModifiers(pr).IsReadOnly);
+
+            // convert to normal read/write, prove it has set accessor now
+            var p = _g.AsReadWriteMember(pr);
+            Assert.False(_g.GetModifiers(p).IsReadOnly);
+            VerifySyntax<PropertyDeclarationSyntax>(p,
+@"t p
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingIndexersReadOnly()
+        {
+            var i = _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("index", _g.TypeExpression(SpecialType.System_Int32))}, type: _g.IdentifierName("t"));
+
+            // make read-only, prove it has only get accessor
+            var ir = _g.AsReadOnlyMember(i);
+            VerifySyntax<IndexerDeclarationSyntax>(ir,
+@"t this[int index]
+{
+    get
+    {
+    }
+}");
+
+            Assert.True(_g.GetModifiers(ir).IsReadOnly);
+        }
+
+        [Fact]
+        public void TestMakingIndexersReadWrite()
+        {
+            var ir = _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("index", _g.TypeExpression(SpecialType.System_Int32)) }, type: _g.IdentifierName("t"), modifiers: DeclarationModifiers.ReadOnly);
+            Assert.True(_g.GetModifiers(ir).IsReadOnly);
+
+            // convert back to normal read/write, prove it has set accessor back
+            var i = _g.AsReadWriteMember(ir);
+            Assert.False(_g.GetModifiers(i).IsReadOnly);
+            VerifySyntax<IndexerDeclarationSyntax>(i,
+@"t this[int index]
+{
+    get
+    {
+    }
+
+    set
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public void TestMakingFieldsReadOnly()
+        {
+            var f = _g.FieldDeclaration("f", _g.IdentifierName("t"));
+            Assert.False(_g.GetModifiers(f).IsReadOnly);
+
+            // make read-only
+            var fr = _g.AsReadOnlyMember(f);
+            Assert.True(_g.GetModifiers(fr).IsReadOnly);
+            VerifySyntax<FieldDeclarationSyntax>(fr,
+@"readonly t f;");
+        }
+
+        [Fact]
+        public void TestMakingFieldsReadWrite()
+        {
+            var fr = _g.FieldDeclaration("f", _g.IdentifierName("t"), modifiers: DeclarationModifiers.ReadOnly);
+            Assert.True(_g.GetModifiers(fr).IsReadOnly);
+
+            // convert back to normal read/write
+            var f = _g.AsReadWriteMember(fr);
+            Assert.False(_g.GetModifiers(f).IsReadOnly);
+            VerifySyntax<FieldDeclarationSyntax>(f,
+@"t f;");
+        }
+
+        [Fact]
+        public void TestWithoutBodies()
+        {
+            var m = _g.MethodDeclaration("m");
+            var mx = _g.WithoutBodies(m);
+            VerifySyntax<MethodDeclarationSyntax>(mx,
+"void m();");
+
+            var c = _g.ConstructorDeclaration("c");
+            var cx = _g.WithoutBodies(c);
+            VerifySyntax<ConstructorDeclarationSyntax>(cx,
+@"c();");
+
+            var o = _g.OperatorDeclaration(OperatorKind.Addition);
+            var ox = _g.WithoutBodies(o);
+            VerifySyntax<OperatorDeclarationSyntax>(ox,
+@"void operator +();");
+
+            var p = _g.PropertyDeclaration("p", type: _g.IdentifierName("t"));
+            var px = _g.WithoutBodies(p);
+            VerifySyntax<PropertyDeclarationSyntax>(px,
+@"t p
+{
+    get;
+    set;
+}");
+
+            var pr = _g.PropertyDeclaration("p", type: _g.IdentifierName("t"), modifiers: DeclarationModifiers.ReadOnly);
+            var prx = _g.WithoutBodies(pr);
+            VerifySyntax<PropertyDeclarationSyntax>(prx,
+@"t p
+{
+    get;
+}");
+
+            var i = _g.IndexerDeclaration(parameters: new[] { _g.ParameterDeclaration("i", type: _g.TypeExpression(SpecialType.System_Int32)) }, type: _g.IdentifierName("t"));
+            var ix = _g.WithoutBodies(i);
+            VerifySyntax<IndexerDeclarationSyntax>(ix,
+@"t this[int i]
+{
+    get;
+    set;
+}");
+
+            var e = _g.CustomEventDeclaration("e", _g.IdentifierName("t"));
+            var ex = _g.WithoutBodies(e);
+            VerifySyntax<EventDeclarationSyntax>(ex,
+@"event t e
+{
+    add;
+    remove;
 }");
         }
 
@@ -2364,14 +3056,16 @@ public class C
             Assert.Equal(0, _g.GetStatements(getAccessor).Count);
             Assert.Equal(0, _g.GetStatements(setAccessor).Count);
 
-            var newGetAccessor = _g.WithStatements(getAccessor, null);
-            VerifySyntax<AccessorDeclarationSyntax>(newGetAccessor,
-@"get;");
-
-            var newNewGetAccessor = _g.WithStatements(newGetAccessor, new SyntaxNode[] { });
-            VerifySyntax<AccessorDeclarationSyntax>(newNewGetAccessor,
+            VerifySyntax<AccessorDeclarationSyntax>(_g.WithStatements(getAccessor, null),
 @"get
 {
+}");
+
+            var newGetAccessor = _g.WithStatements(getAccessor, new SyntaxNode[] { _g.ReturnStatement(_g.IdentifierName("a")) });
+            VerifySyntax<AccessorDeclarationSyntax>(newGetAccessor,
+@"get
+{
+    return a;
 }");
 
             // change accessors
@@ -3330,6 +4024,6 @@ public class C : IDisposable
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 
-        #endregion
+#endregion
     }
 }
