@@ -206,6 +206,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
+      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
+      <Name>DiaSymReader</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

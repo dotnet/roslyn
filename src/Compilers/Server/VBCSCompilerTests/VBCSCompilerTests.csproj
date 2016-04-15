@@ -19,6 +19,10 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
+      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
+      <Name>DiaSymReader</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>

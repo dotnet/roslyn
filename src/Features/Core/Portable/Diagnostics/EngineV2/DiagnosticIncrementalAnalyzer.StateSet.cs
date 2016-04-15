@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -132,27 +133,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
             }
 
-            public bool OnDocumentClosed(DocumentId id)
+            public Task<bool> OnDocumentClosedAsync(Document document)
             {
-                return OnDocumentReset(id);
+                // can not be cancelled
+                return OnDocumentResetAsync(document);
             }
 
-            public bool OnDocumentReset(DocumentId id)
+            public async Task<bool> OnDocumentResetAsync(Document document)
             {
-                // remove active file state
-                ActiveFileState state;
-                if (_activeFileStates.TryRemove(id, out state))
+                // can not be cancelled
+                // remove active file state and put it in project state
+                ActiveFileState activeFileState;
+                if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
                 {
-                    return !state.IsEmpty;
+                    // no active file state
+                    return false;
                 }
 
-                return false;
+                var projectState = GetProjectState(document.Project.Id);
+                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+
+                return true;
             }
 
             public bool OnDocumentRemoved(DocumentId id)
             {
                 // remove active file state for removed document
-                var removed = OnDocumentReset(id);
+                var removed = false;
+                ActiveFileState activeFileState;
+                if (_activeFileStates.TryRemove(id, out activeFileState))
+                {
+                    removed = true;
+                }
 
                 // remove state for the file that got removed.
                 ProjectState state;

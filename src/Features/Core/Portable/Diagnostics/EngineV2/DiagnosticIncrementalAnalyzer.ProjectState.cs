@@ -199,6 +199,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
             }
 
+            public async Task MergeAsync(ActiveFileState state, Document document)
+            {
+                Contract.ThrowIfFalse(state.DocumentId == document.Id);
+
+                // merge active file state to project state
+                var lastResult = _lastResult;
+
+                var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
+                var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
+
+                // if all versions are same, nothing to do
+                if (syntax.Version != VersionStamp.Default &&
+                    syntax.Version == semantic.Version &&
+                    syntax.Version == lastResult.Version)
+                {
+                    // all data is in sync already.
+                    return;
+                }
+
+                // we have mixed versions, set it to default so that it can be re-calculated next time so data can be in sync.
+                var version = VersionStamp.Default;
+
+                // serialization can't be cancelled.
+                var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
+
+                await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, syntax.Items).ConfigureAwait(false);
+                await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
+
+                // save last aggregated form of analysis result
+                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIds.Add(state.DocumentId), isEmpty: false);
+            }
+
             public bool OnDocumentRemoved(DocumentId id)
             {
                 RemoveInMemoryCacheEntries(id);
