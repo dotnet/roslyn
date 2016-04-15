@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis
         /// Parses a version string of the form "major [ '.' minor [ '.' build [ '.' revision ] ] ]".
         /// </summary>
         /// <param name="s">The version string to parse.</param>
-        /// <param name="version">If parsing succeeds, the parsed version. Null otherwise.</param>
+        /// <param name="version">If parsing succeeds, the parsed version. Otherwise a version that represents as much of the input as could be parsed successfully.</param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         internal static bool TryParse(string s, out Version version)
         {
-            return TryParse(s, allowWildcard: false, maxValue: ushort.MaxValue, version: out version);
+            return TryParse(s, allowWildcard: false, maxValue: ushort.MaxValue, allowPartialParse: true, version: out version);
         }
 
         /// <summary>
@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not a wildcard is accepted as the terminal component.</param>
         /// <param name="version">
-        /// If parsing succeeded, the parsed version. Null otherwise.
+        /// If parsing succeeded, the parsed version. Otherwise a version instance with all parts set to zero.
         /// If <paramref name="s"/> contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
         /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
         internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
         {
-            return TryParse(s, allowWildcard: allowWildcard, maxValue: ushort.MaxValue - 1, version: out version);
+            return TryParse(s, allowWildcard: allowWildcard, maxValue: ushort.MaxValue - 1, allowPartialParse: false, version: out version);
         }
 
         /// <summary>
@@ -42,18 +42,19 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="allowWildcard">Indicates whether or not we're parsing an assembly version string. If so, wildcards are accepted and each component must be less than 65535.</param>
         /// <param name="maxValue">The maximum value that a version component may have.</param>
+        /// <param name="allowPartialParse">Allow the parsing of version elements where invalid characters exist. e.g. 1.2.2a.1</param>
         /// <param name="version">
-        /// If parsing succeeded, the parsed version. Null otherwise. 
+        /// If parsing succeeded, the parsed version. When <paramref name="allowPartialParse"/> is true a version with values up to the first invalid character set. Otherwise a version with all parts set to zero.
         /// If <paramref name="s"/> contains * and wildcard is allowed the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
         /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
-        private static bool TryParse(string s, bool allowWildcard, ushort maxValue, out Version version)
+        private static bool TryParse(string s, bool allowWildcard, ushort maxValue, bool allowPartialParse, out Version version)
         {
             Debug.Assert(!allowWildcard || maxValue < ushort.MaxValue);
 
-            if (s == null)
+            if (string.IsNullOrWhiteSpace(s))
             {
-                version = null;
+                version = new Version(0, 0, 0, 0);
                 return false;
             }
 
@@ -65,18 +66,43 @@ namespace Microsoft.CodeAnalysis
 
             if ((hasWildcard && elements.Length < 3) || elements.Length > 4)
             {
-                version = null;
+                version = new Version(0, 0, 0, 0);
                 return false;
             }
 
             ushort[] values = new ushort[4];
             int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
+            bool parseError = false;
             for (int i = 0; i < lastExplicitValue; i++)
             {
-                if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
+                
+                if (allowPartialParse)
                 {
-                    version = null;
-                    return false;
+                    //Shorten the version string until we are at the shortest possible string that can be represented as a ushort
+                    while (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]))
+                    {
+                        parseError = true;
+                        if (elements[i].Length <= 1)
+                        {
+                            break;
+                        }
+
+                        elements[i] = elements[i].Substring(0, elements[i].Length - 1);
+                    }
+                }
+                else
+                {
+                    if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
+                    {
+                        version = new Version(0, 0, 0, 0);
+                        return false;
+                    }
+                }
+
+                if (parseError)
+                {
+                    //Don't process any more of the version elements
+                    break;
                 }
             }
 
@@ -89,7 +115,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             version = new Version(values[0], values[1], values[2], values[3]);
-            return true;
+            return !parseError;
         }
 
         /// <summary>

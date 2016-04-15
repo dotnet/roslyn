@@ -501,7 +501,7 @@ public class neutral
             string s = @"[assembly: System.Reflection.AssemblyInformationalVersion(""1.2.3garbage"")] public class C {}";
 
             var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
-            Assert.Empty(other.GetDiagnostics());
+            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.3garbage"""));
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
 
