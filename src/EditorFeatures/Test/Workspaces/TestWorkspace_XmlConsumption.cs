@@ -344,12 +344,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 parseOptions = GetParseOptionsWithLanguageVersion(language, parseOptions, languageVersionAttribute);
             }
 
-            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
-            if (featuresAttribute != null)
-            {
-                parseOptions = GetParseOptionsWithFeatures(parseOptions, featuresAttribute);
-            }
-
             var documentationMode = GetDocumentationMode(projectElement);
             if (documentationMode != null)
             {
