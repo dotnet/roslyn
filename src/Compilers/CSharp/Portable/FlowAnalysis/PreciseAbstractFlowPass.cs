@@ -1303,6 +1303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitInstrumentationPayload(BoundInstrumentationPayload node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitTypeOfPrivateImplementationDetails(BoundTypeOfPrivateImplementationDetails node)
         {
             return null;

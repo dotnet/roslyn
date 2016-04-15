@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
         private static bool[][] _payloads;
         private static System.Guid _mvid;
 
-        public static bool[] CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
+        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, ref bool[] payload, int payloadLength)
         {
             if (_mvid != mvid)
             {
@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
                 _mvid = mvid;
             }
 
-            int methodIndex = methodToken & 0xffffff;
             if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
             {
                 _payloads[methodIndex] = payload;
@@ -254,9 +253,7 @@ public class Program
     }
 }
 ";
-            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9810):
-            // The output below is not completely correct -- all instrumentation points in method 2 should be True,
-            // and will be once the issue with rooting of payloads is corrected.
+            // All instrumentation points in method 2 are be True because they are covered by at least one specialization.
             //
             // This test verifies that the payloads of methods of generic types are in terms of method definitions and
             // not method references -- the indices for the methods would be different for references.
@@ -266,7 +263,7 @@ Flushing
 1
 True
 2
-False
+True
 True
 True
 3
@@ -279,41 +276,48 @@ True
 ";
 
             string expectedGetValueIL = @"{
-  // Code size       82 (0x52)
+  // Code size       89 (0x59)
   .maxstack  4
-  .locals init (T V_0)
-  IL_0000:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
-  IL_0005:  brtrue.s   IL_001c
-  IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_000c:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_0011:  ldsflda    ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
-  IL_0016:  ldc.i4.3
-  IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_001c:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
-  IL_0021:  ldc.i4.1
-  IL_0022:  ldc.i4.1
-  IL_0023:  stelem.i1
-  IL_0024:  ldarg.0
-  IL_0025:  ldfld      ""T MyBox<T>._value""
-  IL_002a:  box        ""T""
-  IL_002f:  brtrue.s   IL_0043
-  IL_0031:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldc.i4.1
-  IL_0038:  stelem.i1
-  IL_0039:  ldloca.s   V_0
-  IL_003b:  initobj    ""T""
-  IL_0041:  ldloc.0
-  IL_0042:  ret
-  IL_0043:  ldsfld     ""bool[] MyBox<T>.<GetValue>2ipayload__Field""
-  IL_0048:  ldc.i4.2
-  IL_0049:  ldc.i4.1
-  IL_004a:  stelem.i1
-  IL_004b:  ldarg.0
-  IL_004c:  ldfld      ""T MyBox<T>._value""
-  IL_0051:  ret
-}
-";
+  .locals init (bool[] V_0,
+                T V_1)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+  IL_0005:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+  IL_001e:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0023:  ldelema    ""bool[]""
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i1
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""T MyBox<T>._value""
+  IL_0039:  box        ""T""
+  IL_003e:  brtrue.s   IL_004e
+  IL_0040:  ldloc.0
+  IL_0041:  ldc.i4.0
+  IL_0042:  ldc.i4.1
+  IL_0043:  stelem.i1
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  initobj    ""T""
+  IL_004c:  ldloc.1
+  IL_004d:  ret
+  IL_004e:  ldloc.0
+  IL_004f:  ldc.i4.2
+  IL_0050:  ldc.i4.1
+  IL_0051:  stelem.i1
+  IL_0052:  ldarg.0
+  IL_0053:  ldfld      ""T MyBox<T>._value""
+  IL_0058:  ret
+}";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedGetValueIL);
         }
@@ -843,74 +847,90 @@ True
 ";
 
             string expectedMethodWithFactAttributeIL = @"{
-  // Code size       68 (0x44)
+  // Code size       75 (0x4b)
   .maxstack  4
-  .locals init (int V_0)
+  .locals init (bool[] V_0,
+                int V_1)
   .try
   {
-    IL_0000:  ldsfld     ""bool[] Program.<MethodWithFactAttribute>1ipayload__Field""
-    IL_0005:  brtrue.s   IL_001c
-    IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-    IL_000c:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
-    IL_0011:  ldsflda    ""bool[] Program.<MethodWithFactAttribute>1ipayload__Field""
-    IL_0016:  ldc.i4.3
-    IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-    IL_001c:  ldsfld     ""bool[] Program.<MethodWithFactAttribute>1ipayload__Field""
-    IL_0021:  ldc.i4.0
-    IL_0022:  ldc.i4.1
-    IL_0023:  stelem.i1
-    IL_0024:  ldarg.0
-    IL_0025:  ldc.i4.1
-    IL_0026:  add
-    IL_0027:  ldsfld     ""bool[] Program.<MethodWithFactAttribute>1ipayload__Field""
-    IL_002c:  ldc.i4.1
-    IL_002d:  ldc.i4.1
-    IL_002e:  stelem.i1
-    IL_002f:  ldc.i4.1
-    IL_0030:  add
-    IL_0031:  ldsfld     ""bool[] Program.<MethodWithFactAttribute>1ipayload__Field""
-    IL_0036:  ldc.i4.2
+    IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+    IL_0005:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
+    IL_000a:  ldelem.ref
+    IL_000b:  stloc.0
+    IL_000c:  ldloc.0
+    IL_000d:  brtrue.s   IL_002f
+    IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+    IL_0014:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
+    IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+    IL_001e:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
+    IL_0023:  ldelema    ""bool[]""
+    IL_0028:  ldc.i4.3
+    IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+    IL_002e:  stloc.0
+    IL_002f:  ldloc.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  ldc.i4.1
+    IL_0032:  stelem.i1
+    IL_0033:  ldarg.0
+    IL_0034:  ldc.i4.1
+    IL_0035:  add
+    IL_0036:  ldloc.0
     IL_0037:  ldc.i4.1
-    IL_0038:  stelem.i1
-    IL_0039:  stloc.0
-    IL_003a:  leave.s    IL_0042
+    IL_0038:  ldc.i4.1
+    IL_0039:  stelem.i1
+    IL_003a:  ldc.i4.1
+    IL_003b:  add
+    IL_003c:  ldloc.0
+    IL_003d:  ldc.i4.2
+    IL_003e:  ldc.i4.1
+    IL_003f:  stelem.i1
+    IL_0040:  stloc.1
+    IL_0041:  leave.s    IL_0049
   }
   finally
   {
-    IL_003c:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
-    IL_0041:  endfinally
+    IL_0043:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
+    IL_0048:  endfinally
   }
-  IL_0042:  ldloc.0
-  IL_0043:  ret
+  IL_0049:  ldloc.1
+  IL_004a:  ret
 }";
             string expectedMethodWithOutFactAttributeIL = @"{
-  // Code size       58 (0x3a)
+  // Code size       65 (0x41)
   .maxstack  4
-  IL_0000:  ldsfld     ""bool[] Program.<MethodWithOutFactAttribute>2ipayload__Field""
-  IL_0005:  brtrue.s   IL_001c
-  IL_0007:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_000c:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
-  IL_0011:  ldsflda    ""bool[] Program.<MethodWithOutFactAttribute>2ipayload__Field""
-  IL_0016:  ldc.i4.3
-  IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_001c:  ldsfld     ""bool[] Program.<MethodWithOutFactAttribute>2ipayload__Field""
-  IL_0021:  ldc.i4.0
-  IL_0022:  ldc.i4.1
-  IL_0023:  stelem.i1
-  IL_0024:  ldarg.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  add
-  IL_0027:  ldsfld     ""bool[] Program.<MethodWithOutFactAttribute>2ipayload__Field""
-  IL_002c:  ldc.i4.1
-  IL_002d:  ldc.i4.1
-  IL_002e:  stelem.i1
-  IL_002f:  ldc.i4.1
-  IL_0030:  add
-  IL_0031:  ldsfld     ""bool[] Program.<MethodWithOutFactAttribute>2ipayload__Field""
-  IL_0036:  ldc.i4.2
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+  IL_0005:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
+  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.Payload0""
+  IL_001e:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
+  IL_0023:  ldelema    ""bool[]""
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i1
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.1
+  IL_0035:  add
+  IL_0036:  ldloc.0
   IL_0037:  ldc.i4.1
-  IL_0038:  stelem.i1
-  IL_0039:  ret
+  IL_0038:  ldc.i4.1
+  IL_0039:  stelem.i1
+  IL_003a:  ldc.i4.1
+  IL_003b:  add
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.2
+  IL_003e:  ldc.i4.1
+  IL_003f:  stelem.i1
+  IL_0040:  ret
 }";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.MethodWithFactAttribute", expectedMethodWithFactAttributeIL);

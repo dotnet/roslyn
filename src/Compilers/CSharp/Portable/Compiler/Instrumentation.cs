@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // force the generation of a sequence point for the if statement.
                     if (!methodHasExplicitBlock)
                     {
-                        payloadIf = factory.SequencePoint(payloadIf.Syntax, payloadIf);
+                        payloadInitialization = factory.SequencePoint(payloadInitialization.Syntax, payloadInitialization);
                     }
 
                     ImmutableArray<BoundStatement> newStatements = ImmutableArray.Create<BoundStatement>(payloadInitialization, payloadIf).AddRange(newMethodBody.Statements);
