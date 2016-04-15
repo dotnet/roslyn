@@ -23,32 +23,12 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll")]
 
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "System.Reflection.Metadata",
-    OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "1.2.0.0",
-    NewVersion = "1.3.0.0",
-    PublicKeyToken = "b03f5f7f11d50a3a",
-    GenerateCodeBase = true)]
-
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "System.Collections.Immutable",
-    OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "1.2.0.0",
-    NewVersion = "1.2.0.0",
-    PublicKeyToken = "b03f5f7f11d50a3a",
-    GenerateCodeBase = true)]
-
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Esent.Interop.dll")]
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.Elfie.dll")]
-
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.DiaSymReader",
-    OldVersionLowerBound = "0.0.0.0",
-    OldVersionUpperBound = "1.0.7.0",
-    NewVersion = "1.0.8.0",
-    PublicKeyToken = "31bf3856ad364e35",
-    GenerateCodeBase = true)]
+[assembly: ProvideRoslynBindingRedirection("System.Reflection.Metadata.dll")]
+[assembly: ProvideRoslynBindingRedirection("System.Collections.Immutable.dll")]
+[assembly: ProvideRoslynBindingRedirection("Esent.Interop.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.DiaSymReader.PortablePdb.dll")]
 
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Convention.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
