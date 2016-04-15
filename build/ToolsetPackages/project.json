@@ -9,7 +9,7 @@
         "FakeSign": "0.9.2",
         "xunit": "2.1.0-beta4-build3109",
         "xunit.runner.console": "2.1.0-beta4-build3109",
-        "Roslyn.Build.Util": "0.9.3-portable"
+        "Roslyn.Build.Util": "0.9.4-portable"
     },
     "frameworks": {
         "net46": {}
