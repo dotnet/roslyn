@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         // if not all version is same, set version as default.
                         // this can happen at the initial data loading or
-                        // when document is closed and we put active file state to project state (not implemented yet)
+                        // when document is closed and we put active file state to project state
                         version = VersionStamp.Default;
                     }
 

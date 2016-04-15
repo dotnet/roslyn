@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
             {
@@ -120,16 +120,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentClosed();
-                var changed = _stateManager.OnDocumentClosed(stateSets, document.Id);
-
-                // replace diagnostics from project state over active file state
-                RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
-
-                return SpecializedTasks.EmptyTask;
+                await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
-        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -137,12 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                var changed = _stateManager.OnDocumentReset(stateSets, document.Id);
-
-                // replace diagnostics from project state over active file state
-                RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
-
-                return SpecializedTasks.EmptyTask;
+                await _stateManager.OnDocumentResetAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
@@ -221,50 +211,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
             return document.IsOpen();
-        }
-
-        private void RaiseLocalDocumentEventsFromProjectOverActiveFile(IEnumerable<StateSet> stateSets, Document document, bool activeFileDiagnosticExist)
-        {
-            // PERF: activeFileDiagnosticExist is perf optimization to reduce raising events unnecessarily.
-
-            //  this removes diagnostic reported by active file and replace those with ones from project.
-            Owner.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
-            {
-                // this basically means always load data
-                var avoidLoadingData = false;
-
-                foreach (var stateSet in stateSets)
-                {
-                    // get project state
-                    var state = stateSet.GetProjectState(document.Project.Id);
-
-                    // this is perf optimization to reduce events;
-                    if (!activeFileDiagnosticExist && state.IsEmpty(document.Id))
-                    {
-                        // there is nothing reported before. we don't need to do anything.
-                        continue;
-                    }
-
-                    // no cancellation since event can't be cancelled.
-                    // now get diagnostic information from project
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
-                    if (result.IsAggregatedForm)
-                    {
-                        // something made loading data failed.
-                        // clear all existing diagnostics
-                        RaiseDiagnosticsRemoved(document.Id, document.Project.Solution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(document.Id, document.Project.Solution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        continue;
-                    }
-
-                    // we have data, do actual event raise that will replace diagnostics from active file
-                    var syntaxItems = GetResult(result, AnalysisKind.Syntax, document.Id);
-                    RaiseDiagnosticsCreated(document, stateSet, AnalysisKind.Syntax, syntaxItems, raiseEvents);
-
-                    var semanticItems = GetResult(result, AnalysisKind.Semantic, document.Id);
-                    RaiseDiagnosticsCreated(document, stateSet, AnalysisKind.Semantic, semanticItems, raiseEvents);
-                }
-            });
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
