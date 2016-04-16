@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1395,7 +1395,7 @@ class C<T> where T : C<T> { }
         public void TestGenericMethodParameters()
         {
             var text = @"
-class C { 
+class C {
     void M<in T, out U, V>() { } }
 ";
 
@@ -1427,7 +1427,7 @@ class C {
         public void TestGenericMethodParametersAndVariance()
         {
             var text = @"
-class C { 
+class C {
     void M<in T, out U, V>() { } }
 ";
 
@@ -4267,25 +4267,25 @@ enum E2 // Identical to E1, but has [Flags]
 .class public auto ansi sealed DTest
        extends [mscorlib]System.MulticastDelegate
 {
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor(object 'object',
                                native int 'method') runtime managed
   {
   } // end of method DTest::.ctor
 
-  .method public hidebysig newslot virtual 
+  .method public hidebysig newslot virtual
           instance void  Invoke() runtime managed
   {
   } // end of method DTest::Invoke
 
-  .method public hidebysig newslot virtual 
-          instance class [mscorlib]System.IAsyncResult 
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
           BeginInvoke(class [mscorlib]System.AsyncCallback callback,
                       object 'object') runtime managed
   {
   } // end of method DTest::BeginInvoke
 
-  .method public hidebysig newslot virtual 
+  .method public hidebysig newslot virtual
           instance void  EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
   {
   } // end of method DTest::EndInvoke
@@ -4294,31 +4294,31 @@ enum E2 // Identical to E1, but has [Flags]
 
 .class interface public abstract auto ansi ITest
 {
-  .method public hidebysig newslot abstract virtual 
+  .method public hidebysig newslot abstract virtual
           instance void  M1() cil managed
   {
   } // end of method ITest::M1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance int32  get_P1() cil managed
   {
   } // end of method ITest::get_P1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  set_P1(int32 'value') cil managed
   {
   } // end of method ITest::set_P1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  add_E1(class DTest 'value') cil managed
   {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
   } // end of method ITest::add_E1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  remove_E1(class DTest 'value') cil managed
   {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
   } // end of method ITest::remove_E1
 
   .event DTest E1
@@ -4337,7 +4337,7 @@ enum E2 // Identical to E1, but has [Flags]
        extends [mscorlib]System.Object
        implements ITest
 {
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance int32  get_P1() cil managed
   {
     .override ITest::get_P1
@@ -4348,7 +4348,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.get_P1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  set_P1(int32 'value') cil managed
   {
     .override ITest::set_P1
@@ -4359,7 +4359,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.set_P1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  add_E1(class DTest 'value') cil managed
   {
     .override ITest::add_E1
@@ -4370,7 +4370,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.add_E1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  remove_E1(class DTest 'value') cil managed
   {
     .override ITest::remove_E1
@@ -4381,7 +4381,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.remove_E1
 
-  .method public hidebysig newslot virtual final 
+  .method public hidebysig newslot virtual final
           instance void  M1() cil managed
   {
     .override ITest::M1
@@ -4392,7 +4392,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.M1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       8 (0x8)
@@ -4466,5 +4466,158 @@ class C<T> { }";
 
             Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
         }
+
+        [Fact]
+        public void Tuple()
+        {
+            var text = @"
+public class C
+{
+    public (int, string) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "(Int32, String) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, // String
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact]
+        public void TupleWithNames()
+        {
+            var text = @"
+public class C
+{
+    public (int x, string y) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "(Int32 x, String y) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // x
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, // String
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // y
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact]
+        public void LongTupleWithSpecialTypes()
+        {
+            var text = @"
+public class C
+{
+    public (int, string, bool, byte, long, ulong, short, ushort) f;
+}
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "(int, string, bool, byte, long, ulong, short, ushort) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // bool
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // byte
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // long
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // ulong
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // short
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // ushort
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        public void TupleProperty()
+        {
+            var text = @"
+class C
+{
+   (int Item1, string Item2) P { get; set; }
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("P").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "(int Item1, string Item2) P",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Item1
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Item2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
+
     }
 }
