@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
-            bool wasSwitch = false)
+            bool wasSwitchCase = false)
         {
             switch (node.Kind())
             {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitch);
+                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitchCase);
 
                 case SyntaxKind.PropertyPattern:
                     return BindPropertyPattern(
@@ -524,10 +524,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
-            bool wasSwitch = false)
+            bool wasSwitchCase)
         {
             bool wasExpression;
-            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitch);
+            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
         internal BoundPattern BindConstantPattern(
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics,
             out bool wasExpression,
-            bool wasSwitch)
+            bool wasSwitchCase)
         {
             var expression = BindValue(right, diagnostics, BindValueKind.RValue);
             wasExpression = expression.Type?.IsErrorType() != true;

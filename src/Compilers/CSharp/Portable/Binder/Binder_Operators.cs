@@ -2603,7 +2603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool wasExpression;
                     var tempBag2 = DiagnosticBag.GetInstance();
                     var boundConstantPattern = BindConstantPattern(
-                        node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitch: false);
+                        node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
                     if (wasExpression)
                     {
                         tempBag.Free();

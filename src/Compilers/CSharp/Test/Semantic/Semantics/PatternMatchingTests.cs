@@ -15299,8 +15299,8 @@ public class X
                 //             case typeof(string[]):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
-            // If we decide to support switching on System.Type, the following line would be appropriate.
-            // CompileAndVerify(compilation, expectedOutput: @"string[]");
+            // If we support switching on System.Type as proposed, the expectation would be
+            // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
         }
 
         [Fact, WorkItem(10364, "https://github.com/dotnet/roslyn/issues/10364")]
