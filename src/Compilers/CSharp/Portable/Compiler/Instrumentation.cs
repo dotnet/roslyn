@@ -25,20 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10266): It is not correct to always skip implict methods, because that will miss field initializers.
                 if ((object)createPayload != null && (object)flushPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload) && !method.Equals(flushPayload))
                 {
-                    // Create the symbol for the instrumentation payload.
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
+                    bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
+
+                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
+                    int analysisKind = 0;
                     TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
-                    bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
-                    LocalSymbol methodPayload = factory.SynthesizedLocal(payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
                     ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadType);
-                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
-                    int analysisKind = 0;
+
+                    // Create the symbol for the instrumentation payload.
+                    LocalSymbol methodPayload = factory.SynthesizedLocal(payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
+
                     // Synthesize the instrumentation and collect the spans of interest.
-
-                    PrivateImplementationDetails privateImplementationDetails = compilationState.ModuleBuilderOpt.GetPrivateImplClass(methodBody.Syntax, diagnostics);
-
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9819): Try to integrate instrumentation with lowering, to avoid an extra pass over the bound tree.
                     BoundBlock newMethodBody = InstrumentationInjectionRewriter.InstrumentMethod(method, methodBody, methodHasExplicitBlock, methodPayload, compilationState, diagnostics, debugDocumentProvider, out dynamicAnalysisSpans);
 

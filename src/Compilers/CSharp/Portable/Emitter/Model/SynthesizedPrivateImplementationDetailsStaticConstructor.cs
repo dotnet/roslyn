@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance();
 
             // Initialize the payload arrays for each kind of dynamic analysis instrumentation.
+            // For each kind of instrumentation:
+            //
+            //     payloadArray = new T[MethodDefinitionTokenIndex + 1][];
+            //
+            // where T is the type of the payload at each instrumentation point, and MethodDefinitionTokenIndex is the 
+            // index portion of the greatest method definition token in the compilation. This guarantees that any
+            // method can use the index portion of its own method definition token as an index into the payload array.
 
             ImmutableArray<InstrumentationPayloadField> payloadFields = _details.GetInstrumentationPayloads();
             for (int index = 0; index < payloadFields.Length; index++)

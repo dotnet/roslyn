@@ -1321,7 +1321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return details.GetModuleVersionId(mvidType);
         }
 
-
         internal Cci.IFieldReference GetInstrumentationPayload(int analysisKind, Cci.ITypeReference payloadType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
