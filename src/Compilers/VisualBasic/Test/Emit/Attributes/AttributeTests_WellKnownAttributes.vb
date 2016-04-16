@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator, symbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(540573, "DevDiv")>
+        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact()>
         Public Sub TestPseudoAttributes01()
             Dim source =
@@ -433,7 +433,7 @@ End Class
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
-        <WorkItem(531121, "DevDiv")>
+        <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
         <Fact()>
         Public Sub TestDecimalConstantAttribute()
             Dim source =
@@ -484,9 +484,9 @@ End Class
 #End Region
 
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
-        ''' 6879: Pseudo DllImport looks very different in metadata Metadata: pinvokeimpl(...) +
+        ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
-        <WorkItem(540573, "DevDiv")>
+        <WorkItem(540573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540573")>
         <Fact>
         Public Sub TestPseudoDllImport()
             Dim source =
@@ -693,7 +693,7 @@ End Class
     </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(3, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(3, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -754,7 +754,7 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(544176, "DevDiv")>
+        <WorkItem(544176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544176")>
         Public Sub TestPseudoAttributes_DllImport_AllTrue()
             Dim source =
 <compilation>
@@ -771,8 +771,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
@@ -829,7 +829,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601, "DevDiv")>
+        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_UnspecifiedProperties()
             Dim source =
 <compilation>
@@ -866,7 +866,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(544601, "DevDiv")>
+        <WorkItem(544601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544601")>
         Public Sub GetDllImportData_Declare()
             Dim source =
 <compilation>
@@ -929,7 +929,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -962,7 +962,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     Assert.Equal(1, peFileReader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, peFileReader.GetTableRowCount(TableIndex.ImplMap))
@@ -997,7 +997,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -1214,7 +1214,7 @@ Public Class C
             Dim code = <compilation><file name="attr.vb"><%= sb.ToString() %></file></compilation>
 
             CompileAndVerify(code, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(cases.Length, reader.GetTableRowCount(TableIndex.ImplMap))
                     Dim j = 0
@@ -1313,9 +1313,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, options)
-                    Dim isRefEmit = options = TestEmitters.RefEmit
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim peReader = assembly.GetMetadataReader()
 
                     For Each methodDef In peReader.MethodDefinitions
@@ -1334,12 +1333,10 @@ End Class
                                 expectedFlags = MethodImplAttributes.Synchronized
 
                             Case "InternalCallStatic", "InternalCallInstance", "InternalCallAbstract"
-                                ' workaround for a bug in ref.emit:
-                                expectedFlags = If(isRefEmit, MethodImplAttributes.Runtime Or MethodImplAttributes.InternalCall, MethodImplAttributes.InternalCall)
+                                expectedFlags = MethodImplAttributes.InternalCall
 
                             Case "ForwardRef"
-                                ' workaround for a bug in ref.emit:
-                                expectedFlags = If(isRefEmit, Nothing, MethodImplAttributes.ForwardRef)
+                                expectedFlags = MethodImplAttributes.ForwardRef
 
                             Case ".ctor"
                                 expectedFlags = MethodImplAttributes.IL
@@ -1605,7 +1602,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peReader = assembly.GetMetadataReader()
                     For Each methodDef In peReader.MethodDefinitions
                         Dim row = peReader.GetMethodDefinition(methodDef)
@@ -1718,23 +1715,23 @@ BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
             implFlags As MethodImplAttributes()
         )
             Dim m = assembly.Modules(0)
-            Dim dissableOptDef As TypeDefinitionHandle = Nothing
+            Dim disableOptDef As TypeDefinitionHandle = Nothing
             Dim name As String = Nothing
 
             For Each typeDef In m.GetMetadataReader().TypeDefinitions
                 name = m.GetTypeDefNameOrThrow(typeDef)
 
                 If name.Equals("DisableJITOptimization") Then
-                    dissableOptDef = typeDef
+                    disableOptDef = typeDef
                     Exit For
                 End If
             Next
 
-            Assert.NotEqual(Nothing, dissableOptDef)
+            Assert.NotEqual(Nothing, disableOptDef)
 
             Dim map As New Dictionary(Of String, MethodDefinitionHandle)()
 
-            For Each methodDef In m.GetMethodsOfTypeOrThrow(dissableOptDef)
+            For Each methodDef In m.GetMethodsOfTypeOrThrow(disableOptDef)
                 map.Add(m.GetMethodDefNameOrThrow(methodDef), methodDef)
             Next
 
@@ -1763,8 +1760,8 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Const implFlags As MethodImplAttributes = MethodImplAttributes.IL Or MethodImplAttributes.Managed Or MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
                     DisableJITOptimizationTestHelper(assembly, {"Main", "Main2"}, {implFlags, 0})
                 End Sub
@@ -1775,7 +1772,7 @@ End Module
 #End Region
 
 #Region "DefaultCharSetAttribute"
-        <Fact, WorkItem(544518, "DevDiv")>
+        <Fact, WorkItem(544518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544518")>
         Public Sub DllImport_DefaultCharSet1()
             Dim source =
 <compilation>
@@ -1794,12 +1791,12 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.CharSetAnsi, import.Attributes And MethodImportAttributes.CharSetMask)
                 End Sub)
@@ -1824,14 +1821,14 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
 
-                    Assert.False(FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
+                    Assert.False(MetadataValidation.FindCustomAttribute(reader, "DefaultCharSetAttribute").IsNil)
 
                     Dim import = reader.GetImportedMethods().Single().GetImport()
                     Assert.Equal(MethodImportAttributes.None, import.Attributes And MethodImportAttributes.CharSetMask)
@@ -1927,8 +1924,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitOptions:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
                         Dim row = peFileReader.GetTypeDefinition(typeDef)
@@ -1949,7 +1946,7 @@ End Class
         ''' <summary>
         ''' DefaultCharSet is not applied on embedded types.
         ''' </summary>
-        <WorkItem(546644, "DevDiv")>
+        <WorkItem(546644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546644")>
         <Fact>
         Public Sub DefaultCharSet_EmbeddedTypes()
             Dim source =
@@ -1974,7 +1971,7 @@ End Class
                                                                      references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                      options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             CompileAndVerify(c, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
                         Dim row = peFileReader.GetTypeDefinition(typeDef)
@@ -2009,8 +2006,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
@@ -2061,8 +2058,8 @@ End Class
 </compilation>
             Const declareFlags = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     Assert.Equal(4, peFileReader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(4, peFileReader.GetTableRowCount(TableIndex.ImplMap))
@@ -2222,7 +2219,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(12, reader.GetTableRowCount(TableIndex.Param))
 
@@ -2279,7 +2276,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' property parameters are copied for both getter and setter
@@ -2311,7 +2308,7 @@ End Class
 #End Region
 
 #Region "ParamArrayAttribute"
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact>
         Public Sub TestParamArrayAttributeForParams2()
             Dim source =
@@ -2450,11 +2447,11 @@ End Structure
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SpecialNameAttribute", name)
                     Next
 
@@ -2575,11 +2572,11 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
-                        Dim name = GetAttributeName(peFileReader, ca)
+                        Dim name = MetadataValidation.GetAttributeName(peFileReader, ca)
                         Assert.NotEqual("SerializableAttribute", name)
                         Assert.NotEqual("NonSerializedAttribute", name)
                     Next
@@ -2615,9 +2612,9 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(545199, "DevDiv")>
+        <WorkItem(545199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545199")>
         <Fact>
-        Sub Serializable_NonSerialized_CustomEvents()
+        Public Sub Serializable_NonSerialized_CustomEvents()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -2657,7 +2654,7 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 
 #Region "AttributeUsageAttribute"
 
-        <WorkItem(541733, "DevDiv")>
+        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_01()
             Dim source = <compilation>
@@ -2681,7 +2678,7 @@ End Namespace
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "AttributeUsage(AttributeTargets.Class)").WithArguments("AttributeUsageAttribute"))
         End Sub
 
-        <WorkItem(541733, "DevDiv")>
+        <WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")>
         <Fact()>
         Public Sub TestSourceOverrideWellKnownAttribute_02()
             Dim source = <compilation>
@@ -2902,14 +2899,14 @@ end structure
 
                     ' Verify <System.Security.Permissions.HostProtection(MayLeakOnAbort := true)>
                     Dim securityAttribute = typeSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.LinkDemand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.LinkDemand, securityAttribute.Action)
                     Dim typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(hostProtectionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(0, typeAttribute.CommonConstructorArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "MayLeakOnAbort", TypedConstantKind.Primitive, True)
                 End Sub
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
+            CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
         <Fact()>
@@ -3317,7 +3314,7 @@ end class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"))
         End Sub
 
-        <WorkItem(546623, "DevDiv")>
+        <WorkItem(546623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546623")>
         <Fact>
         Public Sub TestSecurityAttributeInvalidTarget()
             Dim source = <compilation>
@@ -3352,7 +3349,7 @@ End Class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermissionAttribute"))
         End Sub
 
-        <WorkItem(544929, "DevDiv")>
+        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
         <Fact>
         Public Sub PrincipalPermissionAttribute()
             Dim source = <compilation>
@@ -3381,7 +3378,7 @@ End Class
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
         End Sub
 
-        <WorkItem(544956, "DevDiv")>
+        <WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
         <Fact>
         Public Sub SuppressUnmanagedCodeSecurityAttribute()
             Dim source = <compilation>
@@ -3460,7 +3457,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source, validator:=
-                Sub(m, _omitted)
+                Sub(m)
                     Dim reader = m.GetMetadataReader()
                     For Each methodDef In reader.MethodDefinitions
                         Dim row = reader.GetMethodDefinition(methodDef)
@@ -3709,7 +3706,7 @@ BC30662: Attribute 'InterfaceTypeAttribute' cannot be applied to 'InvalidTarget'
 ]]></expected>)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3789,7 +3786,7 @@ End Interface
             CompileAndVerify(compilation, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub TestIsExtensibleInterface_LateBinding()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -3895,7 +3892,7 @@ BC30456: 'LateBound' is not a member of 'NotExtensibleInterface3'.
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(546664, "DevDiv")>
+        <WorkItem(546664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546664")>
         <Fact()>
         Public Sub Bug16489_StackOverflow()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -4174,7 +4171,7 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothi
 ]]></expected>)
         End Sub
 
-        <WorkItem(545490, "DevDiv")>
+        <WorkItem(545490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545490")>
         <Fact>
         Public Sub TestInvalidGuidAttribute_02()
             Dim source = <compilation>
@@ -4252,7 +4249,8 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 #Region "WindowsRuntimeImportAttribute"
 
         <Fact>
-        <WorkItem(531295, "DevDiv")>
+        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
+        <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -4308,7 +4306,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, emitOptions:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 
@@ -4470,7 +4468,7 @@ End Class
 
 #Region "RequiredAttributeAttribute"
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeInSource()
             Dim source = <compilation>
                              <file name="a.vb">
@@ -4515,7 +4513,7 @@ BC37235: The RequiredAttribute attribute is not permitted on Visual Basic types.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata01()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttrClass
@@ -4565,7 +4563,7 @@ BC30649: 'RequiredAttrClass' is an unsupported type.
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(81)>
+        <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>
         Public Sub DisallowRequiredAttributeFromMetadata02()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit RequiredAttr.Scenario1
@@ -4675,6 +4673,204 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
         End Sub
 
 #End Region
+
+        <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
+        Public Sub TestAttributePropagationForAsyncAndIterators_01()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+Class Program
+
+    Shared Sub Main()
+    End Sub
+
+    <MyAttribute>
+    <System.Diagnostics.DebuggerNonUserCodeAttribute>
+    <System.Diagnostics.DebuggerHiddenAttribute>
+    <System.Diagnostics.DebuggerStepperBoundaryAttribute>
+    <System.Diagnostics.DebuggerStepThroughAttribute>
+    Public Async Function test1() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Public Async Function test2() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    <MyAttribute>
+    <System.Diagnostics.DebuggerNonUserCodeAttribute>
+    <System.Diagnostics.DebuggerHiddenAttribute>
+    <System.Diagnostics.DebuggerStepperBoundaryAttribute>
+    <System.Diagnostics.DebuggerStepThroughAttribute>
+    Public Iterator Function Test3() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+
+    Public Iterator Function Test4() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class MyAttribute
+    Inherits System.Attribute
+End Class
+            ]]>
+                </file>
+            </compilation>
+
+            Dim attributeValidator As Action(Of ModuleSymbol) =
+            Sub(m As ModuleSymbol)
+                Dim program = m.GlobalNamespace.GetTypeMember("Program")
+
+                Assert.Equal("", CheckAttributePropagation(DirectCast(program.GetMember(Of MethodSymbol)("test1").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                                           GetMember(Of MethodSymbol)("MoveNext")))
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", DirectCast(program.GetMember(Of MethodSymbol)("test2").
+                                GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                GetMember(Of MethodSymbol)("MoveNext").GetAttributes().Single().AttributeClass.ToTestDisplayString())
+
+                Assert.Equal("", CheckAttributePropagation(DirectCast(program.GetMember(Of MethodSymbol)("Test3").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                                           GetMember(Of MethodSymbol)("MoveNext")))
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", DirectCast(program.GetMember(Of MethodSymbol)("Test4").
+                                GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                ConstructorArguments.Single().Value, NamedTypeSymbol).
+                                GetMember(Of MethodSymbol)("MoveNext").GetAttributes().Single().AttributeClass.ToTestDisplayString())
+            End Sub
+
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
+        End Sub
+
+        Private Shared Function CheckAttributePropagation(symbol As Symbol) As String
+            Dim result = ""
+
+            If symbol.GetAttributes("", "MyAttribute").Any() Then
+                result += "MyAttribute is present" & vbCr
+            End If
+
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
+                result += "DebuggerNonUserCodeAttribute is missing" & vbCr
+            End If
+
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
+                result += "DebuggerHiddenAttribute is missing" & vbCr
+            End If
+
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
+                result += "DebuggerStepperBoundaryAttribute is missing" & vbCr
+            End If
+
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
+                result += "DebuggerStepThroughAttribute is missing" & vbCr
+            End If
+
+            If Not symbol.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
+                result += "CompilerGeneratedAttribute is missing" & vbCr
+            End If
+
+            Return result
+        End Function
+
+        <Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")>
+        Public Sub TestAttributePropagationForAsyncAndIterators_02()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+<MyAttribute>
+<System.Diagnostics.DebuggerNonUserCodeAttribute>
+<System.Diagnostics.DebuggerStepThroughAttribute>
+Class Program1
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test1() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test3() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class Program2
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test2() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test4() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class MyAttribute
+    Inherits System.Attribute
+End Class
+            ]]>
+                </file>
+            </compilation>
+
+            Dim attributeValidator As Action(Of ModuleSymbol) =
+            Sub(m As ModuleSymbol)
+                Dim program1 = m.GlobalNamespace.GetTypeMember("Program1")
+                Dim program2 = m.GlobalNamespace.GetTypeMember("Program2")
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("test1").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("test2").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("Test3").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("Test4").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+            End Sub
+
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
+        End Sub
 
     End Class
 End Namespace

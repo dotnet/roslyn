@@ -23,14 +23,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract string PreviousStateMachineTypeName { get; }
 
         /// <summary>
-        /// Returns an index of a slot that stores specified hoisted local variable in the previous generation,
-        /// or -1 if there is no such slot.
+        /// Returns an index of a slot that stores specified hoisted local variable in the previous generation.
         /// </summary>
-        public abstract int GetPreviousHoistedLocalSlotIndex(
+        public abstract bool TryGetPreviousHoistedLocalSlotIndex(
             SyntaxNode currentDeclarator,
             Cci.ITypeReference currentType,
             SynthesizedLocalKind synthesizedKind,
-            LocalDebugId currentId);
+            LocalDebugId currentId,
+            DiagnosticBag diagnostics,
+            out int slotIndex);
 
         /// <summary>
         /// Number of slots reserved for hoisted local variables.
@@ -42,10 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract int PreviousHoistedLocalSlotCount { get; }
 
         /// <summary>
-        /// Returns an index of a slot that stores an awaiter of a specified type in the previous generation,
-        /// or -1 if there is no such slot.
+        /// Returns true and an index of a slot that stores an awaiter of a specified type in the previous generation, if any. 
         /// </summary>
-        public abstract int GetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType);
+        public abstract bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex);
 
         /// <summary>
         /// Number of slots reserved for awaiters.
@@ -55,5 +55,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Still, new awaiters are assigned slots starting with <see cref="PreviousAwaiterSlotCount"/>.
         /// </remarks>
         public abstract int PreviousAwaiterSlotCount { get; }
+
+        /// <summary>
+        /// The id of the method, or null if the method wasn't assigned one.
+        /// </summary>
+        public abstract DebugId? MethodId { get; }
+
+        /// <summary>
+        /// Finds a closure in the previous generation that corresponds to the specified syntax.
+        /// </summary>
+        /// <remarks>
+        /// See LambdaFrame.AssertIsLambdaScopeSyntax for kinds of syntax nodes that represent closures.
+        /// </remarks>
+        public abstract bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId);
+
+        /// <summary>
+        /// Finds a lambda in the previous generation that corresponds to the specified syntax.
+        /// The <paramref name="lambdaOrLambdaBodySyntax"/> is either a lambda syntax (<paramref name="isLambdaBody"/> is false),
+        /// or lambda body syntax (<paramref name="isLambdaBody"/> is true).
+        /// </summary>
+        public abstract bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId);
     }
 }

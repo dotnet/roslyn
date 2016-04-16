@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Nonshipping>true</Nonshipping>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
+    <AssemblyName>Roslyn.Services.Test.Utilities</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\EditorFeatures.csproj">
+      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Async\AsynchronousOperationBlocker.cs" />
+    <Compile Include="Async\Checkpoint.cs" />
+    <Compile Include="Async\WaitHelper.cs" />
+    <Compile Include="BlindAggregatorFactory.cs" />
+    <Compile Include="DispatcherExtensions.cs" />
+    <Compile Include="DirectoryExtensions.cs" />
+    <Compile Include="ExceptionUtilities.cs" />
+    <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
+    <Compile Include="Threading\StaTaskScheduler.cs" />
+    <Compile Include="Threading\WpfFactAttribute.cs" />
+    <Compile Include="Threading\WpfFactDiscoverer.cs" />
+    <Compile Include="Threading\WpfTestCase.cs" />
+    <Compile Include="Traits.cs" />
+    <Compile Include="VisualStudioSendKeys.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Semantic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
+  </ImportGroup>
+</Project>

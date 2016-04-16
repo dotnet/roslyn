@@ -318,7 +318,7 @@ BC40004: enum 'bar' conflicts with sub 'bar' in the base class 'A' and should be
 </expected>)
         End Sub
 
-        <WorkItem(540791, "DevDiv")>
+        <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub HidingMembersInClass_01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1110,7 +1110,7 @@ BC30362: 'Public Overrides Property r As Integer' cannot override 'Public Overri
     </expected>)
         End Sub
 
-        <WorkItem(540791, "DevDiv")>
+        <WorkItem(540791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540791")>
         <Fact>
         Public Sub PropertyAccessibilityMismatch()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1184,7 +1184,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(546836, "DevDiv")>
+        <WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
         Public Sub PropertyOverrideAccessibility()
             Dim csharpComp = CreateCSharpCompilation("Lib", <![CDATA[
 public class A
@@ -1296,7 +1296,7 @@ Module Test
 End Module
     </file>
     </compilation>, {csharpRef}, TestOptions.ReleaseExe)
-            CompileAndVerify(vbComp, emitOptions:=TestEmitters.CCI, expectedOutput:=<![CDATA[
+            CompileAndVerify(vbComp, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
 D2.P.set
@@ -1373,7 +1373,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(546836, "DevDiv")>
+        <WorkItem(546836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546836")>
         Public Sub PropertyOverrideAccessibilityInternalsVisibleTo()
             Dim csharpComp = CreateCSharpCompilation("Lib", <![CDATA[
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("PropertyOverrideAccessibilityInternalsVisibleTo")]
@@ -1493,7 +1493,7 @@ Module Test
 End Module
     </file>
     </compilation>, {csharpRef}, TestOptions.ReleaseExe)
-            CompileAndVerify(vbComp, emitOptions:=TestEmitters.CCI, expectedOutput:=<![CDATA[
+            CompileAndVerify(vbComp, expectedOutput:=<![CDATA[
 D1.P.set
 D1.P.get
 D2.P.set
@@ -1666,7 +1666,7 @@ BC30906: 'Public Overrides Sub f(x As String())' cannot override 'Public Overrid
         End Sub
 
 
-        <WorkItem(529018, "DevDiv")>
+        <WorkItem(529018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529018")>
         <Fact()>
         Public Sub OptionalTypeMismatch()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1967,7 +1967,7 @@ BC40004: sub 'Quux' conflicts with variable 'Quux' in the base class 'B' and sho
     </expected>)
         End Sub
 
-        <WorkItem(541752, "DevDiv")>
+        <WorkItem(541752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541752")>
         <Fact>
         Public Sub Bug8634()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2204,7 +2204,7 @@ End Module
             CompileAndVerify(code).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(543948, "DevDiv")>
+        <Fact, WorkItem(543948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543948")>
         Public Sub OverrideMemberOfConstructedProtectedInnerClass()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
@@ -2239,7 +2239,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation2)
         End Sub
 
-        <Fact, WorkItem(545484, "DevDiv")>
+        <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub MetadataOverridesOfAccessors()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -2343,7 +2343,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(545484, "DevDiv")>
+        <Fact, WorkItem(545484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545484")>
         Public Sub OverridesOfConstructedMethods()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -2402,7 +2402,7 @@ End Class
             Assert.Null(overriddenConstructedMethX2Foo)
         End Sub
 
-        <Fact, WorkItem(539893, "DevDiv")>
+        <Fact, WorkItem(539893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539893")>
         Public Sub AccessorMetadataCasing()
             Dim compilation1 = CreateCSharpCompilation("assem2",
             <![CDATA[
@@ -2536,7 +2536,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(546816, "DevDiv")>
+        <Fact(), WorkItem(546816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546816")>
         Public Sub Bug16887()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
  <compilation name="E">
@@ -2558,9 +2558,9 @@ End Class     ]]></file>
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(608228, "DevDiv")>
+        <WorkItem(608228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608228")>
         <Fact>
-        Sub OverridePropertyWithByRefParameter()
+        Public Sub OverridePropertyWithByRefParameter()
             Dim il = <![CDATA[
 .class public auto ansi Base
        extends [mscorlib]System.Object
@@ -2635,7 +2635,7 @@ End Class
             Assert.Equal(baseProperty, derivedProperty.OverriddenProperty)
         End Sub
 
-        <Fact(), WorkItem(528549, "DevDiv")>
+        <Fact(), WorkItem(528549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528549")>
         Public Sub Bug528549()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
  <compilation>
@@ -2663,7 +2663,7 @@ BC30433: Methods in a Module cannot be declared 'Overrides'.
 </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_01()
             Dim ilSource = <![CDATA[
@@ -2749,9 +2749,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -2765,7 +2765,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_02()
             Dim ilSource = <![CDATA[
@@ -2878,7 +2878,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_03()
             Dim ilSource = <![CDATA[
@@ -2991,7 +2991,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_04()
             Dim ilSource = <![CDATA[
@@ -3077,9 +3077,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3093,7 +3093,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_05()
             Dim ilSource = <![CDATA[
@@ -3179,9 +3179,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3195,7 +3195,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_06()
             Dim ilSource = <![CDATA[
@@ -3324,7 +3324,7 @@ End Class
             compilation.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_07()
             Dim ilSource = <![CDATA[
@@ -3442,9 +3442,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3456,7 +3456,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_08()
             Dim ilSource = <![CDATA[
@@ -3556,9 +3556,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler doesn't produce any error, but neither method is considered overriden by the runtime.
+            ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3570,7 +3570,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_09()
             Dim ilSource = <![CDATA[
@@ -3668,7 +3668,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3680,7 +3680,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_10()
             Dim ilSource = <![CDATA[
@@ -3775,9 +3775,9 @@ End Class
                     </file>
                 </compilation>
 
-            ' Native compiler: no errors, nothing is overriden
+            ' Native compiler: no errors, nothing is overridden
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3789,7 +3789,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_11()
             Dim ilSource = <![CDATA[
@@ -3889,7 +3889,7 @@ End Class
             ' Base::M1_2
             ' Roslyn's behavior looks reasonable and it has nothing to do with custom modifiers.
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -3903,7 +3903,7 @@ BC30935: Member 'Public Overridable Function M1(x As Integer) As Integer' that m
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_12()
             Dim ilSource = <![CDATA[
@@ -3999,7 +3999,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4011,7 +4011,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_13()
             Dim ilSource = <![CDATA[
@@ -4107,7 +4107,7 @@ End Class
                 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4119,7 +4119,7 @@ BC30437: 'Public Overrides Function M1(x As Integer) As Integer' cannot override
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_14()
             Dim ilSource = <![CDATA[
@@ -4234,7 +4234,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe,
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe,
                                                         expectedOutput:="Derived.M1" & vbCrLf & "Derived.M2" & vbCrLf & "Derived.M3" & vbCrLf &
                                                                         "Derived.M11" & vbCrLf & "Derived.M12" & vbCrLf & "Derived.M13" & vbCrLf &
                                                                         "Derived.M4")
@@ -4251,7 +4251,7 @@ End Class
             Assert.IsAssignableFrom(Of SourceComplexParameterSymbol)(derived.GetMember(Of MethodSymbol)("M13").Parameters(0))
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_15()
             Dim ilSource = <![CDATA[
@@ -4426,7 +4426,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4440,7 +4440,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_16()
             Dim ilSource = <![CDATA[
@@ -4615,7 +4615,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -4629,7 +4629,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_17()
             Dim ilSource = <![CDATA[
@@ -4778,7 +4778,7 @@ End Class
             'Base.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -4837,7 +4837,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim verifier = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Base.P2_get" & vbCrLf &
@@ -4851,7 +4851,7 @@ End Class
             AssertOverridingProperty(verifier.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_18()
             Dim ilSource = <![CDATA[
@@ -5000,7 +5000,7 @@ End Class
             'Base.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5012,7 +5012,7 @@ BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_19()
             Dim ilSource = <![CDATA[
@@ -5161,7 +5161,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5173,7 +5173,7 @@ BC30643: Property 'Base.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_20()
             Dim ilSource = <![CDATA[
@@ -5429,7 +5429,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5441,7 +5441,7 @@ BC30643: Property 'Base2.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_21()
             Dim ilSource = <![CDATA[
@@ -5695,7 +5695,7 @@ End Class
             'Base1.P1_set
             'Base1.P2_get
             'Base1.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Base2.P1_get" & vbCrLf &
 "Base2.P1_set" & vbCrLf &
 "Base2.P2_get" & vbCrLf &
@@ -5710,7 +5710,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_22()
             Dim ilSource = <![CDATA[
@@ -5966,7 +5966,7 @@ End Class
             'Derived.P2_set
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -5978,7 +5978,7 @@ BC30643: Property 'Base1.P2(x As Integer())' is of an unsupported type.
                                                </expected>)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_23()
             Dim ilSource = <![CDATA[
@@ -6095,13 +6095,13 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_24()
             Dim ilSource = <![CDATA[
@@ -6218,13 +6218,13 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_25()
             Dim ilSource = <![CDATA[
@@ -6341,13 +6341,13 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:="")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="")
             compilation.VerifyDiagnostics()
 
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_26()
             Dim ilSource = <![CDATA[
@@ -6522,7 +6522,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6536,7 +6536,7 @@ End Class
             AssertOverridingProperty(compilation.Compilation)
         End Sub
 
-        <WorkItem(819295, "DevDiv")>
+        <WorkItem(819295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819295")>
         <Fact>
         Public Sub CustomModifiers_27()
             Dim ilSource = <![CDATA[
@@ -6711,7 +6711,7 @@ End Class
             'Base.P1_set
             'Base.P2_get
             'Base.P2_set
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, emitOptions:=TestEmitters.RefEmitBug, options:=TestOptions.ReleaseExe, expectedOutput:=
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
 "Derived1.P1_get" & vbCrLf &
 "Derived1.P1_set" & vbCrLf &
 "Derived1.P2_get" & vbCrLf &
@@ -6739,7 +6739,7 @@ End Class
                             For i As Integer = 0 To thisProperty.ParameterCount - 1
                                 Assert.True(overriddenProperty.Parameters(i).CustomModifiers.SequenceEqual(thisProperty.Parameters(i).CustomModifiers))
                                 Assert.Equal(overriddenProperty.Parameters(i).Type, thisProperty.Parameters(i).Type)
-                                Assert.Equal(overriddenProperty.Parameters(i).HasByRefBeforeCustomModifiers, thisProperty.Parameters(i).HasByRefBeforeCustomModifiers)
+                                Assert.Equal(overriddenProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef, thisProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef)
                             Next
                         End If
                     Next
@@ -6747,7 +6747,7 @@ End Class
             Next
         End Sub
 
-        <Fact(), WorkItem(830352, "DevDiv")>
+        <Fact(), WorkItem(830352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830352")>
         Public Sub Bug830352()
             Dim code =
 <compilation>
@@ -6772,7 +6772,7 @@ End Class
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(837884, "DevDiv")>
+        <Fact(), WorkItem(837884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837884")>
         Public Sub Bug837884()
             Dim code1 =
 <compilation>
@@ -6824,9 +6824,9 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
         End Sub
 
-        <WorkItem(1067044, "DevDiv")>
+        <WorkItem(1067044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067044")>
         <Fact>
-        Sub Bug1067044()
+        Public Sub Bug1067044()
             Dim il = <![CDATA[
 .class public abstract auto ansi beforefieldinit C1
        extends [mscorlib]System.Object
@@ -6902,6 +6902,313 @@ End Class
             Dim compilation = CreateCompilationWithCustomILSource(source, il.Value, options:=TestOptions.DebugDll)
 
             CompileAndVerify(compilation)
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_01()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Protected MustOverride Overloads Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Protected Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
+            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+
+            Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
+            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_02()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public MustOverride Overrides Sub DoValidate(objectToValidate As Object)
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void Validator<T>.DoValidate(T objectToValidate)")
+    End Sub
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+                <expected>
+BC30610: Class 'Required' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    Validator(Of Object): Public MustOverride Overrides Sub DoValidate(objectToValidate As Object).
+Public Class Required
+             ~~~~~~~~
+                </expected>)
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_03()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator0(Of T)
+    Public MustOverride Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator0(Of T)
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_04()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void Validator<T>.DoValidate(T objectToValidate)")
+    End Sub
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(object objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="void ValidatorBase<T>.DoValidate(object objectToValidate)
+void Validator<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_05()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator0(Of T)
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator0(Of Integer)
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Protected MustOverride Overloads Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Protected Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
+            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+
+            Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
+            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
         End Sub
 
     End Class

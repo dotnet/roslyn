@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -1876,7 +1867,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                            ~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
-                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30978: Range variable 'name6' hides a variable in an enclosing block or a range variable previously defined in the query expression.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                                                       ~~~~~
@@ -1920,7 +1911,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                            ~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
-                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC36633: Range variable 'name6' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.
         Dim q8 As Object = From name6 In q Select (From x In q Select name6 = x)
                                                                       ~~~~~
@@ -1938,7 +1929,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                         ~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q12 As Object = From x In q Select x1 As Integer = x
-                                        ~~~~~~~~~
+                                               ~~
 BC36633: Range variable 'x1' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.
         Dim q12 As Object = From x In q Select x1 As Integer = x
                                                ~~
@@ -2124,7 +2115,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                        ~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q5 As Object = From s In q Select s.Equals(0)
-                                       ~~~~~~~~~~~~~~~~~~
+                                              ~~~~~~~~~~~
 BC36610: Name 'DoesntExist' is either not declared or not in the current scope.
         Dim q6 As Object = From s In q Select DoesntExist
                                               ~~~~~~~~~~~
@@ -2229,7 +2220,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                    ~~~~~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q3 As Object = From s? As Integer In q Select s
-                                                   ~~~~~~~~
+                                                          ~
 BC36601: Type characters cannot be used in range variable declarations.
         Dim q4 As Object = From s% In q Select s
                                 ~~
@@ -2336,7 +2327,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                   ~~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
-                                               ~~~~~~~~
+                                                      ~
 </expected>)
 
             compilation = compilation.WithOptions(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.On))
@@ -2364,7 +2355,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                   ~~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q2 As Object = From s As Byte In q Select s
-                                               ~~~~~~~~
+                                                      ~
 </expected>)
         End Sub
 
@@ -4017,7 +4008,7 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                                        ~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         Dim q0 As Object = From s In q Select x1 = s, x2 = s
-                                       ~~~~~~~~~~~~~~~~~~~~~
+                                                   ~
 </expected>)
         End Sub
 
@@ -9371,13 +9362,13 @@ BC36594: Definition of method 'Select' is not accessible in this context.
                           ~~~~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         q0 = From s0 in q Aggregate s1 In q Into Where(True)
-                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                          ~
 BC36594: Definition of method 'Select' is not accessible in this context.
         q0 = From s0 in q Aggregate s1 In q Into Where(True), Distinct
                           ~~~~~~~~~
 BC36532: Nested function does not have the same signature as delegate 'Func(Of Integer, Integer)'.
         q0 = From s0 in q Aggregate s1 In q Into Where(True), Distinct
-                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                          ~
 BC36594: Definition of method 'Skip' is not accessible in this context.
         q0 = Aggregate s1 In q Skip 10 Into Where(True)
                                ~~~~
@@ -9673,7 +9664,7 @@ BC30367: Class 'DefaultQueryIndexer11' cannot be indexed because it has no defau
         ''' to be a field, while Roslyn requires ElementAtOrDefault
         ''' to be a method or property.
         ''' </summary>
-        <WorkItem(576814, "DevDiv")>
+        <WorkItem(576814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576814")>
         <Fact()>
         Public Sub DefaultQueryIndexerField()
             Dim source =
@@ -9805,14 +9796,13 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 </expected>)
         End Sub
 
-        <WorkItem(528731, "DevDiv")>
+        <WorkItem(528731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528731")>
         <Fact>
         Public Sub BC36598ERR_CannotLiftRestrictedTypeQuery()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="CannotLiftRestrictedTypeQuery">
         <file name="a.vb">
 Imports System
-Imports System.Collections
 Imports System.Linq
 
         Module m1
@@ -9826,8 +9816,8 @@ Imports System.Linq
     </file>
     </compilation>, additionalRefs:={SystemCoreRef})
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
-    <expected>
+            AssertTheseEmitDiagnostics(compilation,
+<expected>
 BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query expression.
                 Dim q1 = From i In col Where x.GetRemainingCount > 0 Select a = 1
                                              ~
@@ -9837,7 +9827,7 @@ BC36598: Instance of restricted type 'ArgIterator' cannot be used in a query exp
 </expected>)
         End Sub
 
-        <WorkItem(545801, "DevDiv")>
+        <WorkItem(545801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545801")>
         <Fact>
         Public Sub NoPropertyMethodConflictForQueryOperators()
             Dim verifier = CompileAndVerify(
@@ -10192,7 +10182,7 @@ BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the dat
 </expected>)
         End Sub
 
-        <WorkItem(542724, "DevDiv")>
+        <WorkItem(542724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542724")>
         <Fact>
         Public Sub QueryExprInAttributes()
             Dim compilationDef =
@@ -10263,7 +10253,7 @@ System.Int32
 ]]>)
         End Sub
 
-        <WorkItem(528969, "DevDiv")>
+        <WorkItem(528969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528969")>
         <Fact>
         Public Sub InaccessibleElementAtOrDefault()
             Dim compilationDef =
@@ -10303,7 +10293,7 @@ BC30367: Class 'Q1' cannot be indexed because it has no default property.
 
         End Sub
 
-        <WorkItem(543120, "DevDiv")>
+        <WorkItem(543120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543120")>
         <Fact()>
         Public Sub ExplicitTypeNameInExprRangeVarDeclInLetClause()
             Dim compilationDef =
@@ -10327,7 +10317,7 @@ End Module
 </expected>)
         End Sub
 
-        <WorkItem(543138, "DevDiv")>
+        <WorkItem(543138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543138")>
         <Fact()>
         Public Sub FunctionLambdaInConditionOfJoinClause()
             Dim compilationDef =
@@ -10354,7 +10344,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(543171, "DevDiv")>
+        <WorkItem(543171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543171")>
         <Fact()>
         Public Sub FunctionLambdaInOrderByClause()
             Dim compilationDef =
@@ -10387,7 +10377,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(529014, "DevDiv")>
+        <WorkItem(529014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529014")>
         <Fact>
         Public Sub MissingByInGroupByQueryOperator()
             Dim compilationDef =
@@ -10691,7 +10681,7 @@ BC36594: Definition of method 'GroupJoin' is not accessible in this context.
 </expected>)
         End Sub
 
-        <WorkItem(543523, "DevDiv")>
+        <WorkItem(543523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543523")>
         <Fact()>
         Public Sub IncompleteLambdaInsideOrderByClause()
             Dim compilationDef =
@@ -10728,7 +10718,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(544312, "DevDiv")>
+        <Fact(), WorkItem(544312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544312")>
         Public Sub WideningConversionInOverloadResolution()
             Dim compilationDef =
 <compilation name="WideningConversionInOverloadResolution">
@@ -10786,15 +10776,15 @@ Join1
 
         End Sub
 
-        <Fact, WorkItem(530910, "DevDiv")>
-        Public Sub IQuerableOverStringMax()
+        <Fact, WorkItem(530910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530910")>
+        Public Sub IQueryableOverStringMax()
             Dim compilationDef =
-<compilation name="IQuerableOverStringMax">
+<compilation>
     <file name="a.vb">
 Imports System
 Imports System.Linq
 
-Module Regess123995
+Module Regress123995
     Sub Call0()
         Dim ints = New System.Collections.Generic.List(Of Integer)
         ints.Add(1)
@@ -10817,7 +10807,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(1042011)>
+        <Fact, WorkItem(1042011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042011")>
         Public Sub LambdaWithClosureInQueryExpressionAndPDB()
             Dim compilationDef =
 <compilation name="QueryExpressions">
@@ -10835,6 +10825,44 @@ End Module
 </compilation>
 
             CompileAndVerify(compilationDef, options:=TestOptions.DebugExe)
+        End Sub
+
+        <Fact, WorkItem(1099, "https://github.com/dotnet/roslyn/issues/1099")>
+        Public Sub LambdaWithErrorCrash()
+            Dim compilationDef =
+<compilation name="QueryExpressions">
+    <file name="a.vb">
+Imports System.Linq
+
+Class C
+    Shared Function Id(Of T)(a As T, i As Integer) As T
+        Return a
+    End Function
+
+    Sub F2()
+        Dim result = From a In Id({1}, 1), b In Id({1, 2}, 2)
+                     From c In Id({1, 2, 3}, 3)
+                     Let d = Id(1, 4), e = Id(2, 5)
+                     Distinct
+                         Take Whi
+                     Aggregate f In Id({1}, 6), g In Id({2}, 7)
+                         From j In Id({1}, 9)
+                         Let h = Id(1, 4), i = Id(2, 5)
+                         Where Id(g &lt; 2, 8)
+                     Into Count(), Distinct()
+
+    End Sub
+    End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30451: 'Whi' is not declared. It may be inaccessible due to its protection level.
+                         Take Whi
+                              ~~~
+</expected>)
         End Sub
 
     End Class

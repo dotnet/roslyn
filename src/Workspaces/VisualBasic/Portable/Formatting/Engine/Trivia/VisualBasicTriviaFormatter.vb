@@ -15,9 +15,10 @@ Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
-        Inherits AbstractTriviaFormatter(Of SyntaxTrivia)
+        Inherits AbstractTriviaFormatter
 
-        Dim lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private _newLine As SyntaxTrivia
 
         Private _succeeded As Boolean = True
 
@@ -51,16 +52,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return SyntaxFacts.IsNewLine(ch)
         End Function
 
-        Protected Overrides Function Convert(trivia As SyntaxTrivia) As SyntaxTrivia
-            Return trivia
-        End Function
-
         Protected Overrides Function CreateWhitespace(text As String) As SyntaxTrivia
-            Return SyntaxFactory.Whitespace(text, elastic:=False)
+            Return SyntaxFactory.Whitespace(text)
         End Function
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
-            Return SyntaxFactory.CarriageReturnLineFeed
+            If _newLine = Nothing Then
+                Dim text = Me.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)
+                _newLine = SyntaxFactory.EndOfLine(text)
+            End If
+
+            Return _newLine
         End Function
 
         Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
@@ -116,11 +118,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation:=0)
             End If
 
+            ' comment before a Case Statement case
+            If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
+               Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
+                Return LineColumnRule.Preserve()
+            End If
+
             ' comment case
             If trivia2.Kind = SyntaxKind.CommentTrivia OrElse
                trivia2.Kind = SyntaxKind.DocumentationCommentTrivia Then
 
-                ' [token] [whitepsace] [trivia] case
+                ' [token] [whitespace] [trivia] case
                 If Me.Token1.IsLastTokenOfStatementWithEndOfLine() AndAlso trivia1.Kind = SyntaxKind.None Then
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If
@@ -190,8 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function FormatLineContinuationTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-            If trivia.ToFullString() <> lineContinuationTrivia.ToFullString() Then
-                Return lineContinuationTrivia
+            If trivia.ToFullString() <> _lineContinuationTrivia.ToFullString() Then
+                Return _lineContinuationTrivia
             End If
 
             Return trivia
@@ -278,7 +286,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 indentation:=indentation,
                 indentationDelta:=0,
                 useTab:=Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic),
-                tabSize:=Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic))
+                tabSize:=Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic),
+                newLine:=Me.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic))
 
             If text = singlelineDocComments Then
                 Return trivia

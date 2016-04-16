@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static bool IsInteractiveOrScript(this SyntaxTree syntaxTree)
-        {
-            return syntaxTree.Options.Kind != SourceCodeKind.Regular;
-        }
-
         public static ISet<SyntaxKind> GetPrecedingModifiers(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
@@ -112,38 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
         }
 
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the right.
-        /// </summary>
-        public static SyntaxToken FindTokenOnRightOfPosition(
-            this SyntaxTree syntaxTree,
-            int position,
-            CancellationToken cancellationToken,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        /// <summary>
-        /// If the position is inside of token, return that token; otherwise, return the token to the left.
-        /// </summary>
-        public static SyntaxToken FindTokenOnLeftOfPosition(
-            this SyntaxTree syntaxTree,
-            int position,
-            CancellationToken cancellationToken,
-            bool includeSkipped = true,
-            bool includeDirectives = false,
-            bool includeDocumentationComments = false)
-        {
-            return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        private static readonly Func<SyntaxKind, bool> IsDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
-        private static readonly Func<SyntaxKind, bool> IsDotOrArrowOrColonColon =
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken;
+        private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -160,12 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, IsDotOrArrowOrColonColon, cancellationToken);
+            return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsRightOf(position, IsDotOrArrow, cancellationToken);
+            return syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
         }
 
         private static bool IsRightOf(
@@ -323,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinMultiLineComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var trivia = FindTriviaAndAdjustForEndOfFile(syntaxTree, position, cancellationToken);
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
 
             if (trivia.IsMultiLineComment())
             {
@@ -340,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinTopLevelSingleLineComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var trivia = FindTriviaAndAdjustForEndOfFile(syntaxTree, position, cancellationToken);
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
 
             if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
@@ -348,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
             }
 
-            if (trivia.IsSingleLineComment())
+            if (trivia.IsSingleLineComment() || trivia.IsShebangDirective())
             {
                 var span = trivia.FullSpan;
 
@@ -366,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             // Search inside trivia for directives to ensure that we recognize
             // single-line comments at the end of preprocessor directives.
-            var trivia = FindTriviaAndAdjustForEndOfFile(syntaxTree, position, cancellationToken, findInsideTrivia: true);
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken, findInsideTrivia: true);
 
             if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
@@ -387,40 +352,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(
-            SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, bool findInsideTrivia = false)
-        {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-            var trivia = root.FindTrivia(position, findInsideTrivia);
-
-            // If we ask right at the end of the file, we'll get back nothing.
-            // We handle that case specially for now, though SyntaxTree.FindTrivia should
-            // work at the end of a file.
-            if (position == root.FullWidth())
-            {
-                var endOfFileToken = root.EndOfFileToken;
-                if (endOfFileToken.HasLeadingTrivia)
-                {
-                    trivia = endOfFileToken.LeadingTrivia.Last();
-                }
-                else
-                {
-                    var token = endOfFileToken.GetPreviousToken(includeSkipped: true);
-                    if (token.HasTrailingTrivia)
-                    {
-                        trivia = token.TrailingTrivia.Last();
-                    }
-                }
-            }
-
-            return trivia;
-        }
-
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar)
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLitera, "token");
+                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, "token");
             }
 
             int startLength = 1;
@@ -534,76 +470,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            var text = syntaxTree.GetText(cancellationToken);
-            var lineContainingPosition = text.Lines.IndexOf(position);
             if (token.Kind() == SyntaxKind.EndOfFileToken)
             {
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
                 {
-                    if (triviaTok.HasStructure)
+                    if (triviaTok.Span.Contains(position))
                     {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
                         var structure = triviaTok.GetStructure();
                         if (structure is BranchingDirectiveTriviaSyntax)
                         {
-                            var triviaLine = text.Lines.IndexOf(triviaTok.SpanStart);
-                            if (triviaLine < lineContainingPosition)
-                            {
-                                var branch = (BranchingDirectiveTriviaSyntax)structure;
-                                return !branch.IsActive || !branch.BranchTaken;
-                            }
+                            var branch = (BranchingDirectiveTriviaSyntax)structure;
+                            return !branch.IsActive || !branch.BranchTaken;
                         }
                     }
                 }
             }
 
             return false;
-        }
-
-        public static bool IsBeforeFirstToken(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true, includeSkipped: true);
-
-            return position <= firstToken.SpanStart;
-        }
-
-        public static SyntaxToken FindTokenOrEndToken(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(syntaxTree);
-
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-            var result = root.FindToken(position, findInsideTrivia: true);
-            if (result.Kind() != SyntaxKind.None)
-            {
-                return result;
-            }
-
-            // Special cases.  See if we're actually at the end of a:
-            // a) doc comment
-            // b) pp directive
-            // c) file
-
-            var triviaList = root.EndOfFileToken.LeadingTrivia;
-            foreach (var trivia in triviaList.Reverse())
-            {
-                if (trivia.HasStructure)
-                {
-                    var token = trivia.GetStructure().GetLastToken(includeZeroWidth: true);
-                    if (token.Span.End == position)
-                    {
-                        return token;
-                    }
-                }
-            }
-
-            if (position == root.FullSpan.End)
-            {
-                return root.EndOfFileToken;
-            }
-
-            return default(SyntaxToken);
         }
 
         public static IList<MemberDeclarationSyntax> GetMembersInSpan(

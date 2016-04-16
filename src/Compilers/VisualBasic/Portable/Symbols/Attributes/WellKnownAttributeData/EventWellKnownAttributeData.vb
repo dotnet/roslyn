@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits CommonEventWellKnownAttributeData
 
 #Region "NonSerializedAttribute"
-        Private m_hasNonSerializedAttribute As Boolean = False
+        Private _hasNonSerializedAttribute As Boolean = False
         Friend Property HasNonSerializedAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_hasNonSerializedAttribute
+                Return Me._hasNonSerializedAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_hasNonSerializedAttribute = value
+                Me._hasNonSerializedAttribute = value
                 SetDataStored()
             End Set
         End Property

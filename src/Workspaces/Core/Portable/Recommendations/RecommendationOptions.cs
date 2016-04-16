@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
     {
         internal const string RecommendationsFeatureName = "Recommendations";
 
-        public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(RecommendationsFeatureName, "HideAdvancedMembers", defaultValue: false);
+        public static PerLanguageOption<bool> HideAdvancedMembers { get; } = new PerLanguageOption<bool>(RecommendationsFeatureName, "HideAdvancedMembers", defaultValue: false);
 
-        public static readonly PerLanguageOption<bool> FilterOutOfScopeLocals = new PerLanguageOption<bool>(RecommendationsFeatureName, "FilterOutOfScopeLocals", defaultValue: true);
+        public static PerLanguageOption<bool> FilterOutOfScopeLocals { get; } = new PerLanguageOption<bool>(RecommendationsFeatureName, "FilterOutOfScopeLocals", defaultValue: true);
     }
 }

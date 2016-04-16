@@ -415,18 +415,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class SourceLocationComparer : IComparer<SourceFieldSymbolWithSyntaxReference>
         {
-            private readonly Dictionary<Compilation, int> compilationOrdering;
+            private readonly Dictionary<Compilation, int> _compilationOrdering;
 
             internal SourceLocationComparer(Dictionary<Compilation, int> compilationOrdering)
             {
-                this.compilationOrdering = compilationOrdering;
+                _compilationOrdering = compilationOrdering;
             }
 
             public int Compare(SourceFieldSymbolWithSyntaxReference x, SourceFieldSymbolWithSyntaxReference y)
             {
                 var xComp = x.DeclaringCompilation;
                 var yComp = y.DeclaringCompilation;
-                var result = this.compilationOrdering[xComp] - this.compilationOrdering[yComp];
+                var result = _compilationOrdering[xComp] - _compilationOrdering[yComp];
                 if (result == 0)
                 {
                     Debug.Assert(xComp == yComp);

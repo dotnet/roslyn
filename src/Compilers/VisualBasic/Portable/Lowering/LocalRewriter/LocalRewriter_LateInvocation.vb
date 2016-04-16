@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(node.Member IsNot Nothing, "late invocation always has a member that is invoked")
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' just preserve the node to report an error in ExpressionLambdaRewriter
                 Return MyBase.VisitLateInvocation(node)
             End If

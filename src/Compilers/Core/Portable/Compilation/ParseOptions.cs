@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithKind(kind);
         }
 
-        protected abstract ParseOptions CommonWithKind(SourceCodeKind kind);
+        public abstract ParseOptions CommonWithKind(SourceCodeKind kind);
 
         /// <summary>
         /// Creates a new options instance with the specified documentation mode.
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(Hash.CombineValues(this.PreprocessorSymbolNames, StringComparer.Ordinal), 0))));
         }
 
-        private int HashFeatures(IReadOnlyDictionary<string, string> features)
+        private static int HashFeatures(IReadOnlyDictionary<string, string> features)
         {
             int value = 0;
             foreach (var kv in features)

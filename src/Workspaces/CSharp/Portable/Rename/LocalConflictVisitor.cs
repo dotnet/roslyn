@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 {
     internal sealed class LocalConflictVisitor : CSharpSyntaxVisitor
     {
-        private readonly ConflictingIdentifierTracker tracker;
+        private readonly ConflictingIdentifierTracker _tracker;
 
         public LocalConflictVisitor(SyntaxToken tokenBeingRenamed)
         {
-            tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
+            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
         }
 
         public override void DefaultVisit(SyntaxNode node)
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var parameterTokens = node.ParameterList.Parameters.Select(p => p.Identifier);
-            tracker.AddIdentifiers(parameterTokens);
+            _tracker.AddIdentifiers(parameterTokens);
             Visit(node.Body);
-            tracker.RemoveIdentifiers(parameterTokens);
+            _tracker.RemoveIdentifiers(parameterTokens);
         }
 
         public override void VisitBlock(BlockSyntax node)
@@ -55,16 +55,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             DefaultVisit(node);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
         {
-            tracker.AddIdentifier(node.Identifier);
+            _tracker.AddIdentifier(node.Identifier);
             Visit(node.Statement);
-            tracker.RemoveIdentifier(node.Identifier);
+            _tracker.RemoveIdentifier(node.Identifier);
         }
 
         public override void VisitForStatement(ForStatementSyntax node)
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 tokens.AddRange(node.Declaration.Variables.Select(v => v.Identifier));
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             Visit(node.Statement);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 tokens.AddRange(node.Declaration.Variables.Select(v => v.Identifier));
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             Visit(node.Statement);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitCatchClause(CatchClauseSyntax node)
@@ -104,24 +104,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 tokens.Add(node.Declaration.Identifier);
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             Visit(node.Block);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
-            tracker.AddIdentifier(node.Parameter.Identifier);
+            _tracker.AddIdentifier(node.Parameter.Identifier);
             Visit(node.Body);
-            tracker.RemoveIdentifier(node.Parameter.Identifier);
+            _tracker.RemoveIdentifier(node.Parameter.Identifier);
         }
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
         {
             var tokens = node.ParameterList.Parameters.Select(p => p.Identifier);
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
             Visit(node.Body);
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private void VisitQueryInternal(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
             // This is somewhat ornery: we need to collect all the locals being introduced
-            // since they're all in scope throught all parts of the query.
+            // since they're all in scope through all parts of the query.
             var tokens = new List<SyntaxToken>();
 
             if (fromClause != null)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
             }
 
-            tracker.AddIdentifiers(tokens);
+            _tracker.AddIdentifiers(tokens);
 
             // We have to be careful that the query continuation of this query isn't visited
             // as everything there is actually an independent scope.
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 Visit(child);
             }
 
-            tracker.RemoveIdentifiers(tokens);
+            _tracker.RemoveIdentifiers(tokens);
 
             // And now we must visit the continuation
             Visit(body.Continuation);
@@ -178,16 +178,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public override void VisitQueryContinuation(QueryContinuationSyntax node)
         {
-            tracker.AddIdentifier(node.Identifier);
+            _tracker.AddIdentifier(node.Identifier);
             VisitQueryInternal(null, node.Body);
-            tracker.RemoveIdentifier(node.Identifier);
+            _tracker.RemoveIdentifier(node.Identifier);
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens
         {
             get
             {
-                return tracker.ConflictingTokens;
+                return _tracker.ConflictingTokens;
             }
         }
     }

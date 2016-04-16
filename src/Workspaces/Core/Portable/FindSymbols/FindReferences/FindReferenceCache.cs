@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // TODO : this can be all moved down to compiler side.
     internal static class FindReferenceCache
     {
-        private static readonly ReaderWriterLockSlim gate = new ReaderWriterLockSlim();
-        private static readonly Dictionary<SemanticModel, Entry> cache = new Dictionary<SemanticModel, Entry>();
+        private static readonly ReaderWriterLockSlim s_gate = new ReaderWriterLockSlim();
+        private static readonly Dictionary<SemanticModel, Entry> s_cache = new Dictionary<SemanticModel, Entry>();
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -202,10 +202,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Entry GetCachedEntry(SemanticModel model)
         {
-            using (gate.DisposableRead())
+            using (s_gate.DisposableRead())
             {
                 Entry entry;
-                if (cache.TryGetValue(model, out entry))
+                if (s_cache.TryGetValue(model, out entry))
                 {
                     return entry;
                 }
@@ -214,15 +214,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<SemanticModel, Entry> entryCreator = _ => new Entry();
+        private static readonly Func<SemanticModel, Entry> s_entryCreator = _ => new Entry();
 
         public static void Start(SemanticModel model)
         {
             Contract.Requires(model != null);
 
-            using (gate.DisposableWrite())
+            using (s_gate.DisposableWrite())
             {
-                var entry = cache.GetOrAdd(model, entryCreator);
+                var entry = s_cache.GetOrAdd(model, s_entryCreator);
                 entry.Count++;
             }
         }
@@ -234,10 +234,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return;
             }
 
-            using (gate.DisposableWrite())
+            using (s_gate.DisposableWrite())
             {
                 Entry entry;
-                if (!cache.TryGetValue(model, out entry))
+                if (!s_cache.TryGetValue(model, out entry))
                 {
                     return;
                 }
@@ -245,16 +245,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 entry.Count--;
                 if (entry.Count == 0)
                 {
-                    cache.Remove(model);
+                    s_cache.Remove(model);
                 }
             }
         }
 
         private class Entry
         {
-            public int Count = 0;
-            public ImmutableHashSet<string> AliasNameSet = null;
-            public List<SyntaxToken> ConstructorInitializerCache = null;
+            public int Count;
+            public ImmutableHashSet<string> AliasNameSet;
+            public List<SyntaxToken> ConstructorInitializerCache;
 
             public readonly ConcurrentDictionary<string, IList<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, IList<SyntaxToken>>();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();

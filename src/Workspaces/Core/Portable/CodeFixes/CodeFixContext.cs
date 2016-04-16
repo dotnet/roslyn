@@ -16,41 +16,50 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public struct CodeFixContext
     {
-        private readonly Document document;
-        private readonly TextSpan span;
-        private readonly ImmutableArray<Diagnostic> diagnostics;
-        private readonly CancellationToken cancellationToken;
+        private readonly Document _document;
+        private readonly Project _project;
+        private readonly TextSpan _span;
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+        private readonly CancellationToken _cancellationToken;
+        private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
         /// <summary>
         /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
         /// </summary>
-        public Document Document { get { return this.document; } }
+        public Document Document { get { return _document; } }
+
+        /// <summary>
+        /// Project corresponding to the diagnostics to fix.
+        /// </summary>
+        internal Project Project { get { return _project; } }
 
         /// <summary>
         /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
         /// </summary>
-        public TextSpan Span { get { return this.span; } }
+        public TextSpan Span { get { return _span; } }
 
         /// <summary>
         /// Diagnostics to fix.
-        /// NOTE: All the diagnostics in this collection have the same span <see ref="CodeFixContext.Span"/>.
+        /// NOTE: All the diagnostics in this collection have the same <see cref="CodeFixContext.Span"/>.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get { return this.diagnostics; } }
-
-        private readonly Action<CodeAction, ImmutableArray<Diagnostic>> registerFix;
+        public ImmutableArray<Diagnostic> Diagnostics { get { return _diagnostics; } }
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return this.cancellationToken; } }
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         /// <summary>
-        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.ComputeFixesAsync(CodeFixContext)"/> method.
+        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
         /// </summary>
         /// <param name="document">Document to fix.</param>
         /// <param name="span">Text span within the <paramref name="document"/> to fix.</param>
-        /// <param name="diagnostics">Diagnostics to fix. All the diagnostics should have the same span <paramref name="span"/>.</param>
-        /// <param name="registerFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="diagnostics">
+        /// Diagnostics to fix.
+        /// All the diagnostics must have the same <paramref name="span"/>.
+        /// Additionally, the <see cref="Diagnostic.Id"/> of each diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
         /// <exception cref="ArgumentException">
@@ -61,26 +70,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document, span, diagnostics, registerFix, verifyArguments: true, cancellationToken: cancellationToken)
-        {            
+            : this(document, span, diagnostics, registerCodeFix, verifyArguments: true, cancellationToken: cancellationToken)
+        {
         }
 
         /// <summary>
-        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.ComputeFixesAsync(CodeFixContext)"/> method.
+        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
         /// </summary>
         /// <param name="document">Document to fix.</param>
-        /// <param name="diagnostic">Diagnostic to fix.</param>
-        /// <param name="registerFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="diagnostic">
+        /// Diagnostic to fix.
+        /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
         public CodeFixContext(
             Document document,
             Diagnostic diagnostic,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, verifyArguments: true, cancellationToken: cancellationToken)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerCodeFix, verifyArguments: true, cancellationToken: cancellationToken)
         {
         }
 
@@ -88,7 +100,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            bool verifyArguments,
+            CancellationToken cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+        {
+        }
+
+        internal CodeFixContext(
+            Project project,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            CancellationToken cancellationToken)
+            : this(document: null, project: project, span: default(TextSpan), diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+        {
+        }
+
+        private CodeFixContext(
+            Document document,
+            Project project,
+            TextSpan span,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
         {
@@ -99,28 +132,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     throw new ArgumentNullException(nameof(document));
                 }
 
-                if (registerFix == null)
+                if (registerCodeFix == null)
                 {
-                    throw new ArgumentNullException(nameof(registerFix));
+                    throw new ArgumentNullException(nameof(registerCodeFix));
                 }
 
                 VerifyDiagnosticsArgument(diagnostics, span);
             }
 
-            this.document = document;
-            this.span = span;
-            this.diagnostics = diagnostics;
-            this.registerFix = registerFix;
-            this.cancellationToken = cancellationToken;
+            _document = document;
+            _project = project;
+            _span = span;
+            _diagnostics = diagnostics;
+            _registerCodeFix = registerCodeFix;
+            _cancellationToken = cancellationToken;
         }
 
         internal CodeFixContext(
             Document document,
             Diagnostic diagnostic,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerFix,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerFix, verifyArguments, cancellationToken)
+            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerCodeFix, verifyArguments, cancellationToken)
         {
         }
 
@@ -129,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
         /// <param name="diagnostic">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
-        public void RegisterFix(CodeAction action, Diagnostic diagnostic)
+        public void RegisterCodeFix(CodeAction action, Diagnostic diagnostic)
         {
             if (action == null)
             {
@@ -141,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            this.registerFix(action, ImmutableArray.Create(diagnostic));
+            _registerCodeFix(action, ImmutableArray.Create(diagnostic));
         }
 
         /// <summary>
@@ -149,14 +183,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
         /// <param name="diagnostics">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
-        public void RegisterFix(CodeAction action, IEnumerable<Diagnostic> diagnostics)
+        public void RegisterCodeFix(CodeAction action, IEnumerable<Diagnostic> diagnostics)
         {
             if (diagnostics == null)
             {
                 throw new ArgumentNullException(nameof(diagnostics));
             }
 
-            RegisterFix(action, diagnostics.ToImmutableArray());
+            RegisterCodeFix(action, diagnostics.ToImmutableArray());
         }
 
         /// <summary>
@@ -164,21 +198,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="action">The <see cref="CodeAction"/> that will be invoked to apply the fix.</param>
         /// <param name="diagnostics">The subset of <see cref="Diagnostics"/> being addressed / fixed by the <paramref name="action"/>.</param>
-        public void RegisterFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
+        public void RegisterCodeFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
 
-            VerifyDiagnosticsArgument(diagnostics, this.span);
+            VerifyDiagnosticsArgument(diagnostics, _span);
 
             // TODO: 
             // - Check that all diagnostics are unique (no duplicates).
             // - Check that supplied diagnostics form subset of diagnostics originally
             //   passed to the provider via CodeFixContext.Diagnostics.
 
-            this.registerFix(action, diagnostics);
+            _registerCodeFix(action, diagnostics);
         }
 
         private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)

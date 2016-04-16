@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -14,7 +13,47 @@
     <RootNamespace>Roslyn.Test.PdbUtilities</RootNamespace>
     <AssemblyName>Roslyn.Test.PdbUtilities</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ARM</DefineConstants>
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutDir>..\..\..\Binaries\Debug\amd64</OutDir>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NoWarn>1591</NoWarn>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>..\..\..\Binaries\Release\amd64</OutDir>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <NoWarn>1591</NoWarn>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
@@ -26,102 +65,95 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>InternalUtilities\ComStreamWrapper.cs</Link>
     </Compile>
-  </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>ARM</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>ARM</DefineConstants>
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutDir>..\..\..\Binaries\Debug\amd64</OutDir>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutDir>..\..\..\Binaries\Release\amd64</OutDir>
-    <DefineConstants>TRACE</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>InternalUtilities\StreamExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\MetadataReader\PortableCustomDebugInfoKinds.cs">
+      <Link>Shared\PortableCustomDebugInfoKinds.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
+      <Link>Shared\CustomDebugInfoConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
+      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
+    </Compile>
+    <Compile Include="Metadata\AggregatedMetadataReader.cs" />
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
     <Compile Include="Metadata\MethodILExtensions.cs" />
+    <Compile Include="Pdb\CustomDebugInfoUtilities.cs" />
     <Compile Include="Pdb\PdbToXml.cs" />
     <Compile Include="Pdb\PdbToXmlOptions.cs" />
-    <Compile Include="Pdb\TempPdbReader.cs" />
+    <Compile Include="Pdb\SymReaderFactory.cs" />
     <Compile Include="Pdb\Token2SourceLineExporter.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
-      <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
     <Compile Include="Shared\CustomDebugInfoReader.cs" />
+    <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
-    <Compile Include="Shared\IMetadataImport.cs" />
-    <Compile Include="Shared\ISymENCUnmanagedMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedAsyncMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedConstant.cs" />
-    <Compile Include="Shared\ISymUnmanagedDispose.cs" />
-    <Compile Include="Shared\ISymUnmanagedDocument.cs" />
-    <Compile Include="Shared\ISymUnmanagedMethod.cs" />
-    <Compile Include="Shared\ISymUnmanagedNamespace.cs" />
-    <Compile Include="Shared\ISymUnmanagedReader.cs" />
-    <Compile Include="Shared\ISymUnmanagedReader2.cs" />
-    <Compile Include="Shared\ISymUnmanagedScope.cs" />
-    <Compile Include="Shared\ISymUnmanagedScope2.cs" />
-    <Compile Include="Shared\ISymUnmanagedVariable.cs" />
-    <Compile Include="Shared\SymUnmanagedSequencePoint.cs" />
+    <Compile Include="Shared\StringUtilities.cs" />
+    <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
+      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
+      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
+      <Name>DiaSymReader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Metadata\Metadata.csproj">
+      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
+      <Name>Metadata</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

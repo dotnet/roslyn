@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis
         /// For some well-known attributes, the latter case will return string stored in <see cref="StringMissingValue"/>
         /// field.
         /// </summary>
-        public static readonly string StringMissingValue = "StringMissingValue";
+        public static readonly string StringMissingValue = nameof(StringMissingValue);
 
 #if DEBUG
-        private bool isSealed;
-        private bool anyDataStored;
+        private bool _isSealed;
+        private bool _anyDataStored;
 #endif
 
         public WellKnownAttributeData()
         {
 #if DEBUG
-            this.isSealed = false;
-            this.anyDataStored = false;
+            _isSealed = false;
+            _anyDataStored = false;
 #endif
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         protected void VerifySealed(bool expected = true)
         {
 #if DEBUG
-            Debug.Assert(isSealed == expected);
+            Debug.Assert(_isSealed == expected);
 #endif
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         internal void VerifyDataStored(bool expected = true)
         {
 #if DEBUG
-            Debug.Assert(anyDataStored == expected);
+            Debug.Assert(_anyDataStored == expected);
 #endif
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         protected void SetDataStored()
         {
 #if DEBUG
-            anyDataStored = true;
+            _anyDataStored = true;
 #endif
         }
 
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             if (data != null)
             {
-                Debug.Assert(!data.isSealed);
-                Debug.Assert(data.anyDataStored);
-                data.isSealed = true;
+                Debug.Assert(!data._isSealed);
+                Debug.Assert(data._anyDataStored);
+                data._isSealed = true;
             }
 #endif
         }

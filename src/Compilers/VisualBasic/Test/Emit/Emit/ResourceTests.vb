@@ -123,7 +123,7 @@ End Class
             Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
-                Dim memStream = New MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources)
+                Dim memStream = New MemoryStream(TestResources.General.nativeCOFFResources)
                 c1.Emit(output, win32Resources:=memStream)
             End Using
 
@@ -225,15 +225,15 @@ End Module
 
             Assert.True(result.Success)
 
-            Dim assembly As Reflection.Assembly = Reflection.Assembly.ReflectionOnlyLoad(output.ToArray())
+            Dim assembly As Assembly = Assembly.ReflectionOnlyLoad(output.ToArray())
 
             Dim resourceNames As String() = assembly.GetManifestResourceNames()
             Assert.Equal(2, resourceNames.Length)
 
-            Dim rInfo As Reflection.ManifestResourceInfo = assembly.GetManifestResourceInfo(r1Name)
-            Assert.Equal(Reflection.ResourceLocation.Embedded Or Reflection.ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation)
+            Dim rInfo As ManifestResourceInfo = assembly.GetManifestResourceInfo(r1Name)
+            Assert.Equal(ResourceLocation.Embedded Or ResourceLocation.ContainedInManifestFile, rInfo.ResourceLocation)
 
-            Dim rData As IO.Stream = assembly.GetManifestResourceStream(r1Name)
+            Dim rData As Stream = assembly.GetManifestResourceStream(r1Name)
             Dim rBytes(CInt(rData.Length - 1)) As Byte
             rData.Read(rBytes, 0, CInt(rData.Length))
             Assert.Equal(arrayOfEmbeddedData, rBytes)
@@ -368,7 +368,7 @@ End Module
 
 
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateMainfestResourceIdentifier()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -653,7 +653,7 @@ BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
 
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_DuplicateMainfestResourceIdentifier_EmbeddedResource()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -688,7 +688,7 @@ End Module
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"))
         End Sub
 
-        <WorkItem(543501, "DevDiv"), WorkItem(546298, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546298")>
         <Fact()>
         Public Sub BC35003_DuplicateMainfestResourceFileName()
             Dim c1 As Compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -736,7 +736,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -769,7 +769,7 @@ End Module
             result.Diagnostics.Verify()
         End Sub
 
-        <WorkItem(543501, "DevDiv")>
+        <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
         Public Sub BC31502_BC35003_DuplicateMainfestResourceDiagnostics()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(

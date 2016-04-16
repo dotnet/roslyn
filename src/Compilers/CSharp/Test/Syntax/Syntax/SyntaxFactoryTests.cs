@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
         }
 
-        [WorkItem(528399, "DevDiv")]
+        [WorkItem(528399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528399")]
         [Fact()]
         public void PassExpressionToSyntaxToken()
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(SyntaxKind.NumericLiteralExpression));
         }
 
-        [WorkItem(546101, "DevDiv")]
+        [WorkItem(546101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546101")]
         [Fact]
         public void TestConstructPragmaChecksumDirective()
         {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
             Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind());
             Assert.Equal("#pragmachecksum\"file\"\"guid\"\"bytes\"", t.ToString());
-            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToString());
+            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToFullString());
         }
 
         [Fact]
@@ -116,6 +116,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
+
+            // Ensure that when they throw, the appropriate message is used
+            using (new EnsureEnglishUICulture())
+            {
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+            }
+
+            // Make sure that the appropriate methods work as suggested in the exception messages, and don't throw
+            SyntaxFactory.Identifier("text");
+            SyntaxFactory.Literal('c'); //character literal
+            SyntaxFactory.Literal(123); //numeric literal
         }
 
         [Fact]
@@ -190,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, empty2.SeparatorCount);
             Assert.Equal("", empty2.ToString());
 
-            var singleton1 = SyntaxFactory.SeparatedList(new[] {SyntaxFactory.IdentifierName("a")});
+            var singleton1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a") });
 
             Assert.Equal(1, singleton1.Count);
             Assert.Equal(0, singleton1.SeparatorCount);
@@ -220,20 +265,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
-        [WorkItem(720708, "DevDiv")]
+        [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
         [Fact]
         public void TestLiteralDefaultStringValues()
         {
             // string
             CheckLiteralToString("A", @"""A""");
             CheckLiteralToString("\r", @"""\r""");
-            CheckLiteralToString("\u0007", @"""\u0007""");
+            CheckLiteralToString("\u0007", @"""\a""");
+            CheckLiteralToString("\u000c", @"""\f""");
+            CheckLiteralToString("\u001f", @"""\u001f""");
 
             // char
             CheckLiteralToString('A', @"'A'");
             CheckLiteralToString('\r', @"'\r'");
-            CheckLiteralToString('\u0007', @"'\u0007'");
-
+            CheckLiteralToString('\u0007', @"'\a'");
+            CheckLiteralToString('\u000c', @"'\f'");
+            CheckLiteralToString('\u001f', @"'\u001f'");
 
             // byte
             CheckLiteralToString(byte.MinValue, @"0");
@@ -288,12 +336,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(decimal.MaxValue, @"79228162514264337593543950335M");
         }
 
-        [WorkItem(849836, "DevDiv")]
+        [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
         [Fact]
         public void TestLiteralToStringDifferentCulture()
         {
-            var culture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("de-DE");
+            var culture = CultureInfo.CurrentCulture;
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
 
             // If we are using the current culture to format the string then
             // decimal values should render as , instead of .
@@ -301,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var literal = SyntaxFactory.Literal(3.14);
             Assert.Equal("3.14", literal.ValueText);
 
-            Thread.CurrentThread.CurrentCulture = culture;
+            CultureInfo.CurrentCulture = culture;
         }
 
         private static void CheckLiteralToString(dynamic value, string expected)

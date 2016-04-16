@@ -1,15 +1,178 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Reflection.PortableExecutable
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
-Imports System.Xml.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
-    ' TODO: Verify the custom debug info - the current text is just based on the current output.
     Public Class PDBTests
         Inherits BasicTestBase
 
-        <Fact()>
+#Region "General"
+
+        <Fact>
+        Public Sub EmitDebugInfoForSourceTextWithoutEncoding1()
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A : End Class", path:="Foo.vb", encoding:=Nothing)
+            Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B : End Class", path:="", encoding:=Nothing)
+            Dim tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class C : End Class", encoding:=Nothing), path:="Bar.vb")
+            Dim tree4 = SyntaxFactory.ParseSyntaxTree("Class D : End Class", path:="Baz.vb", encoding:=Encoding.UTF8)
+
+            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=TestOptions.ReleaseDll)
+
+            Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
+            result.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_EncodinglessSyntaxTree, "Class A : End Class").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_EncodinglessSyntaxTree, "Class C : End Class").WithLocation(1, 1))
+
+            Assert.False(result.Success)
+        End Sub
+
+        <Fact>
+        Public Sub EmitDebugInfoForSourceTextWithoutEncoding2()
+            Dim tree1 = SyntaxFactory.ParseSyntaxTree("Class A" & vbCrLf & "Sub F() : End Sub : End Class", path:="Foo.vb", encoding:=Encoding.Unicode)
+            Dim tree2 = SyntaxFactory.ParseSyntaxTree("Class B" & vbCrLf & "Sub F() : End Sub : End Class", path:="", encoding:=Nothing)
+            Dim tree3 = SyntaxFactory.ParseSyntaxTree("Class C" & vbCrLf & "Sub F() : End Sub : End Class", path:="Bar.vb", encoding:=New UTF8Encoding(True, False))
+            Dim tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("Class D" & vbCrLf & "Sub F() : End Sub : End Class", New UTF8Encoding(False, False)), path:="Baz.vb")
+
+            Dim comp = VisualBasicCompilation.Create("Compilation", {tree1, tree2, tree3, tree4}, {MscorlibRef}, options:=TestOptions.ReleaseDll)
+
+            Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
+            result.Diagnostics.Verify()
+            Assert.True(result.Success)
+
+            Dim hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()))
+            Dim hash3 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(True, False).GetBytesWithPreamble(tree3.ToString()))
+            Dim hash4 = CryptographicHashProvider.ComputeSha1(New UTF8Encoding(False, False).GetBytesWithPreamble(tree4.ToString()))
+
+            Dim checksum1 = String.Concat(hash1.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
+            Dim checksum3 = String.Concat(hash3.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
+            Dim checksum4 = String.Concat(hash4.Select(Function(b) String.Format("{0,2:X}", b) + ", "))
+
+            comp.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="Foo.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum1 %>/>
+        <file id="2" name="Bar.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum3 %>/>
+        <file id="3" name="Baz.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=<%= checksum4 %>/>
+    </files>
+</symbols>, options:=PdbToXmlOptions.ExcludeMethods)
+
+        End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_DLL()
+            Dim source = "
+Class C 
+  Shared Sub F()
+  End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+
+            Dim f = c.GetMember(Of MethodSymbol)("C.F")
+            c.VerifyPdb(
+<symbols>
+    <entryPoint declaringType="C" methodName="F"/>
+    <methods/>
+</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+
+            Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
+            Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
+            Assert.Equal(0, peEntryPointToken)
+        End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_EXE()
+            Dim source = "
+Class M 
+  Shared Sub Main() 
+  End Sub
+End Class
+
+Class C 
+  Shared Sub F(Of S)()
+  End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+
+            Dim f = c.GetMember(Of MethodSymbol)("C.F")
+            c.VerifyPdb(
+<symbols>
+    <entryPoint declaringType="C" methodName="F"/>
+    <methods/>
+</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+
+            Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
+            Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
+
+            Dim mdReader = peReader.GetMetadataReader()
+            Dim methodDef = mdReader.GetMethodDefinition(CType(MetadataTokens.Handle(peEntryPointToken), MethodDefinitionHandle))
+
+            Assert.Equal("Main", mdReader.GetString(methodDef.Name))
+        End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_Errors()
+            Dim source1 = "
+Class C 
+  Shared Sub F
+  End Sub
+End Class 
+
+Class D(Of T)
+  Shared Sub G(Of S)()
+  End Sub
+End Class
+"
+            Dim source2 = "
+Class C 
+  Shared Sub F() 
+  End Sub
+End Class
+"
+            Dim c1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
+            Dim c2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll)
+
+            Dim f1 = c1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = c2.GetMember(Of MethodSymbol)("C.F")
+            Dim g = c1.GetMember(Of MethodSymbol)("D.G")
+            Dim d = c1.GetMember(Of NamedTypeSymbol)("D")
+
+            Assert.NotNull(f1)
+            Assert.NotNull(f2)
+            Assert.NotNull(g)
+            Assert.NotNull(d)
+
+            Dim stInt = c1.GetSpecialType(SpecialType.System_Int32)
+            Dim d_t_g_int = g.Construct(stInt)
+            Dim d_int = d.Construct(stInt)
+            Dim d_int_g = d_int.GetMember(Of MethodSymbol)("G")
+            Dim d_int_g_int = d_int_g.Construct(stInt)
+
+            Dim result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=f2)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_t_g_int)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_int_g)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_int_g_int)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+        End Sub
+
+#End Region
+
+        <Fact>
         Public Sub TestBasic()
             Dim source =
 <compilation>
@@ -34,22 +197,20 @@ End Class
     <methods>
         <method containingType="C1" name="Method">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50" document="0"/>
-                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
+                <entry offset="0xc" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xd">
                 <currentnamespace name=""/>
             </scope>
         </method>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="0"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="0"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
+                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25"/>
+                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
             </scope>
@@ -61,13 +222,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="0"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16"/>
+                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62"/>
+                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -80,13 +238,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="0"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16"/>
+                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57"/>
+                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -99,13 +254,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="0"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16"/>
+                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58"/>
+                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -118,13 +270,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="0"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="0"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17"/>
+                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67"/>
+                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -132,12 +281,11 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="0"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="0"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="0"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="0"/>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -149,13 +297,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="0"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="0"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75"/>
+                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40"/>
+                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x12">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
@@ -168,13 +313,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="0"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="0"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63"/>
+                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42"/>
+                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -187,13 +329,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="0"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="0"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72"/>
+                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46"/>
+                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -206,13 +345,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="0"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="0"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59"/>
+                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39"/>
+                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -222,20 +358,18 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="-1"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="0"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="0"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="0"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="0"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="0"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="0"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95"/>
+                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44"/>
+                <entry offset="0xb" hidden="true"/>
+                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35"/>
+                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21"/>
+                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36"/>
+                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
@@ -243,22 +377,20 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="0"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="0"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71"/>
+                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35"/>
+                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="0"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29"/>
+                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28"/>
+                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -267,19 +399,17 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="-1"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="0"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="0"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="0"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="0"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="0"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="0"/>
+                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20"/>
+                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59"/>
+                <entry offset="0xf" hidden="true"/>
+                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87"/>
+                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47"/>
+                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
             </sequencePoints>
-            <locals>
-                <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -287,13 +417,124 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="0"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29"/>
+                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29"/>
+                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub ConstructorsWithoutInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x9">
+                <currentnamespace name=""/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="25"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="28"/>
+                <entry offset="0xf" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x10">
+                <importsforward declaringType="C" methodName=".ctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub ConstructorsWithInitializers()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class C
+    Shared G As Object = 1
+    Private F As Object = G
+    Sub New()
+        Dim o As Object
+    End Sub
+    Sub New(x As Object)
+        Dim y As Object = x
+    End Sub
+End Class
+]]></file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.DebugDll)
+            compilation.VerifyPdb("C..ctor",
+<symbols>
+    <methods>
+        <method containingType="C" name=".ctor">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="14"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="6" startColumn="5" endLine="6" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x19">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="C" name=".ctor" parameterNames="x">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="25"/>
+                <entry offset="0x8" startLine="3" startColumn="13" endLine="3" endColumn="28"/>
+                <entry offset="0x18" startLine="8" startColumn="13" endLine="8" endColumn="28"/>
+                <entry offset="0x1f" startLine="9" startColumn="5" endLine="9" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x20">
+                <importsforward declaringType="C" methodName=".cctor"/>
+                <local name="y" il_index="0" il_start="0x0" il_end="0x20" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -346,43 +587,37 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="51"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="100"/>
                     <slot kind="0" offset="182"/>
                     <slot kind="0" offset="221"/>
                     <slot kind="0" offset="351"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12" document="0"/>
-                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34" document="0"/>
-                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8" document="0"/>
-                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8" document="0"/>
-                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="26" document="0"/>
-                <entry offset="0x14" startLine="12" startColumn="17" endLine="12" endColumn="38" document="0"/>
-                <entry offset="0x1a" startLine="13" startColumn="13" endLine="13" endColumn="19" document="0"/>
-                <entry offset="0x1d" hidden="true" document="0"/>
-                <entry offset="0x24" startLine="14" startColumn="9" endLine="14" endColumn="30" document="0"/>
-                <entry offset="0x25" startLine="15" startColumn="17" endLine="15" endColumn="34" document="0"/>
-                <entry offset="0x2c" startLine="16" startColumn="13" endLine="16" endColumn="33" document="0"/>
-                <entry offset="0x33" startLine="17" startColumn="13" endLine="17" endColumn="18" document="0"/>
-                <entry offset="0x35" startLine="18" startColumn="13" endLine="18" endColumn="24" document="0"/>
-                <entry offset="0x3c" hidden="true" document="0"/>
-                <entry offset="0x3e" startLine="19" startColumn="9" endLine="19" endColumn="16" document="0"/>
-                <entry offset="0x3f" startLine="20" startColumn="17" endLine="20" endColumn="34" document="0"/>
-                <entry offset="0x46" startLine="21" startColumn="13" endLine="21" endColumn="33" document="0"/>
-                <entry offset="0x4e" startLine="22" startColumn="9" endLine="22" endColumn="16" document="0"/>
-                <entry offset="0x4f" startLine="24" startColumn="9" endLine="24" endColumn="29" document="0"/>
-                <entry offset="0x56" startLine="26" startColumn="5" endLine="26" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12"/>
+                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34"/>
+                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8"/>
+                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8"/>
+                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="26"/>
+                <entry offset="0x11" hidden="true"/>
+                <entry offset="0x14" startLine="12" startColumn="17" endLine="12" endColumn="38"/>
+                <entry offset="0x1a" startLine="13" startColumn="13" endLine="13" endColumn="19"/>
+                <entry offset="0x1d" hidden="true"/>
+                <entry offset="0x24" startLine="14" startColumn="9" endLine="14" endColumn="30"/>
+                <entry offset="0x25" startLine="15" startColumn="17" endLine="15" endColumn="34"/>
+                <entry offset="0x2c" startLine="16" startColumn="13" endLine="16" endColumn="33"/>
+                <entry offset="0x33" startLine="17" startColumn="13" endLine="17" endColumn="18"/>
+                <entry offset="0x35" startLine="18" startColumn="13" endLine="18" endColumn="24"/>
+                <entry offset="0x3c" hidden="true"/>
+                <entry offset="0x3e" startLine="19" startColumn="9" endLine="19" endColumn="16"/>
+                <entry offset="0x3f" startLine="20" startColumn="17" endLine="20" endColumn="34"/>
+                <entry offset="0x46" startLine="21" startColumn="13" endLine="21" endColumn="33"/>
+                <entry offset="0x4e" startLine="22" startColumn="9" endLine="22" endColumn="16"/>
+                <entry offset="0x4f" startLine="24" startColumn="9" endLine="24" endColumn="29"/>
+                <entry offset="0x56" startLine="26" startColumn="5" endLine="26" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x4" il_end="0x1a" attributes="0"/>
-                <local name="ex" il_index="3" il_start="0x1d" il_end="0x3b" attributes="0"/>
-                <local name="z" il_index="4" il_start="0x25" il_end="0x3b" attributes="0"/>
-                <local name="q" il_index="5" il_start="0x3f" il_end="0x4c" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x57">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -406,10 +641,10 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub TryCatchWhen()
+        Public Sub TryCatchWhen_Debug()
             Dim source =
 <compilation>
-    <file><![CDATA[
+    <file>
 Option Strict On
 Imports System
 
@@ -435,14 +670,93 @@ label2:
 
     End Sub
 End Module
-]]></file>
+</file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe))
 
-            compilation.VerifyPdb("M1.Main",
+            v.VerifyIL("M1.Main", "
+{
+  // Code size      104 (0x68)
+  .maxstack  2
+  .locals init (Integer V_0, //x
+                String V_1, //y
+                System.Exception V_2, //ex
+                Boolean V_3,
+                String V_4, //z
+                String V_5) //q
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  .try
+  {
+    .try
+    {
+     -IL_0003:  nop
+     -IL_0004:  ldstr      ""y""
+      IL_0009:  stloc.1
+     -IL_000a:  nop
+     -IL_000b:  nop
+     -IL_000c:  ldloc.0
+      IL_000d:  ldloc.0
+      IL_000e:  div
+      IL_000f:  stloc.0
+      IL_0010:  leave.s    IL_004d
+    }
+    filter
+    {
+     ~IL_0012:  isinst     ""System.Exception""
+      IL_0017:  dup
+      IL_0018:  brtrue.s   IL_001e
+      IL_001a:  pop
+      IL_001b:  ldc.i4.0
+      IL_001c:  br.s       IL_0033
+      IL_001e:  dup
+      IL_001f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+      IL_0024:  stloc.2
+     -IL_0025:  ldloc.2
+      IL_0026:  callvirt   ""Function System.Exception.get_Message() As String""
+      IL_002b:  ldnull
+      IL_002c:  cgt.un
+      IL_002e:  stloc.3
+     ~IL_002f:  ldloc.3
+      IL_0030:  ldc.i4.0
+      IL_0031:  cgt.un
+      IL_0033:  endfilter
+    }  // end filter
+    {  // handler
+     ~IL_0035:  pop
+     -IL_0036:  ldstr      ""z""
+      IL_003b:  stloc.s    V_4
+     -IL_003d:  ldloc.0
+      IL_003e:  call       ""Sub System.Console.WriteLine(Integer)""
+      IL_0043:  nop
+     -IL_0044:  ldc.i4.1
+      IL_0045:  stloc.0
+     -IL_0046:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+      IL_004b:  leave.s    IL_000a
+    }
+   ~IL_004d:  leave.s    IL_005f
+  }
+  finally
+  {
+   -IL_004f:  nop
+   -IL_0050:  ldstr      ""q""
+    IL_0055:  stloc.s    V_5
+   -IL_0057:  ldloc.0
+    IL_0058:  call       ""Sub System.Console.WriteLine(Integer)""
+    IL_005d:  nop
+    IL_005e:  endfinally
+  }
+ -IL_005f:  nop
+ -IL_0060:  ldloc.0
+  IL_0061:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0066:  nop
+ -IL_0067:  ret
+}
+", sequencePoints:="M1.Main")
+
+            v.VerifyPdb("M1.Main",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
@@ -452,60 +766,147 @@ End Module
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="51"/>
                     <slot kind="0" offset="119"/>
+                    <slot kind="1" offset="141"/>
                     <slot kind="0" offset="188"/>
                     <slot kind="0" offset="318"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12" document="0"/>
-                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34" document="0"/>
-                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8" document="0"/>
-                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8" document="0"/>
-                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="22" document="0"/>
-                <entry offset="0x12" hidden="true" document="0"/>
-                <entry offset="0x25" startLine="12" startColumn="9" endLine="12" endColumn="60" document="0"/>
-                <entry offset="0x33" hidden="true" document="0"/>
-                <entry offset="0x34" startLine="13" startColumn="17" endLine="13" endColumn="34" document="0"/>
-                <entry offset="0x3a" startLine="14" startColumn="13" endLine="14" endColumn="33" document="0"/>
-                <entry offset="0x41" startLine="15" startColumn="13" endLine="15" endColumn="18" document="0"/>
-                <entry offset="0x43" startLine="16" startColumn="13" endLine="16" endColumn="24" document="0"/>
-                <entry offset="0x4a" hidden="true" document="0"/>
-                <entry offset="0x4c" startLine="17" startColumn="9" endLine="17" endColumn="16" document="0"/>
-                <entry offset="0x4d" startLine="18" startColumn="17" endLine="18" endColumn="34" document="0"/>
-                <entry offset="0x54" startLine="19" startColumn="13" endLine="19" endColumn="33" document="0"/>
-                <entry offset="0x5c" startLine="20" startColumn="9" endLine="20" endColumn="16" document="0"/>
-                <entry offset="0x5d" startLine="22" startColumn="9" endLine="22" endColumn="29" document="0"/>
-                <entry offset="0x64" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" startLine="7" startColumn="9" endLine="7" endColumn="12"/>
+                <entry offset="0x4" startLine="8" startColumn="17" endLine="8" endColumn="34"/>
+                <entry offset="0xa" startLine="9" startColumn="1" endLine="9" endColumn="8"/>
+                <entry offset="0xb" startLine="10" startColumn="1" endLine="10" endColumn="8"/>
+                <entry offset="0xc" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
+                <entry offset="0x12" hidden="true"/>
+                <entry offset="0x25" startLine="12" startColumn="9" endLine="12" endColumn="60"/>
+                <entry offset="0x2f" hidden="true"/>
+                <entry offset="0x35" hidden="true"/>
+                <entry offset="0x36" startLine="13" startColumn="17" endLine="13" endColumn="34"/>
+                <entry offset="0x3d" startLine="14" startColumn="13" endLine="14" endColumn="33"/>
+                <entry offset="0x44" startLine="15" startColumn="13" endLine="15" endColumn="18"/>
+                <entry offset="0x46" startLine="16" startColumn="13" endLine="16" endColumn="24"/>
+                <entry offset="0x4d" hidden="true"/>
+                <entry offset="0x4f" startLine="17" startColumn="9" endLine="17" endColumn="16"/>
+                <entry offset="0x50" startLine="18" startColumn="17" endLine="18" endColumn="34"/>
+                <entry offset="0x57" startLine="19" startColumn="13" endLine="19" endColumn="33"/>
+                <entry offset="0x5f" startLine="20" startColumn="9" endLine="20" endColumn="16"/>
+                <entry offset="0x60" startLine="22" startColumn="9" endLine="22" endColumn="29"/>
+                <entry offset="0x67" startLine="24" startColumn="5" endLine="24" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x65" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x4" il_end="0xf" attributes="0"/>
-                <local name="ex" il_index="2" il_start="0x12" il_end="0x49" attributes="0"/>
-                <local name="z" il_index="3" il_start="0x34" il_end="0x49" attributes="0"/>
-                <local name="q" il_index="4" il_start="0x4d" il_end="0x5a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x65">
+            <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x65" attributes="0"/>
+                <local name="x" il_index="0" il_start="0x0" il_end="0x68" attributes="0"/>
                 <scope startOffset="0x4" endOffset="0xf">
                     <local name="y" il_index="1" il_start="0x4" il_end="0xf" attributes="0"/>
                 </scope>
-                <scope startOffset="0x12" endOffset="0x49">
-                    <local name="ex" il_index="2" il_start="0x12" il_end="0x49" attributes="0"/>
-                    <scope startOffset="0x34" endOffset="0x49">
-                        <local name="z" il_index="3" il_start="0x34" il_end="0x49" attributes="0"/>
+                <scope startOffset="0x12" endOffset="0x4c">
+                    <local name="ex" il_index="2" il_start="0x12" il_end="0x4c" attributes="0"/>
+                    <scope startOffset="0x36" endOffset="0x4c">
+                        <local name="z" il_index="4" il_start="0x36" il_end="0x4c" attributes="0"/>
                     </scope>
                 </scope>
-                <scope startOffset="0x4d" endOffset="0x5a">
-                    <local name="q" il_index="4" il_start="0x4d" il_end="0x5a" attributes="0"/>
+                <scope startOffset="0x50" endOffset="0x5d">
+                    <local name="q" il_index="5" il_start="0x50" il_end="0x5d" attributes="0"/>
                 </scope>
             </scope>
         </method>
     </methods>
 </symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub TryCatchWhen_Release()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.IO
+
+Module M1
+    Function filter(e As Exception)
+        Return True
+    End Function
+
+    Public Sub Main()
+        Try
+            Throw New InvalidOperationException()
+        Catch e As IOException When filter(e)
+            Console.WriteLine()
+        Catch e As Exception When filter(e)
+            Console.WriteLine()
+        End Try
+    End Sub
+End Module
+</file>
+</compilation>
+
+            Dim v = CompileAndVerify(CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe))
+
+            v.VerifyIL("M1.Main", "
+{
+  // Code size      103 (0x67)
+  .maxstack  2
+  .locals init (System.IO.IOException V_0, //e
+                System.Exception V_1) //e
+  .try
+  {
+   -IL_0000:  newobj     ""Sub System.InvalidOperationException..ctor()""
+    IL_0005:  throw
+  }
+  filter
+  {
+   ~IL_0006:  isinst     ""System.IO.IOException""
+    IL_000b:  dup
+    IL_000c:  brtrue.s   IL_0012
+    IL_000e:  pop
+    IL_000f:  ldc.i4.0
+    IL_0010:  br.s       IL_0027
+    IL_0012:  dup
+    IL_0013:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0018:  stloc.0
+   -IL_0019:  ldloc.0
+    IL_001a:  call       ""Function M1.filter(System.Exception) As Object""
+    IL_001f:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+    IL_0024:  ldc.i4.0
+    IL_0025:  cgt.un
+    IL_0027:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0029:  pop
+   -IL_002a:  call       ""Sub System.Console.WriteLine()""
+    IL_002f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0034:  leave.s    IL_0066
+  }
+  filter
+  {
+   ~IL_0036:  isinst     ""System.Exception""
+    IL_003b:  dup
+    IL_003c:  brtrue.s   IL_0042
+    IL_003e:  pop
+    IL_003f:  ldc.i4.0
+    IL_0040:  br.s       IL_0057
+    IL_0042:  dup
+    IL_0043:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0048:  stloc.1
+   -IL_0049:  ldloc.1
+    IL_004a:  call       ""Function M1.filter(System.Exception) As Object""
+    IL_004f:  call       ""Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean""
+    IL_0054:  ldc.i4.0
+    IL_0055:  cgt.un
+    IL_0057:  endfilter
+  }  // end filter
+  {  // handler
+   ~IL_0059:  pop
+   -IL_005a:  call       ""Sub System.Console.WriteLine()""
+    IL_005f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_0064:  leave.s    IL_0066
+  }
+ -IL_0066:  ret
+}
+", sequencePoints:="M1.Main")
         End Sub
 
         <Fact()>
@@ -540,23 +941,20 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="65"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="30"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="13" endLine="5" endColumn="29" document="0"/>
-                <entry offset="0x3" hidden="true" document="0"/>
-                <entry offset="0x5" startLine="7" startColumn="17" endLine="7" endColumn="37" document="0"/>
-                <entry offset="0x9" startLine="8" startColumn="13" endLine="8" endColumn="18" document="0"/>
-                <entry offset="0xb" startLine="9" startColumn="9" endLine="9" endColumn="13" document="0"/>
-                <entry offset="0xc" startLine="6" startColumn="9" endLine="6" endColumn="26" document="0"/>
-                <entry offset="0x17" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                <entry offset="0x1" startLine="5" startColumn="13" endLine="5" endColumn="29"/>
+                <entry offset="0x3" hidden="true"/>
+                <entry offset="0x5" startLine="7" startColumn="17" endLine="7" endColumn="37"/>
+                <entry offset="0x9" startLine="8" startColumn="13" endLine="8" endColumn="18"/>
+                <entry offset="0xb" startLine="9" startColumn="9" endLine="9" endColumn="13"/>
+                <entry offset="0xc" startLine="6" startColumn="9" endLine="6" endColumn="26"/>
+                <entry offset="0x14" hidden="true"/>
+                <entry offset="0x17" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x5" il_end="0xb" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x18">
                 <currentnamespace name=""/>
                 <local name="x" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
@@ -589,12 +987,11 @@ End Class
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14" document="0"/>
-                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="50" document="0"/>
-                <entry offset="0x12" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
+                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="50"/>
+                <entry offset="0x13" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x13">
+            <scope startOffset="0x0" endOffset="0x14">
                 <currentnamespace name=""/>
             </scope>
         </method>
@@ -626,19 +1023,568 @@ End Class
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14" document="0"/>
-                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="16" document="0"/>
-                <entry offset="0x8" startLine="4" startColumn="9" endLine="4" endColumn="16" document="0"/>
-                <entry offset="0x9" startLine="5" startColumn="9" endLine="5" endColumn="16" document="0"/>
-                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="14"/>
+                <entry offset="0x8" startLine="3" startColumn="9" endLine="3" endColumn="16"/>
+                <entry offset="0x9" startLine="4" startColumn="9" endLine="4" endColumn="16"/>
+                <entry offset="0xa" startLine="5" startColumn="9" endLine="5" endColumn="16"/>
+                <entry offset="0xb" startLine="7" startColumn="9" endLine="7" endColumn="20"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xc">
+            <scope startOffset="0x0" endOffset="0xd">
                 <currentnamespace name=""/>
             </scope>
         </method>
     </methods>
 </symbols>)
+        End Sub
+
+        <Fact()>
+        Public Sub IfStatement()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+
+Class C
+    Sub F()
+        If G() Then
+            Console.WriteLine(1)
+        Else
+            Console.WriteLine(2)
+        End If
+        
+        Console.WriteLine(3)
+    End Sub
+
+    Function G() As Boolean
+        Return False
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.VerifyIL("C.F", "
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (Boolean V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
+  IL_0002:  call       ""Function C.G() As Boolean""
+  IL_0007:  stloc.0
+ ~IL_0008:  ldloc.0
+  IL_0009:  brfalse.s  IL_0015
+ -IL_000b:  ldc.i4.1
+  IL_000c:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0011:  nop
+ -IL_0012:  nop
+  IL_0013:  br.s       IL_001e
+ -IL_0015:  nop
+ -IL_0016:  ldc.i4.2
+  IL_0017:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_001c:  nop
+ -IL_001d:  nop
+ -IL_001e:  ldc.i4.3
+  IL_001f:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0024:  nop
+ -IL_0025:  ret
+}
+", sequencePoints:="C.F")
+
+            v.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="1" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="20"/>
+                <entry offset="0x8" hidden="true"/>
+                <entry offset="0xb" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0x12" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
+                <entry offset="0x15" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
+                <entry offset="0x16" startLine="8" startColumn="13" endLine="8" endColumn="33"/>
+                <entry offset="0x1d" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
+                <entry offset="0x1e" startLine="11" startColumn="9" endLine="11" endColumn="29"/>
+                <entry offset="0x25" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x26">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DoWhileStatement()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+
+Class C
+    Sub F()
+        Do While G()
+            Console.WriteLine(1)
+        Loop
+    End Sub
+
+    Function G() As Boolean
+        Return False
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.VerifyIL("C.F", "
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (Boolean V_0)
+ -IL_0000:  nop
+ ~IL_0001:  br.s       IL_000b
+ -IL_0003:  ldc.i4.1
+  IL_0004:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0009:  nop
+ -IL_000a:  nop
+ -IL_000b:  ldarg.0
+  IL_000c:  call       ""Function C.G() As Boolean""
+  IL_0011:  stloc.0
+ ~IL_0012:  ldloc.0
+  IL_0013:  brtrue.s   IL_0003
+ -IL_0015:  ret
+}
+", sequencePoints:="C.F")
+
+            v.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="1" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" hidden="true"/>
+                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
+                <entry offset="0xb" startLine="5" startColumn="9" endLine="5" endColumn="21"/>
+                <entry offset="0x12" hidden="true"/>
+                <entry offset="0x15" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x16">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+
+
+        End Sub
+
+        <Fact>
+        Public Sub DoLoopWhileStatement()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+
+Class C
+    Sub F()
+        Do  
+            Console.WriteLine(1)
+        Loop While G()
+    End Sub
+
+    Function G() As Boolean
+        Return False
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.VerifyIL("C.F", "
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (Boolean V_0)
+ -IL_0000:  nop
+ -IL_0001:  nop
+ -IL_0002:  ldc.i4.1
+  IL_0003:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0008:  nop
+ -IL_0009:  nop
+  IL_000a:  ldarg.0
+  IL_000b:  call       ""Function C.G() As Boolean""
+  IL_0010:  stloc.0
+ ~IL_0011:  ldloc.0
+  IL_0012:  brtrue.s   IL_0001
+ -IL_0014:  ret
+}
+", sequencePoints:="C.F")
+
+            v.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="1" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="11"/>
+                <entry offset="0x2" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0x9" startLine="7" startColumn="9" endLine="7" endColumn="23"/>
+                <entry offset="0x11" hidden="true"/>
+                <entry offset="0x14" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x15">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+
+
+        End Sub
+
+        <Fact>
+        Public Sub ForStatement()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+
+Class C
+    Sub F()
+        For a = G(0) To G(1) Step G(2)
+            Console.WriteLine(1)
+        Next
+    End Sub
+
+    Function G(a As Integer) As Integer
+        Return 10
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.VerifyIL("C.F", "
+{
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (Integer V_0,
+                Integer V_1,
+                Integer V_2,
+                Integer V_3) //a
+ -IL_0000:  nop
+ -IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""Function C.G(Integer) As Integer""
+  IL_0008:  stloc.0
+  IL_0009:  ldarg.0
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""Function C.G(Integer) As Integer""
+  IL_0010:  stloc.1
+  IL_0011:  ldarg.0
+  IL_0012:  ldc.i4.2
+  IL_0013:  call       ""Function C.G(Integer) As Integer""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.0
+  IL_001a:  stloc.3
+ ~IL_001b:  br.s       IL_0028
+ -IL_001d:  ldc.i4.1
+  IL_001e:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0023:  nop
+ -IL_0024:  ldloc.3
+  IL_0025:  ldloc.2
+  IL_0026:  add.ovf
+  IL_0027:  stloc.3
+ ~IL_0028:  ldloc.2
+  IL_0029:  ldc.i4.s   31
+  IL_002b:  shr
+  IL_002c:  ldloc.3
+  IL_002d:  xor
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.s   31
+  IL_0031:  shr
+  IL_0032:  ldloc.1
+  IL_0033:  xor
+  IL_0034:  ble.s      IL_001d
+ -IL_0036:  ret
+}", sequencePoints:="C.F")
+
+            v.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="13" offset="0"/>
+                    <slot kind="11" offset="0"/>
+                    <slot kind="12" offset="0"/>
+                    <slot kind="0" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39"/>
+                <entry offset="0x1b" hidden="true"/>
+                <entry offset="0x1d" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0x24" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
+                <entry offset="0x28" hidden="true"/>
+                <entry offset="0x36" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x37">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+                <scope startOffset="0x1" endOffset="0x35">
+                    <local name="a" il_index="3" il_start="0x1" il_end="0x35" attributes="0"/>
+                </scope>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ForStatement_LateBound()
+            Dim v = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+Public Class MyClass1
+    Public Shared Sub Main()
+
+        Dim ctrlVar As Object
+        Dim initValue As Object = 0
+        Dim limit As Object = 2
+        Dim stp As Object = 1
+
+        For ctrlVar = initValue To limit Step stp
+            System.Console.WriteLine(ctrlVar)
+        Next
+
+    End Sub
+End Class
+    </file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            v.VerifyIL("MyClass1.Main", "
+{
+  // Code size       70 (0x46)
+  .maxstack  6
+  .locals init (Object V_0, //ctrlVar
+                Object V_1, //initValue
+                Object V_2, //limit
+                Object V_3, //stp
+                Object V_4,
+                Boolean V_5,
+                Boolean V_6)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.0
+  IL_0002:  box        ""Integer""
+  IL_0007:  stloc.1
+ -IL_0008:  ldc.i4.2
+  IL_0009:  box        ""Integer""
+  IL_000e:  stloc.2
+ -IL_000f:  ldc.i4.1
+  IL_0010:  box        ""Integer""
+  IL_0015:  stloc.3
+ -IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  ldloc.3
+  IL_001a:  ldloca.s   V_4
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean""
+  IL_0023:  stloc.s    V_5
+ ~IL_0025:  ldloc.s    V_5
+  IL_0027:  brfalse.s  IL_0045
+ -IL_0029:  ldloc.0
+  IL_002a:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+  IL_002f:  call       ""Sub System.Console.WriteLine(Object)""
+  IL_0034:  nop
+ -IL_0035:  ldloc.0
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  ldloca.s   V_0
+  IL_003a:  call       ""Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean""
+  IL_003f:  stloc.s    V_6
+ ~IL_0041:  ldloc.s    V_6
+  IL_0043:  brtrue.s   IL_0029
+ -IL_0045:  ret
+}
+", sequencePoints:="MyClass1.Main")
+
+            v.VerifyPdb("MyClass1.Main",
+<symbols>
+    <files>
+        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="87, 56, 72, A9, 63, E5, 5D,  C, F3, 97, 85, 44, CF, 51, 55, 8E, 76, E7, 1D, F1, "/>
+    </files>
+    <methods>
+        <method containingType="MyClass1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                    <slot kind="0" offset="35"/>
+                    <slot kind="0" offset="72"/>
+                    <slot kind="0" offset="105"/>
+                    <slot kind="13" offset="134"/>
+                    <slot kind="1" offset="134"/>
+                    <slot kind="1" offset="134" ordinal="1"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="36" document="1"/>
+                <entry offset="0x8" startLine="7" startColumn="13" endLine="7" endColumn="32" document="1"/>
+                <entry offset="0xf" startLine="8" startColumn="13" endLine="8" endColumn="30" document="1"/>
+                <entry offset="0x16" startLine="10" startColumn="9" endLine="10" endColumn="50" document="1"/>
+                <entry offset="0x25" hidden="true" document="1"/>
+                <entry offset="0x29" startLine="11" startColumn="13" endLine="11" endColumn="46" document="1"/>
+                <entry offset="0x35" startLine="12" startColumn="9" endLine="12" endColumn="13" document="1"/>
+                <entry offset="0x41" hidden="true" document="1"/>
+                <entry offset="0x45" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x46">
+                <currentnamespace name=""/>
+                <local name="ctrlVar" il_index="0" il_start="0x0" il_end="0x46" attributes="0"/>
+                <local name="initValue" il_index="1" il_start="0x0" il_end="0x46" attributes="0"/>
+                <local name="limit" il_index="2" il_start="0x0" il_end="0x46" attributes="0"/>
+                <local name="stp" il_index="3" il_start="0x0" il_end="0x46" attributes="0"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub SelectCaseStatement()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System
+
+Class C
+    Sub F()
+        Select Case G(1)
+            Case G(2)
+                Console.WriteLine(4)
+            Case G(3)
+                Console.WriteLine(5)
+        End Select
+    End Sub
+
+    Function G(a As Integer) As Integer
+        Return a
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.VerifyIL("C.F", "
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (Integer V_0,
+                Boolean V_1)
+ -IL_0000:  nop
+ -IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""Function C.G(Integer) As Integer""
+  IL_0009:  stloc.0
+ -IL_000a:  ldloc.0
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.2
+  IL_000d:  call       ""Function C.G(Integer) As Integer""
+  IL_0012:  ceq
+  IL_0014:  stloc.1
+ ~IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_0021
+ -IL_0018:  ldc.i4.4
+  IL_0019:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_001e:  nop
+  IL_001f:  br.s       IL_0036
+ -IL_0021:  ldloc.0
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.3
+  IL_0024:  call       ""Function C.G(Integer) As Integer""
+  IL_0029:  ceq
+  IL_002b:  stloc.1
+ ~IL_002c:  ldloc.1
+  IL_002d:  brfalse.s  IL_0036
+ -IL_002f:  ldc.i4.5
+  IL_0030:  call       ""Sub System.Console.WriteLine(Integer)""
+  IL_0035:  nop
+ -IL_0036:  nop
+ -IL_0037:  ret
+}
+", sequencePoints:="C.F")
+
+            v.VerifyPdb("C.F",
+<symbols>
+    <methods>
+        <method containingType="C" name="F">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="15" offset="0"/>
+                    <slot kind="1" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="25"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
+                <entry offset="0x15" hidden="true"/>
+                <entry offset="0x18" startLine="7" startColumn="17" endLine="7" endColumn="37"/>
+                <entry offset="0x21" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
+                <entry offset="0x2c" hidden="true"/>
+                <entry offset="0x2f" startLine="9" startColumn="17" endLine="9" endColumn="37"/>
+                <entry offset="0x36" startLine="10" startColumn="9" endLine="10" endColumn="19"/>
+                <entry offset="0x37" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x38">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+
+
         End Sub
 
         <Fact()>
@@ -690,84 +1636,85 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="22"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="52"/>
                     <slot kind="0" offset="71"/>
+                    <slot kind="1" offset="180"/>
                     <slot kind="0" offset="255"/>
                     <slot kind="0" offset="753"/>
+                    <slot kind="1" offset="337"/>
+                    <slot kind="1" offset="405"/>
                     <slot kind="0" offset="444"/>
+                    <slot kind="1" offset="516"/>
                     <slot kind="0" offset="555"/>
                     <slot kind="0" offset="653"/>
+                    <slot kind="1" offset="309"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" startLine="6" startColumn="31" endLine="6" endColumn="49" document="0"/>
-                <entry offset="0xb" startLine="8" startColumn="9" endLine="8" endColumn="23" document="0"/>
-                <entry offset="0x17" startLine="8" startColumn="28" endLine="8" endColumn="46" document="0"/>
-                <entry offset="0x1d" startLine="8" startColumn="49" endLine="8" endColumn="69" document="0"/>
-                <entry offset="0x26" startLine="8" startColumn="70" endLine="8" endColumn="74" document="0"/>
-                <entry offset="0x27" startLine="8" startColumn="75" endLine="8" endColumn="99" document="0"/>
-                <entry offset="0x32" startLine="8" startColumn="102" endLine="8" endColumn="127" document="0"/>
-                <entry offset="0x3d" startLine="9" startColumn="9" endLine="9" endColumn="23" document="0"/>
-                <entry offset="0x49" startLine="9" startColumn="24" endLine="9" endColumn="47" document="0"/>
-                <entry offset="0x54" startLine="9" startColumn="50" endLine="9" endColumn="74" document="0"/>
-                <entry offset="0x61" startLine="9" startColumn="75" endLine="9" endColumn="79" document="0"/>
-                <entry offset="0x62" startLine="9" startColumn="84" endLine="9" endColumn="103" document="0"/>
-                <entry offset="0x69" startLine="9" startColumn="106" endLine="9" endColumn="126" document="0"/>
-                <entry offset="0x71" hidden="true" document="0"/>
-                <entry offset="0x73" startLine="12" startColumn="13" endLine="12" endColumn="26" document="0"/>
-                <entry offset="0x7e" startLine="13" startColumn="17" endLine="13" endColumn="40" document="0"/>
-                <entry offset="0x89" startLine="23" startColumn="13" endLine="23" endColumn="19" document="0"/>
-                <entry offset="0x8c" startLine="14" startColumn="13" endLine="14" endColumn="30" document="0"/>
-                <entry offset="0x97" startLine="15" startColumn="21" endLine="15" endColumn="40" document="0"/>
-                <entry offset="0x9e" startLine="16" startColumn="17" endLine="16" endColumn="38" document="0"/>
-                <entry offset="0xa6" startLine="23" startColumn="13" endLine="23" endColumn="19" document="0"/>
-                <entry offset="0xa9" startLine="17" startColumn="13" endLine="17" endColumn="30" document="0"/>
-                <entry offset="0xb4" startLine="18" startColumn="21" endLine="18" endColumn="40" document="0"/>
-                <entry offset="0xbb" startLine="19" startColumn="17" endLine="19" endColumn="38" document="0"/>
-                <entry offset="0xc3" startLine="23" startColumn="13" endLine="23" endColumn="19" document="0"/>
-                <entry offset="0xc6" startLine="20" startColumn="13" endLine="20" endColumn="17" document="0"/>
-                <entry offset="0xc7" startLine="21" startColumn="21" endLine="21" endColumn="42" document="0"/>
-                <entry offset="0xce" startLine="22" startColumn="17" endLine="22" endColumn="38" document="0"/>
-                <entry offset="0xd6" startLine="23" startColumn="13" endLine="23" endColumn="19" document="0"/>
-                <entry offset="0xd7" startLine="25" startColumn="17" endLine="25" endColumn="40" document="0"/>
-                <entry offset="0xdc" startLine="26" startColumn="13" endLine="26" endColumn="21" document="0"/>
-                <entry offset="0xdf" startLine="27" startColumn="9" endLine="27" endColumn="13" document="0"/>
-                <entry offset="0xe0" startLine="11" startColumn="9" endLine="11" endColumn="23" document="0"/>
-                <entry offset="0xe8" startLine="29" startColumn="5" endLine="29" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" startLine="6" startColumn="31" endLine="6" endColumn="49"/>
+                <entry offset="0xb" startLine="8" startColumn="9" endLine="8" endColumn="23"/>
+                <entry offset="0x11" hidden="true"/>
+                <entry offset="0x14" startLine="8" startColumn="28" endLine="8" endColumn="46"/>
+                <entry offset="0x1a" startLine="8" startColumn="49" endLine="8" endColumn="69"/>
+                <entry offset="0x23" startLine="8" startColumn="70" endLine="8" endColumn="74"/>
+                <entry offset="0x24" startLine="8" startColumn="75" endLine="8" endColumn="99"/>
+                <entry offset="0x2f" startLine="8" startColumn="102" endLine="8" endColumn="127"/>
+                <entry offset="0x3a" startLine="9" startColumn="9" endLine="9" endColumn="23"/>
+                <entry offset="0x41" hidden="true"/>
+                <entry offset="0x45" startLine="9" startColumn="24" endLine="9" endColumn="47"/>
+                <entry offset="0x50" startLine="9" startColumn="50" endLine="9" endColumn="74"/>
+                <entry offset="0x5d" startLine="9" startColumn="75" endLine="9" endColumn="79"/>
+                <entry offset="0x5e" startLine="9" startColumn="84" endLine="9" endColumn="103"/>
+                <entry offset="0x65" startLine="9" startColumn="106" endLine="9" endColumn="126"/>
+                <entry offset="0x6d" hidden="true"/>
+                <entry offset="0x6f" startLine="12" startColumn="13" endLine="12" endColumn="26"/>
+                <entry offset="0x75" hidden="true"/>
+                <entry offset="0x79" startLine="13" startColumn="17" endLine="13" endColumn="40"/>
+                <entry offset="0x84" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
+                <entry offset="0x87" startLine="14" startColumn="13" endLine="14" endColumn="30"/>
+                <entry offset="0x8d" hidden="true"/>
+                <entry offset="0x91" startLine="15" startColumn="21" endLine="15" endColumn="40"/>
+                <entry offset="0x98" startLine="16" startColumn="17" endLine="16" endColumn="38"/>
+                <entry offset="0xa0" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
+                <entry offset="0xa3" startLine="17" startColumn="13" endLine="17" endColumn="30"/>
+                <entry offset="0xa9" hidden="true"/>
+                <entry offset="0xad" startLine="18" startColumn="21" endLine="18" endColumn="40"/>
+                <entry offset="0xb4" startLine="19" startColumn="17" endLine="19" endColumn="38"/>
+                <entry offset="0xbc" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
+                <entry offset="0xbf" startLine="20" startColumn="13" endLine="20" endColumn="17"/>
+                <entry offset="0xc0" startLine="21" startColumn="21" endLine="21" endColumn="42"/>
+                <entry offset="0xc7" startLine="22" startColumn="17" endLine="22" endColumn="38"/>
+                <entry offset="0xcf" startLine="23" startColumn="13" endLine="23" endColumn="19"/>
+                <entry offset="0xd0" startLine="25" startColumn="17" endLine="25" endColumn="40"/>
+                <entry offset="0xd5" startLine="26" startColumn="13" endLine="26" endColumn="21"/>
+                <entry offset="0xd8" startLine="27" startColumn="9" endLine="27" endColumn="13"/>
+                <entry offset="0xd9" startLine="11" startColumn="9" endLine="11" endColumn="23"/>
+                <entry offset="0xdf" hidden="true"/>
+                <entry offset="0xe3" startLine="29" startColumn="5" endLine="29" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <local name="xx" il_index="1" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <local name="s" il_index="3" il_start="0x17" il_end="0x23" attributes="0"/>
-                <local name="s" il_index="4" il_start="0x62" il_end="0x70" attributes="0"/>
-                <local name="newX" il_index="5" il_start="0x73" il_end="0xdf" attributes="0"/>
-                <local name="s2" il_index="6" il_start="0x97" il_end="0xa6" attributes="0"/>
-                <local name="s3" il_index="7" il_start="0xb4" il_end="0xc3" attributes="0"/>
-                <local name="e1" il_index="8" il_start="0xc7" il_end="0xd6" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xe9">
+            <scope startOffset="0x0" endOffset="0xe4">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <local name="xx" il_index="1" il_start="0x0" il_end="0xe9" attributes="0"/>
-                <scope startOffset="0x17" endOffset="0x23">
-                    <local name="s" il_index="3" il_start="0x17" il_end="0x23" attributes="0"/>
+                <local name="x" il_index="0" il_start="0x0" il_end="0xe4" attributes="0"/>
+                <local name="xx" il_index="1" il_start="0x0" il_end="0xe4" attributes="0"/>
+                <scope startOffset="0x14" endOffset="0x20">
+                    <local name="s" il_index="3" il_start="0x14" il_end="0x20" attributes="0"/>
                 </scope>
-                <scope startOffset="0x62" endOffset="0x70">
-                    <local name="s" il_index="4" il_start="0x62" il_end="0x70" attributes="0"/>
+                <scope startOffset="0x5e" endOffset="0x6c">
+                    <local name="s" il_index="5" il_start="0x5e" il_end="0x6c" attributes="0"/>
                 </scope>
-                <scope startOffset="0x73" endOffset="0xdf">
-                    <local name="newX" il_index="5" il_start="0x73" il_end="0xdf" attributes="0"/>
-                    <scope startOffset="0x97" endOffset="0xa6">
-                        <local name="s2" il_index="6" il_start="0x97" il_end="0xa6" attributes="0"/>
+                <scope startOffset="0x6f" endOffset="0xd8">
+                    <local name="newX" il_index="6" il_start="0x6f" il_end="0xd8" attributes="0"/>
+                    <scope startOffset="0x91" endOffset="0xa0">
+                        <local name="s2" il_index="9" il_start="0x91" il_end="0xa0" attributes="0"/>
                     </scope>
-                    <scope startOffset="0xb4" endOffset="0xc3">
-                        <local name="s3" il_index="7" il_start="0xb4" il_end="0xc3" attributes="0"/>
+                    <scope startOffset="0xad" endOffset="0xbc">
+                        <local name="s3" il_index="11" il_start="0xad" il_end="0xbc" attributes="0"/>
                     </scope>
-                    <scope startOffset="0xc7" endOffset="0xd6">
-                        <local name="e1" il_index="8" il_start="0xc7" il_end="0xd6" attributes="0"/>
+                    <scope startOffset="0xc0" endOffset="0xcf">
+                        <local name="e1" il_index="12" il_start="0xc0" il_end="0xcf" attributes="0"/>
                     </scope>
                 </scope>
             </scope>
@@ -776,7 +1723,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestTopConditionDoLoop()
             Dim source =
 <compilation>
@@ -821,58 +1768,58 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="474"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="58"/>
+                    <slot kind="1" offset="126"/>
                     <slot kind="0" offset="165"/>
+                    <slot kind="1" offset="237"/>
                     <slot kind="0" offset="276"/>
                     <slot kind="0" offset="374"/>
+                    <slot kind="1" offset="30"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" hidden="true" document="0"/>
-                <entry offset="0x5" startLine="8" startColumn="13" endLine="8" endColumn="26" document="0"/>
-                <entry offset="0x10" startLine="9" startColumn="17" endLine="9" endColumn="40" document="0"/>
-                <entry offset="0x1b" startLine="19" startColumn="13" endLine="19" endColumn="19" document="0"/>
-                <entry offset="0x1e" startLine="10" startColumn="13" endLine="10" endColumn="30" document="0"/>
-                <entry offset="0x29" startLine="11" startColumn="21" endLine="11" endColumn="40" document="0"/>
-                <entry offset="0x2f" startLine="12" startColumn="17" endLine="12" endColumn="38" document="0"/>
-                <entry offset="0x36" startLine="19" startColumn="13" endLine="19" endColumn="19" document="0"/>
-                <entry offset="0x39" startLine="13" startColumn="13" endLine="13" endColumn="30" document="0"/>
-                <entry offset="0x44" startLine="14" startColumn="21" endLine="14" endColumn="40" document="0"/>
-                <entry offset="0x4b" startLine="15" startColumn="17" endLine="15" endColumn="38" document="0"/>
-                <entry offset="0x53" startLine="19" startColumn="13" endLine="19" endColumn="19" document="0"/>
-                <entry offset="0x56" startLine="16" startColumn="13" endLine="16" endColumn="17" document="0"/>
-                <entry offset="0x57" startLine="17" startColumn="21" endLine="17" endColumn="42" document="0"/>
-                <entry offset="0x5e" startLine="18" startColumn="17" endLine="18" endColumn="38" document="0"/>
-                <entry offset="0x66" startLine="19" startColumn="13" endLine="19" endColumn="19" document="0"/>
-                <entry offset="0x67" startLine="21" startColumn="17" endLine="21" endColumn="40" document="0"/>
-                <entry offset="0x6b" startLine="22" startColumn="13" endLine="22" endColumn="21" document="0"/>
-                <entry offset="0x6d" startLine="23" startColumn="9" endLine="23" endColumn="13" document="0"/>
-                <entry offset="0x6e" startLine="7" startColumn="9" endLine="7" endColumn="23" document="0"/>
-                <entry offset="0x76" startLine="25" startColumn="5" endLine="25" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" hidden="true"/>
+                <entry offset="0x5" startLine="8" startColumn="13" endLine="8" endColumn="26"/>
+                <entry offset="0xa" hidden="true"/>
+                <entry offset="0xd" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
+                <entry offset="0x18" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
+                <entry offset="0x1b" startLine="10" startColumn="13" endLine="10" endColumn="30"/>
+                <entry offset="0x20" hidden="true"/>
+                <entry offset="0x23" startLine="11" startColumn="21" endLine="11" endColumn="40"/>
+                <entry offset="0x2a" startLine="12" startColumn="17" endLine="12" endColumn="38"/>
+                <entry offset="0x32" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
+                <entry offset="0x35" startLine="13" startColumn="13" endLine="13" endColumn="30"/>
+                <entry offset="0x3b" hidden="true"/>
+                <entry offset="0x3f" startLine="14" startColumn="21" endLine="14" endColumn="40"/>
+                <entry offset="0x46" startLine="15" startColumn="17" endLine="15" endColumn="38"/>
+                <entry offset="0x4e" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
+                <entry offset="0x51" startLine="16" startColumn="13" endLine="16" endColumn="17"/>
+                <entry offset="0x52" startLine="17" startColumn="21" endLine="17" endColumn="42"/>
+                <entry offset="0x59" startLine="18" startColumn="17" endLine="18" endColumn="38"/>
+                <entry offset="0x61" startLine="19" startColumn="13" endLine="19" endColumn="19"/>
+                <entry offset="0x62" startLine="21" startColumn="17" endLine="21" endColumn="40"/>
+                <entry offset="0x66" startLine="22" startColumn="13" endLine="22" endColumn="21"/>
+                <entry offset="0x68" startLine="23" startColumn="9" endLine="23" endColumn="13"/>
+                <entry offset="0x69" startLine="7" startColumn="9" endLine="7" endColumn="23"/>
+                <entry offset="0x6f" hidden="true"/>
+                <entry offset="0x73" startLine="25" startColumn="5" endLine="25" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x77" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x5" il_end="0x6d" attributes="0"/>
-                <local name="s2" il_index="3" il_start="0x29" il_end="0x36" attributes="0"/>
-                <local name="s3" il_index="4" il_start="0x44" il_end="0x53" attributes="0"/>
-                <local name="e1" il_index="5" il_start="0x57" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x77">
+            <scope startOffset="0x0" endOffset="0x74">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x77" attributes="0"/>
-                <scope startOffset="0x5" endOffset="0x6d">
-                    <local name="newX" il_index="1" il_start="0x5" il_end="0x6d" attributes="0"/>
-                    <scope startOffset="0x29" endOffset="0x36">
-                        <local name="s2" il_index="3" il_start="0x29" il_end="0x36" attributes="0"/>
+                <local name="x" il_index="0" il_start="0x0" il_end="0x74" attributes="0"/>
+                <scope startOffset="0x5" endOffset="0x68">
+                    <local name="newX" il_index="1" il_start="0x5" il_end="0x68" attributes="0"/>
+                    <scope startOffset="0x23" endOffset="0x32">
+                        <local name="s2" il_index="4" il_start="0x23" il_end="0x32" attributes="0"/>
                     </scope>
-                    <scope startOffset="0x44" endOffset="0x53">
-                        <local name="s3" il_index="4" il_start="0x44" il_end="0x53" attributes="0"/>
+                    <scope startOffset="0x3f" endOffset="0x4e">
+                        <local name="s3" il_index="6" il_start="0x3f" il_end="0x4e" attributes="0"/>
                     </scope>
-                    <scope startOffset="0x57" endOffset="0x66">
-                        <local name="e1" il_index="5" il_start="0x57" il_end="0x66" attributes="0"/>
+                    <scope startOffset="0x52" endOffset="0x61">
+                        <local name="e1" il_index="7" il_start="0x52" il_end="0x61" attributes="0"/>
                     </scope>
                 </scope>
             </scope>
@@ -881,7 +1828,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestBottomConditionDoLoop()
             Dim source =
 <compilation>
@@ -929,57 +1876,57 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="464"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="48"/>
+                    <slot kind="1" offset="116"/>
                     <slot kind="0" offset="155"/>
+                    <slot kind="1" offset="227"/>
                     <slot kind="0" offset="266"/>
                     <slot kind="0" offset="364"/>
+                    <slot kind="1" offset="32"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11" document="0"/>
-                <entry offset="0x4" startLine="9" startColumn="13" endLine="9" endColumn="26" document="0"/>
-                <entry offset="0xf" startLine="10" startColumn="17" endLine="10" endColumn="40" document="0"/>
-                <entry offset="0x1a" startLine="20" startColumn="13" endLine="20" endColumn="19" document="0"/>
-                <entry offset="0x1d" startLine="11" startColumn="13" endLine="11" endColumn="30" document="0"/>
-                <entry offset="0x28" startLine="12" startColumn="21" endLine="12" endColumn="40" document="0"/>
-                <entry offset="0x2e" startLine="13" startColumn="17" endLine="13" endColumn="38" document="0"/>
-                <entry offset="0x35" startLine="20" startColumn="13" endLine="20" endColumn="19" document="0"/>
-                <entry offset="0x38" startLine="14" startColumn="13" endLine="14" endColumn="30" document="0"/>
-                <entry offset="0x43" startLine="15" startColumn="21" endLine="15" endColumn="40" document="0"/>
-                <entry offset="0x4a" startLine="16" startColumn="17" endLine="16" endColumn="38" document="0"/>
-                <entry offset="0x52" startLine="20" startColumn="13" endLine="20" endColumn="19" document="0"/>
-                <entry offset="0x55" startLine="17" startColumn="13" endLine="17" endColumn="17" document="0"/>
-                <entry offset="0x56" startLine="18" startColumn="21" endLine="18" endColumn="42" document="0"/>
-                <entry offset="0x5d" startLine="19" startColumn="17" endLine="19" endColumn="38" document="0"/>
-                <entry offset="0x65" startLine="20" startColumn="13" endLine="20" endColumn="19" document="0"/>
-                <entry offset="0x66" startLine="22" startColumn="17" endLine="22" endColumn="40" document="0"/>
-                <entry offset="0x6a" startLine="23" startColumn="13" endLine="23" endColumn="21" document="0"/>
-                <entry offset="0x6c" startLine="24" startColumn="9" endLine="24" endColumn="25" document="0"/>
-                <entry offset="0x75" startLine="26" startColumn="5" endLine="26" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11"/>
+                <entry offset="0x4" startLine="9" startColumn="13" endLine="9" endColumn="26"/>
+                <entry offset="0x9" hidden="true"/>
+                <entry offset="0xc" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
+                <entry offset="0x17" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
+                <entry offset="0x1a" startLine="11" startColumn="13" endLine="11" endColumn="30"/>
+                <entry offset="0x1f" hidden="true"/>
+                <entry offset="0x22" startLine="12" startColumn="21" endLine="12" endColumn="40"/>
+                <entry offset="0x29" startLine="13" startColumn="17" endLine="13" endColumn="38"/>
+                <entry offset="0x31" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
+                <entry offset="0x34" startLine="14" startColumn="13" endLine="14" endColumn="30"/>
+                <entry offset="0x3a" hidden="true"/>
+                <entry offset="0x3e" startLine="15" startColumn="21" endLine="15" endColumn="40"/>
+                <entry offset="0x45" startLine="16" startColumn="17" endLine="16" endColumn="38"/>
+                <entry offset="0x4d" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
+                <entry offset="0x50" startLine="17" startColumn="13" endLine="17" endColumn="17"/>
+                <entry offset="0x51" startLine="18" startColumn="21" endLine="18" endColumn="42"/>
+                <entry offset="0x58" startLine="19" startColumn="17" endLine="19" endColumn="38"/>
+                <entry offset="0x60" startLine="20" startColumn="13" endLine="20" endColumn="19"/>
+                <entry offset="0x61" startLine="22" startColumn="17" endLine="22" endColumn="40"/>
+                <entry offset="0x65" startLine="23" startColumn="13" endLine="23" endColumn="21"/>
+                <entry offset="0x67" startLine="24" startColumn="9" endLine="24" endColumn="25"/>
+                <entry offset="0x6e" hidden="true"/>
+                <entry offset="0x72" startLine="26" startColumn="5" endLine="26" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x76" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x4" il_end="0x6c" attributes="0"/>
-                <local name="s2" il_index="3" il_start="0x28" il_end="0x35" attributes="0"/>
-                <local name="s3" il_index="4" il_start="0x43" il_end="0x52" attributes="0"/>
-                <local name="e1" il_index="5" il_start="0x56" il_end="0x65" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x76">
+            <scope startOffset="0x0" endOffset="0x73">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x76" attributes="0"/>
-                <scope startOffset="0x4" endOffset="0x6c">
-                    <local name="newX" il_index="1" il_start="0x4" il_end="0x6c" attributes="0"/>
-                    <scope startOffset="0x28" endOffset="0x35">
-                        <local name="s2" il_index="3" il_start="0x28" il_end="0x35" attributes="0"/>
+                <local name="x" il_index="0" il_start="0x0" il_end="0x73" attributes="0"/>
+                <scope startOffset="0x4" endOffset="0x67">
+                    <local name="newX" il_index="1" il_start="0x4" il_end="0x67" attributes="0"/>
+                    <scope startOffset="0x22" endOffset="0x31">
+                        <local name="s2" il_index="4" il_start="0x22" il_end="0x31" attributes="0"/>
                     </scope>
-                    <scope startOffset="0x43" endOffset="0x52">
-                        <local name="s3" il_index="4" il_start="0x43" il_end="0x52" attributes="0"/>
+                    <scope startOffset="0x3e" endOffset="0x4d">
+                        <local name="s3" il_index="6" il_start="0x3e" il_end="0x4d" attributes="0"/>
                     </scope>
-                    <scope startOffset="0x56" endOffset="0x65">
-                        <local name="e1" il_index="5" il_start="0x56" il_end="0x65" attributes="0"/>
+                    <scope startOffset="0x51" endOffset="0x60">
+                        <local name="e1" il_index="7" il_start="0x51" il_end="0x60" attributes="0"/>
                     </scope>
                 </scope>
             </scope>
@@ -988,224 +1935,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
-        Public Sub TestAsync()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Option Strict Off
-Imports System
-Imports System.Threading
-Imports System.Threading.Tasks
-
-Module Module1
-    Sub Main(args As String())
-        Test().Wait()
-    End Sub
-
-    Async Function F(ParamArray a() As Integer) As Task(Of Integer)
-        Await Task.Yield
-        Return 0
-    End Function
-
-    Async Function Test() As Task
-        Await F(Await F(
-                    Await F(),
-                    1,
-                    Await F(12)),
-                Await F(
-                    Await F(Await F(Await F())),
-                    Await F(12)))
-    End Function
-
-    Async Sub S()
-        Await Task.Yield
-    End Sub 
-End Module
-]]></file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
-
-            compilation.VerifyPdb("Module1.F",
-<symbols>
-    <methods>
-        <method containingType="Module1" name="F" parameterNames="a">
-            <customDebugInfo>
-                <forwardIterator name="VB$StateMachine_1_F"/>
-            </customDebugInfo>
-            <sequencePoints/>
-            <locals/>
-        </method>
-    </methods>
-</symbols>)
-
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="20" offset="-1"/>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="0" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="11" startColumn="5" endLine="11" endColumn="68" document="0"/>
-                <entry offset="0x10" startLine="12" startColumn="9" endLine="12" endColumn="25" document="0"/>
-                <entry offset="0x7f" startLine="13" startColumn="9" endLine="13" endColumn="17" document="0"/>
-                <entry offset="0x83" hidden="true" document="0"/>
-                <entry offset="0x8b" hidden="true" document="0"/>
-                <entry offset="0xa8" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0xb2" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xc0">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="Module1" methodName="F" parameterNames="a"/>
-                <await yield="0x36" resume="0x52" declaringType="Module1+VB$StateMachine_1_F" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-
-            compilation.VerifyPdb("Module1.Test",
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Test">
-            <customDebugInfo>
-                <forwardIterator name="VB$StateMachine_2_Test"/>
-            </customDebugInfo>
-            <sequencePoints/>
-            <locals/>
-        </method>
-    </methods>
-</symbols>)
-
-            compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x66" startLine="16" startColumn="5" endLine="16" endColumn="34" document="0"/>
-                <entry offset="0x67" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x68" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x69" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0xea" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f7" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f8" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1f9" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x1fa" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x375" startLine="17" startColumn="9" endLine="23" endColumn="34" document="0"/>
-                <entry offset="0x4f5" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x4f7" hidden="true" document="0"/>
-                <entry offset="0x4ff" hidden="true" document="0"/>
-                <entry offset="0x51c" startLine="24" startColumn="5" endLine="24" endColumn="17" document="0"/>
-                <entry offset="0x526" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x533">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="Module1" methodName="Test"/>
-                <await yield="0x92" resume="0xb2" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x118" resume="0x138" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x1a1" resume="0x1c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x223" resume="0x243" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x2a0" resume="0x2c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x31d" resume="0x33d" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x3a3" resume="0x3c3" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x428" resume="0x447" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-                <await yield="0x4ab" resume="0x4c7" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-
-            compilation.VerifyPdb("Module1.S",
-<symbols>
-    <methods>
-        <method containingType="Module1" name="S">
-            <customDebugInfo>
-                <forwardIterator name="VB$StateMachine_3_S"/>
-            </customDebugInfo>
-            <sequencePoints/>
-            <locals/>
-        </method>
-    </methods>
-</symbols>)
-
-            compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="26" startColumn="5" endLine="26" endColumn="18" document="0"/>
-                <entry offset="0x10" startLine="27" startColumn="9" endLine="27" endColumn="25" document="0"/>
-                <entry offset="0x7c" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0x7e" hidden="true" document="0"/>
-                <entry offset="0x86" hidden="true" document="0"/>
-                <entry offset="0xa3" startLine="28" startColumn="5" endLine="28" endColumn="12" document="0"/>
-                <entry offset="0xad" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xba">
-                <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-            </scope>
-            <asyncInfo>
-                <catchHandler offset="0x86"/>
-                <kickoffMethod declaringType="Module1" methodName="S"/>
-                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <Fact()>
+        <Fact>
         Public Sub TestInfiniteLoop()
             Dim source =
 <compilation>
@@ -1241,17 +1971,13 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11" document="0"/>
-                <entry offset="0x4" startLine="9" startColumn="17" endLine="9" endColumn="40" document="0"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0xa" startLine="11" startColumn="9" endLine="11" endColumn="13" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
+                <entry offset="0x3" startLine="8" startColumn="9" endLine="8" endColumn="11"/>
+                <entry offset="0x4" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="21"/>
+                <entry offset="0xa" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xd" attributes="0"/>
-                <local name="newX" il_index="1" il_start="0x4" il_end="0xa" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xd">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1265,8 +1991,8 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(527647, "DevDiv")>
-        <Fact()>
+        <WorkItem(527647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527647")>
+        <Fact>
         Public Sub ExtraSequencePointForEndIf()
             Dim source =
 <compilation>
@@ -1291,23 +2017,28 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            ' By Design (better than Dev10): <entry offset="0x19" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
+            ' By Design (better than Dev10): <entry offset="0x19" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
     <entryPoint declaringType="MyMod" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="MyMod" name="Main" parameterNames="args">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="1" offset="0"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="38" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="37" document="0"/>
-                <entry offset="0x9" startLine="7" startColumn="13" endLine="7" endColumn="38" document="0"/>
-                <entry offset="0x14" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x17" startLine="8" startColumn="9" endLine="8" endColumn="13" document="0"/>
-                <entry offset="0x18" startLine="9" startColumn="13" endLine="9" endColumn="38" document="0"/>
-                <entry offset="0x23" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x24" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="38"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="37"/>
+                <entry offset="0x6" hidden="true"/>
+                <entry offset="0x9" startLine="7" startColumn="13" endLine="7" endColumn="38"/>
+                <entry offset="0x14" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
+                <entry offset="0x17" startLine="8" startColumn="9" endLine="8" endColumn="13"/>
+                <entry offset="0x18" startLine="9" startColumn="13" endLine="9" endColumn="38"/>
+                <entry offset="0x23" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
+                <entry offset="0x24" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x25">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1317,7 +2048,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538821, "DevDiv")>
+        <WorkItem(538821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538821")>
         <Fact()>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
@@ -1345,32 +2076,55 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
+            CompileAndVerify(compilation).VerifyIL("MyMod.Main", "
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (Boolean V_0,
+                Boolean V_1)
+ -IL_0000:  nop
+ -IL_0001:  ldstr      ""B""
+  IL_0006:  call       ""Sub System.Console.WriteLine(String)""
+  IL_000b:  nop
+ -IL_000c:  ldc.i4.0
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+ -IL_0010:  nop
+ -IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_0015
+ -IL_0015:  nop
+ -IL_0016:  ldstr      ""E""
+  IL_001b:  call       ""Sub System.Console.WriteLine(String)""
+  IL_0020:  nop
+ -IL_0021:  ret
+}
+", sequencePoints:="MyMod.Main")
 
             compilation.VerifyPdb("MyMod.Main",
 <symbols>
     <entryPoint declaringType="MyMod" methodName="Main"/>
     <methods>
         <method containingType="MyMod" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="1" offset="34"/>
+                    <slot kind="1" offset="117"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="31" document="0"/>
-                <entry offset="0xc" startLine="8" startColumn="9" endLine="8" endColumn="28" document="0"/>
-                <entry offset="0x14" startLine="9" startColumn="13" endLine="9" endColumn="35" document="0"/>
-                <entry offset="0x1f" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x20" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x21" startLine="12" startColumn="9" endLine="12" endColumn="29" document="0"/>
-                <entry offset="0x29" startLine="13" startColumn="13" endLine="13" endColumn="36" document="0"/>
-                <entry offset="0x34" startLine="14" startColumn="9" endLine="14" endColumn="15" document="0"/>
-                <entry offset="0x35" startLine="14" startColumn="9" endLine="14" endColumn="15" document="0"/>
-                <entry offset="0x36" startLine="16" startColumn="9" endLine="16" endColumn="31" document="0"/>
-                <entry offset="0x41" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="22"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="31"/>
+                <entry offset="0xc" startLine="8" startColumn="9" endLine="8" endColumn="28"/>
+                <entry offset="0x10" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
+                <entry offset="0x11" startLine="12" startColumn="9" endLine="12" endColumn="29"/>
+                <entry offset="0x15" startLine="14" startColumn="9" endLine="14" endColumn="15"/>
+                <entry offset="0x16" startLine="16" startColumn="9" endLine="16" endColumn="31"/>
+                <entry offset="0x21" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x42">
+            <scope startOffset="0x0" endOffset="0x22">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
@@ -1431,44 +2185,34 @@ End Module
         <method containingType="Module1" name="Main">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="0"/>
                     <slot kind="0" offset="33"/>
+                    <slot kind="1" offset="118"/>
                     <slot kind="0" offset="172"/>
+                    <slot kind="1" offset="245"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="24" document="0"/>
-                <entry offset="0x9" startLine="9" startColumn="17" endLine="9" endColumn="38" document="0"/>
-                <entry offset="0xf" startLine="10" startColumn="13" endLine="10" endColumn="20" document="0"/>
-                <entry offset="0x16" startLine="11" startColumn="9" endLine="11" endColumn="15" document="0"/>
-                <entry offset="0x17" startLine="11" startColumn="9" endLine="11" endColumn="15" document="0"/>
-                <entry offset="0x18" startLine="14" startColumn="9" endLine="14" endColumn="24" document="0"/>
-                <entry offset="0x20" startLine="14" startColumn="25" endLine="14" endColumn="38" document="0"/>
-                <entry offset="0x2b" hidden="true" document="0"/>
-                <entry offset="0x2c" startLine="16" startColumn="9" endLine="16" endColumn="12" document="0"/>
-                <entry offset="0x2f" hidden="true" document="0"/>
-                <entry offset="0x36" startLine="17" startColumn="9" endLine="17" endColumn="30" document="0"/>
-                <entry offset="0x3e" hidden="true" document="0"/>
-                <entry offset="0x40" startLine="18" startColumn="9" endLine="18" endColumn="16" document="0"/>
-                <entry offset="0x41" startLine="20" startColumn="13" endLine="20" endColumn="28" document="0"/>
-                <entry offset="0x49" startLine="20" startColumn="29" endLine="20" endColumn="42" document="0"/>
-                <entry offset="0x54" hidden="true" document="0"/>
-                <entry offset="0x55" startLine="21" startColumn="9" endLine="21" endColumn="16" document="0"/>
-                <entry offset="0x56" startLine="23" startColumn="5" endLine="23" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15"/>
+                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="24"/>
+                <entry offset="0x5" startLine="11" startColumn="9" endLine="11" endColumn="15"/>
+                <entry offset="0x6" startLine="14" startColumn="9" endLine="14" endColumn="24"/>
+                <entry offset="0xa" hidden="true"/>
+                <entry offset="0xb" startLine="16" startColumn="9" endLine="16" endColumn="12"/>
+                <entry offset="0xe" hidden="true"/>
+                <entry offset="0x15" startLine="17" startColumn="9" endLine="17" endColumn="30"/>
+                <entry offset="0x1d" hidden="true"/>
+                <entry offset="0x1f" startLine="18" startColumn="9" endLine="18" endColumn="16"/>
+                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="28"/>
+                <entry offset="0x25" hidden="true"/>
+                <entry offset="0x26" startLine="21" startColumn="9" endLine="21" endColumn="16"/>
+                <entry offset="0x27" startLine="23" startColumn="5" endLine="23" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="1" il_start="0x9" il_end="0x16" attributes="0"/>
-                <local name="ex" il_index="2" il_start="0x2f" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x57">
+            <scope startOffset="0x0" endOffset="0x28">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <scope startOffset="0x9" endOffset="0x16">
-                    <local name="x" il_index="1" il_start="0x9" il_end="0x16" attributes="0"/>
-                </scope>
-                <scope startOffset="0x2f" endOffset="0x3d">
-                    <local name="ex" il_index="2" il_start="0x2f" il_end="0x3d" attributes="0"/>
+                <scope startOffset="0xe" endOffset="0x1c">
+                    <local name="ex" il_index="3" il_start="0xe" il_end="0x1c" attributes="0"/>
                 </scope>
             </scope>
         </method>
@@ -1476,7 +2220,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(538944, "DevDiv")>
+        <WorkItem(538944, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538944")>
         <Fact()>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
@@ -1540,52 +2284,52 @@ End Module
                     <slot kind="0" offset="25"/>
                     <slot kind="0" offset="28"/>
                     <slot kind="0" offset="145"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="521"/>
+                    <slot kind="1" offset="421"/>
+                    <slot kind="1" offset="289"/>
+                    <slot kind="1" offset="258"/>
+                    <slot kind="1" offset="174"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="15" document="0"/>
-                <entry offset="0x5" startLine="9" startColumn="9" endLine="9" endColumn="15" document="0"/>
-                <entry offset="0x9" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0xd" startLine="11" startColumn="9" endLine="11" endColumn="14" document="0"/>
-                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="14" document="0"/>
-                <entry offset="0x12" startLine="13" startColumn="9" endLine="13" endColumn="14" document="0"/>
-                <entry offset="0x15" startLine="14" startColumn="13" endLine="14" endColumn="32" document="0"/>
-                <entry offset="0x19" startLine="15" startColumn="9" endLine="15" endColumn="11" document="0"/>
-                <entry offset="0x1a" startLine="16" startColumn="13" endLine="16" endColumn="44" document="0"/>
-                <entry offset="0x2b" startLine="17" startColumn="13" endLine="17" endColumn="22" document="0"/>
-                <entry offset="0x43" hidden="true" document="0"/>
-                <entry offset="0x48" hidden="true" document="0"/>
-                <entry offset="0x4d" startLine="20" startColumn="21" endLine="20" endColumn="30" document="0"/>
-                <entry offset="0x54" startLine="21" startColumn="21" endLine="21" endColumn="49" document="0"/>
-                <entry offset="0x66" hidden="true" document="0"/>
-                <entry offset="0x68" startLine="23" startColumn="25" endLine="23" endColumn="53" document="0"/>
-                <entry offset="0x79" startLine="24" startColumn="25" endLine="24" endColumn="27" document="0"/>
-                <entry offset="0x7a" startLine="25" startColumn="29" endLine="25" endColumn="57" document="0"/>
-                <entry offset="0x8c" startLine="26" startColumn="29" endLine="26" endColumn="38" document="0"/>
-                <entry offset="0x93" startLine="27" startColumn="25" endLine="27" endColumn="47" document="0"/>
-                <entry offset="0xaf" startLine="28" startColumn="25" endLine="28" endColumn="34" document="0"/>
-                <entry offset="0xc7" startLine="29" startColumn="21" endLine="29" endColumn="25" document="0"/>
-                <entry offset="0xc8" startLine="22" startColumn="21" endLine="22" endColumn="41" document="0"/>
-                <entry offset="0xe0" startLine="30" startColumn="17" endLine="30" endColumn="21" document="0"/>
-                <entry offset="0xe1" startLine="19" startColumn="17" endLine="19" endColumn="46" document="0"/>
-                <entry offset="0xf8" startLine="31" startColumn="17" endLine="31" endColumn="26" document="0"/>
-                <entry offset="0x110" startLine="32" startColumn="17" endLine="32" endColumn="46" document="0"/>
-                <entry offset="0x121" startLine="33" startColumn="13" endLine="33" endColumn="22" document="0"/>
-                <entry offset="0x122" startLine="18" startColumn="13" endLine="18" endColumn="26" document="0"/>
-                <entry offset="0x13f" startLine="34" startColumn="9" endLine="34" endColumn="28" document="0"/>
-                <entry offset="0x15f" startLine="35" startColumn="5" endLine="35" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="31"/>
+                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="15"/>
+                <entry offset="0x5" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
+                <entry offset="0x9" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
+                <entry offset="0xd" startLine="11" startColumn="9" endLine="11" endColumn="14"/>
+                <entry offset="0xf" startLine="12" startColumn="9" endLine="12" endColumn="14"/>
+                <entry offset="0x12" startLine="13" startColumn="9" endLine="13" endColumn="14"/>
+                <entry offset="0x15" startLine="14" startColumn="13" endLine="14" endColumn="32"/>
+                <entry offset="0x19" startLine="15" startColumn="9" endLine="15" endColumn="11"/>
+                <entry offset="0x1a" startLine="16" startColumn="13" endLine="16" endColumn="44"/>
+                <entry offset="0x2b" startLine="17" startColumn="13" endLine="17" endColumn="22"/>
+                <entry offset="0x43" hidden="true"/>
+                <entry offset="0x48" hidden="true"/>
+                <entry offset="0x4d" startLine="20" startColumn="21" endLine="20" endColumn="30"/>
+                <entry offset="0x54" startLine="21" startColumn="21" endLine="21" endColumn="49"/>
+                <entry offset="0x66" hidden="true"/>
+                <entry offset="0x68" startLine="23" startColumn="25" endLine="23" endColumn="53"/>
+                <entry offset="0x79" startLine="24" startColumn="25" endLine="24" endColumn="27"/>
+                <entry offset="0x7a" startLine="25" startColumn="29" endLine="25" endColumn="57"/>
+                <entry offset="0x8c" startLine="26" startColumn="29" endLine="26" endColumn="38"/>
+                <entry offset="0x93" startLine="27" startColumn="25" endLine="27" endColumn="47"/>
+                <entry offset="0xa8" hidden="true"/>
+                <entry offset="0xac" startLine="28" startColumn="25" endLine="28" endColumn="34"/>
+                <entry offset="0xc4" startLine="29" startColumn="21" endLine="29" endColumn="25"/>
+                <entry offset="0xc5" startLine="22" startColumn="21" endLine="22" endColumn="41"/>
+                <entry offset="0xdc" hidden="true"/>
+                <entry offset="0xe0" startLine="30" startColumn="17" endLine="30" endColumn="21"/>
+                <entry offset="0xe1" startLine="19" startColumn="17" endLine="19" endColumn="46"/>
+                <entry offset="0xf1" hidden="true"/>
+                <entry offset="0xf8" startLine="31" startColumn="17" endLine="31" endColumn="26"/>
+                <entry offset="0x110" startLine="32" startColumn="17" endLine="32" endColumn="46"/>
+                <entry offset="0x121" startLine="33" startColumn="13" endLine="33" endColumn="22"/>
+                <entry offset="0x122" startLine="18" startColumn="13" endLine="18" endColumn="26"/>
+                <entry offset="0x138" hidden="true"/>
+                <entry offset="0x13f" startLine="34" startColumn="9" endLine="34" endColumn="28"/>
+                <entry offset="0x158" hidden="true"/>
+                <entry offset="0x15f" startLine="35" startColumn="5" endLine="35" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="y" il_index="1" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="z" il_index="2" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="a" il_index="3" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="b" il_index="4" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="c" il_index="5" il_start="0x0" il_end="0x160" attributes="0"/>
-                <local name="ct" il_index="6" il_start="0x0" il_end="0x160" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x160">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1596,91 +2340,6 @@ End Module
                 <local name="b" il_index="4" il_start="0x0" il_end="0x160" attributes="0"/>
                 <local name="c" il_index="5" il_start="0x0" il_end="0x160" attributes="0"/>
                 <local name="ct" il_index="6" il_start="0x0" il_end="0x160" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <Fact()>
-        Public Sub LambdaMethod()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System
-
-Module M1
-    Class C1(Of G)
-        Public Sub Print(Of TPrint)(x As TPrint)
-            Console.Write(x.ToString())
-        End Sub
-
-        Public Shared Sub PrintShared(Of TPrint)(x As TPrint, y As G)
-            Console.Write(x.ToString())
-            Console.Write(y.ToString())
-        End Sub
-
-        Public Sub Foo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2, p3 As Integer)
-            Dim d1 As Action(Of Integer, Integer) =
-                Sub(lifted As Integer, notLifted As Integer)
-                    Dim iii As Integer = lifted + notlifted
-                    Console.WriteLine(iii)
-
-                    Dim d2 As Action(Of TFun1) =
-                        Sub(X As TFun1)
-                            lifted = lifted + 1
-                            C1(Of TFun2).PrintShared(Of TFun1)(X, p1)
-                        End Sub
-
-                    d2.Invoke(p)
-                End Sub
-            d1.Invoke(5, 5)
-        End Sub
-    End Class
-
-    Public Sub Main()
-        Dim inst As New C1(Of Integer)
-        inst.Foo(Of Integer, Integer)(42, 333, 432)
-    End Sub
-End Module
-]]></file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            compilation.VerifyPdb("M1+C1`1+_Closure$__3-1`2._Lambda$__1",
-<symbols>
-    <entryPoint declaringType="M1" methodName="Main"/>
-    <methods>
-        <method containingType="M1+C1`1+_Closure$__3-1`2" name="_Lambda$__1" parameterNames="lifted, notLifted">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="30" offset="-1"/>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="111"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="17" endLine="16" endColumn="61" document="0"/>
-                <entry offset="0x1" hidden="true" document="0"/>
-                <entry offset="0x15" startLine="17" startColumn="25" endLine="17" endColumn="60" document="0"/>
-                <entry offset="0x1e" startLine="18" startColumn="21" endLine="18" endColumn="43" document="0"/>
-                <entry offset="0x25" startLine="20" startColumn="25" endLine="24" endColumn="32" document="0"/>
-                <entry offset="0x32" startLine="26" startColumn="21" endLine="26" endColumn="33" document="0"/>
-                <entry offset="0x3f" startLine="27" startColumn="17" endLine="27" endColumn="24" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x40">
-                <importsforward declaringType="M1" methodName="Main"/>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="iii" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="d2" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -1727,29 +2386,24 @@ End Module
                     <slot kind="0" offset="56"/>
                     <slot kind="0" offset="180"/>
                     <slot kind="0" offset="25"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="72"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="20" document="0"/>
-                <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="34" document="0"/>
-                <entry offset="0xd" startLine="9" startColumn="9" endLine="9" endColumn="15" document="0"/>
-                <entry offset="0xf" hidden="true" document="0"/>
-                <entry offset="0x11" startLine="11" startColumn="13" endLine="11" endColumn="48" document="0"/>
-                <entry offset="0x23" startLine="12" startColumn="13" endLine="12" endColumn="33" document="0"/>
-                <entry offset="0x2a" startLine="13" startColumn="13" endLine="13" endColumn="26" document="0"/>
-                <entry offset="0x30" startLine="14" startColumn="13" endLine="14" endColumn="23" document="0"/>
-                <entry offset="0x34" startLine="15" startColumn="9" endLine="15" endColumn="18" document="0"/>
-                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="20" document="0"/>
-                <entry offset="0x3f" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="15"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="20"/>
+                <entry offset="0x7" startLine="8" startColumn="13" endLine="8" endColumn="34"/>
+                <entry offset="0xd" startLine="9" startColumn="9" endLine="9" endColumn="15"/>
+                <entry offset="0xf" hidden="true"/>
+                <entry offset="0x11" startLine="11" startColumn="13" endLine="11" endColumn="48"/>
+                <entry offset="0x23" startLine="12" startColumn="13" endLine="12" endColumn="33"/>
+                <entry offset="0x2a" startLine="13" startColumn="13" endLine="13" endColumn="26"/>
+                <entry offset="0x30" startLine="14" startColumn="13" endLine="14" endColumn="23"/>
+                <entry offset="0x34" startLine="15" startColumn="9" endLine="15" endColumn="18"/>
+                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="20"/>
+                <entry offset="0x3b" hidden="true"/>
+                <entry offset="0x3f" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="i" il_index="1" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="q" il_index="2" il_start="0x0" il_end="0x40" attributes="0"/>
-                <local name="y" il_index="3" il_start="0x0" il_end="0x40" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x40">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1800,20 +2454,20 @@ End Module
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="123"/>
                 </encLocalSlotMap>
+                <encLambdaMap>
+                    <methodOrdinal>0</methodOrdinal>
+                    <lambda offset="46"/>
+                </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="13" endLine="6" endColumn="74" document="0"/>
-                <entry offset="0x26" startLine="8" startColumn="13" endLine="8" endColumn="45" document="0"/>
-                <entry offset="0x31" startLine="10" startColumn="9" endLine="10" endColumn="41" document="0"/>
-                <entry offset="0x39" startLine="11" startColumn="9" endLine="11" endColumn="44" document="0"/>
-                <entry offset="0x41" startLine="13" startColumn="9" endLine="13" endColumn="28" document="0"/>
-                <entry offset="0x48" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="31"/>
+                <entry offset="0x1" startLine="5" startColumn="13" endLine="6" endColumn="74"/>
+                <entry offset="0x26" startLine="8" startColumn="13" endLine="8" endColumn="45"/>
+                <entry offset="0x31" startLine="10" startColumn="9" endLine="10" endColumn="41"/>
+                <entry offset="0x39" startLine="11" startColumn="9" endLine="11" endColumn="44"/>
+                <entry offset="0x41" startLine="13" startColumn="9" endLine="13" endColumn="28"/>
+                <entry offset="0x48" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="del" il_index="0" il_start="0x0" il_end="0x49" attributes="0"/>
-                <local name="v" il_index="1" il_start="0x0" il_end="0x49" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x49">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1854,15 +2508,12 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x4" startLine="6" startColumn="9" endLine="6" endColumn="19"/>
+                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x6" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x6">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1909,19 +2560,16 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0xd" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="9" startColumn="9" endLine="9" endColumn="24" document="0"/>
-                <entry offset="0x11" startLine="10" startColumn="13" endLine="10" endColumn="22" document="0"/>
-                <entry offset="0x14" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
-                <entry offset="0x15" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0xd" startLine="7" startColumn="9" endLine="7" endColumn="19"/>
+                <entry offset="0xe" startLine="9" startColumn="9" endLine="9" endColumn="24"/>
+                <entry offset="0x11" startLine="10" startColumn="13" endLine="10" endColumn="22"/>
+                <entry offset="0x14" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
+                <entry offset="0x15" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x16" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -1954,7 +2602,58 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation).VerifyIL("Module1.Main", "
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (Integer V_0, //num
+                Integer V_1,
+                Boolean V_2)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+ -IL_0003:  nop
+  IL_0004:  ldloc.0
+  IL_0005:  stloc.1
+ -IL_0006:  ldloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  ceq
+  IL_000a:  stloc.2
+ ~IL_000b:  ldloc.2
+  IL_000c:  brfalse.s  IL_0010
+  IL_000e:  br.s       IL_0035
+ -IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.2
+  IL_0012:  ceq
+  IL_0014:  stloc.2
+ ~IL_0015:  ldloc.2
+  IL_0016:  brfalse.s  IL_001a
+  IL_0018:  br.s       IL_0035
+ -IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_002d
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.3
+  IL_001f:  blt.s      IL_002a
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.8
+  IL_0023:  cgt
+  IL_0025:  ldc.i4.0
+  IL_0026:  ceq
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldc.i4.0
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldc.i4.1
+  IL_002e:  stloc.2
+ ~IL_002f:  ldloc.2
+  IL_0030:  brfalse.s  IL_0034
+  IL_0032:  br.s       IL_0035
+ -IL_0034:  nop
+ -IL_0035:  nop
+ -IL_0036:  ret
+}
+", sequencePoints:="Module1.Main")
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -1965,27 +2664,27 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="15" offset="32"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="32"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x13" startLine="7" startColumn="13" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0x20" startLine="8" startColumn="13" endLine="8" endColumn="27" document="0"/>
-                <entry offset="0x37" startLine="9" startColumn="13" endLine="9" endColumn="22" document="0"/>
-                <entry offset="0x38" startLine="10" startColumn="9" endLine="10" endColumn="19" document="0"/>
-                <entry offset="0x39" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0xb" hidden="true"/>
+                <entry offset="0x10" startLine="7" startColumn="13" endLine="7" endColumn="19"/>
+                <entry offset="0x15" hidden="true"/>
+                <entry offset="0x1a" startLine="8" startColumn="13" endLine="8" endColumn="27"/>
+                <entry offset="0x2f" hidden="true"/>
+                <entry offset="0x34" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
+                <entry offset="0x35" startLine="10" startColumn="9" endLine="10" endColumn="19"/>
+                <entry offset="0x36" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x3a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3a">
+            <scope startOffset="0x0" endOffset="0x37">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x3a" attributes="0"/>
+                <local name="num" il_index="0" il_start="0x0" il_end="0x37" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -2029,22 +2728,19 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x30" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x31" startLine="7" startColumn="17" endLine="7" endColumn="39" document="0"/>
-                <entry offset="0x3e" startLine="8" startColumn="13" endLine="8" endColumn="19" document="0"/>
-                <entry offset="0x3f" startLine="9" startColumn="17" endLine="9" endColumn="39" document="0"/>
-                <entry offset="0x4c" startLine="10" startColumn="13" endLine="10" endColumn="42" document="0"/>
-                <entry offset="0x4f" startLine="11" startColumn="13" endLine="11" endColumn="22" document="0"/>
-                <entry offset="0x50" startLine="12" startColumn="17" endLine="12" endColumn="42" document="0"/>
-                <entry offset="0x5d" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
-                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x30" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0x31" startLine="7" startColumn="17" endLine="7" endColumn="39"/>
+                <entry offset="0x3e" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
+                <entry offset="0x3f" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
+                <entry offset="0x4c" startLine="10" startColumn="13" endLine="10" endColumn="42"/>
+                <entry offset="0x4f" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
+                <entry offset="0x50" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
+                <entry offset="0x5d" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
+                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x5f">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2095,23 +2791,20 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28" document="0"/>
-                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="38" document="0"/>
-                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="19" document="0"/>
-                <entry offset="0x43" startLine="9" startColumn="17" endLine="9" endColumn="39" document="0"/>
-                <entry offset="0x50" startLine="10" startColumn="13" endLine="10" endColumn="42" document="0"/>
-                <entry offset="0x51" startLine="11" startColumn="17" endLine="11" endColumn="39" document="0"/>
-                <entry offset="0x5e" startLine="12" startColumn="13" endLine="12" endColumn="22" document="0"/>
-                <entry offset="0x5f" startLine="13" startColumn="17" endLine="13" endColumn="42" document="0"/>
-                <entry offset="0x6c" startLine="14" startColumn="9" endLine="14" endColumn="19" document="0"/>
-                <entry offset="0x6d" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28"/>
+                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="38"/>
+                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
+                <entry offset="0x43" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
+                <entry offset="0x50" startLine="10" startColumn="13" endLine="10" endColumn="42"/>
+                <entry offset="0x51" startLine="11" startColumn="17" endLine="11" endColumn="39"/>
+                <entry offset="0x5e" startLine="12" startColumn="13" endLine="12" endColumn="22"/>
+                <entry offset="0x5f" startLine="13" startColumn="17" endLine="13" endColumn="42"/>
+                <entry offset="0x6c" startLine="14" startColumn="9" endLine="14" endColumn="19"/>
+                <entry offset="0x6d" startLine="15" startColumn="5" endLine="15" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x6e" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x6e">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2158,29 +2851,29 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="15" offset="32"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="32"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x11" startLine="7" startColumn="17" endLine="7" endColumn="39" document="0"/>
-                <entry offset="0x1e" startLine="8" startColumn="13" endLine="8" endColumn="19" document="0"/>
-                <entry offset="0x29" startLine="9" startColumn="17" endLine="9" endColumn="39" document="0"/>
-                <entry offset="0x36" startLine="10" startColumn="13" endLine="10" endColumn="31" document="0"/>
-                <entry offset="0x4a" startLine="12" startColumn="17" endLine="12" endColumn="42" document="0"/>
-                <entry offset="0x55" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
-                <entry offset="0x56" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x6" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0xb" hidden="true"/>
+                <entry offset="0xe" startLine="7" startColumn="17" endLine="7" endColumn="39"/>
+                <entry offset="0x1b" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
+                <entry offset="0x20" hidden="true"/>
+                <entry offset="0x23" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
+                <entry offset="0x30" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
+                <entry offset="0x42" hidden="true"/>
+                <entry offset="0x47" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
+                <entry offset="0x52" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
+                <entry offset="0x53" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x57">
+            <scope startOffset="0x0" endOffset="0x54">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x57" attributes="0"/>
+                <local name="num" il_index="0" il_start="0x0" il_end="0x54" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -2224,30 +2917,30 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="15" offset="32"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="32"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28" document="0"/>
-                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="19" document="0"/>
-                <entry offset="0x13" startLine="7" startColumn="17" endLine="7" endColumn="38" document="0"/>
-                <entry offset="0x20" startLine="8" startColumn="13" endLine="8" endColumn="19" document="0"/>
-                <entry offset="0x2b" startLine="9" startColumn="17" endLine="9" endColumn="39" document="0"/>
-                <entry offset="0x38" startLine="10" startColumn="13" endLine="10" endColumn="31" document="0"/>
-                <entry offset="0x4a" startLine="11" startColumn="17" endLine="11" endColumn="39" document="0"/>
-                <entry offset="0x57" startLine="13" startColumn="17" endLine="13" endColumn="42" document="0"/>
-                <entry offset="0x62" startLine="14" startColumn="9" endLine="14" endColumn="19" document="0"/>
-                <entry offset="0x63" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="31"/>
+                <entry offset="0x3" startLine="5" startColumn="9" endLine="5" endColumn="28"/>
+                <entry offset="0x8" startLine="6" startColumn="13" endLine="6" endColumn="19"/>
+                <entry offset="0xd" hidden="true"/>
+                <entry offset="0x10" startLine="7" startColumn="17" endLine="7" endColumn="38"/>
+                <entry offset="0x1d" startLine="8" startColumn="13" endLine="8" endColumn="19"/>
+                <entry offset="0x22" hidden="true"/>
+                <entry offset="0x25" startLine="9" startColumn="17" endLine="9" endColumn="39"/>
+                <entry offset="0x32" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
+                <entry offset="0x44" hidden="true"/>
+                <entry offset="0x47" startLine="11" startColumn="17" endLine="11" endColumn="39"/>
+                <entry offset="0x54" startLine="13" startColumn="17" endLine="13" endColumn="42"/>
+                <entry offset="0x5f" startLine="14" startColumn="9" endLine="14" endColumn="19"/>
+                <entry offset="0x60" startLine="15" startColumn="5" endLine="15" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x64" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x64">
+            <scope startOffset="0x0" endOffset="0x61">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="num" il_index="0" il_start="0x0" il_end="0x64" attributes="0"/>
+                <local name="num" il_index="0" il_start="0x0" il_end="0x61" attributes="0"/>
             </scope>
         </method>
     </methods>
@@ -2293,22 +2986,19 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="0"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x135" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x136" startLine="7" startColumn="17" endLine="7" endColumn="40" document="0"/>
-                <entry offset="0x143" startLine="8" startColumn="13" endLine="8" endColumn="22" document="0"/>
-                <entry offset="0x144" startLine="9" startColumn="17" endLine="9" endColumn="40" document="0"/>
-                <entry offset="0x151" startLine="10" startColumn="13" endLine="10" endColumn="58" document="0"/>
-                <entry offset="0x154" startLine="11" startColumn="13" endLine="11" endColumn="22" document="0"/>
-                <entry offset="0x155" startLine="12" startColumn="17" endLine="12" endColumn="42" document="0"/>
-                <entry offset="0x162" startLine="13" startColumn="9" endLine="13" endColumn="19" document="0"/>
-                <entry offset="0x163" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x135" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
+                <entry offset="0x136" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x143" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
+                <entry offset="0x144" startLine="9" startColumn="17" endLine="9" endColumn="40"/>
+                <entry offset="0x151" startLine="10" startColumn="13" endLine="10" endColumn="58"/>
+                <entry offset="0x154" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
+                <entry offset="0x155" startLine="12" startColumn="17" endLine="12" endColumn="42"/>
+                <entry offset="0x162" startLine="13" startColumn="9" endLine="13" endColumn="19"/>
+                <entry offset="0x163" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x164" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x164">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2356,21 +3046,18 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="0"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="40" document="0"/>
-                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="22" document="0"/>
-                <entry offset="0x45" startLine="9" startColumn="13" endLine="9" endColumn="22" document="0"/>
-                <entry offset="0x46" startLine="10" startColumn="17" endLine="10" endColumn="40" document="0"/>
-                <entry offset="0x53" startLine="11" startColumn="13" endLine="11" endColumn="22" document="0"/>
-                <entry offset="0x56" startLine="12" startColumn="9" endLine="12" endColumn="19" document="0"/>
-                <entry offset="0x57" startLine="13" startColumn="5" endLine="13" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0x34" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
+                <entry offset="0x35" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x42" startLine="8" startColumn="13" endLine="8" endColumn="22"/>
+                <entry offset="0x45" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
+                <entry offset="0x46" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
+                <entry offset="0x53" startLine="11" startColumn="13" endLine="11" endColumn="22"/>
+                <entry offset="0x56" startLine="12" startColumn="9" endLine="12" endColumn="19"/>
+                <entry offset="0x57" startLine="13" startColumn="5" endLine="13" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x58" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x58">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2415,25 +3102,25 @@ End Module
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="15" offset="34"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="34"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33" document="0"/>
-                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24" document="0"/>
-                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x1d" startLine="7" startColumn="17" endLine="7" endColumn="40" document="0"/>
-                <entry offset="0x2a" startLine="8" startColumn="13" endLine="8" endColumn="36" document="0"/>
-                <entry offset="0x54" startLine="9" startColumn="13" endLine="9" endColumn="22" document="0"/>
-                <entry offset="0x67" startLine="10" startColumn="17" endLine="10" endColumn="40" document="0"/>
-                <entry offset="0x72" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
-                <entry offset="0x73" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="33"/>
+                <entry offset="0x7" startLine="5" startColumn="9" endLine="5" endColumn="24"/>
+                <entry offset="0xa" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
+                <entry offset="0x1a" hidden="true"/>
+                <entry offset="0x1d" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x2a" startLine="8" startColumn="13" endLine="8" endColumn="36"/>
+                <entry offset="0x4f" hidden="true"/>
+                <entry offset="0x54" startLine="9" startColumn="13" endLine="9" endColumn="22"/>
+                <entry offset="0x64" hidden="true"/>
+                <entry offset="0x67" startLine="10" startColumn="17" endLine="10" endColumn="40"/>
+                <entry offset="0x72" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
+                <entry offset="0x73" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x74" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x74">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2471,13 +3158,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="36" document="0"/>
-                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="36"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2512,13 +3196,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="40" document="0"/>
-                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="17"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="40"/>
+                <entry offset="0x8" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name=""/>
                 <local name="o" il_index="0" il_start="0x0" il_end="0x9" attributes="0"/>
@@ -2528,7 +3209,7 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(727419, "DevDiv")>
+        <WorkItem(727419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/727419")>
         <Fact()>
         Public Sub Bug727419()
             Dim source =
@@ -2587,47 +3268,38 @@ End Module
                     <slot kind="0" offset="53"/>
                     <slot kind="0" offset="78"/>
                     <slot kind="0" offset="105"/>
-                    <slot kind="13" offset="271"/>
                     <slot kind="11" offset="271"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="52" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="15" endLine="14" endColumn="22" document="0"/>
-                <entry offset="0xa" startLine="15" startColumn="15" endLine="15" endColumn="25" document="0"/>
-                <entry offset="0x14" startLine="18" startColumn="9" endLine="18" endColumn="18" document="0"/>
-                <entry offset="0x17" startLine="19" startColumn="9" endLine="19" endColumn="30" document="0"/>
-                <entry offset="0x1e" hidden="true" document="0"/>
-                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="21" document="0"/>
-                <entry offset="0x25" startLine="21" startColumn="13" endLine="21" endColumn="34" document="0"/>
-                <entry offset="0x3f" startLine="22" startColumn="13" endLine="22" endColumn="29" document="0"/>
-                <entry offset="0x46" startLine="23" startColumn="9" endLine="23" endColumn="15" document="0"/>
-                <entry offset="0x4a" hidden="true" document="0"/>
-                <entry offset="0x58" startLine="24" startColumn="5" endLine="24" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="52"/>
+                <entry offset="0x1" startLine="14" startColumn="15" endLine="14" endColumn="22"/>
+                <entry offset="0xa" startLine="15" startColumn="15" endLine="15" endColumn="25"/>
+                <entry offset="0x14" startLine="18" startColumn="9" endLine="18" endColumn="18"/>
+                <entry offset="0x17" startLine="19" startColumn="9" endLine="19" endColumn="30"/>
+                <entry offset="0x1e" hidden="true"/>
+                <entry offset="0x20" startLine="20" startColumn="13" endLine="20" endColumn="21"/>
+                <entry offset="0x25" startLine="21" startColumn="13" endLine="21" endColumn="34"/>
+                <entry offset="0x3f" startLine="22" startColumn="13" endLine="22" endColumn="29"/>
+                <entry offset="0x46" startLine="23" startColumn="9" endLine="23" endColumn="15"/>
+                <entry offset="0x4a" hidden="true"/>
+                <entry offset="0x4f" startLine="24" startColumn="5" endLine="24" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="I" il_index="0" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="J" il_index="1" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="q" il_index="2" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="count" il_index="3" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="dims" il_index="4" il_start="0x0" il_end="0x59" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x59">
+            <scope startOffset="0x0" endOffset="0x50">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="I" il_index="0" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="J" il_index="1" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="q" il_index="2" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="count" il_index="3" il_start="0x0" il_end="0x59" attributes="0"/>
-                <local name="dims" il_index="4" il_start="0x0" il_end="0x59" attributes="0"/>
+                <local name="I" il_index="0" il_start="0x0" il_end="0x50" attributes="0"/>
+                <local name="J" il_index="1" il_start="0x0" il_end="0x50" attributes="0"/>
+                <local name="q" il_index="2" il_start="0x0" il_end="0x50" attributes="0"/>
+                <local name="count" il_index="3" il_start="0x0" il_end="0x50" attributes="0"/>
+                <local name="dims" il_index="4" il_start="0x0" il_end="0x50" attributes="0"/>
             </scope>
         </method>
     </methods>
 </symbols>)
         End Sub
 
-        <WorkItem(722627, "DevDiv")>
+        <WorkItem(722627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722627")>
         <Fact()>
         Public Sub Bug722627()
             Dim source =
@@ -2657,16 +3329,15 @@ End Module
     <methods>
         <method containingType="SubMod" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="1" endLine="4" endColumn="4" document="0"/>
-                <entry offset="0x2" startLine="5" startColumn="9" endLine="5" endColumn="16" document="0"/>
-                <entry offset="0x4" startLine="6" startColumn="1" endLine="6" endColumn="4" document="0"/>
-                <entry offset="0x5" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
-                <entry offset="0x7" startLine="8" startColumn="1" endLine="8" endColumn="4" document="0"/>
-                <entry offset="0x8" startLine="9" startColumn="9" endLine="9" endColumn="16" document="0"/>
-                <entry offset="0xa" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="1" endLine="4" endColumn="4"/>
+                <entry offset="0x2" startLine="5" startColumn="9" endLine="5" endColumn="16"/>
+                <entry offset="0x4" startLine="6" startColumn="1" endLine="6" endColumn="4"/>
+                <entry offset="0x5" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
+                <entry offset="0x7" startLine="8" startColumn="1" endLine="8" endColumn="4"/>
+                <entry offset="0x8" startLine="9" startColumn="9" endLine="9" endColumn="16"/>
+                <entry offset="0xa" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xb">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2676,7 +3347,7 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(543703, "DevDiv")>
+        <WorkItem(543703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543703")>
         <Fact()>
         Public Sub DontIncludeMethodAttributesInSeqPoint()
             Dim source =
@@ -2704,11 +3375,10 @@ End Module
     <methods>
         <method containingType="M1" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="12" document="0"/>
-                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="15"/>
+                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="12"/>
+                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x8">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2716,10 +3386,9 @@ End Module
         </method>
         <method containingType="M1" name="S">
             <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="19" document="0"/>
-                <entry offset="0x1" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="19"/>
+                <entry offset="0x1" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <importsforward declaringType="M1" methodName="Main"/>
             </scope>
@@ -2728,7 +3397,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(529300, "DevDiv")>
+        <Fact(), WorkItem(529300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529300")>
         Public Sub DontShowOperatorNameCTypeInLocals()
             Dim source =
 <compilation>
@@ -2770,15 +3439,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="5" endLine="17" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="18" startColumn="13" endLine="18" endColumn="30" document="0"/>
-                <entry offset="0x4" startLine="19" startColumn="13" endLine="19" endColumn="25" document="0"/>
-                <entry offset="0xb" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="17" startColumn="5" endLine="17" endColumn="15"/>
+                <entry offset="0x1" startLine="18" startColumn="13" endLine="18" endColumn="30"/>
+                <entry offset="0x4" startLine="19" startColumn="13" endLine="19" endColumn="25"/>
+                <entry offset="0xb" startLine="20" startColumn="5" endLine="20" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-                <local name="b2" il_index="1" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -2788,12 +3453,11 @@ End Module
         </method>
         <method containingType="Module1+B2" name=".ctor" parameterNames="x">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="9" endLine="8" endColumn="37" document="0"/>
-                <entry offset="0x7" startLine="9" startColumn="13" endLine="9" endColumn="18" document="0"/>
-                <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="8" startColumn="9" endLine="8" endColumn="37"/>
+                <entry offset="0x8" startLine="9" startColumn="13" endLine="9" endColumn="18"/>
+                <entry offset="0xf" startLine="10" startColumn="9" endLine="10" endColumn="16"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xf">
+            <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
         </method>
@@ -2804,11 +3468,10 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="59" document="0"/>
-                <entry offset="0x1" startLine="13" startColumn="13" endLine="13" endColumn="29" document="0"/>
-                <entry offset="0xa" startLine="14" startColumn="9" endLine="14" endColumn="21" document="0"/>
+                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="59"/>
+                <entry offset="0x1" startLine="13" startColumn="13" endLine="13" endColumn="29"/>
+                <entry offset="0xa" startLine="14" startColumn="9" endLine="14" endColumn="21"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="Module1" methodName="Main"/>
             </scope>
@@ -2817,82 +3480,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact>
-        <WorkItem(544000, "DevDiv")>
-        Public Sub TestLambdaNameStability()
-            Dim source =
-            <compilation>
-                <file>
-Imports System 
-Public Class C
-    Public Sub M(a as action)
-        const x as integer = 1
-        M(
-            Sub()
-                const y as integer = 2
-                const z as integer = 3
-                Console.WriteLine(x + y + z)
-            end Sub
-        )
-    end sub
-end class
-</file>
-            </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll)
-            Dim actual1 As XElement = GetPdbXml(compilation)
-            Dim actual2 As XElement = GetPdbXml(compilation)
-            AssertXmlEqual(actual1, actual2)
-        End Sub
-
-        <Fact>
-        Public Sub TestFunctionValueLocalOfLambdas()
-            Dim source =
-            <compilation>
-                <file>
-Module Module1
-
-    Sub Main()
-
-        Dim x = Function()
-                    dim r = 23
-                    Return r
-           End Function
-    End Sub
-End Module
-</file>
-            </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-
-            compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-1",
-<symbols>
-    <entryPoint declaringType="Module1" methodName="Main"/>
-    <methods>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__0-1">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="17" endLine="5" endColumn="27" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="25" endLine="6" endColumn="31" document="0"/>
-                <entry offset="0x4" startLine="7" startColumn="21" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x8" startLine="8" startColumn="12" endLine="8" endColumn="24" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xa">
-                <importsforward declaringType="Module1" methodName="Main"/>
-                <local name="r" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(760994, "DevDiv")>
+        <WorkItem(760994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760994")>
         <Fact()>
         Public Sub Bug760994()
             Dim source =
@@ -2929,13 +3517,12 @@ End Module
     <methods>
         <method containingType="CLAZZ" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="21" document="0"/>
-                <entry offset="0x1a" startLine="4" startColumn="12" endLine="4" endColumn="31" document="0"/>
-                <entry offset="0x21" startLine="6" startColumn="12" endLine="6" endColumn="31" document="0"/>
-                <entry offset="0x28" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="21"/>
+                <entry offset="0x1b" startLine="4" startColumn="12" endLine="4" endColumn="31"/>
+                <entry offset="0x22" startLine="6" startColumn="12" endLine="6" endColumn="31"/>
+                <entry offset="0x29" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x29">
+            <scope startOffset="0x0" endOffset="0x2a">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
@@ -3020,13 +3607,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="51" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="23" document="0"/>
-                <entry offset="0xa" startLine="6" startColumn="5" endLine="6" endColumn="17" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="51"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="23"/>
+                <entry offset="0xa" startLine="6" startColumn="5" endLine="6" endColumn="17"/>
             </sequencePoints>
-            <locals>
-                <local name="F" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <type name="Microsoft.VisualBasic.Strings" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -3037,7 +3621,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(797482, "DevDiv")>
+        <Fact(), WorkItem(797482, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797482")>
         Public Sub Bug797482()
             Dim source =
 <compilation>
@@ -3068,17 +3652,18 @@ End Module
                     <slot kind="30" offset="-1"/>
                     <slot kind="0" offset="-1"/>
                 </encLocalSlotMap>
+                <encLambdaMap>
+                    <methodOrdinal>1</methodOrdinal>
+                    <closure offset="-1"/>
+                    <lambda offset="7" closure="0"/>
+                </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="72" document="0"/>
-                <entry offset="0x1" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0x1d" startLine="11" startColumn="5" endLine="11" endColumn="17" document="0"/>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="72"/>
+                <entry offset="0x1" hidden="true"/>
+                <entry offset="0xe" startLine="8" startColumn="9" endLine="10" endColumn="21"/>
+                <entry offset="0x1d" startLine="11" startColumn="5" endLine="11" endColumn="17"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-                <local name="MakeIncrementer" il_index="1" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="Module1" methodName="Main"/>
                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -3094,7 +3679,7 @@ End Module
         ''' the method must have a sequence point at
         ''' offset 0 for correct stepping behavior.
         ''' </summary>
-        <WorkItem(804681, "DevDiv")>
+        <WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")>
         <Fact()>
         Public Sub DefaultConstructorWithInitializer()
             Dim source =
@@ -3113,11 +3698,10 @@ End Class
     <methods>
         <method containingType="C" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x6" startLine="2" startColumn="13" endLine="2" endColumn="39" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="2" startColumn="13" endLine="2" endColumn="39"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x17">
+            <scope startOffset="0x0" endOffset="0x18">
                 <currentnamespace name=""/>
             </scope>
         </method>
@@ -3151,85 +3735,85 @@ End Module
 <symbols>
     <methods>
         <method containingType="M" name=".cctor">
+            <customDebugInfo>
+                <encLambdaMap>
+                    <methodOrdinal>0</methodOrdinal>
+                    <closure offset="-84"/>
+                    <lambda offset="-243"/>
+                    <lambda offset="-182"/>
+                    <lambda offset="-84"/>
+                    <lambda offset="-72" closure="0"/>
+                </encLambdaMap>
+            </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x16">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__0-0" name="_Lambda$__4" parameterNames="y">
+        <method containingType="M+_Closure$__0-0" name="_Lambda$__3" parameterNames="y">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-72"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107"/>
+                <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x17">
                 <importsforward declaringType="M" methodName=".cctor"/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-1" parameterNames="x">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-0" parameterNames="x">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="67"/>
+                    <slot kind="21" offset="-243"/>
+                    <slot kind="0" offset="-214"/>
+                    <slot kind="0" offset="-151"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62" document="0"/>
-                <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112" document="0"/>
-                <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33" document="0"/>
-                <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57"/>
+                <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62"/>
+                <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112"/>
+                <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21"/>
             </sequencePoints>
-            <locals>
-                <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
-                <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x5d">
                 <importsforward declaringType="M" methodName=".cctor"/>
                 <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
                 <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-2" parameterNames="o">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-1" parameterNames="o">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="21" offset="-182"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60"/>
+                <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward declaringType="M" methodName=".cctor"/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-3" parameterNames="h">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-2" parameterNames="h">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="30" offset="-1"/>
-                    <slot kind="21" offset="-1"/>
+                    <slot kind="30" offset="-84"/>
+                    <slot kind="21" offset="-84"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95" document="0"/>
-                <entry offset="0x1" hidden="true" document="0"/>
-                <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112" document="0"/>
+                <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95"/>
+                <entry offset="0x1" hidden="true"/>
+                <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112"/>
             </sequencePoints>
-            <locals>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1f">
                 <importsforward declaringType="M" methodName=".cctor"/>
                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
@@ -3239,3612 +3823,8 @@ End Module
 </symbols>)
         End Sub
 
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1, 2, 3}
-    End Function
- 
-    Sub Main()
-	System.Diagnostics.Debug.Assert(False)
-
-        Dim q = From x In Nums()
-                Order By x Descending
-                Group y = x * 10, z = x * 100 By evenOdd = x Mod 2
-                    Into s = Sum(y + 12345), z = Sum(y + 56789)
- 
-        q.ToArray()
-
-        Dim qq = From x As Long In Nums()
-                Order By x Descending
- 
-        qq.ToArray()
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.VerifyDiagnostics()
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="25" document="0"/>
-                <entry offset="0x15" startLine="7" startColumn="5" endLine="7" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x17">
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x17" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="54"/>
-                    <slot kind="0" offset="286"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="9" startColumn="5" endLine="9" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="12" startColumn="13" endLine="15" endColumn="64" document="0"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="20" document="0"/>
-                <entry offset="0xa8" startLine="19" startColumn="13" endLine="20" endColumn="38" document="0"/>
-                <entry offset="0x100" startLine="22" startColumn="9" endLine="22" endColumn="21" document="0"/>
-                <entry offset="0x107" startLine="23" startColumn="5" endLine="23" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x108" attributes="0"/>
-                <local name="qq" il_index="1" il_start="0x0" il_end="0x108" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x108">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x108" attributes="0"/>
-                <local name="qq" il_index="1" il_start="0x0" il_end="0x108" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="x">
-            <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="26" endLine="13" endColumn="27" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="x">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="60" endLine="14" endColumn="67" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x4">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="x">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="27" endLine="14" endColumn="33" document="0"/>
-                <entry offset="0x4" startLine="14" startColumn="39" endLine="14" endColumn="46" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xe">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="evenOdd, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="30" endLine="15" endColumn="44" document="0"/>
-                <entry offset="0x2b" startLine="15" startColumn="50" endLine="15" endColumn="64" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x5b">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="43" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xd">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="54" endLine="15" endColumn="63" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xd">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="x">
-            <sequencePoints>
-                <entry offset="0x0" startLine="19" startColumn="25" endLine="19" endColumn="32" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="x">
-            <sequencePoints>
-                <entry offset="0x0" startLine="20" startColumn="26" endLine="20" endColumn="27" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_01()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-        x = New List(Of Integer)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.VerifyDiagnostics()
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="37" document="0"/>
-                <entry offset="0x30" startLine="15" startColumn="9" endLine="15" endColumn="36" document="0"/>
-                <entry offset="0x3c" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_02()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 As Long In Nums(), rangeVar2 As Long In Nums()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.VerifyDiagnostics()
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="74" document="0"/>
-                <entry offset="0x7d" startLine="15" startColumn="9" endLine="15" endColumn="35" document="0"/>
-                <entry offset="0x89" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="28" endLine="14" endColumn="35" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="68" endLine="14" endColumn="74" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="57" endLine="14" endColumn="64" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_03()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Let rangeVar2 = rangeVar1 * 2
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="42" document="0"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="29" endLine="15" endColumn="42" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xa">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_04()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Let rangeVar2 As Long = rangeVar1 * 2, rangeVar3 = rangeVar1 + rangeVar2
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="85" document="0"/>
-                <entry offset="0x59" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x65" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x66">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="37" endLine="15" endColumn="50" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xb">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0xc" startLine="15" startColumn="64" endLine="15" endColumn="85" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x20">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_05()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select rangeVar2 = rangeVar1 * 2
-        x = New List(Of Integer)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.VerifyDiagnostics()
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="45" document="0"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x4">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_06()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select rangeVar1 * 2
-        x = New List(Of Integer)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="33" document="0"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="33" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x4">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_07()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select rangeVar2 = rangeVar1 * 2, rangeVar3 = rangeVar1 / 2
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="72" document="0"/>
-                <entry offset="0x30" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x3c" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="32" endLine="15" endColumn="45" document="0"/>
-                <entry offset="0x3" startLine="15" startColumn="59" endLine="15" endColumn="72" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x15">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_08()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums() Join rangeVar2 As Long In Nums()
-                                     On rangeVar1 Equals rangeVar2
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="67" document="0"/>
-                <entry offset="0xa6" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0xb2" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xb3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="53" endLine="14" endColumn="60" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_09()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums() Join rangeVar2 In Nums()
-                                          Join rangeVar3 In Nums()
-                                          On rangeVar3 Equals rangeVar2
-                                     On rangeVar1 Equals rangeVar2 And rangeVar3 + 1 Equals rangeVar1 + 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="106" document="0"/>
-                <entry offset="0xf3" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
-                <entry offset="0xff" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x100" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x100" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x100">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x100" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x100" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="63" endLine="16" endColumn="72" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="46" endLine="16" endColumn="55" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="41" endLine="17" endColumn="50" document="0"/>
-                <entry offset="0x1" startLine="17" startColumn="93" endLine="17" endColumn="106" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xa">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="58" endLine="17" endColumn="67" document="0"/>
-                <entry offset="0x6" startLine="17" startColumn="72" endLine="17" endColumn="85" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x14">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_10()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums() Group Join rangeVar2 As Long In Nums()
-                                     On rangeVar1 Equals rangeVar2
-                                     Into Group
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="48" document="0"/>
-                <entry offset="0xa6" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0xb2" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xb3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xb3" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_11()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums() Group Join rangeVar2 As Long In Nums()
-                                         Group Join rangeVar3 As Long In Nums()
-                                                On rangeVar3 Equals rangeVar2
-                                         Into Sum(rangeVar3)
-                                     On rangeVar1 Equals rangeVar2
-                                     Into Sum(rangeVar2)
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="19" endColumn="57" document="0"/>
-                <entry offset="0x145" startLine="20" startColumn="9" endLine="20" endColumn="35" document="0"/>
-                <entry offset="0x151" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x152" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x152" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x152">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x152" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x152" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="59" endLine="14" endColumn="66" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="63" endLine="15" endColumn="70" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="69" endLine="16" endColumn="78" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="52" endLine="16" endColumn="61" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="rangeVar2, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="17" startColumn="47" endLine="17" endColumn="61" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x31">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="51" endLine="17" endColumn="60" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="18" startColumn="41" endLine="18" endColumn="50" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="18" startColumn="58" endLine="18" endColumn="67" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-9" parameterNames="rangeVar1, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="19" startColumn="43" endLine="19" endColumn="57" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x31">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-10" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="19" startColumn="47" endLine="19" endColumn="56" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_12()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums() Group Join rangeVar2 In Nums()
-                                     On rangeVar1 Equals rangeVar2 And rangeVar2 + 1 Equals rangeVar1 + 1
-                                     Into Group, Sum = Sum(rangeVar2), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="79" document="0"/>
-                <entry offset="0x7d" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x89" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="41" endLine="15" endColumn="50" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="93" endLine="15" endColumn="106" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xa">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="58" endLine="15" endColumn="67" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="72" endLine="15" endColumn="85" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xa">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar1, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x2" startLine="16" startColumn="56" endLine="16" endColumn="70" document="0"/>
-                <entry offset="0x2c" startLine="16" startColumn="72" endLine="16" endColumn="79" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x38">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="60" endLine="16" endColumn="69" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_13()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Where rangeVar1 = rangeVar2 OrElse rangeVar1 < rangeVar2 + 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="73" document="0"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="19" endLine="15" endColumn="73" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x22">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_14()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Skip While rangeVar1 = rangeVar2 OrElse rangeVar1 < rangeVar2 + 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78" document="0"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x22">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_15()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Take While rangeVar1 = rangeVar2 OrElse rangeVar1 < rangeVar2 + 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="78" document="0"/>
-                <entry offset="0x7d" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x89" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="24" endLine="15" endColumn="78" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x22">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_16()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Skip 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19" document="0"/>
-                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x1a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_17()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Take 1
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="15" endColumn="19" document="0"/>
-                <entry offset="0xd" startLine="16" startColumn="9" endLine="16" endColumn="35" document="0"/>
-                <entry offset="0x19" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x1a">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_18()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Group By rangeVar1
-            Into Group
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="23" document="0"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xae">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="22" endLine="15" endColumn="31" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_19()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Group By rangeVar2 = rangeVar1 * 2
-            Into Sum(rangeVar2)
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="32" document="0"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xae">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x9">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x1" startLine="16" startColumn="18" endLine="16" endColumn="32" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x31">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="31" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_20()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums(), rangeVar2 In Nums()
-            Group By rangeVar2 = rangeVar1 * 2, rangeVar3 = rangeVar1 / 2
-            Into Group, Sum = Sum(rangeVar2), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="54" document="0"/>
-                <entry offset="0xa1" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0xad" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xae">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0xae" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="52" endLine="14" endColumn="58" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="34" endLine="15" endColumn="47" document="0"/>
-                <entry offset="0x8" startLine="15" startColumn="61" endLine="15" endColumn="74" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x1f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It, $VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0xd" startLine="16" startColumn="31" endLine="16" endColumn="45" document="0"/>
-                <entry offset="0x37" startLine="16" startColumn="47" endLine="16" endColumn="54" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x43">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="35" endLine="16" endColumn="44" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_21()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Aggregate rangeVar2 As Long In Nums()
-            Into Sum(rangeVar2 / 3)
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="36" document="0"/>
-                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="36" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x5e">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="22" endLine="16" endColumn="35" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xd">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_22()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Aggregate rangeVar2 As Long In Nums(), rangeVar3 In Nums()
-            Into Sum = Sum(rangeVar2 * rangeVar3)
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="50" document="0"/>
-                <entry offset="0x30" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x3c" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x3d">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x3d" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="16" endColumn="50" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xab">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="49" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xf">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_23()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select 1
-            Aggregate rangeVar2 As Long In Nums()
-            Into Sum(rangeVar2 / 3)
-        x = New List(Of Double)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="36" document="0"/>
-                <entry offset="0x59" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
-                <entry offset="0x65" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x66">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="17" endColumn="36" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x58">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="22" endLine="17" endColumn="35" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xd">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_24()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Aggregate rangeVar2 In Nums()
-            Into Sum = Sum(rangeVar2), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="0"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x66">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="42" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xc">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x46">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_25()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Aggregate rangeVar2 As Long In Nums(), rangeVar3 In Nums()
-            Into Sum = Sum(rangeVar3), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="0"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x66">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x82">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="65" endLine="15" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x46">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_26()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Aggregate rangeVar2 As Long In Nums() Join rangeVar3 In Nums() On rangeVar2 Equals rangeVar3
-            Into Sum = Sum(rangeVar3), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="16" endColumn="47" document="0"/>
-                <entry offset="0x59" startLine="17" startColumn="9" endLine="17" endColumn="35" document="0"/>
-                <entry offset="0x65" startLine="18" startColumn="5" endLine="18" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x66">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x66" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="13" endLine="15" endColumn="105" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xab">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="33" endLine="15" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="79" endLine="15" endColumn="88" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="96" endLine="15" endColumn="105" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x6" startLine="16" startColumn="24" endLine="16" endColumn="38" document="0"/>
-                <entry offset="0x35" startLine="16" startColumn="40" endLine="16" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x46">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="28" endLine="16" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_27()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select 2
-            Aggregate rangeVar2 In Nums()
-            Into Sum = Sum(rangeVar2), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="0"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="42" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$Group">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x36">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_28()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select 3
-            Aggregate rangeVar2 As Long In Nums(), rangeVar3 In Nums()
-            Into Sum = Sum(rangeVar3), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="0"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7c">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="65" endLine="16" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x6">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$Group">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x36">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_29()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim q As IEnumerable
-        Dim x As Object
-
-        q = From rangeVar1 In Nums()
-            Select 3
-            Aggregate rangeVar2 As Long In Nums() Join rangeVar3 In Nums() On rangeVar2 Equals rangeVar3
-            Into Sum = Sum(rangeVar3), Count()
-        x = New List(Of Object)(q)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="34"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="17" endColumn="47" document="0"/>
-                <entry offset="0x82" startLine="18" startColumn="9" endLine="18" endColumn="35" document="0"/>
-                <entry offset="0x8e" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="q" il_index="0" il_start="0x0" il_end="0x8f" attributes="0"/>
-                <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="15" startColumn="20" endLine="15" endColumn="21" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="13" endLine="16" endColumn="105" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xa5">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="33" endLine="16" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="79" endLine="16" endColumn="88" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="rangeVar3">
-            <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="96" endLine="16" endColumn="105" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$Group">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="24" endLine="17" endColumn="38" document="0"/>
-                <entry offset="0x2a" startLine="17" startColumn="40" endLine="17" endColumn="47" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x36">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="17" startColumn="28" endLine="17" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_30()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim x As Object
-        x = Aggregate rangeVar1 As Long In Nums()
-            Into Sum(rangeVar1 / 3)
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="36" document="0"/>
-                <entry offset="0x5e" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x5f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="33" endLine="12" endColumn="40" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="22" endLine="13" endColumn="35" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0xd">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(824944, "DevDiv")>
-        <Fact()>
-        Public Sub SequencePointsInAQuery_31()
-            Dim source =
-<compilation>
-    <file><![CDATA[
-Imports System.Collections
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Module1
-    Function Nums() As IEnumerable(Of Integer)
-        Return {1}
-    End Function
- 
-    Sub Main()
-        Dim x As Object
-        x = Aggregate rangeVar1 In Nums(), rangeVar2 As Long In Nums()
-            Into Sum = Sum(rangeVar2), Count()
-    End Sub
-End Module
-]]></file>
-</compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.DebugDll)
-
-            compilation.AssertTheseDiagnostics(<expected></expected>)
-
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="Module1" name="Nums">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="-1"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="47" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="19" document="0"/>
-                <entry offset="0xe" startLine="8" startColumn="5" endLine="8" endColumn="17" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x10">
-                <namespace name="System.Collections" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <namespace name="System.Linq" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="Nums" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="12" startColumn="9" endLine="13" endColumn="47" document="0"/>
-                <entry offset="0x8a" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x8b">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-                <local name="x" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
-            <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="65" endLine="12" endColumn="71" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x2f">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
-            <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="54" endLine="12" endColumn="61" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x3">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
-            <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="28" endLine="13" endColumn="37" document="0"/>
-            </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="Module1" methodName="Nums"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(846228, "DevDiv")>
-        <WorkItem(845078, "DevDiv")>
+        <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
+        <WorkItem(845078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/845078")>
         <Fact()>
         Public Sub RaiseEvent001()
             Dim source =
@@ -6852,14 +3832,14 @@ End Module
     <file><![CDATA[
 Public Class IntervalUpdate
     Public Shared Sub Update()
-        RaiseEvent IntervalEllapsed()
+        RaiseEvent IntervalElapsed()
     End Sub
     
     Shared Sub Main()
         Update()
     End Sub
 
-    Public Shared Event IntervalEllapsed()
+    Public Shared Event IntervalElapsed()
 End Class
 ]]></file>
 </compilation>
@@ -6869,40 +3849,54 @@ End Class
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll.WithParseOptions(parseOptions))
+
+            CompileAndVerify(compilation).VerifyIL("IntervalUpdate.Update", "
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (IntervalUpdate.IntervalElapsedEventHandler V_0)
+ -IL_0000:  nop
+ -IL_0001:  ldsfld     ""IntervalUpdate.IntervalElapsedEvent As IntervalUpdate.IntervalElapsedEventHandler""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0011
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""Sub IntervalUpdate.IntervalElapsedEventHandler.Invoke()""
+  IL_0010:  nop
+ -IL_0011:  ret
+}
+", sequencePoints:="IntervalUpdate.Update")
 
             compilation.VerifyPdb(
 <symbols>
     <methods>
         <method containingType="IntervalUpdate" name="Update">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="38" document="0"/>
-                <entry offset="0x15" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37"/>
+                <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x16">
+            <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name=""/>
             </scope>
         </method>
         <method containingType="IntervalUpdate" name="Main">
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17" document="0"/>
-                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="22"/>
+                <entry offset="0x1" startLine="7" startColumn="9" endLine="7" endColumn="17"/>
+                <entry offset="0x7" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x8">
                 <importsforward declaringType="IntervalUpdate" methodName="Update"/>
             </scope>
         </method>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="0"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="0"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25"/>
+                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25"/>
+                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
             </scope>
@@ -6914,13 +3908,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="0"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16"/>
+                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62"/>
+                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Computer" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6933,13 +3924,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="0"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16"/>
+                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57"/>
+                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Application" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6952,13 +3940,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="0"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="0"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16"/>
+                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58"/>
+                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="User" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6971,13 +3956,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="0"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="0"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17"/>
+                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67"/>
+                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20"/>
             </sequencePoints>
-            <locals>
-                <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="WebServices" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -6985,12 +3967,11 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="0"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="0"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="0"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="0"/>
+                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97"/>
+                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95"/>
+                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136"/>
+                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7002,13 +3983,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="0"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="0"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75"/>
+                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40"/>
+                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x12">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Equals" il_index="0" il_start="0x0" il_end="0x12" attributes="0"/>
@@ -7021,13 +3999,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="0"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="0"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63"/>
+                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42"/>
+                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetHashCode" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -7040,13 +4015,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="0"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="0"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72"/>
+                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46"/>
+                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetType" il_index="0" il_start="0x0" il_end="0x10" attributes="0"/>
@@ -7059,13 +4031,10 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="0"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="0"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59"/>
+                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39"/>
+                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="ToString" il_index="0" il_start="0x0" il_end="0xc" attributes="0"/>
@@ -7075,20 +4044,18 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="-1"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="0"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="0"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="0"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="0"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="0"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="0"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="0"/>
+                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95"/>
+                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44"/>
+                <entry offset="0xb" hidden="true"/>
+                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35"/>
+                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21"/>
+                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36"/>
+                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25"/>
             </sequencePoints>
-            <locals>
-                <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="Create__Instance__" il_index="0" il_start="0x0" il_end="0x1d" attributes="0"/>
@@ -7096,22 +4063,20 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="0"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="0"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71"/>
+                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35"/>
+                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="0"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29"/>
+                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28"/>
+                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7120,19 +4085,17 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="-1"/>
-                    <slot kind="temp"/>
+                    <slot kind="1" offset="0"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="0"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="0"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="0"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="0"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="0"/>
+                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20"/>
+                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59"/>
+                <entry offset="0xf" hidden="true"/>
+                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87"/>
+                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47"/>
+                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24"/>
             </sequencePoints>
-            <locals>
-                <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
                 <local name="GetInstance" il_index="0" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -7140,11 +4103,10 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="0"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29"/>
+                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29"/>
+                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
             </scope>
@@ -7153,320 +4115,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalCapturedAndHoisted()
-            Dim source =
-<compilation>
-    <file>
-Imports System
-Imports System.Threading.Tasks
-
-Public Class C
-    Private Async Function Async_Lambda_Hoisted() As Task
-        Dim x As Integer = 1
-        Dim y As Integer = 2
-
-        Dim a As Func(Of Integer) = Function() x + y
-
-        Await Console.Out.WriteAsync((x + y).ToString)
-        x.ToString()
-        y.ToString()
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
-                    source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
-
-            compilation.VerifyPdb("C.Async_Lambda_Hoisted",
-<symbols>
-    <methods/>
-</symbols>)
-
-            ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_Hoisted.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="C+VB$StateMachine_1_Async_Lambda_Hoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x12" startLine="5" startColumn="5" endLine="5" endColumn="58" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x1e" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x2a" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x36" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
-                <entry offset="0x4d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0xdd" startLine="12" startColumn="9" endLine="12" endColumn="21" document="0"/>
-                <entry offset="0xee" startLine="13" startColumn="9" endLine="13" endColumn="21" document="0"/>
-                <entry offset="0xff" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x101" hidden="true" document="0"/>
-                <entry offset="0x109" hidden="true" document="0"/>
-                <entry offset="0x126" startLine="14" startColumn="5" endLine="14" endColumn="17" document="0"/>
-                <entry offset="0x130" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0x100" attributes="0"/>
-                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x13d">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1"/>
-                <scope startOffset="0x12" endOffset="0x100">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0x100" attributes="0"/>
-                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
-                </scope>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_Lambda_Hoisted"/>
-                <await yield="0x91" resume="0xb0" declaringType="C+VB$StateMachine_1_Async_Lambda_Hoisted" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalCapturedAndNotHoisted()
-            Dim source =
-<compilation>
-    <file>
-Imports System
-Imports System.Threading.Tasks
-
-Public Class C
-    Private Async Function Async_Lambda_NotHoisted() As Task
-        Dim x As Integer = 1
-        Dim y As Integer = 2
-
-        Dim a As Func(Of Integer) = Function() x + y
-
-        Await Console.Out.WriteAsync((x + y).ToString)
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
-                    source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
-
-            ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_NotHoisted.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0x12" startLine="5" startColumn="5" endLine="5" endColumn="61" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x1e" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x2a" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x36" startLine="9" startColumn="13" endLine="9" endColumn="53" document="0"/>
-                <entry offset="0x4d" startLine="11" startColumn="9" endLine="11" endColumn="55" document="0"/>
-                <entry offset="0xda" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xdc" hidden="true" document="0"/>
-                <entry offset="0xe4" hidden="true" document="0"/>
-                <entry offset="0x101" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0x10b" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xdb" attributes="0"/>
-                <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x118">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1"/>
-                <scope startOffset="0x12" endOffset="0xdb">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xdb" attributes="0"/>
-                    <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>
-                </scope>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_Lambda_NotHoisted"/>
-                <await yield="0x91" resume="0xad" declaringType="C+VB$StateMachine_1_Async_Lambda_NotHoisted" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalHoistedAndNotCapture()
-            Dim source =
-<compilation>
-    <file>
-Imports System
-Imports System.Threading.Tasks
-
-Public Class C
-    Private Async Function Async_NoLambda_Hoisted() As Task
-        Dim x As Integer = 1
-        Dim y As Integer = 2
-
-        Await Console.Out.WriteAsync((x + y).ToString)
-        x.ToString()
-        y.ToString()
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
-                    source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
-
-            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
-            compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda_Hoisted.MoveNext",
-<symbols>
-    <methods>
-        <method containingType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="5" startColumn="5" endLine="5" endColumn="60" document="0"/>
-                <entry offset="0x10" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x17" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x1e" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0xa4" startLine="10" startColumn="9" endLine="10" endColumn="21" document="0"/>
-                <entry offset="0xb0" startLine="11" startColumn="9" endLine="11" endColumn="21" document="0"/>
-                <entry offset="0xbc" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xbe" hidden="true" document="0"/>
-                <entry offset="0xc6" hidden="true" document="0"/>
-                <entry offset="0xe3" startLine="12" startColumn="5" endLine="12" endColumn="17" document="0"/>
-                <entry offset="0xed" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xbd" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xfa">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Threading.Tasks" importlevel="file"/>
-                <currentnamespace name=""/>
-                <scope startOffset="0xf" endOffset="0xbd">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xbd" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xbd" attributes="0"/>
-                </scope>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_NoLambda_Hoisted"/>
-                <await yield="0x58" resume="0x77" declaringType="C+VB$StateMachine_1_Async_NoLambda_Hoisted" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
-        Public Sub LocalNotHoistedAndNotCaptured()
-            Dim source =
-<compilation>
-    <file>
-Imports System
-Imports System.Threading.Tasks
-
-Public Class C
-    Private Async Function Async_NoLambda_NotHoisted() As Task
-        Dim x As Integer = 1
-        Dim y As Integer = 2
-
-        Await Console.Out.WriteAsync((x + y).ToString)
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
-                    source,
-                    {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                    TestOptions.DebugDll)
-
-            ' Goal: We're looking for the unmangled names "x" and "y".
-            compilation.VerifyPdb(
-<symbols>
-    <methods>
-        <method containingType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" name="MoveNext">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="27" offset="-1"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" hidden="true" document="0"/>
-                <entry offset="0xf" startLine="5" startColumn="5" endLine="5" endColumn="63" document="0"/>
-                <entry offset="0x10" startLine="6" startColumn="13" endLine="6" endColumn="29" document="0"/>
-                <entry offset="0x17" startLine="7" startColumn="13" endLine="7" endColumn="29" document="0"/>
-                <entry offset="0x1e" startLine="9" startColumn="9" endLine="9" endColumn="55" document="0"/>
-                <entry offset="0xa1" startLine="10" startColumn="5" endLine="10" endColumn="17" document="0"/>
-                <entry offset="0xa3" hidden="true" document="0"/>
-                <entry offset="0xab" hidden="true" document="0"/>
-                <entry offset="0xc8" startLine="10" startColumn="5" endLine="10" endColumn="17" document="0"/>
-                <entry offset="0xd2" hidden="true" document="0"/>
-            </sequencePoints>
-            <locals>
-                <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xa2" attributes="0"/>
-                <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xa2" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0xdf">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Threading.Tasks" importlevel="file"/>
-                <currentnamespace name=""/>
-                <scope startOffset="0xf" endOffset="0xa2">
-                    <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0xf" il_end="0xa2" attributes="0"/>
-                    <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0xf" il_end="0xa2" attributes="0"/>
-                </scope>
-            </scope>
-            <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="Async_NoLambda_NotHoisted"/>
-                <await yield="0x58" resume="0x74" declaringType="C+VB$StateMachine_1_Async_NoLambda_NotHoisted" methodName="MoveNext"/>
-            </asyncInfo>
-        </method>
-    </methods>
-</symbols>)
-        End Sub
-
-        <WorkItem(876518)>
+        <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
         <Fact>
         Public Sub WinFormMain()
             Dim source =
@@ -7528,15 +4177,14 @@ End Class
     <methods>
         <method containingType="My.MyApplication" name="Main" parameterNames="Args">
             <sequencePoints>
-                <entry offset="0x0" startLine="76" startColumn="9" endLine="76" endColumn="55" document="0"/>
-                <entry offset="0x1" startLine="77" startColumn="13" endLine="77" endColumn="16" document="0"/>
-                <entry offset="0x2" startLine="78" startColumn="16" endLine="78" endColumn="133" document="0"/>
-                <entry offset="0xf" startLine="79" startColumn="13" endLine="79" endColumn="20" document="0"/>
-                <entry offset="0x11" startLine="80" startColumn="13" endLine="80" endColumn="20" document="0"/>
-                <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37" document="0"/>
-                <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="76" startColumn="9" endLine="76" endColumn="55"/>
+                <entry offset="0x1" startLine="77" startColumn="13" endLine="77" endColumn="16"/>
+                <entry offset="0x2" startLine="78" startColumn="16" endLine="78" endColumn="133"/>
+                <entry offset="0xf" startLine="79" startColumn="13" endLine="79" endColumn="20"/>
+                <entry offset="0x11" startLine="80" startColumn="13" endLine="80" endColumn="20"/>
+                <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37"/>
+                <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x1f">
                 <currentnamespace name="My"/>
             </scope>
@@ -7546,7 +4194,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub SynthesizedVariableForSelectCastValue()
+        Public Sub SynthesizedVariableForSelectCastValue()
             Dim source =
 <compilation>
     <file>
@@ -7578,18 +4226,17 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="28" document="0"/>
-                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="28" document="0"/>
-                <entry offset="0x32" startLine="5" startColumn="13" endLine="5" endColumn="21" document="0"/>
-                <entry offset="0x33" startLine="6" startColumn="17" endLine="6" endColumn="37" document="0"/>
-                <entry offset="0x3c" startLine="7" startColumn="13" endLine="7" endColumn="21" document="0"/>
-                <entry offset="0x3d" startLine="8" startColumn="17" endLine="8" endColumn="37" document="0"/>
-                <entry offset="0x46" startLine="9" startColumn="13" endLine="9" endColumn="21" document="0"/>
-                <entry offset="0x47" startLine="10" startColumn="17" endLine="10" endColumn="37" document="0"/>
-                <entry offset="0x50" startLine="11" startColumn="9" endLine="11" endColumn="19" document="0"/>
-                <entry offset="0x51" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="28"/>
+                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="28"/>
+                <entry offset="0x32" startLine="5" startColumn="13" endLine="5" endColumn="21"/>
+                <entry offset="0x33" startLine="6" startColumn="17" endLine="6" endColumn="37"/>
+                <entry offset="0x3c" startLine="7" startColumn="13" endLine="7" endColumn="21"/>
+                <entry offset="0x3d" startLine="8" startColumn="17" endLine="8" endColumn="37"/>
+                <entry offset="0x46" startLine="9" startColumn="13" endLine="9" endColumn="21"/>
+                <entry offset="0x47" startLine="10" startColumn="17" endLine="10" endColumn="37"/>
+                <entry offset="0x50" startLine="11" startColumn="9" endLine="11" endColumn="19"/>
+                <entry offset="0x51" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
             </sequencePoints>
-            <locals/>
             <scope startOffset="0x0" endOffset="0x52">
                 <namespace name="System" importlevel="file"/>
                 <currentnamespace name=""/>
@@ -7600,56 +4247,194 @@ End Class
 </symbols>)
         End Sub
 
-        <WorkItem(1085911)>
         <Fact>
-        Sub AsyncReturnVariable()
+        Public Sub Constant_AllTypes()
             Dim source =
 <compilation>
     <file>
 Imports System
-Imports System.Threading.Tasks
+Imports System.Collections.Generic
+'Imports Microsoft.VisualBasic.Strings
 
-Class C
-    Shared Async Function M() As Task(Of Integer)
-        Return 1
-    End Function
+Class X 
+End Class
+
+Public Class C(Of S)
+    Enum EnumI1 As SByte    : A : End Enum
+    Enum EnumU1 As Byte     : A : End Enum 
+    Enum EnumI2 As Short    : A : End Enum 
+    Enum EnumU2 As UShort   : A : End Enum
+    Enum EnumI4 As Integer  : A : End Enum
+    Enum EnumU4 As UInteger : A : End Enum
+    Enum EnumI8 As Long     : A : End Enum
+    Enum EnumU8 As ULong    : A : End Enum
+
+    Public Sub F(Of T)()
+        Const B As Boolean = Nothing
+        Const C As Char = Nothing
+        Const I1 As SByte = 0
+        Const U1 As Byte = 0
+        Const I2 As Short = 0
+        Const U2 As UShort = 0
+        Const I4 As Integer = 0
+        Const U4 As UInteger = 0
+        Const I8 As Long = 0
+        Const U8 As ULong = 0
+        Const R4 As Single = 0
+        Const R8 As Double = 0
+
+        Const EI1 As C(Of Integer).EnumI1 = 0
+        Const EU1 As C(Of Integer).EnumU1 = 0
+        Const EI2 As C(Of Integer).EnumI2 = 0
+        Const EU2 As C(Of Integer).EnumU2 = 0
+        Const EI4 As C(Of Integer).EnumI4 = 0
+        Const EU4 As C(Of Integer).EnumU4 = 0
+        Const EI8 As C(Of Integer).EnumI8 = 0
+        Const EU8 As C(Of Integer).EnumU8 = 0
+
+        'Const StrWithNul As String = ChrW(0)
+        Const EmptyStr As String = ""
+        Const NullStr As String = Nothing
+        Const NullObject As Object = Nothing
+       
+        Const D As Decimal = Nothing
+        Const DT As DateTime = #1-1-2015#
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
-            c.AssertNoErrors()
+            Dim c = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.DebugDll.WithEmbedVbCoreRuntime(True))
 
-            ' NOTE: No <local> for the return variable "M".
-            c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
+            c.VerifyPdb("C`1.F",
 <symbols>
     <methods>
-        <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
+        <method containingType="C`1" name="F">
+            <sequencePoints>
+                <entry offset="0x0" startLine="18" startColumn="5" endLine="18" endColumn="25"/>
+                <entry offset="0x1" startLine="48" startColumn="5" endLine="48" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x2">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
+                <constant name="B" value="0" type="Boolean"/>
+                <constant name="C" value="0" type="Char"/>
+                <constant name="I1" value="0" type="SByte"/>
+                <constant name="U1" value="0" type="Byte"/>
+                <constant name="I2" value="0" type="Int16"/>
+                <constant name="U2" value="0" type="UInt16"/>
+                <constant name="I4" value="0" type="Int32"/>
+                <constant name="U4" value="0" type="UInt32"/>
+                <constant name="I8" value="0" type="Int64"/>
+                <constant name="U8" value="0" type="UInt64"/>
+                <constant name="R4" value="0" type="Single"/>
+                <constant name="R8" value="0" type="Double"/>
+                <constant name="EI1" value="0" signature="EnumI1{Int32}"/>
+                <constant name="EU1" value="0" signature="EnumU1{Int32}"/>
+                <constant name="EI2" value="0" signature="EnumI2{Int32}"/>
+                <constant name="EU2" value="0" signature="EnumU2{Int32}"/>
+                <constant name="EI4" value="0" signature="EnumI4{Int32}"/>
+                <constant name="EU4" value="0" signature="EnumU4{Int32}"/>
+                <constant name="EI8" value="0" signature="EnumI8{Int32}"/>
+                <constant name="EU8" value="0" signature="EnumU8{Int32}"/>
+                <constant name="EmptyStr" value="" type="String"/>
+                <constant name="NullStr" value="null" type="String"/>
+                <constant name="NullObject" value="null" type="Object"/>
+                <constant name="D" value="0" type="Decimal"/>
+                <constant name="DT" value="01/01/2015 00:00:00" type="DateTime"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportsInAsync()
+            Dim source =
+"Imports System.Linq
+Imports System.Threading.Tasks
+Class C
+    Shared Async Function F() As Task
+        Dim c = {1, 2, 3}
+        c.Select(Function(i) i)
+    End Function
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
                 <encLocalSlotMap>
-                    <slot kind="20" offset="-1"/>
                     <slot kind="27" offset="-1"/>
-                    <slot kind="0" offset="-1"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="0"/>
-                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
-                <entry offset="0x8" startLine="6" startColumn="9" endLine="6" endColumn="17" document="0"/>
-                <entry offset="0xc" hidden="true" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17" document="0"/>
-                <entry offset="0x39" hidden="true" document="0"/>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="4" startColumn="5" endLine="4" endColumn="38"/>
+                <entry offset="0x8" startLine="5" startColumn="13" endLine="5" endColumn="26"/>
+                <entry offset="0x1f" startLine="6" startColumn="9" endLine="6" endColumn="32"/>
+                <entry offset="0x4f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x7e" hidden="true"/>
             </sequencePoints>
-            <locals/>
-            <scope startOffset="0x0" endOffset="0x47">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Threading.Tasks" importlevel="file"/>
-                <currentnamespace name=""/>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C+_Closure$__" methodName="_Lambda$__1-0" parameterNames="i"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
             </scope>
             <asyncInfo>
-                <kickoffMethod declaringType="C" methodName="M"/>
+                <kickoffMethod declaringType="C" methodName="F"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportsInAsyncLambda()
+            Dim source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim f As System.Action =
+            Async Sub()
+                Dim c = {1, 2, 3}
+                c.Select(Function(i) i)
+            End Sub
+    End Sub
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+_Closure$__+VB$StateMachine___Lambda$__1-0" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="38"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="5" startColumn="13" endLine="5" endColumn="24"/>
+                <entry offset="0x8" startLine="6" startColumn="21" endLine="6" endColumn="34"/>
+                <entry offset="0x1f" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x4f" startLine="8" startColumn="13" endLine="8" endColumn="20"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C" methodName="M"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
+            </scope>
+            <asyncInfo>
+                <catchHandler offset="0x51"/>
+                <kickoffMethod declaringType="C+_Closure$__" methodName="_Lambda$__1-0"/>
             </asyncInfo>
         </method>
     </methods>

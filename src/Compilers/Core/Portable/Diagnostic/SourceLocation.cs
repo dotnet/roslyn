@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class SourceLocation : Location, IEquatable<SourceLocation>
     {
-        private readonly SyntaxTree syntaxTree;
-        private readonly TextSpan span;
+        private readonly SyntaxTree _syntaxTree;
+        private readonly TextSpan _span;
 
         public SourceLocation(SyntaxTree syntaxTree, TextSpan span)
         {
-            this.syntaxTree = syntaxTree;
-            this.span = span;
+            _syntaxTree = syntaxTree;
+            _span = span;
         }
 
         public SourceLocation(SyntaxNode node)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return span;
+                return _span;
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return syntaxTree;
+                return _syntaxTree;
             }
         }
 
@@ -77,28 +77,28 @@ namespace Microsoft.CodeAnalysis
         {
             // If there's no syntax tree (e.g. because we're binding speculatively),
             // then just return an invalid span.
-            if (syntaxTree == null)
+            if (_syntaxTree == null)
             {
                 FileLinePositionSpan result = default(FileLinePositionSpan);
                 Debug.Assert(!result.IsValid);
                 return result;
             }
 
-            return syntaxTree.GetLineSpan(span);
+            return _syntaxTree.GetLineSpan(_span);
         }
 
         public override FileLinePositionSpan GetMappedLineSpan()
         {
             // If there's no syntax tree (e.g. because we're binding speculatively),
             // then just return an invalid span.
-            if (syntaxTree == null)
+            if (_syntaxTree == null)
             {
                 FileLinePositionSpan result = default(FileLinePositionSpan);
                 Debug.Assert(!result.IsValid);
                 return result;
             }
 
-            return syntaxTree.GetMappedLineSpan(span);
+            return _syntaxTree.GetMappedLineSpan(_span);
         }
 
         public bool Equals(SourceLocation other)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return other != null && other.syntaxTree == syntaxTree && other.span == span;
+            return other != null && other._syntaxTree == _syntaxTree && other._span == _span;
         }
 
         public override bool Equals(object obj)
@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(syntaxTree, span.GetHashCode());
+            return Hash.Combine(_syntaxTree, _span.GetHashCode());
         }
 
         protected override string GetDebuggerDisplay()
         {
-            return base.GetDebuggerDisplay() + "\"" + syntaxTree.ToString().Substring(span.Start, span.Length) + "\"";
+            return base.GetDebuggerDisplay() + "\"" + _syntaxTree.ToString().Substring(_span.Start, _span.Length) + "\"";
         }
     }
 }

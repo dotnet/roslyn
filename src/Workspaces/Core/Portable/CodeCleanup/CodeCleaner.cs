@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             if (document == null)
             {
-                throw new ArgumentNullException("document");
+                throw new ArgumentNullException(nameof(document));
             }
 
             var service = document.Project.LanguageServices.GetService<ICodeCleanerService>();
@@ -84,19 +84,19 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Clean up the provided span in the node.
         /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
-        public static SyntaxNode Cleanup(SyntaxNode root, TextSpan span, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Cleanup(root, SpecializedCollections.SingletonEnumerable(span), workspace, providers, cancellationToken);
+            return CleanupAsync(root, SpecializedCollections.SingletonEnumerable(span), workspace, providers, cancellationToken);
         }
 
         /// <summary>
         /// Clean up the provided spans in the node.
         /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
-        public static SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var cleanupService = workspace.Services.GetLanguageServices(root.Language).GetService<ICodeCleanerService>();
-            return cleanupService.Cleanup(root, spans, workspace, providers, cancellationToken);
+            return cleanupService.CleanupAsync(root, spans, workspace, providers, cancellationToken);
         }
     }
 }

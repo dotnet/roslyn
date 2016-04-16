@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
-        <WorkItem(542806, "DevDiv")>
+        <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
         <Fact()>
         Public Sub EmptyCustomEvent()
             Dim source = <compilation name="F">
@@ -46,7 +46,7 @@ BC31122: 'Custom' modifier is not valid on events declared without explicit dele
 </expected>)
         End Sub
 
-        <WorkItem(542891, "DevDiv")>
+        <WorkItem(542891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542891")>
         <Fact()>
         Public Sub InterfaceImplements()
             Dim source = <compilation name="F">
@@ -166,7 +166,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543309, "DevDiv")>
+        <WorkItem(543309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543309")>
         <Fact()>
         Public Sub EventSyntheticDelegateShadows()
             Dim source = <compilation name="F">
@@ -479,7 +479,7 @@ End Class
                                                Assert.Equal(1, attrs.Length)
                                                Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                               ' additional synthetic members (field, accesors and such) should not
+                                               ' additional synthetic members (field, accessors and such) should not
                                                member = type.GetMember("RegularEventEvent")
                                                attrs = member.GetAttributes()
                                                Assert.Equal(0, attrs.Length)
@@ -502,7 +502,7 @@ End Class
                                                Assert.Equal(1, attrs.Length)
                                                Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                               ' additional synthetic members (field, accesors and such) should not
+                                               ' additional synthetic members (field, accessors and such) should not
                                                member = type.GetMember("add_CustomEvent")
                                                attrs = member.GetAttributes()
                                                Assert.Equal(0, attrs.Length)
@@ -527,7 +527,7 @@ End Class
                                                  Assert.Equal(1, attrs.Length)
                                                  Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                                 ' additional synthetic members (field, accesors and such) should not
+                                                 ' additional synthetic members (field, accessors and such) should not
                                                  'member = type.GetMember("RegularEventEvent")
                                                  'attrs = member.GetAttributes()
                                                  'Assert.Equal(0, attrs.Count)
@@ -552,7 +552,7 @@ End Class
                                                  Assert.Equal(1, attrs.Length)
                                                  Assert.Equal("System.ObsoleteAttribute", attrs(0).AttributeClass.ToDisplayString)
 
-                                                 ' additional synthetic members (field, accesors and such) should not
+                                                 ' additional synthetic members (field, accessors and such) should not
                                                  member = type.GetMember("add_CustomEvent")
                                                  attrs = member.GetAttributes()
                                                  Assert.Equal(0, attrs.Length)
@@ -573,7 +573,7 @@ End Class
 
         End Sub
 
-        <WorkItem(543321, "DevDiv")>
+        <WorkItem(543321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543321")>
         <Fact()>
         Public Sub DeclareEventWithArgument()
             CompileAndVerify(
@@ -588,7 +588,7 @@ End Class
     </compilation>)
         End Sub
 
-        <WorkItem(543366, "DevDiv")>
+        <WorkItem(543366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543366")>
         <Fact()>
         Public Sub UseEventDelegateType()
             CompileAndVerify(
@@ -610,7 +610,7 @@ End Module
     </compilation>)
         End Sub
 
-        <WorkItem(543372, "DevDiv")>
+        <WorkItem(543372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543372")>
         <Fact()>
         Public Sub AddHandlerWithoutAddressOf()
             Dim source = <compilation name="F">
@@ -782,7 +782,7 @@ BC30456: 'E1' is not a member of 'Class1'.
 </expected>)
         End Sub
 
-        <Fact(Skip:="behaves as in Dev10 - unverifiable code. Should we do something more useful?")>
+        <Fact>
         Public Sub EventProtectedAccessor()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit ClassLibrary1.Class1
@@ -905,15 +905,18 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitOptions:=TestEmitters.RefEmitBug).
-    VerifyIL("C.M",
-            <![CDATA[
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll)
 
-]]>)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30390: 'Class1.Protected Overloads RemoveHandler Event E1(value As Action)' is not accessible in this context because it is 'Protected'.
+        RemoveHandler x.E1, h
+                      ~~~~
+</expected>)
         End Sub
 
         ' Check that both errors are reported
-        <WorkItem(543504, "DevDiv")>
+        <WorkItem(543504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543504")>
         <Fact()>
         Public Sub TestEventWithParamArray()
             Dim source =
@@ -1004,6 +1007,340 @@ BC40004: event 'E' conflicts with event 'E' in the base class 'AbsEvent' and sho
     Overrides Public Event E As System.Action
                            ~
 </expected>)
+        End Sub
+
+        <WorkItem(529772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529772")>
+        <Fact>
+        Public Sub Bug529772_ReproSteps()
+            Dim csCompilation = CreateCSharpCompilation("
+using System;
+namespace AbstEvent
+{
+
+    public abstract class Base
+    {
+        public abstract event EventHandler AnEvent;
+        public abstract void method();
+        public event EventHandler AnotherEvent;
+    }
+    public class base1 : Base
+    {
+        public override event EventHandler AnEvent;
+        public override void method() { }
+    }
+
+    public abstract class base2 : Base
+    {
+        public override void method() { }
+    }
+
+    public abstract class GenBase<T>
+    {
+        public abstract event EventHandler AnEvent;
+    }
+
+}",
+                assemblyName:="AbstEvent",
+                referencedAssemblies:={MscorlibRef})
+
+            Dim vbCompilation = CreateCompilationWithMscorlib45AndVBRuntime(
+                <compilation>
+                    <file name="App.vb">
+Imports AbstEvent
+
+Module Module1
+    Sub Main()
+    End Sub
+
+    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+
+    Class Foo1
+        Inherits Base
+    End Class
+
+    ' Expect compiler catch Foo2 does not implement AnEvent
+
+    Class Foo2
+        Inherits Base
+        Public Overrides Sub method()
+        End Sub
+    End Class
+
+    ' Expect compiler catch that Foo3 does not implement AnEvent
+
+    Class Foo3
+        Inherits base2
+    End Class
+
+    ' Expect no compiler error
+
+    Class Foo4
+        Inherits base1
+    End Class
+
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
+
+    MustInherit Class Foo5
+        Inherits base2
+    End Class
+
+    '
+    ' Testing Type Parameter Printing
+    '
+    Class GenFoo1(Of T)
+        Inherits GenBase(Of T)
+    End Class
+
+    Class GenFoo2
+        Inherits GenBase(Of Integer)
+    End Class
+
+    MustInherit Class Foo6
+        Inherits base2
+        Shadows Public AnEvent As Integer
+    End Class
+End Module
+                    </file>
+                </compilation>,
+                additionalRefs:={csCompilation.EmitToImageReference()})
+
+            vbCompilation.AssertTheseDiagnostics(<errors>
+BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    Base: Public MustOverride Overloads Sub method().
+    Class Foo1
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
+    Class Foo1
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
+    Class Foo2
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
+    Class Foo3
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
+    Class GenFoo1(Of T)
+          ~~~~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
+    Class GenFoo2
+          ~~~~~~~
+BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
+        Shadows Public AnEvent As Integer
+                       ~~~~~~~
+</errors>)
+
+        End Sub
+
+        <WorkItem(529772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529772")>
+        <Fact>
+        Public Sub Bug529772_ReproStepsWithILSource()
+
+            Dim ilSource = "
+.class public abstract auto ansi beforefieldinit AbstEvent.Base extends [mscorlib]System.Object
+{
+  .field private class [mscorlib]System.EventHandler AnotherEvent
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig newslot specialname abstract virtual instance void add_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot specialname abstract virtual instance void remove_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot abstract virtual instance void 'method'()
+  {
+  }
+
+  .method public hidebysig specialname instance void add_AnotherEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+     ret
+  }
+
+  .method public hidebysig specialname instance void remove_AnotherEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+     ret
+  }
+
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+     ret
+  }
+
+  .event [mscorlib]System.EventHandler AnEvent
+  {
+    .addon instance void AbstEvent.Base::add_AnEvent(class [mscorlib]System.EventHandler)
+    .removeon instance void AbstEvent.Base::remove_AnEvent(class [mscorlib]System.EventHandler)
+  }
+
+  .event [mscorlib]System.EventHandler AnotherEvent
+  {
+    .addon instance void AbstEvent.Base::add_AnotherEvent(class [mscorlib]System.EventHandler)
+    .removeon instance void AbstEvent.Base::remove_AnotherEvent(class [mscorlib]System.EventHandler)
+  }
+}
+
+.class public auto ansi beforefieldinit AbstEvent.base1 extends AbstEvent.Base
+{
+  .field private class [mscorlib]System.EventHandler AnEvent
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+  .method public hidebysig specialname virtual instance void add_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+     ret
+  }
+
+  .method public hidebysig specialname virtual instance void remove_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+     ret
+  }
+
+  .method public hidebysig virtual instance void 'method'()
+  {
+     ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void .ctor()
+  {
+     ret
+  }
+
+  .event [mscorlib]System.EventHandler AnEvent
+  {
+    .addon instance void AbstEvent.base1::add_AnEvent(class [mscorlib]System.EventHandler)
+    .removeon instance void AbstEvent.base1::remove_AnEvent(class [mscorlib]System.EventHandler)
+  }
+}
+
+.class public abstract auto ansi beforefieldinit AbstEvent.base2 extends AbstEvent.Base
+{
+  .method public hidebysig virtual instance void 'method'()
+  {
+     ret
+  }
+
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+     ret
+  }
+}
+
+.class public abstract auto ansi beforefieldinit AbstEvent.GenBase`1<T> extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot specialname abstract virtual instance void add_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot specialname abstract virtual instance void remove_AnEvent(class [mscorlib]System.EventHandler 'value')
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method family hidebysig specialname rtspecialname instance void .ctor()
+  {
+     ret
+  }
+
+  .event [mscorlib]System.EventHandler AnEvent
+  {
+    .addon instance void AbstEvent.GenBase`1::add_AnEvent(class [mscorlib]System.EventHandler)
+    .removeon instance void AbstEvent.GenBase`1::remove_AnEvent(class [mscorlib]System.EventHandler)
+  }
+}"
+
+            Dim vbSource =
+<compilation>
+    <file name="App.vb">
+Imports AbstEvent
+
+Module Module1
+    Sub Main()
+    End Sub
+
+    ' Expect compiler catch that Foo1 does not implement AnEvent or method()
+
+    Class Foo1
+        Inherits Base
+    End Class
+
+    ' Expect compiler catch Foo2 does not implement AnEvent
+
+    Class Foo2
+        Inherits Base
+        Public Overrides Sub method()
+        End Sub
+    End Class
+
+    ' Expect compiler catch that Foo3 does not implement AnEvent
+
+    Class Foo3
+        Inherits base2
+    End Class
+
+    ' Expect no compiler error
+
+    Class Foo4
+        Inherits base1
+    End Class
+
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
+
+    MustInherit Class Foo5
+        Inherits base2
+    End Class
+
+    '
+    ' Testing Type Parameter Printing
+    '
+    Class GenFoo1(Of T)
+        Inherits GenBase(Of T)
+    End Class
+
+    Class GenFoo2
+        Inherits GenBase(Of Integer)
+    End Class
+
+    MustInherit Class Foo6
+        Inherits base2
+        Shadows Public AnEvent As Integer
+    End Class
+End Module
+                    </file>
+</compilation>
+
+            Dim vbCompilation = CreateCompilationWithCustomILSource(vbSource, ilSource, includeVbRuntime:=True)
+
+            vbCompilation.AssertTheseDiagnostics(<errors>
+BC30610: Class 'Foo1' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    Base: Public MustOverride Overloads Sub method().
+    Class Foo1
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo1' MustInherit.
+    Class Foo1
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo2' MustInherit.
+    Class Foo2
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.Base'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'Foo3' MustInherit.
+    Class Foo3
+          ~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of T)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo1' MustInherit.
+    Class GenFoo1(Of T)
+          ~~~~~~~
+BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
+    Class GenFoo2
+          ~~~~~~~
+BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
+        Shadows Public AnEvent As Integer
+                       ~~~~~~~
+</errors>)
+
         End Sub
 
         <Fact()>
@@ -1159,7 +1496,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543447, "DevDiv")>
+        <WorkItem(543447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543447")>
         <Fact()>
         Public Sub BindOnFieldOfRegularEventHandlerType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1196,7 +1533,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(543725, "DevDiv")>
+        <WorkItem(543725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543725")>
         <Fact()>
         Public Sub SynthesizedEventDelegateSymbolImplicit()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -1237,7 +1574,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545200, "DevDiv")>
+        <WorkItem(545200, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545200")>
         <Fact()>
         Public Sub TestBadlyFormattedEventCode()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1263,7 +1600,7 @@ Imports System<Serializable>Class c11    <NonSerialized()>
             Assert.Equal("StartEventHandler", eventDelegate.Name)
         End Sub
 
-        <WorkItem(545221, "DevDiv")>
+        <WorkItem(545221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545221")>
         <Fact()>
         Public Sub TestBadlyFormattedCustomEvent()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1308,8 +1645,9 @@ End Class
         ''' Avoid redundant errors from handlers when
         ''' a custom event type has errors.
         ''' </summary>
-        <WorkItem(530406, "DevDiv")>
-        <Fact(Skip:="530406")>
+        <Fact>
+        <WorkItem(101185, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=101185")>
+        <WorkItem(530406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530406")>
         Public Sub CustomEventTypeDuplicateErrors()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -1331,6 +1669,12 @@ End Class
 BC30508: 'E' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
     Public Custom Event E As D
                         ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        AddHandler(value As D)
+                            ~
+BC30508: 'value' cannot expose type 'C.D' in namespace '<Default>' through class 'C'.
+        RemoveHandler(value As D)
+                               ~
      ]]></errors>)
         End Sub
 
@@ -1386,7 +1730,7 @@ BC30002: Type 'System.Object' is not defined.
      ]]></errors>)
         End Sub
 
-        <WorkItem(780993, "DevDiv")>
+        <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
         <Fact()>
         Public Sub EventInMemberNames()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1409,7 +1753,7 @@ End Class
             Assert.Equal("X", classMembers(0))
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_01()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1435,7 +1779,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_02()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1532,7 +1876,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_03()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1629,7 +1973,7 @@ End Structure
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_04()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1698,7 +2042,7 @@ End Class
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1027568, "DevDiv"), WorkItem(528573, "DevDiv")>
+        <Fact, WorkItem(1027568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1027568"), WorkItem(528573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528573")>
         Public Sub MissingCompareExchange_05()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1766,5 +2110,135 @@ End Structure
 }
 ]]>)
         End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAnInterface()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Event E()
+    Sub M() Handles Me.E
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub M() Handles Me.E
+            ~~~~~~~~~~~~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("Event I.E()", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAStruct()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Structure S
+    Event E()
+    Sub M() Handles Me.E
+    End Sub
+End Structure
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30728: Methods declared in structures cannot have 'Handles' clauses.
+    Sub M() Handles Me.E
+        ~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("Event S.E()", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAnEnum()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Enum E1
+    'Event E()
+    Sub M() Handles Me.E
+    End Sub
+End Enum
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30185: 'Enum' must end with a matching 'End Enum'.
+Enum E1
+~~~~~~~
+BC30280: Enum 'E1' must contain at least one member.
+Enum E1
+     ~~
+BC30619: Statement cannot appear within an Enum body. End of Enum assumed.
+    Sub M() Handles Me.E
+    ~~~~~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub M() Handles Me.E
+                       ~
+BC30184: 'End Enum' must be preceded by a matching 'Enum'.
+End Enum
+~~~~~~~~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+        End Sub
+
+        <WorkItem(9400, "https://github.com/dotnet/roslyn/issues/9400")>
+        <Fact()>
+        Public Sub HandlesNoMyBase()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Sub F() Handles MyBase.E
+End Interface
+]]></file>
+</compilation>)
+            compilation.AssertTheseDiagnostics(<expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub F() Handles MyBase.E
+            ~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub F() Handles MyBase.E
+                           ~
+                           </expected>)
+        End Sub
+
     End Class
 End Namespace

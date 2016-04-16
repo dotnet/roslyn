@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class SourceMemberFieldSymbol : SourceFieldSymbolWithSyntaxReference
     {
-        private readonly DeclarationModifiers modifiers;
-        private readonly bool hasInitializer;
+        private readonly DeclarationModifiers _modifiers;
+        private readonly bool _hasInitializer;
 
-        private TypeSymbol lazyType;
+        private TypeSymbol _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
-        private int lazyFieldTypeInferred;
+        private int _lazyFieldTypeInferred;
 
-        private ImmutableArray<CustomModifier> lazyCustomModifiers;
+        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         internal SourceMemberFieldSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
         {
-            this.modifiers = modifiers;
-            this.hasInitializer = declarator.Initializer != null;
+            _modifiers = modifiers;
+            _hasInitializer = declarator.Initializer != null;
 
             this.CheckAccessibility(diagnostics);
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return modifiers;
+                return _modifiers;
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool HasInitializer
         {
-            get { return hasInitializer; }
+            get { return _hasInitializer; }
         }
 
         public VariableDeclaratorSyntax VariableDeclaratorNode
@@ -133,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)lazyType != null)
+                if ((object)_lazyType != null)
                 {
-                    Debug.Assert(lazyType.IsPointerType() ==
+                    Debug.Assert(_lazyType.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return lazyType.IsPointerType();
+                    return _lazyType.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if ((object)lazyType != null)
+            if ((object)_lazyType != null)
             {
-                return lazyType;
+                return _lazyType;
             }
 
             var declarator = VariableDeclaratorNode;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     type = initializerOpt.Type;
                                 }
 
-                                this.lazyFieldTypeInferred = 1;
+                                _lazyFieldTypeInferred = 1;
                             }
                         }
 
@@ -273,16 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
-                    }
-
-                    if (IsStatic)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, ErrorLocation, SyntaxFacts.GetText(SyntaxKind.StaticKeyword));
-                    }
-
-                    if (IsVolatile)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, ErrorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
                     }
 
                     var elementType = ((PointerTypeSymbol)type).PointedAtType;
@@ -301,17 +291,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(ref lazyType, type, null) == null)
+            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
             {
                 TypeChecks(type, fieldSyntax, declarator, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
-                compilation.SemanticDiagnostics.AddRange(diagnostics);
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
 
                 bool isFirstDeclarator = fieldSyntax.Declaration.Variables[0] == declarator;
                 if (isFirstDeclarator)
                 {
-                    compilation.SemanticDiagnostics.AddRange(diagnosticsForFirstDeclarator);
+                    compilation.DeclarationDiagnostics.AddRange(diagnosticsForFirstDeclarator);
                 }
 
                 state.NotePartComplete(CompletionPart.Type);
@@ -319,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return lazyType;
+            return _lazyType;
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)
@@ -332,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetFieldType(fieldsBeingBound);
 
             // lazyIsImplicitlyTypedField can only transition from value 0 to 1:
-            return lazyFieldTypeInferred != 0 || Volatile.Read(ref lazyFieldTypeInferred) != 0;
+            return _lazyFieldTypeInferred != 0 || Volatile.Read(ref _lazyFieldTypeInferred) != 0;
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -412,6 +402,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result &= ~DeclarationModifiers.Abstract;
             }
 
+            if ((result & DeclarationModifiers.Fixed) != 0)
+            {
+                if ((result & DeclarationModifiers.Static) != 0)
+                {
+                    // The modifier 'static' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.StaticKeyword));
+                }
+
+                if ((result & DeclarationModifiers.ReadOnly) != 0)
+                {
+                    // The modifier 'readonly' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                }
+
+                if ((result & DeclarationModifiers.Const) != 0)
+                {
+                    // The modifier 'const' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.ConstKeyword));
+                }
+
+                if ((result & DeclarationModifiers.Volatile) != 0)
+                {
+                    // The modifier 'volatile' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
+                }
+
+                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+            }
+
+
             if ((result & DeclarationModifiers.Const) != 0)
             {
                 if ((result & DeclarationModifiers.Static) != 0)
@@ -457,12 +478,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (lazyCustomModifiers.IsDefault)
+                if (_lazyCustomModifiers.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
                 }
 
-                return lazyCustomModifiers;
+                return _lazyCustomModifiers;
             }
         }
 

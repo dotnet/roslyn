@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Diagnostics_DocumentOpen,
         Diagnostics_RemoveDocument,
         Diagnostics_RemoveProject,
+        Diagnostics_DocumentClose,
 
         // add new values after this
         Run_Environment,
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
+        CommandHandler_FormatCommand,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Formatting_AggregateCreateFormattedRoot,
         Formatting_CreateTextChanges,
         Formatting_CreateFormattedRoot,
+        Formatting_Partitions,
 
         SmartIndentation_Start,
         SmartIndentation_OpenCurly,
@@ -244,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
 
-        // currently no one uses these
+        // currently no-one uses these
         SmartTags_RefreshSession,
         SmartTags_SmartTagInitializeFixes,
         SmartTags_ApplyQuickFix,
@@ -285,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SolutionExplorer_AnalyzerItemSource_GetItems,
         SolutionExplorer_DiagnosticItemSource_GetItems,
-        WorkCoordinator_ActivieFileEnqueue,
+        WorkCoordinator_ActiveFileEnqueue,
         SymbolFinder_FindDeclarationsAsync,
         SymbolFinder_Project_AddDeclarationsAsync,
         SymbolFinder_Assembly_AddDeclarationsAsync,
@@ -297,5 +300,29 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Tagger_Diagnostics_Updated,
         SuggestedActions_HasSuggestedActionsAsync,
         SuggestedActions_GetSuggestedActions,
+        AnalyzerDependencyCheckingService_LogConflict,
+        AnalyzerDependencyCheckingService_LogMissingDependency,
+        VirtualMemory_MemoryLow,
+        Extension_Exception,
+
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+
+        CSharp_Interactive_Window,
+        VisualBasic_Interactive_Window,
+
+        NonFatalWatson,
+        GlobalOperationRegistration,
+        CommandHandler_FindAllReference,
+
+        CodefixInfobar_Enable,
+        CodefixInfobar_EnableAndIgnoreFutureErrors,
+        CodefixInfobar_LeaveDisabled,
+        CodefixInfobar_ErrorIgnored,
+        IntellisenseBuild_Failed,
+
+        // Caches
+        SymbolTreeInfo_ExceptionInCacheRead,
+        SpellChecker_ExceptionInCacheRead,
+        BKTree_ExceptionInCacheRead,
     }
 }

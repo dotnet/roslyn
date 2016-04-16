@@ -23,15 +23,16 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly bool IsRenameLocation;
 
         /// <summary>
-        /// A flag indicating if this identifier represents an accessor. E.g. get_Foo (of property Foo).
-        /// </summary>
-        public readonly bool IsAccessorLocation;
-
-        /// <summary>
         /// A flag indicating whether the token at this location has the same ValueText then the original name 
         /// of the symbol that gets renamed.
         /// </summary>
         public readonly bool IsOriginalTextLocation;
+
+        /// <summary>
+        /// When replacing the annotated token this string will be prepended to the token's value. This is used when renaming compiler 
+        /// generated fields and methods backing properties (e.g. "get_X" or "_X" for property "X").
+        /// </summary>
+        public readonly string Prefix;
 
         /// <summary>
         /// When replacing the annotated token this string will be appended to the token's value. This is used when renaming compiler 
@@ -50,6 +51,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public readonly bool IsNamespaceDeclarationReference;
 
         /// <summary>
+        /// States if this token is a member group reference, typically found in NameOf expressions
+        /// </summary>
+        public readonly bool IsMemberGroupReference;
+
+        /// <summary>
         /// States if this token is annotated as a part of the Invocation Expression that needs to be checked for the Conflicts
         /// </summary>
         public readonly bool IsInvocationExpression;
@@ -57,21 +63,23 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         public RenameActionAnnotation(
             TextSpan originalSpan,
             bool isRenameLocation,
-            bool isAccessorLocation,
+            string prefix,
             string suffix,
             bool isOriginalTextLocation,
             RenameDeclarationLocationReference[] renameDeclarationLocations,
             bool isNamespaceDeclarationReference,
-            bool isInvocationExpression)
+            bool isInvocationExpression,
+            bool isMemberGroupReference)
         {
             this.OriginalSpan = originalSpan;
             this.IsRenameLocation = isRenameLocation;
-            this.IsAccessorLocation = isAccessorLocation;
+            this.Prefix = prefix;
             this.Suffix = suffix;
             this.RenameDeclarationLocationReferences = renameDeclarationLocations;
             this.IsOriginalTextLocation = isOriginalTextLocation;
             this.IsNamespaceDeclarationReference = isNamespaceDeclarationReference;
             this.IsInvocationExpression = isInvocationExpression;
+            this.IsMemberGroupReference = isMemberGroupReference;
         }
     }
 }

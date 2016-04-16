@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// <summary>
     /// The class to represent all method parameters imported from a PE/module.
     /// </summary>
-    internal sealed class PEParameterSymbol : ParameterSymbol
+    internal class PEParameterSymbol : ParameterSymbol
     {
         [Flags]
         private enum WellKnownAttributeFlags
@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |.............|h|rr|cccccccc|vvvvvvvv|
+            // |.............|n|rr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
-            // h = hasByRefBeforeCustomModifiers. 1 bit.
+            // n = hasNameInMetadata. 1 bit.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
@@ -49,20 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
 
-            private const int HasByRefBeforeCustomModifiersBit = 0x1 << 18;
+            private const int HasNameInMetadataBit = 0x1 << 18;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
-            private int bits;
+            private int _bits;
 
             public RefKind RefKind
             {
-                get { return (RefKind)((this.bits >> RefKindOffset) & RefKindMask); }
+                get { return (RefKind)((_bits >> RefKindOffset) & RefKindMask); }
             }
 
-            public bool HasByRefBeforeCustomModifiers
+            public bool HasNameInMetadata
             {
-                get { return (this.bits & HasByRefBeforeCustomModifiersBit) != 0; }
+                get { return (_bits & HasNameInMetadataBit) != 0; }
             }
 
 #if DEBUG
@@ -85,13 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 #endif
 
-            public PackedFlags(RefKind refKind, bool hasByRefBeforeCustomModifiers, bool attributesAreComplete)
+            public PackedFlags(RefKind refKind, bool attributesAreComplete, bool hasNameInMetadata)
             {
                 int refKindBits = ((int)refKind & RefKindMask) << RefKindOffset;
-                int hasByRefBeforeCustomModifiersBits = hasByRefBeforeCustomModifiers ? HasByRefBeforeCustomModifiersBit : 0;
                 int attributeBits = attributesAreComplete ? AllWellKnownAttributesCompleteNoData : 0;
+                int hasNameInMetadataBits = hasNameInMetadata ? HasNameInMetadataBit : 0;
 
-                this.bits = refKindBits | hasByRefBeforeCustomModifiersBits | attributeBits;
+                _bits = refKindBits | attributeBits | hasNameInMetadataBits;
             }
 
             public bool SetWellKnownAttribute(WellKnownAttributeFlags flag, bool value)
@@ -104,47 +104,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     bitsToSet |= ((int)flag << WellKnownAttributeDataOffset);
                 }
 
-                ThreadSafeFlagOperations.Set(ref this.bits, bitsToSet);
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
                 return value;
             }
 
             public bool TryGetWellKnownAttribute(WellKnownAttributeFlags flag, out bool value)
             {
-                int theBits = this.bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (theBits & ((int)flag << WellKnownAttributeDataOffset)) != 0;
                 return (theBits & ((int)flag << WellKnownAttributeCompletionFlagOffset)) != 0;
             }
         }
 
-        private readonly Symbol containingSymbol;
-        private readonly string name;
-        private readonly TypeSymbol type;
-        private readonly ParameterHandle handle;
-        private readonly ParameterAttributes flags;
-        private readonly ImmutableArray<CustomModifier> customModifiers;
-        private readonly PEModuleSymbol moduleSymbol;
+        private readonly Symbol _containingSymbol;
+        private readonly string _name;
+        private readonly TypeSymbol _type;
+        private readonly ParameterHandle _handle;
+        private readonly ParameterAttributes _flags;
+        private readonly PEModuleSymbol _moduleSymbol;
 
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
-        private ConstantValue lazyDefaultValue = ConstantValue.Unset;
-        private ThreeState lazyIsParams;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
+        private ThreeState _lazyIsParams;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyHiddenAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyHiddenAttributes;
 
-        private readonly ushort ordinal;
+        private readonly ushort _ordinal;
 
-        private PackedFlags packedFlags;
+        private PackedFlags _packedFlags;
 
-        internal PEParameterSymbol(
+        internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEMethodSymbol containingSymbol,
             int ordinal,
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
-            : this(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.HasByRefBeforeCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad)
         {
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
         }
 
         /// <summary>
@@ -158,15 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// or of the ParamInfo passed in, otherwise).</param>
         /// <param name="isBad" />
         /// <param name="parameter"></param>
-        internal PEParameterSymbol(
+        internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol containingSymbol,
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameter,
             out bool isBad)
-            : this(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.HasByRefBeforeCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad)
         {
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.CountOfCustomModifiersPrecedingByRef, parameter.Type, handle, parameter.CustomModifiers, out isBad);
         }
 
         private PEParameterSymbol(
@@ -174,10 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            bool hasByRefBeforeCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
-            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+            int countOfCustomModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
@@ -186,12 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)type != null);
 
             isBad = false;
-            this.moduleSymbol = moduleSymbol;
-            this.containingSymbol = containingSymbol;
-            this.customModifiers = CSharpCustomModifier.Convert(customModifiers);
-            this.ordinal = (ushort)ordinal;
+            _moduleSymbol = moduleSymbol;
+            _containingSymbol = containingSymbol;
+            _ordinal = (ushort)ordinal;
 
-            this.handle = handle;
+            _handle = handle;
 
             RefKind refKind = RefKind.None;
 
@@ -199,17 +196,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                this.type = type;
-                this.lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-                this.lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-                this.lazyDefaultValue = ConstantValue.NotAvailable;
-                this.lazyIsParams = ThreeState.False;
+                _type = type;
+                _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+                _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+                _lazyDefaultValue = ConstantValue.NotAvailable;
+                _lazyIsParams = ThreeState.False;
             }
             else
             {
                 try
                 {
-                    moduleSymbol.Module.GetParamPropsOrThrow(handle, out this.name, out this.flags);
+                    moduleSymbol.Module.GetParamPropsOrThrow(handle, out _name, out _flags);
                 }
                 catch (BadImageFormatException)
                 {
@@ -218,31 +215,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (isByRef)
                 {
-                    ParameterAttributes inOutFlags = this.flags & (ParameterAttributes.Out | ParameterAttributes.In);
+                    ParameterAttributes inOutFlags = _flags & (ParameterAttributes.Out | ParameterAttributes.In);
                     refKind = (inOutFlags == ParameterAttributes.Out) ? RefKind.Out : RefKind.Ref;
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                this.type = DynamicTypeDecoder.TransformType(type, this.customModifiers.Length, handle, moduleSymbol, refKind);
+                _type = DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind);
             }
 
-            if (string.IsNullOrEmpty(this.name))
+            bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
+            if (!hasNameInMetadata)
             {
                 // As was done historically, if the parameter doesn't have a name, we give it the name "value".
-                this.name = "value";
+                _name = "value";
             }
 
-            this.packedFlags = new PackedFlags(refKind, hasByRefBeforeCustomModifiers, attributesAreComplete: handle.IsNil);
+            _packedFlags = new PackedFlags(refKind, attributesAreComplete: handle.IsNil, hasNameInMetadata: hasNameInMetadata);
 
             Debug.Assert(refKind == this.RefKind);
-            Debug.Assert(hasByRefBeforeCustomModifiers == this.HasByRefBeforeCustomModifiers);
+            Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
+        }
+
+        private bool HasNameInMetadata
+        {
+            get
+            {
+                return _packedFlags.HasNameInMetadata;
+            }
+        }
+
+        private static PEParameterSymbol Create(
+            PEModuleSymbol moduleSymbol,
+            Symbol containingSymbol,
+            int ordinal,
+            bool isByRef,
+            ushort countOfCustomModifiersPrecedingByRef,
+            TypeSymbol type,
+            ParameterHandle handle,
+            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+            out bool isBad)
+        {
+            if (customModifiers.IsDefaultOrEmpty)
+            {
+                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad);
+            }
+
+            return new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef, type, handle, customModifiers, out isBad);
+        }
+
+        private sealed class PEParameterSymbolWithCustomModifiers : PEParameterSymbol
+        {
+            private readonly ImmutableArray<CustomModifier> _customModifiers;
+            private readonly ushort _countOfCustomModifiersPrecedingByRef;
+
+            public PEParameterSymbolWithCustomModifiers(
+                PEModuleSymbol moduleSymbol,
+                Symbol containingSymbol,
+                int ordinal,
+                bool isByRef,
+                ushort countOfCustomModifiersPrecedingByRef,
+                TypeSymbol type,
+                ParameterHandle handle,
+                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+                out bool isBad) :
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, customModifiers.Length, out isBad)
+            {
+                _customModifiers = CSharpCustomModifier.Convert(customModifiers);
+                _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef == 0 || isByRef);
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
+            }
+
+            public override ImmutableArray<CustomModifier> CustomModifiers
+            {
+                get
+                {
+                    return _customModifiers;
+                }
+            }
+
+            internal override ushort CountOfCustomModifiersPrecedingByRef
+            {
+                get
+                {
+                    return _countOfCustomModifiersPrecedingByRef;
+                }
+            }
         }
 
         public override RefKind RefKind
         {
             get
             {
-                return this.packedFlags.RefKind;
+                return _packedFlags.RefKind;
             }
         }
 
@@ -250,7 +316,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.name;
+                return _name;
+            }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                return HasNameInMetadata ? _name : string.Empty;
             }
         }
 
@@ -258,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return flags;
+                return _flags;
             }
         }
 
@@ -266,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.ordinal;
+                return _ordinal;
             }
         }
 
@@ -275,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return handle;
+                return _handle;
             }
         }
 
@@ -283,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.containingSymbol;
+                return _containingSymbol;
             }
         }
 
@@ -291,28 +365,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.flags & ParameterAttributes.HasDefault) != 0;
+                return (_flags & ParameterAttributes.HasDefault) != 0;
             }
         }
 
         /// <remarks>
         /// Internal for testing.  Non-test code should use <see cref="ExplicitDefaultConstantValue"/>.
         /// </remarks>
-        internal ConstantValue ImportConstantValue()
+        internal ConstantValue ImportConstantValue(bool ignoreAttributes = false)
         {
-            Debug.Assert(!this.handle.IsNil);
+            Debug.Assert(!_handle.IsNil);
 
             // Metadata Spec 22.33: 
             //   6. If Flags.HasDefault = 1 then this row [of Param table] shall own exactly one row in the Constant table [ERROR]
             //   7. If Flags.HasDefault = 0, then there shall be no rows in the Constant table owned by this row [ERROR]
             ConstantValue value = null;
 
-            if ((this.flags & ParameterAttributes.HasDefault) != 0)
+            if ((_flags & ParameterAttributes.HasDefault) != 0)
             {
-                value = this.moduleSymbol.Module.GetParamDefaultValue(this.handle);
+                value = _moduleSymbol.Module.GetParamDefaultValue(_handle);
             }
 
-            if (value == null)
+            if (value == null && !ignoreAttributes)
             {
                 value = GetDefaultDecimalOrDateTimeValue();
             }
@@ -324,38 +398,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // From the C# point of view, there is no need to import a parameter's default value
-                // if the language isn't going to treat it as optional.
-                // NOTE: This disrupts round-tripping, but the trade-off seems acceptable.
-                if (!IsMetadataOptional)
-                    return null;
-
                 // The HasDefault flag has to be set, it doesn't suffice to mark the parameter with DefaultParameterValueAttribute.
-                if (lazyDefaultValue == ConstantValue.Unset)
+                if (_lazyDefaultValue == ConstantValue.Unset)
                 {
-                    ConstantValue value = ImportConstantValue();
-                    Interlocked.CompareExchange(ref lazyDefaultValue, value, ConstantValue.Unset);
+                    // From the C# point of view, there is no need to import a parameter's default value
+                    // if the language isn't going to treat it as optional. However, we might need metadata constant value for NoPia.
+                    // NOTE: Ignoring attributes for non-Optional parameters disrupts round-tripping, but the trade-off seems acceptable.
+                    ConstantValue value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
+                    Interlocked.CompareExchange(ref _lazyDefaultValue, value, ConstantValue.Unset);
                 }
 
-                return lazyDefaultValue;
+                return _lazyDefaultValue;
             }
         }
 
         private ConstantValue GetDefaultDecimalOrDateTimeValue()
         {
-            Debug.Assert(!this.handle.IsNil);
+            Debug.Assert(!_handle.IsNil);
             ConstantValue value = null;
 
             // It is possible in Visual Basic for a parameter of object type to have a default value of DateTime type.
             // If it's present, use it.  We'll let the call-site figure out whether it can actually be used.
-            if (this.moduleSymbol.Module.HasDateTimeConstantAttribute(this.handle, out value))
+            if (_moduleSymbol.Module.HasDateTimeConstantAttribute(_handle, out value))
             {
                 return value;
             }
 
             // It is possible in Visual Basic for a parameter of object type to have a default value of decimal type.
             // If it's present, use it.  We'll let the call-site figure out whether it can actually be used.
-            if (this.moduleSymbol.Module.HasDecimalConstantAttribute(this.handle, out value))
+            if (_moduleSymbol.Module.HasDecimalConstantAttribute(_handle, out value))
             {
                 return value;
             }
@@ -367,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.flags & ParameterAttributes.Optional) != 0;
+                return (_flags & ParameterAttributes.Optional) != 0;
             }
         }
 
@@ -378,9 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasIDispatchConstantAttribute;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
                         AttributeDescription.IDispatchConstantAttribute));
                 }
                 return value;
@@ -394,9 +465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasIUnknownConstantAttribute;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
                         AttributeDescription.IUnknownConstantAttribute));
                 }
                 return value;
@@ -410,9 +481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerLineNumberAttribute;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
                         AttributeDescription.CallerLineNumberAttribute));
                 }
                 return value;
@@ -426,9 +497,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerFilePathAttribute;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
                         AttributeDescription.CallerFilePathAttribute));
                 }
                 return value;
@@ -442,9 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerMemberNameAttribute;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
                         AttributeDescription.CallerMemberNameAttribute));
                 }
                 return value;
@@ -458,13 +529,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerLineNumber;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
 
-                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
+                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
                 return value;
             }
@@ -477,14 +548,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerFilePath;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
 
-                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
+                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
                 return value;
             }
@@ -497,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerMemberName;
 
                 bool value;
-                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
@@ -505,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         && HasCallerMemberNameAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
 
-                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
+                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
                 return value;
             }
@@ -515,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.type;
+                return _type;
             }
         }
 
@@ -523,33 +594,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return customModifiers;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal override ushort CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return this.packedFlags.HasByRefBeforeCustomModifiers;
+                return 0;
             }
         }
 
         internal override bool IsMetadataIn
         {
-            get { return (this.flags & ParameterAttributes.In) != 0; }
+            get { return (_flags & ParameterAttributes.In) != 0; }
         }
 
         internal override bool IsMetadataOut
         {
-            get { return (this.flags & ParameterAttributes.Out) != 0; }
+            get { return (_flags & ParameterAttributes.Out) != 0; }
         }
 
         internal override bool IsMarshalledExplicitly
         {
             get
             {
-                return (flags & ParameterAttributes.HasFieldMarshal) != 0;
+                return (_flags & ParameterAttributes.HasFieldMarshal) != 0;
             }
         }
 
@@ -566,13 +637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((flags & ParameterAttributes.HasFieldMarshal) == 0)
+                if ((_flags & ParameterAttributes.HasFieldMarshal) == 0)
                 {
                     return default(ImmutableArray<byte>);
                 }
 
-                Debug.Assert(!this.handle.IsNil);
-                return this.moduleSymbol.Module.GetMarshallingDescriptor(this.handle);
+                Debug.Assert(!_handle.IsNil);
+                return _moduleSymbol.Module.GetMarshallingDescriptor(_handle);
             }
         }
 
@@ -580,13 +651,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((flags & ParameterAttributes.HasFieldMarshal) == 0)
+                if ((_flags & ParameterAttributes.HasFieldMarshal) == 0)
                 {
                     return 0;
                 }
 
-                Debug.Assert(!this.handle.IsNil);
-                return this.moduleSymbol.Module.GetMarshallingType(this.handle);
+                Debug.Assert(!_handle.IsNil);
+                return _moduleSymbol.Module.GetMarshallingType(_handle);
             }
         }
 
@@ -597,11 +668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // This is also populated by loading attributes, but loading
                 // attributes is more expensive, so we should only do it if
                 // attributes are requested.
-                if (!this.lazyIsParams.HasValue())
+                if (!_lazyIsParams.HasValue())
                 {
-                    this.lazyIsParams = moduleSymbol.Module.HasParamsAttribute(handle).ToThreeState();
+                    _lazyIsParams = _moduleSymbol.Module.HasParamsAttribute(_handle).ToThreeState();
                 }
-                return this.lazyIsParams.Value();
+                return _lazyIsParams.Value();
             }
         }
 
@@ -609,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return containingSymbol.Locations;
+                return _containingSymbol.Locations;
             }
         }
 
@@ -623,14 +694,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (this.lazyCustomAttributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
-                Debug.Assert(!this.handle.IsNil);
+                Debug.Assert(!_handle.IsNil);
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
                 // Filter out ParamArrayAttributes if necessary and cache
                 // the attribute handle for GetCustomAttributesToEmit
-                bool filterOutParamArrayAttribute = (!this.lazyIsParams.HasValue() || this.lazyIsParams.Value());
+                bool filterOutParamArrayAttribute = (!_lazyIsParams.HasValue() || _lazyIsParams.Value());
 
                 ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
                 AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
@@ -654,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     ImmutableArray<CSharpAttributeData> attributes =
                         containingPEModuleSymbol.GetCustomAttributesForToken(
-                            this.handle,
+                            _handle,
                             out paramArrayAttribute,
                             filterOutParamArrayAttribute ? AttributeDescription.ParamArrayAttribute : default(AttributeDescription),
                             out constantAttribute,
@@ -674,32 +745,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             builder.Add(new PEAttributeData(containingPEModuleSymbol, constantAttribute));
                         }
 
-                        ImmutableInterlocked.InterlockedInitialize(ref lazyHiddenAttributes, builder.ToImmutableAndFree());
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, builder.ToImmutableAndFree());
                     }
                     else
                     {
-                        ImmutableInterlocked.InterlockedInitialize(ref lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
                     }
 
-                    if (!this.lazyIsParams.HasValue())
+                    if (!_lazyIsParams.HasValue())
                     {
                         Debug.Assert(filterOutParamArrayAttribute);
-                        this.lazyIsParams = (!paramArrayAttribute.IsNil).ToThreeState();
+                        _lazyIsParams = (!paramArrayAttribute.IsNil).ToThreeState();
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(
-                        ref this.lazyCustomAttributes,
+                        ref _lazyCustomAttributes,
                         attributes);
                 }
                 else
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
-                    containingPEModuleSymbol.LoadCustomAttributes(this.handle, ref this.lazyCustomAttributes);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyHiddenAttributes, ImmutableArray<CSharpAttributeData>.Empty);
+                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
                 }
             }
 
-            Debug.Assert(!this.lazyHiddenAttributes.IsDefault);
-            return this.lazyCustomAttributes;
+            Debug.Assert(!_lazyHiddenAttributes.IsDefault);
+            return _lazyCustomAttributes;
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
@@ -710,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Yield hidden attributes last, order might be important.
-            foreach (CSharpAttributeData attribute in lazyHiddenAttributes)
+            foreach (CSharpAttributeData attribute in _lazyHiddenAttributes)
             {
                 yield return attribute;
             }

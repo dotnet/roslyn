@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits SynthesizedRegularMethodBase
 
         Private _parameters As ImmutableArray(Of ParameterSymbol)
-        Private ReadOnly _overridenMethod As MethodSymbol
+        Private ReadOnly _overriddenMethod As MethodSymbol
         Private ReadOnly _interfaceMethods As ImmutableArray(Of MethodSymbol)
         Private ReadOnly _isOverloads As Boolean
         Private ReadOnly _returnType As TypeSymbol
@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New(container As NamedTypeSymbol,
                        name As String,
                        returnType As TypeSymbol,
-                       Optional overridenMethod As MethodSymbol = Nothing,
+                       Optional overriddenMethod As MethodSymbol = Nothing,
                        Optional interfaceMethod As MethodSymbol = Nothing,
                        Optional isOverloads As Boolean = False)
 
             MyBase.New(VisualBasicSyntaxTree.Dummy.GetRoot(), container, name)
             Me._returnType = returnType
-            Me._overridenMethod = overridenMethod
+            Me._overriddenMethod = overriddenMethod
             Me._isOverloads = isOverloads
             Me._interfaceMethods = If(interfaceMethod Is Nothing,
                                       ImmutableArray(Of MethodSymbol).Empty,
@@ -43,13 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
-                Return Me._overridenMethod IsNot Nothing
+                Return Me._overriddenMethod IsNot Nothing
             End Get
         End Property
 
         Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
             Get
-                Return Me._overridenMethod
+                Return Me._overriddenMethod
             End Get
         End Property
 

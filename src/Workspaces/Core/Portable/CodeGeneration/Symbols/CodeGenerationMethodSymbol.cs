@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
     {
-        private readonly ITypeSymbol returnType;
-        private readonly ImmutableArray<ITypeParameterSymbol> typeParameters;
-        private readonly ImmutableArray<IParameterSymbol> parameters;
-        private readonly ImmutableArray<IMethodSymbol> explicitInterfaceImplementations;
-        private readonly MethodKind methodKind;
+        private readonly ITypeSymbol _returnType;
+        private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<IParameterSymbol> _parameters;
+        private readonly ImmutableArray<IMethodSymbol> _explicitInterfaceImplementations;
+        private readonly MethodKind _methodKind;
 
         public CodeGenerationMethodSymbol(
             INamedTypeSymbol containingType,
@@ -33,22 +33,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             MethodKind methodKind = MethodKind.Ordinary)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
-            this.returnType = returnType;
-            this.typeParameters = typeParameters.AsImmutableOrEmpty();
-            this.parameters = parameters.AsImmutableOrEmpty();
-            this.explicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
+            _returnType = returnType;
+            _typeParameters = typeParameters.AsImmutableOrEmpty();
+            _parameters = parameters.AsImmutableOrEmpty();
+            _explicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
                 ? ImmutableArray.Create<IMethodSymbol>()
                 : ImmutableArray.Create(explicitInterfaceSymbolOpt);
 
             this.OriginalDefinition = this;
-            this.methodKind = methodKind;
+            _methodKind = methodKind;
         }
 
         public override ITypeSymbol ReturnType
         {
             get
             {
-                return this.returnType;
+                return _returnType;
             }
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.typeParameters;
+                return _typeParameters;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.parameters;
+                return _parameters;
             }
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.explicitInterfaceImplementations;
+                return _explicitInterfaceImplementations;
             }
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.methodKind;
+                return _methodKind;
             }
         }
 

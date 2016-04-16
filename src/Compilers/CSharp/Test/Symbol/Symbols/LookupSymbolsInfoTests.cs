@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LookupSymbolsInfoTests : CSharpTestBase
     {
-        class TemplateArgEnumerator : IEnumerator<string>
+        private class TemplateArgEnumerator : IEnumerator<string>
         {
-            short current;
+            private short _current;
 
             public TemplateArgEnumerator()
             {
-                this.current = 0;
+                _current = 0;
             }
 
             public string Current
             {
-                get { return string.Format("T{0}", current.ToString()); }
+                get { return string.Format("T{0}", _current.ToString()); }
             }
 
             public void Dispose()
@@ -38,24 +38,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public bool MoveNext()
             {
-                if (current == short.MaxValue)
+                if (_current == short.MaxValue)
                 {
                     return false;
                 }
 
-                current++;
+                _current++;
                 return true;
             }
 
             public void Reset()
             {
-                this.current = 0;
+                _current = 0;
             }
         }
 
-        class TemplateArgEnumerable : IEnumerable<string>
+        private class TemplateArgEnumerable : IEnumerable<string>
         {
-            public static IEnumerable<string> Instance = new TemplateArgEnumerable();
+            public static readonly IEnumerable<string> Instance = new TemplateArgEnumerable();
 
             public IEnumerator<string> GetEnumerator()
             {
@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        static string GenerateTemplateArgs(int arity)
+        private static string GenerateTemplateArgs(int arity)
         {
             if (arity == 0) return string.Empty;
             return string.Format("<{0}>", string.Join(",", TemplateArgEnumerable.Instance.Take(arity)));
         }
 
-        static void AppendEmptyClass(StringBuilder sb, string root, int arity)
+        private static void AppendEmptyClass(StringBuilder sb, string root, int arity)
         {
             sb.Append("class ");
             sb.Append(root);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             sb.AppendLine(" {}");
         }
 
-        static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
+        private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
         {
             var compilation = CreateCompilationWithMscorlib(source);
 

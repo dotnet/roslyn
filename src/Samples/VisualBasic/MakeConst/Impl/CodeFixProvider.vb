@@ -12,18 +12,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="MakeConstVB"), [Shared]>
-Class MakeConstCodeFixProvider
+Friend Class MakeConstCodeFixProvider
     Inherits CodeFixProvider
 
-    Public NotOverridable Overrides Function GetFixableDiagnosticIds() As ImmutableArray(Of String)
-        Return ImmutableArray.Create(DiagnosticAnalyzer.MakeConstDiagnosticId)
-    End Function
+    Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
+        Get
+            Return ImmutableArray.Create(DiagnosticAnalyzer.MakeConstDiagnosticId)
+        End Get
+    End Property
 
     Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
         Return Nothing
     End Function
 
-    Public NotOverridable Overrides Async Function ComputeFixesAsync(context As CodeFixContext) As Task
+    Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
         Dim diagnostic = context.Diagnostics.First()
         Dim diagnosticSpan = diagnostic.Location.SourceSpan
         Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken)
@@ -32,7 +34,7 @@ Class MakeConstCodeFixProvider
         Dim declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType(Of LocalDeclarationStatementSyntax)().First()
 
         ' Register a code action that will invoke the fix.
-        context.RegisterFix(CodeAction.Create("Make constant", Function(c) MakeConstAsync(context.Document, declaration, c)), diagnostic)
+        context.RegisterCodeFix(CodeAction.Create("Make constant", Function(c) MakeConstAsync(context.Document, declaration, c)), diagnostic)
     End Function
 
     Private Async Function MakeConstAsync(document As Document, localDeclaration As LocalDeclarationStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)

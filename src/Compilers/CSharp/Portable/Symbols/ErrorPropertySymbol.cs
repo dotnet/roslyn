@@ -20,32 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ErrorPropertySymbol : PropertySymbol
     {
-        private readonly Symbol containingSymbol;
-        private readonly TypeSymbol type;
-        private readonly string name;
-        private readonly bool isIndexer;
-        private readonly bool isIndexedProperty;
+        private readonly Symbol _containingSymbol;
+        private readonly TypeSymbol _type;
+        private readonly string _name;
+        private readonly bool _isIndexer;
+        private readonly bool _isIndexedProperty;
 
         public ErrorPropertySymbol(Symbol containingSymbol, TypeSymbol type, string name, bool isIndexer, bool isIndexedProperty)
         {
-            this.containingSymbol = containingSymbol;
-            this.type = type;
-            this.name = name;
-            this.isIndexer = isIndexer;
-            this.isIndexedProperty = isIndexedProperty;
+            _containingSymbol = containingSymbol;
+            _type = type;
+            _name = name;
+            _isIndexer = isIndexer;
+            _isIndexedProperty = isIndexedProperty;
         }
 
-        public override Symbol ContainingSymbol { get { return this.containingSymbol; } }
+        public override Symbol ContainingSymbol { get { return _containingSymbol; } }
 
-        public override TypeSymbol Type { get { return this.type; } }
+        public override TypeSymbol Type { get { return _type; } }
 
-        public override string Name { get { return this.name; } }
+        public override string Name { get { return _name; } }
 
         internal override bool HasSpecialName { get { return false; } }
 
-        public override bool IsIndexer { get { return this.isIndexer; } }
+        public override bool IsIndexer { get { return _isIndexer; } }
 
-        public override bool IsIndexedProperty { get { return this.isIndexedProperty; } }
+        public override bool IsIndexedProperty { get { return _isIndexedProperty; } }
 
         // CONSIDER: could create an ErrorMethodSymbol
         public override MethodSymbol GetMethod { get { return null; } }

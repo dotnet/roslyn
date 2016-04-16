@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// The original span of the changed text. 
         /// </summary>
-        public TextSpan Span { get; private set; }
+        public TextSpan Span { get; }
 
         /// <summary>
         /// The new text.
         /// </summary>
-        public string NewText { get; private set; }
+        public string NewText { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="TextChange"/>
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (newText == null)
             {
-                throw new ArgumentNullException("newText");
+                throw new ArgumentNullException(nameof(newText));
             }
 
             this.Span = span;
@@ -86,6 +86,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// An empty set of changes.
         /// </summary>
-        public static readonly IReadOnlyList<TextChange> NoChanges = SpecializedCollections.EmptyReadOnlyList<TextChange>();
+        public static IReadOnlyList<TextChange> NoChanges => SpecializedCollections.EmptyReadOnlyList<TextChange>();
     }
 }

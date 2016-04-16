@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal class TypeSyntaxComparer : IComparer<TypeSyntax>
     {
-        private readonly IComparer<SyntaxToken> tokenComparer;
+        private readonly IComparer<SyntaxToken> _tokenComparer;
         internal IComparer<NameSyntax> NameComparer;
 
         internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
         {
-            this.tokenComparer = tokenComparer;
+            _tokenComparer = tokenComparer;
         }
 
         public int Compare(TypeSyntax x, TypeSyntax y)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // we have two predefined types, or a predefined type and a normal C# name.  We only need
             // to compare the first tokens here.
-            return tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+            return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
         }
 
         private TypeSyntax UnwrapType(TypeSyntax type)

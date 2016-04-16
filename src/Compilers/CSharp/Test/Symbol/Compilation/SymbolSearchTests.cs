@@ -133,11 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Test(compilation, n => n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: true, includeType: true, includeMember: true, count: 2);
         }
 
-        [WorkItem(876191)]
+        [WorkItem(876191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876191")]
         [Fact]
         public void TestExplicitInterfaceSearch()
         {
-            var source = @"
+            const string source = @"
 interface I
 {
     void M();
@@ -153,14 +153,14 @@ class Implicit : I
     public void M() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sources: new string[] { source });
+            var compilation = CreateCompilationWithMscorlib(new[] { source });
 
             Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
 
         private static CSharpCompilation GetTestCompilation()
         {
-            string source = @"
+            const string source = @"
 namespace System
 {
     public class Test { }

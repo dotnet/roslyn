@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (labeledSyntax != null)
                 {
                     var span = TextSpan.FromBounds(labeledSyntax.Identifier.SpanStart, labeledSyntax.ColonToken.Span.End);
-                    labelStatement = factory.SequencePointWithSpan(labeledSyntax, span, labelStatement);
+                    labelStatement = _factory.SequencePointWithSpan(labeledSyntax, span, labelStatement);
                 }
             }
 

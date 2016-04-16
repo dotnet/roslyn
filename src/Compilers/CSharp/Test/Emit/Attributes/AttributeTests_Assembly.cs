@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AssemblyAttributeTests : CSharpTestBase
     {
-        private readonly string NetModuleName = GetUniqueName() + ".netmodule";
+        private readonly string _netModuleName = GetUniqueName() + ".netmodule";
 
         [Fact]
         public void VersionAttribute()
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void VersionAttribute02()
+        public void VersionAttribute_FourParts()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.22.333.4444"")] public class C {}";
 
@@ -42,17 +43,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.Equal(new Version(1, 22, 333, 4444), r.Version);
             });
+        }
 
-            s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+        [Fact]
+        public void VersionAttribute_TwoParts()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""1.2"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(1, r.Version.Major);
+                Assert.Equal(2, r.Version.Minor);
+                Assert.Equal(0, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
+            });
+        }
+
+        [Fact]
+        public void VersionAttribute_WildCard()
+        {
+            var now = DateTime.Now;
+            int days, seconds;
+            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(10101, r.Version.Major);
                 Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(days, r.Version.Build);
+                Assert.Equal(seconds, r.Version.Revision);
             });
         }
 
-        [Fact, WorkItem(545947, "DevDiv")]
+        [Fact]
+        public void VersionAttribute_Overflow()
+        {
+            var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
+            var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(new DateTime(2300, 1, 1)));
+            VerifyAssemblyTable(comp, r =>
+            {
+                Assert.Equal(10101, r.Version.Major);
+                Assert.Equal(0, r.Version.Minor);
+                Assert.Equal(65535, r.Version.Build);
+                Assert.Equal(0, r.Version.Revision);
+            });
+        }
+
+        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947")]
         public void VersionAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.*"")] public class C {}";
@@ -82,7 +121,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void FileVersionAttributeWrn()
+        public void FileVersionAttribute_MissingParts()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("1.2", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttribute_MaxValue()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""65535.65535.65535.65535"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            Assert.Empty(other.GetDiagnostics());
+            Assert.Equal("65535.65535.65535.65535", ((SourceAssemblySymbol)other.Assembly).FileVersion);
+        }
+
+        [Fact]
+        public void FileVersionAttributeWrn_Wildcard()
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.*"")] public class C {}";
 
@@ -90,13 +149,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*"""));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
-            var warnings = new System.Collections.Generic.Dictionary<string, ReportDiagnostic>();
+            var warnings = new Dictionary<string, ReportDiagnostic>();
             warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
             other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
             other.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(545947, "DevDiv"), WorkItem(546971, "DevDiv")]
+        [Fact]
+        public void FileVersionAttributeWarning_OutOfRange()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.65536"")] public class C {}";
+
+            var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536"""));
+
+            // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
+            var warnings = new Dictionary<string, ReportDiagnostic>();
+            warnings.Add(MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ALinkWarn), ReportDiagnostic.Suppress);
+            other = other.WithOptions(other.Options.WithSpecificDiagnosticOptions(warnings));
+            other.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"), WorkItem(546971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546971")]
         public void SatelliteContractVersionAttributeErr()
         {
             string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.3.A"")] public class C {}";
@@ -177,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyAssemblyTable(comp, null, strData: "zh-CN");
         }
 
-        [Fact, WorkItem(545949, "DevDiv")]
+        [Fact, WorkItem(545949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545949")]
         public void CultureAttribute03()
         {
             // Executables cannot be satellite assemblies; culture should always be empty
@@ -190,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyAssemblyTable(comp, r => { Assert.True(r.Culture.IsNil); });
         }
 
-        [Fact, WorkItem(545949, "DevDiv")]
+        [Fact, WorkItem(545949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545949")]
         public void CultureAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyCulture(""pt-BR"")] public class C {  static void Main() { }  }";
@@ -201,20 +275,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCultureForExe, @"""pt-BR""").WithLocation(1, 46));
         }
 
-        [Fact, WorkItem(1032718)]
+        [Fact, WorkItem(1032718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032718")]
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false, symbolValidator: m =>
-                                                        {
-                                                            var utf8 = new System.Text.UTF8Encoding(false, false);
-                                                            Assert.True(utf8.GetString(utf8.GetBytes("\uD800")) == m.ContainingAssembly.Identity.CultureName);
-                                                        });
+            CompileAndVerify(comp, verify: false, symbolValidator: m =>
+            {
+                var utf8 = new System.Text.UTF8Encoding(false, false);
+                Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
+            });
         }
 
-        [Fact, WorkItem(1034455)]
+        [Fact, WorkItem(1034455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034455")]
         public void NulCharInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\0"")]";
@@ -271,7 +345,7 @@ public class en_US
 ", new MetadataReference[] { deRef, neutralRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "10");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -280,8 +354,8 @@ public class en_US
 
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
-            CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -300,7 +374,7 @@ public class Test
     void M(en_us x)
     {}
 }
-", new MetadataReference[] { en_usRef}, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "23");
+", new MetadataReference[] { en_usRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "23");
 
             compilation.VerifyEmitDiagnostics();
 
@@ -329,32 +403,20 @@ public class en_US
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "40");
 
             CompileAndVerify(compilation,
-                // TODO: KevinH - I'm not sure why PeVerify started requiring this assembly after I refactored some test helpers.
-                //       I verified that the actual assemblies being compiled only differ by MVID before/after, so I don't think
-                //       it's a product issue.  I *think* that one of the CompileAndVerify calls above may have been writing the
-                //       neutral assembly to disk somewhere that Fusion could find and load it (perhaps RefEmit wrote it to disk?).
-                dependencies: new[]
-                {
-                    new ModuleData(
-                        neutral.Assembly.Identity,
-                        OutputKind.DynamicallyLinkedLibrary, 
-                        neutral.EmitToArray(options: new EmitOptions(metadataOnly: true)), 
-                        pdb: default(ImmutableArray<byte>), 
-                        inMemoryModule: true)
-                },
                 sourceSymbolValidator: m =>
-                    {
-                        Assert.Equal(1, m.GetReferencedAssemblySymbols().Length);
+                {
+                    Assert.Equal(1, m.GetReferencedAssemblySymbols().Length);
 
-                        var naturalRef = m.ContainingAssembly.Modules[1].GetReferencedAssemblySymbols()[1];
-                        Assert.True(naturalRef.IsMissing);
-                        Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", naturalRef.ToTestDisplayString());
-                    },
+                    var naturalRef = m.ContainingAssembly.Modules[1].GetReferencedAssemblySymbols()[1];
+                    Assert.True(naturalRef.IsMissing);
+                    Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", naturalRef.ToTestDisplayString());
+                },
                 symbolValidator: m =>
-                    {
-                        Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
-                        Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
-                    }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics();
+                {
+                    Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
+                    Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
+                },
+                verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(
 @"
@@ -366,7 +428,7 @@ public class neutral
 ", new MetadataReference[] { deRef }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "50");
 
             CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
 
@@ -375,8 +437,8 @@ public class neutral
 
             compilation = CreateCompilationWithMscorlib("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
-            CompileAndVerify(compilation).VerifyDiagnostics(
-                // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+    // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
         }
@@ -443,13 +505,13 @@ public class neutral
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
 
-        [Fact, WorkItem(529921, "DevDiv")]
+        [Fact, WorkItem(529921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529921")]
         public void AlgorithmIdAttribute()
         {
             var hash_module = TestReferences.SymbolsTests.netModule.hash_module;
 
-            var hash_resources = new [] {new ResourceDescription("hash_resource", "snKey.snk", 
-                () => new MemoryStream(TestResources.SymbolsTests.General.snKey, writable: false), 
+            var hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
+                () => new MemoryStream(TestResources.General.snKey, writable: false),
                 true)};
 
             CSharpCompilation compilation;
@@ -462,16 +524,16 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm);
 
                     var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
-                    Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 }, 
+                    Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 },
                         reader.GetBlobBytes(file1.HashValue));
 
                     var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
@@ -491,9 +553,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -520,9 +582,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -549,9 +611,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -577,9 +639,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -606,9 +668,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -639,9 +701,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify:false, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(compilation, verify: false,
                 manifestResources: hash_resources,
-                validator: (peAssembly, _) =>
+                validator: (peAssembly) =>
                 {
                     var reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
@@ -679,8 +741,8 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug,
-                validator: (peAssembly, _) =>
+            CompileAndVerify(compilation,
+                validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = peReader.GetAssemblyDefinition();
@@ -761,7 +823,7 @@ public class C {}
             VerifyAssemblyTable(comp, r => { Assert.Equal((int)flags, (int)r.Flags); });
         }
 
-        [Fact, WorkItem(546635, "DevDiv")]
+        [Fact, WorkItem(546635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546635")]
         public void AssemblyFlagsAttribute02()
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345)] public class C {} ";
@@ -809,9 +871,7 @@ public class C {}
             {
                 var peReader = metadata.MetadataReader;
                 AssemblyDefinition row = peReader.GetAssemblyDefinition();
-
-                if (verifier != null)
-                    verifier(row);
+                verifier?.Invoke(row);
 
                 // Locale
                 // temp
@@ -831,7 +891,7 @@ public class C {}
 
         #region Helpers
 
-        private static string DefaultNetModuleSourceHeader =
+        private static readonly string s_defaultNetModuleSourceHeader =
             @"using System;
                 using System.Reflection;
                 using System.Security.Permissions;
@@ -842,7 +902,7 @@ public class C {}
                 [assembly: UserDefinedAssemblyAttrAllowMultiple(""UserDefinedAssemblyAttrAllowMultiple"")]
             ";
 
-        private static string DefaultNetModuleSourceBody =
+        private static readonly string s_defaultNetModuleSourceBody =
                 @"
                 public class NetModuleClass { }
 
@@ -875,7 +935,7 @@ public class C {}
 
         private ModuleMetadata GetNetModuleWithAssemblyAttributes(string source = null, IEnumerable<MetadataReference> references = null, string assemblyName = null)
         {
-            source = source ?? DefaultNetModuleSourceHeader + DefaultNetModuleSourceBody;
+            source = source ?? s_defaultNetModuleSourceHeader + s_defaultNetModuleSourceBody;
             var netmoduleCompilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
@@ -926,14 +986,14 @@ public class C {}
 
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(18, metadataReader.CustomAttributes.Count);
-            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
-            Handle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             var consoleappCompilation = CreateCompilationWithMscorlib(
-                consoleappSource, 
-                references: new[] { netModuleWithAssemblyAttributes.GetReference() }, 
+                consoleappSource,
+                references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
 
             var diagnostics = consoleappCompilation.GetDiagnostics();
@@ -964,19 +1024,19 @@ public class C {}
 
             var exeMetadata = AssemblyMetadata.CreateFromImage(consoleappCompilation.EmitToArray());
 
-            peModule = exeMetadata.GetAssembly().ManifestModule; 
+            peModule = exeMetadata.GetAssembly().ManifestModule;
             metadataReader = peModule.GetMetadataReader();
 
             Assert.Equal(1, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
             Assert.Equal(3, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(6, metadataReader.CustomAttributes.Count);
-            Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(1, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             consoleappCompilation = CreateCompilationWithMscorlib(
-                consoleappSource, 
+                consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseModule);
 
@@ -990,7 +1050,7 @@ public class C {}
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ModuleRef));
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(0, metadataReader.CustomAttributes.Count);
-            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count); 
+            Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count);
 
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
@@ -1143,7 +1203,7 @@ public class C {}
             }
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromNetModuleBadMulti()
         {
             string consoleappSource =
@@ -1187,7 +1247,7 @@ public class C {}
             Assert.Equal(5, attrs.Length);
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void InternalsVisibleToAttributeDropIdentical()
         {
             var source = @"
@@ -1196,7 +1256,7 @@ using System.Runtime.CompilerServices;
 [assembly:InternalsVisibleTo(""Assembly2"")]
 ";
             var compilation = CreateCompilationWithMscorlib(source);
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
                 expectedSrcAttrCount: 2,
@@ -1204,7 +1264,7 @@ using System.Runtime.CompilerServices;
                 attrTypeName: "InternalsVisibleToAttribute");
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromSourceDropIdentical()
         {
             // Attribute with AllowMultiple = True
@@ -1243,7 +1303,7 @@ class Program
                 attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromSourceDropIdentical_02()
         {
             // Attribute with AllowMultiple = False
@@ -1258,7 +1318,7 @@ class Program
             string defaultHeaderString = @"
 using System;
 ";
-            var defsRef = CreateCompilationWithMscorlib(defaultHeaderString + DefaultNetModuleSourceBody).ToMetadataReference();
+            var defsRef = CreateCompilationWithMscorlib(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(source2, references: new[] { defsRef });
 
             var compilation = CreateCompilationWithMscorlib(source1, references: new[] { defsRef, netmodule1Ref }, options: TestOptions.ReleaseDll);
@@ -1279,10 +1339,9 @@ using System;
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
-
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromNetModuleDropIdentical_01()
         {
             // Duplicate ignored attributes in netmodule
@@ -1308,7 +1367,7 @@ using System;
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text2 = ""str1"", Text = ""str1"")]	    // unique
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 class Program
@@ -1323,7 +1382,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromNetModuleDropIdentical_02()
         {
             string netmodule1Attributes = @"
@@ -1357,8 +1416,8 @@ class Program
             string defaultBodyString = @"
 using System;
 ";
-            MetadataReference netmoduleDefsRef = GetNetModuleWithAssemblyAttributesRef(defaultBodyString + DefaultNetModuleSourceBody);
-            MetadataReference netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader, references: new[] { netmoduleDefsRef });
+            MetadataReference netmoduleDefsRef = GetNetModuleWithAssemblyAttributesRef(defaultBodyString + s_defaultNetModuleSourceBody);
+            MetadataReference netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(netmodule1Attributes, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule2Ref = GetNetModuleWithAssemblyAttributesRef(netmodule2Attributes, references: new[] { netmoduleDefsRef });
             MetadataReference netmodule3Ref = GetNetModuleWithAssemblyAttributesRef(netmodule3Attributes, references: new[] { netmoduleDefsRef });
@@ -1376,7 +1435,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         {
             // All duplicate ignored attributes in netmodule
@@ -1387,7 +1446,7 @@ class Program
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str2"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0)]  		            // unique
@@ -1418,7 +1477,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546939, "DevDiv")]
+        [Fact, WorkItem(546939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546939")]
         public void AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         {
             // Duplicate ignored attributes in netmodule & source
@@ -1429,7 +1488,7 @@ class Program
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str2"")]	    // duplicate
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text = ""str1"", Text2 = ""str1"")]	    // duplicate
 ";
-            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader + netmoduleAttributes + DefaultNetModuleSourceBody);
+            MetadataReference netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader + netmoduleAttributes + s_defaultNetModuleSourceBody);
 
             string source = @"
 [assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0)]  		            // unique
@@ -1465,7 +1524,7 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546825, "DevDiv")]
+        [Fact, WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
         public void Bug16910()
         {
             string mod =
@@ -1486,7 +1545,7 @@ class Program
             Assert.False(diagnostics.Any());
         }
 
-        [Fact, WorkItem(530585, "DevDiv")]
+        [Fact, WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")]
         public void Bug16465()
         {
             string mod =
@@ -1520,8 +1579,8 @@ class Program1 { static void Main(string[] args) {    } }
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
             var metadata = module.Module;
-           
-            Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
+
+            EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             var attributes = module.GetCustomAttributesForToken(token);
@@ -1559,7 +1618,7 @@ System.Reflection.AssemblyTrademarkAttribute(""Roslyn"")
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute
 
-        [Fact, WorkItem(545527, "DevDiv")]
+        [Fact, WorkItem(545527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545527")]
         public void CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         {
             string moduleSrc = @"
@@ -1568,7 +1627,7 @@ using System.Runtime.CompilerServices;
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
             var module = CreateCompilationWithMscorlib(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
-            
+
             string assemblySrc = @"
 public class C { }
 ";
@@ -1578,7 +1637,7 @@ public class C { }
             CompileAndVerify(assembly, symbolValidator: moduleSymbol =>
             {
                 var attrs = moduleSymbol.ContainingAssembly.GetAttributes().Select(a => a.ToString()).ToArray();
-                AssertEx.SetEqual(new[] 
+                AssertEx.SetEqual(new[]
                     {
                         "System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)",
                         "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)",
@@ -1588,7 +1647,7 @@ public class C { }
             });
         }
 
-        [Fact, WorkItem(546460, "DevDiv")]
+        [Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")]
         public void RuntimeCompatibilityAttribute_False()
         {
             // the attribute suppresses WRN_UnreachableGeneralCatch since catch {} can catch an object not derived from Exception
@@ -1611,7 +1670,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(546460, "DevDiv")]
+        [Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")]
         public void RuntimeCompatibilityAttribute_Default()
         {
             string source = @"
@@ -1634,7 +1693,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch"));
         }
 
-        [Fact, WorkItem(546460, "DevDiv")]
+        [Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")]
         public void RuntimeCompatibilityAttribute_GeneralNotLast()
         {
             string source = @"
@@ -1839,7 +1898,7 @@ public class C { }
 
         #endregion
 
-        [Fact, WorkItem(530579, "DevDiv")]
+        [Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")]
         public void Bug530579_1()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1851,8 +1910,8 @@ public class C { }
             var compMod1 = CreateCompilationWithMscorlib(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
             var compMod2 = CreateCompilationWithMscorlib(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilationWithMscorlib(source, 
-                                                               references: new MetadataReference [] {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
+            var appCompilation = CreateCompilationWithMscorlib(source,
+                                                               references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
@@ -1863,7 +1922,7 @@ public class C { }
 
                                                                   Assert.Equal(1, list.Length);
                                                                   Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
-                                                              }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics();
+                                                              }).VerifyDiagnostics();
         }
 
         private static IEnumerable<CSharpAttributeData> GetAssemblyDescriptionAttributes(AssemblySymbol assembly)
@@ -1871,7 +1930,7 @@ public class C { }
             return assembly.GetAttributes().Where(data => data.IsTargetAttribute(assembly, AttributeDescription.AssemblyDescriptionAttribute));
         }
 
-        [Fact, WorkItem(530579, "DevDiv")]
+        [Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")]
         public void Bug530579_2()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1895,13 +1954,13 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module2\")", list[0].ToString());
-            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
+            }).VerifyDiagnostics(
                 // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
                 Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
             );
         }
 
-        [Fact, WorkItem(530579, "DevDiv")]
+        [Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")]
         public void Bug530579_3()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1925,15 +1984,15 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module3\")", list[0].ToString());
-            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
-        // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
-        Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule"),
-        // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
-        Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
+            }).VerifyDiagnostics(
+                // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule"),
+                // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M1.netmodule' is overridden.
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M1.netmodule")
             );
         }
 
-        [Fact, WorkItem(530579, "DevDiv")]
+        [Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")]
         public void Bug530579_4()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
@@ -1957,13 +2016,13 @@ public class C { }
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
-            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
-    // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
-    Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule")
+            }).VerifyDiagnostics(
+                // warning CS7090: Attribute 'System.Reflection.AssemblyDescriptionAttribute' from .NET module 'M2.netmodule' is overridden.
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyDescriptionAttribute", "M2.netmodule")
             );
         }
 
-        [Fact, WorkItem(649346, "DevDiv")]
+        [Fact, WorkItem(649346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649346")]
         public void Bug649346()
         {
             var mod1Source = "[assembly:System.Reflection.AssemblyFileVersionAttribute(\"1.2.3.4\")]";
@@ -1985,13 +2044,13 @@ public class C { }
 
                 Assert.Equal(1, attrlist.Count());
                 Assert.Equal("System.Reflection.AssemblyFileVersionAttribute(\"4.3.2.1\")", attrlist.First().ToString());
-            }, emitOptions: TestEmitters.RefEmitBug).VerifyDiagnostics(
-    // warning CS7090: Attribute 'System.Reflection.AssemblyFileVersionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source
-    Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyFileVersionAttribute", "M1.netmodule")
+            }).VerifyDiagnostics(
+                // warning CS7090: Attribute 'System.Reflection.AssemblyFileVersionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyFileVersionAttribute", "M1.netmodule")
             );
         }
 
-        [Fact, WorkItem(1082421, "DevDiv")]
+        [Fact, WorkItem(1082421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082421")]
         public void Bug1082421()
         {
             const string s = @"
@@ -2001,7 +2060,7 @@ using static System.Math;
  
 static class Logo
 {
-    public const int Hight = 32;
+    public const int Height = 32;
     public const int Width = 32;
 }
 ";

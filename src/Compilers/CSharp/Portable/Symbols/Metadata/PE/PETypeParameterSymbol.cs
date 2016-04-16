@@ -18,23 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     internal sealed class PETypeParameterSymbol
         : TypeParameterSymbol
     {
-        private readonly Symbol containingSymbol; // Could be PENamedType or a PEMethod
-        private readonly GenericParameterHandle handle;
+        private readonly Symbol _containingSymbol; // Could be PENamedType or a PEMethod
+        private readonly GenericParameterHandle _handle;
 
         #region Metadata
-        private readonly string name;
-        private readonly ushort ordinal; // 0 for first, 1 for second, ...
-        private readonly GenericParameterAttributes flags;
+        private readonly string _name;
+        private readonly ushort _ordinal; // 0 for first, 1 for second, ...
+        private readonly GenericParameterAttributes _flags;
         #endregion
 
-        private TypeParameterBounds lazyBounds = TypeParameterBounds.Unset;
+        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
 
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo lazyBoundsErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private DiagnosticInfo _lazyBoundsErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         internal PETypeParameterSymbol(
             PEModuleSymbol moduleSymbol,
@@ -65,30 +65,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(ordinal >= 0);
             Debug.Assert(!handle.IsNil);
 
-            this.containingSymbol = definingSymbol;
+            _containingSymbol = definingSymbol;
 
             GenericParameterAttributes flags = 0;
 
             try
             {
-                moduleSymbol.Module.GetGenericParamPropsOrThrow(handle, out this.name, out flags);
+                moduleSymbol.Module.GetGenericParamPropsOrThrow(handle, out _name, out flags);
             }
             catch (BadImageFormatException)
             {
-                if ((object)this.name == null)
+                if ((object)_name == null)
                 {
-                    this.name = string.Empty;
+                    _name = string.Empty;
                 }
 
-                lazyBoundsErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyBoundsErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             // set since '.ctor' is redundant in that case.
-            this.flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
+            _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
 
-            this.ordinal = ordinal;
-            this.handle = handle;
+            _ordinal = ordinal;
+            _handle = handle;
         }
 
         public override TypeParameterKind TypeParameterKind
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override int Ordinal
         {
-            get { return this.ordinal; }
+            get { return _ordinal; }
         }
 
         public override string Name
         {
             get
             {
-                return this.name;
+                return _name;
             }
         }
 
@@ -118,20 +118,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.handle;
+                return _handle;
             }
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingSymbol; }
+            get { return _containingSymbol; }
         }
 
         public override AssemblySymbol ContainingAssembly
         {
             get
             {
-                return this.containingSymbol.ContainingAssembly;
+                return _containingSymbol.ContainingAssembly;
             }
         }
 
@@ -140,28 +140,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol containingMethod = null;
             PENamedTypeSymbol containingType;
 
-            if (containingSymbol.Kind == SymbolKind.Method)
+            if (_containingSymbol.Kind == SymbolKind.Method)
             {
-                containingMethod = (PEMethodSymbol)containingSymbol;
+                containingMethod = (PEMethodSymbol)_containingSymbol;
                 containingType = (PENamedTypeSymbol)containingMethod.ContainingSymbol;
             }
             else
             {
-                containingType = (PENamedTypeSymbol)containingSymbol;
+                containingType = (PENamedTypeSymbol)_containingSymbol;
             }
 
             var moduleSymbol = containingType.ContainingPEModule;
 
-            Handle[] constraints;
+            EntityHandle[] constraints;
 
             try
             {
-                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(this.handle);
+                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(_handle);
             }
             catch (BadImageFormatException)
             {
                 constraints = null;
-                Interlocked.CompareExchange(ref lazyBoundsErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
             }
 
             if (constraints != null && constraints.Length > 0)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
 
                     // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                    if (((this.flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
+                    if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
                         (typeSymbol.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_ValueType))
                     {
                         continue;
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return containingSymbol.Locations;
+                return _containingSymbol.Locations;
             }
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.flags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
+                return (_flags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
             }
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
             }
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
             }
         }
 
@@ -250,17 +250,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (VarianceKind)(this.flags & GenericParameterAttributes.VarianceMask);
+                return (VarianceKind)(_flags & GenericParameterAttributes.VarianceMask);
             }
         }
 
         internal override void EnsureAllConstraintsAreResolved()
         {
-            if (ReferenceEquals(this.lazyBounds, TypeParameterBounds.Unset))
+            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
             {
-                var typeParameters = (this.containingSymbol.Kind == SymbolKind.Method) ?
-                    ((PEMethodSymbol)this.containingSymbol).TypeParameters :
-                    ((PENamedTypeSymbol)this.containingSymbol).TypeParameters;
+                var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
+                    ((PEMethodSymbol)_containingSymbol).TypeParameters :
+                    ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
                 EnsureAllConstraintsAreResolved(typeParameters);
             }
         }
@@ -291,12 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (this.lazyCustomAttributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(this.Handle, ref this.lazyCustomAttributes);
+                containingPEModuleSymbol.LoadCustomAttributes(this.Handle, ref _lazyCustomAttributes);
             }
-            return this.lazyCustomAttributes;
+            return _lazyCustomAttributes;
         }
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
@@ -304,14 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(!inProgress.ContainsReference(this));
             Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
-            if (ReferenceEquals(this.lazyBounds, TypeParameterBounds.Unset))
+            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
             {
                 var constraintTypes = GetDeclaredConstraintTypes();
                 Debug.Assert(!constraintTypes.IsDefault);
 
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                bool inherited = (this.containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)this.containingSymbol).IsOverride;
+                bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
                 var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
                                                 diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
                 DiagnosticInfo errorInfo = null;
@@ -338,19 +338,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diagnostics.Free();
 
-                Interlocked.CompareExchange(ref this.lazyBoundsErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
-                Interlocked.CompareExchange(ref this.lazyBounds, bounds, TypeParameterBounds.Unset);
+                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
-            Debug.Assert(!ReferenceEquals(this.lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return this.lazyBounds;
+            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            return _lazyBounds;
         }
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
-            Debug.Assert(!ReferenceEquals(this.lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return lazyBoundsErrorInfo;
+            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            return _lazyBoundsErrorInfo;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public abstract partial class NameSyntax
@@ -24,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// If called on an instance of <see cref="SimpleNameSyntax"/> returns the instance itself.
         /// </returns>
         internal abstract SimpleNameSyntax GetUnqualifiedName();
+
+        /// <summary>
+        /// Return the name in string form, without trivia or generic arguments, for use in diagnostics.
+        /// </summary>
+        internal abstract string ErrorDisplayName();
 
         /// <remarks>
         /// This inspection is entirely syntactic.  We are not trying to find the alias corresponding to the assembly symbol

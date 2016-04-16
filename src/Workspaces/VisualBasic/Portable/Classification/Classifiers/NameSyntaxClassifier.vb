@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                         End If
 
                     Case CandidateReason.Inaccessible
-                        ' If we couldn't bind to a constructor, still classify the type if its accessble
+                        ' If we couldn't bind to a constructor, still classify the type if its accessible
                         If firstSymbol.IsConstructor() AndAlso SemanticModel.IsAccessible(node.SpanStart, firstSymbol.ContainingType) Then
                             symbol = firstSymbol
                         End If

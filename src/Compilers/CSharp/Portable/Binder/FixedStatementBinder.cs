@@ -12,23 +12,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class FixedStatementBinder : LocalScopeBinder
     {
-        private readonly FixedStatementSyntax syntax;
+        private readonly FixedStatementSyntax _syntax;
 
         public FixedStatementBinder(Binder enclosing, FixedStatementSyntax syntax)
             : base(enclosing)
         {
             Debug.Assert(syntax != null);
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (syntax.Declaration != null)
+            if (_syntax.Declaration != null)
             {
-                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
+                var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));
                 }
 
                 return locals.ToImmutable();
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            if (syntax == node)
+            if (_syntax == node)
             {
                 return this.Locals;
             }

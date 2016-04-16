@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalScopeBinder : Binder
     {
-        private ImmutableArray<LocalSymbol> locals;
-        private ImmutableArray<LabelSymbol> labels;
+        private ImmutableArray<LocalSymbol> _locals;
+        private ImmutableArray<LabelSymbol> _labels;
 
         internal LocalScopeBinder(Binder next)
             : this(next, next.Flags)
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.locals.IsDefault)
+                if (_locals.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref this.locals, BuildLocals(), default(ImmutableArray<LocalSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _locals, BuildLocals(), default(ImmutableArray<LocalSymbol>));
                 }
 
-                return this.locals;
+                return _locals;
             }
         }
 
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.labels.IsDefault)
+                if (_labels.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref this.labels, BuildLabels(), default(ImmutableArray<LabelSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _labels, BuildLabels(), default(ImmutableArray<LabelSymbol>));
                 }
 
-                return this.labels;
+                return _labels;
             }
         }
 
@@ -60,31 +60,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray<LabelSymbol>.Empty;
         }
 
-        private SmallDictionary<string, LocalSymbol> lazyLocalsMap;
+        private SmallDictionary<string, LocalSymbol> _lazyLocalsMap;
         private SmallDictionary<string, LocalSymbol> LocalsMap
         {
             get
             {
-                if (this.lazyLocalsMap == null && this.Locals.Length > 0)
+                if (_lazyLocalsMap == null && this.Locals.Length > 0)
                 {
-                    this.lazyLocalsMap = BuildMap(this.Locals);
+                    _lazyLocalsMap = BuildMap(this.Locals);
                 }
 
-                return this.lazyLocalsMap;
+                return _lazyLocalsMap;
             }
         }
 
-        private SmallDictionary<string, LabelSymbol> lazyLabelsMap;
+        private SmallDictionary<string, LabelSymbol> _lazyLabelsMap;
         private SmallDictionary<string, LabelSymbol> LabelsMap
         {
             get
             {
-                if (this.lazyLabelsMap == null && this.Labels.Length > 0)
+                if (_lazyLabelsMap == null && this.Labels.Length > 0)
                 {
-                    this.lazyLabelsMap = BuildMap(this.Labels);
+                    _lazyLabelsMap = BuildMap(this.Labels);
                 }
 
-                return this.lazyLabelsMap;
+                return _lazyLabelsMap;
             }
         }
 
@@ -158,23 +158,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
         {
-            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda; 
-
+            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
             foreach (var statement in statements)
             {
-                var stmt = statement;
-                while (stmt.Kind() == SyntaxKind.LabeledStatement)
-                {
-                    var labeledStatement = (LabeledStatementSyntax)stmt;
-                    if (labels == null)
-                    {
-                        labels = ArrayBuilder<LabelSymbol>.GetInstance();
-                    }
+                BuildLabels(containingMethod, statement, ref labels);
+            }
+        }
 
-                    var labelSymbol = new SourceLabelSymbol(containingMethod, labeledStatement.Identifier);
-                    labels.Add(labelSymbol);
-                    stmt = labeledStatement.Statement;
+        internal static void BuildLabels(MethodSymbol containingMethod, StatementSyntax statement, ref ArrayBuilder<LabelSymbol> labels)
+        {
+            while (statement.Kind() == SyntaxKind.LabeledStatement)
+            {
+                var labeledStatement = (LabeledStatementSyntax)statement;
+                if (labels == null)
+                {
+                    labels = ArrayBuilder<LabelSymbol>.GetInstance();
                 }
+
+                var labelSymbol = new SourceLabelSymbol(containingMethod, labeledStatement.Identifier);
+                labels.Add(labelSymbol);
+                statement = labeledStatement.Statement;
             }
         }
 
@@ -276,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter)
-            { 
+            {
                 // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;

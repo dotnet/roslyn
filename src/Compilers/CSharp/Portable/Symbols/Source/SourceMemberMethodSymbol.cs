@@ -13,29 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceMemberMethodSymbol : SourceMethodSymbol
     {
-        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-        private readonly TypeSymbol explicitInterfaceType;
-        private readonly string name;
-        private readonly bool isExpressionBodied;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly TypeSymbol _explicitInterfaceType;
+        private readonly string _name;
+        private readonly bool _isExpressionBodied;
 
-        private ImmutableArray<MethodSymbol> lazyExplicitInterfaceImplementations;
-        private ImmutableArray<CustomModifier> lazyReturnTypeCustomModifiers;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
-        private bool lazyIsVararg;
+        private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
+        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeSymbol _lazyReturnType;
+        private bool _lazyIsVararg;
 
         /// <summary>
         /// A collection of type parameter constraints, populated when
         /// constraints for the first type parameter is requested.
         /// </summary>
-        private ImmutableArray<TypeParameterConstraintClause> lazyTypeParameterConstraints;
+        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
 
         /// <summary>
         /// If this symbol represents a partial method definition or implementation part, its other part (if any).
         /// This should be set, if at all, before this symbol appears among the members of its owner.  
         /// The implementation part is not listed among the "members" of the enclosing type.
         /// </summary>
-        private SourceMemberMethodSymbol otherPartOfPartial;
+        private SourceMemberMethodSymbol _otherPartOfPartial;
 
         /// <summary>
         /// A binder to use for binding generic constraints. The field is only non-null while the .ctor
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// containing type. (Until the method symbol has been added to the container, we cannot
         /// get a binder for the method without triggering a recursive attempt to bind the method.)
         /// </summary>
-        private readonly Binder constraintClauseBinder;
+        private readonly Binder _constraintClauseBinder;
 
         public static SourceMemberMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
@@ -78,12 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType,
                  syntax.GetReference(),
                  // Prefer a block body if both exist
-                 syntax.Body.GetReferenceOrNull()
-                 ?? syntax.ExpressionBody.GetReferenceOrNull(),
+                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
                  location)
         {
-            this.name = name;
-            this.explicitInterfaceType = explicitInterfaceType;
+            _name = name;
+            _explicitInterfaceType = explicitInterfaceType;
 
             SyntaxTokenList modifiers = syntax.Modifiers;
 
@@ -115,19 +114,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (syntax.Arity == 0)
             {
                 withTypeParamsBinder = bodyBinder;
-                this.typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
             }
             else
             {
                 var parameterBinder = new WithMethodTypeParametersBinder(this, bodyBinder);
                 withTypeParamsBinder = parameterBinder;
-                this.typeParameters = MakeTypeParameters(syntax, diagnostics);
+                _typeParameters = MakeTypeParameters(syntax, diagnostics);
             }
 
             bool hasBlockBody = syntax.Body != null;
-            this.isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
+            _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
-            if (hasBlockBody || this.isExpressionBodied)
+            if (hasBlockBody || _isExpressionBodied)
             {
                 CheckModifiersForBody(location, diagnostics);
             }
@@ -147,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // .ctor completes we hold on to the current binder while the .ctor is executing.
                 // If we change the handling of partial methods, so that partial methods are
                 // completed lazily, the 'constraintClauseBinder' field should be removed.
-                this.constraintClauseBinder = withTypeParamsBinder;
+                _constraintClauseBinder = withTypeParamsBinder;
 
                 state.NotePartComplete(CompletionPart.StartMethodChecks);
                 MethodChecks(syntax, withTypeParamsBinder, diagnostics);
                 state.NotePartComplete(CompletionPart.FinishMethodChecks);
-                this.constraintClauseBinder = null;
+                _constraintClauseBinder = null;
             }
         }
 
@@ -176,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            this.lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
-            this.lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
-            this.lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
+            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
+            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
 
-            if (this.lazyReturnType.IsRestrictedType())
+            if (_lazyReturnType.IsRestrictedType())
             {
-                if (this.lazyReturnType.SpecialType == SpecialType.System_TypedReference &&
+                if (_lazyReturnType.SpecialType == SpecialType.System_TypedReference &&
                     (this.ContainingType.SpecialType == SpecialType.System_TypedReference || this.ContainingType.SpecialType == SpecialType.System_ArgIterator))
                 {
                     // Two special cases: methods in the special types TypedReference and ArgIterator are allowed to return TypedReference
@@ -190,15 +189,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, this.lazyReturnType);
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType);
                 }
             }
 
             // set ReturnsVoid flag
-            this.SetReturnsVoid(this.lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
 
             var location = this.Locations[0];
-            this.CheckEffectiveAccessibility(lazyReturnType, lazyParameters, diagnostics);
+            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
                 }
-                else if (!ContainingType.IsStatic || ContainingType.Arity != 0)
+                else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
                 {
                     // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
                     // is no containing type (in the interactive case for instance), select the method identifier.
@@ -306,13 +305,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // overridden property if this is supposed to be an explicit implementation.
             if (syntax.ExplicitInterfaceSpecifier == null)
             {
-                Debug.Assert(this.lazyExplicitInterfaceImplementations.IsDefault);
-                this.lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+                Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
+                _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
 
                 // This value may not be correct, but we need something while we compute this.OverriddenMethod.
                 // May be re-assigned below.
-                Debug.Assert(this.lazyReturnTypeCustomModifiers.IsDefault);
-                this.lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
+                _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
                 // If this method is an override, we may need to copy custom modifiers from
                 // the overridden method (so that the runtime will recognize it as an override).
@@ -330,29 +329,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out this.lazyReturnType, out this.lazyReturnTypeCustomModifiers, out this.lazyParameters, alsoCopyParamsModifier: true);
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
             }
-            else if ((object)explicitInterfaceType != null)
+            else if ((object)_explicitInterfaceType != null)
             {
                 //do this last so that it can assume the method symbol is constructed (except for ExplicitInterfaceImplementation)
-                MethodSymbol implementedMethod = this.FindExplicitlyImplementedMethod(explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
+                MethodSymbol implementedMethod = this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
 
                 if ((object)implementedMethod != null)
                 {
-                    Debug.Assert(this.lazyExplicitInterfaceImplementations.IsDefault);
-                    this.lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
+                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
+                    _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out this.lazyReturnType, out this.lazyReturnTypeCustomModifiers, out this.lazyParameters, alsoCopyParamsModifier: false);
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
                 }
                 else
                 {
-                    Debug.Assert(this.lazyExplicitInterfaceImplementations.IsDefault);
-                    this.lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
+                    _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
 
-                    Debug.Assert(this.lazyReturnTypeCustomModifiers.IsDefault);
-                    this.lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    Debug.Assert(_lazyReturnTypeCustomModifiers.IsDefault);
+                    _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
             }
 
@@ -391,10 +390,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsAsync)
             {
-                state.NotePartComplete(CompletionPart.StartAsyncMethodChecks);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
+                if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
                 {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                    if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                    {
+                        DeclaringCompilation.SymbolDeclaredEvent(this);
+                    }
+
+                    state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+                }
+                else
+                {
+                    state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
                 }
 
                 return;
@@ -431,11 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
-                AddSemanticDiagnostics(diagnostics);
-                if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
-                {
-                    DeclaringCompilation.SymbolDeclaredEvent(this);
-                }
+                AddDeclarationDiagnostics(diagnostics);
+                if (IsPartialDefinition) DeclaringCompilation.SymbolDeclaredEvent(this);
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
             else
             {
@@ -443,7 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Free();
-
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -461,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return this.typeParameters; }
+            get { return _typeParameters; }
         }
 
         internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
@@ -478,17 +482,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
         {
-            if (this.lazyTypeParameterConstraints.IsDefault)
+            if (_lazyTypeParameterConstraints.IsDefault)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
                 {
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
 
-            var clauses = this.lazyTypeParameterConstraints;
+            var clauses = _lazyTypeParameterConstraints;
             return (clauses.Length > 0) ? clauses[ordinal] : null;
         }
 
@@ -512,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we're binding these constraints before the method has been
             // fully constructed (see partial method comment in .ctor), we have
             // a binder. Otherwise, lookup the binder in the BinderFactory.
-            var binder = this.constraintClauseBinder;
+            var binder = _constraintClauseBinder;
             if (binder == null)
             {
                 var compilation = this.DeclaringCompilation;
@@ -535,13 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyIsVararg;
+                return _lazyIsVararg;
             }
-        }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
         }
 
         public override ImmutableArray<Location> Locations
@@ -556,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !this.lazyParameters.IsDefault ? this.lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
+                return !_lazyParameters.IsDefault ? _lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
             }
         }
 
@@ -565,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -574,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnType;
+                return _lazyReturnType;
             }
         }
 
@@ -582,11 +581,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(definition.IsPartialDefinition);
             Debug.Assert(implementation.IsPartialImplementation);
-            Debug.Assert((object)definition.otherPartOfPartial == null);
-            Debug.Assert((object)implementation.otherPartOfPartial == null);
+            Debug.Assert((object)definition._otherPartOfPartial == null);
+            Debug.Assert((object)implementation._otherPartOfPartial == null);
 
-            definition.otherPartOfPartial = implementation;
-            implementation.otherPartOfPartial = definition;
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
         }
 
         /// <summary>
@@ -594,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal SourceMemberMethodSymbol OtherPartOfPartial
         {
-            get { return otherPartOfPartial; }
+            get { return _otherPartOfPartial; }
         }
 
         /// <summary>
@@ -628,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialDefinition && (object)this.otherPartOfPartial == null;
+                return this.IsPartialDefinition && (object)_otherPartOfPartial == null;
             }
         }
 
@@ -640,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialImplementation ? this.otherPartOfPartial : null;
+                return this.IsPartialImplementation ? _otherPartOfPartial : null;
             }
         }
 
@@ -652,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.IsPartialDefinition ? this.otherPartOfPartial : null;
+                return this.IsPartialDefinition ? _otherPartOfPartial : null;
             }
         }
 
@@ -690,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyExplicitInterfaceImplementations;
+                return _lazyExplicitInterfaceImplementations;
             }
         }
 
@@ -699,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnTypeCustomModifiers;
+                return _lazyReturnTypeCustomModifiers;
             }
         }
 
@@ -707,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -747,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied
         {
-            get { return this.isExpressionBodied; }
+            get { return _isExpressionBodied; }
         }
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
@@ -827,10 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                if (name == this.Name)
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
-                }
+                // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
                 for (int i = 0; i < result.Count; i++)
                 {
@@ -907,10 +903,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
-            else if (!ContainingType.IsInterfaceType() && this.lazyReturnType.IsStatic)
+            else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, this.lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -924,7 +920,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
             }
-            else if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
+            }
+            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
@@ -950,11 +956,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }
-            else if (this.lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || this.lazyParameters.Length > 0 && this.lazyParameters[this.lazyParameters.Length - 1].IsParams))
+            else if (_lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
-            else if (this.lazyIsVararg && IsAsync)
+            else if (_lazyIsVararg && IsAsync)
             {
                 diagnostics.Add(ErrorCode.ERR_VarargsAsync, location);
             }
@@ -992,11 +998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
 
-            if ((object)this.explicitInterfaceType != null)
+            if ((object)_explicitInterfaceType != null)
             {
                 var syntax = this.GetSyntax();
                 Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                this.explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
             this.ReturnType.CheckAllConstraints(conversions, this.Locations[0], diagnostics);
@@ -1082,9 +1088,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return !IsAsync; }
-        }
+        internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
     }
 }

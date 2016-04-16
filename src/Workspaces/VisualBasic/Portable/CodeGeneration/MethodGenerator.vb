@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim handlesClauseOpt = GenerateHandlesClause(CodeGenerationMethodInfo.GetHandlesExpressions(method))
 
             Dim begin =
-                SyntaxFactory.MethodStatement(kind, keyword:=SyntaxFactory.Token(keyword), identifier:=method.Name.ToIdentifierToken).
+                SyntaxFactory.MethodStatement(kind, subOrFunctionKeyword:=SyntaxFactory.Token(keyword), identifier:=method.Name.ToIdentifierToken).
                     WithAttributeLists(AttributeGenerator.GenerateAttributeBlocks(method.GetAttributes(), options)).
                     WithModifiers(GenerateModifiers(method, destination, options)).
                     WithTypeParameterList(GenerateTypeParameterList(method)).
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If(isSub, SyntaxKind.SubBlock, SyntaxKind.FunctionBlock),
                 begin,
                 statements:=StatementGenerator.GenerateStatements(method),
-                end:=endConstruct)
+                endSubOrFunctionStatement:=endConstruct)
         End Function
 
         Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationOptions) As SimpleAsClauseSyntax
@@ -116,8 +116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Where expr1 IsNot Nothing
                         Let expr2 = If(TypeOf expr1 Is ParenthesizedExpressionSyntax, DirectCast(expr1, ParenthesizedExpressionSyntax).Expression, expr1)
                         Let children = expr2.ChildNodesAndTokens()
-                        Where children.Count = 1 AndAlso children.ElementAt(0).IsToken
-                        Let token = children.ElementAt(0).AsToken()
+                        Where children.Count = 1 AndAlso children(0).IsToken
+                        Let token = children(0).AsToken()
                         Where token.Kind = SyntaxKind.IdentifierToken OrElse
                               token.Kind = SyntaxKind.MyBaseKeyword OrElse
                               token.Kind = SyntaxKind.MyClassKeyword OrElse

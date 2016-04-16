@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ConversionSignatureComparer : IEqualityComparer<SourceUserDefinedConversionSymbol>
     {
-        private static ConversionSignatureComparer comparer = new ConversionSignatureComparer();
+        private static readonly ConversionSignatureComparer s_comparer = new ConversionSignatureComparer();
         public static ConversionSignatureComparer Comparer
         {
             get
             {
-                return comparer;
+                return s_comparer;
             }
         }
 

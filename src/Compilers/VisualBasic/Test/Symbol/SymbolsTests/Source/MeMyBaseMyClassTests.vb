@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
 #Region "Me test"
-        ' 'Me' is key word and can’t use as in identify
+        ' 'Me' is key word and can't use as in identify
         <Fact>
         Public Sub MeIsKeyWord()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -588,7 +588,7 @@ End Module
   // Code size       20 (0x14)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function Module1.Class2._Lambda$__1-1(Object) As Integer"
+  IL_0001:  ldftn      "Function Module1.Class2._Lambda$__1-0(Object) As Integer"
   IL_0007:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, Integer)..ctor(Object, System.IntPtr)"
   IL_000c:  ldnull
   IL_000d:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, Integer).Invoke(Object) As Integer"
@@ -626,7 +626,7 @@ End Module
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.Class1.Bar1() As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldftn      "Function Module1.Class2._Lambda$__1-1(Char) As Module1.Class2"
+  IL_0007:  ldftn      "Function Module1.Class2._Lambda$__1-0(Char) As Module1.Class2"
   IL_000d:  newobj     "Sub System.Func(Of Char, Module1.Class2)..ctor(Object, System.IntPtr)"
   IL_0012:  call       "Function System.Linq.Enumerable.Select(Of Char, Module1.Class2)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, Module1.Class2)) As System.Collections.Generic.IEnumerable(Of Module1.Class2)"
   IL_0017:  stloc.0
@@ -669,7 +669,7 @@ End Class
 
 #Region "MyBase test"
 
-        ' 'MyBase' is key word and can’t use as in identify
+        ' 'MyBase' is key word and can't use as in identify
         <Fact>
         Public Sub MyBaseIsKeyWord()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -830,7 +830,7 @@ End Class
 Class DerivedClass2
     Inherits DerivedClass
     Sub test()
-        MyBase.mybase.Mymetod()
+        MyBase.mybase.Mymethod()
     End Sub
 End Class
     </file>
@@ -1092,7 +1092,7 @@ End Module
   // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function Module1.Class2._Lambda$__1-1(Object) As Integer"
+  IL_0001:  ldftn      "Function Module1.Class2._Lambda$__1-0(Object) As Integer"
   IL_0007:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, Integer)..ctor(Object, System.IntPtr)"
   IL_000c:  ldc.i4.1
   IL_000d:  box        "Integer"
@@ -1104,7 +1104,7 @@ End Module
         End Sub
 
         ' Call MyBase in Query
-        <WorkItem(543465, "DevDiv")>
+        <WorkItem(543465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543465")>
         <Fact()>
         Public Sub UseMyBaseInQuery()
 
@@ -1132,15 +1132,15 @@ End Module
   .locals init (Object V_0) //TEST
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Module1.Class1.Bar() As String"
-  IL_0006:  ldsfld     "Module1.Class2._Closure$__.$I1-1 As System.Func(Of Char, Char)"
+  IL_0006:  ldsfld     "Module1.Class2._Closure$__.$I1-0 As System.Func(Of Char, Char)"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Module1.Class2._Closure$__.$I1-1 As System.Func(Of Char, Char)"
+  IL_000d:  ldsfld     "Module1.Class2._Closure$__.$I1-0 As System.Func(Of Char, Char)"
   IL_0012:  br.s       IL_002a
   IL_0014:  ldsfld     "Module1.Class2._Closure$__.$I As Module1.Class2._Closure$__"
-  IL_0019:  ldftn      "Function Module1.Class2._Closure$__._Lambda$__1-1(Char) As Char"
+  IL_0019:  ldftn      "Function Module1.Class2._Closure$__._Lambda$__1-0(Char) As Char"
   IL_001f:  newobj     "Sub System.Func(Of Char, Char)..ctor(Object, System.IntPtr)"
   IL_0024:  dup
-  IL_0025:  stsfld     "Module1.Class2._Closure$__.$I1-1 As System.Func(Of Char, Char)"
+  IL_0025:  stsfld     "Module1.Class2._Closure$__.$I1-0 As System.Func(Of Char, Char)"
   IL_002a:  call       "Function System.Linq.Enumerable.Select(Of Char, Char)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, Char)) As System.Collections.Generic.IEnumerable(Of Char)"
   IL_002f:  stloc.0
   IL_0030:  ldloc.0
@@ -1211,7 +1211,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub GenParent(Of t)._Lambda$__6-1()"
+  IL_0001:  ldftn      "Sub GenParent(Of t)._Lambda$__6-0()"
   IL_0007:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0011:  ret

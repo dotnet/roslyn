@@ -12,50 +12,50 @@ namespace Roslyn.Utilities
     {
         public static readonly ImmutableSetWithInsertionOrder<T> Empty = new ImmutableSetWithInsertionOrder<T>(ImmutableDictionary.Create<T, uint>(), 0u);
 
-        private readonly ImmutableDictionary<T, uint> map;
-        private uint nextElementValue;
+        private readonly ImmutableDictionary<T, uint> _map;
+        private readonly uint _nextElementValue;
 
         private ImmutableSetWithInsertionOrder(ImmutableDictionary<T, uint> map, uint nextElementValue)
         {
-            this.map = map;
-            this.nextElementValue = nextElementValue;
+            _map = map;
+            _nextElementValue = nextElementValue;
         }
 
         public int Count
         {
-            get { return map.Count; }
+            get { return _map.Count; }
         }
 
         public bool Contains(T value)
         {
-            return this.map.ContainsKey(value);
+            return _map.ContainsKey(value);
         }
 
         public ImmutableSetWithInsertionOrder<T> Add(T value)
         {
             // no reason to cause allocations if value is already in the set
-            if (map.ContainsKey(value))
+            if (_map.ContainsKey(value))
             {
                 return this;
             }
 
-            return new ImmutableSetWithInsertionOrder<T>(map.Add(value, nextElementValue), nextElementValue + 1u);
+            return new ImmutableSetWithInsertionOrder<T>(_map.Add(value, _nextElementValue), _nextElementValue + 1u);
         }
 
         public ImmutableSetWithInsertionOrder<T> Remove(T value)
         {
             // no reason to cause allocations if value is missing
-            if (!map.ContainsKey(value))
+            if (!_map.ContainsKey(value))
             {
                 return this;
             }
 
-            return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(map.Remove(value), nextElementValue);
+            return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(_map.Remove(value), _nextElementValue);
         }
 
         public IEnumerable<T> InInsertionOrder
         {
-            get { return this.map.OrderBy(kv => kv.Value).Select(kv => kv.Key); }
+            get { return _map.OrderBy(kv => kv.Value).Select(kv => kv.Key); }
         }
 
         public override string ToString()
@@ -65,12 +65,12 @@ namespace Roslyn.Utilities
 
         public IEnumerator<T> GetEnumerator()
         {
-            return this.map.Keys.GetEnumerator();
+            return _map.Keys.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.map.Keys.GetEnumerator();
+            return _map.Keys.GetEnumerator();
         }
     }
 }

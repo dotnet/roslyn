@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis
     {
         // Simple value or ImmutableArray<TypedConstant>.
         // Null array is represented by a null reference.
-        private readonly object value;
+        private readonly object _value;
 
         internal TypedConstantValue(object value)
         {
             Debug.Assert(value == null || value is string || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is System.IntPtr) && !(value is System.UIntPtr)) || value is ITypeSymbol);
-            this.value = value;
+            _value = value;
         }
 
         internal TypedConstantValue(ImmutableArray<TypedConstant> array)
         {
-            this.value = array.IsDefault ? null : (object)array;
+            _value = array.IsDefault ? null : (object)array;
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return value == null;
+                return _value == null;
             }
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return value == null ? default(ImmutableArray<TypedConstant>) : (ImmutableArray<TypedConstant>)value;
+                return _value == null ? default(ImmutableArray<TypedConstant>) : (ImmutableArray<TypedConstant>)_value;
             }
         }
 
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(!(value is ImmutableArray<TypedConstant>));
-                return value;
+                Debug.Assert(!(_value is ImmutableArray<TypedConstant>));
+                return _value;
             }
         }
 
         public override int GetHashCode()
         {
-            return (value == null) ? 0 : value.GetHashCode();
+            return _value?.GetHashCode() ?? 0;
         }
 
         public override bool Equals(object obj)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(TypedConstantValue other)
         {
-            return object.Equals(this.value, other.value);
+            return object.Equals(_value, other._value);
         }
     }
 }

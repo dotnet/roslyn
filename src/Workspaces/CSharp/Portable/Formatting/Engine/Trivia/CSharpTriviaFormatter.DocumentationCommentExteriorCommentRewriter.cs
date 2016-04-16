@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter<SyntaxTrivia>
+    internal partial class CSharpTriviaFormatter
     {
         private class DocumentationCommentExteriorCommentRewriter : CSharpSyntaxRewriter
         {
-            private bool forceIndentation;
-            private int indentation;
-            private int indentationDelta;
-            private OptionSet optionSet;
+            private readonly bool _forceIndentation;
+            private readonly int _indentation;
+            private readonly int _indentationDelta;
+            private readonly OptionSet _optionSet;
 
             public DocumentationCommentExteriorCommentRewriter(
                 bool forceIndentation,
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 bool visitStructuredTrivia = true)
                 : base(visitIntoStructuredTrivia: visitStructuredTrivia)
             {
-                this.forceIndentation = forceIndentation;
-                this.indentation = indentation;
-                this.indentationDelta = indentationDelta;
-                this.optionSet = optionSet;
+                _forceIndentation = forceIndentation;
+                _indentation = indentation;
+                _indentationDelta = indentationDelta;
+                _optionSet = optionSet;
             }
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         var triviaText = trivia.ToFullString();
 
                         var newTriviaText = triviaText.AdjustIndentForXmlDocExteriorTrivia(
-                                                forceIndentation,
-                                                indentation,
-                                                indentationDelta,
-                                                this.optionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp),
-                                                this.optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp));
+                                                _forceIndentation,
+                                                _indentation,
+                                                _indentationDelta,
+                                                _optionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp),
+                                                _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp));
 
                         if (triviaText == newTriviaText)
                         {

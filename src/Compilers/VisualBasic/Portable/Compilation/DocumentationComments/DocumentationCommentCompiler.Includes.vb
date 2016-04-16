@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '
                     ' NOTE: Following C# implementation we avoid parsing/printing of the xml
                     '       in this case, which might differ in terms of printed whitespaces 
-                    '       if we compare to the result of parse/print scenaro
+                    '       if we compare to the result of parse/print scenario
                     If sourceIncludeElementNodes Is Nothing Then
                         Return unprocessed
                     End If
@@ -510,34 +510,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If loadedElements Is Nothing Then
                                 commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
                                 Return New XNode() {New XComment(commentMessage)}
+                            End If
+
+                            If loadedElements IsNot Nothing AndAlso loadedElements.Length > 0 Then
+                                ' change the current XML file path for nodes contained in the document
+                                Dim result As XNode() = RewriteMany(loadedElements, resolvedFilePath, originatingSyntax)
+
+                                ' The elements could be rewritten away if they are includes that refer to invalid
+                                ' (but existing and accessible) XML files. If this occurs, behave as if we
+                                ' had failed to find any XPath results.
+                                If result.Length > 0 Then
+                                    ' NOTE: in this case, we do NOT visit the children of the include element -
+                                    ' they are dropped.
+                                    commentMessage = Nothing
+                                    Return result
                                 End If
+                            End If
 
-                                If loadedElements IsNot Nothing AndAlso loadedElements.Length > 0 Then
-                                    ' change the current XML file path for nodes contained in the document
-                                    Dim result As XNode() = RewriteMany(loadedElements, resolvedFilePath, originatingSyntax)
+                            ' Nothing was found
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
+                            Return New XNode() {New XComment(commentMessage)}
 
-                                    ' The elements could be rewritten away if they are includes that refer to invalid
-                                    ' (but existing and accessible) XML files. If this occurs, behave as if we
-                                    ' had failed to find any XPath results.
-                                    If result.Length > 0 Then
-                                        ' NOTE: in this case, we do NOT visit the children of the include element -
-                                        ' they are dropped.
-                                        commentMessage = Nothing
-                                        Return result
-                                    End If
-                                End If
-
-                                ' Nothing was found
-                                commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
-                                Return New XNode() {New XComment(commentMessage)}
-
-                            Catch ex As XmlException
-                                commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
-                                Return New XNode() {New XComment(commentMessage)}
-                            End Try
-                        Finally
-                            RemoveIncludeElementLocation(location)
+                        Catch ex As XmlException
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocInvalidXMLFragment, xpathValue, filePathValue)
+                            Return New XNode() {New XComment(commentMessage)}
                         End Try
+                    Finally
+                        RemoveIncludeElementLocation(location)
+                    End Try
                 End Function
 
                 Private Function ShouldProcessLocation(loc As Location) As Boolean

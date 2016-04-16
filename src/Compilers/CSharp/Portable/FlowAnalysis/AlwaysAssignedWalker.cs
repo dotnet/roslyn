@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class AlwaysAssignedWalker : AbstractRegionDataFlowPass
     {
-        private LocalState endOfRegionState;
-        private HashSet<LabelSymbol> labelsInside = new HashSet<LabelSymbol>();
+        private LocalState _endOfRegionState;
+        private readonly HashSet<LabelSymbol> _labelsInside = new HashSet<LabelSymbol>();
 
         private AlwaysAssignedWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        new List<Symbol> Analyze(ref bool badRegion)
+        private new List<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             List<Symbol> result = new List<Symbol>();
             Debug.Assert(!IsInside);
-            if (endOfRegionState.Reachable)
+            if (_endOfRegionState.Reachable)
             {
-                foreach (var i in endOfRegionState.Assigned.TrueBits())
+                foreach (var i in _endOfRegionState.Assigned.TrueBits())
                 {
                     if (i >= variableBySlot.Length)
                     {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ResolveLabel(BoundNode node, LabelSymbol label)
         {
-            if (node.Syntax != null && RegionContains(node.Syntax.Span)) labelsInside.Add(label);
+            if (node.Syntax != null && RegionContains(node.Syntax.Span)) _labelsInside.Add(label);
         }
 
         protected override void EnterRegion()
@@ -114,19 +114,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the region is in a condition, then the state will be split and state.Assigned will
                 // be null.  Merge to get sensible results.
-                endOfRegionState = StateWhenTrue.Clone();
-                IntersectWith(ref endOfRegionState, ref StateWhenFalse);
+                _endOfRegionState = StateWhenTrue.Clone();
+                IntersectWith(ref _endOfRegionState, ref StateWhenFalse);
             }
             else
             {
-                endOfRegionState = this.State.Clone();
+                _endOfRegionState = this.State.Clone();
             }
 
             foreach (var branch in base.PendingBranches)
             {
-                if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !labelsInside.Contains(branch.Label))
+                if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !_labelsInside.Contains(branch.Label))
                 {
-                    IntersectWith(ref endOfRegionState, ref branch.State);
+                    IntersectWith(ref _endOfRegionState, ref branch.State);
                 }
             }
 

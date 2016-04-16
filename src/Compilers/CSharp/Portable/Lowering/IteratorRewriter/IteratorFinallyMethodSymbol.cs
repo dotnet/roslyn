@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class IteratorFinallyMethodSymbol : SynthesizedInstanceMethodSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly IteratorStateMachine stateMachineType;
-        private readonly string name;
+        private readonly IteratorStateMachine _stateMachineType;
+        private readonly string _name;
 
         public IteratorFinallyMethodSymbol(IteratorStateMachine stateMachineType, string name)
         {
             Debug.Assert(stateMachineType != null);
             Debug.Assert(name != null);
 
-            this.stateMachineType = stateMachineType;
-            this.name = name;
+            _stateMachineType = stateMachineType;
+            _name = name;
         }
 
         public override string Name
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Symbol ContainingSymbol
         {
-            get { return stateMachineType; }
+            get { return _stateMachineType; }
         }
 
         public override ImmutableArray<Location> Locations
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return stateMachineType.KickoffMethod; }
+            get { return _stateMachineType.KickoffMethod; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            return stateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
+            return _stateMachineType.KickoffMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
         }
     }
 }

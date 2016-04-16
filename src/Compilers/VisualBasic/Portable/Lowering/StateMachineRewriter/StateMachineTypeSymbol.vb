@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits SynthesizedContainer
         Implements ISynthesizedMethodBodyImplementationSymbol
 
+        Private _attributes As ImmutableArray(Of VisualBasicAttributeData)
         Public ReadOnly KickoffMethod As MethodSymbol
 
         Public Sub New(slotAllocatorOpt As VariableSlotAllocator,
@@ -53,5 +54,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End Get
         End Property
+
+        Public NotOverridable Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
+            If _attributes.IsDefault Then
+                Debug.Assert(MyBase.GetAttributes().Length = 0)
+
+                Dim builder As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
+
+                ' Inherit some attributes from the container of the kickoff method
+                Dim kickoffType = KickoffMethod.ContainingType
+                For Each attribute In kickoffType.GetAttributes()
+                    If attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
+                       attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerStepThroughAttribute) Then
+                        If builder Is Nothing Then
+                            builder = ArrayBuilder(Of VisualBasicAttributeData).GetInstance(2) ' only 2 different attributes are inherited at the moment
+                        End If
+
+                        builder.Add(attribute)
+                    End If
+                Next
+
+                ImmutableInterlocked.InterlockedCompareExchange(_attributes,
+                                                                If(builder Is Nothing, ImmutableArray(Of VisualBasicAttributeData).Empty, builder.ToImmutableAndFree()),
+                                                                Nothing)
+            End If
+
+            Return _attributes
+        End Function
     End Class
 End Namespace

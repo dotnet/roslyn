@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly SymbolInfo None = new SymbolInfo(null, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
 
-        private ImmutableArray<ISymbol> candidateSymbols;
+        private ImmutableArray<ISymbol> _candidateSymbols;
 
         /// <summary>
         /// The symbol that was referred to by the syntax node, if any. Returns null if the given
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// still be that case that we have one or more "best guesses" as to what symbol was
         /// intended. These best guesses are available via the CandidateSymbols property.
         /// </summary>
-        public ISymbol Symbol { get; private set; }
+        public ISymbol Symbol { get; }
 
         /// <summary>
         /// If the expression did not successfully resolve to a symbol, but there were one or more
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.candidateSymbols.NullToEmpty();
+                return _candidateSymbols.NullToEmpty();
             }
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return this.candidateSymbols;
+                return _candidateSymbols;
             }
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
         /// symbols that may have been considered but discarded, this property describes why those
         /// symbol or symbols were not considered suitable.
         /// </summary>
-        public CandidateReason CandidateReason { get; private set; }
+        public CandidateReason CandidateReason { get; }
 
         internal SymbolInfo(ISymbol symbol)
             : this(symbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None)
@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis
             : this()
         {
             this.Symbol = symbol;
-            this.candidateSymbols = candidateSymbols.IsDefault ? ImmutableArray.Create<ISymbol>() : candidateSymbols;
+            _candidateSymbols = candidateSymbols.IsDefault ? ImmutableArray.Create<ISymbol>() : candidateSymbols;
 
 #if DEBUG
             const NamespaceKind NamespaceKindNamespaceGroup = (NamespaceKind)0;
             Debug.Assert((object)symbol == null || symbol.Kind != SymbolKind.Namespace || ((INamespaceSymbol)symbol).NamespaceKind != NamespaceKindNamespaceGroup);
-            foreach (var item in this.candidateSymbols)
+            foreach (var item in _candidateSymbols)
             {
                 Debug.Assert(item.Kind != SymbolKind.Namespace || ((INamespaceSymbol)item).NamespaceKind != NamespaceKindNamespaceGroup);
             }
@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(SymbolInfo other)
         {
             return object.Equals(this.Symbol, other.Symbol)
-                && ((this.candidateSymbols.IsDefault && other.candidateSymbols.IsDefault) || this.candidateSymbols.SequenceEqual(other.candidateSymbols))
+                && ((_candidateSymbols.IsDefault && other._candidateSymbols.IsDefault) || _candidateSymbols.SequenceEqual(other._candidateSymbols))
                 && this.CandidateReason == other.CandidateReason;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(this.candidateSymbols, 4), (int)this.CandidateReason));
+            return Hash.Combine(this.Symbol, Hash.Combine(Hash.CombineValues(_candidateSymbols, 4), (int)this.CandidateReason));
         }
 
         internal bool IsEmpty

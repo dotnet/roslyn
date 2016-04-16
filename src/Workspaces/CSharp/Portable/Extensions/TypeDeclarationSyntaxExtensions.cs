@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
             if (isPartialType)
             {
-                var typeSymbol = model.GetDeclaredSymbol(typeNode);
+                var typeSymbol = model.GetDeclaredSymbol(typeNode, cancellationToken);
                 if (typeSymbol != null)
                 {
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed) : token.TrailingTrivia;
                 return SyntaxFactory.Token(leadingTrivia, token.Kind(), trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
             }
-            
+
             return token;
         }
 

@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 //test
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DeclarationTests : CSharpTestBase
@@ -278,7 +280,7 @@ class C
     C(){}
 }
 ");
-            var foriegnType = SyntaxFactory.ParseSyntaxTree(@"
+            var foreignType = SyntaxFactory.ParseSyntaxTree(@"
 public class B
 {
   public int member(string s) { return s.Length; }
@@ -286,7 +288,7 @@ public class B
 }
 ");
 
-            var countedTree = new CountedSyntaxTree(foriegnType);
+            var countedTree = new CountedSyntaxTree(foreignType);
 
             var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { underlyingTree, countedTree });
 
@@ -317,37 +319,37 @@ public class B
         {
             private class Reference : SyntaxReference
             {
-                private readonly CountedSyntaxTree countedSyntaxTree;
-                private readonly SyntaxReference underlyingSyntaxReference;
+                private readonly CountedSyntaxTree _countedSyntaxTree;
+                private readonly SyntaxReference _underlyingSyntaxReference;
 
                 public Reference(CountedSyntaxTree countedSyntaxTree, SyntaxReference syntaxReference)
                 {
-                    this.countedSyntaxTree = countedSyntaxTree;
-                    this.underlyingSyntaxReference = syntaxReference;
+                    _countedSyntaxTree = countedSyntaxTree;
+                    _underlyingSyntaxReference = syntaxReference;
                 }
 
                 public override SyntaxTree SyntaxTree
                 {
                     get
                     {
-                        return countedSyntaxTree;
+                        return _countedSyntaxTree;
                     }
                 }
 
                 public override TextSpan Span
                 {
-                    get { return underlyingSyntaxReference.Span; }
+                    get { return _underlyingSyntaxReference.Span; }
                 }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                 {
                     // Note: It's important for us to maintain identity of nodes/trees, so we find
                     // the equivalent node in our CountedSyntaxTree.
-                    countedSyntaxTree.AccessCount++;
-                    var nodeInUnderlying = underlyingSyntaxReference.GetSyntax();
+                    _countedSyntaxTree.AccessCount++;
+                    var nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
 
 
-                    var token = countedSyntaxTree.GetCompilationUnitRoot().FindToken(nodeInUnderlying.SpanStart);
+                    var token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)
                     {
                         if (node.Span == nodeInUnderlying.Span && node.RawKind == nodeInUnderlying.RawKind)
@@ -360,39 +362,39 @@ public class B
                 }
             }
 
-            private readonly SyntaxTree underlyingTree;
-            private readonly CompilationUnitSyntax root;
+            private readonly SyntaxTree _underlyingTree;
+            private readonly CompilationUnitSyntax _root;
 
-            public int AccessCount = 0;
+            public int AccessCount;
 
             public CountedSyntaxTree(SyntaxTree underlying)
             {
                 Debug.Assert(underlying != null);
                 Debug.Assert(underlying.HasCompilationUnitRoot);
 
-                this.underlyingTree = underlying;
-                this.root = CloneNodeAsRoot(this.underlyingTree.GetCompilationUnitRoot(CancellationToken.None));
+                _underlyingTree = underlying;
+                _root = CloneNodeAsRoot(_underlyingTree.GetCompilationUnitRoot(CancellationToken.None));
             }
 
             public override string FilePath
             {
-                get { return underlyingTree.FilePath; }
+                get { return _underlyingTree.FilePath; }
             }
 
             public override CSharpParseOptions Options
             {
-                get { return (CSharpParseOptions)underlyingTree.Options; }
+                get { return (CSharpParseOptions)_underlyingTree.Options; }
             }
 
             public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken))
             {
                 AccessCount++;
-                return root;
+                return _root;
             }
 
             public override bool TryGetRoot(out CSharpSyntaxNode root)
             {
-                root = this.root;
+                root = _root;
                 AccessCount++;
                 return true;
             }
@@ -404,27 +406,32 @@ public class B
 
             public override SourceText GetText(CancellationToken cancellationToken)
             {
-                return underlyingTree.GetText(cancellationToken);
+                return _underlyingTree.GetText(cancellationToken);
             }
 
             public override bool TryGetText(out SourceText text)
             {
-                return underlyingTree.TryGetText(out text);
+                return _underlyingTree.TryGetText(out text);
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _underlyingTree.Encoding; }
             }
 
             public override int Length
             {
-                get { return underlyingTree.Length; }
+                get { return _underlyingTree.Length; }
             }
 
             public override SyntaxReference GetReference(SyntaxNode node)
             {
-                return new Reference(this, underlyingTree.GetReference(node));
+                return new Reference(this, _underlyingTree.GetReference(node));
             }
 
             public override SyntaxTree WithChangedText(SourceText newText)
             {
-                return underlyingTree.WithChangedText(newText);
+                return _underlyingTree.WithChangedText(newText);
             }
 
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)

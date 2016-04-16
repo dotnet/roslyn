@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundPseudoVariable
+    Friend Partial Class BoundPseudoVariable
 
         Protected Overrides Function MakeRValueImpl() As BoundExpression
             If Not _IsLValue Then

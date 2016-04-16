@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                     {TestResources.SymbolsTests.TypeForwarders.TypeForwarder,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderLib,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderBase,
-                                     ProprietaryTestResources.NetFX.v4_0_21006.mscorlib})
+                                     TestResources.NetFX.v4_0_21006.mscorlib})
 
             TestTypeForwarderHelper(assemblies)
         End Sub
@@ -838,7 +837,7 @@ End Class
                 Diagnostic(ERRID.ERR_UndefinedType1, "ns.ms.nope").WithArguments("ns.ms.nope"),
                 Diagnostic(ERRID.ERR_UndefinedType1, "ns.ms.ls.nope").WithArguments("ns.ms.ls.nope"))
 
-            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System") AndAlso Not ns.StartsWith("Microsoft"))
+            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System", StringComparison.Ordinal) AndAlso Not ns.StartsWith("Microsoft", StringComparison.Ordinal))
             Dim expectedNamespaces = {"Ns", "Ns.Ms"}
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub
@@ -896,7 +895,7 @@ End Namespace
                 Diagnostic(ERRID.ERR_UndefinedType1, "n2.n3.t").WithArguments("n2.n3.t"),
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "n1.n2.n3.t").WithArguments("n1.n2.n3.t", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
 
-            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System") AndAlso Not ns.StartsWith("Microsoft"))
+            Dim actualNamespaces = EnumerateNamespaces(compilation).Where(Function(ns) Not ns.StartsWith("System", StringComparison.Ordinal) AndAlso Not ns.StartsWith("Microsoft", StringComparison.Ordinal))
             Dim expectedNamespaces = {"N1", "N1.N2", "N1.N2.N3"}
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer(Of String).Default))
         End Sub
@@ -933,7 +932,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
 
             ' Attribute is erased. This is an intentional change in behavior by comparison to Dev12.
-            Dim verifier = CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
+            Dim verifier = CompileAndVerify(compilation,
                                             sourceSymbolValidator:=Sub(moduleSymbol)
                                                                        Assert.Equal(1, moduleSymbol.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count)
                                                                    End Sub,
@@ -987,10 +986,10 @@ End class
             Dim metadataReader = metadata.GetMetadataReader()
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
 
-            Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+            Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)
 
-            CompileAndVerify(appCompilation, emitOptions:=TestEmitters.RefEmitBug,
+            CompileAndVerify(appCompilation,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(0, peReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1025,7 +1024,7 @@ End class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource1.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource1.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1044,7 +1043,7 @@ End class
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False,
+            CompileAndVerify(appCompilation, verify:=False,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1084,7 +1083,7 @@ End class
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ]]>
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource2.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource2.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1102,7 +1101,7 @@ End class
             Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
             Assert.Equal(1, metadataReader.CustomAttributes.Count)
 
-            CompileAndVerify(appCompilation, emitOptions:=TestEmitters.RefEmitBug,
+            CompileAndVerify(appCompilation,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(0, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1195,7 +1194,7 @@ End Class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1212,7 +1211,7 @@ End class
             Dim appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False,
+            CompileAndVerify(appCompilation, verify:=False,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(2, peReader1.GetTableRowCount(TableIndex.ExportedType))

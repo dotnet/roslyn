@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();
 
-                            if (numericText.StartsWith("0x") || numericText.StartsWith("0X"))
+                            if (numericText.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                             {
                                 // Hex
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,

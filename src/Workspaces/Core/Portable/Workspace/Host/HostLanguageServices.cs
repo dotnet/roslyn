@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// A factory for creating compilations instances.
         /// </summary>
-        public virtual ICompilationFactoryService CompilationFactory
+        internal virtual ICompilationFactoryService CompilationFactory
         {
             get { return this.GetService<ICompilationFactoryService>(); }
         }

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class EventSymbol :
+    internal partial class EventSymbol :
         Cci.IEventDefinition
     {
         #region IEventDefinition Members

@@ -11,13 +11,45 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
-            Debug.Assert(unstructuredExceptionHandling.Context Is Nothing)
+            Debug.Assert(_unstructuredExceptionHandling.Context Is Nothing)
 
             Dim rewrittenTryBlock = RewriteTryBlock(node.TryBlock)
             Dim rewrittenCatchBlocks = VisitList(node.CatchBlocks)
             Dim rewrittenFinally = RewriteFinallyBlock(node.FinallyBlockOpt)
 
             Return RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
+        End Function
+
+        ''' <summary>
+        ''' Is there any code to execute in the given statement that could have side-effects,
+        ''' such as throwing an exception? This implementation is conservative, in the sense
+        ''' that it may return true when the statement actually may have no side effects.
+        ''' </summary>
+        Private Shared Function HasSideEffects(statement As BoundStatement) As Boolean
+            If statement Is Nothing Then
+                Return False
+            End If
+
+            Select Case statement.Kind
+                Case BoundKind.NoOpStatement
+                    Return False
+                Case BoundKind.Block
+                    Dim block = DirectCast(statement, BoundBlock)
+                    For Each s In block.Statements
+                        If HasSideEffects(s) Then
+                            Return True
+                        End If
+                    Next
+                    Return False
+                Case BoundKind.SequencePoint
+                    Dim sequence = DirectCast(statement, BoundSequencePoint)
+                    Return HasSideEffects(sequence.StatementOpt)
+                Case BoundKind.SequencePointWithSpan
+                    Dim sequence = DirectCast(statement, BoundSequencePointWithSpan)
+                    Return HasSideEffects(sequence.StatementOpt)
+                Case Else
+                    Return True
+            End Select
         End Function
 
         Public Function RewriteTryStatement(
@@ -27,6 +59,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             finallyBlockOpt As BoundBlock,
             exitLabelOpt As LabelSymbol
         ) As BoundStatement
+            If Not Me.OptimizationLevelIsDebug Then
+                ' When optimizing and the try block has no side effects, we can discard the catch blocks.
+                If Not HasSideEffects(tryBlock) Then
+                    catchBlocks = ImmutableArray(Of BoundCatchBlock).Empty
+                End If
+
+                ' A finally block with no side effects can be omitted.
+                If Not HasSideEffects(finallyBlockOpt) Then
+                    finallyBlockOpt = Nothing
+                End If
+
+                If catchBlocks.IsDefaultOrEmpty AndAlso finallyBlockOpt Is Nothing Then
+                    If exitLabelOpt Is Nothing Then
+                        Return tryBlock
+                    Else
+                        ' Ensure implicit label statement is materialized
+                        Return New BoundStatementList(syntaxNode,
+                                                      ImmutableArray.Create(Of BoundStatement)(tryBlock,
+                                                      New BoundLabelStatement(syntaxNode, exitLabelOpt)))
+                    End If
+                End If
+            End If
 
             Dim newTry As BoundStatement = New BoundTryStatement(syntaxNode, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt)
 
@@ -109,16 +163,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorLineNumber As BoundExpression = Nothing
 
             If node.ErrorLineNumberOpt IsNot Nothing Then
-                Debug.Assert(currentLineTemporary Is Nothing)
-                Debug.Assert((Me.Flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
+                Debug.Assert(_currentLineTemporary Is Nothing)
+                Debug.Assert((Me._flags And RewritingFlags.AllowCatchWithErrorLineNumberReference) <> 0)
 
                 errorLineNumber = VisitExpressionNode(node.ErrorLineNumberOpt)
 
-            ElseIf currentLineTemporary IsNot Nothing AndAlso currentMethodOrLambda Is topMethod Then
-                errorLineNumber = New BoundLocal(node.Syntax, currentLineTemporary, isLValue:=False, type:=currentLineTemporary.Type)
+            ElseIf _currentLineTemporary IsNot Nothing AndAlso _currentMethodOrLambda Is _topMethod Then
+                errorLineNumber = New BoundLocal(node.Syntax, _currentLineTemporary, isLValue:=False, type:=_currentLineTemporary.Type)
             End If
 
-            Return node.Update(node.LocalOpt, newExceptionSource, errorLineNumber, newFilter, newCatchBody)
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while methods invoked in the condition are being executed.
+            Return node.Update(node.LocalOpt,
+                               newExceptionSource,
+                               errorLineNumber,
+                               If(newFilter IsNot Nothing, AddConditionSequencePoint(newFilter, node), Nothing),
+                               newCatchBody,
+                               node.IsSynthesizedAsyncCatchAll)
         End Function
 
         Private Sub ReportErrorsOnCatchBlockHelpers(node As BoundCatchBlock)

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "public class C {}";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var annotation1 = new SyntaxAnnotation("MyAnnotationId", "SomeData");
-            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1,annotation1);
+            var root = tree.GetCompilationUnitRoot().WithAdditionalAnnotations(annotation1, annotation1);
             Assert.Equal(true, root.ContainsAnnotations);
             Assert.Equal(true, root.HasAnnotation(annotation1));
             var removedRoot = root.WithoutAnnotations(annotation1);
@@ -267,7 +267,7 @@ class C { }");
             RoundTrip(@"public class C { string c = ""\U0002A6A5𪚥""; }");
         }
 
-        [Fact, WorkItem(1038237)]
+        [Fact, WorkItem(1038237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038237")]
         public void RoundTripPragmaDirective()
         {
             var text = @"#pragma disable warning CS0618";
@@ -285,7 +285,7 @@ class C { }");
             Assert.True(newRoot.ContainsDirectives);
         }
 
-        #if false
+#if false
         [Fact]
         public void RoundTripBigSyntaxNode()
         {

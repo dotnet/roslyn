@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
     {
         private class C
         {
-            string value;
+            private readonly string _value;
 
             public C(string value)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override string ToString()
             {
-                return value;
+                return _value;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             var list = new WeakList<object>();
             Assert.Equal(0, list.TestOnly_UnderlyingArray.Length);
-            
+
             Add(list, a);
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.Equal(4, list.TestOnly_UnderlyingArray.Length);
 
             Add(list, e);
-            Assert.Equal(2*4+1, list.TestOnly_UnderlyingArray.Length);
+            Assert.Equal(2 * 4 + 1, list.TestOnly_UnderlyingArray.Length);
 
             Assert.Equal(5, list.WeakCount);
 

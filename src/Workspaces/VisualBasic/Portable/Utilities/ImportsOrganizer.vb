@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Partial Class ImportsOrganizer
+    Friend Partial Class ImportsOrganizer
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
                                         placeSystemNamespaceFirst As Boolean) As SyntaxList(Of ImportsStatementSyntax)
             If [imports].Count > 1 Then

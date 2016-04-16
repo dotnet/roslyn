@@ -9,14 +9,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeEqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
-            Private ReadOnly m_iEquatableEqualsMethod As MethodSymbol
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _iEquatableEqualsMethod As MethodSymbol
 
             Public Sub New(container As AnonymousTypeTemplateSymbol, iEquatableEqualsMethod As MethodSymbol)
                 MyBase.New(VisualBasicSyntaxTree.Dummy.GetRoot(), container, WellKnownMemberNames.ObjectEquals)
 
-                m_parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, container.Manager.System_Object, 0, "obj"))
-                m_iEquatableEqualsMethod = iEquatableEqualsMethod
+                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSimpleSymbol(Me, container.Manager.System_Object, 0, "obj"))
+                _iEquatableEqualsMethod = iEquatableEqualsMethod
             End Sub
 
             Private ReadOnly Property AnonymousType As AnonymousTypeTemplateSymbol
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                 Get
-                    Return Me.m_parameters
+                    Return Me._parameters
                 End Get
             End Property
 

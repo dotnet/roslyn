@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CompoundAssignmentForDelegate : EmitMetadataTestBase
     {
-
-        // The method  to removal or concatenation with ‘optional’ parameter
+        // The method to removal or concatenation with 'optional' parameter
         [Fact]
         public void OptionalParaInCompAssignOperator()
         {
@@ -199,7 +198,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", @"
+            CompileAndVerify(text, expectedOutput: "10").VerifyIL("C.Main", @"
 {
   // Code size       77 (0x4d)
   .maxstack  3
@@ -237,7 +236,7 @@ class C
         [Fact]
         public void LambdaMethodToRemovalOrConcatenation()
         {
-            var text =@"
+            var text = @"
 using System;
 delegate void boo(string x);
 class C
@@ -255,7 +254,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", @"
+            CompileAndVerify(text, expectedOutput: "Hello").VerifyIL("C.Main()", @"
 {
   // Code size       80 (0x50)
   .maxstack  3
@@ -468,9 +467,9 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
-        // Removal and concatenation woks on both static and instance methods 
+        // Removal and concatenation works on both static and instance methods 
         [Fact]
-        public void RemovebothStaticAndInstanceMethod()
+        public void RemoveBothStaticAndInstanceMethod()
         {
             var text =
 @"
@@ -611,7 +610,7 @@ class C
         }
 
         // Removal or concatenation for the delegate that is virtual struct methods
-        [WorkItem(539908, "DevDiv")]
+        [WorkItem(539908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539908")]
         [Fact]
         public void DelegateWithStructMethods()
         {
@@ -849,7 +848,7 @@ Derived1
         }
 
         // Compound assignment for the method with derived return type
-        [WorkItem(539927, "DevDiv")]
+        [WorkItem(539927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539927")]
         [Fact]
         public void CompAssignOperatorForInherit03()
         {
@@ -911,7 +910,7 @@ Derived
         }
 
         // Compound assignment for the method with derived return type
-        [WorkItem(539927, "DevDiv")]
+        [WorkItem(539927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539927")]
         [Fact]
         public void CompAssignOperatorForInherit04()
         {

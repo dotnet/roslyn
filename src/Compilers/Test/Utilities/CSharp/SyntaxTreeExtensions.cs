@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class SyntaxTreeExtensions
@@ -14,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return syntaxTree.WithChangedText(newFullText);
         }
 
-        internal static SyntaxTree WithReplaceFirst(this SyntaxTree syntaxTree, string oldText, string newText)
+        public static SyntaxTree WithReplaceFirst(this SyntaxTree syntaxTree, string oldText, string newText)
         {
             var oldFullText = syntaxTree.GetText().ToString();
-            int offset = oldFullText.IndexOf(oldText);
+            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
             int length = oldText.Length;
             return WithReplace(syntaxTree, offset, length, newText);
         }
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SyntaxTree WithReplace(this SyntaxTree syntaxTree, int startIndex, string oldText, string newText)
         {
             var oldFullText = syntaxTree.GetText().ToString();
-            int offset = oldFullText.IndexOf(oldText, startIndex); // Use an offset to find the first element to replace at
+            int offset = oldFullText.IndexOf(oldText, startIndex, StringComparison.Ordinal); // Use an offset to find the first element to replace at
             int length = oldText.Length;
             return WithReplace(syntaxTree, offset, length, newText);
         }
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SyntaxTree WithInsertBefore(this SyntaxTree syntaxTree, string existingText, string newText)
         {
             var oldFullText = syntaxTree.GetText().ToString();
-            int offset = oldFullText.IndexOf(existingText);
+            int offset = oldFullText.IndexOf(existingText, StringComparison.Ordinal);
             return WithReplace(syntaxTree, offset, 0, newText);
         }
 

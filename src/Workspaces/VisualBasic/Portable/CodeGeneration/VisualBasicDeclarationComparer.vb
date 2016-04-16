@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared ReadOnly Instance As IComparer(Of SyntaxNode) = New VisualBasicDeclarationComparer()
 
-        Private Shared ReadOnly kindPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
+        Private Shared ReadOnly s_kindPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.FieldDeclaration, 0},
                 {SyntaxKind.ConstructorBlock, 1},
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 {SyntaxKind.DelegateFunctionStatement, 12}
             }
 
-        Private Shared ReadOnly operatorPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
+        Private Shared ReadOnly s_operatorPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.PlusToken, 0},
                 {SyntaxKind.MinusToken, 1},
@@ -67,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function Compare(x As SyntaxNode, y As SyntaxNode) As Integer Implements IComparer(Of SyntaxNode).Compare
             Dim xPrecedence As Integer
             Dim yPrecedence As Integer
-            If Not kindPrecedenceMap.TryGetValue(x.Kind(), xPrecedence) OrElse
-               Not kindPrecedenceMap.TryGetValue(y.Kind(), yPrecedence) Then
+            If Not s_kindPrecedenceMap.TryGetValue(x.Kind(), xPrecedence) OrElse
+               Not s_kindPrecedenceMap.TryGetValue(y.Kind(), yPrecedence) Then
                 ' The containing definition is malformed and contains a node kind we didn't expect.
                 ' Ignore comparisons with those unexpected nodes and sort them to the end of the declaration.
                 Return 1
@@ -131,22 +131,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.OperatorBlock
-                    Return DirectCast(node, MethodBlockBaseSyntax).Begin
+                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement
 
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(node, EnumBlockSyntax).EnumStatement
 
                 Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).Begin
+                    Return DirectCast(node, InterfaceBlockSyntax).BlockStatement
 
                 Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).Begin
+                    Return DirectCast(node, StructureBlockSyntax).BlockStatement
 
                 Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).Begin
+                    Return DirectCast(node, ClassBlockSyntax).BlockStatement
 
                 Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).Begin
+                    Return DirectCast(node, ModuleBlockSyntax).BlockStatement
             End Select
 
             Return node
@@ -381,8 +381,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim xPrecedence = 0
                 Dim yPrecedence = 0
 
-                operatorPrecedenceMap.TryGetValue(x.Kind, xPrecedence)
-                operatorPrecedenceMap.TryGetValue(y.Kind, yPrecedence)
+                s_operatorPrecedenceMap.TryGetValue(x.Kind, xPrecedence)
+                s_operatorPrecedenceMap.TryGetValue(y.Kind, yPrecedence)
 
                 comparisonResult = If(xPrecedence = yPrecedence, 0, If(xPrecedence < yPrecedence, -1, 1))
             End If

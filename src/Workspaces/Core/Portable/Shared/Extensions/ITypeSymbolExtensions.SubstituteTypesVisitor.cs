@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TType2 : ITypeSymbol
         {
             // private readonly Compilation compilation;
-            private readonly IDictionary<TType1, TType2> map;
-            private readonly ITypeGenerator typeGenerator;
+            private readonly IDictionary<TType1, TType2> _map;
+            private readonly ITypeGenerator _typeGenerator;
 
             internal SubstituteTypesVisitor(
                 IDictionary<TType1, TType2> map,
                 ITypeGenerator typeGenerator)
             {
-                this.map = map;
-                this.typeGenerator = typeGenerator;
+                _map = map;
+                _typeGenerator = typeGenerator;
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private ITypeSymbol VisitType(ITypeSymbol symbol)
             {
                 TType2 converted;
-                if (symbol is TType1 && map.TryGetValue((TType1)symbol, out converted))
+                if (symbol is TType1 && _map.TryGetValue((TType1)symbol, out converted))
                 {
                     return converted;
                 }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments);
+                return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments);
             }
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return typeGenerator.CreateArrayTypeSymbol(elementType, symbol.Rank);
+                return _typeGenerator.CreateArrayTypeSymbol(elementType, symbol.Rank);
             }
 
             public override ITypeSymbol VisitPointerType(IPointerTypeSymbol symbol)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return symbol;
                 }
 
-                return typeGenerator.CreatePointerTypeSymbol(pointedAtType);
+                return _typeGenerator.CreatePointerTypeSymbol(pointedAtType);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,8 +34,7 @@ class C
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-
-        [WorkItem(865627, "DevDiv")]
+        [WorkItem(865627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865627")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
         {
@@ -68,7 +68,6 @@ namespace ClassLibrary2
 }";
             var classLib2 = CreateCompilationWithMscorlib(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
 
-
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
 
@@ -91,7 +90,7 @@ namespace ConsoleApplication
 
             //This is the crux of the test.
             //Without this line, with or without the fix, the model never gets pushed to evaluate extension method candidates
-            //and therefor never marked ClassLibrary2 as a used import in consoleApplication.
+            //and therefore never marked ClassLibrary2 as a used import in consoleApplication.
             //Without the fix, this call used to result in ClassLibrary2 getting marked as used, after the fix, this call does not
             //result in changing ClassLibrary2's used status.
             model.GetMemberGroup(syntax);
@@ -118,7 +117,7 @@ class Program
 }";
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
-            //all unused because system.core was not included and Eunmerable didn't bind
+            //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // using System.Linq;
@@ -139,7 +138,6 @@ class Program
                 // using System.Threading.Tasks;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;")
                 );
-
 
             comp = comp.WithReferences(comp.References.Concat(SystemCoreRef));
             comp.VerifyDiagnostics(
@@ -190,7 +188,7 @@ class C
             var comp = CreateCompilationWithMscorlib(tree);
             var model = comp.GetSemanticModel(tree);
 
-            var position = text.IndexOf("/*here*/");
+            var position = text.IndexOf("/*here*/", StringComparison.Ordinal);
             var info = model.GetSpeculativeSymbolInfo(position, SyntaxFactory.IdentifierName("Console"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             Assert.NotNull(info.Symbol);
             Assert.Equal(SymbolKind.NamedType, info.Symbol.Kind);
@@ -205,10 +203,10 @@ class C
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AllAssemblyLevelAttributesMustBeBound()
         {
-            var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path;
+            var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey).Path;
 
             var signing = Parse(@"
 using System.Reflection;
@@ -262,7 +260,7 @@ public class C
             libCompilation.VerifyDiagnostics();
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void SemanticModelCallDoesNotCountsAsUse()
         {
@@ -289,7 +287,7 @@ class C
                 );
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedUsingDirective()
         {
@@ -307,7 +305,7 @@ using C = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using C = System.Console;"));
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void INF_UnusedExternAlias()
         {
@@ -323,7 +321,7 @@ extern alias A;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A;"));
         }
 
-        [WorkItem(747219, "DevDiv")]
+        [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]
         [Fact]
         public void CrefCountsAsUse()
         {
@@ -344,7 +342,7 @@ public class C { }
             CreateCompilationWithMscorlibAndDocumentationComments(source).VerifyDiagnostics();
         }
 
-        [WorkItem(770147, "DevDiv")]
+        [WorkItem(770147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770147")]
         [Fact]
         public void InfoAndWarnAsError()
         {
@@ -356,6 +354,27 @@ using System;
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
+        }
+
+        [Fact]
+        public void UnusedUsingInteractive()
+        {
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnusedUsingScript()
+        {
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
     }
 }

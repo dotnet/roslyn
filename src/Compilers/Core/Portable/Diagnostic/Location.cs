@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract class Location
     {
-        protected Location()
+        internal Location()
         {
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
             string result = Kind.ToString();
             if (IsInSource)
             {
-                result += "(" + (this.SourceTree != null ? this.SourceTree.FilePath : null) + this.SourceSpan + ")";
+                result += "(" + this.SourceTree?.FilePath + this.SourceSpan + ")";
             }
             else if (IsInMetadata)
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree == null)
             {
-                throw new ArgumentNullException("syntaxTree");
+                throw new ArgumentNullException(nameof(syntaxTree));
             }
 
             return new SourceLocation(syntaxTree, textSpan);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (filePath == null)
             {
-                throw new ArgumentNullException("filePath");
+                throw new ArgumentNullException(nameof(filePath));
             }
 
             return new ExternalFileLocation(filePath, textSpan, lineSpan);

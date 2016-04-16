@@ -15,27 +15,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class DirectiveWalker : CSharpSyntaxWalker
         {
-            private readonly IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap;
-            private readonly IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> conditionalMap;
-            private readonly CancellationToken cancellationToken;
+            private readonly IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> _directiveMap;
+            private readonly IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> _conditionalMap;
+            private readonly CancellationToken _cancellationToken;
 
-            private readonly Stack<DirectiveTriviaSyntax> regionStack = new Stack<DirectiveTriviaSyntax>();
-            private readonly Stack<DirectiveTriviaSyntax> ifStack = new Stack<DirectiveTriviaSyntax>();
+            private readonly Stack<DirectiveTriviaSyntax> _regionStack = new Stack<DirectiveTriviaSyntax>();
+            private readonly Stack<DirectiveTriviaSyntax> _ifStack = new Stack<DirectiveTriviaSyntax>();
 
             public DirectiveWalker(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
-                IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> conditionalMap,
+                IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> conditionalMap,
                 CancellationToken cancellationToken) :
                 base(SyntaxWalkerDepth.Token)
             {
-                this.directiveMap = directiveMap;
-                this.conditionalMap = conditionalMap;
-                this.cancellationToken = cancellationToken;
+                _directiveMap = directiveMap;
+                _conditionalMap = conditionalMap;
+                _cancellationToken = cancellationToken;
             }
 
             public override void DefaultVisit(SyntaxNode node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 if (!node.ContainsDirectives)
                 {
@@ -80,37 +80,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             private void HandleIfDirective(DirectiveTriviaSyntax directive)
             {
-                ifStack.Push(directive);
+                _ifStack.Push(directive);
             }
 
             private void HandleRegionDirective(DirectiveTriviaSyntax directive)
             {
-                regionStack.Push(directive);
+                _regionStack.Push(directive);
             }
 
             private void HandleElifDirective(DirectiveTriviaSyntax directive)
             {
-                ifStack.Push(directive);
+                _ifStack.Push(directive);
             }
 
             private void HandleElseDirective(DirectiveTriviaSyntax directive)
             {
-                ifStack.Push(directive);
+                _ifStack.Push(directive);
             }
 
             private void HandleEndIfDirective(DirectiveTriviaSyntax directive)
             {
-                if (ifStack.IsEmpty())
+                if (_ifStack.IsEmpty())
                 {
                     return;
                 }
 
-                var condDirectives = new List<DirectiveTriviaSyntax>();
-                condDirectives.Add(directive);
+                FinishIf(directive);
+            }
 
-                while (!ifStack.IsEmpty())
+            private void FinishIf(DirectiveTriviaSyntax directiveOpt)
+            {
+                var condDirectives = new List<DirectiveTriviaSyntax>();
+                if (directiveOpt != null)
                 {
-                    var poppedDirective = ifStack.Pop();
+                    condDirectives.Add(directiveOpt);
+                }
+
+                while (!_ifStack.IsEmpty())
+                {
+                    var poppedDirective = _ifStack.Pop();
                     condDirectives.Add(poppedDirective);
                     if (poppedDirective.Kind() == SyntaxKind.IfDirectiveTrivia)
                     {
@@ -122,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 foreach (var cond in condDirectives)
                 {
-                    conditionalMap.Add(cond, condDirectives);
+                    _conditionalMap.Add(cond, condDirectives);
                 }
 
                 // #If should be the first one in sorted order
@@ -132,21 +140,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     ifDirective.Kind() == SyntaxKind.ElifDirectiveTrivia ||
                     ifDirective.Kind() == SyntaxKind.ElseDirectiveTrivia);
 
-                directiveMap.Add(directive, ifDirective);
-                directiveMap.Add(ifDirective, directive);
+                if (directiveOpt != null)
+                {
+                    _directiveMap.Add(directiveOpt, ifDirective);
+                    _directiveMap.Add(ifDirective, directiveOpt);
+                }
             }
 
             private void HandleEndRegionDirective(DirectiveTriviaSyntax directive)
             {
-                if (regionStack.IsEmpty())
+                if (_regionStack.IsEmpty())
                 {
                     return;
                 }
 
-                var previousDirective = regionStack.Pop();
+                var previousDirective = _regionStack.Pop();
 
-                directiveMap.Add(directive, previousDirective);
-                directiveMap.Add(previousDirective, directive);
+                _directiveMap.Add(directive, previousDirective);
+                _directiveMap.Add(previousDirective, directive);
+            }
+
+            internal void Finish()
+            {
+                while (_regionStack.Count > 0)
+                {
+                    _directiveMap.Add(_regionStack.Pop(), null);
+                }
+
+                while (_ifStack.Count > 0)
+                {
+                    FinishIf(directiveOpt: null);
+                }
             }
         }
     }

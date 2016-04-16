@@ -3,136 +3,126 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
+    internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
     {
         //inputs
-        private readonly MethodSymbol interfaceMethod;
-        private readonly NamedTypeSymbol implementingType;
-        private readonly bool debuggerHidden;
-        private readonly bool generateDebugInfo;
-        private readonly PropertySymbol associatedProperty;
+        private readonly MethodSymbol _interfaceMethod;
+        private readonly NamedTypeSymbol _implementingType;
+        private readonly bool _generateDebugInfo;
+        private readonly PropertySymbol _associatedProperty;
 
         //computed
-        private readonly ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
-        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-        private readonly TypeSymbol returnType;
-        private readonly ImmutableArray<ParameterSymbol> parameters;
-        private readonly string name;
+        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly TypeSymbol _returnType;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
+        private readonly string _name;
 
         public SynthesizedImplementationMethod(
             MethodSymbol interfaceMethod,
             NamedTypeSymbol implementingType,
             string name = null,
-            bool debuggerHidden = false,
             bool generateDebugInfo = true,
             PropertySymbol associatedProperty = null)
         {
             //it does not make sense to add methods to substituted types
             Debug.Assert(implementingType.IsDefinition);
 
-            this.name = name ?? ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
-            this.interfaceMethod = interfaceMethod;
-            this.implementingType = implementingType;
-            this.debuggerHidden = debuggerHidden;
-            this.generateDebugInfo = generateDebugInfo;
-            this.associatedProperty = associatedProperty;
-            this.explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
+            _name = name ?? ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
+            _interfaceMethod = interfaceMethod;
+            _implementingType = implementingType;
+            _generateDebugInfo = generateDebugInfo;
+            _associatedProperty = associatedProperty;
+            _explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
 
             // alpha-rename to get the implementation's type parameters
             var typeMap = interfaceMethod.ContainingType.TypeSubstitution ?? TypeMap.Empty;
-            typeMap.WithAlphaRename(interfaceMethod, this, out this.typeParameters);
+            typeMap.WithAlphaRename(interfaceMethod, this, out _typeParameters);
 
-            var substitutedInterfaceMethod = interfaceMethod.ConstructIfGeneric(this.typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
-            this.returnType = substitutedInterfaceMethod.ReturnType;
-            this.parameters = SynthesizedParameterSymbol.DeriveParameters(substitutedInterfaceMethod, this);
+            var substitutedInterfaceMethod = interfaceMethod.ConstructIfGeneric(_typeParameters.Cast<TypeParameterSymbol, TypeSymbol>());
+            _returnType = substitutedInterfaceMethod.ReturnType;
+            _parameters = SynthesizedParameterSymbol.DeriveParameters(substitutedInterfaceMethod, this);
         }
 
         #region Delegate to interfaceMethod
 
         public sealed override bool IsVararg
         {
-            get { return interfaceMethod.IsVararg; }
+            get { return _interfaceMethod.IsVararg; }
         }
 
         public sealed override int Arity
         {
-            get { return interfaceMethod.Arity; }
+            get { return _interfaceMethod.Arity; }
         }
 
         public sealed override bool ReturnsVoid
         {
-            get { return interfaceMethod.ReturnsVoid; }
+            get { return _interfaceMethod.ReturnsVoid; }
         }
 
         internal sealed override Cci.CallingConvention CallingConvention
         {
-            get { return interfaceMethod.CallingConvention; }
+            get { return _interfaceMethod.CallingConvention; }
         }
 
         public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
-            get { return this.interfaceMethod.ReturnTypeCustomModifiers; }
+            get { return _interfaceMethod.ReturnTypeCustomModifiers; }
         }
 
         #endregion
 
-        internal sealed override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (debuggerHidden)
+            var compilation = this.DeclaringCompilation;
+            if (this.ReturnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
-            }
-
-            if (this.ReturnType.ContainsDynamic())
-            {
-                var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
             }
         }
 
         internal sealed override bool GenerateDebugInfo
         {
-            get { return generateDebugInfo; }
+            get { return _generateDebugInfo; }
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return this.typeParameters; }
+            get { return _typeParameters; }
         }
 
         public sealed override ImmutableArray<TypeSymbol> TypeArguments
         {
-            get { return this.typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
         }
 
         public sealed override TypeSymbol ReturnType
         {
-            get { return this.returnType; }
+            get { return _returnType; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
-            get { return this.parameters; }
+            get { return _parameters; }
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return this.implementingType; }
+            get { return _implementingType; }
         }
 
         public override NamedTypeSymbol ContainingType
         {
             get
             {
-                return this.implementingType;
+                return _implementingType;
             }
         }
 
@@ -143,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            get { return this.explicitInterfaceImplementations; }
+            get { return _explicitInterfaceImplementations; }
         }
 
         public override MethodKind MethodKind
@@ -161,17 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol AssociatedSymbol
         {
-            get { return this.associatedProperty; }
+            get { return _associatedProperty; }
         }
 
         public override bool HidesBaseMethodsByName
         {
             get { return false; }
-        }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return LexicalSortKey.NotInSource;
         }
 
         public override ImmutableArray<Location> Locations
@@ -221,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         internal sealed override bool HasSpecialName
         {
-            get { return interfaceMethod.HasSpecialName; }
+            get { return _interfaceMethod.HasSpecialName; }
         }
 
         internal sealed override System.Reflection.MethodImplAttributes ImplementationAttributes
@@ -236,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool RequiresSecurityObject
         {
-            get { return interfaceMethod.RequiresSecurityObject; }
+            get { return _interfaceMethod.RequiresSecurityObject; }
         }
 
         internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)

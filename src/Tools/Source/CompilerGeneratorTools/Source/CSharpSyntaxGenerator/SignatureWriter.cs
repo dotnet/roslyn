@@ -1,23 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace CSharpSyntaxGenerator
 {
-    class SignatureWriter
+    internal class SignatureWriter
     {
-        private readonly TextWriter writer;
-        private readonly Tree tree;
-        private readonly Dictionary<string, string> typeMap;
+        private readonly TextWriter _writer;
+        private readonly Tree _tree;
+        private readonly Dictionary<string, string> _typeMap;
 
         private SignatureWriter(TextWriter writer, Tree tree)
         {
-            this.writer = writer;
-            this.tree = tree;
-            this.typeMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
-            this.typeMap.Add(tree.Root, null);
+            _writer = writer;
+            _tree = tree;
+            _typeMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
+            _typeMap.Add(tree.Root, null);
         }
 
         public static void Write(TextWriter writer, Tree tree)
@@ -27,27 +28,27 @@ namespace CSharpSyntaxGenerator
 
         private void WriteFile()
         {
-            writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections;");
-            writer.WriteLine("using System.Collections.Generic;");
-            writer.WriteLine("using System.Linq;");
-            writer.WriteLine("using System.Threading;");
-            writer.WriteLine();
-            writer.WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            writer.WriteLine("{");
+            _writer.WriteLine("using System;");
+            _writer.WriteLine("using System.Collections;");
+            _writer.WriteLine("using System.Collections.Generic;");
+            _writer.WriteLine("using System.Linq;");
+            _writer.WriteLine("using System.Threading;");
+            _writer.WriteLine();
+            _writer.WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
+            _writer.WriteLine("{");
 
             this.WriteTypes();
 
-            writer.WriteLine("}");
+            _writer.WriteLine("}");
         }
 
         private void WriteTypes()
         {
-            var nodes = tree.Types.Where(n => !(n is PredefinedNode)).ToList();
+            var nodes = _tree.Types.Where(n => !(n is PredefinedNode)).ToList();
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 var node = nodes[i];
-                writer.WriteLine();
+                _writer.WriteLine();
                 this.WriteType(node);
             }
         }
@@ -57,23 +58,23 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 AbstractNode nd = (AbstractNode)node;
-                writer.WriteLine("  public abstract partial class {0} : {1}", node.Name, node.Base);
-                writer.WriteLine("  {");
+                _writer.WriteLine("  public abstract partial class {0} : {1}", node.Name, node.Base);
+                _writer.WriteLine("  {");
                 for (int i = 0, n = nd.Fields.Count; i < n; i++)
                 {
                     var field = nd.Fields[i];
                     if (IsNodeOrNodeList(field.Type))
                     {
-                        writer.WriteLine("    public abstract {0}{1} {2} {{ get; }}", "", field.Type, field.Name);
+                        _writer.WriteLine("    public abstract {0}{1} {2} {{ get; }}", "", field.Type, field.Name);
                     }
                 }
-                writer.WriteLine("  }");
+                _writer.WriteLine("  }");
             }
             else if (node is Node)
             {
                 Node nd = (Node)node;
-                writer.WriteLine("  public partial class {0} : {1}", node.Name, node.Base);
-                writer.WriteLine("  {");
+                _writer.WriteLine("  public partial class {0} : {1}", node.Name, node.Base);
+                _writer.WriteLine("  {");
 
                 WriteKinds(nd.Kinds);
 
@@ -83,16 +84,16 @@ namespace CSharpSyntaxGenerator
                 for (int i = 0, n = nodeFields.Count; i < n; i++)
                 {
                     var field = nodeFields[i];
-                    writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
+                    _writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
                 }
 
                 for (int i = 0, n = valueFields.Count; i < n; i++)
                 {
                     var field = valueFields[i];
-                    writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
+                    _writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
                 }
 
-                writer.WriteLine("  }");
+                _writer.WriteLine("  }");
             }
         }
 
@@ -102,19 +103,19 @@ namespace CSharpSyntaxGenerator
             {
                 foreach (var kind in kinds)
                 {
-                    writer.WriteLine("    // {0}", kind.Name);
+                    _writer.WriteLine("    // {0}", kind.Name);
                 }
             }
         }
 
         private bool IsSeparatedNodeList(string typeName)
         {
-            return typeName.StartsWith("SeparatedSyntaxList<");
+            return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
         }
 
         private bool IsNodeList(string typeName)
         {
-            return typeName.StartsWith("SyntaxList<");
+            return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
         public bool IsNodeOrNodeList(string typeName)
@@ -124,7 +125,7 @@ namespace CSharpSyntaxGenerator
 
         private bool IsNode(string typeName)
         {
-            return this.typeMap.ContainsKey(typeName);
+            return _typeMap.ContainsKey(typeName);
         }
     }
 }

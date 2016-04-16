@@ -43,5 +43,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
+
+        public static TextDocument GetTextDocument(this Solution solution, DocumentId documentId)
+        {
+            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId);
+        }
+
+        public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
+        {
+            var document = solution.GetTextDocument(documentId);
+            if (document is Document)
+            {
+                return solution.WithDocumentText(documentId, text, mode);
+            }
+            else
+            {
+                return solution.WithAdditionalDocumentText(documentId, text, mode);
+            }
+        }
     }
 }

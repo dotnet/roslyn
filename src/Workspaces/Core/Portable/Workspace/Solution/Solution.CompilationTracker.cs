@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial class CompilationTracker
         {
-            private static readonly Func<ProjectState, string> logBuildCompilationAsync = LogBuildCompilationAsync;
+            private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
 
-            public ProjectState ProjectState { get; private set; }
+            public ProjectState ProjectState { get; }
 
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
             /// </summary>
-            private State stateDoNotAccessDirectly;
+            private State _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly AsyncSemaphore buildLock = new AsyncSemaphore(initialCount: 1);
+            private readonly SemaphoreSlim _buildLock = new SemaphoreSlim(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
-                this.stateDoNotAccessDirectly = state;
+                _stateDoNotAccessDirectly = state;
             }
 
             /// <summary>
@@ -57,18 +57,18 @@ namespace Microsoft.CodeAnalysis
 
             private State ReadState()
             {
-                return Volatile.Read(ref this.stateDoNotAccessDirectly);
+                return Volatile.Read(ref _stateDoNotAccessDirectly);
             }
 
             private void WriteState(State state, Solution solution)
             {
-                if (solution.solutionServices.SupportsCachingRecoverableObjects)
+                if (solution._solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solution.solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(this.ProjectState.Id, state, state.Compilation.GetValue());
+                    solution._solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(this.ProjectState.Id, state, state.Compilation.GetValue());
                 }
 
-                Volatile.Write(ref this.stateDoNotAccessDirectly, state);
+                Volatile.Write(ref _stateDoNotAccessDirectly, state);
             }
 
             /// <summary>
@@ -178,15 +178,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // The user is asking for an in progress snap.  We don't want to create it and then a
-                // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource
+                // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
+                // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
-                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation)));
+                    new FinalState(new ConstantValueSource<Compilation>(inProgressCompilation), hasSuccessfullyLoadedTransitively: false));
             }
 
             /// <summary>
             /// Tries to get the latest snapshot of the compilation without waiting for it to be
             /// fully built. This method takes advantage of the progress side-effect produced during
-            /// BuildCompilation. It will either return the already built compilation, any
+            /// <see cref="BuildCompilationInfoAsync(Solution, CancellationToken)"/>. It will either return the already built compilation, any
             /// in-progress compilation or any known old compilation in that order of preference.
             /// The compilation state that is returned will have a compilation that is retained so
             /// that it cannot disappear.
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
                     inProgressCompilation != null &&
-                    inProgressState.IntermediateProjects.All(t => TouchDocumentActionForDocument(t, id)))
+                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t, id)))
                 {
                     inProgressProject = this.ProjectState;
                     return;
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis
                         if (referencedProject.IsSubmission)
                         {
                             var compilation = solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
-                            inProgressCompilation = inProgressCompilation.WithPreviousSubmission(compilation);
+                            inProgressCompilation = inProgressCompilation.WithScriptCompilationInfo(inProgressCompilation.ScriptCompilationInfo.WithPreviousScriptCompilation(compilation));
                         }
                         else
                         {
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis
                             if (metadata == null)
                             {
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                metadata = inProgressCompilation.References.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
+                                metadata = inProgressCompilation.ExternalReferences.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
@@ -273,13 +274,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
-                if (!Enumerable.SequenceEqual(inProgressCompilation.References, metadataReferences))
+                if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
                 {
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
             }
 
-            private bool TouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
+            private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
             {
                 var touchDocumentAction = tuple.Item2 as CompilationTranslationAction.TouchDocumentAction;
                 return touchDocumentAction != null && touchDocumentAction.DocumentId == id;
@@ -307,7 +308,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return GetOrBuildCompilationAsync(solution, lockGate: true, cancellationToken: cancellationToken);
+                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t => t.Result.Compilation, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
                 }
             }
 
@@ -322,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                    using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var state = this.ReadState();
 
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<Compilation> GetOrBuildCompilationAsync(
+            private async Task<CompilationInfo> GetOrBuildCompilationInfoAsync(
                 Solution solution,
                 bool lockGate,
                 CancellationToken cancellationToken)
@@ -379,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     using (Logger.LogBlock(FunctionId.Workspace_Project_CompilationTracker_BuildCompilationAsync,
-                                           logBuildCompilationAsync, this.ProjectState, cancellationToken))
+                                           s_logBuildCompilationAsync, this.ProjectState, cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -389,21 +391,21 @@ namespace Microsoft.CodeAnalysis
                         var finalCompilation = state.FinalCompilation.GetValue(cancellationToken);
                         if (finalCompilation != null)
                         {
-                            return finalCompilation;
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoadedTransitively.Value);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
                         // build this compilation at a time.
                         if (lockGate)
                         {
-                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
-                                return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                                return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
                             }
                         }
                         else
                         {
-                            return await BuildCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                            return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -417,7 +419,7 @@ namespace Microsoft.CodeAnalysis
             /// Builds the compilation matching the project state. In the process of building, also
             /// produce in progress snapshots that can be accessed from other threads.
             /// </summary>
-            private Task<Compilation> BuildCompilationAsync(
+            private Task<CompilationInfo> BuildCompilationInfoAsync(
                 Solution solution,
                 CancellationToken cancellationToken)
             {
@@ -430,7 +432,7 @@ namespace Microsoft.CodeAnalysis
                 var compilation = state.FinalCompilation.GetValue(cancellationToken);
                 if (compilation != null)
                 {
-                    return SpecializedTasks.FromResult(compilation);
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoadedTransitively.Value));
                 }
 
                 compilation = state.Compilation.GetValue(cancellationToken);
@@ -445,7 +447,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We've got nothing.  Build it from scratch :(
-                    return BuildCompilationFromScratchAsync(solution, state, cancellationToken);
+                    return BuildCompilationInfoFromScratchAsync(solution, state, cancellationToken);
                 }
                 else if (state is FullDeclarationState)
                 {
@@ -463,7 +465,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<Compilation> BuildCompilationFromScratchAsync(
+            private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
                 Solution solution, State state, CancellationToken cancellationToken)
             {
                 try
@@ -518,7 +520,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private async Task<Compilation> BuildFinalStateFromInProgressStateAsync(
+            private async Task<CompilationInfo> BuildFinalStateFromInProgressStateAsync(
                 Solution solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
             {
                 try
@@ -562,15 +564,32 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // Add all appropriate references to the compilation and set it as our final compilation
-            // state.
-            private async Task<Compilation> FinalizeCompilationAsync(
+            private struct CompilationInfo
+            {
+                public Compilation Compilation { get; }
+                public bool HasSuccessfullyLoadedTransitively { get; }
+
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoadedTransitively)
+                {
+                    this.Compilation = compilation;
+                    this.HasSuccessfullyLoadedTransitively = hasSuccessfullyLoadedTransitively;
+                }
+            }
+
+            /// <summary>
+            /// Add all appropriate references to the compilation and set it as our final compilation
+            /// state.
+            /// </summary>
+            private async Task<CompilationInfo> FinalizeCompilationAsync(
                 Solution solution,
                 Compilation compilation,
                 CancellationToken cancellationToken)
             {
                 try
                 {
+                    // if HasAllInformation is false, then this project is always not completed.
+                    bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
+
                     var newReferences = new List<MetadataReference>();
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
@@ -591,37 +610,79 @@ namespace Microsoft.CodeAnalysis
 
                                 var previousSubmissionCompilation =
                                     await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
-                                compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
+
+                                compilation = compilation.WithScriptCompilationInfo(
+                                    compilation.ScriptCompilationInfo.WithPreviousScriptCompilation(previousSubmissionCompilation));
                             }
                             else
                             {
                                 var metadataReference = await solution.GetMetadataReferenceAsync(
                                     projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
 
-                                // The compilation doesn't want to receive a null entry in the set
-                                // of references it is constructed with. A reference can fail to be
-                                // created if a skeleton assembly could not be constructed.
+                                // A reference can fail to be created if a skeleton assembly could not be constructed.
                                 if (metadataReference != null)
                                 {
                                     newReferences.Add(metadataReference);
+                                }
+                                else
+                                {
+                                    hasSuccessfullyLoaded = false;
                                 }
                             }
                         }
                     }
 
-                    if (!Enumerable.SequenceEqual(compilation.References, newReferences))
+                    if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
                     {
                         compilation = compilation.WithReferences(newReferences);
                     }
 
-                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services)), solution);
+                    bool hasSuccessfullyLoadedTransitively = !HasMissingReferences(compilation, this.ProjectState.MetadataReferences) && await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
 
-                    return compilation;
+                    this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoadedTransitively), solution);
+                    return new CompilationInfo(compilation, hasSuccessfullyLoadedTransitively);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private bool HasMissingReferences(Compilation compilation, IReadOnlyList<MetadataReference> metadataReferences)
+            {
+                foreach (var reference in metadataReferences)
+                {
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) == null)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private async Task<bool> ComputeHasSuccessfullyLoadedTransitivelyAsync(Solution solution, bool hasSuccessfullyLoaded, CancellationToken cancellationToken)
+            {
+                if (!hasSuccessfullyLoaded)
+                {
+                    return false;
+                }
+
+                foreach (var projectReference in this.ProjectState.ProjectReferences)
+                {
+                    var project = solution.GetProject(projectReference.ProjectId);
+                    if (project == null)
+                    {
+                        return false;
+                    }
+
+                    if (!await solution.HasSuccessfullyLoadedAsync(project, cancellationToken).ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             /// <summary>
@@ -701,19 +762,28 @@ namespace Microsoft.CodeAnalysis
                         var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                        // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
+                        // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         MetadataReference reference;
+
+                        solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
+
                         if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
-                            using (await this.buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                             {
+                                solution.Workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
+
                                 // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
-                                var compilation = await this.GetOrBuildCompilationAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                                reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilation, version, cancellationToken);
+                                var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                                reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
                             }
+                        }
+                        else
+                        {
+                            solution.Workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
                         }
 
                         return reference;
@@ -758,22 +828,37 @@ namespace Microsoft.CodeAnalysis
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
+            public Task<bool> HasSuccessfullyLoadedAsync(Solution solution, CancellationToken cancellationToken)
+            {
+                var state = this.ReadState();
+
+                if (state.HasSuccessfullyLoadedTransitively.HasValue)
+                {
+                    return state.HasSuccessfullyLoadedTransitively.Value ? SpecializedTasks.True : SpecializedTasks.False;
+                }
+                else
+                {
+                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t => t.Result.HasSuccessfullyLoadedTransitively, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                }
+            }
+
             #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
-            private AsyncLazy<VersionStamp> lazyDependentVersion;
-            private AsyncLazy<VersionStamp> lazyDependentSemanticVersion;
+            private AsyncLazy<VersionStamp> _lazyDependentVersion;
+            private AsyncLazy<VersionStamp> _lazyDependentSemanticVersion;
 
             public async Task<VersionStamp> GetDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
-                if (this.lazyDependentVersion == null)
+                if (_lazyDependentVersion == null)
                 {
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref this.lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(solution, c), cacheResult: true), null);
                 }
 
-                return await this.lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return await _lazyDependentVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<VersionStamp> ComputeDependentVersionAsync(Solution solution, CancellationToken cancellationToken)
@@ -799,13 +884,13 @@ namespace Microsoft.CodeAnalysis
 
             public async Task<VersionStamp> GetDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)
             {
-                if (this.lazyDependentSemanticVersion == null)
+                if (_lazyDependentSemanticVersion == null)
                 {
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref this.lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(solution, c), cacheResult: true), null);
                 }
 
-                return await this.lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return await _lazyDependentSemanticVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<VersionStamp> ComputeDependentSemanticVersionAsync(Solution solution, CancellationToken cancellationToken)

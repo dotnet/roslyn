@@ -464,7 +464,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -528,7 +527,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -576,7 +574,6 @@ Base.Method(3)
 
             CompileAndVerify(
                  CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                 emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                  expectedOutput: expectedOutput);
         }
 
@@ -634,8 +631,7 @@ Base.Method(9)
 ".TrimStart();
 
             CompileAndVerify(
-                CreateCompilationWithMscorlibAndReference(libSource, exeSource), 
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
+                CreateCompilationWithMscorlibAndReference(libSource, exeSource),
                 expectedOutput: expectedOutput);
         }
 
@@ -748,9 +744,9 @@ Derived2.P.set";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540410, "DevDiv")]
+        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
-        public void ImplementMulipleInterfaceWithSommonBase()
+        public void ImplementMultipleInterfaceWithCommonBase()
         {
             var source = @"
 interface IBase
@@ -778,7 +774,7 @@ class C1 : IBase1, IBase2
                 Assert.True(typeSymbol.Interfaces.All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[] 
+            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
             {
                 Signature("C1", "IBase1.PBase1", ".method private hidebysig newslot virtual final instance System.Void IBase1.PBase1() cil managed"),
                 Signature("C1", "IBase.PBase", ".method private hidebysig newslot virtual final instance System.Void IBase.PBase() cil managed"),
@@ -823,10 +819,9 @@ class C1 : IInterface
                     // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseFoo()' and 'IBase2.BaseFoo()'
                     //         ((IInterface)c).BaseFoo();
                     Diagnostic(ErrorCode.ERR_AmbigCall, "BaseFoo").WithArguments("IBase1.BaseFoo()", "IBase2.BaseFoo()"));
-
         }
 
-        [WorkItem(540410, "DevDiv")]
+        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
         public void InterfaceDiamondInheritenceWithNewMember()
         {
@@ -886,7 +881,7 @@ public static class MainClass
         }
 
         [Fact]
-        public void TestImplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestImplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)
@@ -957,7 +952,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(2, 3, c)
@@ -1430,7 +1425,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -1564,7 +1559,7 @@ Base.Method()");
             // Tests:
             // Implement I<string> implicitly in base class and I<int> implicitly in derived class –
             // assuming I<string> and I<int> have members with same signature (i.e. members 
-            // that don’t depend on generic-ness of the interface) test which (base / derived class) 
+            // that don't depend on generic-ness of the interface) test which (base / derived class) 
             // members are invoked when calling through each interface
 
             var source = @"
@@ -1856,8 +1851,8 @@ class Test
 }
 ";
             // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
-            var comp = CompileAndVerify(text, 
-                expectedOutput: "23123", 
+            var comp = CompileAndVerify(text,
+                expectedOutput: "23123",
                 expectedSignatures: new[]
                 {
                     Signature("C2", "get_Bar", ".method public hidebysig specialname virtual final instance System.Int32 get_Bar() cil managed"),
@@ -2300,6 +2295,5 @@ D.M").VerifyDiagnostics(); // No errors
 
             return exeComp;
         }
-
     }
 }

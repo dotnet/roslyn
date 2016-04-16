@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 #Region "Get Various Semantic Info, such as GetSymbolInfo, GetTypeInfo"
 
-        <WorkItem(541500, "DevDiv")>
+        <WorkItem(541500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541500")>
         <Fact()>
         Public Sub TestModuleNamespaceClassNesting()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -39,7 +39,7 @@ Module
             Assert.Equal(CandidateReason.None, info.CandidateReason)
         End Sub
 
-        <Fact(), WorkItem(543532, "DevDiv")>
+        <Fact(), WorkItem(543532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543532")>
         Public Sub GetSymbolInfoForImplicitDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -160,7 +160,7 @@ End Module
             Assert.Equal(SymbolKind.Local, infoP.Symbol.Kind)
         End Sub
 
-        <Fact(), WorkItem(542861, "DevDiv"), WorkItem(529673, "DevDiv")>
+        <Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")>
         Public Sub GetSymbolInfoForAccessorParameters()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -463,7 +463,9 @@ End Class    </file>
             Assert.Equal("Sub C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="755801"), WorkItem(755801, "DevDiv")>
+        <Fact>
+        <WorkItem(92898, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=92898")>
+        <WorkItem(755801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755801")>
         Public Sub GetSpeculativeSymbolInfoForQualifiedNameInCref()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="GetSemanticInfo">
@@ -491,19 +493,28 @@ End Class]]>
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.Name)
+            Assert.Equal(SyntaxKind.QualifiedName, crefSyntax.Name.Kind())
+            Assert.Equal("Global.C.Bar(Of T)", crefSyntax.Name.ToString())
             Assert.NotNull(symbolInfo.Symbol)
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
             Assert.Equal("Sub C.Bar(Of T)(x As T)", symbolInfo.Symbol.ToTestDisplayString())
 
             Dim speculatedName = DirectCast(SyntaxFactory.ParseName("C.Bar(Of T)"), QualifiedNameSyntax)
             Dim speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.Name.Position, speculatedName, SpeculativeBindingOption.BindAsExpression)
-            Assert.NotNull(speculativeSymbolInfo.Symbol)
-            Assert.Equal(SymbolKind.Method, speculativeSymbolInfo.Symbol.Kind)
-            Assert.Equal("Sub C.Bar(Of T)(x As T)", speculativeSymbolInfo.Symbol.ToTestDisplayString())
+            Const bug92898IsFixed = False
+
+            If bug92898IsFixed Then
+                Assert.NotNull(speculativeSymbolInfo.Symbol)
+                Assert.Equal(SymbolKind.Method, speculativeSymbolInfo.Symbol.Kind)
+                Assert.Equal("Sub C.Bar(Of T)(x As T)", speculativeSymbolInfo.Symbol.ToTestDisplayString())
+            Else
+                Assert.Null(speculativeSymbolInfo.Symbol)
+            End If
         End Sub
 
-        <WorkItem(1015560)>
-        <Fact(Skip:="1015560")>
+        <Fact>
+        <WorkItem(96477, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=96477")>
+        <WorkItem(1015560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015560")>
         Public Sub GetSpeculativeSymbolInfoForGenericNameInCref()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="GetSemanticInfo">
@@ -521,11 +532,14 @@ End Module]]>
             Dim crefSyntax = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of CrefReferenceSyntax).Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-            Dim symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.FindNode(New TextSpan(71, 37)))
+            Dim node = DirectCast(DirectCast(crefSyntax.Name, QualifiedNameSyntax).Left, QualifiedNameSyntax)
+            Assert.Equal("System.Collections.Generic.List(Of T)", node.ToString())
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
             Dim oldSymbol = symbolInfo.Symbol
             Assert.NotNull(oldSymbol)
             Assert.Equal(SymbolKind.NamedType, oldSymbol.Kind)
             Assert.Equal("System.Collections.Generic.List(Of T)", oldSymbol.ToTestDisplayString())
+            Assert.False(DirectCast(oldSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
 
             Dim speculatedName = DirectCast(SyntaxFactory.ParseName("List(Of T)"), GenericNameSyntax)
             Dim speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, speculatedName, SpeculativeBindingOption.BindAsTypeOrNamespace)
@@ -534,8 +548,14 @@ End Module]]>
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind)
             Assert.Equal("System.Collections.Generic.List(Of T)", newSymbol.ToTestDisplayString())
 
-            Assert.False(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
-            Assert.True(newSymbol.Equals(oldSymbol))
+            Const bug96477IsFixed = False
+
+            If bug96477IsFixed Then
+                Assert.False(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
+                Assert.True(newSymbol.Equals(oldSymbol))
+            Else
+                Assert.True(DirectCast(newSymbol, NamedTypeSymbol).TypeArguments.Single.IsErrorType)
+            End If
         End Sub
 #End Region
 
@@ -603,7 +623,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(680657, "DevDiv")>
+        <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInFieldInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -618,7 +638,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(680657, "DevDiv")>
+        <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInPropertyInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -823,7 +843,9 @@ End Class
             Assert.Equal("System.String", DirectCast(local, LocalSymbol).Type.ToTestDisplayString())
         End Sub
 
-        <Fact(Skip:="1019361"), WorkItem(1019361)>
+        <Fact>
+        <WorkItem(97599, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=97599")>
+        <WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -844,13 +866,22 @@ End Class
     </file>
 </compilation>)
 
+            compilation.AssertTheseDiagnostics()
+
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = root.Members.OfType(Of TypeBlockSyntax).First
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
-            Dim originalStatement = DirectCast(methodBlock.Statements(0), ExecutableStatementSyntax)
+            Dim originalStatement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
+
+            Assert.Equal("Dim x = N.A.X", originalStatement.ToString())
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim originalX = semanticModel.GetDeclaredSymbol(originalStatement.Declarators(0).Names(0))
+
+            Assert.Equal("x As System.Int32", originalX.ToTestDisplayString())
+            Assert.Equal(False, DirectCast(originalX, LocalSymbol).Type.IsErrorType)
+
             Dim position1 = originalStatement.SpanStart
 
             ' different initializer for local, whose type should be error type as "A" bounds to the local "a" instead of "N.A"
@@ -864,12 +895,15 @@ End Class
             Dim declStatement = DirectCast(speculatedStatement, LocalDeclarationStatementSyntax)
             Dim varDecl = declStatement.Declarators(0).Names(0)
             Dim local = speculativeModel.GetDeclaredSymbol(varDecl)
+
             Assert.NotNull(local)
             Assert.Equal("x", local.Name)
             Assert.Equal(SymbolKind.Local, local.Kind)
 
-            ' Type should be error type as "A" bounds to the local "a" instead of type "N.A"
-            Assert.Equal(True, DirectCast(local, LocalSymbol).Type.IsErrorType)
+            Assert.Equal("x As System.Int32", local.ToTestDisplayString())
+            Assert.NotEqual(originalX, local)
+
+            Assert.Equal(False, DirectCast(local, LocalSymbol).Type.IsErrorType)
         End Sub
 
         <Fact()>
@@ -943,7 +977,7 @@ End Class
             Assert.Equal("z", parameterSymbol.Name)
         End Sub
 
-        <Fact, WorkItem(1084086)>
+        <Fact, WorkItem(1084086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084086")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_InEmptyMethodBody()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -959,7 +993,7 @@ End Class
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
-            Dim endStatement = methodBlock.End
+            Dim endStatement = methodBlock.EndBlockStatement
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position1 = endStatement.SpanStart
@@ -1076,7 +1110,7 @@ End Class]]>
             Dim model = compilation.GetSemanticModel(tree)
             Dim statement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
             Dim initializer = statement.Declarators(0).Initializer
-            Dim attribute = methodBlock.Begin.AttributeLists(0).Attributes(0)
+            Dim attribute = methodBlock.BlockStatement.AttributeLists(0).Attributes(0)
 
             Dim speculativeModel As SemanticModel = Nothing
             Assert.Throws(Of ArgumentNullException)(Function() model.TryGetSpeculativeSemanticModel(statement.SpanStart, initializer:=Nothing, speculativeModel:=speculativeModel))
@@ -1119,7 +1153,7 @@ End Class]]>
             Dim model = compilation.GetSemanticModel(tree)
             Dim statement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
             Dim expression = statement.Declarators(0).Initializer.Value
-            Dim attribute = methodBlock.Begin.AttributeLists(0).Attributes(0)
+            Dim attribute = methodBlock.BlockStatement.AttributeLists(0).Attributes(0)
 
             Dim speculatedStatement = DirectCast(statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("0")), LocalDeclarationStatementSyntax)
 
@@ -1141,7 +1175,7 @@ End Class]]>
 
         ' Helper to parse an attribute.
         Private Function ParseAttributeSyntax(source As String) As AttributeSyntax
-            Return DirectCast(SyntaxFactory.ParseCompilationUnit(source + " Class X" + vbCrLf + "End Class").Members.First(), TypeBlockSyntax).Begin.AttributeLists.First().Attributes.First()
+            Return DirectCast(SyntaxFactory.ParseCompilationUnit(source + " Class X" + vbCrLf + "End Class").Members.First(), TypeBlockSyntax).BlockStatement.AttributeLists.First().Attributes.First()
         End Function
 
         <Fact>
@@ -1664,7 +1698,7 @@ End Class
             Assert.Equal("z", parameterSymbol.Name)
         End Sub
 
-        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDislayString As String)
+        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDisplayString As String)
             Assert.False(model.IsSpeculativeSemanticModel)
             Assert.Null(model.ParentModel)
             Assert.Equal(0, model.OriginalPositionForSpeculation)
@@ -1681,12 +1715,12 @@ End Class
             Dim symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim methodGroupInfo = speculativeModel.GetMemberGroup(speculatedTypeSyntax)
             Dim constantInfo = speculativeModel.GetConstantValue(speculatedTypeSyntax)
@@ -1696,12 +1730,12 @@ End Class
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
             End If
         End Sub
 
@@ -1802,7 +1836,7 @@ End Class
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
             Dim field = DirectCast(typeBlock.Members(0), FieldDeclarationSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(1), MethodBlockBaseSyntax)
-            Dim methodDecl = DirectCast(methodBlock.Begin, MethodStatementSyntax)
+            Dim methodDecl = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
             Dim speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException")
@@ -1816,8 +1850,9 @@ End Class
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "System.ArgumentException")
         End Sub
 
-        <WorkItem(745766, "DevDiv")>
-        <Fact(Skip:="745766")>
+        <Fact>
+        <WorkItem(120491, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=120491")>
+        <WorkItem(745766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745766")>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InImplementsClauseForMember()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -1842,14 +1877,31 @@ End Interface
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
-            Dim methodBlock = DirectCast(typeBlock.Members(1), MethodBlockBaseSyntax)
-            Dim methodDecl = DirectCast(methodBlock.Begin, MethodStatementSyntax)
+            Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockBaseSyntax)
+            Dim methodDecl = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
-            Dim speculatedMemberName = SyntaxFactory.ParseName("I.Method2")
             Dim implementsClause = methodDecl.ImplementsClause
-            TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsClause.InterfaceMembers(0).Position,
+            Dim implementsName = implementsClause.InterfaceMembers(0)
+
+            Dim symbol = model.GetSymbolInfo(implementsName).Symbol
+            Assert.Equal("I.Method", implementsName.ToString())
+            Assert.NotNull(symbol)
+            Assert.Equal("Function Method(param As System.Exception) As System.Exception", symbol.ToDisplayString())
+
+            Dim speculatedMemberName = SyntaxFactory.ParseName("I.Method2")
+            Const bug120491IsFixed = False
+
+            If bug120491IsFixed Then
+                TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsName.Position,
                 speculatedMemberName, SpeculativeBindingOption.BindAsExpression, SymbolKind.Method, "I.Method2")
+            Else
+                Dim speculativeModel As SemanticModel = Nothing
+                Dim success = model.TryGetSpeculativeSemanticModel(implementsName.Position, speculatedMemberName, speculativeModel, SpeculativeBindingOption.BindAsExpression)
+                Assert.True(success)
+                symbol = speculativeModel.GetSymbolInfo(speculatedMemberName).Symbol
+                Assert.Null(symbol)
+            End If
         End Sub
 
         <Fact>
@@ -1885,7 +1937,7 @@ End Class
             Assert.Equal("System.ArgumentException", symbol.Target.ToDisplayString())
         End Sub
 
-        <Fact, WorkItem(849360)>
+        <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -1919,7 +1971,7 @@ Module M
             Assert.NotNull(speculativeModel)
         End Sub
 
-        <Fact, WorkItem(849360)>
+        <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BindAsExpressionVsBindAsType">
@@ -2179,7 +2231,6 @@ Module M
             Assert.True(conv3 <> conv2, "Check equality implementation")
             Assert.False(conv3.Equals(conv2), "Check equality implementation")
             Assert.False(conv3.Equals(DirectCast(conv2, Object)), "Check equality implementation")
-            Assert.False(conv3.GetHashCode() = conv2.GetHashCode(), "Check equality implementation")
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
@@ -2315,7 +2366,7 @@ Module M
 
         End Sub
 
-        <WorkItem(527766, "DevDiv")>
+        <WorkItem(527766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527766")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2570,7 +2621,7 @@ End Enum
         End Sub
 
 
-        <WorkItem(541564, "DevDiv")>
+        <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>
         Public Sub ClassifyConversionForParameter()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2618,7 +2669,7 @@ End Module
             Assert.True(semanticInfo.ImplicitConversion.IsWidening AndAlso semanticInfo.ImplicitConversion.IsReference, "Expected WideningReference")
             Assert.Equal(semanticInfo.ImplicitConversion, conv)
 
-            ' Auto-impled
+            ' Auto-implemented
             argList = DirectCast(CompilationUtils.FindNodeFromText(tree, "(AP)"), ArgumentListSyntax)
             arg = DirectCast(argList.ChildNodes().First(), SimpleArgumentSyntax).Expression
 
@@ -2630,7 +2681,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(541577, "DevDiv")>
+        <WorkItem(541577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541577")>
         <Fact()>
         Public Sub ClassifyConversionForPropAsBinaryOperand()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2666,7 +2717,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(544251, "DevDiv")>
+        <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOn()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2703,7 +2754,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(544251, "DevDiv")>
+        <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOff()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2739,7 +2790,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <Fact(), WorkItem(545101, "DevDiv")>
+        <Fact(), WorkItem(545101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545101")>
         Public Sub ClassifyConversionNarrowingNullableStrictOff()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -2792,7 +2843,7 @@ End Module
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(799045, "DevDiv")>
+        <WorkItem(799045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/799045")>
         <Fact()>
         Public Sub ClassifyConversionForArrayLiteral()
 
@@ -2885,7 +2936,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(652109, "DevDiv")>
+        <WorkItem(652109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652109")>
         <Fact()>
         Public Sub Bug652109()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2901,7 +2952,7 @@ but specify providing one type on the lamb infer others")
             Dimect)(1, Function(a) a, Function(b) b, Func= Target5(Of Integer, Integer, Double, Objc) c, Function(d) d)
             Dim z1c 1, Function(a) a, Function(b) b, Function(get5(Of Integer, Integer, Object, Object)( in the lambdas
             Dim z1b = Tareneric types as well as the variable typesnt 
-            'Verify the return type G Different Types using generic Type argume c, Function(d) d)
+            'Verify the return type G Different Types using generic Type argument c, Function(d) d)
 
             'Specify Function(a) a, Function(b) b, Function(c)et5(Of Integer, Object, Object, Object)(1,e - All Object
             Dim z1a = Targ Generic Types which result in no inferenc   'SPECIFY TYPES
@@ -3001,7 +3052,7 @@ stem.Func`2[System.Int32,System.Int32]", z Function(d) d)
             Next
         End Sub
 
-        <WorkItem(652026, "DevDiv")>
+        <WorkItem(652026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652026")>
         <Fact()>
         Public Sub Bug652026()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3470,7 +3521,7 @@ Val Sng As Single, ByVal C As Char, ByVal        Public Overloads Property olp14
             Next
         End Sub
 
-        <WorkItem(652118, "DevDiv")>
+        <WorkItem(652118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652118")>
         <Fact()>
         Public Sub Bug652118()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -3797,7 +3848,7 @@ End Class
             Assert.True(Symbol.HaveSameSignatureAndConstraintsAndReturnType(methodMember1, methodMember3))
         End Sub
 
-        <WorkItem(791793, "DevDiv")>
+        <WorkItem(791793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791793")>
         <Fact>
         Public Sub SpeculateAboutParamElementOnField()
             Dim source =
@@ -3821,7 +3872,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = tree.ToString().IndexOf("X")
+            Dim position = tree.ToString().IndexOf("X"c)
             Dim paramName = DirectCast(SyntaxFactory.ParseExpression("Y"), IdentifierNameSyntax)
 
             Dim speculativeModel As SemanticModel = Nothing
@@ -3912,7 +3963,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(654753, "DevDiv")>
+        <WorkItem(654753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654753")>
         Public Sub Repro654753()
             Dim source =
                 <compilation>
@@ -3949,7 +4000,7 @@ End Class
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = source.Value.IndexOf("Me")
+            Dim position = source.Value.IndexOf("Me", StringComparison.Ordinal)
             Dim statement = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax).Single()
             Dim newSyntax = SyntaxFactory.ParseExpression("Instance.GetList().OfType(Of D)().Any()")
             Dim newStatement = statement.ReplaceNode(statement.Declarators(0).Initializer.Value, newSyntax)
@@ -3966,7 +4017,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub Test_SemanticLanguage_VB()
+        Public Sub Test_SemanticLanguage_VB()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3984,7 +4035,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub DiagnosticsInStages()
+        Public Sub DiagnosticsInStages()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4010,9 +4061,9 @@ End Class
             Assert.Equal(2, treeErrs.Length())
         End Sub
 
-        <WorkItem(859721, "DevDiv")>
+        <WorkItem(859721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859721")>
         <Fact()>
-        Sub TestMethodBodyDiagnostics()
+        Public Sub TestMethodBodyDiagnostics()
             ' Even with a root namespace, we should still have these diagnostics with or without root namespace specified
             Dim sourceExplicitGlobalNamespace = <compilation>
                                                     <file name="a.vb"><![CDATA[
@@ -4112,7 +4163,7 @@ BC30002: Type 'A' is not defined.
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
             'namespace starting with a string Global but not specifically Global.
-            Dim sourceWithaNameStartingGlobal = <compilation>
+            Dim sourceWithANameStartingGlobal = <compilation>
                                                     <file name="a.vb"><![CDATA[
             Namespace GlobalFoo
               Class C
@@ -4124,12 +4175,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                 </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithaNameStartingGlobal, Nothing)
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithaNameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4244,7 +4295,7 @@ BC30002: Type 'A' is not defined.
         End Sub
 
         <Fact>
-        Sub PartialMethodImplementationDiagnostics()
+        Public Sub PartialMethodImplementationDiagnostics()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4274,6 +4325,108 @@ End Class
             Assert.Equal(0, treeErrs.Length())
         End Sub
 #End Region
+
+        <Fact, WorkItem(1146124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1146124")>
+        Public Sub GetTypeInfoForXmlStringInCref()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim xmlString = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlStringSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim typelInfo = semanticModel.GetTypeInfo(xmlString)
+            Assert.Null(typelInfo.Type)
+        End Sub
+
+        <WorkItem(1104539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1104539")>
+        <Fact()>
+        Public Sub GetDiagnosticsWithRootNamespace()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports System.Threading
+
+Module TestModule
+    Sub Main()
+        DoesntExist()
+    End Sub
+
+    <Extension>
+    Public Function ToFullWidth(c As Char) As Char
+        Return If(IsHalfWidth(c), MakeFullWidth(c), c)
+    End Function
+End Module
+    ]]></file>
+    <file name="b.vb"><![CDATA[
+Imports Microsoft.VisualBasic.Strings
+
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic
+
+    Partial Public Class SyntaxFacts
+
+        Friend Shared Function MakeFullWidth(c As Char) As Char
+            Return c
+        End Function
+
+        Friend Shared Function IsHalfWidth(c As Char) As Boolean
+            Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
+        End Function
+    End Class
+End Namespace
+    ]]></file>
+</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+
+            Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
+
+            semanticModel.GetDiagnostics().AssertTheseDiagnostics(<errors>
+BC50001: Unused import statement.
+Imports System.Threading
+~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protection level.
+        DoesntExist()
+        ~~~~~~~~~~~
+                                                                  </errors>, suppressInfos:=False)
+        End Sub
+
+        <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        Public Sub ConstantValueOfInterpolatedString()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+        System.Console.WriteLine($""Hello, world!"");
+        System.Console.WriteLine($""{DateTime.Now.ToString()}.{args(0)}"");
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim model = compilation.GetSemanticModel(tree)
+            For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
+                Assert.False(model.GetConstantValue(interp).HasValue)
+            Next
+        End Sub
 
     End Class
 End Namespace

@@ -13,9 +13,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class LambdaTests : CompilingTestBase
     {
-        [Fact, WorkItem(608181, "DevDiv")]
+        [Fact, WorkItem(608181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608181")]
         public void BadInvocationInLambda()
         {
             var src = @"
@@ -218,14 +218,14 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(code);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(); // no errors expected
         }
 
-        [WorkItem(539538, "DevDiv")]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         [Fact]
         public void TestLambdaErrors03()
         {
-            TestErrors(@"
+            string source = @"
 using System;
 
 interface I : IComparable<IComparable<I>> { }
@@ -239,11 +239,14 @@ class C
         Foo(() => null);
     }
 }
-",
-"'Foo' error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'");
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(Func<IComparable<I>>)' and 'C.Foo(Func<I>)'
+                //         Foo(() => null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(System.Func<System.IComparable<I>>)", "C.Foo(System.Func<I>)").WithLocation(12, 9));
         }
 
-        [WorkItem(539976, "DevDiv")]
+        [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
         [Fact]
         public void LambdaArgumentToOverloadedDelegate()
         {
@@ -264,7 +267,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(528044, "DevDiv")]
+        [WorkItem(528044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528044")]
         [Fact]
         public void MissingReferenceInOverloadResolution()
         {
@@ -313,7 +316,7 @@ class Program
             Assert.Equal(0, comp2.GetDiagnostics().Count());
         }
 
-        [WorkItem(528047, "DevDiv")]
+        [WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")]
         [Fact()]
         public void OverloadResolutionWithEmbeddedInteropType()
         {
@@ -400,7 +403,7 @@ class C
             Assert.True(0 < errs.Where(e => e.Code == 1525).Select(e => e).Count(), "Diagnostics contains CS1525");
         }
 
-        [WorkItem(540219, "DevDiv")]
+        [WorkItem(540219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540219")]
         [Fact]
         public void OverloadResolutionWithStaticType()
         {
@@ -445,7 +448,7 @@ class Program
 }
 ";
             var metadataStream = new MemoryStream();
-            var emitResult = vbProject.Emit(metadataStream, options:new EmitOptions(metadataOnly:true));
+            var emitResult = vbProject.Emit(metadataStream, options: new EmitOptions(metadataOnly: true));
             Assert.True(emitResult.Success);
 
             var csProject = CreateCompilationWithMscorlib(
@@ -502,7 +505,7 @@ class Program
             Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
         }
 
-        [WorkItem(540251, "DevDiv")]
+        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         [Fact]
         public void AttributesCannotBeUsedInAnonymousMethods()
         {
@@ -527,7 +530,7 @@ class Program
             // TODO: check error code
         }
 
-        [WorkItem(540263, "DevDiv")]
+        [WorkItem(540263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540263")]
         [Fact]
         public void ErrorsInUnboundLambdas()
         {
@@ -566,7 +569,7 @@ class Program
         );
         }
 
-        [WorkItem(540181, "DevDiv")]
+        [WorkItem(540181, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540181")]
         [Fact]
         public void ErrorInLambdaArgumentList()
         {
@@ -588,7 +591,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, @"nulF").WithArguments("nulF"));
         }
 
-        [WorkItem(541725, "DevDiv")]
+        [WorkItem(541725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541725")]
         [Fact]
         public void DelegateCreationIsNotStatement()
         {
@@ -616,7 +619,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new D(()=>{})"));
         }
 
-        [WorkItem(542336, "DevDiv")]
+        [WorkItem(542336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542336")]
         [Fact]
         public void ThisInStaticContext()
         {
@@ -638,7 +641,7 @@ class Program
                 );
         }
 
-        [WorkItem(542431, "DevDiv")]
+        [WorkItem(542431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542431")]
         [Fact]
         public void LambdaHasMoreParametersThanDelegate()
         {
@@ -655,7 +658,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
         }
 
-        [Fact, WorkItem(529054, "DevDiv")]
+        [Fact, WorkItem(529054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529054")]
         public void LambdaInDynamicCall()
         {
             var source = @"
@@ -674,7 +677,7 @@ public class Program
                 );
         }
 
-        [Fact, WorkItem(529389, "DevDiv")]
+        [Fact, WorkItem(529389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529389")]
         public void ParenthesizedLambdaInCastExpression()
         {
             var source = @"
@@ -725,7 +728,7 @@ class Program
             Assert.Equal(MethodKind.AnonymousFunction, (sym as MethodSymbol).MethodKind);
         }
 
-        [WorkItem(544594, "DevDiv")]
+        [WorkItem(544594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544594")]
         [Fact]
         public void LambdaInEnumMemberDecl()
         {
@@ -746,7 +749,7 @@ public class TestClass
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "MyTest").WithArguments("TestClass.MyTest"));
         }
 
-        [WorkItem(544932, "DevDiv")]
+        [WorkItem(544932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544932")]
         [Fact]
         public void AnonymousLambdaInEnumSubtraction()
         {
@@ -771,7 +774,7 @@ class Test
             CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545156, "DevDiv")]
+        [WorkItem(545156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545156")]
         [Fact]
         public void SpeculativelyBindOverloadResolution()
         {
@@ -804,7 +807,7 @@ class Program
                 SpeculativeBindingOption.BindAsExpression);
         }
 
-        [WorkItem(545343, "DevDiv")]
+        [WorkItem(545343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545343")]
         [Fact]
         public void LambdaUsingFieldInConstructor()
         {
@@ -834,7 +837,7 @@ public class Derived
             CompileAndVerify(source, expectedOutput: "Local = 2, Field = 1");
         }
 
-        [WorkItem(642222, "DevDiv")]
+        [WorkItem(642222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642222")]
         [Fact]
         public void SpeculativelyBindOverloadResolutionAndInferenceWithError()
         {
@@ -897,7 +900,7 @@ namespace IntellisenseBug
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("String"));
         }
 
-        [WorkItem(722288, "DevDiv")]
+        [WorkItem(722288, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722288")]
         [Fact]
         public void CompletionInLambdaInIncompleteInvocation()
         {
@@ -951,7 +954,7 @@ public class IntelliSenseError
             Assert.NotNull(((TypeSymbol)typeInfo.Type).GetMember("SomeProperty"));
         }
 
-        [WorkItem(871896, "DevDiv")]
+        [WorkItem(871896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871896")]
         [Fact]
         public void Bug871896()
         {
@@ -972,7 +975,7 @@ class TestDataPointBase
 
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var oReference =
@@ -982,12 +985,12 @@ class TestDataPointBase
                 .OfType<ExpressionSyntax>()
                 .OrderByDescending(s => s.SpanStart);
 
-            foreach(var name in oReference)
+            foreach (var name in oReference)
             {
                 CSharpExtensions.GetSymbolInfo(model, name);
             }
 
-            // We shoudl get a bunch of errors, but no asserts.
+            // We should get a bunch of errors, but no asserts.
             compilation.VerifyDiagnostics(
     // (6,22): error CS0246: The type or namespace name 'IVisualStudioIntegrationService' could not be found (are you missing a using directive or an assembly reference?)
     //     private readonly IVisualStudioIntegrationService integrationService;
@@ -1007,7 +1010,7 @@ class TestDataPointBase
                 );
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_01()
         {
             var source = @"
@@ -1036,7 +1039,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_02()
         {
             var source = @"
@@ -1064,7 +1067,7 @@ class C
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
         }
 
-        [Fact, WorkItem(960755, "DevDiv")]
+        [Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")]
         public void Bug960755_03()
         {
             var source = @"
@@ -1094,6 +1097,467 @@ class C
             Assert.Equal("void System.Collections.Generic.ICollection<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+        }
+
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
+        [Fact]
+        public void Bug1112875_1()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        ICloneable c = """";
+        Foo(() => (c.Clone()), null);
+    }
+ 
+    static void Foo(Action x, string y) { }
+    static void Foo(Func<object> x, object y) { Console.WriteLine(42); }
+}", options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(1112875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112875")]
+        [Fact]
+        public void Bug1112875_2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Program
+{
+    void M()
+    {
+        var d = new System.Action(() => (new object()));
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         var d = new System.Action(() => (new object()));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
+        }
+
+        [WorkItem(1830, "https://github.com/dotnet/roslyn/issues/1830")]
+        [Fact]
+        public void FuncOfVoid()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class Program
+{
+    void M1<T>(Func<T> f) {}
+    void Main(string[] args)
+    {
+        M1(() => { return System.Console.Beep(); });
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,27): error CS4029: Cannot return an expression of type 'void'
+                //         M1(() => { return System.Console.Beep(); });
+                Diagnostic(ErrorCode.ERR_CantReturnVoid, "System.Console.Beep()").WithLocation(8, 27)
+                );
+        }
+
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        public void ParameterReference_01()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static Func<Program, string> stuff()
+    {
+        return a => a.
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,23): error CS1001: Identifier expected
+    //         return a => a.
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 23),
+    // (8,23): error CS1002: ; expected
+    //         return a => a.
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        public void ParameterReference_02()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+        Func<Program, string> l = a => a.
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,42): error CS1001: Identifier expected
+    //         Func<Program, string> l = a => a.
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 42),
+    // (8,42): error CS1002: ; expected
+    //         Func<Program, string> l = a => a.
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 42)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        public void ParameterReference_03()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+         M1(a => a.);
+    }
+
+    static void M1(Func<Program, string> l){}
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,20): error CS1001: Identifier expected
+    //          M1(a => a.);
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")]
+        public void ParameterReference_04()
+        {
+            var src = @"
+using System;
+
+class Program
+{
+    static void stuff()
+    {
+        var l = (Func<Program, string>) (a => a.);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(src);
+            compilation.VerifyDiagnostics(
+    // (8,49): error CS1001: Identifier expected
+    //         var l = (Func<Program, string>) (a => a.);
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(8, 49)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "a").Single();
+
+            Assert.Equal("a.", node.Parent.ToString().Trim());
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(3826, "https://github.com/dotnet/roslyn/issues/3826")]
+        public void ExpressionTreeSelfAssignmentShouldError()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int, int>> x = y => y = y;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,45): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "y = y").WithLocation(9, 45),
+                // (9,45): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void SyntaxAndSemanticErrorInLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        Action a = () => { new X().ToString() };
+        a();
+    }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,47): error CS1002: ; expected
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 47),
+                // (7,32): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         Action a = () => { new X().ToString() };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(7, 32)
+                );
+        }
+
+        [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
+        public void AnonymousMethodExpressionWithoutParameterList()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+namespace RoslynAsyncDelegate
+{
+    class Program
+    {
+        static EventHandler MyEvent;
+
+        static void Main(string[] args)
+        {
+           MyEvent += async delegate { await Task.Delay(0); };
+        }
+    }
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.AnonymousMethodExpression)).Single();
+
+            Assert.Equal("async delegate { await Task.Delay(0); }", node1.ToString());
+
+            Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
+
+            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+
+            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+
+            CompileAndVerify(compilation);
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError01()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(() => { new Unbound1 }); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,58): error CS1526: A new expression requires (), [], or {} after type
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_BadNewExpr, "}").WithLocation(2, 58),
+    // (2,58): error CS1002: ; expected
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 58),
+    // (2,49): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+    // class C { C() { string.Empty.Select(() => { new Unbound1 }); } }
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(2, 49)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError02()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,62): error CS1002: ; expected
+    // class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 62),
+    // (2,49): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+    // class C { C() { string.Empty.Select(() => { new Unbound1 ( ) }); } }
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(2, 49)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError03()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,61): error CS1003: Syntax error, ',' expected
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_SyntaxError, "Unbound2").WithArguments(",", "").WithLocation(2, 61),
+    // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
+    // (2,61): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 61),
+    // (2,42): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2 Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError04()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,52): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 52),
+    // (2,42): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { string.Empty.Select(x => Unbound1, Unbound2); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(1867, "https://github.com/dotnet/roslyn/issues/1867")]
+        public void TestLambdaWithError05()
+        {
+            var source =
+@"using System.Linq;
+class C { C() { Unbound2.Select(x => Unbound1); } }";
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+    // (2,17): error CS0103: The name 'Unbound2' does not exist in the current context
+    // class C { C() { Unbound2.Select(x => Unbound1); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound2").WithArguments("Unbound2").WithLocation(2, 17),
+    // (2,38): error CS0103: The name 'Unbound1' does not exist in the current context
+    // class C { C() { Unbound2.Select(x => Unbound1); } }
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 38)
+                );
         }
     }
 }

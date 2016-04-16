@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // target type cannot be a non-nullable value type
             Debug.Assert(!rewrittenType.IsValueType || rewrittenType.IsNullableType());
 
-            if (!inExpressionLambda)
+            if (!_inExpressionLambda)
             {
                 ConstantValue constantValue = Binder.GetAsOperatorConstantResult(rewrittenOperand.Type, rewrittenType, conversion.Kind, rewrittenOperand.ConstantValue);
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (rewrittenOperand.ConstantValue != null)
                     {
-                        // No need to preserve any sideeffects from the operand. 
+                        // No need to preserve any side-effects from the operand. 
                         // We also can keep the "constant" notion of the result, which
                         // enables some optimizations down the road.
                         return result;

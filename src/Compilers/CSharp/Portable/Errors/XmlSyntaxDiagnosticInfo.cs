@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class XmlSyntaxDiagnosticInfo : SyntaxDiagnosticInfo
     {
-        private readonly XmlParseErrorCode xmlErrorCode;
+        private readonly XmlParseErrorCode _xmlErrorCode;
 
         internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, params object[] args)
             : this(0, 0, code, args)
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal XmlSyntaxDiagnosticInfo(int offset, int width, XmlParseErrorCode code, params object[] args)
             : base(offset, width, ErrorCode.WRN_XMLParseError, args)
         {
-            this.xmlErrorCode = code;
+            _xmlErrorCode = code;
         }
 
         #region Serialization
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteCompressedUInt((uint)this.xmlErrorCode);
+            writer.WriteCompressedUInt((uint)_xmlErrorCode);
         }
 
         protected override Func<ObjectReader, object> GetReader()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private XmlSyntaxDiagnosticInfo(ObjectReader reader)
             : base(reader)
         {
-            this.xmlErrorCode = (XmlParseErrorCode)reader.ReadCompressedUInt();
+            _xmlErrorCode = (XmlParseErrorCode)reader.ReadCompressedUInt();
         }
 
         #endregion
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var culture = formatProvider as CultureInfo;
 
             string messagePrefix = this.MessageProvider.LoadMessage(this.Code, culture);
-            string message = ErrorFacts.GetMessage(xmlErrorCode, culture);
+            string message = ErrorFacts.GetMessage(_xmlErrorCode, culture);
 
             System.Diagnostics.Debug.Assert(!string.IsNullOrEmpty(message));
 

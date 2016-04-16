@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class ParsingTests
     {
-        private IEnumerator<SyntaxNodeOrToken> treeEnumerator;
+        private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
 
         protected abstract SyntaxTree ParseTree(string text, CSharpParseOptions options);
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
-            treeEnumerator = nodes.GetEnumerator();
+            _treeEnumerator = nodes.GetEnumerator();
 
             return tree;
         }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #if PARSING_TESTS_DUMP
             nodes = nodes.ToArray(); //force eval to dump contents
 #endif
-            treeEnumerator = nodes.GetEnumerator();
+            _treeEnumerator = nodes.GetEnumerator();
 
             return root;
         }
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected SyntaxNodeOrToken N(SyntaxKind kind)
         {
-            Assert.True(treeEnumerator.MoveNext());
-            Assert.Equal(kind, treeEnumerator.Current.Kind());
-            return treeEnumerator.Current;
+            Assert.True(_treeEnumerator.MoveNext());
+            Assert.Equal(kind, _treeEnumerator.Current.Kind());
+            return _treeEnumerator.Current;
         }
 
         /// <summary>
@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected SyntaxNodeOrToken M(SyntaxKind kind)
         {
-            Assert.True(treeEnumerator.MoveNext());
-            SyntaxNodeOrToken current = this.treeEnumerator.Current;
+            Assert.True(_treeEnumerator.MoveNext());
+            SyntaxNodeOrToken current = _treeEnumerator.Current;
             Assert.Equal(kind, current.Kind());
             Assert.True(current.IsMissing);
             return current;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected void EOF()
         {
-            Assert.False(treeEnumerator.MoveNext());
+            Assert.False(_treeEnumerator.MoveNext());
         }
 
         private static IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)

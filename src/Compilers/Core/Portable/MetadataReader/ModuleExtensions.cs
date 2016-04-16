@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // As in the native C# compiler (see IMPORTER::ImportMethod), drop any method prefixed
                 // with "_VtblGap".  They should be impossible to call/implement/etc.
-                // BREAK: The native VB compiler does not drop such methods, but it produces unverfiable
+                // BREAK: The native VB compiler does not drop such methods, but it produces unverifiable
                 // code when they are called, so the break is acceptable.
                 // TODO: Keep some record of vtable gaps (DevDiv #17472).
                 var name = module.GetMethodDefNameOrThrow(methodDef);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
             // _VtblGap<SequenceNumber><_CountOfSlots>
             // where <SequenceNumber> and <CountOfSlots> are decimal numbers
             // ----------------------
-            string prefix = VTableGapMethodNamePrefix;
+            const string prefix = VTableGapMethodNamePrefix;
 
             if (emittedMethodName.StartsWith(prefix, StringComparison.Ordinal))
             {

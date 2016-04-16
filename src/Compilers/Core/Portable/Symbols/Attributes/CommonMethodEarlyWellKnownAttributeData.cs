@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis
     internal class CommonMethodEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region ConditionalAttribute
-        private ImmutableArray<string> lazyConditionalSymbols = ImmutableArray<string>.Empty;
+        private ImmutableArray<string> _lazyConditionalSymbols = ImmutableArray<string>.Empty;
 
         public void AddConditionalSymbol(string name)
         {
             VerifySealed(expected: false);
-            lazyConditionalSymbols = lazyConditionalSymbols.Add(name);
+            _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
             SetDataStored();
         }
 
@@ -29,19 +29,19 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazyConditionalSymbols;
+                return _lazyConditionalSymbols;
             }
         }
         #endregion
 
         #region ObsoleteAttribute
-        private ObsoleteAttributeData obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
         public ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.obsoleteAttributeData.IsUninitialized ? null : this.obsoleteAttributeData;
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
             }
             set
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
-                this.obsoleteAttributeData = value;
+                _obsoleteAttributeData = value;
                 SetDataStored();
             }
         }

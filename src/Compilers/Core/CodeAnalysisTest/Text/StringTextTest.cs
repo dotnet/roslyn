@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 () => { var value = data[-1]; });
         }
 
-        void CheckEqualLine(TextLine first, TextLine second)
+        private void CheckEqualLine(TextLine first, TextLine second)
         {
             Assert.Equal(first, second);
 #if false
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
         }
 
-        void CheckNotEqualLine(TextLine first, TextLine second)
+        private void CheckNotEqualLine(TextLine first, TextLine second)
         {
             Assert.NotEqual(first, second);
 #if false
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
         }
 
-        void CheckLine(SourceText text, int lineNumber, int start, int length, int newlineLength, string lineText)
+        private void CheckLine(SourceText text, int lineNumber, int start, int length, int newlineLength, string lineText)
         {
             var textLine = text.Lines[lineNumber];
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var data = SourceText.From("foo" + Environment.NewLine + " bar");
             Assert.Equal(2, data.Lines.Count);
-            CheckLine(data, lineNumber:0, start:0, length:3, newlineLength:2, lineText:"foo");
-            CheckLine(data, lineNumber:1, start:5, length:4, newlineLength:0, lineText:" bar");
+            CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "foo");
+            CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
         }
 
         [Fact]
@@ -236,6 +236,9 @@ bar baz";
         [Fact]
         public void FromStream_CheckSum_NoBOM()
         {
+            // Note: The 0x95 is outside the ASCII range, so a question mark will
+            // be substituted in decoded text. Note, however, that the checksum
+            // should be derived from the original input.
             var bytes = new byte[] { 0x61, 0x62, 0x95 };
 
             var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);

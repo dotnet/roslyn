@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -24,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         /// <summary>
-        /// Matcher equivalent to (m_1|m_2)
+        /// Matcher equivalent to (m_1|m_2|...|m_n)
         /// </summary>
-        public static Matcher<T> Choice<T>(Matcher<T> matcher1, Matcher<T> matcher2)
+        public static Matcher<T> Choice<T>(params Matcher<T>[] matchers)
         {
-            return Matcher<T>.Choice(matcher1, matcher2);
+            return Matcher<T>.Choice(matchers);
         }
 
         /// <summary>

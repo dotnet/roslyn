@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
@@ -245,7 +246,7 @@ class C {}
             Assert.Equal("O=System.Object", symbols[0].ToDisplayString(format: SymbolDisplayFormat.TestFormat));
         }
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void EventEscapedIdentifier()
         {
@@ -261,7 +262,7 @@ namespace @foreach { }
             Assert.Equal("@for", alias.ToString());
         }
 
-        [WorkItem(541937, "DevDiv")]
+        [WorkItem(541937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541937")]
         [Fact]
         public void LocalDeclaration()
         {
@@ -281,7 +282,7 @@ class Program
             Assert.Equal(SymbolKind.Alias, model.GetAliasInfo(exprSyntaxToBind).Kind);
         }
 
-        [WorkItem(576809, "DevDiv")]
+        [WorkItem(576809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576809")]
         [Fact]
         public void AsClause()
         {
@@ -304,7 +305,7 @@ class Program
             Assert.Equal("System.Int32?", model.GetAliasInfo(exprSyntaxToBind).Target.ToTestDisplayString());
         }
 
-        [WorkItem(542552, "DevDiv")]
+        [WorkItem(542552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542552")]
         [Fact]
         public void IncompleteDuplicateAlias()
         {
@@ -317,6 +318,51 @@ namespace prog
             SyntaxTree syntaxTree = Parse(text);
             CSharpCompilation comp = CreateCompilationWithMscorlib(syntaxTree);
             var discarded = comp.GetDiagnostics();
+        }
+
+        [ClrOnlyFact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")]
+        public void AliasWithAnError()
+        {
+            var text =
+@"
+namespace NS
+{
+    using Short = LongNamespace;
+    class Test
+    {
+        public object Method1()
+        {
+            return (new Short.MyClass()).Prop;
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(text);
+
+            compilation.VerifyDiagnostics(
+    // (4,19): error CS0246: The type or namespace name 'LongNamespace' could not be found (are you missing a using directive or an assembly reference?)
+    //     using Short = LongNamespace;
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "LongNamespace").WithArguments("LongNamespace").WithLocation(4, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Short").Skip(1).Single();
+
+            Assert.Equal("Short.MyClass", node.Parent.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            var alias = model.GetAliasInfo(node);
+            Assert.Equal("Short=LongNamespace", alias.ToTestDisplayString());
+            Assert.Equal(SymbolKind.ErrorType, alias.Target.Kind);
+            Assert.Equal("LongNamespace", alias.Target.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
     }
 }

@@ -20,14 +20,20 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Property
 
         Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+            ' Is this VB 9? If so, we shouldn't remove line continuations because implicit line continuation was introduced in VB 10.
+            Dim parseOptions = TryCast(document.Project.ParseOptions, VisualBasicParseOptions)
+            If parseOptions?.LanguageVersion <= LanguageVersion.VisualBasic9 Then
+                Return document
+            End If
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Cleanup(root, spans, document.Project.Solution.Workspace, cancellationToken)
+            Dim newRoot = Await CleanupAsync(root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
 
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
-            Return Replacer.Process(root, spans, cancellationToken)
+        Public Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+            Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 
         Private Class Replacer
@@ -106,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' check context
-                If token1.IsLastTokenOfStatement() Then
+                If token1.IsLastTokenOfStatement() AndAlso Not token1.IsMissing Then
                     ' check trivia
                     If Not GetTrailingTrivia(token1).Any(SyntaxKind.LineContinuationTrivia) AndAlso
                        Not GetLeadingTrivia(token2).Any(SyntaxKind.LineContinuationTrivia) Then
@@ -198,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return
                 End If
 
-                ' check whether colon is for statements inside of singleline statement
+                ' check whether colon is for statements inside of single-line statement
                 If (colonInTrailing AndAlso PartOfSinglelineConstruct(token1)) OrElse
                    (colonInLeading AndAlso PartOfSinglelineConstruct(token2)) Then
                     Return

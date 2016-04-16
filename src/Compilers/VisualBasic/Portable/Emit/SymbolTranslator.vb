@@ -5,6 +5,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         ' TODO: Need to estimate amount of elements for this map and pass that value to the constructor.
         Protected ReadOnly m_AssemblyOrModuleSymbolToModuleRefMap As New ConcurrentDictionary(Of Symbol, Microsoft.Cci.IModuleReference)()
-        Private ReadOnly m_GenericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
-        Private ReadOnly m_reportedErrorTypesMap As New ConcurrentSet(Of ErrorTypeSymbol)()
+        Private ReadOnly _genericInstanceMap As New ConcurrentDictionary(Of Symbol, Object)()
+        Private ReadOnly _reportedErrorTypesMap As New ConcurrentSet(Of ErrorTypeSymbol)()
 
-        Private ReadOnly m_EmbeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
+        Private ReadOnly _embeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
         Public Overrides ReadOnly Property EmbeddedTypesManagerOpt As NoPia.EmbeddedTypesManager
             Get
-                Return m_EmbeddedTypesManagerOpt
+                Return _embeddedTypesManagerOpt
             End Get
         End Property
 
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return DirectCast(reference, Microsoft.Cci.IAssemblyReference)
             End If
 
-            Dim asmRef = New AssemblyReference(assembly, assemblySymbolMapper)
+            Dim asmRef = New AssemblyReference(assembly)
 
             Dim cachedAsmRef = DirectCast(m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(assembly, asmRef), AssemblyReference)
 
@@ -81,10 +82,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return moduleRef
             End If
 
+            moduleRef = TranslateModule([module], diagnostics)
+            moduleRef = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd([module], moduleRef)
+            Return moduleRef
+        End Function
+
+        Protected Overridable Function TranslateModule([module] As ModuleSymbol, diagnostics As DiagnosticBag) As Microsoft.Cci.IModuleReference
             Dim container As AssemblySymbol = [module].ContainingAssembly
 
             If container IsNot Nothing AndAlso container.Modules(0) Is [module] Then
-                moduleRef = New AssemblyReference(container, assemblySymbolMapper)
+                Dim moduleRef As Microsoft.Cci.IModuleReference = New AssemblyReference(container)
                 Dim cachedModuleRef As Microsoft.Cci.IModuleReference = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef)
 
                 If cachedModuleRef Is moduleRef Then
@@ -92,12 +99,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Else
                     moduleRef = cachedModuleRef
                 End If
-            Else
-                moduleRef = New ModuleReference(Me, [module])
-            End If
 
-            moduleRef = m_AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd([module], moduleRef)
-            Return moduleRef
+                Return moduleRef
+            Else
+                Return New ModuleReference(Me, [module])
+            End If
         End Function
 
         Friend Overloads Function Translate(
@@ -128,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 ' Try to decrease noise by not complaining about the same type over and over again.
-                If m_reportedErrorTypesMap.Add(errorType) Then
+                If _reportedErrorTypesMap.Add(errorType) Then
                     diagnostics.Add(New VBDiagnostic(
                                     If(diagInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty)),
                                     If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())))
@@ -157,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 If namedTypeSymbol.Arity > 0 Then
 
-                    If m_GenericInstanceMap.TryGetValue(namedTypeSymbol, reference) Then
+                    If _genericInstanceMap.TryGetValue(namedTypeSymbol, reference) Then
                         Return DirectCast(reference, Microsoft.Cci.INamedTypeReference)
                     End If
 
@@ -172,25 +178,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         typeRef = New GenericNamespaceTypeInstanceReference(namedTypeSymbol)
                     End If
 
-                    typeRef = DirectCast(m_GenericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef), Microsoft.Cci.INamedTypeReference)
+                    typeRef = DirectCast(_genericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef), Microsoft.Cci.INamedTypeReference)
                     Return typeRef
                 Else
                     If IsOrInGenericType(container) Then
                         Debug.Assert(container IsNot Nothing)
 
-                        If m_GenericInstanceMap.TryGetValue(namedTypeSymbol, reference) Then
+                        If _genericInstanceMap.TryGetValue(namedTypeSymbol, reference) Then
                             Return DirectCast(reference, Microsoft.Cci.INamedTypeReference)
                         End If
 
                         typeRef = New SpecializedNestedTypeReference(namedTypeSymbol)
-                        typeRef = DirectCast(m_GenericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef), Microsoft.Cci.INamedTypeReference)
+                        typeRef = DirectCast(_genericInstanceMap.GetOrAdd(namedTypeSymbol, typeRef), Microsoft.Cci.INamedTypeReference)
                         Return typeRef
                     End If
                 End If
             End If
 
-            If m_EmbeddedTypesManagerOpt IsNot Nothing Then
-                Return m_EmbeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
+            If _embeddedTypesManagerOpt IsNot Nothing Then
+                Return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
             End If
 
             Return namedTypeSymbol
@@ -240,17 +246,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim reference As Object = Nothing
                 Dim fieldRef As Microsoft.Cci.IFieldReference
 
-                If m_GenericInstanceMap.TryGetValue(fieldSymbol, reference) Then
+                If _genericInstanceMap.TryGetValue(fieldSymbol, reference) Then
                     Return DirectCast(reference, Microsoft.Cci.IFieldReference)
                 End If
 
                 fieldRef = New SpecializedFieldReference(fieldSymbol)
-                fieldRef = DirectCast(m_GenericInstanceMap.GetOrAdd(fieldSymbol, fieldRef), Microsoft.Cci.IFieldReference)
+                fieldRef = DirectCast(_genericInstanceMap.GetOrAdd(fieldSymbol, fieldRef), Microsoft.Cci.IFieldReference)
                 Return fieldRef
             End If
 
-            If m_EmbeddedTypesManagerOpt IsNot Nothing Then
-                Return m_EmbeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
+            If _embeddedTypesManagerOpt IsNot Nothing Then
+                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             Return fieldSymbol
@@ -313,6 +319,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Select
         End Function
 
+        Friend Overloads Overrides Function Translate(symbol As MethodSymbol, diagnostics As DiagnosticBag, needDeclaration As Boolean) As IMethodReference
+            Return Translate(symbol, Nothing, diagnostics, needDeclaration)
+        End Function
+
         Friend Overloads Function Translate(
             methodSymbol As MethodSymbol,
             syntaxNodeOpt As VisualBasicSyntaxNode,
@@ -344,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim reference As Object = Nothing
                     Dim methodRef As Microsoft.Cci.IMethodReference
 
-                    If m_GenericInstanceMap.TryGetValue(methodSymbol, reference) Then
+                    If _genericInstanceMap.TryGetValue(methodSymbol, reference) Then
                         Return DirectCast(reference, Microsoft.Cci.IMethodReference)
                     End If
 
@@ -360,13 +370,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         methodRef = New SpecializedMethodReference(methodSymbol)
                     End If
 
-                    methodRef = DirectCast(m_GenericInstanceMap.GetOrAdd(methodSymbol, methodRef), Microsoft.Cci.IMethodReference)
+                    methodRef = DirectCast(_genericInstanceMap.GetOrAdd(methodSymbol, methodRef), Microsoft.Cci.IMethodReference)
                     Return methodRef
                 End If
             End If
 
-            If m_EmbeddedTypesManagerOpt IsNot Nothing Then
-                Return m_EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+            If _embeddedTypesManagerOpt IsNot Nothing Then
+                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
             End If
 
             Return methodSymbol
@@ -380,11 +390,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If methodSymbol.IsDefinition Then
                     Dim reference As Object = Nothing
 
-                    If m_GenericInstanceMap.TryGetValue(methodSymbol, reference) Then
+                    If _genericInstanceMap.TryGetValue(methodSymbol, reference) Then
                         methodRef = DirectCast(reference, Microsoft.Cci.IMethodReference)
                     Else
                         methodRef = New SpecializedMethodReference(methodSymbol)
-                        methodRef = DirectCast(m_GenericInstanceMap.GetOrAdd(methodSymbol, methodRef), Microsoft.Cci.IMethodReference)
+                        methodRef = DirectCast(_genericInstanceMap.GetOrAdd(methodSymbol, methodRef), Microsoft.Cci.IMethodReference)
                     End If
                 Else
                     methodRef = New SpecializedMethodReference(methodSymbol)
@@ -392,8 +402,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Else
                 Debug.Assert(methodSymbol.IsDefinition)
 
-                If m_EmbeddedTypesManagerOpt IsNot Nothing Then
-                    methodRef = m_EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                If _embeddedTypesManagerOpt IsNot Nothing Then
+                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
                 Else
                     methodRef = methodSymbol
                 End If
@@ -444,12 +454,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim reference As Object = Nothing
             Dim paramRef As Microsoft.Cci.IParameterTypeInformation
 
-            If (Me.m_GenericInstanceMap.TryGetValue(param, reference)) Then
+            If (Me._genericInstanceMap.TryGetValue(param, reference)) Then
                 Return DirectCast(reference, Microsoft.Cci.IParameterTypeInformation)
             End If
 
             paramRef = New ParameterTypeInformation(param)
-            paramRef = DirectCast(m_GenericInstanceMap.GetOrAdd(param, paramRef), Microsoft.Cci.IParameterTypeInformation)
+            paramRef = DirectCast(_genericInstanceMap.GetOrAdd(param, paramRef), Microsoft.Cci.IParameterTypeInformation)
 
             Return paramRef
         End Function

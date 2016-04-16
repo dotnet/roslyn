@@ -2,20 +2,11 @@
 
 using System;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Roslyn.Utilities
 {
     internal static class Contract
     {
-        // internal for testing
-        internal class ContractFailureException : Exception
-        {
-            public ContractFailureException() { }
-            public ContractFailureException(string message) : base(message) { }
-            public ContractFailureException(string message, Exception inner) : base(message, inner) { }
-        }
-
         /// <summary>
         /// Equivalent to Debug.Assert.  
         ///
@@ -112,13 +103,13 @@ namespace Roslyn.Utilities
         [DebuggerHidden]
         public static void Fail(string message = "Unexpected")
         {
-            throw new ContractFailureException(message);
+            throw new InvalidOperationException(message);
         }
 
         [DebuggerHidden]
         public static T FailWithReturn<T>(string message = "Unexpected")
         {
-            throw new ContractFailureException(message);
+            throw new InvalidOperationException(message);
         }
 
         public static void InvalidEnumValue<T>(T value)

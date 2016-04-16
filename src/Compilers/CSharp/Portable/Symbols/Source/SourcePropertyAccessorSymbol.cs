@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertyAccessorSymbol : SourceMethodSymbol
     {
-        private readonly SourcePropertySymbol property;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
-        private ImmutableArray<CustomModifier> lazyReturnTypeCustomModifiers;
-        private readonly ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
-        private readonly string name;
-        private readonly bool isAutoPropertyAccessor;
+        private readonly SourcePropertySymbol _property;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeSymbol _lazyReturnType;
+        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
+        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
+        private readonly string _name;
+        private readonly bool _isAutoPropertyAccessor;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
 
-            bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration); 
+            bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
             GetNameAndExplicitInterfaceImplementations(
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return property.IsExpressionBodied;
+                return _property.IsExpressionBodied;
             }
         }
 
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), syntax.GetReference(), location)
         {
-            this.property = property;
-            this.explicitInterfaceImplementations = explicitInterfaceImplementations;
-            this.name = name;
-            this.isAutoPropertyAccessor = false;
+            _property = property;
+            _explicitInterfaceImplementations = explicitInterfaceImplementations;
+            _name = name;
+            _isAutoPropertyAccessor = false;
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer bit
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // If this accessor is overriding a method from metadata, it is possible that
                     // the name of the overridden method doesn't follow the C# get_X/set_X pattern.
                     // We should copy the name so that the runtime will recognize this as an override.
-                    this.name = overriddenMethod.Name;
+                    _name = overriddenMethod.Name;
                 }
             }
         }
@@ -192,12 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body.GetReferenceOrNull(), location)
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), location)
         {
-            this.property = property;
-            this.explicitInterfaceImplementations = explicitInterfaceImplementations;
-            this.name = name;
-            this.isAutoPropertyAccessor = isAutoPropertyAccessor;
+            _property = property;
+            _explicitInterfaceImplementations = explicitInterfaceImplementations;
+            _name = name;
+            _isAutoPropertyAccessor = isAutoPropertyAccessor;
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // If this accessor is overriding a method from metadata, it is possible that
                     // the name of the overridden method doesn't follow the C# get_X/set_X pattern.
                     // We should copy the name so that the runtime will recognize this as an override.
-                    this.name = overriddenMethod.Name;
+                    _name = overriddenMethod.Name;
                 }
             }
         }
@@ -250,31 +250,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
-            this.lazyParameters = ComputeParameters(diagnostics);
-            this.lazyReturnType = ComputeReturnType(diagnostics);
-            this.lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _lazyParameters = ComputeParameters(diagnostics);
+            _lazyReturnType = ComputeReturnType(diagnostics);
+            _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
-            if (this.explicitInterfaceImplementations.Length > 0)
+            if (_explicitInterfaceImplementations.Length > 0)
             {
-                Debug.Assert(this.explicitInterfaceImplementations.Length == 1);
-                MethodSymbol implementedMethod = this.explicitInterfaceImplementations[0];
-                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out this.lazyReturnType, out this.lazyReturnTypeCustomModifiers, out this.lazyParameters, alsoCopyParamsModifier: false);
+                Debug.Assert(_explicitInterfaceImplementations.Length == 1);
+                MethodSymbol implementedMethod = _explicitInterfaceImplementations[0];
+                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
             }
             else if (this.IsOverride)
             {
                 // This will cause another call to SourceMethodSymbol.LazyMethodChecks, 
-                // but that method already handles re-entrancy for exactly this case.
+                // but that method already handles reentrancy for exactly this case.
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out this.lazyReturnType, out this.lazyReturnTypeCustomModifiers, out this.lazyParameters, alsoCopyParamsModifier: true);
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
-            else if (this.lazyReturnType.SpecialType != SpecialType.System_Void)
+            else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
-                PropertySymbol associatedProperty = this.property;
-                this.lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, this.lazyReturnType, RefKind.None, this.ContainingAssembly);
-                this.lazyReturnTypeCustomModifiers = associatedProperty.TypeCustomModifiers;
+                PropertySymbol associatedProperty = _property;
+                _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, RefKind.None, this.ContainingAssembly);
+                _lazyReturnTypeCustomModifiers = associatedProperty.TypeCustomModifiers;
             }
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return accessibility;
                 }
 
-                var propertyAccessibility = this.property.DeclaredAccessibility;
+                var propertyAccessibility = _property.DeclaredAccessibility;
                 Debug.Assert(propertyAccessibility != Accessibility.NotApplicable);
                 return propertyAccessibility;
             }
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol AssociatedSymbol
         {
-            get { return this.property; }
+            get { return _property; }
         }
 
         public override bool IsVararg
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnType;
+                return _lazyReturnType;
             }
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
-                var type = this.property.Type;
+                var type = _property.Type;
                 if (!ContainingType.IsInterfaceType() && type.IsStatic)
                 {
                     // '{0}': static types cannot be used as return types
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnTypeCustomModifiers;
+                return _lazyReturnTypeCustomModifiers;
             }
         }
 
@@ -407,12 +407,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;
 
-            if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
             }
-            else if (IsVirtual && ContainingType.IsSealed)
+            else if (IsVirtual && ContainingType.IsSealed && ContainingType.TypeKind != TypeKind.Struct) // error CS0106 on struct already
             {
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If we are outputing a .winmdobj then the setter name is put_, not set_.
+        /// If we are outputting a .winmdobj then the setter name is put_, not set_.
         /// </summary>
         internal static string GetAccessorName(string propertyName, bool getNotSet, bool isWinMdOutput)
         {
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.explicitInterfaceImplementations;
+                return _explicitInterfaceImplementations;
             }
         }
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.name;
+                return _name;
             }
         }
 
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> ComputeParameters(DiagnosticBag diagnostics)
         {
             bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
-            var propertyParameters = property.Parameters;
+            var propertyParameters = _property.Parameters;
             int nPropertyParameters = propertyParameters.Length;
             int nParameters = nPropertyParameters + (isGetMethod ? 0 : 1);
 
@@ -516,14 +516,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                var propertyType = property.Type;
+                var propertyType = _property.Type;
                 if (!ContainingType.IsInterfaceType() && propertyType.IsStatic)
                 {
                     // '{0}': static types cannot be used as parameters
                     diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType);
                 }
 
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count, property.TypeCustomModifiers));
+                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count, _property.TypeCustomModifiers));
             }
 
             return parameters.ToImmutableAndFree();
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (isAutoPropertyAccessor)
+            if (_isAutoPropertyAccessor)
             {
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));

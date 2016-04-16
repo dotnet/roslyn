@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _fieldName2index As Dictionary(Of String, Integer)
 
             ' field declaration bound node is created for fields with implicitly 
-            ' cpecified name to provide semantic info on those identifier;
+            ' specified name to provide semantic info on those identifier;
             ' the array builder is being created lazily if needed
             Private _fieldDeclarations As ArrayBuilder(Of BoundAnonymousTypePropertyAccess)
 
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' If set, the state of the binder shouldn't be modified by subsequent binding operations,
-            ''' which could be performed by SemanicModel in context of this binder.
+            ''' which could be performed by SemanticModel in context of this binder.
             ''' </summary>
             Private _freeze As Boolean
 
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             fieldIsKey = False
 
                         Else
-                            ' field name successfully infered
+                            ' field name successfully inferred
                             fieldName = fieldNameToken.ValueText
                             fieldNode = DirectCast(fieldNameToken.Parent, VisualBasicSyntaxNode)
                             fieldIsKey = inferredFieldInitializer.KeyKeyword.Kind = SyntaxKind.KeyKeyword
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' WARNING: Note that SemanticModel.GetDeclaredSymbol for field initializer node relies on 
                 '          the fact that the order of properties in anonymous type template corresponds 
                 '          1-to-1 to the appropriate filed initializer syntax nodes; This means such 
-                '          correspondence must be preserved all the time including erroneos scenarios
+                '          correspondence must be preserved all the time including erroneous scenarios
 
                 ' NOTE: if one field initializer references another, the binder creates an 
                 '       BoundAnonymousTypePropertyAccess node to represent the value of the field, 
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     within initializers. This way we can be sure that result of binding performed by SemanticModel is consistent
         '''     with result of initial binding of the entire node.
         '''   - AnonymousTypeCreationBinder overrides CreateAnonymousObjectCreationExpression in such a way that it mutates
-        '''     its state. That overriden method shouldn't be called while we are binding each initializer (by queries, for example), 
+        '''     its state. That overridden method shouldn't be called while we are binding each initializer (by queries, for example), 
         '''     it should be called only by AnonymousTypeCreationBinder itself after all initializers are bound and we are producing 
         '''     the resulting node. So having an extra binder in between takes care of that.
         ''' </summary>
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     End If
 
-                    ' check if the field referenced is already processed, and is 'good', e.g. has type asigned
+                    ' check if the field referenced is already processed, and is 'good', e.g. has type assigned
                     If fieldIndex >= _initializerOrdinal Then
 
                         ' referencing a field which is not processed yet or has an error
@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       In Roslyn we disable this functionality which is a breaking change in a sense,
                     '       but really should only affect a very few customers.
 
-                    ' TODO: revice and maybe report a special error message
+                    ' TODO: revise and maybe report a special error message
                 End If
 
                 ' NOTE: since we don't have the symbol of the anonymous type, we use 

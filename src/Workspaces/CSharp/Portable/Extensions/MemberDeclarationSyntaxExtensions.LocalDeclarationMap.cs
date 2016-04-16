@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public struct LocalDeclarationMap
         {
-            private readonly Dictionary<string, ImmutableArray<SyntaxToken>> dictionary;
+            private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
 
             internal LocalDeclarationMap(Dictionary<string, ImmutableArray<SyntaxToken>> dictionary)
             {
-                this.dictionary = dictionary;
+                _dictionary = dictionary;
             }
 
             public ImmutableArray<SyntaxToken> this[string identifier]
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 get
                 {
                     ImmutableArray<SyntaxToken> result;
-                    return dictionary.TryGetValue(identifier, out result)
+                    return _dictionary.TryGetValue(identifier, out result)
                         ? result
                         : ImmutableArray.Create<SyntaxToken>();
                 }

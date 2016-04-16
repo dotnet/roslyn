@@ -5,15 +5,18 @@ Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
-            node = DirectCast(MyBase.VisitInterpolatedStringExpression(node), BoundInterpolatedStringExpression)
 
-            ' We lower an interpolated string into an invocation of String.Format.
+            Debug.Assert(node.Type.SpecialType = SpecialType.System_String)
+            Dim factory = New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
+
+            ' We lower an interpolated string into an invocation of String.Format or System.Runtime.CompilerServices.FormattableStringFactory.Create.
             ' For example, we translate the expression:
             '
             '     $"Jenny, don't change your number: {phoneNumber:###-####}."
@@ -21,36 +24,97 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' into
             '
             '     String.Format("Jenny, don't change your number: {0:###-####}.", phoneNumber)
-            ' 
-
             '
             ' TODO: A number of optimizations would be beneficial in the generated code.
             ' 
-            ' (1) Avoid the object array allocation by calling an overload of Format that has a fixed
-            '     number of arguments. Check what is available in the platform and make the best choice,
-            '     so that we benefit from any additional overloads that may be added in the future
-            '
-            ' (2) If there is no width or format, and the argument is a value type, call .ToString()
+            ' (1) If there is no width or format, and the argument is a value type, call .ToString()
             '     on it directly so that we avoid the boxing overhead.
             '
-            ' (3) For the built-in types, we can use .ToString(string format) for some format strings.
+            ' (2) For the built-in types, we can use .ToString(string format) for some format strings.
             '     Detect those cases that can be handled that way and take advantage of them.
-            Dim factory As New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            If node.IsEmpty Then
 
-            If node.Contents.IsEmpty Then
                 Return factory.StringLiteral(ConstantValue.Create(String.Empty))
-            End If
 
-            If node.Contents.Length = 1 AndAlso node.Contents(0).Kind = BoundKind.Literal Then
+            ElseIf Not node.HasInterpolations Then
                 ' We have to process all of the escape sequences in the string.
                 Dim valueWithEscapes = DirectCast(node.Contents(0), BoundLiteral).Value.StringValue
 
                 Return factory.StringLiteral(ConstantValue.Create(valueWithEscapes.Replace("{{", "{").Replace("}}", "}")))
+
+            Else
+                Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory)
             End If
 
+        End Function
+
+        Private Function RewriteInterpolatedStringConversion(conversion As BoundConversion) As BoundExpression
+
+            Debug.Assert(conversion.ConversionKind = ConversionKind.InterpolatedString)
+
+            Dim targetType = conversion.Type
+            Dim node = DirectCast(conversion.Operand, BoundInterpolatedStringExpression)
+            Dim binder = node.Binder
+
+            Debug.Assert(targetType.Equals(binder.Compilation.GetWellKnownType(WellKnownType.System_FormattableString)) OrElse
+                         targetType.Equals(binder.Compilation.GetWellKnownType(WellKnownType.System_IFormattable)))
+
+            ' We lower an interpolated string into an invocation of System.Runtime.CompilerServices.FormattableStringFactory.Create.
+            ' For example, we translate the expression:
+            '
+            '     $"Jenny, don't change your number: {phoneNumber:###-####}."
+            '
+            ' into
+            '
+            '     FormattableStringFactory.Create("Jenny, don't change your number: {0:###-####}.", phoneNumber)
+            '
+            ' TODO: A number of optimizations would be beneficial in the generated code.
+            ' 
+            ' (1) If there is no width or format, and the argument is a value type, call .ToString()
+            '     on it directly so that we avoid the boxing overhead.
+            '
+            ' (2) For the built-in types, we can use .ToString(string format) for some format strings.
+            '     Detect those cases that can be handled that way and take advantage of them.
+            Return InvokeInterpolatedStringFactory(node,
+                                                   binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, conversion.Syntax, _diagnostics),
+                                                   "Create",
+                                                   conversion.Type,
+                                                   New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics))
+
+        End Function
+
+        Private Function InvokeInterpolatedStringFactory(node As BoundInterpolatedStringExpression, factoryType As TypeSymbol, factoryMethodName As String, targetType As TypeSymbol, factory As SyntheticBoundNodeFactory) As BoundExpression
+
+            Dim hasErrors As Boolean = False
+
+            If factoryType.IsErrorType() Then
+                GoTo ReturnBadExpression
+            End If
+
+            Dim binder = node.Binder
+
+            Dim lookup = LookupResult.GetInstance()
+            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
+            binder.LookupMember(lookup, factoryType, factoryMethodName, 0, LookupOptions.MustNotBeInstance Or LookupOptions.MethodsOnly Or LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
+
+            _diagnostics.Add(node, useSiteDiagnostics)
+
+            If lookup.Kind = LookupResultKind.Inaccessible Then
+                hasErrors = True
+            ElseIf Not lookup.IsGood Then
+                lookup.Free()
+                GoTo ReturnBadExpression
+            End If
+
+            Dim methodGroup = New BoundMethodGroup(node.Syntax, Nothing, lookup.Symbols.ToDowncastedImmutable(Of MethodSymbol), lookup.Kind, Nothing, QualificationKind.QualifiedViaTypeName).MakeCompilerGenerated()
+            lookup.Free()
+
             Dim formatStringBuilderHandle = PooledStringBuilder.GetInstance()
-            Dim interpolations = ArrayBuilder(Of BoundExpression).GetInstance()
+            Dim arguments = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim interpolationOrdinal = -1
+
+            arguments.Add(Nothing) ' Placeholder for format string.
 
             For Each item In node.Contents
 
@@ -70,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             .Append("{"c)
 
-                            .Append(interpolationOrdinal)
+                            .Append(interpolationOrdinal.ToString(Globalization.CultureInfo.InvariantCulture))
 
                             If interpolation.AlignmentOpt IsNot Nothing Then
                                 Debug.Assert(interpolation.AlignmentOpt.IsConstant AndAlso interpolation.AlignmentOpt.ConstantValueOpt.IsIntegral)
@@ -86,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             .Append("}"c)
                         End With
 
-                        interpolations.Add(Convert(factory, GetSpecialType(SpecialType.System_Object), interpolation.Expression))
+                        arguments.Add(interpolation.Expression)
 
                     Case Else
                         Throw ExceptionUtilities.Unreachable()
@@ -94,15 +158,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Next
 
-            Dim formatString = factory.StringLiteral(ConstantValue.Create(formatStringBuilderHandle.ToStringAndFree()))
+            arguments(0) = factory.StringLiteral(ConstantValue.Create(formatStringBuilderHandle.ToStringAndFree())).MakeCompilerGenerated()
 
-            Dim stringFormatMethod As MethodSymbol = Nothing
-            If Not TryGetSpecialMember(stringFormatMethod, SpecialMember.System_String__Format, node.Syntax) Then
-                interpolations.Free()
-                Return node
+            Dim result As BoundExpression = binder.MakeRValue(binder.BindInvocationExpression(node.Syntax,
+                                                                                              node.Syntax,
+                                                                                              TypeCharacter.None,
+                                                                                              methodGroup,
+                                                                                              arguments.ToImmutableAndFree(),
+                                                                                              Nothing,
+                                                                                              _diagnostics,
+                                                                                              callerInfoOpt:=Nothing,
+                                                                                              forceExpandedForm:=True), _diagnostics).MakeCompilerGenerated()
+
+            If Not result.Type.Equals(targetType) Then
+                result = binder.ApplyImplicitConversion(node.Syntax, targetType, result, _diagnostics).MakeCompilerGenerated()
             End If
 
-            Return factory.Call(Nothing, stringFormatMethod, {formatString, factory.Array(Compilation.ObjectType, interpolations.ToImmutableAndFree())})
+            If hasErrors OrElse result.HasErrors Then
+                GoTo ReturnBadExpression
+            End If
+
+            result = VisitExpression(result)
+
+            Return result
+
+ReturnBadExpression:
+            ReportDiagnostic(node, ErrorFactory.ErrorInfo(ERRID.ERR_InterpolatedStringFactoryError, factoryType.Name, factoryMethodName), _diagnostics)
+            Return factory.Convert(targetType, factory.BadExpression(MyBase.VisitInterpolatedStringExpression(node)))
 
         End Function
 

@@ -46,15 +46,15 @@ Namespace Global
         End Function
     End Module
 
-    Class ExpressionPrinter
+    Friend Class ExpressionPrinter
         Inherits System.Linq.Expressions.ExpressionVisitor
 
-        Private s As StringBuilder = New StringBuilder()
+        Private ReadOnly _s As StringBuilder = New StringBuilder()
 
-        Private indent As String = ""
-        Private indentStep As String = "  "
+        Private _indent As String = ""
+        Private ReadOnly _indentStep As String = "  "
 
-        Shared Function GetCultureInvariantString(val As Object) As String
+        Public Shared Function GetCultureInvariantString(val As Object) As String
             If val Is Nothing Then
                 Return Nothing
             End If
@@ -77,27 +77,27 @@ Namespace Global
         Public Shared Function Print(e As Expression) As String
             Dim p = New ExpressionPrinter()
             p.Visit(e)
-            Return p.s.ToString()
+            Return p._s.ToString()
         End Function
 
         Public Overrides Function Visit(node As Expression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             If node Is Nothing Then
-                s.AppendLine(Me.indent + "<NULL>")
+                _s.AppendLine(Me._indent + "<NULL>")
                 Return Nothing
             End If
 
-            s.AppendLine(indent + node.NodeType.ToString() + "(")
-            Me.indent = indent + indentStep
+            _s.AppendLine(indent + node.NodeType.ToString() + "(")
+            Me._indent = indent + _indentStep
             MyBase.Visit(node)
-            s.AppendLine(indent + indentStep + "type: " + node.Type.ToString())
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + _indentStep + "type: " + node.Type.ToString())
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMemberBinding(node As MemberBinding) As MemberBinding
             If node Is Nothing Then
-                s.AppendLine(Me.indent + "<NULL>")
+                _s.AppendLine(Me._indent + "<NULL>")
                 Return Nothing
             End If
 
@@ -105,99 +105,99 @@ Namespace Global
         End Function
 
         Protected Overrides Function VisitMemberMemberBinding(node As MemberMemberBinding) As MemberMemberBinding
-            Dim indent = Me.indent
-            s.AppendLine(indent + "MemberMemberBinding(")
-            s.AppendLine(indent + indentStep + "member: " + node.Member.ToString())
+            Dim indent = Me._indent
+            _s.AppendLine(indent + "MemberMemberBinding(")
+            _s.AppendLine(indent + _indentStep + "member: " + node.Member.ToString())
             For Each b In node.Bindings
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 VisitMemberBinding(b)
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMemberListBinding(node As MemberListBinding) As MemberListBinding
-            Dim indent = Me.indent
-            s.AppendLine(indent + "MemberListBinding(")
-            s.AppendLine(indent + indentStep + "member: " + node.Member.ToString())
+            Dim indent = Me._indent
+            _s.AppendLine(indent + "MemberListBinding(")
+            _s.AppendLine(indent + _indentStep + "member: " + node.Member.ToString())
             For Each i In node.Initializers
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 VisitElementInit(i)
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMemberAssignment(node As MemberAssignment) As MemberAssignment
-            Dim indent = Me.indent
-            s.AppendLine(indent + "MemberAssignment(")
-            s.AppendLine(indent + indentStep + "member: " + node.Member.ToString())
-            s.AppendLine(indent + indentStep + "expression: {")
-            Me.indent = indent + indentStep + indentStep
+            Dim indent = Me._indent
+            _s.AppendLine(indent + "MemberAssignment(")
+            _s.AppendLine(indent + _indentStep + "member: " + node.Member.ToString())
+            _s.AppendLine(indent + _indentStep + "expression: {")
+            Me._indent = indent + _indentStep + _indentStep
             Visit(node.Expression)
-            s.AppendLine(indent + indentStep + "}")
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + _indentStep + "}")
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMemberInit(node As MemberInitExpression) As Expression
-            Dim indent = Me.indent
-            s.AppendLine(indent + "NewExpression(")
-            Me.indent = indent + indentStep
+            Dim indent = Me._indent
+            _s.AppendLine(indent + "NewExpression(")
+            Me._indent = indent + _indentStep
             Visit(node.NewExpression)
-            s.AppendLine(indent + ")")
-            s.AppendLine(indent + "bindings:")
+            _s.AppendLine(indent + ")")
+            _s.AppendLine(indent + "bindings:")
             For Each b In node.Bindings
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 VisitMemberBinding(b)
             Next
             Return Nothing
         End Function
 
         Protected Overrides Function VisitBinary(node As BinaryExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
 
-            Me.indent = indent
+            Me._indent = indent
             Visit(node.Left)
 
-            Me.indent = indent
+            Me._indent = indent
             Visit(node.Right)
 
             If node.Conversion IsNot Nothing Then
-                s.AppendLine(indent + "conversion:")
-                Me.indent = indent + indentStep
+                _s.AppendLine(indent + "conversion:")
+                Me._indent = indent + _indentStep
                 Visit(node.Conversion)
             End If
 
             If node.IsLifted Then
-                s.AppendLine(indent + "Lifted")
+                _s.AppendLine(indent + "Lifted")
             End If
 
             If node.IsLiftedToNull Then
-                s.AppendLine(indent + "LiftedToNull")
+                _s.AppendLine(indent + "LiftedToNull")
             End If
 
             If node.Method IsNot Nothing Then
-                s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString())
+                _s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString())
             End If
 
             Return Nothing
         End Function
 
         Protected Overrides Function VisitConditional(node As ConditionalExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.Test)
-            Me.indent = indent
+            Me._indent = indent
             Visit(node.IfTrue)
-            Me.indent = indent
+            Me._indent = indent
             Visit(node.IfFalse)
             Return Nothing
         End Function
 
         Protected Overrides Function VisitConstant(node As ConstantExpression) As Expression
-            s.AppendLine(indent + If(node.Value Is Nothing, "null", GetCultureInvariantString(node.Value)))
+            _s.AppendLine(_indent + If(node.Value Is Nothing, "null", GetCultureInvariantString(node.Value)))
             Return Nothing
         End Function
 
@@ -206,89 +206,89 @@ Namespace Global
         End Function
 
         Protected Overrides Function VisitIndex(node As IndexExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.[Object])
 
-            Me.indent = indent
-            s.AppendLine(indent + "indices(")
+            Me._indent = indent
+            _s.AppendLine(indent + "indices(")
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Arguments(i))
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
 
             If node.Indexer IsNot Nothing Then
-                s.AppendLine(indent + "indexer: " + node.Indexer.ToString())
+                _s.AppendLine(indent + "indexer: " + node.Indexer.ToString())
             End If
 
             Return Nothing
         End Function
 
         Protected Overrides Function VisitInvocation(node As InvocationExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.Expression)
-            s.AppendLine(indent + "(")
+            _s.AppendLine(indent + "(")
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Arguments(i))
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitLambda(Of T)(node As Expression(Of T)) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Dim n As Integer = node.Parameters.Count
             For i = 0 To n - 1
-                Me.indent = indent
+                Me._indent = indent
                 Visit(node.Parameters(i))
             Next
 
             If node.Name IsNot Nothing Then
-                s.AppendLine(indent + node.Name)
+                _s.AppendLine(indent + node.Name)
             End If
 
-            s.AppendLine(indent + "body {")
-            Me.indent = indent + indentStep
+            _s.AppendLine(indent + "body {")
+            Me._indent = indent + _indentStep
             Visit(node.Body)
-            s.AppendLine(indent + "}")
+            _s.AppendLine(indent + "}")
 
             If node.ReturnType IsNot Nothing Then
-                s.AppendLine(indent + "return type: " + node.ReturnType.ToString())
+                _s.AppendLine(indent + "return type: " + node.ReturnType.ToString())
             End If
 
             If node.TailCall Then
-                s.AppendLine(indent + "tail call")
+                _s.AppendLine(indent + "tail call")
             End If
 
             Return Nothing
         End Function
 
         Protected Overrides Function VisitParameter(node As ParameterExpression) As Expression
-            s.Append(Me.indent + node.Name)
+            _s.Append(Me._indent + node.Name)
             If node.IsByRef Then
-                s.Append(" ByRef")
+                _s.Append(" ByRef")
             End If
-            s.AppendLine()
+            _s.AppendLine()
             Return Nothing
         End Function
 
         Protected Overrides Function VisitListInit(node As ListInitExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.NewExpression)
 
-            s.AppendLine(indent + "{")
+            _s.AppendLine(indent + "{")
             Dim n As Integer = node.Initializers.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Initializers(i))
             Next
 
-            s.AppendLine(indent + "}")
+            _s.AppendLine(indent + "}")
             Return Nothing
         End Function
 
@@ -298,81 +298,81 @@ Namespace Global
         End Function
 
         Private Overloads Sub Visit(node As ElementInit)
-            Dim indent = Me.indent
-            s.AppendLine(indent + "ElementInit(")
-            s.AppendLine(indent + indentStep + node.AddMethod.ToString)
+            Dim indent = Me._indent
+            _s.AppendLine(indent + "ElementInit(")
+            _s.AppendLine(indent + _indentStep + node.AddMethod.ToString)
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Arguments(i))
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
         End Sub
 
         Protected Overrides Function VisitUnary(node As UnaryExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.Operand)
 
             If node.IsLifted Then
-                s.AppendLine(indent + "Lifted")
+                _s.AppendLine(indent + "Lifted")
             End If
 
             If node.IsLiftedToNull Then
-                s.AppendLine(indent + "LiftedToNull")
+                _s.AppendLine(indent + "LiftedToNull")
             End If
 
             If node.Method IsNot Nothing Then
-                s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString())
+                _s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString())
             End If
 
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMember(node As MemberExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.Expression)
-            s.AppendLine(indent + "-> " + node.Member.Name)
+            _s.AppendLine(indent + "-> " + node.Member.Name)
             Return Nothing
         End Function
 
         Protected Overrides Function VisitMethodCall(node As MethodCallExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.[Object])
 
-            s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString() + " (")
+            _s.AppendLine(indent + "method: " + node.Method.ToString() + " in " + node.Method.DeclaringType.ToString() + " (")
 
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Arguments(i))
             Next
 
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
             Return Nothing
         End Function
 
         Protected Overrides Function VisitNew(node As NewExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
 
-            s.AppendLine(indent + If((node.Constructor IsNot Nothing), node.Constructor.ToString(), "<.ctor>") + "(")
+            _s.AppendLine(indent + If((node.Constructor IsNot Nothing), node.Constructor.ToString(), "<.ctor>") + "(")
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
-                Me.indent = indent + indentStep
+                Me._indent = indent + _indentStep
                 Visit(node.Arguments(i))
             Next
-            s.AppendLine(indent + ")")
+            _s.AppendLine(indent + ")")
 
             If node.Members IsNot Nothing Then
                 n = node.Members.Count
                 If n <> 0 Then
-                    s.AppendLine(indent + "members: {")
+                    _s.AppendLine(indent + "members: {")
                     For i = 0 To n - 1
                         Dim info = node.Members(i)
-                        s.AppendLine(indent + indentStep + info.ToString())
+                        _s.AppendLine(indent + _indentStep + info.ToString())
                     Next
 
-                    s.AppendLine(indent + "}")
+                    _s.AppendLine(indent + "}")
                 End If
             End If
 
@@ -380,20 +380,20 @@ Namespace Global
         End Function
 
         Protected Overrides Function VisitNewArray(node As NewArrayExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Dim n As Integer = node.Expressions.Count
             For i = 0 To n - 1
-                Me.indent = indent
+                Me._indent = indent
                 Visit(node.Expressions(i))
             Next
             Return Nothing
         End Function
 
         Protected Overrides Function VisitTypeBinary(node As TypeBinaryExpression) As Expression
-            Dim indent = Me.indent
+            Dim indent = Me._indent
             Visit(node.Expression)
 
-            s.AppendLine(indent + "Type Operand: " + node.TypeOperand.ToString())
+            _s.AppendLine(indent + "Type Operand: " + node.TypeOperand.ToString())
             Return Nothing
         End Function
     End Class

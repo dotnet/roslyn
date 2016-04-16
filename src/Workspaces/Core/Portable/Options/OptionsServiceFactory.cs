@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.Options
     [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Default), Shared]
     internal class OptionsServiceFactory : IWorkspaceServiceFactory
     {
-        private IOptionService optionService;
+        private readonly IOptionService _optionService;
 
         [ImportingConstructor]
         public OptionsServiceFactory(IOptionService optionService)
         {
-            this.optionService = optionService;
+            _optionService = optionService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return optionService;
+            return _optionService;
         }
     }
 }

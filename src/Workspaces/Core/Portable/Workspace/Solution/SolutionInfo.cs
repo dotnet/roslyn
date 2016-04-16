@@ -19,22 +19,22 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The unique Id of the solution.
         /// </summary>
-        public SolutionId Id { get; private set; }
+        public SolutionId Id { get; }
 
         /// <summary>
         /// The version of the solution.
         /// </summary>
-        public VersionStamp Version { get; private set; }
+        public VersionStamp Version { get; }
 
         /// <summary>
         /// The path to the solution file, or null if there is no solution file.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         /// <summary>
         /// A list of projects initially associated with the solution.
         /// </summary>
-        public IReadOnlyList<ProjectInfo> Projects { get; private set; }
+        public IReadOnlyList<ProjectInfo> Projects { get; }
 
         private SolutionInfo(
             SolutionId id,

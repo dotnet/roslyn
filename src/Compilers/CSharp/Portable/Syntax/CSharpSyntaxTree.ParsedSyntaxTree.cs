@@ -4,22 +4,21 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpSyntaxTree
     {
-        private partial class ParsedSyntaxTree : CSharpSyntaxTree
+        private class ParsedSyntaxTree : CSharpSyntaxTree
         {
-            private readonly CSharpParseOptions options;
-            private readonly string path;
-            private readonly CSharpSyntaxNode root;
-            private readonly bool hasCompilationUnitRoot;
-            private readonly Encoding encodingOpt;
-            private readonly SourceHashAlgorithm checksumAlgorithm;
-            private SourceText lazyText;
+            private readonly CSharpParseOptions _options;
+            private readonly string _path;
+            private readonly CSharpSyntaxNode _root;
+            private readonly bool _hasCompilationUnitRoot;
+            private readonly Encoding _encodingOpt;
+            private readonly SourceHashAlgorithm _checksumAlgorithm;
+            private SourceText _lazyText;
 
             internal ParsedSyntaxTree(SourceText textOpt, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm, string path, CSharpParseOptions options, CSharpSyntaxNode root, Syntax.InternalSyntax.DirectiveStack directives, bool cloneRoot = true)
             {
@@ -28,53 +27,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(path != null);
                 Debug.Assert(textOpt == null || textOpt.Encoding == encodingOpt && textOpt.ChecksumAlgorithm == checksumAlgorithm);
 
-                this.lazyText = textOpt;
-                this.encodingOpt = encodingOpt;
-                this.checksumAlgorithm = checksumAlgorithm;
-                this.options = options;
-                this.path = path;
-                this.root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
-                this.hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
+                _lazyText = textOpt;
+                _encodingOpt = encodingOpt ?? textOpt?.Encoding;
+                _checksumAlgorithm = checksumAlgorithm;
+                _options = options;
+                _path = path;
+                _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
+                _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 this.SetDirectiveStack(directives);
             }
 
             public override string FilePath
             {
-                get { return path; }
+                get { return _path; }
             }
 
             public override SourceText GetText(CancellationToken cancellationToken)
             {
-                if (this.lazyText == null)
+                if (_lazyText == null)
                 {
-                    using (Logger.LogBlock(FunctionId.CSharp_SyntaxTree_GetText, message: this.FilePath, cancellationToken: cancellationToken))
-                    {
-                        Interlocked.CompareExchange(ref this.lazyText, this.GetRoot(cancellationToken).GetText(encodingOpt, checksumAlgorithm), null);
-                    }
+                    Interlocked.CompareExchange(ref _lazyText, this.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm), null);
                 }
 
-                return this.lazyText;
+                return _lazyText;
             }
 
             public override bool TryGetText(out SourceText text)
             {
-                text = this.lazyText;
+                text = _lazyText;
                 return text != null;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return _encodingOpt; }
             }
 
             public override int Length
             {
-                get { return this.root.FullSpan.Length; }
+                get { return _root.FullSpan.Length; }
             }
 
             public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken)
             {
-                return root;
+                return _root;
             }
 
             public override bool TryGetRoot(out CSharpSyntaxNode root)
             {
-                root = this.root;
+                root = _root;
                 return true;
             }
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return this.hasCompilationUnitRoot;
+                    return _hasCompilationUnitRoot;
                 }
             }
 
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    return this.options;
+                    return _options;
                 }
             }
 
@@ -99,43 +100,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new SimpleSyntaxReference(node);
             }
 
-            public override string ToString()
-            {
-                return this.GetText(CancellationToken.None).ToString();
-            }
-
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
             {
-                if (ReferenceEquals(this.root, root) && ReferenceEquals(this.options, options))
+                if (ReferenceEquals(_root, root) && ReferenceEquals(_options, options))
                 {
                     return this;
                 }
 
                 return new ParsedSyntaxTree(
                     null,
-                    this.encodingOpt,
-                    this.checksumAlgorithm,
-                    this.path,
+                    _encodingOpt,
+                    _checksumAlgorithm,
+                    _path,
                     (CSharpParseOptions)options,
                     (CSharpSyntaxNode)root,
-                    this.directives);
+                    _directives);
             }
 
             public override SyntaxTree WithFilePath(string path)
             {
-                if (this.path == path)
+                if (_path == path)
                 {
                     return this;
                 }
 
                 return new ParsedSyntaxTree(
-                    this.lazyText,
-                    this.encodingOpt,
-                    this.checksumAlgorithm,
+                    _lazyText,
+                    _encodingOpt,
+                    _checksumAlgorithm,
                     path,
-                    this.options,
-                    this.root,
-                    this.directives);
+                    _options,
+                    _root,
+                    _directives);
             }
         }
     }

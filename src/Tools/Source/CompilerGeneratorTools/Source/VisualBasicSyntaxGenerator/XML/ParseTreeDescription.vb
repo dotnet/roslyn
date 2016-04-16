@@ -48,19 +48,19 @@ Public Class ParseTree
     Public RootToken, RootTrivia As ParseNodeStructure
 
     ' Remember nodes with errors so we only report one error per node.
-    Private ElementsWithErrors As New Dictionary(Of XNode, Boolean)
+    Private ReadOnly _elementsWithErrors As New Dictionary(Of XNode, Boolean)
 
     ' Report an error.
     Public Sub ReportError(referencingNode As XNode, message As String, ParamArray args As Object())
         Dim fullMessage As String = FileName
 
         If referencingNode IsNot Nothing Then
-            If ElementsWithErrors.ContainsKey(referencingNode) Then
+            If _elementsWithErrors.ContainsKey(referencingNode) Then
                 ' We already reported an error on this node.
                 Exit Sub
             End If
 
-            ElementsWithErrors(referencingNode) = True      ' remember this so we only report errors on this node once.
+            _elementsWithErrors(referencingNode) = True      ' remember this so we only report errors on this node once.
             Dim lineInfo = CType(referencingNode, IXmlLineInfo)
             fullMessage += String.Format("({0})", lineInfo.LineNumber)
         End If
@@ -105,7 +105,7 @@ Public Class ParseTree
 
             IsAbstract(struct) = True
 
-            ' Determine "tokens" and trivia by walking the heirarchy
+            ' Determine "tokens" and trivia by walking the hierarchy
             SetIsTokenAndIsTrivia(struct)
         Next
 
@@ -117,7 +117,7 @@ Public Class ParseTree
 
     ' Set the IsToken and IsTrivia flags on a struct
     Private Sub SetIsTokenAndIsTrivia(struct As ParseNodeStructure)
-        ' Walk the heirarchy.
+        ' Walk the hierarchy.
         Dim parent = struct
 
         While parent IsNot Nothing
@@ -193,7 +193,7 @@ Public Class ParseTree
             Return typeList
         End If
 
-        If typeString.StartsWith("@") Then
+        If typeString.StartsWith("@", StringComparison.Ordinal) Then
             Dim nodeTypeString = typeString.Substring(1)
             If Not NodeStructures.ContainsKey(nodeTypeString) Then
                 ReportError(referencingNode, "Unknown structure '@{0}'", nodeTypeString)
@@ -501,7 +501,7 @@ Public Class ParseNodeChild
 
     Public ReadOnly SeparatorsName As String
 
-    Private _childKindNames As New Dictionary(Of String, List(Of String))
+    Private ReadOnly _childKindNames As New Dictionary(Of String, List(Of String))
     Private _childKind As Object
 
     Public ReadOnly SeparatorsTypeId As String

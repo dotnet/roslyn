@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ErrorWhileReadingSpecifiedConfigFile" xml:space="preserve">
-    <value>An error occured while reading the specified configuration file: {0}</value>
+    <value>An error occurred while reading the specified configuration file: {0}</value>
   </data>
   <data name="RenameSymbolIsNotFromSource" xml:space="preserve">
     <value>Symbol "{0}" is not from source.</value>
@@ -130,13 +130,13 @@
     <value>Cycle detected in extensions</value>
   </data>
   <data name="InvalidDestinationNode" xml:space="preserve">
-    <value>Destination type must be a {0}.</value>
+    <value>Destination type must be a {0}, but given one is {1}.</value>
   </data>
   <data name="InvalidDestinationNode2" xml:space="preserve">
-    <value>Destination type must be a {0} or a {1}.</value>
+    <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
   </data>
   <data name="InvalidDestinationNode3" xml:space="preserve">
-    <value>Destination type must be a {0}, {1} or {2}.</value>
+    <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
   </data>
   <data name="CouldNotFindLocationToGen" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
@@ -300,9 +300,6 @@
   <data name="UnknownIdentifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
-  <data name="RemoveUnnecessaryImportsOrUsings" xml:space="preserve">
-    <value>Remove Unnecessary Imports/Usings.</value>
-  </data>
   <data name="CannotCodeGenUnsupportedOperator" xml:space="preserve">
     <value>Cannot generate code for unsupported operator '{0}'</value>
   </data>
@@ -400,7 +397,7 @@
     <value>Removing project references is not supported.</value>
   </data>
   <data name="WorkspaceServicesUnavailable" xml:space="preserve">
-    <value>Services required to accomplish the task are not available from the workspace.</value>
+    <value>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</value>
   </data>
   <data name="DiagnosticCannotBeNull" xml:space="preserve">
     <value>Supplied diagnostic cannot be null.</value>
@@ -446,5 +443,29 @@
   </data>
   <data name="ChangingParseOptionsNotSupported" xml:space="preserve">
     <value>Changing parse options is not supported.</value>
+  </data>
+  <data name="TheNodeIsNotPartOfTheTree" xml:space="preserve">
+    <value>The node is not part of the tree.</value>
+  </data>
+  <data name="OpenDocumentNotSupported" xml:space="preserve">
+    <value>This workspace does not support opening and closing documents.</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Usage:</value>
+  </data>
+  <data name="Exceptions" xml:space="preserve">
+    <value>Exceptions:</value>
+  </data>
+  <data name="FixableDiagnosticIdsIncorrectlyInitialized" xml:space="preserve">
+    <value>'{0}' returned an uninitialized ImmutableArray</value>
+  </data>
+  <data name="Failure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="PopulateSwitch" xml:space="preserve">
+    <value>Populate switch</value>
   </data>
 </root>

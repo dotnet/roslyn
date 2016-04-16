@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundFieldAccess
+    Friend Partial Class BoundFieldAccess
 
         Public Sub New(syntax As VisualBasicSyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, receiverOpt, fieldSymbol, isLValue, False, Nothing, type, hasErrors)
@@ -33,6 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
             Get
+                ' decimal and datetime const fields require one-time synthesized assignment in cctor
+                ' when used as a LHS of an assignment, the access is not a const.
+                If _IsLValue Then
+                    Return Nothing
+                End If
+
                 Dim result As ConstantValue
 
                 Dim constantsInProgress = Me.ConstantsInProgressOpt

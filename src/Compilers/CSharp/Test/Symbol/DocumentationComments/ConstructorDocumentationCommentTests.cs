@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ConstructorDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamespaceSymbol acmeNamespace;
-        private readonly NamedTypeSymbol widgetClass;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
 
         public ConstructorDocumentationCommentTests()
         {
-            compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
 {
 	class Widget: IProcess
 	{
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
         }
 
         [Fact]
         public void TestStaticConstructor()
         {
-            var staticConstructorSymbol = widgetClass.GetMembers(WellKnownMemberNames.StaticConstructorName).Single();
+            var staticConstructorSymbol = _widgetClass.GetMembers(WellKnownMemberNames.StaticConstructorName).Single();
             Assert.Equal("M:Acme.Widget.#cctor", staticConstructorSymbol.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.#cctor"">
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructor()
         {
-            var constructorSymbol = widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 0);
+            var constructorSymbol = _widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 0);
             Assert.Equal("M:Acme.Widget.#ctor", constructorSymbol.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.#ctor"">
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructorWithParameter()
         {
-            var parameterizedConstructorSymbol = widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 1);
+            var parameterizedConstructorSymbol = _widgetClass.InstanceConstructors.Single(c => !c.IsStatic && c.Parameters.Length == 1);
             Assert.Equal("M:Acme.Widget.#ctor(System.String)", parameterizedConstructorSymbol.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.#ctor(System.String)"">

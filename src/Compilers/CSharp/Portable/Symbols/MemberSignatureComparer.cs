@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// name, the number of type parameters and the number, modifiers, and types of its formal
     /// parameters. For these purposes, any type parameter of the method that occurs in the type of
     /// a formal parameter is identified not by its name, but by its ordinal position in the type
-    /// argument list of the method. The return type is not part of a method’s signature, nor are
+    /// argument list of the method. The return type is not part of a method's signature, nor are
     /// the names of the type parameters or the formal parameters.
     /// </para>
     /// <para>
@@ -243,28 +243,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,     // valid invoke is never generic
             considerCallingConvention: false,   // valid invoke is never static
             considerRefOutDifference: true,
-            considerCustomModifiers: true);
+            considerCustomModifiers: true,
+            ignoreDynamic: false);
 
         // Compare the "unqualified" part of the member name (no explicit part)
-        private readonly bool considerName;
+        private readonly bool _considerName;
 
         // Compare the interfaces implemented (as symbols, to avoid ambiguous representations)
-        private readonly bool considerExplicitlyImplementedInterfaces;
+        private readonly bool _considerExplicitlyImplementedInterfaces;
 
         // Compare the type symbols of the return types
-        private readonly bool considerReturnType;
+        private readonly bool _considerReturnType;
 
         // Compare the type constraints
-        private readonly bool considerTypeConstraints;
+        private readonly bool _considerTypeConstraints;
 
         // Compare the full calling conventions.  Still compares varargs if false.
-        private readonly bool considerCallingConvention;
+        private readonly bool _considerCallingConvention;
 
         // True to consider RefKind.Ref and RefKind.Out different, false to consider them the same.
-        private readonly bool considerRefOutDifference;
+        private readonly bool _considerRefOutDifference;
 
         // Consider custom modifiers on/in parameters and return types (if return is considered).
-        private readonly bool considerCustomModifiers;
+        private readonly bool _considerCustomModifiers;
+
+        // Ignore Object vs. Dynamic difference 
+        private readonly bool _ignoreDynamic;
 
         private MemberSignatureComparer(
             bool considerName,
@@ -273,17 +277,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefOutDifference,
-            bool considerCustomModifiers)
+            bool considerCustomModifiers,
+            bool ignoreDynamic = true)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
 
-            this.considerName = considerName;
-            this.considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
-            this.considerReturnType = considerReturnType;
-            this.considerTypeConstraints = considerTypeConstraints;
-            this.considerCallingConvention = considerCallingConvention;
-            this.considerRefOutDifference = considerRefOutDifference;
-            this.considerCustomModifiers = considerCustomModifiers;
+            _considerName = considerName;
+            _considerExplicitlyImplementedInterfaces = considerExplicitlyImplementedInterfaces;
+            _considerReturnType = considerReturnType;
+            _considerTypeConstraints = considerTypeConstraints;
+            _considerCallingConvention = considerCallingConvention;
+            _considerRefOutDifference = considerRefOutDifference;
+            _considerCustomModifiers = considerCustomModifiers;
+            _ignoreDynamic = ignoreDynamic;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -303,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool sawInterfaceInName1 = false;
             bool sawInterfaceInName2 = false;
 
-            if (considerName)
+            if (_considerName)
             {
                 string name1 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member1.Name);
                 string name2 = ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member2.Name);
@@ -328,17 +334,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap1 = GetTypeMap(member1);
             var typeMap2 = GetTypeMap(member2);
 
-            if (considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, considerCustomModifiers))
+            if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _considerCustomModifiers, _ignoreDynamic))
             {
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, this.considerRefOutDifference, this.considerCustomModifiers))
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2,
+                                                                           _considerRefOutDifference, _considerCustomModifiers, _ignoreDynamic))
             {
                 return false;
             }
 
-            if (considerCallingConvention)
+            if (_considerCallingConvention)
             {
                 if (GetCallingConvention(member1) != GetCallingConvention(member2))
                 {
@@ -353,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (considerExplicitlyImplementedInterfaces)
+            if (_considerExplicitlyImplementedInterfaces)
             {
                 if (sawInterfaceInName1 != sawInterfaceInName2)
                 {
@@ -393,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return !considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
+            return !_considerTypeConstraints || HaveSameConstraints(member1, typeMap1, member2, typeMap2);
         }
 
         public int GetHashCode(Symbol member)
@@ -403,13 +410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 hash = Hash.Combine(hash, (int)member.Kind);
 
-                if (considerName)
+                if (_considerName)
                 {
                     hash = Hash.Combine(ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name), hash);
                     // CONSIDER: could use interface type, but that might be quite expensive
                 }
 
-                if (considerReturnType && member.GetMemberArity() == 0 && !considerCustomModifiers) // If it is generic, then type argument might be in return type.
+                if (_considerReturnType && member.GetMemberArity() == 0 && !_considerCustomModifiers) // If it is generic, then type argument might be in return type.
                 {
                     hash = Hash.Combine(member.GetTypeOrReturnType(), hash);
                 }
@@ -426,10 +433,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, bool considerCustomModifiers)
         {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers);
+            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers, ignoreDynamic: true);
         }
 
-        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers)
+        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers, bool ignoreDynamic)
         {
             TypeSymbol unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers1;
@@ -450,16 +457,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isVoid1)
             {
+                if (considerCustomModifiers && !returnTypeCustomModifiers1.SequenceEqual(returnTypeCustomModifiers2))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
-            var returnType1 = SubstituteType(typeMap1, unsubstitutedReturnType1);
-            var returnType2 = SubstituteType(typeMap2, unsubstitutedReturnType2);
+            var returnType1 = SubstituteType(typeMap1, new TypeWithModifiers(unsubstitutedReturnType1, returnTypeCustomModifiers1));
+            var returnType2 = SubstituteType(typeMap2, new TypeWithModifiers(unsubstitutedReturnType2, returnTypeCustomModifiers2));
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
-                returnType1.Equals(returnType2, ignoreDynamic: true) && returnTypeCustomModifiers1.SequenceEqual(returnTypeCustomModifiers2) :
-                returnType1.Equals(returnType2, ignoreCustomModifiers: true, ignoreDynamic: true);
+                returnType1.Equals(returnType2, ignoreDynamic: ignoreDynamic) :
+                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic);
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -534,8 +546,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var substitutedTypes1 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
             var substitutedTypes2 = new HashSet<TypeSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
 
-            SubstituteTypes(constraintTypes1, typeMap1, substitutedTypes1);
-            SubstituteTypes(constraintTypes2, typeMap2, substitutedTypes2);
+            SubstituteConstraintTypes(constraintTypes1, typeMap1, substitutedTypes1);
+            SubstituteConstraintTypes(constraintTypes2, typeMap2, substitutedTypes2);
 
             return AreConstraintTypesSubset(substitutedTypes1, substitutedTypes2, typeParameter2) &&
                 AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
@@ -575,15 +587,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void SubstituteTypes(ImmutableArray<TypeSymbol> types, TypeMap typeMap, HashSet<TypeSymbol> result)
+        private static void SubstituteConstraintTypes(ImmutableArray<TypeSymbol> types, TypeMap typeMap, HashSet<TypeSymbol> result)
         {
             foreach (var type in types)
             {
-                result.Add(typeMap.SubstituteType(type));
+                result.Add(typeMap.SubstituteType(type).Type);
             }
         }
 
-        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2, bool considerRefOutDifference, bool considerCustomModifiers)
+        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2,
+                                                   bool considerRefOutDifference, bool considerCustomModifiers, bool ignoreDynamic)
         {
             Debug.Assert(params1.Length == params2.Length);
 
@@ -594,20 +607,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var param1 = params1[i];
                 var param2 = params2[i];
 
-                var type1 = SubstituteType(typeMap1, param1.Type);
-                var type2 = SubstituteType(typeMap2, param2.Type);
+                var type1 = SubstituteType(typeMap1, new TypeWithModifiers(param1.Type, param1.CustomModifiers));
+                var type2 = SubstituteType(typeMap2, new TypeWithModifiers(param2.Type, param2.CustomModifiers));
 
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
                 {
-                    if (!type1.Equals(type2, ignoreDynamic: true) ||
-                        !param1.CustomModifiers.SequenceEqual(param2.CustomModifiers) ||
-                        (!param1.CustomModifiers.IsEmpty && param1.RefKind != RefKind.None && param2.RefKind != RefKind.None && param1.HasByRefBeforeCustomModifiers != param2.HasByRefBeforeCustomModifiers))
+                    if (!type1.Equals(type2, ignoreDynamic: ignoreDynamic) || (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
                     {
                         return false;
                     }
                 }
-                else if (!type1.Equals(type2, ignoreCustomModifiers: true, ignoreDynamic: true))
+                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic))
                 {
                     return false;
                 }
@@ -635,9 +646,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static TypeSymbol SubstituteType(TypeMap typeMap, TypeSymbol typeSymbol)
+        private static TypeWithModifiers SubstituteType(TypeMap typeMap, TypeWithModifiers typeSymbol)
         {
-            return typeMap == null ? typeSymbol : typeMap.SubstituteType(typeSymbol);
+            return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }
 
         private static Cci.CallingConvention GetCallingConvention(Symbol member)
@@ -650,9 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return member.IsStatic ? 0 : Cci.CallingConvention.HasThis;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return (member.IsStatic ? 0 : Cci.CallingConvention.HasThis) |
-                        (member.GetMemberArity() > 0 ? Cci.CallingConvention.Generic : 0);
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

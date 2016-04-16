@@ -6,21 +6,21 @@ namespace Microsoft.Cci
 {
     internal sealed class TypeSpecComparer : IEqualityComparer<ITypeReference>
     {
-        private readonly MetadataWriter metadataWriter;
+        private readonly MetadataWriter _metadataWriter;
 
         internal TypeSpecComparer(MetadataWriter metadataWriter)
         {
-            this.metadataWriter = metadataWriter;
+            _metadataWriter = metadataWriter;
         }
 
         public bool Equals(ITypeReference x, ITypeReference y)
         {
-            return x == y || this.metadataWriter.GetTypeSpecSignatureIndex(x) == this.metadataWriter.GetTypeSpecSignatureIndex(y);
+            return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x).Equals(_metadataWriter.GetTypeSpecSignatureIndex(y));
         }
 
         public int GetHashCode(ITypeReference typeReference)
         {
-            return (int)this.metadataWriter.GetTypeSpecSignatureIndex(typeReference);
+            return _metadataWriter.GetTypeSpecSignatureIndex(typeReference).GetHashCode();
         }
     }
 }

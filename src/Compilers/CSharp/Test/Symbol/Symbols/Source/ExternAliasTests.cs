@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ExternAliasTests : CSharpTestBase
     {
-        private static MetadataReference foo1;
+        private static MetadataReference s_foo1;
         public static MetadataReference Foo1
         {
             get
             {
-                if (foo1 == null)
+                if (s_foo1 == null)
                 {
                     var src =
         @"
@@ -31,19 +31,19 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo1", options: TestOptions.ReleaseDll);
-                    foo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
+                    s_foo1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
-                return foo1;
+                return s_foo1;
             }
         }
 
-        private static MetadataReference foo2;
+        private static MetadataReference s_foo2;
         public static MetadataReference Foo2
         {
             get
             {
-                if (foo2 == null)
+                if (s_foo2 == null)
                 {
                     var src =
         @"
@@ -56,10 +56,10 @@ namespace NS
 }
 ";
                     var comp = CreateCompilationWithMscorlib(src, assemblyName: "Foo2", options: TestOptions.ReleaseDll);
-                    foo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
+                    s_foo2 = comp.EmitToImageReference(aliases: ImmutableArray.Create("Bar"));
                 }
 
-                return foo2;
+                return s_foo2;
             }
         }
 
@@ -93,7 +93,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Foo d = new Bar::NS.Foo();
 ";
-            var comp = CreateCompilationWithMscorlib(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.VerifyDiagnostics();
         }
@@ -103,7 +103,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
         {
             var src = "extern alias Bar;";
 
-            var comp = CSharpCompilation.CreateSubmission(
+            var comp = CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(src, options: TestOptions.Script),
                 references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });
@@ -111,10 +111,7 @@ Bar::NS.Foo d = new Bar::NS.Foo();
             comp.VerifyDiagnostics(
                 // (1,1): error CS7015: 'extern alias' is not valid in this context
                 // extern alias Bar;
-                Diagnostic(ErrorCode.ERR_ExternAliasNotAllowed, "extern alias Bar;"),
-                // (1,1): info CS8020: Unused extern alias.
-                // extern alias Bar;
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Bar;"));
+                Diagnostic(ErrorCode.ERR_ExternAliasNotAllowed, "extern alias Bar;"));
         }
 
         [Fact]
@@ -364,7 +361,7 @@ class A : Bar::NS.Foo {}
             Assert.Equal(SymbolKind.Alias, alias1.Kind);
         }
 
-        [WorkItem(546729, "DevDiv")]
+        [WorkItem(546729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546729")]
         [Fact]
         public void Crash16681()
         {
@@ -387,7 +384,7 @@ class A : Bar::NS.Foo {}
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Bar;"));
         }
 
-        [WorkItem(529751, "DevDiv")]
+        [WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         [Fact]
         public void SameExternAliasInMultipleTreesValid()
         {
@@ -419,7 +416,7 @@ class A : Bar::NS.Foo {}
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
 
-        [WorkItem(529751, "DevDiv")]
+        [WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         [Fact]
         public void SameExternAliasInMultipleTreesInvalid()
         {
@@ -444,7 +441,7 @@ class A : Bar::NS.Foo {}
             Assert.True(targets.All(target => ReferenceEquals(firstTarget, target)));
         }
 
-        [WorkItem(875899, "DevDiv")]
+        [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         [Fact]
         public void SymbolInfoForExternAliasInAliasTarget()
         {

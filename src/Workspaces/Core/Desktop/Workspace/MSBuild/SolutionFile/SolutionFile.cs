@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal sealed partial class SolutionFile
     {
-        private readonly IEnumerable<string> headerLines;
-        private readonly string visualStudioVersionLineOpt;
-        private readonly string minimumVisualStudioVersionLineOpt;
-        private readonly IEnumerable<ProjectBlock> projectBlocks;
-        private readonly IEnumerable<SectionBlock> globalSectionBlocks;
+        private readonly IEnumerable<string> _headerLines;
+        private readonly string _visualStudioVersionLineOpt;
+        private readonly string _minimumVisualStudioVersionLineOpt;
+        private readonly IEnumerable<ProjectBlock> _projectBlocks;
+        private readonly IEnumerable<SectionBlock> _globalSectionBlocks;
 
         public SolutionFile(
             IEnumerable<string> headerLines,
@@ -26,49 +26,49 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (headerLines == null)
             {
-                throw new ArgumentNullException("headerLines");
+                throw new ArgumentNullException(nameof(headerLines));
             }
 
             if (projectBlocks == null)
             {
-                throw new ArgumentNullException("projectBlocks");
+                throw new ArgumentNullException(nameof(projectBlocks));
             }
 
             if (globalSectionBlocks == null)
             {
-                throw new ArgumentNullException("globalSectionBlocks");
+                throw new ArgumentNullException(nameof(globalSectionBlocks));
             }
 
-            this.headerLines = headerLines.ToList().AsReadOnly();
-            this.visualStudioVersionLineOpt = visualStudioVersionLineOpt;
-            this.minimumVisualStudioVersionLineOpt = minimumVisualStudioVersionLineOpt;
-            this.projectBlocks = projectBlocks.ToList().AsReadOnly();
-            this.globalSectionBlocks = globalSectionBlocks.ToList().AsReadOnly();
+            _headerLines = headerLines.ToList().AsReadOnly();
+            _visualStudioVersionLineOpt = visualStudioVersionLineOpt;
+            _minimumVisualStudioVersionLineOpt = minimumVisualStudioVersionLineOpt;
+            _projectBlocks = projectBlocks.ToList().AsReadOnly();
+            _globalSectionBlocks = globalSectionBlocks.ToList().AsReadOnly();
         }
 
         public IEnumerable<string> HeaderLines
         {
-            get { return headerLines; }
+            get { return _headerLines; }
         }
 
         public string VisualStudioVersionLineOpt
         {
-            get { return visualStudioVersionLineOpt; }
+            get { return _visualStudioVersionLineOpt; }
         }
 
         public string MinimumVisualStudioVersionLineOpt
         {
-            get { return minimumVisualStudioVersionLineOpt; }
+            get { return _minimumVisualStudioVersionLineOpt; }
         }
 
         public IEnumerable<ProjectBlock> ProjectBlocks
         {
-            get { return projectBlocks; }
+            get { return _projectBlocks; }
         }
 
         public IEnumerable<SectionBlock> GlobalSectionBlocks
         {
-            get { return globalSectionBlocks; }
+            get { return _globalSectionBlocks; }
         }
 
         public string GetText()
@@ -77,19 +77,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             builder.AppendLine();
 
-            foreach (var headerLine in headerLines)
+            foreach (var headerLine in _headerLines)
             {
                 builder.AppendLine(headerLine);
             }
 
-            foreach (var block in projectBlocks)
+            foreach (var block in _projectBlocks)
             {
                 builder.Append(block.GetText());
             }
 
             builder.AppendLine("Global");
 
-            foreach (var block in globalSectionBlocks)
+            foreach (var block in _globalSectionBlocks)
             {
                 builder.Append(block.GetText(indent: 1));
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var headerLines = new List<string>();
 
             var headerLine1 = GetNextNonEmptyLine(reader);
-            if (headerLine1 == null || !headerLine1.StartsWith("Microsoft Visual Studio Solution File"))
+            if (headerLine1 == null || !headerLine1.StartsWith("Microsoft Visual Studio Solution File", StringComparison.Ordinal))
             {
                 throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "Microsoft Visual Studio Solution File"));
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (reader.Peek() == 'V')
             {
                 visualStudioVersionLineOpt = GetNextNonEmptyLine(reader);
-                if (!visualStudioVersionLineOpt.StartsWith("VisualStudioVersion"))
+                if (!visualStudioVersionLineOpt.StartsWith("VisualStudioVersion", StringComparison.Ordinal))
                 {
                     throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "VisualStudioVersion"));
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (reader.Peek() == 'M')
             {
                 minimumVisualStudioVersionLineOpt = GetNextNonEmptyLine(reader);
-                if (!minimumVisualStudioVersionLineOpt.StartsWith("MinimumVisualStudioVersion"))
+                if (!minimumVisualStudioVersionLineOpt.StartsWith("MinimumVisualStudioVersion", StringComparison.Ordinal))
                 {
                     throw new Exception(string.Format(WorkspacesResources.MissingHeaderInSolutionFile, "MinimumVisualStudioVersion"));
                 }

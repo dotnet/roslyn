@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
 
                     Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
-                        begin = DirectCast(parent, TypeBlockSyntax).Begin
+                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
 
                     Case SyntaxKind.EnumBlock
                         begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
                          SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
                          SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
-                        begin = DirectCast(parent, MethodBlockBaseSyntax).Begin
+                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
 
                     Case SyntaxKind.PropertyBlock
                         begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement

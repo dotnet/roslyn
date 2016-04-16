@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 } // end of class Interface
 ";
 
-        [WorkItem(537346, "DevDiv")]
+        [WorkItem(537346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537346")]
         [Fact]
         public void MetadataMethodSymbolCtor01()
         {
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537345, "DevDiv")]
+        [WorkItem(537345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537345")]
         [Fact]
         public void MetadataMethodSymbol01()
         {
@@ -224,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(527150, "DevDiv")]
-        [WorkItem(527151, "DevDiv")]
+        [WorkItem(527150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527150")]
+        [WorkItem(527151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527151")]
         [Fact]
         public void MetadataParameterSymbol01()
         {
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
 
-        [WorkItem(537424, "DevDiv")]
+        [WorkItem(537424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537424")]
         [Fact]
         public void MetadataMethodStaticAndInstanceCtor()
         {
@@ -390,7 +391,7 @@ class C
             Assert.Equal(1, classC.GetMembers(WellKnownMemberNames.StaticConstructorName).Length);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ImportDecimalConstantAttribute()
         {
             const string ilSource = @"
@@ -412,7 +413,7 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "10");
+            CompileWithCustomILSource(cSharpSource, ilSource, expectedOutput: "10");
         }
 
         [Fact]
@@ -430,7 +431,7 @@ class B {
             var csharp = @"";
 
             var compilation = CreateCompilationWithCustomILSource(csharp, il);
-            
+
             var namespaceA = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("A");
 
             var members = namespaceA.GetMembers("B");
@@ -464,7 +465,7 @@ class B {
         }
 
         // TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void VTableGapsNotInSymbolTable()
         {
@@ -472,9 +473,9 @@ class B {
 
             var comp = CreateCompilationWithCustomILSource(csharp, VTableGapClassIL);
             comp.VerifyDiagnostics();
-            
+
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Class");
-            AssertEx.None(type.GetMembersUnordered(), symbol => symbol.Name.StartsWith("_VtblGap"));
+            AssertEx.None(type.GetMembersUnordered(), symbol => symbol.Name.StartsWith("_VtblGap", StringComparison.Ordinal));
 
             // Dropped entirely.
             Assert.Equal(0, type.GetMembers("_VtblGap1_1").Length);
@@ -495,7 +496,7 @@ class B {
             Assert.False(propWithoutSetter.MustCallMethodsDirectly);
         }
 
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void CallVTableGap()
         {
@@ -540,7 +541,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.SetterIsGap").WithArguments("Class.SetterIsGap"));
         }
 
-        [WorkItem(546951, "DevDiv")]
+        [WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")]
         [Fact]
         public void ImplementVTableGap()
         {
@@ -588,7 +589,7 @@ class Explicit : Interface
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "_VtblGap1_1").WithArguments("Explicit._VtblGap1_1()"));
         }
 
-        [Fact, WorkItem(1094411, "DevDiv")]
+        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public void Bug1094411_01()
         {
             var source1 =
@@ -628,7 +629,7 @@ class Test
             }
         }
 
-        [Fact, WorkItem(1094411, "DevDiv")]
+        [Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")]
         public void Bug1094411_02()
         {
             var source1 =
@@ -669,6 +670,5 @@ class Test
                 Assert.True(memberNames2.Contains(m), m);
             }
         }
-
     }
 }

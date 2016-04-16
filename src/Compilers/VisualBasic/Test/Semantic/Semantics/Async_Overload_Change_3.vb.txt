@@ -42,7 +42,7 @@ Public Module Async_Overload_Change_3
                                          End Function)
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -55,7 +55,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -68,7 +68,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -81,7 +81,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -94,7 +94,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.DateTime", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -107,7 +107,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Boolean", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -121,7 +121,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
             '**********************************************************************************************
             apInitScenario("Single Argument: Compile Time Type Inference from Async Statement Lambda - UD Structure")
@@ -133,7 +133,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -145,7 +145,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -157,7 +157,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -169,7 +169,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -182,7 +182,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Double", x, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -196,7 +196,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -208,7 +208,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
             '**********************************************************************************************
             apInitScenario("Single Argument: Compile Time Type Inference from Iterator Statement Lambda - UDStructure")
@@ -219,7 +219,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -228,7 +228,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() 1)
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -237,7 +237,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() 1S)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -246,7 +246,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() 1L)
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -255,7 +255,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() "1")
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -264,7 +264,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() Now)
                 apCompare("System.DateTime", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -273,7 +273,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() False)
                 apCompare("System.Boolean", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -282,7 +282,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() New UDClass)
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -291,7 +291,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Async Function() New UDStruct)
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -304,7 +304,7 @@ Public Module Async_Overload_Change_3
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -317,7 +317,7 @@ Public Module Async_Overload_Change_3
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -330,7 +330,7 @@ Public Module Async_Overload_Change_3
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -342,7 +342,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -355,7 +355,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Int16", x, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -367,7 +367,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -380,7 +380,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Double", x, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -392,7 +392,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -404,7 +404,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -416,7 +416,7 @@ Public Module Async_Overload_Change_3
                                      End Function)
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -425,7 +425,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() 1)
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -434,7 +434,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() 1S)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -443,7 +443,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() 1L)
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -452,7 +452,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() 1.1)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -461,7 +461,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() "String")
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -470,7 +470,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() New UDClass)
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -479,7 +479,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() New UDStruct)
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -491,7 +491,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int16", Await x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -503,7 +503,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -512,7 +512,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Of Integer)(Async Function() 1L)
                 apCompare("System.Int32", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -521,7 +521,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Await TaskMethod(Of Double)(Async Function() 1L)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -532,7 +532,7 @@ Public Module Async_Overload_Change_3
                                                    End Function)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -543,7 +543,7 @@ Public Module Async_Overload_Change_3
                                                     End Function)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -556,7 +556,7 @@ Public Module Async_Overload_Change_3
                 ' apCompare("System.Int16", x, "Unexpected Return")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -569,7 +569,7 @@ Public Module Async_Overload_Change_3
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -580,7 +580,7 @@ Public Module Async_Overload_Change_3
                                                End Function)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -591,7 +591,7 @@ Public Module Async_Overload_Change_3
                                                 End Function)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -600,7 +600,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Of Short)(Function() 1L)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '*********************************************************************************************
@@ -610,7 +610,7 @@ Public Module Async_Overload_Change_3
                 Dim x = Obj.NormalMethod(Function() 1L)
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -619,7 +619,7 @@ Public Module Async_Overload_Change_3
                 Dim x = ExtenstionMethod_Rule3.ExtensionNormalMethod(Function() 1S)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -628,7 +628,7 @@ Public Module Async_Overload_Change_3
                 Dim x = NormalMethod(Function() 1.1)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -640,7 +640,7 @@ Public Module Async_Overload_Change_3
                                          End Function)
                 apCompare("System.String", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -651,7 +651,7 @@ Public Module Async_Overload_Change_3
                                                                      End Function)
                 apCompare("System.Byte", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -663,7 +663,7 @@ Public Module Async_Overload_Change_3
                                      End Function)
                 apCompare("System.DateTime", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -676,7 +676,7 @@ Public Module Async_Overload_Change_3
                                              End Function)
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -688,7 +688,7 @@ Public Module Async_Overload_Change_3
                                                                          End Function)
                 apCompare("UDStruct", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -701,7 +701,7 @@ Public Module Async_Overload_Change_3
                                          End Function)
                 apCompare("System.Double", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -713,7 +713,7 @@ Public Module Async_Overload_Change_3
                                              End Function)
                 apCompare("System.Int64", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -724,7 +724,7 @@ Public Module Async_Overload_Change_3
                                                                          End Function)
                 apCompare("System.Int16", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -735,7 +735,7 @@ Public Module Async_Overload_Change_3
                                          End Function)
                 apCompare("UDClass", x, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -772,7 +772,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Int64", y31, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -788,7 +788,7 @@ Public Module Async_Overload_Change_3
                                 LongValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -805,7 +805,7 @@ Public Module Async_Overload_Change_3
                                 IntegerValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -823,7 +823,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -839,7 +839,7 @@ Public Module Async_Overload_Change_3
                                 IntegerValue)
                 apCompare("System.Int32", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -857,7 +857,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -873,7 +873,7 @@ Public Module Async_Overload_Change_3
                                 LongValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -891,10 +891,10 @@ Public Module Async_Overload_Change_3
                                                     End Function,
                                                                                             LongValue)
 
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -911,7 +911,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Object", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -926,7 +926,7 @@ Public Module Async_Overload_Change_3
                                 ObjectValue)
                 apCompare("System.Object", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -947,10 +947,10 @@ Public Module Async_Overload_Change_3
                                                         Return IntegerValue
                                                     End Function,
                                                     StringValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -967,11 +967,11 @@ Public Module Async_Overload_Change_3
                                                         Return StringValue
                                                     End Function,
                                                     IntegerValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -989,7 +989,7 @@ Public Module Async_Overload_Change_3
                                 IntegerValue)
                 apCompare("System.String", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1005,7 +1005,7 @@ Public Module Async_Overload_Change_3
                                 IntegerValue)
                 apCompare("System.Int32", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1025,7 +1025,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1044,7 +1044,7 @@ Public Module Async_Overload_Change_3
                                 LongValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1062,7 +1062,7 @@ Public Module Async_Overload_Change_3
                                 LongValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1081,7 +1081,7 @@ Public Module Async_Overload_Change_3
                                 ShortValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1099,7 +1099,7 @@ Public Module Async_Overload_Change_3
                                 IntegerValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1117,10 +1117,10 @@ Public Module Async_Overload_Change_3
                                                          Return LongValue
                                                      End Function,
                                                      IntegerValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1137,7 +1137,7 @@ Public Module Async_Overload_Change_3
                                 LongValue)
                 apCompare("System.Int64", s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1154,10 +1154,10 @@ Public Module Async_Overload_Change_3
                                                       Yield LongValue
                                                   End Function,
                                                   IntegerValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1174,7 +1174,7 @@ Public Module Async_Overload_Change_3
                                       LongValue)
                 apCompare("System.Int64", s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1190,7 +1190,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Int32", s, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1207,7 +1207,7 @@ Public Module Async_Overload_Change_3
                                                IntegerValue)
                 apCompare("System.Int64", s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1224,7 +1224,7 @@ Public Module Async_Overload_Change_3
                                                IntegerValue)
                 apCompare("System.Int16", s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1244,10 +1244,10 @@ Public Module Async_Overload_Change_3
                                                 End Function,
                                                 LongValue,
                                                 ShortValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1267,7 +1267,7 @@ Public Module Async_Overload_Change_3
                                 ShortValue)
                 apCompare("System.Int32", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1288,7 +1288,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.String", Await s, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1308,7 +1308,7 @@ Public Module Async_Overload_Change_3
                                                ShortValue)
                 apCompare("System.Object", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1326,10 +1326,10 @@ Public Module Async_Overload_Change_3
                                                 End Function,
                                                 StringValue_RepresentingInteger,
                                                 ShortValue)
-                            apLogFailInfo("Compile Error Expected None Occured")
+                            apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1349,7 +1349,7 @@ Public Module Async_Overload_Change_3
                 apCompare("System.Int64", Await s, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1367,7 +1367,7 @@ Public Module Async_Overload_Change_3
                                         IntegerValue)
                 apCompare("System.Int32", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1385,7 +1385,7 @@ Public Module Async_Overload_Change_3
                                 ObjectValue)
                 apCompare("System.Object", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1404,7 +1404,7 @@ Public Module Async_Overload_Change_3
                                              ObjectValue)
                 apCompare("System.Int64", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1425,13 +1425,13 @@ Public Module Async_Overload_Change_3
                                                ObjectValue)
                 apCompare("System.String", Await s, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
-            apInitScenario("Type Inference  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in async function ")
+            apInitScenario("Type Inference  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify in async function ")
 
-            'This is really a validation of the same behaviour on Delegates
+            'This is really a validation of the same behavior on Delegates
             Try
                 Dim Obj As New DelegateClass
                 Dim Del1 As DelegateClass.Del1(Of Short) = AddressOf Obj.DelFuction1
@@ -1442,13 +1442,13 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Int16", x11, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
             '**********************************************************************************************
-            apInitScenario("Type Inference Scenarios  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in normal function")
-            'This is really a validation of the same behaviour on Delegates
+            apInitScenario("Type Inference Scenarios  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify in normal function")
+            'This is really a validation of the same behavior on Delegates
             Try
                 Dim Obj As New DelegateClass
                 Dim Del1 As DelegateClass.Del2(Of Double) = AddressOf Obj.DelFunction2
@@ -1458,7 +1458,7 @@ Public Module Async_Overload_Change_3
 
                 apCompare("System.Double", x12, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
             '**********************************************************************************************
             apInitScenario("Type Inference Scenarios For SUB")
@@ -1466,7 +1466,7 @@ Public Module Async_Overload_Change_3
             Await Async_Overload_Change_3_Above_Scenaros_inSub()
 
         Catch ex As Exception
-            apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
         End Try
     End Function
 
@@ -1790,7 +1790,7 @@ Module AllScenariosInSub
                               End Function)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1804,7 +1804,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1818,7 +1818,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1832,7 +1832,7 @@ Module AllScenariosInSub
 
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1846,7 +1846,7 @@ Module AllScenariosInSub
 
                 apCompare("System.DateTime", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1860,7 +1860,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Boolean", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1875,7 +1875,7 @@ Module AllScenariosInSub
 
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
             '**********************************************************************************************
             apInitScenario("Single Argument: Compile Time Type Inference in Sub from Async Statement Lambda - UD Structure")
@@ -1888,7 +1888,7 @@ Module AllScenariosInSub
 
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1901,7 +1901,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1914,7 +1914,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1927,7 +1927,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1941,7 +1941,7 @@ Module AllScenariosInSub
                 apCompare("System.Double", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -1956,7 +1956,7 @@ Module AllScenariosInSub
 
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1969,7 +1969,7 @@ Module AllScenariosInSub
 
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
             '**********************************************************************************************
             apInitScenario("Single Argument: Compile Time Type Inference in Sub from Iterator Statement Lambda - UDStructure")
@@ -1981,7 +1981,7 @@ Module AllScenariosInSub
 
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -1991,7 +1991,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() 1)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2001,7 +2001,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() 1S)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2011,7 +2011,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() 1L)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2021,7 +2021,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() "1")
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2031,7 +2031,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() Now)
                 apCompare("System.DateTime", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2041,7 +2041,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() False)
                 apCompare("System.Boolean", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2051,7 +2051,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() New UDClass)
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2061,7 +2061,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Async Function() New UDStruct)
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2075,7 +2075,7 @@ Module AllScenariosInSub
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2089,7 +2089,7 @@ Module AllScenariosInSub
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2103,7 +2103,7 @@ Module AllScenariosInSub
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2116,7 +2116,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2130,7 +2130,7 @@ Module AllScenariosInSub
                 apCompare("System.Int16", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2143,7 +2143,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2157,7 +2157,7 @@ Module AllScenariosInSub
                 apCompare("System.Double", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2170,7 +2170,7 @@ Module AllScenariosInSub
 
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2183,7 +2183,7 @@ Module AllScenariosInSub
 
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2196,7 +2196,7 @@ Module AllScenariosInSub
                                 End Function)
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2206,7 +2206,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() 1)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2216,7 +2216,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() 1S)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2226,7 +2226,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() 1L)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2236,7 +2236,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() 1.1)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2246,7 +2246,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() "String")
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2256,7 +2256,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() New UDClass)
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2266,7 +2266,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() New UDStruct)
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2280,7 +2280,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2294,7 +2294,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2304,7 +2304,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Of Integer)(Async Function() 1L)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2314,7 +2314,7 @@ Module AllScenariosInSub
                 TaskMethodSub(Of Double)(Async Function() 1L)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2326,7 +2326,7 @@ Module AllScenariosInSub
                                               End Function)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2338,7 +2338,7 @@ Module AllScenariosInSub
                                                End Function)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2352,7 +2352,7 @@ Module AllScenariosInSub
                 apCompare("System.Int16", ResultField, "Unexpected Return")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2367,7 +2367,7 @@ Module AllScenariosInSub
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2379,7 +2379,7 @@ Module AllScenariosInSub
                                           End Function)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2391,7 +2391,7 @@ Module AllScenariosInSub
                                            End Function)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2401,7 +2401,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Of Short)(Function() 1L)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '*********************************************************************************************
@@ -2412,7 +2412,7 @@ Module AllScenariosInSub
                 Obj.NormalMethodSub(Function() 1L)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2423,7 +2423,7 @@ Module AllScenariosInSub
                 ExtenstionMethod_Rule3.ExtensionNormalMethodSub(Function() 1S)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2433,7 +2433,7 @@ Module AllScenariosInSub
                 NormalMethodSub(Function() 1.1)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2446,7 +2446,7 @@ Module AllScenariosInSub
                                     End Function)
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2458,7 +2458,7 @@ Module AllScenariosInSub
                                                                 End Function)
                 apCompare("System.Byte", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2471,7 +2471,7 @@ Module AllScenariosInSub
                                 End Function)
                 apCompare("System.DateTime", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2485,7 +2485,7 @@ Module AllScenariosInSub
                                   End Function)
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2498,7 +2498,7 @@ Module AllScenariosInSub
                                                               End Function)
                 apCompare("UDStruct", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2512,7 +2512,7 @@ Module AllScenariosInSub
                               End Function)
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2525,7 +2525,7 @@ Module AllScenariosInSub
                                         End Function)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2537,7 +2537,7 @@ Module AllScenariosInSub
                                                                     End Function)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2549,7 +2549,7 @@ Module AllScenariosInSub
                                     End Function)
                 apCompare("UDClass", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2575,7 +2575,7 @@ Module AllScenariosInSub
                 Dim y11 = ResultField
                 apCompare("System.Int64", y11, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2592,7 +2592,7 @@ Module AllScenariosInSub
                                 LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2608,7 +2608,7 @@ Module AllScenariosInSub
                                 IntegerValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2626,7 +2626,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2643,7 +2643,7 @@ Module AllScenariosInSub
                                 IntegerValue)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2661,7 +2661,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2678,7 +2678,7 @@ Module AllScenariosInSub
                                 LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2694,10 +2694,10 @@ Module AllScenariosInSub
                                             Return New UDClass
                                         End Function, LongValue)
 
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2715,7 +2715,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Object", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2731,7 +2731,7 @@ Module AllScenariosInSub
                                 ObjectValue)
                 apCompare("System.Object", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2750,10 +2750,10 @@ Module AllScenariosInSub
                                             Await Task.Yield
                                             Return IntegerValue
                                         End Function,StringValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2770,11 +2770,11 @@ Module AllScenariosInSub
                                             Return StringValue
                                         End Function,
                                         IntegerValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2792,7 +2792,7 @@ Module AllScenariosInSub
                                 IntegerValue)
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2809,7 +2809,7 @@ Module AllScenariosInSub
                                 IntegerValue)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2830,7 +2830,7 @@ Module AllScenariosInSub
 
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2850,7 +2850,7 @@ Module AllScenariosInSub
                                 LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2869,7 +2869,7 @@ Module AllScenariosInSub
                                 LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2889,7 +2889,7 @@ Module AllScenariosInSub
                                 ShortValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2908,7 +2908,7 @@ Module AllScenariosInSub
                                 IntegerValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2927,10 +2927,10 @@ Module AllScenariosInSub
                                              Return LongValue
                                          End Function,
                                          IntegerValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -2948,7 +2948,7 @@ Module AllScenariosInSub
                                 LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2965,10 +2965,10 @@ Module AllScenariosInSub
                                           Yield LongValue
                                       End Function,
                                       IntegerValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -2985,7 +2985,7 @@ Module AllScenariosInSub
                                       LongValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3001,7 +3001,7 @@ Module AllScenariosInSub
                 apCompare("System.Int32", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3017,7 +3017,7 @@ Module AllScenariosInSub
                                                IntegerValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3033,7 +3033,7 @@ Module AllScenariosInSub
                                                IntegerValue)
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3053,10 +3053,10 @@ Module AllScenariosInSub
                                     End Function,
                                     LongValue,
                                     ShortValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3074,7 +3074,7 @@ Module AllScenariosInSub
                                 ShortValue)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3095,7 +3095,7 @@ Module AllScenariosInSub
                 apCompare("System.String", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3115,7 +3115,7 @@ Module AllScenariosInSub
                                                ShortValue)
                 apCompare("System.Object", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3133,10 +3133,10 @@ Module AllScenariosInSub
                                     End Function,
                                     StringValue_RepresentingInteger1,
                                     ShortValue)
-                apLogFailInfo("Compile Error Expected None Occured")
+                apLogFailInfo("Compile Error Expected None Occurred")
 #End If
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3156,7 +3156,7 @@ Module AllScenariosInSub
                 apCompare("System.Int64", ResultField, "Unexpected Return")
 
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3174,7 +3174,7 @@ Module AllScenariosInSub
                                         IntegerValue)
                 apCompare("System.Int32", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3193,7 +3193,7 @@ Module AllScenariosInSub
                                 ObjectValue)
                 apCompare("System.Object", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
@@ -3212,7 +3212,7 @@ Module AllScenariosInSub
                                              ObjectValue)
                 apCompare("System.Int64", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
@@ -3232,13 +3232,13 @@ Module AllScenariosInSub
                                                ObjectValue)
                 apCompare("System.String", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
             '**********************************************************************************************
-            apInitScenario("Type Inference in sub Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify ")
+            apInitScenario("Type Inference in sub Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify ")
 
-            'This is really a validation of the same behaviour on Delegates
+            'This is really a validation of the same behavior on Delegates
             Try
                 ResultField = ""
                 Dim Obj As New DelegateClass
@@ -3250,13 +3250,13 @@ Module AllScenariosInSub
 
                 apCompare("System.Int16", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
 
 
             '**********************************************************************************************
-            apInitScenario("Type Inference Scenarios in sub  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify")
-            'This is really a validation of the same behaviour on Delegates
+            apInitScenario("Type Inference Scenarios in sub  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify")
+            'This is really a validation of the same behavior on Delegates
             Try
                 ResultField = ""
                 Dim Obj As New DelegateClass
@@ -3267,10 +3267,10 @@ Module AllScenariosInSub
 
                 apCompare("System.Double", ResultField, "Unexpected Return")
             Catch ex As Exception
-                apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+                apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
             End Try
         Catch ex As Exception
-            apLogFailInfo("Unexpected Exception Occured:" & ex.Message)
+            apLogFailInfo("Unexpected Exception Occurred:" & ex.Message)
         Finally
         End Try
     End Function

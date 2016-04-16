@@ -54,7 +54,7 @@ M4
         End Sub
 
         <Fact>
-        <WorkItem(737971, "DevDiv")>
+        <WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")>
         Public Sub ByRefBeforeCustomModifiers()
             Dim il = <![CDATA[
 .class public auto ansi beforefieldinit C
@@ -103,7 +103,7 @@ End Class
 
             Assert.True(parameter.IsByRef)
             Assert.False(parameter.CustomModifiers.IsEmpty)
-            Assert.True(parameter.HasByRefBeforeCustomModifiers)
+            Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef)
 
             CompileAndVerify(comp, expectedOutput:=<![CDATA[2]]>)
         End Sub

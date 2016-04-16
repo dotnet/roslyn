@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Functional Tests
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void HostProtectionSecurityAttribute()
         {
@@ -52,7 +52,7 @@ public struct EventDescriptor
 
                     // Verify [System.Security.Permissions.HostProtection(MayLeakOnAbort = true)]
                     var securityAttribute = typeSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.LinkDemand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.LinkDemand, securityAttribute.Action);
                     var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(hostProtectionAttr, typeAttribute.AttributeClass);
                     Assert.Equal(0, typeAttribute.CommonConstructorArguments.Length);
@@ -60,10 +60,10 @@ public struct EventDescriptor
                 }
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
-        [Fact, WorkItem(544956, "DevDiv")]
+        [Fact, WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")]
         public void SuppressUnmanagedCodeSecurityAttribute()
         {
             string source = @"
@@ -73,10 +73,10 @@ class Foo
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
 }";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
-        [WorkItem(544929, "DevDiv")]
+        [WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")]
         [Fact]
         public void PrincipalPermissionAttribute()
         {
@@ -108,7 +108,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"));
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CS7048ERR_SecurityAttributeMissingAction()
         {
@@ -159,7 +159,7 @@ public class C {}
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"));
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CS7049ERR_SecurityAttributeInvalidAction()
         {
@@ -197,7 +197,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "PrincipalPermission").WithArguments("PrincipalPermission", "class, method").WithLocation(12, 10));
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CS7049ERR_SecurityAttributeInvalidAction_02()
         {
@@ -241,7 +241,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "MySecurityAttribute").WithArguments("MySecurityAttribute", "assembly, class, struct, constructor, method").WithLocation(18, 10));
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void ValidSecurityAttributeActionsForAssembly()
         {
@@ -272,10 +272,10 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CS7050ERR_SecurityAttributeInvalidActionAssembly()
         {
@@ -363,7 +363,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.PermitOnly").WithArguments("SecurityAction.PermitOnly"));
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void ValidSecurityAttributeActionsForTypeOrMethod()
         {
@@ -417,10 +417,10 @@ class Test
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CS7051ERR_SecurityAttributeInvalidActionTypeOrMethod()
         {
@@ -531,7 +531,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidActionTypeOrMethod, "SecurityAction.RequestRefuse").WithArguments("SecurityAction.RequestRefuse"));
         }
 
-        [WorkItem(546623, "DevDiv")]
+        [WorkItem(546623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546623")]
         [Fact]
         public void CS7070ERR_SecurityAttributeInvalidTarget()
         {
@@ -564,7 +564,7 @@ class MyPermissionAttribute : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidTarget, "MyPermission").WithArguments("MyPermission"));
         }
 
-        [WorkItem(546056, "DevDiv")]
+        [WorkItem(546056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
         [Fact]
         public void TestMissingCodeAccessSecurityAttributeGeneratesNoErrors()
         {
@@ -1316,21 +1316,21 @@ namespace N
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
                     securityAttribute = typeSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
 
                     // Verify [PrincipalPermission(SecurityAction.Assert, Role=@""User2"")]
                     securityAttribute = typeSecurityAttributes.Last();
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action);
                     typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass);
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length);
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Assert);
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Assert);
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length);
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
 
@@ -1341,30 +1341,30 @@ namespace N
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")]
                     securityAttribute = methodSecurityAttributes.First();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     var methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1");
 
                     // Verify [PrincipalPermission(SecurityAction.Demand, Role=@""User2"")]
                     securityAttribute = methodSecurityAttributes.Last();
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action);
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action);
                     methodAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass);
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length);
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)Cci.SecurityAction.Demand);
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, (int)DeclarativeSecurityAction.Demand);
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length);
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2");
                 }
             };
 
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
-        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
+        [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
         [Fact]
         public void PermissionSetAttribute_Fixup()
         {
@@ -1427,34 +1427,34 @@ public class MyClass
                 });
         }
 
-        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
+        [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
         [Fact]
         public void CS7056ERR_PermissionSetAttributeInvalidFile()
         {
             string source = @"
 using System.Security.Permissions;
 
-[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistantFile.xml"")]
+[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistentFile.xml"")]
 [PermissionSetAttribute(SecurityAction.Deny, File = null)]
 public class MyClass 
 {
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
-                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistantFile.xml")]
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                 // (5,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
-                // (4,46): error CS7056: Unable to resolve file path 'NonExistantFile.xml' specified for the named argument 'File' for PermissionSet attribute
-                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistantFile.xml")]
-                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(4, 46),
+                // (4,46): error CS7056: Unable to resolve file path 'NonExistentFile.xml' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(4, 46),
                 // (5,46): error CS7056: Unable to resolve file path '<null>' specified for the named argument 'File' for PermissionSet attribute
                 // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
                 Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));
         }
 
-        [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]
+        [WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")]
         [Fact]
         public void CS7057ERR_PermissionSetAttributeFileReadError()
         {
@@ -1488,7 +1488,7 @@ public class MyClass
                     // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                     // [PermissionSetAttribute(SecurityAction.Deny, File = @"pset_01.xml")]
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."));
-            
+
                 using (var output = new MemoryStream())
                 {
                     var emitResult = comp.Emit(output);
@@ -1512,7 +1512,7 @@ public class MyClass
         #endregion
 
         [Fact]
-        [WorkItem(1034429)]
+        [WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")]
         public void CrashOnParamsInSecurityAttribute()
         {
             const string source = @"
@@ -1536,7 +1536,7 @@ public class A : CodeAccessSecurityAttribute
         }
 
         [Fact]
-        [WorkItem(1036339)]
+        [WorkItem(1036339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036339")]
         public void CrashOnOptionalParameterInSecurityAttribute()
         {
             const string source = @"

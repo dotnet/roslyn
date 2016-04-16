@@ -28,24 +28,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Private ReadOnly _pool As ObjectPool(Of Page)
             Private Sub New(pool As ObjectPool(Of Page))
-                Me._pageStart = -1
-                Me._arr = New Char(PAGE_SIZE - 1) {}
-                Me._pool = pool
+                _pageStart = -1
+                _arr = New Char(s_PAGE_SIZE - 1) {}
+                _pool = pool
             End Sub
 
             Friend Sub Free()
-                Me._pageStart = -1
+                _pageStart = -1
                 _pool.Free(Me)
             End Sub
 
-            Private Shared ReadOnly PoolInstance As ObjectPool(Of Page) = CreatePool()
+            Private Shared ReadOnly s_poolInstance As ObjectPool(Of Page) = CreatePool()
             Private Shared Function CreatePool() As ObjectPool(Of Page)
                 Dim pool As ObjectPool(Of Page) = Nothing
                 pool = New ObjectPool(Of Page)(Function() New Page(pool), 128)
                 Return pool
             End Function
             Friend Shared Function GetInstance() As Page
-                Dim instance = PoolInstance.Allocate()
+                Dim instance = s_poolInstance.Allocate()
                 Return instance
             End Function
         End Class
@@ -53,17 +53,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         ''' current page we are reading.
         ''' </summary>
-        Dim _curPage As Page
-        Private ReadOnly _pages(PAGE_NUM - 1) As Page
+        Private _curPage As Page
+        Private ReadOnly _pages(s_PAGE_NUM - 1) As Page
 
-        Private Const PAGE_NUM_SHIFT = 2
-        Private Const PAGE_NUM = CInt(2 ^ PAGE_NUM_SHIFT)
-        Private Const PAGE_NUM_MASK = PAGE_NUM - 1
+        Private Const s_PAGE_NUM_SHIFT = 2
+        Private Const s_PAGE_NUM = CInt(2 ^ s_PAGE_NUM_SHIFT)
+        Private Const s_PAGE_NUM_MASK = s_PAGE_NUM - 1
 
-        Private Const PAGE_SHIFT = 11
-        Private Const PAGE_SIZE = CInt(2 ^ PAGE_SHIFT)
-        Private Const PAGE_MASK = PAGE_SIZE - 1
-        Private Const NOT_PAGE_MASK = Not PAGE_MASK
+        Private Const s_PAGE_SHIFT = 11
+        Private Const s_PAGE_SIZE = CInt(2 ^ s_PAGE_SHIFT)
+        Private Const s_PAGE_MASK = s_PAGE_SIZE - 1
+        Private Const s_NOT_PAGE_MASK = Not s_PAGE_MASK
 
         Private ReadOnly _buffer As SourceText
         Private ReadOnly _bufferLen As Integer
@@ -76,10 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' will initialize it if we have cache miss
         ''' </summary>
         Private Function GetPage(position As Integer) As Page
-            Dim pageNum = (position >> PAGE_SHIFT) And PAGE_NUM_MASK
+            Dim pageNum = (position >> s_PAGE_SHIFT) And s_PAGE_NUM_MASK
 
             Dim p = _pages(pageNum)
-            Dim pageStart = position And NOT_PAGE_MASK
+            Dim pageStart = position And s_NOT_PAGE_MASK
 
             If p Is Nothing Then
                 p = Page.GetInstance
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If p._pageStart <> pageStart Then
-                _buffer.CopyTo(pageStart, p._arr, 0, Math.Min(_bufferLen - pageStart, PAGE_SIZE))
+                _buffer.CopyTo(pageStart, p._arr, 0, Math.Min(_bufferLen - pageStart, s_PAGE_SIZE))
                 p._pageStart = pageStart
             End If
 
@@ -96,54 +96,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ' PERF CRITICAL
-        Private Function PeekAheadChar(skip As Integer) As Char
-            Debug.Assert(CanGetCharAtOffset(skip))
+        Private Function Peek(skip As Integer) As Char
+            Debug.Assert(CanGet(skip))
             Debug.Assert(skip >= -MaxCharsLookBehind)
 
             Dim position = _lineBufferOffset
             Dim page = _curPage
             position += skip
 
-            Dim ch = page._arr(position And PAGE_MASK)
+            Dim ch = page._arr(position And s_PAGE_MASK)
 
             Dim start = page._pageStart
-            Dim expectedStart = position And NOT_PAGE_MASK
+            Dim expectedStart = position And s_NOT_PAGE_MASK
 
             If start <> expectedStart Then
                 page = GetPage(position)
-                ch = page._arr(position And PAGE_MASK)
+                ch = page._arr(position And s_PAGE_MASK)
             End If
 
             Return ch
         End Function
 
         ' PERF CRITICAL
-        Friend Function PeekChar() As Char
+        Friend Function Peek() As Char
             Dim page = _curPage
             Dim position = _lineBufferOffset
-            Dim ch = page._arr(position And PAGE_MASK)
+            Dim ch = page._arr(position And s_PAGE_MASK)
 
             Dim start = page._pageStart
-            Dim expectedStart = position And NOT_PAGE_MASK
+            Dim expectedStart = position And s_NOT_PAGE_MASK
 
             If start <> expectedStart Then
                 page = GetPage(position)
-                ch = page._arr(position And PAGE_MASK)
+                ch = page._arr(position And s_PAGE_MASK)
             End If
 
             Return ch
         End Function
 
         Friend Function GetChar() As String
-            Return Intern(PeekChar())
+            Return Intern(Peek())
         End Function
 
         Friend Function GetText(start As Integer, length As Integer) As String
             Dim page = _curPage
-            Dim offsetInPage = start And PAGE_MASK
+            Dim offsetInPage = start And s_PAGE_MASK
 
-            If page._pageStart = (start And NOT_PAGE_MASK) AndAlso
-                offsetInPage + length < PAGE_SIZE Then
+            If page._pageStart = (start And s_NOT_PAGE_MASK) AndAlso
+                offsetInPage + length < s_PAGE_SIZE Then
 
                 Return Intern(page._arr, offsetInPage, length)
             End If
@@ -152,10 +152,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function GetTextNotInterned(start As Integer, length As Integer) As String
             Dim page = _curPage
-            Dim offsetInPage = start And PAGE_MASK
+            Dim offsetInPage = start And s_PAGE_MASK
 
-            If page._pageStart = (start And NOT_PAGE_MASK) AndAlso
-                offsetInPage + length < PAGE_SIZE Then
+            If page._pageStart = (start And s_NOT_PAGE_MASK) AndAlso
+                offsetInPage + length < s_PAGE_SIZE Then
                 Dim arr() As Char = page._arr
 
                 ' Always intern CR+LF since it occurs so frequently
@@ -169,10 +169,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetTextSlow(start As Integer, length As Integer, Optional suppressInterning As Boolean = False) As String
-            Dim textOffset = start And PAGE_MASK
+            Dim textOffset = start And s_PAGE_MASK
 
             Dim page = GetPage(start)
-            If textOffset + length < PAGE_SIZE Then
+            If textOffset + length < s_PAGE_SIZE Then
                 If suppressInterning Then
                     Return New String(page._arr, textOffset, length)
                 Else
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _builder = New StringBuilder(Math.Min(length, 1024))
             End If
 
-            Dim cnt = Math.Min(length, PAGE_SIZE - textOffset)
+            Dim cnt = Math.Min(length, s_PAGE_SIZE - textOffset)
             _builder.Append(page._arr, textOffset, cnt)
 
             Dim dst = cnt
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Do
                 page = GetPage(start)
-                cnt = Math.Min(length, PAGE_SIZE)
+                cnt = Math.Min(length, s_PAGE_SIZE)
                 _builder.Append(page._arr, 0, cnt)
                 dst += cnt
                 length -= cnt

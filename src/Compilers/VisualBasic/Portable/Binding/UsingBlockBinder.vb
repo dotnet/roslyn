@@ -14,30 +14,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class UsingBlockBinder
         Inherits BlockBaseBinder
 
-        Private ReadOnly m_syntax As UsingBlockSyntax
-        Private m_locals As ImmutableArray(Of LocalSymbol) = Nothing
+        Private ReadOnly _syntax As UsingBlockSyntax
+        Private _locals As ImmutableArray(Of LocalSymbol) = Nothing
 
         Public Sub New(enclosing As Binder, syntax As UsingBlockSyntax)
             MyBase.New(enclosing)
 
             Debug.Assert(syntax IsNot Nothing)
-            m_syntax = syntax
+            _syntax = syntax
         End Sub
 
         Friend Overrides ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
             Get
-                If m_locals.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_locals, BuildLocals(), Nothing)
+                If _locals.IsDefault Then
+                    ImmutableInterlocked.InterlockedCompareExchange(_locals, BuildLocals(), Nothing)
                 End If
 
-                Return m_locals
+                Return _locals
             End Get
         End Property
 
         ' Build a read only array of all the local variables declared By the Using statement.
         ' there can be none or multiple variable declarators with multiple variable names
         Private Function BuildLocals() As ImmutableArray(Of LocalSymbol)
-            Dim variableDeclarators = m_syntax.UsingStatement.Variables
+            Dim variableDeclarators = _syntax.UsingStatement.Variables
 
             If variableDeclarators.Count > 0 Then
                 Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance

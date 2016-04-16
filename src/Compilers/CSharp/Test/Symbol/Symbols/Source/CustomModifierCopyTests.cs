@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -692,8 +692,8 @@ public class Derived2 : Derived
             Assert.False(derived2Indexer2.Parameters.Single().IsParams, "Derived2.Indexer2.IsParams should be false");
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void Repro819774()
         {
             var il = @"
@@ -733,17 +733,17 @@ class Test
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { CSharpRef, SystemCoreRef });
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "Bug813305.M",
+            CompileAndVerify(comp, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
-            {
-                var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");
-                var method = Bug813305.GetMethod("IBug813305.M");
-                Assert.Equal("Bug813305.IBug813305.M(dynamic)", method.ToDisplayString());
-            });
+                {
+                    var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");
+                    var method = Bug813305.GetMethod("IBug813305.M");
+                    Assert.Equal("Bug813305.IBug813305.M(dynamic)", method.ToDisplayString());
+                });
         }
 
         [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_ImplementationParameter()
         {
             var il = @"
@@ -775,8 +775,8 @@ class C : I
             Assert.Equal("void C.I.M(dynamic modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_ImplementationParameter()
         {
             var il = @"
@@ -819,8 +819,8 @@ class C : I
             Assert.Equal("void C.I.M(System.Object modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_ImplementationReturn()
         {
             var il = @"
@@ -863,8 +863,8 @@ class C : I
             Assert.Equal("System.Object modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_ImplementationReturn()
         {
             var il = @"
@@ -903,8 +903,8 @@ class C : I
             Assert.Equal("dynamic modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicVsObjectComplexParameter()
         {
             var il = @"
@@ -943,12 +943,12 @@ public class C : I<byte, char>
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Single(
                 m => m.MethodKind == MethodKind.ExplicitInterfaceImplementation);
 
-            Assert.Equal("void I<T, U>.M(ref I<System.Object modopt(System.Int16) [], dynamic modopt(System.Int32) []> modopt(System.Int64) c)", interfaceMethod.ToTestDisplayString());
-            Assert.Equal("void C.I<System.Byte, System.Char>.M(ref I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> modopt(System.Int64) c)", classMethod.ToTestDisplayString());
+            Assert.Equal("void I<T, U>.M(ref modopt(System.Int64) I<System.Object modopt(System.Int16) [], dynamic modopt(System.Int32) []> c)", interfaceMethod.ToTestDisplayString());
+            Assert.Equal("void C.I<System.Byte, System.Char>.M(ref modopt(System.Int64) I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> c)", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicVsObjectComplexReturn()
         {
             var il = @"
@@ -991,8 +991,8 @@ public class C : I<byte, char>
             Assert.Equal("I<dynamic modopt(System.Int16) [], System.Object modopt(System.Int32) []> modopt(System.Int64) C.I<System.Byte, System.Char>.M()", classMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObjectAndViceVersa_OverrideParameter()
         {
             var il = @"
@@ -1045,8 +1045,8 @@ class Derived : Base
             Assert.Equal("void Derived.M(dynamic modopt(System.Int16) o, System.Object modopt(System.Int32) d)", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void DynamicToObject_OverrideReturn()
         {
             var il = @"
@@ -1099,8 +1099,8 @@ class Derived : Base
             Assert.Equal("System.Object modopt(System.Int32) Derived.M()", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(819774, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void ObjectToDynamic_OverrideReturn()
         {
             var il = @"
@@ -1149,8 +1149,8 @@ class Derived : Base
             Assert.Equal("dynamic modopt(System.Int32) Derived.M()", derivedMethod.ToTestDisplayString());
         }
 
-        [Fact]
-        [WorkItem(830632, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsAddCustomModifiers_Override()
         {
             var il = @"
@@ -1266,8 +1266,8 @@ class Derived : Base
             Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
-        [WorkItem(830632, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsRemoveCustomModifiers_Override()
         {
             var il = @"
@@ -1376,8 +1376,8 @@ class Derived : Base
             Assert.Equal(int16Type, derivedIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
-        [WorkItem(830632, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsAddCustomModifiers_ExplicitImplementation()
         {
             var il = @"
@@ -1478,8 +1478,8 @@ class Implementation : I
             Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
         }
 
-        [Fact]
-        [WorkItem(830632, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [WorkItem(830632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830632")]
         public void AccessorsRemoveCustomModifiers_ExplicitImplementation()
         {
             var il = @"

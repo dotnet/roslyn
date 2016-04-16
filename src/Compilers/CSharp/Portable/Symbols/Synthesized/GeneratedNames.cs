@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
@@ -45,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation);
         }
 
-        internal static string MakeLambdaDisplayClassName(int methodOrdinal, int generation, int scopeOrdinal)
+        internal static string MakeLambdaDisplayClassName(int methodOrdinal, int generation, int closureOrdinal, int closureGeneration)
         {
             // -1 for singleton static lambdas
-            Debug.Assert(scopeOrdinal >= -1);
+            Debug.Assert(closureOrdinal >= -1);
             Debug.Assert(methodOrdinal >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", uniqueId: scopeOrdinal, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation, suffix: "DisplayClass", entityOrdinal: closureOrdinal, entityGeneration: closureGeneration, isTypeName: true);
         }
 
         internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
@@ -120,30 +121,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>n__" + StringExtensions.GetNumeral(uniqueId);
         }
 
-        internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int generation, int lambdaOrdinal)
+        internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int methodGeneration, int lambdaOrdinal, int lambdaGeneration)
         {
-            Debug.Assert(generation >= 0);
             Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(methodGeneration >= 0);
             Debug.Assert(lambdaOrdinal >= 0);
+            Debug.Assert(lambdaGeneration >= 0);
 
             // The EE displays the containing method name and unique id in the stack trace,
             // and uses it to find the original binding context.
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, generation, methodName, uniqueId: lambdaOrdinal);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, methodGeneration, methodName, entityOrdinal: lambdaOrdinal, entityGeneration: lambdaGeneration);
         }
 
-        internal static string MakeLambdaCacheFieldName(int methodOrdinal, int generation, int lambdaOrdinal)
+        internal static string MakeLambdaCacheFieldName(int methodOrdinal, int generation, int lambdaOrdinal, int lambdaGeneration)
         {
             Debug.Assert(methodOrdinal >= -1);
             Debug.Assert(lambdaOrdinal >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, generation, uniqueId: lambdaOrdinal);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, generation, entityOrdinal: lambdaOrdinal, entityGeneration: lambdaGeneration);
         }
 
-        private static string MakeMethodScopedSynthesizedName(GeneratedNameKind kind, int methodOrdinal, int generation, string methodNameOpt = null, string suffix = null, int uniqueId = -1, bool isTypeName = false)
+        private static string MakeMethodScopedSynthesizedName(
+            GeneratedNameKind kind,
+            int methodOrdinal,
+            int methodGeneration,
+            string methodNameOpt = null,
+            string suffix = null,
+            int entityOrdinal = -1,
+            int entityGeneration = -1,
+            bool isTypeName = false)
         {
             Debug.Assert(methodOrdinal >= -1);
-            Debug.Assert(generation >= 0);
-            Debug.Assert(uniqueId >= -1);
+            Debug.Assert(methodGeneration >= 0 || methodGeneration == -1 && methodOrdinal == -1);
+            Debug.Assert(entityOrdinal >= -1);
+            Debug.Assert(entityGeneration >= 0 || entityGeneration == -1 && entityOrdinal == -1);
+            Debug.Assert(entityGeneration == -1 || entityGeneration >= methodGeneration);
 
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
@@ -169,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append('>');
             builder.Append((char)kind);
 
-            if (suffix != null || methodOrdinal >= 0 || uniqueId >= 0)
+            if (suffix != null || methodOrdinal >= 0 || entityOrdinal >= 0)
             {
                 builder.Append(SuffixSeparator);
                 builder.Append(suffix);
@@ -177,26 +189,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (methodOrdinal >= 0)
                 {
                     builder.Append(methodOrdinal);
-
-                    if (generation > 0)
-                    {
-                        builder.Append(GenerationSeparator);
-                        builder.Append(generation);
-                    }
+                    AppendOptionalGeneration(builder, methodGeneration);
                 }
 
-                if (uniqueId >= 0)
+                if (entityOrdinal >= 0)
                 {
                     if (methodOrdinal >= 0)
                     {
                         builder.Append(IdSeparator);
                     }
 
-                    builder.Append(uniqueId);
+                    builder.Append(entityOrdinal);
+                    AppendOptionalGeneration(builder, entityGeneration);
                 }
             }
 
             return result.ToStringAndFree();
+        }
+
+        private static void AppendOptionalGeneration(StringBuilder builder, int generation)
+        {
+            if (generation > 0)
+            {
+                builder.Append(GenerationSeparator);
+                builder.Append(generation);
+            }
         }
 
         internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
@@ -337,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (int.TryParse(fieldName.Substring(lastUnder + 1), out slotIndex) && slotIndex >= 1)
+            if (int.TryParse(fieldName.Substring(lastUnder + 1), NumberStyles.None, CultureInfo.InvariantCulture, out slotIndex) && slotIndex >= 1)
             {
                 slotIndex--;
                 return true;
@@ -431,6 +448,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        /// <summary>
+        /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
+        /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
+        /// </summary>
+        internal static string MakeDynamicCallSiteDelegateName(BitVector byRefs, bool returnsVoid, int generation)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            builder.Append(returnsVoid ? "<>A" : "<>F");
+
+            if (!byRefs.IsNull)
+            {
+                builder.Append("{");
+
+                int i = 0;
+                foreach (int byRefIndex in byRefs.Words())
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(",");
+                    }
+
+                    builder.AppendFormat("{0:x8}", byRefIndex);
+                    i++;
+                }
+
+                builder.Append("}");
+                Debug.Assert(i > 0);
+            }
+
+            AppendOptionalGeneration(builder, generation);
+            return pooledBuilder.ToStringAndFree();
+        }
+
         internal static string AsyncBuilderFieldName()
         {
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.
@@ -442,6 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((char)GeneratedNameKind.ReusableHoistedLocalField == '7');
             return "<>7__wrap" + StringExtensions.GetNumeral(number);
+        }
+
+        internal static string LambdaCopyParameterName(ParameterSymbol sourceParameter)
+        {
+            return "<" + sourceParameter.Name + ">";
         }
     }
 }

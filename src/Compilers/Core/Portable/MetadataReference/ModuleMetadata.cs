@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.InternalUtilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,27 +17,27 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
     public sealed partial class ModuleMetadata : Metadata
     {
-        private bool isDisposed;
+        private bool _isDisposed;
 
-        private readonly PEModule module;
+        private readonly PEModule _module;
 
         private ModuleMetadata(PEReader peReader)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            this.module = new PEModule(peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
+            _module = new PEModule(this, peReader: peReader, metadataOpt: IntPtr.Zero, metadataSizeOpt: 0);
         }
 
         private ModuleMetadata(IntPtr metadata, int size, bool includeEmbeddedInteropTypes)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
-            this.module = new PEModule(peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
+            _module = new PEModule(this, peReader: null, metadataOpt: metadata, metadataSizeOpt: size, includeEmbeddedInteropTypes: includeEmbeddedInteropTypes);
         }
 
         // creates a copy
         private ModuleMetadata(ModuleMetadata metadata)
-            : base(isImageOwner: false)
+            : base(isImageOwner: false, id: metadata.Id)
         {
-            this.module = metadata.Module;
+            _module = metadata.Module;
         }
 
         /// <summary>
@@ -167,6 +167,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
+            // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
+            if (peStream.Length == 0 && (options & PEStreamOptions.PrefetchEntireImage) != 0 && (options & PEStreamOptions.PrefetchMetadata) != 0)
+            {
+                // throws BadImageFormatException:
+                new PEHeaders(peStream);
+            }
+
             // ownership of the stream is passed on PEReader:
             return new ModuleMetadata(new PEReader(peStream, options));
         }
@@ -186,7 +193,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static ModuleMetadata CreateFromFile(string path)
         {
-            return CreateFromStream(FileStreamLightUp.OpenFileStream(path));
+            return CreateFromStream(FileUtilities.OpenFileStream(path));
         }
 
         /// <summary>
@@ -214,17 +221,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override void Dispose()
         {
-            isDisposed = true;
+            _isDisposed = true;
 
             if (IsImageOwner)
             {
-                module.Dispose();
+                _module.Dispose();
             }
         }
 
         internal bool IsDisposed
         {
-            get { return isDisposed || module.IsDisposed; }
+            get { return _isDisposed || _module.IsDisposed; }
         }
 
         internal PEModule Module
@@ -236,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                     throw new ObjectDisposedException(nameof(ModuleMetadata));
                 }
 
-                return module;
+                return _module;
             }
         }
 

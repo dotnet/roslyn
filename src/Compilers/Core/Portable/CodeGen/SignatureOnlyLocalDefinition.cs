@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </remarks>
     internal sealed class SignatureOnlyLocalDefinition : Cci.ILocalDefinition
     {
-        private readonly byte[] signature;
-        private readonly int slot;
+        private readonly byte[] _signature;
+        private readonly int _slot;
 
         internal SignatureOnlyLocalDefinition(byte[] signature, int slot)
         {
-            this.signature = signature;
-            this.slot = slot;
+            _signature = signature;
+            _slot = slot;
         }
 
         public Cci.IMetadataConstant CompileTimeValue
@@ -43,15 +43,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// This temp is not interesting to the expression compiler.  However, it 
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
-        public uint PdbAttributes
-        {
-            get { return Cci.PdbWriter.HiddenLocalAttributesValue; }
-        }
+        public uint PdbAttributes => Cci.PdbWriter.HiddenLocalAttributesValue;
 
-        public bool IsDynamic
-        {
-            get { return false; }
-        }
+        public bool IsDynamic => false;
 
         public bool IsPinned
         {
@@ -68,34 +62,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public Location Location
-        {
-            get { return Location.None; }
-        }
+        public Location Location => Location.None;
 
-        public string Name
-        {
-            get { return null; }
-        }
+        public string Name => null;
 
-        public int SlotIndex
-        {
-            get { return this.slot; }
-        }
+        public int SlotIndex => _slot;
 
         public Cci.ITypeReference Type
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public byte[] Signature
-        {
-            get { return this.signature; }
-        }
+        public byte[] Signature => _signature;
 
         public LocalSlotDebugInfo SlotInfo
-        {
-            get { return new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None); }
-        }
+            => new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None);
     }
 }

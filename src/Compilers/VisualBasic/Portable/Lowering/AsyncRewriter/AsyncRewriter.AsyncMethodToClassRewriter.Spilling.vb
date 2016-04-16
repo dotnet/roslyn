@@ -355,13 +355,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers, firstArgumentIsAReceiverOfAMethodCall:=False), arrayInit.Type)
 
                     Case BoundKind.ConditionalAccessReceiverPlaceholder
-                        If m_ConditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
-                           m_ConditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> DirectCast(expr, BoundConditionalAccessReceiverPlaceholder).PlaceholderId Then
+                        If _conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse
+                           _conditionalAccessReceiverPlaceholderReplacementInfo.PlaceholderId <> DirectCast(expr, BoundConditionalAccessReceiverPlaceholder).PlaceholderId Then
                             Throw ExceptionUtilities.Unreachable
                         End If
 
-                        m_ConditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled = True
+                        _conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled = True
                         Return expr
+
+                    Case BoundKind.ComplexConditionalAccessReceiver
+                        Throw ExceptionUtilities.Unreachable
 
                     Case Else
                         ' Create a field for a spill

@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         // NOTE : I chose to cache on compilation assuming this cache will be quite small. usually number of times alias is used is quite small.
         //        but if that turns out not true, we can move this cache to be based on semantic model. unlike compilation that would be cached
         //        in compilation cache in certain host (VS), semantic model comes and goes more frequently which will release cache more often.
-        private static readonly ConditionalWeakTable<Compilation, TreeMap> treeAliasMap = new ConditionalWeakTable<Compilation, TreeMap>();
-        private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback createTreeMap = c => new TreeMap();
-        private static readonly Func<ISymbol, string> symbolToName = s => s.Name;
+        private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new ConditionalWeakTable<Compilation, TreeMap>();
+        private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback s_createTreeMap = c => new TreeMap();
+        private static readonly Func<ISymbol, string> s_symbolToName = s => s.Name;
 
         public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol aliasSymbol)
         {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             TreeMap treeMap;
             SymbolMap symbolMap;
-            if (!treeAliasMap.TryGetValue(semanticModel.Compilation, out treeMap) ||
+            if (!s_treeAliasMap.TryGetValue(semanticModel.Compilation, out treeMap) ||
                 !treeMap.TryGetValue(ValueTuple.Create(semanticModel.SyntaxTree, namespaceId), out symbolMap))
             {
                 return false;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static void AddAliasSymbols(SemanticModel semanticModel, int namespaceId, IEnumerable<IAliasSymbol> aliasSymbols)
         {
             // given semantic model must be the original semantic model for now
-            var treeMap = treeAliasMap.GetValue(semanticModel.Compilation, createTreeMap);
+            var treeMap = s_treeAliasMap.GetValue(semanticModel.Compilation, s_createTreeMap);
 
             // check again to see whether somebody has beaten us
             var key = ValueTuple.Create(semanticModel.SyntaxTree, namespaceId);

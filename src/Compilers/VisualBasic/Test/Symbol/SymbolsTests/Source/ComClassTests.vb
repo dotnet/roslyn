@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             result.Add(type)
 
             If p.IsByRef Then
-                type.@ByRef= "True"
+                type.@ByRef = "True"
             End If
 
             If p.HasExplicitDefaultValue Then
@@ -1830,7 +1830,7 @@ End Class
                 <Type>Void</Type>
             </Return>
         </Method>
-        <Method Name="_Lambda$__1" CallingConvention="HasThis">
+        <Method Name="_Lambda$__0" CallingConvention="HasThis">
             <MethodFlags>assembly specialname instance</MethodFlags>
             <MethodImplFlags>cil managed</MethodImplFlags>
             <Return>
@@ -2650,7 +2650,7 @@ BC30943: Generic methods cannot be exposed to COM.
         End Sub
 
         <Fact()>
-        Sub ComClassWithWarnings()
+        Public Sub ComClassWithWarnings()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -2901,7 +2901,7 @@ Public Module ComClassTest1
         End Sub
 
         <Fact()>
-        Sub ComInvisibleMembers()
+        Public Sub ComInvisibleMembers()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3214,7 +3214,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub GuidAttributeTest1()
+        Public Sub GuidAttributeTest1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3368,7 +3368,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub GuidAttributeTest2()
+        Public Sub GuidAttributeTest2()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3522,7 +3522,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub GuidAttributeTest3()
+        Public Sub GuidAttributeTest3()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3561,7 +3561,7 @@ Public Class ComClassTest
         End Sub
 
         <Fact()>
-        Sub ComSourceInterfacesAttribute1()
+        Public Sub ComSourceInterfacesAttribute1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3701,7 +3701,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        Sub OrderOfAccessors()
+        Public Sub OrderOfAccessors()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -3833,7 +3833,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId1()
+        Public Sub DispId1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -4147,7 +4147,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId2()
+        Public Sub DispId2()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -4524,7 +4524,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId3()
+        Public Sub DispId3()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -4716,7 +4716,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId4()
+        Public Sub DispId4()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -4908,7 +4908,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId5()
+        Public Sub DispId5()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -5100,7 +5100,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId6()
+        Public Sub DispId6()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -5299,7 +5299,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId7()
+        Public Sub DispId7()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -5515,7 +5515,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId8()
+        Public Sub DispId8()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -5731,7 +5731,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId9()
+        Public Sub DispId9()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -5947,7 +5947,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId10()
+        Public Sub DispId10()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6170,7 +6170,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId11()
+        Public Sub DispId11()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6345,7 +6345,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId12()
+        Public Sub DispId12()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6527,7 +6527,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId13()
+        Public Sub DispId13()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6656,7 +6656,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId14()
+        Public Sub DispId14()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6792,7 +6792,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId15()
+        Public Sub DispId15()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6906,7 +6906,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId16()
+        Public Sub DispId16()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -6986,7 +6986,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId17()
+        Public Sub DispId17()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7132,7 +7132,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DefaultProperty1()
+        Public Sub DefaultProperty1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7311,7 +7311,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub DispId18()
+        Public Sub DispId18()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7356,7 +7356,7 @@ BC32506: 'System.Runtime.InteropServices.DispIdAttribute' cannot be applied to '
         End Sub
 
         <Fact()>
-        Sub DispId19()
+        Public Sub DispId19()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7391,7 +7391,7 @@ BC32505: 'System.Runtime.InteropServices.DispIdAttribute' cannot be applied to '
         End Sub
 
         <Fact()>
-        Sub DefaultProperty2()
+        Public Sub DefaultProperty2()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7508,7 +7508,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Serializable_and_SpecialName()
+        Public Sub Serializable_and_SpecialName()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7806,8 +7806,8 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(531506, "DevDiv")>
-        Sub Bug18218()
+        <Fact(), WorkItem(531506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531506")>
+        Public Sub Bug18218()
             Dim compilationDef =
 <compilation name="SimpleTest1">
     <file name="a.vb"><![CDATA[
@@ -7975,7 +7975,7 @@ Imports System.Runtime.InteropServices
 
         End Sub
 
-        <Fact, WorkItem(664574, "DevDiv")>
+        <Fact, WorkItem(664574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664574")>
         Public Sub Bug664574()
             Dim compilationDef =
 <compilation>
@@ -8085,7 +8085,7 @@ End Class
                                                              End Sub).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(664583, "DevDiv")>
+        <Fact, WorkItem(664583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664583")>
         Public Sub Bug664583()
             Dim compilationDef =
 <compilation>
@@ -8133,7 +8133,7 @@ End Class
                                                              End Sub).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(700050, "DevDiv")>
+        <Fact, WorkItem(700050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700050")>
         Public Sub Bug700050()
             Dim compilationDef =
 <compilation>

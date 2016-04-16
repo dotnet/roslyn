@@ -51,13 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function GetExpression(invocationExpresion As InvocationExpressionSyntax) As ExpressionSyntax
-            If invocationExpresion.Expression IsNot Nothing Then
-                Return invocationExpresion.Expression
+        Public Function GetExpression(invocationExpression As InvocationExpressionSyntax) As ExpressionSyntax
+            If invocationExpression.Expression IsNot Nothing Then
+                Return invocationExpression.Expression
             End If
 
-            If invocationExpresion.IsParentKind(SyntaxKind.ConditionalAccessExpression) Then
-                Return DirectCast(invocationExpresion.Parent, ConditionalAccessExpressionSyntax).Expression
+            If invocationExpression.IsParentKind(SyntaxKind.ConditionalAccessExpression) Then
+                Return DirectCast(invocationExpression.Parent, ConditionalAccessExpressionSyntax).Expression
             End If
 
             Return Nothing

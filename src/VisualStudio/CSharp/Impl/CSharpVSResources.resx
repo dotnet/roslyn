@@ -1,0 +1,414 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="C" xml:space="preserve">
+    <value>C#</value>
+  </data>
+  <data name="SurroundWith" xml:space="preserve">
+    <value>Surround With</value>
+  </data>
+  <data name="InsertSnippet" xml:space="preserve">
+    <value>Insert Snippet</value>
+  </data>
+  <data name="FormatOnCloseBraceCheckBox" xml:space="preserve">
+    <value>Automatically format _block on }</value>
+  </data>
+  <data name="FormatOnPasteCheckBox" xml:space="preserve">
+    <value>Automatically format on _paste</value>
+  </data>
+  <data name="FormatOnSemicolonCheckBox" xml:space="preserve">
+    <value>Automatically format _statement on ;</value>
+  </data>
+  <data name="NewLineForMembersInAnonymousTypes" xml:space="preserve">
+    <value>Place members in anonymous types on new line</value>
+  </data>
+  <data name="WrappingPreserveSingleLine" xml:space="preserve">
+    <value>Leave block on single line</value>
+  </data>
+  <data name="CatchOnNewLine" xml:space="preserve">
+    <value>Place "catch" on new line</value>
+  </data>
+  <data name="ElseOnNewLine" xml:space="preserve">
+    <value>Place "else" on new line</value>
+  </data>
+  <data name="IndentBlock" xml:space="preserve">
+    <value>Indent block contents</value>
+  </data>
+  <data name="IndentBraces" xml:space="preserve">
+    <value>Indent open and close braces</value>
+  </data>
+  <data name="IndentSwitchCaseContents" xml:space="preserve">
+    <value>Indent case contents</value>
+  </data>
+  <data name="IndentSwitchCaseLabels" xml:space="preserve">
+    <value>Indent case labels</value>
+  </data>
+  <data name="FinallyOnNewLine" xml:space="preserve">
+    <value>Place "finally" on new line</value>
+  </data>
+  <data name="GotoLeftmost" xml:space="preserve">
+    <value>Place goto labels in leftmost column</value>
+  </data>
+  <data name="GotoNoIndent" xml:space="preserve">
+    <value>Indent labels normally</value>
+  </data>
+  <data name="GotoOneLess" xml:space="preserve">
+    <value>Place goto labels one indent less than current</value>
+  </data>
+  <data name="LabelIndentation" xml:space="preserve">
+    <value>Label Indentation</value>
+  </data>
+  <data name="NewLineForMembersInObjectInit" xml:space="preserve">
+    <value>Place members in object initializers on new line</value>
+  </data>
+  <data name="NewLinesForBracesInAnonymousMethods" xml:space="preserve">
+    <value>Place open brace on new line for anonymous methods</value>
+  </data>
+  <data name="NewLinesForBracesInAnonymousTypes" xml:space="preserve">
+    <value>Place open brace on new line for anonymous types</value>
+  </data>
+  <data name="NewLinesForBracesInControlBlocks" xml:space="preserve">
+    <value>Place open brace on new line for control blocks</value>
+  </data>
+  <data name="NewLinesForBracesInLambdaExpressionBody" xml:space="preserve">
+    <value>Place open brace on new line for lambda expression</value>
+  </data>
+  <data name="NewLinesForBracesMethod" xml:space="preserve">
+    <value>Place open brace on new line for methods</value>
+  </data>
+  <data name="NewLinesForBracesInObjectCollectionArrayInitializers" xml:space="preserve">
+    <value>Place open brace on new line for object, collection and array initializers</value>
+  </data>
+  <data name="NewLinesBracesType" xml:space="preserve">
+    <value>Place open brace on new line for types</value>
+  </data>
+  <data name="NewLineForClausesInQuery" xml:space="preserve">
+    <value>Place query expression clauses on new line</value>
+  </data>
+  <data name="WrappingKeepStatementsOnSingleLine" xml:space="preserve">
+    <value>Leave statements and member declarations on the same line</value>
+  </data>
+  <data name="BinaryOperatorSpace" xml:space="preserve">
+    <value>Insert space before and after binary operators</value>
+  </data>
+  <data name="BinaryOperatorSpaceIgnore" xml:space="preserve">
+    <value>Ignore spaces around binary operators</value>
+  </data>
+  <data name="BinaryOperatorSpaceRemove" xml:space="preserve">
+    <value>Remove spaces before and after binary operators</value>
+  </data>
+  <data name="SpaceAfterColonInBaseTypeDeclaration" xml:space="preserve">
+    <value>Insert space after colon for base or interface in type declaration</value>
+  </data>
+  <data name="SpaceAfterComma" xml:space="preserve">
+    <value>Insert space after comma</value>
+  </data>
+  <data name="SpaceAfterDot" xml:space="preserve">
+    <value>Insert space after dot</value>
+  </data>
+  <data name="SpaceAfterSemicolonsInForStatement" xml:space="preserve">
+    <value>Insert space after semicolon in "for" statement</value>
+  </data>
+  <data name="SpaceBeforeColonInBaseTypeDeclaration" xml:space="preserve">
+    <value>Insert space before colon for base or interface in type declaration</value>
+  </data>
+  <data name="SpaceBeforeComma" xml:space="preserve">
+    <value>Insert space before comma</value>
+  </data>
+  <data name="SpaceBeforeDot" xml:space="preserve">
+    <value>Insert space before dot</value>
+  </data>
+  <data name="SpaceBeforeSemicolonsInForStatement" xml:space="preserve">
+    <value>Insert space before semicolon in "for" statement</value>
+  </data>
+  <data name="SpaceWithinMethodCallParentheses" xml:space="preserve">
+    <value>Insert space within argument list parentheses</value>
+  </data>
+  <data name="SpaceBetweenEmptyMethodCallParentheses" xml:space="preserve">
+    <value>Insert space within empty argument list parentheses</value>
+  </data>
+  <data name="SpaceAfterMethodCallName" xml:space="preserve">
+    <value>Insert space between method name and its opening parenthesis</value>
+  </data>
+  <data name="SpaceBetweenEmptyMethodDeclarationParentheses" xml:space="preserve">
+    <value>Insert space within empty parameter list parentheses</value>
+  </data>
+  <data name="SpacingAfterMethodDeclarationName" xml:space="preserve">
+    <value>Insert space between method name and its opening parenthesis</value>
+  </data>
+  <data name="SpaceWithinMethodDeclarationParenthesis" xml:space="preserve">
+    <value>Insert space within parameter list parentheses</value>
+  </data>
+  <data name="SpaceAfterControlFlowStatementKeyword" xml:space="preserve">
+    <value>Insert space after keywords in control flow statements</value>
+  </data>
+  <data name="SpaceWithinExpressionParentheses" xml:space="preserve">
+    <value>Insert space within parentheses of expressions</value>
+  </data>
+  <data name="SpaceAfterCast" xml:space="preserve">
+    <value>Insert space after cast</value>
+  </data>
+  <data name="SpaceWithinOtherParentheses" xml:space="preserve">
+    <value>Insert spaces within parentheses of control flow statements</value>
+  </data>
+  <data name="SpaceWithinCastParentheses" xml:space="preserve">
+    <value>Insert space within parentheses of type casts</value>
+  </data>
+  <data name="SpacesIgnoreAroundVariableDeclaration" xml:space="preserve">
+    <value>Ignore spaces in declaration statements</value>
+  </data>
+  <data name="SetOtherSpacingOptions" xml:space="preserve">
+    <value>Set other spacing options</value>
+  </data>
+  <data name="SetSpacingForBrackets" xml:space="preserve">
+    <value>Set spacing for brackets</value>
+  </data>
+  <data name="SetSpacingForDelimiters" xml:space="preserve">
+    <value>Set spacing for delimiters</value>
+  </data>
+  <data name="SetSpacingForMethodCalls" xml:space="preserve">
+    <value>Set spacing for method calls</value>
+  </data>
+  <data name="SetSpacingForMethodDeclarations" xml:space="preserve">
+    <value>Set spacing for method declarations</value>
+  </data>
+  <data name="SetSpacingForOperators" xml:space="preserve">
+    <value>Set spacing for operators</value>
+  </data>
+  <data name="SpaceWithinSquareBrackets" xml:space="preserve">
+    <value>Insert spaces within square brackets</value>
+  </data>
+  <data name="SpaceBeforeOpenSquareBracket" xml:space="preserve">
+    <value>Insert space before open square bracket</value>
+  </data>
+  <data name="SpaceBetweenEmptySquareBrackets" xml:space="preserve">
+    <value>Insert space within empty square brackets</value>
+  </data>
+  <data name="NewLineBraces" xml:space="preserve">
+    <value>New line options for braces</value>
+  </data>
+  <data name="NewLineExpressions" xml:space="preserve">
+    <value>New line options for expressions</value>
+  </data>
+  <data name="NewLineKeywords" xml:space="preserve">
+    <value>New line options for keywords</value>
+  </data>
+  <data name="QualifyMemberAccessWithThis" xml:space="preserve">
+    <value>Qualify member access with 'this'</value>
+  </data>
+  <data name="UseVarWhenGeneratingLocals" xml:space="preserve">
+    <value>Use 'var' when generating locals</value>
+  </data>
+  <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
+    <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
+  </data>
+  <data name="PreferIntrinsicPredefinedTypeKeywordInMemberAccess" xml:space="preserve">
+    <value>Prefer intrinsic predefined type keyword in member access expressions</value>
+  </data>
+  <data name="Option_AllowMovingDeclaration" xml:space="preserve">
+    <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
+  </data>
+  <data name="Option_ClosedFileDiagnostics" xml:space="preserve">
+    <value>Enable full solution _analysis</value>
+  </data>
+  <data name="Option_DisplayLineSeparators" xml:space="preserve">
+    <value>_Show procedure line separators</value>
+  </data>
+  <data name="Option_DontPutOutOrRefOnStruct" xml:space="preserve">
+    <value>_Don't put ref or out on custom struct</value>
+  </data>
+  <data name="Option_EditorHelp" xml:space="preserve">
+    <value>Editor Help</value>
+  </data>
+  <data name="Option_EnableHighlightKeywords" xml:space="preserve">
+    <value>Highlight related _keywords under cursor</value>
+  </data>
+  <data name="Option_EnableHighlightReferences" xml:space="preserve">
+    <value>_Highlight references to symbol under cursor</value>
+  </data>
+  <data name="Option_EnterOutliningMode" xml:space="preserve">
+    <value>Enter _outlining mode when files open</value>
+  </data>
+  <data name="Option_ExtractMethod" xml:space="preserve">
+    <value>Extract Method</value>
+  </data>
+  <data name="Option_GenerateXmlDocCommentsForTripleSlash" xml:space="preserve">
+    <value>_Generate XML documentation comments for ///</value>
+  </data>
+  <data name="Option_Highlighting" xml:space="preserve">
+    <value>Highlighting</value>
+  </data>
+  <data name="Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments" xml:space="preserve">
+    <value>_Insert * at the start of new lines when writing /* */ comments</value>
+  </data>
+  <data name="Option_OptimizeForSolutionSize" xml:space="preserve">
+    <value>Optimize for solution size</value>
+  </data>
+  <data name="Option_OptimizeForSolutionSize_Large" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="Option_OptimizeForSolutionSize_Regular" xml:space="preserve">
+    <value>Regular</value>
+  </data>
+  <data name="Option_OptimizeForSolutionSize_Small" xml:space="preserve">
+    <value>Small</value>
+  </data>
+  <data name="Option_OrganizeUsings" xml:space="preserve">
+    <value>Organize Usings</value>
+  </data>
+  <data name="Option_Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Option_Performance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
+    <value>_Place 'System' directives first when sorting usings</value>
+  </data>
+  <data name="Option_WarnOnBuildErrors" xml:space="preserve">
+    <value>Warn if _build errors exist when organizing usings</value>
+  </data>
+  <data name="Option_BringUpOnIdentifier" xml:space="preserve">
+    <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="Option_InsertNewlineOnEnterWithWholeWord" xml:space="preserve">
+    <value>_Add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Option_ShowKeywords" xml:space="preserve">
+    <value>Place _keywords in completion lists</value>
+  </data>
+  <data name="Option_ShowSnippets" xml:space="preserve">
+    <value>Place _code snippets in completion lists</value>
+  </data>
+  <data name="Option_CompletionLists" xml:space="preserve">
+    <value>Completion Lists</value>
+  </data>
+  <data name="Option_SelectionInCompletionList" xml:space="preserve">
+    <value>Selection In Completion List</value>
+  </data>
+  <data name="Option_RenameTrackingPreview" xml:space="preserve">
+    <value>Show preview for _rename tracking</value>
+  </data>
+  <data name="NewLinesForBracesAccessors" xml:space="preserve">
+    <value>Place open brace on new line for property, indexer, and event accessors</value>
+  </data>
+  <data name="NewLinesForBracesProperty" xml:space="preserve">
+    <value>Place open brace on new line for properties, indexers, and events</value>
+  </data>
+</root>

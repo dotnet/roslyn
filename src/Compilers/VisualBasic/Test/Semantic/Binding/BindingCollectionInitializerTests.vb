@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub CollectionInitializerList()
+        Public Sub CollectionInitializerList()
             Dim source =
 <compilation name="CollectionInitializerList">
     <file name="a.vb">
@@ -36,7 +36,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerListEachElementAsCollectionInitializer()
+        Public Sub CollectionInitializerListEachElementAsCollectionInitializer()
             Dim source =
 <compilation name="CollectionInitializerListEachElementAsCollectionInitializer">
     <file name="a.vb">
@@ -61,7 +61,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerDictionary()
+        Public Sub CollectionInitializerDictionary()
             Dim source =
 <compilation name="CollectionInitializerDictionary">
     <file name="a.vb">
@@ -90,7 +90,7 @@ World 42
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerCustomCollection()
+        Public Sub CollectionInitializerCustomCollection()
             Dim source =
 <compilation name="CollectionInitializerCustomCollection">
     <file name="a.vb">
@@ -173,7 +173,7 @@ Hello World
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerEmptyInitializers()
+        Public Sub CollectionInitializerEmptyInitializers()
             Dim source =
 <compilation name="CollectionInitializerEmptyInitializers">
     <file name="a.vb">
@@ -205,7 +205,7 @@ BC36721: An aggregate collection initializer entry must contain at least one ele
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerNotACollection()
+        Public Sub CollectionInitializerNotACollection()
             Dim source =
     <compilation name="CollectionInitializerNotACollection">
         <file name="a.vb">
@@ -232,7 +232,7 @@ BC36718: Cannot initialize the type 'C1' with a collection initializer because i
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerCannotCombineBothInitializers()
+        Public Sub CollectionInitializerCannotCombineBothInitializers()
             Dim source =
     <compilation name="CollectionInitializerCannotCombineBothInitializers">
         <file name="a.vb">
@@ -306,7 +306,7 @@ BC36720: An Object Initializer and a Collection Initializer cannot be combined i
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerNoAddMethod()
+        Public Sub CollectionInitializerNoAddMethod()
             Dim source =
     <compilation name="CollectionInitializerNoAddMethod">
         <file name="a.vb">
@@ -394,7 +394,7 @@ BC36719: Cannot initialize the type 'C5' with a collection initializer because i
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAddMethodIsFunction()
+        Public Sub CollectionInitializerAddMethodIsFunction()
             Dim source =
     <compilation name="CollectionInitializerAddMethodIsFunction">
         <file name="a.vb">
@@ -451,7 +451,7 @@ What's the point of returning something here?
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerOverloadResolutionErrors()
+        Public Sub CollectionInitializerOverloadResolutionErrors()
             Dim source =
     <compilation name="CollectionInitializerOverloadResolutionErrors">
         <file name="a.vb">
@@ -553,7 +553,7 @@ BC30439: Constant expression not representable in type 'Byte'.
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWarningsWillBeKept()
+        Public Sub CollectionInitializerWarningsWillBeKept()
             Dim source =
     <compilation name="CollectionInitializerWarningsWillBeKept">
         <file name="a.vb">
@@ -616,7 +616,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerExtensionMethodsAreSupported()
+        Public Sub CollectionInitializerExtensionMethodsAreSupported()
             Dim source =
     <compilation name="CollectionInitializerExtensionMethodsAreSupported">
         <file name="a.vb">
@@ -696,7 +696,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerExtensionMethodsAreSupportedForValueTypes()
+        Public Sub CollectionInitializerExtensionMethodsAreSupportedForValueTypes()
             Dim source =
     <compilation name="CollectionInitializerExtensionMethodsAreSupportedForValueTypes">
         <file name="a.vb">
@@ -767,7 +767,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerTypeConstraintsAreSupported()
+        Public Sub CollectionInitializerTypeConstraintsAreSupported()
             Dim source =
     <compilation name="CollectionInitializerTypeConstraintsAreSupported">
         <file name="a.vb">
@@ -844,7 +844,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerTypeConstraintsAndAmbiguity()
+        Public Sub CollectionInitializerTypeConstraintsAndAmbiguity()
             Dim source =
     <compilation name="CollectionInitializerTypeConstraintsAndAmbiguity">
         <file name="a.vb">
@@ -893,9 +893,9 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
                                                 </expected>)
         End Sub
 
-        <WorkItem(529265, "DevDiv")>
+        <WorkItem(529265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529265")>
         <Fact()>
-        Sub CollectionInitializerCollectionInitializerArityCheck()
+        Public Sub CollectionInitializerCollectionInitializerArityCheck()
             Dim source =
     <compilation name="CollectionInitializerCollectionInitializerArityCheck">
         <file name="a.vb">
@@ -924,7 +924,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Stri
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerReferencingItself()
+        Public Sub CollectionInitializerReferencingItself()
             Dim source =
 <compilation name="CollectionInitializerReferencingItselfRefType">
     <file name="a.vb">
@@ -1185,7 +1185,7 @@ BC42104: Variable 'd' is used before it has been assigned a value. A null refere
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerReferencingItself_2()
+        Public Sub CollectionInitializerReferencingItself_2()
             Dim source =
     <compilation name="CollectionInitializerReferencingItself_2">
         <file name="a.vb">
@@ -1213,7 +1213,7 @@ BC42104: Variable 'z' is used before it has been assigned a value. A null refere
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerCustomCollectionOptionalParameter()
+        Public Sub CollectionInitializerCustomCollectionOptionalParameter()
             Dim source =
 <compilation name="CollectionInitializerCustomCollection">
     <file name="a.vb">
@@ -1280,7 +1280,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerCustomCollectionParamArray()
+        Public Sub CollectionInitializerCustomCollectionParamArray()
             Dim source =
 <compilation name="CollectionInitializerCustomCollection">
     <file name="a.vb">
@@ -1345,7 +1345,7 @@ Hello World!!!
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_01()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1398,7 +1398,7 @@ End Class
             End If
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_02()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1440,7 +1440,7 @@ End Class
                          symbolInfo.CandidateSymbols.Select(Function(s) s.ToTestDisplayString()).Order().ToArray())
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_03()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1482,7 +1482,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_04()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -1519,7 +1519,7 @@ End Class
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
         End Sub
 
-        <Fact(), WorkItem(529787, "DevDiv")>
+        <Fact(), WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")>
         Public Sub GetCollectionInitializerSymbolInfo_05()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>

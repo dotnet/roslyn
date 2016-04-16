@@ -104,7 +104,7 @@ class Test
         db.Property = 10;
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method(1, a)
 Derived.Method(2, a)
@@ -186,7 +186,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 BaseClass.ToString()
 BaseClass.ToString<T>()
@@ -207,7 +207,7 @@ DerivedClass.GetHashCode(3)
 BaseClass.GetHashCode()
 DerivedClass.GetHashCode(4)
 DerivedClass.Equals(5, 6)",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("BaseClass`2", "ToString", ".method public hidebysig virtual instance System.String ToString() cil managed"),
                     Signature("BaseClass`2", "ToString", ".method public hidebysig newslot virtual instance System.String ToString<T>() cil managed"),
@@ -309,7 +309,7 @@ class Test
         Class5.Test();
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Class3.Member1
 Class4.Member1
@@ -467,14 +467,14 @@ class Test
         b.Method3(new int[6]{1, 2, 3, 4, 5, 6}, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
 Base2.Method2( , , [3])
 Derived.Method3([4], [5])
 Derived.Method3([6], [7])",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("Base", "Method", ".method assembly hidebysig newslot strict abstract virtual instance System.Int32 Method(System.Exception a, System.Int32 b, [System.ParamArrayAttribute()] NS.Derived[] c) cil managed"),
                     Signature("NS.Derived", "Method", ".method assembly hidebysig strict virtual instance System.Int32 Method(System.Exception A, System.Int32 B, [System.ParamArrayAttribute()] NS.Derived[] C) cil managed"),
@@ -571,7 +571,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base4.Method(a, b)
 Base4.Method(a, b)
@@ -602,9 +602,9 @@ Base.get_Property",
                     Signature("Base4`2", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(U value) cil managed")
                 });
         }
-
         [Fact]
-        void TestBaseAccessForMembersHiddenInImmediateBaseClass()
+
+        private void TestBaseAccessForMembersHiddenInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -696,9 +696,9 @@ Base.set_Property()");
   IL_0018:  ret       
 }");
         }
-
         [Fact]
-        void TestBaseAccessForMembersMissingInImmediateBaseClass()
+
+        private void TestBaseAccessForMembersMissingInImmediateBaseClass()
         {
             // Tests: 
             // Invoke base virtual member from within overridden member using base.VirtualMember 
@@ -798,9 +798,9 @@ Base.set_Property()");
   IL_001e:  ret       
 }");
         }
-
         [Fact]
-        void TestBaseAccessForObjectMembers()
+
+        private void TestBaseAccessForObjectMembers()
         {
             // Tests: 
             // Override virtual methods declared on object (ToString, GetHashCode etc.) 
@@ -856,9 +856,9 @@ abstract class DerivedClass : BaseClass<int, long>
   IL_0007:  ret       
 }");
         }
-
         [Fact]
-        void TestOverridingFinalizeImpersonator()
+
+        private void TestOverridingFinalizeImpersonator()
         {
             // Tests:
             // Override overloaded member from base type named Finalize having same / different signature 
@@ -979,9 +979,9 @@ Derived2.Finalize()
   IL_000a:  ret
 }");
         }
-
         [Fact]
-        void TestOverrideResolution2()
+
+        private void TestOverrideResolution2()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by generic type parameter count
@@ -1029,9 +1029,9 @@ Derived.Method()
 Derived.Method<>
 Derived.Method<,>)");
         }
-
         [Fact]
-        void TestOverrideResolution1()
+
+        private void TestOverrideResolution1()
         {
             // Tests:
             // Override overloaded base virtual / abstract member – overloads differ by parameter types and count
@@ -1112,9 +1112,9 @@ class Test
 
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
-
         [Fact]
-        void TestAmbiguousOverridesWarningCase()
+
+        private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
             // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
@@ -1152,7 +1152,7 @@ class Test
 }
 ";
             // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overriden. As far as I can tell, the output won't change from build to build / machine to machine
+            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
             // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
             // the test flaky, we can delete this test.
 
@@ -1161,10 +1161,10 @@ Derived.Method(ref, out)
 Base.Method(ref, out)
 Base.Method(ref)");
         }
-
-        [WorkItem(540214, "DevDiv")]
+        [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-        void TestEmitSynthesizedSealedSetter()
+
+        private void TestEmitSynthesizedSealedSetter()
         {
             var source = @"
 class Base
@@ -1219,10 +1219,10 @@ Base.P.Set(2)",
                     Signature("Derived", "set_P", ".method public hidebysig specialname virtual final instance System.Void set_P(System.Int32 value) cil managed")
                 });
         }
-
-        [WorkItem(540214, "DevDiv")]
+        [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
-        void TestEmitSynthesizedSealedGetter()
+
+        private void TestEmitSynthesizedSealedGetter()
         {
             var source = @"
 class Base
@@ -1265,21 +1265,21 @@ class Program
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.P.Get=1
 Derived.P.Set(2)
 Base.P.Get=1
 Derived.P.Set(2)",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("Derived", "get_P", ".method public hidebysig specialname virtual final instance System.Int32 get_P() cil managed")
                 });
         }
-
-        [WorkItem(540327, "DevDiv")]
+        [WorkItem(540327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540327")]
         [Fact]
-        void TestOverrideWithSealedProperty()
+
+        private void TestOverrideWithSealedProperty()
         {
             var source = @"using System;
 abstract public class Base
@@ -1308,7 +1308,7 @@ class Test
         b.Property3 = b.Property3;
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property2
 Derived.set_Property1
@@ -1325,9 +1325,9 @@ Derived.set_Property3",
                     Signature("Base+Derived", "set_Property3", ".method public hidebysig specialname virtual final instance System.Void set_Property3(System.Single value) cil managed")
                 });
         }
-
         [Fact]
-        void TestOverrideWithAbstractProperty()
+
+        private void TestOverrideWithAbstractProperty()
         {
             var source = @"using System;
 public class Base1
@@ -1374,7 +1374,7 @@ class Test
         b2.Property2 *= 1;
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Base1.set_Property1
@@ -1384,7 +1384,7 @@ Derived.get_Property1
 Base1.set_Property1
 Derived.get_Property2
 Derived.set_Property2",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("Base2", "Property1", ".property readonly instance System.Int64 Property1"),
                     Signature("Base2", "get_Property1", ".method public hidebysig specialname abstract virtual instance System.Int64 get_Property1() cil managed"),
@@ -1397,9 +1397,9 @@ Derived.set_Property2",
                     Signature("Derived", "set_Property2", ".method public hidebysig specialname virtual instance System.Void set_Property2(System.Int64 value) cil managed")
                 });
         }
-
         [Fact]
-        void TestOverrideWithAbstractProperty2()
+
+        private void TestOverrideWithAbstractProperty2()
         {
             var source = @"using System;
 public class Base1
@@ -1454,7 +1454,7 @@ class Test
         b2.Property3--;
     }
 }";
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Derived.set_Property2
@@ -1871,10 +1871,10 @@ class Derived2 : Base2
 
             comp.VerifyDiagnostics();
         }
-
-        [WorkItem(540341, "DevDiv")]
+        [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-        void TestInternalMethods()
+
+        private void TestInternalMethods()
         {
             // Tests:
             // internal virtual / abstract methods should be marked with strict modifier
@@ -1908,9 +1908,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestProtectedInternalMethods()
+
+        private void TestProtectedInternalMethods()
         {
             // Tests:
             // protected internal virtual / abstract methods should not be marked with strict modifier
@@ -1934,7 +1934,7 @@ class Derived : Base2<int>
     protected internal sealed override List<int> Method2(){ return null; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[] 
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method famorassem hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method famorassem hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -1944,9 +1944,9 @@ class Derived : Base2<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestProtectedMethods()
+
+        private void TestProtectedMethods()
         {
             // Tests:
             // protected virtual / abstract methods should not be marked with strict modifier
@@ -1979,9 +1979,9 @@ class Derived : Base2<int>
                 Signature("Derived", "Method2", ".method family hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed")
             });
         }
-
         [Fact]
-        void TestPublicMethods()
+
+        private void TestPublicMethods()
         {
             // Tests:
             // public virtual / abstract methods should not be marked with strict modifier
@@ -2012,13 +2012,13 @@ class Derived : Base2<int>
                 Signature("Derived", "Method1", ".method public hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method1() cil managed"),
                 Signature("Derived", "Method2", ".method public hidebysig virtual final instance System.Collections.Generic.List`1[System.Int32] Method2() cil managed"),
             });
-            
+
             comp.VerifyDiagnostics(); // No errors
         }
-
-        [WorkItem(540341, "DevDiv")]
+        [WorkItem(540341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540341")]
         [Fact]
-        void TestInternalAccessors()
+
+        private void TestInternalAccessors()
         {
             // Tests:
             // internal virtual / abstract accessors should be marked with strict modifier
@@ -2077,7 +2077,7 @@ class Derived : Base2<int>
                 Signature("Derived", "get_Property6", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property6() cil managed"),
                 Signature("Derived", "set_Property6", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig specialname virtual final instance System.Void set_Property6(System.Collections.Generic.List`1[System.Int32] value) cil managed")
             });
-           
+
             comp.VerifyDiagnostics(); // No errors
         }
 
@@ -2119,12 +2119,12 @@ class Derived : Base<int>
                 Signature("Derived", "get_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] famorassem hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property5() cil managed"),
                 Signature("Derived", "set_Property5", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] famorassem hidebysig specialname virtual final instance System.Void set_Property5(System.Collections.Generic.List`1[System.Int32] value) cil managed")
             });
-         
+
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestProtectedInternalAccessorsInDifferentAssembly()
+
+        private void TestProtectedInternalAccessorsInDifferentAssembly()
         {
             var source1 = @"
 using System.Collections.Generic;
@@ -2151,7 +2151,7 @@ public class Derived2 : Base<int>
     public sealed override List<int> Property1 { protected set { } }
     public sealed override List<int> Property2 { protected get { return null; } }
 }";
-            var comp = CompileAndVerify(source2,  new[] { new CSharpCompilationReference(compilation1) }, emitOptions: TestEmitters.RefEmitBug, expectedSignatures: new[] 
+            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures: new[]
             {
                 Signature("Derived", "get_Property1", ".method public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property1() cil managed"),
                 Signature("Derived", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
@@ -2162,7 +2162,7 @@ public class Derived2 : Base<int>
                 Signature("Derived2", "get_Property2", ".method family hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property2() cil managed"),
                 Signature("Derived2", "set_Property2", ".method public hidebysig specialname virtual final instance System.Void set_Property2(System.Collections.Generic.List`1[System.Int32] value) cil managed")
             });
-       
+
             comp.VerifyDiagnostics(); // No errors
         }
 
@@ -2207,9 +2207,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestPublicAccessors()
+
+        private void TestPublicAccessors()
         {
             // Tests:
             // public virtual / abstract accessors should not be marked with strict modifier
@@ -2229,7 +2229,7 @@ class Derived : Base<int>
     public sealed override List<int> Property5 { get; set; }
 }";
 
-            var comp = CompileAndVerify(source, expectedSignatures: new[] 
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "get_Property1", ".method public hidebysig newslot specialname virtual instance System.Collections.Generic.List`1[T] get_Property1() cil managed"),
                 Signature("Base`1", "set_Property1", ".method public hidebysig newslot specialname virtual instance System.Void set_Property1(System.Collections.Generic.List`1[T] value) cil managed"),
@@ -2243,9 +2243,9 @@ class Derived : Base<int>
 
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestOverrideOverloadedMethod()
+
+        private void TestOverrideOverloadedMethod()
         {
             var source = @"
 using System.Collections.Generic;
@@ -2276,16 +2276,16 @@ class Derived : Base2<int>
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method(System.Int32 x) cil managed"),
                 Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed")
             });
-           
+
             comp.VerifyDiagnostics(); // No errors
         }
-
         [Fact]
-        void TestOverrideHidingMember()
+
+        private void TestOverrideHidingMember()
         {
             // Tests:
             // Hide base virtual member with a virtual new / abstract new member 
-            // Test that we don’t override the hidden base member on further derived classes
+            // Test that we don't override the hidden base member on further derived classes
 
             var source = @"
 using System;
@@ -2334,7 +2334,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, 
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base<T>.Method<K>(T x)
 Base<T>.Method(List<T> x, int y)
@@ -2343,7 +2343,7 @@ Derived.Method<T>(int x)
 Derived.Method(List<int> x, int y)
 Base2<T>.get_Property
 Derived.set_Property",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("Base2`1", "Method", ".method public hidebysig newslot virtual instance System.Void Method(System.Collections.Generic.List`1[T] x, System.Int32 y) cil managed"),
                     Signature("Base2`1", "Method", ".method public hidebysig newslot virtual instance System.Void Method<U>(T x) cil managed"),
@@ -2353,11 +2353,11 @@ Derived.set_Property",
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed"),
                     Signature("Derived", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(System.Collections.Generic.List`1[System.Int32] value) cil managed")
                 });
-          
+
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(528172, "DevDiv")]
+        [WorkItem(528172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528172")]
         [Fact]
         public void TestHideWithInaccessibleVirtualMember()
         {
@@ -2432,7 +2432,7 @@ public class Test
 
             var outerCompilation =
                 CreateCompilationWithMscorlib(source2,
-                    new[] {new CSharpCompilationReference(referencedCompilation) },
+                    new[] { new CSharpCompilationReference(referencedCompilation) },
                     options: TestOptions.ReleaseExe,
                     assemblyName: "OHI_CodeGen_TestHideWithInaccessibleVirtualMember2");
 
@@ -2450,7 +2450,39 @@ public class Test
             // from assembly 'Dev10, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
             // is overriding a method that is not visible from that assembly.
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(outerCompilation));
+            CompileAndVerify(outerCompilation, verify: false).VerifyIL("Test.Main", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  4
+  .locals init (Base2<int> V_0, //b2
+                System.Collections.Generic.List<int> V_1) //x
+  IL_0000:  newobj     ""Derived..ctor()""
+  IL_0005:  newobj     ""Derived..ctor()""
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  callvirt   ""void Base<int>.Method<long>(int)""
+  IL_0012:  dup
+  IL_0013:  newobj     ""System.Collections.Generic.List<int>..ctor()""
+  IL_0018:  ldc.i4.1
+  IL_0019:  callvirt   ""void Base<int>.Method(System.Collections.Generic.List<int>, int)""
+  IL_001e:  ldnull
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  callvirt   ""void Base<int>.Property.set""
+  IL_0026:  ldloc.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  callvirt   ""void Base<int>.Method<long>(int)""
+  IL_002d:  ldloc.0
+  IL_002e:  newobj     ""System.Collections.Generic.List<int>..ctor()""
+  IL_0033:  ldc.i4.1
+  IL_0034:  callvirt   ""void Base<int>.Method(System.Collections.Generic.List<int>, int)""
+  IL_0039:  ldloc.0
+  IL_003a:  ldloc.1
+  IL_003b:  callvirt   ""void Base<int>.Property.set""
+  IL_0040:  ret
+}
+");
         }
 
         [Fact]
@@ -2516,7 +2548,7 @@ public class Test
             var referencedCompilation = CreateCompilationWithMscorlib(source, assemblyName: "OHI_CodeGen_TestHideWithInaccessibleMember");
 
             var comp = CompileAndVerify(
-                source2, 
+                source2,
                 new[] { referencedCompilation.EmitToImageReference() },
                 expectedOutput: @"
 Base<T>.Method<K>(T x)
@@ -2540,7 +2572,7 @@ Derived.set_Property",
                     Signature("Derived", "Method", ".method public hidebysig virtual instance System.Void Method<T>(System.Int32 x) cil managed"),
                     Signature("Derived", "set_Property", ".method public hidebysig specialname virtual instance System.Void set_Property(System.Collections.Generic.List`1[System.Int32] value) cil managed")
                 });
-           
+
             comp.VerifyDiagnostics(); // No errors
         }
 
@@ -2621,7 +2653,7 @@ public class Test
             var referencedCompilation = CreateCompilationWithMscorlib(source, assemblyName: "OHI_CodeGen_TestHideSealedMember");
 
             var comp = CompileAndVerify(
-                source2, 
+                source2,
                 new[] { referencedCompilation.EmitToImageReference() },
                 expectedOutput: @"
 Base1<T>.Method<U>(T x)
@@ -2636,7 +2668,7 @@ Derived.get_Property");
             comp.VerifyDiagnostics(); // No errors
         }
 
-        [WorkItem(540431, "DevDiv")]
+        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestOverrideNewToVBVirtualOverloadsMetadata()
         {
@@ -2698,7 +2730,7 @@ class Test
             CompileAndVerify(comp, expectedOutput: @"CSS1_OV CSS1_OV VBS11_OL CSS1_OV CSF1_New VBF1_V VBF11 VBF1_V");
         }
 
-        [WorkItem(540431, "DevDiv")]
+        [WorkItem(540431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540431")]
         [Fact]
         public void TestOverrideNewToVBVirtualPropMetadata()
         {
@@ -2842,21 +2874,21 @@ class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.CSClasses01;
 
             var comp1 = CreateCompilationWithMscorlib(
-                text1, 
-                references: new[] { asm01, asm02 }, 
+                text1,
+                references: new[] { asm01, asm02 },
                 assemblyName: "OHI_DeriveBaseInMetadataProp001");
-            
+
             var comp2 = CreateCompilationWithMscorlib(
-                text2, 
-                references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) }, 
+                text2,
+                references: new MetadataReference[] { asm01, asm02, new CSharpCompilationReference(comp1) },
                 options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_DeriveBaseInMetadataProp002");
 
             CompileAndVerify(comp2, expectedOutput: @"TwoThreeOneZero");
         }
 
-        [WorkItem(540452, "DevDiv")]
-        [WorkItem(540453, "DevDiv")]
+        [WorkItem(540452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540452")]
+        [WorkItem(540453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540453")]
         [Fact]
         public void TestGenericDDerivedImplWithBaseInMetadata()
         {
@@ -3079,15 +3111,15 @@ partial class Test
             var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses02;
 
             var comp = CreateCompilationWithMscorlib(
-                new string[] { text1, text2 }, 
-                references: new[] { asm01, asm02 }, 
+                new string[] { text1, text2 },
+                references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
-                assemblyName: "OHI_BridgeMethodFomrBaseVB007");
+                assemblyName: "OHI_BridgeMethodFromBaseVB007");
 
             var verifier = CompileAndVerify(
-                comp, 
+                comp,
                 expectedOutput: @"Derived (OVSealed) VBaseFunc (Non-Virtual)",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("D", "NestedSub", ".method public hidebysig virtual final instance System.Void NestedSub(System.UInt16 p) cil managed"),
                     Signature("D", "IMeth03.INested.NestedFunc", ".method private hidebysig newslot virtual final instance System.String IMeth03.INested.NestedFunc(System.Object& p) cil managed")
@@ -3165,7 +3197,7 @@ Derived2.Method",
                     Signature("Derived1`2+Derived2", "set_Property", ".method famorassem hidebysig specialname virtual instance System.Void set_Property(System.String value) cil managed"),
                     Signature("Derived1`2+Derived2", "Method", ".method assembly hidebysig strict virtual instance System.Void Method<K>(System.String a, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] c, System.Collections.Generic.Dictionary`2[System.String,K] d) cil managed")
                 });
-          
+
             comp.VerifyDiagnostics(); // No Errors
         }
 
@@ -3333,15 +3365,15 @@ class Test
             #endregion
 
             var asmfile = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-          
+
             var comp1 = CreateCompilationWithMscorlib(
                 text1,
-                references: new[] { asmfile }, 
+                references: new[] { asmfile },
                 assemblyName: "OHI_ClassOverrideNewVBNested001");
 
             var comp2 = CreateCompilationWithMscorlib(
                 text2,
-                references: new[] { asmfile, comp1.EmitToImageReference() }, 
+                references: new[] { asmfile, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ClassOverrideNewVBNested002");
 
             var comp = CreateCompilationWithMscorlib(
@@ -3385,11 +3417,10 @@ namespace Metadata
 }
 ";
             var verifier = CompileAndVerify(
-                text, 
+                text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
-                emitOptions: TestEmitters.RefEmitUnsupported_646023,
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     // The ILDASM output is following,and Roslyn handles it correctly. 
                     // Verifier tool gives different output due to the limitation of Reflection
@@ -3398,13 +3429,13 @@ namespace Metadata
                     // @"UInt64 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) y," +
                     // @"!!X modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) z) cil managed")
                     Signature("Metadata.GD", "Method",
-                        @".method public hidebysig virtual instance System.Void Method<X>(" +
-                        @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
-                        @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
+                              @".method public hidebysig virtual instance System.Void Method<X>(" +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
                 });
         }
 
-        [WorkItem(540516, "DevDiv")]
+        [WorkItem(540516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540516")]
         [Fact]
         public void TestCallMethodsWithLeastCustomModifiers()
         {
@@ -3424,7 +3455,7 @@ public class Program
                 expectedOutput: "51");
         }
 
-        [WorkItem(540517, "DevDiv")]
+        [WorkItem(540517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540517")]
         [Fact]
         public void TestOverrideMethodsWithCustomModifiers()
         {
@@ -3515,7 +3546,7 @@ class Test
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
-                expectedSignatures: new[] 
+                expectedSignatures: new[]
                 {
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig virtual final instance System.Void Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
                     Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method assembly hidebysig virtual final instance System.Void Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed")
@@ -3533,9 +3564,9 @@ Derived1.Method`2",
                 // (19,46): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
-
         [Fact]
-        void TestHideMethodWithModreqCustomModifiers()
+
+        private void TestHideMethodWithModreqCustomModifiers()
         {
             var text = @"using System;
 using Metadata;
@@ -3573,7 +3604,7 @@ class Test
                 });
         }
 
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void AccessorMethodAccessorOverridingExecution()
         {
@@ -3612,7 +3643,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "C1");
         }
 
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void AccessorMethodAccessorOverridingRoundTrip()
         {
@@ -3656,7 +3687,7 @@ public class C : B
             CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void MethodAccessorMethodOverridingRoundTrip()
         {
@@ -3708,7 +3739,7 @@ public class C : B
         /// will be true, but OverriddenMethod will return null.
         /// This test just checks that nothing blows up in such cases.
         /// </summary>
-        [WorkItem(541834, "DevDiv")]
+        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
         [Fact]
         public void ExplicitOverrideWithoutCSharpOverride()
         {
@@ -3789,7 +3820,7 @@ public class Invoke
             });
         }
 
-        [WorkItem(542828, "DevDiv")]
+        [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
         [Fact]
         public void MetadataOverrideVirtualHiddenByNonVirtual()
         {
@@ -3847,9 +3878,9 @@ class Program
 
             var references = new MetadataReference[] { TestReferences.SymbolsTests.Methods.ILMethods };
             var verifier = CompileAndVerify(
-                source, 
-                additionalRefs: references, 
-                sourceSymbolValidator: validator, 
+                source,
+                additionalRefs: references,
+                sourceSymbolValidator: validator,
                 expectedOutput: @"BaseVirtual
 DerivedNonVirtual
 Derived2Override
@@ -3900,7 +3931,7 @@ DerivedNonVirtual
 ");
         }
 
-        [WorkItem(543158, "DevDiv")]
+        [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
         [Fact()]
         public void NoDefaultForParams_Dev10781558()
         {
@@ -3930,7 +3961,7 @@ class B : A
 
                 var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
-                
+
                 Assert.Equal(classA, classB.BaseType);
 
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
@@ -3958,11 +3989,10 @@ class B : A
                 }
             };
 
-            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
-
+            var verifier = CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
         }
 
-        [WorkItem(543158, "DevDiv")]
+        [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]
         [Fact]
         public void XNoDefaultForParams_Dev10781558()
         {
@@ -4012,7 +4042,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4055,7 +4085,6 @@ public class Program
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions: TestEmitters.RefEmitBug,
                 expectedOutput: @"C3");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4082,7 +4111,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions:TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4127,8 +4156,7 @@ public class Program
 }",
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions:TestEmitters.RefEmitBug, expectedOutput: @"C4
+            var cs2Verifier = CompileAndVerify(cs2Compilation, expectedOutput: @"C4
 C2");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4163,7 +4191,7 @@ public class Test
 Derived.M(y:2)");
         }
 
-        [WorkItem(531095, "DevDiv")]
+        [WorkItem(531095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
         [Fact]
         public void MissingAssemblyReference01()
         {
@@ -4190,7 +4218,7 @@ Derived.M(y:2)");
                 );
         }
 
-        [WorkItem(531095, "DevDiv")]
+        [WorkItem(531095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531095")]
         [Fact]
         public void MissingAssemblyReference02()
         {

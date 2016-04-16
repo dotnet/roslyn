@@ -220,7 +220,7 @@ class C
 
         // With multidimensional arrays, you can use one loop to iterate through the elements
         [Fact]
-        public void TestMultimensionArray()
+        public void TestMultiDimensionalArray()
         {
             var text =
 @"class T
@@ -244,7 +244,7 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(540917, "DevDiv")]
+        [WorkItem(540917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
         [Fact]
         public void TestArray()
         {
@@ -417,7 +417,7 @@ public class Test
             CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
-        // Traversing items in ‘Dictionary’
+        // Traversing items in 'Dictionary'
         [Fact]
         public void TestDictionary()
         {
@@ -590,7 +590,7 @@ Z";
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        // ‘Return’  in foreach
+        // 'Return' in foreach
         [Fact]
         public void TestReturn()
         {
@@ -661,7 +661,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef },  expectedOutput: expectedOutput);
+            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -787,7 +787,7 @@ b
 c
 ";
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
-            
+
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -975,7 +975,7 @@ struct A
         }
 
 
-        [Fact, WorkItem(1077204)]
+        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeIterationVariableFieldsAreReadonly()
         {
             const string source = @"

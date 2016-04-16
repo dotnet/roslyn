@@ -1,111 +1,62 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports System.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Represents an interactive code entry point that is inserted into the compilation if there is not an existing one.
     ''' </summary>
-    Friend NotInheritable Class SynthesizedEntryPointSymbol
+    Friend MustInherit Class SynthesizedEntryPointSymbol
         Inherits SynthesizedMethodBase
 
-        Private ReadOnly _containingType As NamedTypeSymbol
-        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
-        Private ReadOnly _returnType As TypeSymbol
-        Private ReadOnly _name As String
+        Friend Const MainName = "<Main>"
+        Friend Const FactoryName = "<Factory>"
 
-        Friend Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol)
+        Private ReadOnly _containingType As NamedTypeSymbol
+        Private ReadOnly _returnType As TypeSymbol
+
+        Friend Shared Function Create(initializerMethod As SynthesizedInteractiveInitializerMethod, diagnostics As DiagnosticBag) As SynthesizedEntryPointSymbol
+            Dim containingType = initializerMethod.ContainingType
+            Dim compilation = ContainingType.DeclaringCompilation
+            If compilation.IsSubmission Then
+                Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
+                ReportUseSiteDiagnostics(submissionArrayType, diagnostics)
+                Return New SubmissionEntryPoint(containingType, initializerMethod.ReturnType, submissionArrayType)
+            Else
+                Dim taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
+#If DEBUG Then
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Debug.Assert(taskType.IsErrorType() OrElse initializerMethod.ReturnType.IsOrDerivedFrom(taskType, useSiteDiagnostics))
+#End If
+                ReportUseSiteDiagnostics(taskType, diagnostics)
+                Dim getAwaiterMethod = If(taskType.IsErrorType(),
+                    Nothing,
+                    GetRequiredMethod(taskType, WellKnownMemberNames.GetAwaiter, diagnostics))
+                Dim getResultMethod = If(getAwaiterMethod Is Nothing,
+                    Nothing,
+                    GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnostics))
+                Return New ScriptEntryPoint(
+                    containingType,
+                    compilation.GetSpecialType(SpecialType.System_Void),
+                    getAwaiterMethod,
+                    getResultMethod)
+            End If
+        End Function
+
+        Private Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol)
             MyBase.New(containingType)
 
+            Debug.Assert(containingType IsNot Nothing)
+            Debug.Assert(returnType IsNot Nothing)
+
             _containingType = containingType
-            If containingType.ContainingAssembly.IsInteractive Then
-                ' TODO: report error if the type doesn't exist
-                Dim submissionArrayType = Me.DeclaringCompilation.CreateArrayTypeSymbol(Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object))
-                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, submissionArrayType, ordinal:=0, isByRef:=False, name:="submissionArray"))
-                _name = "<Factory>"
-            Else
-                _parameters = ImmutableArray(Of ParameterSymbol).Empty
-                _name = "<Main>"
-            End If
-
-            If Me.DeclaringCompilation.IsSubmission Then
-                returnType = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
-            End If
-
             _returnType = returnType
         End Sub
 
-        Friend Function CreateBody() As BoundBlock
-            Return If(DeclaringCompilation.IsSubmission, CreateSubmissionFactoryBody(), CreateScriptBody())
-        End Function
+        Friend MustOverride Function CreateBody() As BoundBlock
 
-        ' Generates:
-        ' 
-        ' private static void {Main}()
-        ' {
-        '     new {ThisScriptClass}();
-        ' }
-        Private Function CreateScriptBody() As BoundBlock
-            Dim syntax = VisualBasicSyntaxTree.Dummy.GetRoot()
-
-            Debug.Assert(ContainingType.IsScriptClass)
-            Return New BoundBlock(syntax, Nothing,
-                ImmutableArray(Of LocalSymbol).Empty,
-                ImmutableArray.Create(Of BoundStatement)(
-                    New BoundExpressionStatement(syntax,
-                        New BoundObjectCreationExpression(syntax,
-                            _containingType.InstanceConstructors.Single(),
-                            ImmutableArray(Of BoundExpression).Empty,
-                            Nothing,
-                            _containingType)),
-                    New BoundReturnStatement(syntax, Nothing, Nothing, Nothing)))
-        End Function
-
-        ' Generates:
-        ' 
-        ' private static object {Factory}(InteractiveSession session) 
-        ' {
-        '    T submissionResult;
-        '    new {ThisScriptClass}(session, out submissionResult);
-        '    return submissionResult;
-        ' }
-        Private Function CreateSubmissionFactoryBody() As BoundBlock
-            Debug.Assert(_containingType.TypeKind = TypeKind.Submission)
-            Dim syntax = VisualBasicSyntaxTree.Dummy.GetRoot()
-
-            Dim interactiveSessionParam = New BoundParameter(syntax, Parameters(0), Parameters(0).Type)
-
-            Dim ctor = _containingType.InstanceConstructors.Single()
-            Debug.Assert(TypeOf ctor Is SynthesizedSubmissionConstructorSymbol)
-            Debug.Assert(ctor.ParameterCount = 2)
-
-            Dim submissionResultType = ctor.Parameters(1).Type
-            Dim resultLocal = New SynthesizedLocal(ctor, submissionResultType, SynthesizedLocalKind.LoweringTemp)
-            Dim localReference = New BoundLocal(syntax, localSymbol:=resultLocal, isLValue:=True, type:=submissionResultType)
-
-            Dim submissionResult As BoundExpression = localReference
-            If submissionResultType.IsStructureType() AndAlso Me._returnType.SpecialType = SpecialType.System_Object Then
-                submissionResult = New BoundConversion(syntax, submissionResult, ConversionKind.Widening, False, True, Me._returnType)
-            End If
-
-            Return New BoundBlock(syntax, Nothing,
-                ImmutableArray.Create(Of LocalSymbol)(resultLocal),
-                ImmutableArray.Create(Of BoundStatement)(
-                    New BoundExpressionStatement(syntax,
-                        New BoundObjectCreationExpression(syntax,
-                            ctor,
-                            ImmutableArray.Create(Of BoundExpression)(interactiveSessionParam, localReference),
-                            Nothing,
-                            _containingType)),
-                    New BoundReturnStatement(syntax, submissionResult.MakeRValue(), Nothing, Nothing)))
-        End Function
-
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return _name
-            End Get
-        End Property
+        Public MustOverride Overrides ReadOnly Property Name As String
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
@@ -165,12 +116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Return ImmutableArray(Of TypeParameterSymbol).Empty
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
-            Get
-                Return _parameters
             End Get
         End Property
 
@@ -239,6 +184,213 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Private Function GetSyntax() As VisualBasicSyntaxNode
+            Return VisualBasicSyntaxTree.Dummy.GetRoot()
+        End Function
+
+        Private Shared Sub ReportUseSiteDiagnostics(symbol As Symbol, diagnostics As DiagnosticBag)
+            Dim useSiteDiagnostic = symbol.GetUseSiteErrorInfo()
+            If useSiteDiagnostic IsNot Nothing Then
+                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
+            End If
+        End Sub
+
+        Private Shared Function GetRequiredMethod(type As TypeSymbol, methodName As String, diagnostics As DiagnosticBag) As MethodSymbol
+            Dim method = TryCast(type.GetMembers(methodName).SingleOrDefault(), MethodSymbol)
+            If method Is Nothing Then
+                diagnostics.Add(
+                    ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, type.MetadataName & "." & methodName),
+                    NoLocation.Singleton)
+            End If
+            Return method
+        End Function
+
+        Private Shared Function CreateParameterlessCall(syntax As VisualBasicSyntaxNode, receiver As BoundExpression, method As MethodSymbol) As BoundCall
+            Return New BoundCall(
+                syntax,
+                method,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=receiver.MakeRValue(),
+                arguments:=ImmutableArray(Of BoundExpression).Empty,
+                constantValueOpt:=Nothing,
+                suppressObjectClone:=False,
+                type:=method.ReturnType).MakeCompilerGenerated()
+        End Function
+
+        Private NotInheritable Class ScriptEntryPoint
+            Inherits SynthesizedEntryPointSymbol
+
+            Private ReadOnly _getAwaiterMethod As MethodSymbol
+            Private ReadOnly _getResultMethod As MethodSymbol
+
+            Friend Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol, getAwaiterMethod As MethodSymbol, getResultMethod As MethodSymbol)
+                MyBase.New(containingType, returnType)
+
+                Debug.Assert(containingType.IsScriptClass)
+                Debug.Assert(returnType.SpecialType = SpecialType.System_Void)
+
+                _getAwaiterMethod = getAwaiterMethod
+                _getResultMethod = getResultMethod
+            End Sub
+
+            Public Overrides ReadOnly Property Name As String
+                Get
+                    Return MainName
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
+                Get
+                    Return ImmutableArray(Of ParameterSymbol).Empty
+                End Get
+            End Property
+
+            ' Private Shared Sub <Main>()
+            '     Dim script As New Script()
+            '     script.<Initialize>().GetAwaiter().GetResult()
+            ' End Sub
+            Friend Overrides Function CreateBody() As BoundBlock
+                ' CreateBody should only be called if no errors.
+                Debug.Assert(_getAwaiterMethod IsNot Nothing)
+                Debug.Assert(_getResultMethod IsNot Nothing)
+
+                Dim syntax = GetSyntax()
+
+                Dim ctor = _containingType.GetScriptConstructor()
+                Debug.Assert(ctor.ParameterCount = 0)
+
+                Dim initializer = _containingType.GetScriptInitializer()
+                Debug.Assert(initializer.ParameterCount = 0)
+
+                Dim scriptLocal = New BoundLocal(
+                    syntax,
+                    New SynthesizedLocal(Me, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    _containingType).MakeCompilerGenerated()
+
+                ' Dim script As New Script()
+                Dim scriptAssignment = New BoundExpressionStatement(
+                    syntax,
+                    New BoundAssignmentOperator(
+                        syntax,
+                        scriptLocal,
+                        New BoundObjectCreationExpression(
+                            syntax,
+                            ctor,
+                            ImmutableArray(Of BoundExpression).Empty,
+                            initializerOpt:=Nothing,
+                            type:=_containingType).MakeCompilerGenerated(),
+                        suppressObjectClone:=False).MakeCompilerGenerated()).MakeCompilerGenerated()
+
+                ' script.<Initialize>().GetAwaiter().GetResult()
+                Dim scriptInitialize = New BoundExpressionStatement(
+                    syntax,
+                    CreateParameterlessCall(
+                        syntax,
+                        CreateParameterlessCall(
+                            syntax,
+                            CreateParameterlessCall(
+                                syntax,
+                                scriptLocal,
+                                initializer),
+                            _getAwaiterMethod),
+                        _getResultMethod)).MakeCompilerGenerated()
+
+                ' Return
+                Dim returnStatement = New BoundReturnStatement(
+                    syntax,
+                    Nothing,
+                    Nothing,
+                    Nothing).MakeCompilerGenerated()
+
+                Return New BoundBlock(
+                    syntax,
+                    Nothing,
+                    ImmutableArray.Create(Of LocalSymbol)(scriptLocal.LocalSymbol),
+                    ImmutableArray.Create(Of BoundStatement)(scriptAssignment, scriptInitialize, returnStatement)).MakeCompilerGenerated()
+            End Function
+        End Class
+
+        Private NotInheritable Class SubmissionEntryPoint
+            Inherits SynthesizedEntryPointSymbol
+
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+
+            Friend Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol, submissionArrayType As TypeSymbol)
+                MyBase.New(containingType, returnType)
+
+                Debug.Assert(containingType.IsSubmissionClass)
+                _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(Me, submissionArrayType, ordinal:=0, isByRef:=False, name:="submissionArray"))
+            End Sub
+
+            Public Overrides ReadOnly Property Name As String
+                Get
+                    Return FactoryName
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
+                Get
+                    Return _parameters
+                End Get
+            End Property
+
+            ' Private Shared Function <Factory>(submissionArray As Object()) As T
+            '     Dim submission As New Submission#N(submissionArray)
+            '     Return submission.<Initialize>()
+            ' End Function
+            Friend Overrides Function CreateBody() As BoundBlock
+                Dim syntax = GetSyntax()
+
+                Dim ctor = _containingType.GetScriptConstructor()
+                Debug.Assert(ctor.ParameterCount = 1)
+
+                Dim initializer = _containingType.GetScriptInitializer()
+                Debug.Assert(initializer.ParameterCount = 0)
+
+                Dim parameter = _parameters(0)
+                Dim submissionArrayParameter = New BoundParameter(
+                    syntax,
+                    parameter,
+                    isLValue:=False,
+                    type:=parameter.Type).MakeCompilerGenerated()
+                Dim submissionLocal = New BoundLocal(
+                    syntax,
+                    New SynthesizedLocal(Me, _containingType, SynthesizedLocalKind.LoweringTemp),
+                    _containingType).MakeCompilerGenerated()
+
+                ' Dim submission As New Submission#N(submissionArray)
+                Dim submissionAssignment = New BoundExpressionStatement(
+                    syntax,
+                    New BoundAssignmentOperator(
+                        syntax,
+                        submissionLocal,
+                        New BoundObjectCreationExpression(
+                            syntax,
+                            ctor,
+                            ImmutableArray.Create(Of BoundExpression)(submissionArrayParameter),
+                            initializerOpt:=Nothing,
+                            type:=_containingType).MakeCompilerGenerated(),
+                        suppressObjectClone:=False).MakeCompilerGenerated()).MakeCompilerGenerated()
+
+                ' Return submission.<Initialize>()
+                Dim returnStatement = New BoundReturnStatement(
+                    syntax,
+                    CreateParameterlessCall(
+                        syntax,
+                        submissionLocal,
+                        initializer).MakeRValue(),
+                    functionLocalOpt:=Nothing,
+                    exitLabelOpt:=Nothing).MakeCompilerGenerated()
+
+                Return New BoundBlock(
+                    syntax,
+                    Nothing,
+                    ImmutableArray.Create(Of LocalSymbol)(submissionLocal.LocalSymbol),
+                    ImmutableArray.Create(Of BoundStatement)(submissionAssignment, returnStatement)).MakeCompilerGenerated()
+            End Function
+        End Class
+
     End Class
 End Namespace
 

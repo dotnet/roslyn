@@ -14,91 +14,91 @@ namespace Microsoft.CodeAnalysis
     internal class CommonTypeWellKnownAttributeData : WellKnownAttributeData, ISecurityAttributeTarget
     {
         #region SpecialNameAttribute
-        private bool hasSpecialNameAttribute;
+        private bool _hasSpecialNameAttribute;
         public bool HasSpecialNameAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSpecialNameAttribute;
+                return _hasSpecialNameAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSpecialNameAttribute = value;
+                _hasSpecialNameAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region SerializableAttribute
-        private bool hasSerializableAttribute;
+        private bool _hasSerializableAttribute;
         public bool HasSerializableAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSerializableAttribute;
+                return _hasSerializableAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSerializableAttribute = value;
+                _hasSerializableAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region DefaultMemberAttribute
-        private bool hasDefaultMemberAttribute;
+        private bool _hasDefaultMemberAttribute;
         public bool HasDefaultMemberAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasDefaultMemberAttribute;
+                return _hasDefaultMemberAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasDefaultMemberAttribute = value;
+                _hasDefaultMemberAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region SuppressUnmanagedCodeSecurityAttribute
-        private bool hasSuppressUnmanagedCodeSecurityAttribute;
+        private bool _hasSuppressUnmanagedCodeSecurityAttribute;
         public bool HasSuppressUnmanagedCodeSecurityAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSuppressUnmanagedCodeSecurityAttribute;
+                return _hasSuppressUnmanagedCodeSecurityAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSuppressUnmanagedCodeSecurityAttribute = value;
+                _hasSuppressUnmanagedCodeSecurityAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region Security Attributes
-        private SecurityWellKnownAttributeData lazySecurityAttributeData;
+        private SecurityWellKnownAttributeData _lazySecurityAttributeData;
 
         SecurityWellKnownAttributeData ISecurityAttributeTarget.GetOrCreateData()
         {
             VerifySealed(expected: false);
 
-            if (lazySecurityAttributeData == null)
+            if (_lazySecurityAttributeData == null)
             {
-                lazySecurityAttributeData = new SecurityWellKnownAttributeData();
+                _lazySecurityAttributeData = new SecurityWellKnownAttributeData();
                 SetDataStored();
             }
 
-            return lazySecurityAttributeData;
+            return _lazySecurityAttributeData;
         }
 
         internal bool HasDeclarativeSecurity
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return this.lazySecurityAttributeData != null || this.HasSuppressUnmanagedCodeSecurityAttribute;
+                return _lazySecurityAttributeData != null || this.HasSuppressUnmanagedCodeSecurityAttribute;
             }
         }
 
@@ -118,24 +118,24 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazySecurityAttributeData;
+                return _lazySecurityAttributeData;
             }
         }
         #endregion
 
         #region WindowsRuntimeImportAttribute
-        private bool hasWindowsRuntimeImportAttribute;
+        private bool _hasWindowsRuntimeImportAttribute;
         public bool HasWindowsRuntimeImportAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasWindowsRuntimeImportAttribute;
+                return _hasWindowsRuntimeImportAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasWindowsRuntimeImportAttribute = value;
+                _hasWindowsRuntimeImportAttribute = value;
                 SetDataStored();
             }
         }
@@ -143,20 +143,20 @@ namespace Microsoft.CodeAnalysis
 
         #region GuidAttribute
         // Decoded guid string from GuidAttribute
-        private string guidString;
+        private string _guidString;
 
         public string GuidString
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.guidString;
+                return _guidString;
             }
             set
             {
                 VerifySealed(expected: false);
                 Debug.Assert(value != null);
-                this.guidString = value;
+                _guidString = value;
                 SetDataStored();
             }
         }
@@ -164,16 +164,16 @@ namespace Microsoft.CodeAnalysis
 
         #region StructLayoutAttribute
 
-        private TypeLayout layout;
-        private CharSet charSet;
+        private TypeLayout _layout;
+        private CharSet _charSet;
 
         // StructLayoutAttribute
         public void SetStructLayout(TypeLayout layout, CharSet charSet)
         {
             VerifySealed(expected: false);
             Debug.Assert(charSet == CharSet.Ansi || charSet == CharSet.Unicode || charSet == Cci.Constants.CharSet_Auto);
-            this.layout = layout;
-            this.charSet = charSet;
+            _layout = layout;
+            _charSet = charSet;
             SetDataStored();
         }
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: true);
                 // charSet is non-zero iff it was set by SetStructLayout called from StructLayoutAttribute decoder
-                return charSet != 0;
+                return _charSet != 0;
             }
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: true);
                 Debug.Assert(HasStructLayoutAttribute);
-                return layout;
+                return _layout;
             }
         }
 
@@ -203,25 +203,25 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: true);
                 Debug.Assert(HasStructLayoutAttribute);
-                return charSet;
+                return _charSet;
             }
         }
 
         #endregion
 
         #region SecurityCriticalAttribute and SecuritySafeCriticalAttribute
-        private bool hasSecurityCriticalAttributes;
+        private bool _hasSecurityCriticalAttributes;
         public bool HasSecurityCriticalAttributes
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasSecurityCriticalAttributes;
+                return _hasSecurityCriticalAttributes;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasSecurityCriticalAttributes = value;
+                _hasSecurityCriticalAttributes = value;
                 SetDataStored();
             }
         }

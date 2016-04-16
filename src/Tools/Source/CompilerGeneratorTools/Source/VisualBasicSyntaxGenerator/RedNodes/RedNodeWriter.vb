@@ -3,7 +3,7 @@
 Imports System.IO
 
 ' Class to write out the code for the code tree.
-Class RedNodeWriter
+Friend Class RedNodeWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
@@ -428,7 +428,7 @@ Class RedNodeWriter
             Next
             _writer.WriteLine(")")
 
-            ' Generate call to create new builder, and pass result to my private constructure.
+            ' Generate call to create new builder, and pass result to my private constructor.
 
             _writer.Write("            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}(", StructureTypeName(nodeStructure))
 
@@ -1032,22 +1032,6 @@ Class RedNodeWriter
     Private Sub GenerateVisitorClass(withResult As Boolean)
         _writer.WriteLine("    Public MustInherit Class {0}{1}", Ident(_parseTree.VisitorName), If(withResult, "(Of TResult)", ""))
 
-        ' Basic Visit method that dispatches.
-        _writer.WriteLine("        Public Overridable {0} Visit(ByVal node As SyntaxNode){1}",
-                          If(withResult, "Function", "Sub"),
-                          If(withResult, " As TResult", ""))
-        _writer.WriteLine("            If node Is Nothing")
-        _writer.WriteLine("                Return{0}", If(withResult, " Nothing", ""))
-        _writer.WriteLine("            End If")
-        _writer.WriteLine("")
-        _writer.WriteLine("            {0}DirectCast(node, VisualBasicSyntaxNode).Accept(Me){1}", If(withResult, "Return ", ""), If(withResult, "", ": Return"))
-        _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
-
-        _writer.WriteLine("        Public Overridable {0} DefaultVisit(ByVal node As SyntaxNode){1}",
-                          If(withResult, "Function", "Sub"),
-                          If(withResult, " As TResult", ""))
-        _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
-
         For Each nodeStructure In _parseTree.NodeStructures.Values
             If Not nodeStructure.Abstract Then
                 GenerateVisitorMethod(nodeStructure, withResult)
@@ -1111,7 +1095,7 @@ Class RedNodeWriter
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
         Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
 
-        ' create anyChanges varialbe
+        ' create anyChanges variable
         _writer.WriteLine("            Dim anyChanges As Boolean = False")
         _writer.WriteLine()
 

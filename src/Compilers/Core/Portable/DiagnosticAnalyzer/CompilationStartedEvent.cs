@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// The first event placed into a compilation's event queue.
     /// </summary>
-    public sealed class CompilationStartedEvent : CompilationEvent
+    internal sealed class CompilationStartedEvent : CompilationEvent
     {
         public CompilationStartedEvent(Compilation compilation) : base(compilation) { }
         public override string ToString()

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Test limitation:
             // When constructing INameObject with CANOF.PARSE_DISPLAY_NAME option,
             // the Version=* is treated as unspecified version. That's also done by TryParseDisplayName,
-            // but outside of TryPartseVersion, which we are testing here.
+            // but outside of TryParseVersion, which we are testing here.
             if (value == "*")
             {
                 Assert.Equal((AssemblyIdentityParts)0, fusionParts);
@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string dnFull = id.GetDisplayName(fullKey: true);
             Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKey=" + StrPublicKey1, dnFull);
+
+            id = new AssemblyIdentity("Foo", cultureName: "neutral");
+            Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
+
+            id = new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  ");
+            Assert.Equal(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null", id.GetDisplayName());
         }
 
         [Fact]
@@ -298,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseSimpleName("  A  ", "A");
             TestParseSimpleName("  A, Version=1.0.0.0", "A");
             TestParseSimpleName("A  , Version=1.0.0.0", "A");
-            TestParseSimpleName(  "A  , Version=1.0.0.0", "A");
+            TestParseSimpleName("A  , Version=1.0.0.0", "A");
 
             // invalid characters:
             foreach (var c in ClrInvalidCharacters)
@@ -373,12 +379,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new AssemblyIdentity("foo", new Version(1, 0, 0, 0)), NVC);
 
             TestParseDisplayName("foo, Version=1.0.0.0, Culture=en-US, Retargetable=Yes, PublicKeyToken=" + StrPublicKeyToken1,
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), "en-US", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: true), 
+                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), "en-US", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: true),
                 NVCT | AssemblyIdentityParts.Retargetability);
 
             TestParseDisplayName("foo, PublicKey=" + StrPublicKey1 + ", Version=1.0.0.1",
                 new AssemblyIdentity("foo", new Version(1, 0, 0, 1), publicKeyOrToken: RoPublicKey1, hasPublicKey: true),
                 NVK);
+
+            TestParseDisplayName(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null",
+                new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  "),
+                NVCT);
 
             // duplicates
             TestParseDisplayName("foo, Version=1.0.0.0, Version=1.0.0.0", null);
@@ -441,7 +451,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseVersion("1.2.3.4", 1, 2, 3, 4, AssemblyIdentityParts.VersionMajor | AssemblyIdentityParts.VersionMinor | AssemblyIdentityParts.VersionBuild | AssemblyIdentityParts.VersionRevision);
             TestParseVersionInvalid("1. 2.3.4");
             TestParseVersionInvalid("1.2.3. 4");
-            TestParseVersion("65535.65535.65535.65535", 65535, 65535, 65535, 65535, 
+            TestParseVersion("65535.65535.65535.65535", 65535, 65535, 65535, 65535,
                 AssemblyIdentityParts.VersionMajor | AssemblyIdentityParts.VersionMinor | AssemblyIdentityParts.VersionBuild | AssemblyIdentityParts.VersionRevision);
             TestParseVersionInvalid("65535.65535.65535.65536");
 
@@ -450,7 +460,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseVersion("1.2.*", 1, 2, 0, 0, AssemblyIdentityParts.VersionMajor | AssemblyIdentityParts.VersionMinor | AssemblyIdentityParts.VersionBuild);
             TestParseVersion("1.2.3.*", 1, 2, 3, 0, AssemblyIdentityParts.Version);
             TestParseVersion("1.*.2.*", 1, 0, 2, 0, AssemblyIdentityParts.Version);
-            
+
             TestParseVersionInvalid("1.2.3.4.");
             TestParseVersionInvalid("1.2.3.4.5");
         }
@@ -469,7 +479,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         foreach (var part4 in possibleParts)
                         {
                             TestParseVersion(
-                                (part1 ?? "") + 
+                                (part1 ?? "") +
                                 (part2 != null ? "." + part2 : "") +
                                 (part3 != null ? "." + part3 : "") +
                                 (part4 != null ? "." + part4 : ""));
@@ -500,6 +510,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("foo, Culture=*", new AssemblyIdentity("foo"), N);
 
             TestParseDisplayName("foo, Culture=*, Culture=en-US, Version=1.0.0.1", null);
+
+            TestParseDisplayName("Foo, Version=1.0.0.0, Culture='neutral', PublicKeyToken=null",
+                new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), cultureName: null), NVCT);
         }
 
         [Fact]
@@ -579,7 +592,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
 
             TestParseDisplayName("foo, Version=1.0.0.1, Retargetable=No",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV | AssemblyIdentityParts.Retargetability, 
+                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV | AssemblyIdentityParts.Retargetability,
                 expectedFusion: null);
 
             TestParseDisplayName("foo, Version=1.0.0.1, retargetable=YEs",

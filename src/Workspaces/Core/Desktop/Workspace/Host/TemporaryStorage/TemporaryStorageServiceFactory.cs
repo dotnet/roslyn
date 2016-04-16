@@ -2,7 +2,9 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         internal class TemporaryStorageService : ITemporaryStorageService
         {
-            private readonly ITextFactoryService textFactory;
-            private readonly MemoryMappedFileManager memoryMappedFileManager = new MemoryMappedFileManager();
+            private readonly ITextFactoryService _textFactory;
+            private readonly MemoryMappedFileManager _memoryMappedFileManager = new MemoryMappedFileManager();
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
-                this.textFactory = textFactory;
+                _textFactory = textFactory;
             }
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
@@ -47,38 +49,46 @@ namespace Microsoft.CodeAnalysis.Host
 
             private class TemporaryTextStorage : ITemporaryTextStorage
             {
-                private readonly TemporaryStorageService service;
-                private MemoryMappedInfo memoryMappedInfo;
+                private readonly TemporaryStorageService _service;
+                private Encoding _encoding;
+                private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
                 {
-                    this.service = service;
+                    _service = service;
                 }
 
                 public void Dispose()
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         // Destructors of SafeHandle and FileStream in MemoryMappedFile
                         // will eventually release resources if this Dispose is not called
                         // explicitly
-                        memoryMappedInfo.Dispose();
-                        memoryMappedInfo = null;
+                        _memoryMappedInfo.Dispose();
+                        _memoryMappedInfo = null;
+                    }
+
+                    if (_encoding != null)
+                    {
+                        _encoding = null;
                     }
                 }
 
                 public SourceText ReadText(CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo == null)
+                    if (_memoryMappedInfo == null)
                     {
                         throw new InvalidOperationException();
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
-                        using (var stream = memoryMappedInfo.CreateReadableStream())
+                        using (var stream = _memoryMappedInfo.CreateReadableStream())
+                        using (var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length, cancellationToken))
                         {
-                            return this.service.textFactory.CreateText(stream, Encoding.Unicode, cancellationToken);
+                            // we pass in encoding we got from original source text even if it is null.
+                            return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                         }
                     }
                 }
@@ -100,20 +110,22 @@ namespace Microsoft.CodeAnalysis.Host
 
                 public void WriteText(SourceText text, CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException();
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
-                        var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
+                        _encoding = text.Encoding;
 
-                        using (var stream = memoryMappedInfo.CreateWritableStream())
+                        // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
+                        var size = Encoding.Unicode.GetMaxByteCount(text.Length);
+                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+
+                        // Write the source text out as Unicode. We expect that to be cheap.
+                        using (var stream = _memoryMappedInfo.CreateWritableStream())
                         {
-                            // PERF: Don't call text.Write(writer) directly since it can cause multiple large string
-                            // allocations from String.Substring.  Instead use one of our pooled char[] buffers.
                             using (var writer = new StreamWriter(stream, Encoding.Unicode))
                             {
                                 text.Write(writer, cancellationToken);
@@ -127,33 +139,96 @@ namespace Microsoft.CodeAnalysis.Host
                     // See commentary in ReadTextAsync for why this is implemented this way.
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
+
+                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength, CancellationToken cancellationToken)
+                {
+                    char* src = (char*)accessor.GetPointer();
+
+                    // BOM: Unicode, little endian
+                    // Skip the BOM when creating the reader
+                    Debug.Assert(*src == 0xFEFF);
+
+                    return new DirectMemoryAccessStreamReader(src + 1, streamLength / sizeof(char) - 1);
+                }
+
+                private unsafe class DirectMemoryAccessStreamReader : TextReader
+                {
+                    private char* _position;
+                    private readonly char* _end;
+
+                    public DirectMemoryAccessStreamReader(char* src, int length)
+                    {
+                        Debug.Assert(src != null);
+                        Debug.Assert(length >= 0);
+
+                        _position = src;
+                        _end = _position + length;
+                    }
+
+                    public override int Read()
+                    {
+                        if (_position >= _end)
+                        {
+                            return -1;
+                        }
+
+                        return *_position++;
+                    }
+
+                    public override int Read(char[] buffer, int index, int count)
+                    {
+                        if (buffer == null)
+                        {
+                            throw new ArgumentNullException(nameof(buffer));
+                        }
+
+                        if (index < 0 || index >= buffer.Length)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(index));
+                        }
+
+                        if (count < 0 || (index + count) > buffer.Length)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(count));
+                        }
+
+                        count = Math.Min(count, (int)(_end - _position));
+                        if (count > 0)
+                        {
+                            Marshal.Copy((IntPtr)_position, buffer, index, count);
+                            _position += count;
+                        }
+
+                        return count;
+                    }
+                }
             }
 
             private class TemporaryStreamStorage : ITemporaryStreamStorage
             {
-                private readonly TemporaryStorageService service;
-                private MemoryMappedInfo memoryMappedInfo;
+                private readonly TemporaryStorageService _service;
+                private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryStreamStorage(TemporaryStorageService service)
                 {
-                    this.service = service;
+                    _service = service;
                 }
 
                 public void Dispose()
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         // Destructors of SafeHandle and FileStream in MemoryMappedFile
                         // will eventually release resources if this Dispose is not called
                         // explicitly
-                        memoryMappedInfo.Dispose();
-                        memoryMappedInfo = null;
+                        _memoryMappedInfo.Dispose();
+                        _memoryMappedInfo = null;
                     }
                 }
 
                 public Stream ReadStream(CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo == null)
+                    if (_memoryMappedInfo == null)
                     {
                         throw new InvalidOperationException();
                     }
@@ -162,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        return memoryMappedInfo.CreateReadableStream();
+                        return _memoryMappedInfo.CreateReadableStream();
                     }
                 }
 
@@ -186,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
                 {
-                    if (memoryMappedInfo != null)
+                    if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException(WorkspacesResources.TemporaryStorageCannotBeWrittenMultipleTimes);
                     }
@@ -199,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
-                        memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
-                        using (var viewStream = memoryMappedInfo.CreateWritableStream())
+                        _memoryMappedInfo = _service._memoryMappedFileManager.CreateViewInfo(size);
+                        using (var viewStream = _memoryMappedInfo.CreateWritableStream())
                         {
                             var buffer = SharedPools.ByteArray.Allocate();
                             try
@@ -236,3 +311,4 @@ namespace Microsoft.CodeAnalysis.Host
         }
     }
 }
+

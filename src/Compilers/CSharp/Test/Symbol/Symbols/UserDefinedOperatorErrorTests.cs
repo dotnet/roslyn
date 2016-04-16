@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class CompilationErrorTests : CompilingTestBase
     {
-
         [Fact]
         public void UserDefinedOperatorCollisionErrors()
         {
@@ -53,7 +52,7 @@ class C
     private class op_Multiply {} 
 
     // These two collide because they have different return types but
-    // identical parameters types. The behaviour is that the error
+    // identical parameters types. The behavior is that the error
     // given says that they collide because of the name op_Modulus,
     // rather than there being a custom error message as there is for
     // the following scenario.
@@ -151,7 +150,7 @@ class H
         [Fact]
         public void UserDefinedOperatorBodyErrors()
         {
-            // User-defined operators have the same behaviour as other methods;
+            // User-defined operators have the same behavior as other methods;
             // for example, they must return a value compatible with their declared
             // return type and have an unreachable end point.
 
@@ -270,7 +269,7 @@ public class C
 }
 ";
             // UNDONE: Roslyn squiggles just the "operator"; Native compiler squiggles the "operator +".
-            // UNDONE: Consider matching the native compiler behaviour, or, even better, squiggle the
+            // UNDONE: Consider matching the native compiler behavior, or, even better, squiggle the
             // UNDONE: offending type.
 
             var comp = CreateCompilationWithMscorlib(text);
@@ -286,7 +285,7 @@ Diagnostic(ErrorCode.ERR_BadVisOpParam, "-").WithArguments("C.operator -(C, C.D)
 // (8,37): error CS0057: Inconsistent accessibility: parameter type 'C.D' is less accessible than operator 'C.explicit operator C(C.D)'
 //     public static explicit operator C(D d) { return null; }
 Diagnostic(ErrorCode.ERR_BadVisOpParam, "C").WithArguments("C.explicit operator C(C.D)", "C.D")
-                
+
                 );
         }
 
@@ -320,11 +319,8 @@ Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>",
 
 // (7,50): error CS0452: The type 'decimal' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.D<T>'
 //     public static explicit operator C(D<decimal> d) { return null; }
-Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>", "T", "decimal")             
+Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d").WithArguments("C.D<T>", "T", "decimal")
                 );
-
         }
-
-
     }
 }

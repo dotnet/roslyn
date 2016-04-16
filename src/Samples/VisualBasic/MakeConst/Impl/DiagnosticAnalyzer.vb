@@ -1,16 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Text
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class DiagnosticAnalyzer
+Friend Class DiagnosticAnalyzer
     ' Implementing syntax node analyzer because the make const diagnostics in one method body are not dependent on the contents of other method bodies.
     Inherits Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer
 

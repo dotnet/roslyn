@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: Handle dynamic operand type and target type
 
-            if (!inExpressionLambda)
+            if (!_inExpressionLambda)
             {
                 ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversion.Kind, rewrittenOperand.ConstantValue);
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: rewrittenOperand.Syntax,
                             rewrittenOperand: rewrittenOperand,
                             conversionKind: ConversionKind.Boxing,
-                            rewrittenType: compilation.GetSpecialType(SpecialType.System_Object),
+                            rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
                             @checked: false);
                     }
 

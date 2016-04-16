@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis
     internal static class SpecialTypes
     {
         /// <summary>
-        /// Array of names for types from Cor Libraray.
+        /// Array of names for types from Cor Library.
         /// The names should correspond to ids from TypeId enum so
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] emittedNames = new string[]
+        private static readonly string[] s_emittedNames = new string[]
         {
             // The following things should be in sync:
             // 1) SpecialType enum
@@ -67,71 +67,70 @@ namespace Microsoft.CodeAnalysis
             "System.AsyncCallback",
         };
 
-        private readonly static Dictionary<string, SpecialType> nameToTypeIdMap;
+        private readonly static Dictionary<string, SpecialType> s_nameToTypeIdMap;
 
-        private static readonly Microsoft.Cci.PrimitiveTypeCode[] typeIdToTypeCodeMap;
-        private static readonly SpecialType[] typeCodeToTypeIdMap;
+        private static readonly Microsoft.Cci.PrimitiveTypeCode[] s_typeIdToTypeCodeMap;
+        private static readonly SpecialType[] s_typeCodeToTypeIdMap;
 
         static SpecialTypes()
         {
-            nameToTypeIdMap = new Dictionary<string, SpecialType>((int)SpecialType.Count);
+            s_nameToTypeIdMap = new Dictionary<string, SpecialType>((int)SpecialType.Count);
 
             int i;
 
-            for (i = 1; i < emittedNames.Length; i++)
+            for (i = 1; i < s_emittedNames.Length; i++)
             {
-                Debug.Assert(emittedNames[i].IndexOf('+') < 0); // Compilers aren't prepared to lookup for a nested special type.
-                nameToTypeIdMap.Add(emittedNames[i], (SpecialType)i);
+                Debug.Assert(s_emittedNames[i].IndexOf('+') < 0); // Compilers aren't prepared to lookup for a nested special type.
+                s_nameToTypeIdMap.Add(s_emittedNames[i], (SpecialType)i);
             }
 
-            typeIdToTypeCodeMap = new Microsoft.Cci.PrimitiveTypeCode[(int)SpecialType.Count + 1];
+            s_typeIdToTypeCodeMap = new Microsoft.Cci.PrimitiveTypeCode[(int)SpecialType.Count + 1];
 
-            for (i = 0; i < typeIdToTypeCodeMap.Length; i++)
+            for (i = 0; i < s_typeIdToTypeCodeMap.Length; i++)
             {
-                typeIdToTypeCodeMap[i] = Microsoft.Cci.PrimitiveTypeCode.NotPrimitive;
+                s_typeIdToTypeCodeMap[i] = Microsoft.Cci.PrimitiveTypeCode.NotPrimitive;
             }
 
-            typeIdToTypeCodeMap[(int)SpecialType.System_Boolean] = Microsoft.Cci.PrimitiveTypeCode.Boolean;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Char] = Microsoft.Cci.PrimitiveTypeCode.Char;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Void] = Microsoft.Cci.PrimitiveTypeCode.Void;
-            typeIdToTypeCodeMap[(int)SpecialType.System_String] = Microsoft.Cci.PrimitiveTypeCode.String;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Int64] = Microsoft.Cci.PrimitiveTypeCode.Int64;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Int32] = Microsoft.Cci.PrimitiveTypeCode.Int32;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Int16] = Microsoft.Cci.PrimitiveTypeCode.Int16;
-            typeIdToTypeCodeMap[(int)SpecialType.System_SByte] = Microsoft.Cci.PrimitiveTypeCode.Int8;
-            typeIdToTypeCodeMap[(int)SpecialType.System_UInt64] = Microsoft.Cci.PrimitiveTypeCode.UInt64;
-            typeIdToTypeCodeMap[(int)SpecialType.System_UInt32] = Microsoft.Cci.PrimitiveTypeCode.UInt32;
-            typeIdToTypeCodeMap[(int)SpecialType.System_UInt16] = Microsoft.Cci.PrimitiveTypeCode.UInt16;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Byte] = Microsoft.Cci.PrimitiveTypeCode.UInt8;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Single] = Microsoft.Cci.PrimitiveTypeCode.Float32;
-            typeIdToTypeCodeMap[(int)SpecialType.System_Double] = Microsoft.Cci.PrimitiveTypeCode.Float64;
-            typeIdToTypeCodeMap[(int)SpecialType.System_IntPtr] = Microsoft.Cci.PrimitiveTypeCode.IntPtr;
-            typeIdToTypeCodeMap[(int)SpecialType.System_UIntPtr] = Microsoft.Cci.PrimitiveTypeCode.UIntPtr;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Boolean] = Microsoft.Cci.PrimitiveTypeCode.Boolean;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Char] = Microsoft.Cci.PrimitiveTypeCode.Char;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Void] = Microsoft.Cci.PrimitiveTypeCode.Void;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_String] = Microsoft.Cci.PrimitiveTypeCode.String;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Int64] = Microsoft.Cci.PrimitiveTypeCode.Int64;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Int32] = Microsoft.Cci.PrimitiveTypeCode.Int32;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Int16] = Microsoft.Cci.PrimitiveTypeCode.Int16;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_SByte] = Microsoft.Cci.PrimitiveTypeCode.Int8;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_UInt64] = Microsoft.Cci.PrimitiveTypeCode.UInt64;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_UInt32] = Microsoft.Cci.PrimitiveTypeCode.UInt32;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_UInt16] = Microsoft.Cci.PrimitiveTypeCode.UInt16;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Byte] = Microsoft.Cci.PrimitiveTypeCode.UInt8;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Single] = Microsoft.Cci.PrimitiveTypeCode.Float32;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_Double] = Microsoft.Cci.PrimitiveTypeCode.Float64;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_IntPtr] = Microsoft.Cci.PrimitiveTypeCode.IntPtr;
+            s_typeIdToTypeCodeMap[(int)SpecialType.System_UIntPtr] = Microsoft.Cci.PrimitiveTypeCode.UIntPtr;
 
-            typeCodeToTypeIdMap = new SpecialType[(int)Microsoft.Cci.PrimitiveTypeCode.Invalid + 1];
+            s_typeCodeToTypeIdMap = new SpecialType[(int)Microsoft.Cci.PrimitiveTypeCode.Invalid + 1];
 
-            for (i = 0; i < typeCodeToTypeIdMap.Length; i++)
+            for (i = 0; i < s_typeCodeToTypeIdMap.Length; i++)
             {
-                typeCodeToTypeIdMap[i] = SpecialType.None;
+                s_typeCodeToTypeIdMap[i] = SpecialType.None;
             }
 
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Boolean] = SpecialType.System_Boolean;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Char] = SpecialType.System_Char;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Void] = SpecialType.System_Void;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.String] = SpecialType.System_String;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int64] = SpecialType.System_Int64;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int32] = SpecialType.System_Int32;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int16] = SpecialType.System_Int16;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int8] = SpecialType.System_SByte;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt64] = SpecialType.System_UInt64;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt32] = SpecialType.System_UInt32;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt16] = SpecialType.System_UInt16;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt8] = SpecialType.System_Byte;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Float32] = SpecialType.System_Single;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Float64] = SpecialType.System_Double;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.IntPtr] = SpecialType.System_IntPtr;
-            typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UIntPtr] = SpecialType.System_UIntPtr;
-
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Boolean] = SpecialType.System_Boolean;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Char] = SpecialType.System_Char;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Void] = SpecialType.System_Void;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.String] = SpecialType.System_String;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int64] = SpecialType.System_Int64;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int32] = SpecialType.System_Int32;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int16] = SpecialType.System_Int16;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Int8] = SpecialType.System_SByte;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt64] = SpecialType.System_UInt64;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt32] = SpecialType.System_UInt32;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt16] = SpecialType.System_UInt16;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UInt8] = SpecialType.System_Byte;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Float32] = SpecialType.System_Single;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.Float64] = SpecialType.System_Double;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.IntPtr] = SpecialType.System_IntPtr;
+            s_typeCodeToTypeIdMap[(int)Microsoft.Cci.PrimitiveTypeCode.UIntPtr] = SpecialType.System_UIntPtr;
         }
 
         /// <summary>
@@ -139,14 +138,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static string GetMetadataName(this SpecialType id)
         {
-            return emittedNames[(int)id];
+            return s_emittedNames[(int)id];
         }
 
         public static SpecialType GetTypeFromMetadataName(string metadataName)
         {
             SpecialType id;
 
-            if (nameToTypeIdMap.TryGetValue(metadataName, out id))
+            if (s_nameToTypeIdMap.TryGetValue(metadataName, out id))
             {
                 return id;
             }
@@ -156,12 +155,12 @@ namespace Microsoft.CodeAnalysis
 
         public static SpecialType GetTypeFromMetadataName(Microsoft.Cci.PrimitiveTypeCode typeCode)
         {
-            return typeCodeToTypeIdMap[(int)typeCode];
+            return s_typeCodeToTypeIdMap[(int)typeCode];
         }
 
         public static Microsoft.Cci.PrimitiveTypeCode GetTypeCode(SpecialType typeId)
         {
-            return typeIdToTypeCodeMap[(int)typeId];
+            return s_typeIdToTypeCodeMap[(int)typeId];
         }
     }
 }

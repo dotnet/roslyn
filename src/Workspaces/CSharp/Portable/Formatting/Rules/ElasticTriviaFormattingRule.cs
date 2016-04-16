@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return operation;
             }
 
-            var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers((SyntaxToken)previousToken, (SyntaxToken)currentToken);
+            var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken);
             if (betweenMemberOperation != null)
             {
                 return betweenMemberOperation;
@@ -189,7 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // the first one is a comment, add two more lines than existing number of lines
                 var numberOfLines = GetNumberOfLines(triviaList);
-                return CreateAdjustNewLinesOperation(numberOfLines + 2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
+                var numberOfLinesBeforeComment = GetNumberOfLines(triviaList.Take(triviaList.IndexOf(firstNonWhitespaceTrivia)));
+                var addedLines = (numberOfLinesBeforeComment < 1) ? 2 : 1;
+                return CreateAdjustNewLinesOperation(numberOfLines + addedLines, AdjustNewLinesOption.ForceLines);
             }
 
             // If we have two members of the same kind, we won't insert a blank line if both members
@@ -255,6 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // ex) new line operation says add 1 line between tokens, and 
                 //     space operation says give 1 space between two tokens (basically means remove new lines)
                 //     then, engine will pick new line operation and ignore space operation
+
+                // make attributes have a space following
+                if (previousToken.IsKind(SyntaxKind.CloseBracketToken) && previousToken.Parent is AttributeListSyntax
+                    && !(currentToken.Parent is AttributeListSyntax))
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
 
                 // make every operation forced
                 return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), AdjustSpacesOption.ForceSpaces);
@@ -444,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
-        private int GetNumberOfLines(SyntaxTriviaList triviaList)
+        private int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
         {
             return triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
         }

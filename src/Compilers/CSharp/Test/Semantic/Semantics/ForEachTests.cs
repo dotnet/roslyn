@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -77,7 +78,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NullNotValid, "NULL"));
         }
 
-        [WorkItem(540957, "DevDiv")]
+        [WorkItem(540957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540957")]
         [Fact]
         public void TestErrorDefaultOfArrayType()
         {
@@ -1049,7 +1050,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Console").WithArguments("System.Console", "type"));
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachLoopWithSyntaxErrors()
         {
@@ -1079,7 +1080,7 @@ public class ExtensionMethodTest
             Assert.NotEmpty(CreateCompilationWithMscorlib(source).GetDiagnostics());
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverVoidArray1()
         {
@@ -1101,7 +1102,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverVoidArray2()
         {
@@ -1129,7 +1130,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("?", "int"));
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachWithVoidIterationVariable()
         {
@@ -1154,7 +1155,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "void"));
         }
 
-        [WorkItem(545123, "DevDiv")]
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
         [Fact]
         public void TestErrorForEachOverErrorTypeArray()
         {
@@ -1808,7 +1809,7 @@ interface MyEnumerator
         }
 
         // Copied from TestSuccessPatternStruct - only change is that Foo parameter is now nullable.
-        [WorkItem(544908, "DevDiv")]
+        [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         [Fact]
         public void TestSuccessNullableCollection()
         {
@@ -1853,7 +1854,7 @@ struct Enumerator
             Assert.Equal("Enumerable", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
 
-        [WorkItem(542193, "DevDiv")]
+        [WorkItem(542193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542193")]
         [Fact]
         public void ForEachStmtWithSyntaxError1()
         {
@@ -1891,7 +1892,7 @@ public class Test
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
-        [WorkItem(545489, "DevDiv")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachOnErrorTypesWithoutReferences()
         {
@@ -1913,7 +1914,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(545489, "DevDiv")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachWithoutCorlib_Array()
         {
@@ -1933,7 +1934,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(545489, "DevDiv")]
+        [WorkItem(545489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545489")]
         [Fact]
         public void ForEachWithoutCorlib_String()
         {
@@ -1952,7 +1953,7 @@ public class Test
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(545186, "DevDiv")]
+        [WorkItem(545186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545186")]
         [Fact]
         public void TestForEachWithConditionalMethod()
         {
@@ -2001,7 +2002,7 @@ BaseEnumeratorImpl::MoveNext()";
             CompileAndVerify(source, expectedOutput: expectedOutput);
 
             // With "CONDITIONAL" defined: Fail
-            
+
             // (a) Preprocessor symbol defined through command line parse options
             var options = new CSharpParseOptions(preprocessorSymbols: ImmutableArray.Create("CONDITIONAL"), documentationMode: DocumentationMode.None);
             CreateCompilationWithMscorlib(source, parseOptions: options).VerifyDiagnostics(
@@ -2023,7 +2024,7 @@ BaseEnumeratorImpl::MoveNext()";
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new ValidBaseTest.Derived5()").WithArguments("void", "ForEachTest.ValidBaseTest.Derived5.GetEnumerator()").WithLocation(35, 31));
         }
 
-        [WorkItem(649809, "DevDiv")]
+        [WorkItem(649809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649809")]
         [Fact]
         public void ArrayOfNullableOfError()
         {
@@ -2061,7 +2062,7 @@ public struct S<T> { }
             Assert.NotEmpty(CreateCompilationWithMscorlib(source).GetDiagnostics());
         }
 
-        [WorkItem(667616, "DevDiv")]
+        [WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")]
         [Fact]
         public void PortableLibraryStringForEach()
         {
@@ -2102,7 +2103,7 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.Kind);
         }
 
-        [WorkItem(529956, "DevDiv")]
+        [WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")]
         [Fact]
         public void CastArrayToIEnumerable()
         {
@@ -2154,7 +2155,7 @@ class C
             Assert.Equal(ConversionKind.Identity, loopInfo1.CurrentConversion.Kind); // Now identity.
         }
 
-        [WorkItem(762179, "DevDiv")]
+        [WorkItem(762179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762179")]
         [Fact]
         public void MissingObjectType()
         {
@@ -2186,7 +2187,7 @@ class Element
             comp.GetDiagnostics();
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingNullableValue()
         {
@@ -2230,7 +2231,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Nullable`1", "get_Value"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumerableTGetEnumerator()
         {
@@ -2278,7 +2279,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTMoveNext()
         {
@@ -2340,7 +2341,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTCurrent()
         {
@@ -2410,7 +2411,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.Generic.IEnumerator`1", "get_Current"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorTCurrentGetter()
         {
@@ -2477,7 +2478,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.Generic.IEnumerator`1", "get_Current"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumerableGetEnumerator()
         {
@@ -2528,7 +2529,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorMoveNext()
         {
@@ -2590,7 +2591,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "MoveNext"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorCurrent()
         {
@@ -2653,7 +2654,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "get_Current"));
         }
 
-        [WorkItem(798000, "DevDiv")]
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
         [Fact]
         public void MissingIEnumeratorCurrentGetter()
         {
@@ -2713,7 +2714,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e2").WithArguments("System.Collections.IEnumerator", "get_Current"));
         }
 
-        [WorkItem(530381, "DevDiv")]
+        [WorkItem(530381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530381")]
         [Fact]
         public void BadCollectionCascadingErrors()
         {
@@ -2732,7 +2733,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(6, 26));
         }
 
-        [WorkItem(847507, "DevDiv")]
+        [WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")]
         [Fact]
         public void InferIterationVariableTypeWithErrors()
         {
@@ -2769,7 +2770,7 @@ namespace System
             Assert.Equal(localSymbolType, info.Symbol);
         }
 
-        [WorkItem(667275, "DevDiv")]
+        [WorkItem(667275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
         [Fact]
         public void Repro667275()
         {
@@ -2797,7 +2798,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "myObj").WithArguments("myClass<System.Collections.Generic.List<string>>", "GetEnumerator").WithLocation(14, 27));
         }
 
-        [WorkItem(667275, "DevDiv")]
+        [WorkItem(667275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667275")]
         [Fact]
         public void Repro667275_Simplified()
         {
@@ -2838,7 +2839,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "d").WithArguments("Dummy", "System.Collections.IEnumerable").WithLocation(27, 25));
         }
 
-        [WorkItem(963197, "DevDiv")]
+        [WorkItem(963197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/963197")]
         [Fact]
         public void Repro963197()
         {
@@ -2870,7 +2871,7 @@ class Program
             var comp = CreateCompilationWithMscorlibAndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
-            
+
             var syntaxNode = (ForEachStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachStatement).AsNode();
             var treeModel = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree);
             var memberModel = treeModel.GetMemberModel(syntaxNode);
@@ -2908,7 +2909,7 @@ class Program
             return boundNode;
         }
 
-        [WorkItem(1100741, "DevDiv")]
+        [WorkItem(1100741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100741")]
         [Fact]
         public void Bug1100741()
         {
@@ -2966,6 +2967,89 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
             var model = compilation.GetSemanticModel(tree);
 
             Assert.Null(model.GetDeclaredSymbol(node));
+        }
+
+        [Fact, WorkItem(1733, "https://github.com/dotnet/roslyn/issues/1733")]
+        public void MissingBaseType()
+        {
+            var source1 = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+public class Enumerable  
+{
+    public Enumerator GetEnumerator()
+    {
+        return default(Enumerator);
+    }
+}
+
+public struct Enumerator
+{
+    public int Current
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public bool MoveNext()
+    {
+        return false;
+    }
+}";
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            comp2.VerifyDiagnostics();
+
+            var source3 = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}
+";
+
+            var comp3 = CreateCompilation(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
+            comp3.VerifyDiagnostics();
+
+            var source4 = @"
+class Program
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable())
+        { }
+    }
+}";
+
+            var comp4 = CreateCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
+            comp4.VerifyDiagnostics(
+    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    //         foreach (var x in new Enumerable())
+    Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
+        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    //         foreach (var x in new Enumerable())
+    Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                );
         }
     }
 }

@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -14,34 +13,11 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <NeedsFakeSign>true</NeedsFakeSign>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -49,17 +25,35 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
+      <Link>Collections\ArrayBuilderExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
+      <Link>InternalUtilities\BitVector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
+      <Link>InternalUtilities\Boxes.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
-      <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+      <Link>Collections\PooledStringBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
+      <Link>InternalUtilities\CorLightup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>InternalUtilities\RelativePathResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs">
       <Link>InternalUtilities\ArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
+      <Link>InternalUtilities\CompilerOptionParseUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs">
       <Link>InternalUtilities\ConcurrentSet.cs</Link>
@@ -69,9 +63,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs">
       <Link>InternalUtilities\DecimalUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentId.cs">
-      <Link>InternalUtilities\DocumentationCommentId.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
       <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
@@ -99,7 +90,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\HashAlgorithms.cs">
       <Link>InternalUtilities\HashAlgorithms.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
@@ -116,7 +106,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>InternalUtilities\IReadOnlySet.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\PathKind.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs">
       <Link>InternalUtilities\PathKind.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
@@ -127,6 +117,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs">
       <Link>InternalUtilities\ReferenceEqualityComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
+      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
@@ -224,49 +217,50 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
       <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
+      <Link>InternalUtilities\FileUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
+      <Link>InternalUtilities\PathUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>InternalUtilities\ReflectionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\PortableShim.cs">
+      <Link>InternalUtilities\PortableShim.cs</Link>
+    </Compile>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
     <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.FxCopAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -276,13 +270,15 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
@@ -296,6 +292,8 @@
     <Compile Include="Classification\Classifier.cs" />
     <Compile Include="Classification\Classifiers\ISyntaxClassifier.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
+    <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
+    <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />
@@ -308,7 +306,10 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.DiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllLogger.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.DiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.cs" />
@@ -325,18 +326,28 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
-    <Compile Include="Editting\DeclarationKind.cs" />
-    <Compile Include="Editting\DocumentEditor.cs" />
+    <Compile Include="Diagnostics\DiagnosticData.cs" />
+    <Compile Include="Diagnostics\Extensions.cs" />
+    <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
+    <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
+    <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
+    <Compile Include="Editing\DeclarationKind.cs" />
+    <Compile Include="Editing\DocumentEditor.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
-    <Compile Include="Editting\SolutionEditor.cs" />
-    <Compile Include="Editting\SymbolEditor.cs" />
-    <Compile Include="Editting\SymbolEditorExtensions.cs" />
-    <Compile Include="Editting\SyntaxEditor.cs" />
-    <Compile Include="Editting\SyntaxEditorExtensions.cs" />
-    <Compile Include="Editting\SyntaxGenerator.cs" />
-    <Compile Include="Editting\DeclarationModifiers.cs" />
+    <Compile Include="Editing\GenerationOptions.cs" />
+    <Compile Include="Editing\GenerationOptionsProvider.cs" />
+    <Compile Include="Editing\ImportAdder.cs" />
+    <Compile Include="Editing\ImportAdderService.cs" />
+    <Compile Include="Editing\OperatorKind.cs" />
+    <Compile Include="Editing\SolutionEditor.cs" />
+    <Compile Include="Editing\SymbolEditor.cs" />
+    <Compile Include="Editing\SymbolEditorExtensions.cs" />
+    <Compile Include="Editing\SyntaxEditor.cs" />
+    <Compile Include="Editing\SyntaxEditorExtensions.cs" />
+    <Compile Include="Editing\SyntaxGenerator.cs" />
+    <Compile Include="Editing\DeclarationModifiers.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractNamedTypeSymbol.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationArrayTypeSymbol.cs" />
@@ -367,26 +378,60 @@
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeParameterSymbol.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationTypeSymbol.cs" />
     <Compile Include="CodeGeneration\SyntaxAnnotationExtensions.cs" />
-    <Compile Include="Editting\TypeConstraintKind.cs" />
+    <Compile Include="Editing\TypeConstraintKind.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
     <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
     <Compile Include="Differencing\SequenceEdit.cs" />
+    <Compile Include="ExtensionManager\IErrorReportingService.cs" />
+    <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
+    <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
+    <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="Packaging\IPackageSearchService.cs" />
+    <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
+    <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="Utilities\ArraySlice.cs" />
+    <Compile Include="Utilities\BKTree.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
+    <Compile Include="Formatting\FormattingOptionsProvider.cs" />
+    <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
+    <Compile Include="Log\IErrorLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\LogAggregator.cs" />
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
+    <Compile Include="Log\WorkspaceErrorLogger.cs" />
+    <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
+    <Compile Include="Shared\Extensions\AccessibilityUtilities.cs" />
+    <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
+    <Compile Include="Shared\Extensions\LocationExtensions.cs" />
+    <Compile Include="Shared\Extensions\MethodKindExtensions.cs" />
+    <Compile Include="Shared\Extensions\SymbolInfoExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTreeExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTriviaExtensions.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
+    <Compile Include="Shared\Utilities\SymbolEquivalenceComparer.AssemblyComparers.cs" />
     <Compile Include="Shared\Utilities\XmlFragmentParser.cs" />
     <Compile Include="Simplification\SimplificationOptionProvider.cs" />
     <Compile Include="Simplification\SimplifyTypeNameCodeAction.cs" />
+    <Compile Include="Utilities\BKTree.Edge.cs" />
+    <Compile Include="Utilities\BKTree.Node.cs" />
+    <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\SpellChecker.cs" />
+    <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
     <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
@@ -398,9 +443,7 @@
     <Compile Include="Workspace\Host\Caching\IProjectCacheService.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
-    <Compile Include="Differencing\EditScript.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Differencing\EditScript.cs" />
     <Compile Include="Differencing\LongestCommonSubsequence.cs" />
     <Compile Include="Differencing\LongestCommonSubstring.cs" />
     <Compile Include="Differencing\Match.cs" />
@@ -408,9 +451,7 @@
     <Compile Include="Differencing\TreeComparer.cs" />
     <Compile Include="ExtensionManager\AbstractExtensionManager.cs" />
     <Compile Include="ExtensionManager\IExtensionManager.cs" />
-    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs" />
     <Compile Include="ExtensionManager\ServicesLayerExtensionManager.cs" />
     <Compile Include="ExtensionOrderAttribute.cs" />
     <Compile Include="FindSymbols\Extensions.cs" />
@@ -543,14 +584,22 @@
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
+    <Compile Include="Workspace\Host\CommandLine\ICommandLineParserService.cs" />
+    <Compile Include="Workspace\Host\HostContext\HostContextService.cs" />
+    <Compile Include="Workspace\Host\HostContext\IHostContextService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
-    <Compile Include="Workspace\Host\Mef\CodeFixProviderMetadata.cs" />
+    <Compile Include="Workspace\Host\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\IMefHostExportProvider.cs" />
     <Compile Include="Workspace\Host\Mef\MefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefLanguageServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\Mef\ServiceLayer.cs" />
     <Compile Include="Workspace\Host\Documentation\IDocumentationProviderService.cs" />
+    <Compile Include="Workspace\Host\Metadata\FrameworkAssemblyPathResolverFactory.cs" />
+    <Compile Include="Workspace\Host\Metadata\IAnalyzerService.cs" />
+    <Compile Include="Workspace\Host\Metadata\IFrameworkAssemblyPathResolver.cs" />
+    <Compile Include="Workspace\Host\Metadata\MetadataReferenceCache.cs" />
+    <Compile Include="Workspace\Host\Metadata\WorkspaceMetadataFileReferenceResolver.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptionsProvider.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.AbstractRecoverableSyntaxRoot.cs" />
     <Compile Include="Workspace\Host\SyntaxTreeFactory\AbstractSyntaxTreeFactoryService.cs" />
@@ -612,9 +661,7 @@
     <Compile Include="Rename\ConflictEngine\ConflictingIdentifierTracker.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolution.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolver.cs" />
-    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs" />
     <Compile Include="Rename\ConflictEngine\DeclarationConflictHelpers.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocation.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocationType.cs" />
@@ -623,7 +670,7 @@
     <Compile Include="Rename\RenameEntityKind.cs" />
     <Compile Include="Rename\RenameLocation.cs" />
     <Compile Include="Rename\RenameLocation.ReferenceProcessing.cs" />
-    <Compile Include="Rename\RenameLocationSet.cs" />
+    <Compile Include="Rename\RenameLocations.cs" />
     <Compile Include="Rename\RenameOptions.cs" />
     <Compile Include="Rename\Renamer.cs" />
     <Compile Include="Rename\RenameRewriterParameters.cs" />
@@ -638,15 +685,6 @@
     <Compile Include="Shared\Collections\SimpleIntervalTree`1.cs" />
     <Compile Include="Shared\Collections\TextSpanIntervalIntrospector.cs" />
     <Compile Include="Shared\Extensions\ArrayExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonAccessibilityUtilities.cs" />
-    <Compile Include="Shared\Extensions\CommonLocationExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonMethodKindExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSymbolInfoExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxNodeExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxNodeOrTokenExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTokenExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTreeExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTriviaExtensions.cs" />
     <Compile Include="Shared\Extensions\ContextQuery\AbstractSyntaxContext.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\IAssemblySymbolExtensions.cs" />
@@ -669,9 +707,7 @@
     <Compile Include="Shared\Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ISolutionExtensions.cs" />
-    <Compile Include="Shared\Extensions\ISymbolExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Extensions\ISymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Accessibility.cs" />
@@ -682,9 +718,7 @@
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.AnonymousTypeRemover.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
-    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.MinimalAccessibilityVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.UnavailableTypeParameterRemover.cs" />
@@ -708,10 +742,7 @@
     <Compile Include="Shared\Extensions\TextSpanExtensions.cs" />
     <Compile Include="Shared\NormalizedTextSpanCollection.cs" />
     <Compile Include="Shared\Utilities\AliasSymbolCache.cs" />
-    <Compile Include="Shared\Utilities\BitArrayUtilities.cs" />
-    <Compile Include="Shared\Utilities\BloomFilter.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Utilities\BloomFilter.cs" />
     <Compile Include="Shared\Utilities\BloomFilter_Serialization.cs" />
     <Compile Include="Shared\Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="Shared\Utilities\DocumentationComment.cs" />
@@ -720,7 +751,6 @@
     <Compile Include="Shared\Utilities\ExtensionOrderer.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Graph.cs" />
     <Compile Include="Shared\Utilities\ExtensionOrderer.Node.cs" />
-    <Compile Include="Shared\Utilities\FindTokenHelper.cs" />
     <Compile Include="Shared\Utilities\IntegerUtilities.cs" />
     <Compile Include="Shared\Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="Shared\Utilities\Matcher.cs" />
@@ -777,16 +807,8 @@
     <Compile Include="SymbolId\SymbolKeyResolutionExtensions.cs" />
     <Compile Include="Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="Utilities\AnnotationTable.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Concat.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Empty.cs" />
-    <Compile Include="Utilities\Async\AsyncEnumerable_Select.cs" />
-    <Compile Include="Utilities\Async\IAsyncEnumerable.cs" />
-    <Compile Include="Utilities\Async\IAsyncEnumerator.cs" />
-    <Compile Include="Utilities\AsyncLazy`1.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="Utilities\AsyncSemaphore.cs" />
+    <Compile Include="Utilities\AsyncLazy`1.cs" />
+    <Compile Include="Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />
     <Compile Include="Utilities\CancellableLazy.cs" />
     <Compile Include="Utilities\CancellableLazy`1.cs" />
@@ -805,17 +827,12 @@
     <Compile Include="Utilities\LazyInitialization.cs" />
     <Compile Include="Utilities\ObjectPools\Extensions.cs" />
     <Compile Include="Utilities\ObjectPools\SharedPools.cs" />
-    <Compile Include="Utilities\SemaphoreSlimExtensions.cs" />
     <Compile Include="Utilities\SerializableBytes.cs" />
     <Compile Include="Utilities\SimpleTaskQueue.cs" />
     <Compile Include="Utilities\SpecializedTasks.cs" />
     <Compile Include="Utilities\SyntaxPath.cs" />
-    <Compile Include="Utilities\TaskExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="Utilities\TaskFactoryExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Utilities\TaskExtensions.cs" />
+    <Compile Include="Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="Utilities\TopologicalSorter.cs" />
     <Compile Include="Utilities\ValuesSources\ConstantValueSource.cs" />
     <Compile Include="Utilities\ValuesSources\ValueSource.cs" />
@@ -824,7 +841,7 @@
     <Compile Include="Utilities\Documentation\DeferredDocumentationProvider.cs" />
     <Compile Include="Utilities\Documentation\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
-    <Compile Include="Workspace\Host\Caching\RecoverableCachedObjectSource.cs" />
+    <Compile Include="Utilities\ValuesSources\RecoverableWeakValueSource.cs" />
     <Compile Include="Workspace\Host\HostLanguageServices.cs" />
     <Compile Include="Workspace\Host\HostServices.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataServiceFactory.cs" />
@@ -846,23 +863,18 @@
     <Compile Include="Workspace\Host\TemporaryStorage\TrivialTemporaryStorageService.cs" />
     <Compile Include="Workspace\Host\TextFactory\ITextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
+    <Compile Include="Workspace\Host\TextFactory\TextFactoryService.cs" />
+    <Compile Include="Workspace\Solution\ITextVersionable.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />
     <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
-    <Compile Include="Workspace\Solution\AdditionalTextDocument.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\AdditionalTextDocument.cs" />
     <Compile Include="LinkedFileDiffMerging\IMergeConflictHandler.cs" />
+    <Compile Include="Workspace\Solution\DocumentState_TreeTextSource.cs" />
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
-    <Compile Include="Workspace\Solution\TextDocumentState.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\TextDocumentState.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
-    <Compile Include="Workspace\Solution\Document.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Document.cs" />
     <Compile Include="Workspace\Solution\DocumentDiagnostic.cs" />
     <Compile Include="Workspace\Solution\DocumentId.cs" />
     <Compile Include="Workspace\Solution\DocumentInfo.cs" />
@@ -885,18 +897,12 @@
     <Compile Include="Workspace\Solution\TextDocument.cs" />
     <Compile Include="Workspace\Solution\RecoverableTextAndVersion.cs" />
     <Compile Include="Workspace\Solution\SemanticDocument.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTracker.State.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.Actions.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.cs" />
-    <Compile Include="Workspace\Solution\Solution.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Solution.cs" />
+    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeResult.cs" />
     <Compile Include="Workspace\Solution\SolutionChanges.cs" />
     <Compile Include="Workspace\Solution\SolutionId.cs" />
@@ -953,15 +959,16 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
+    <None Include="project.json">
+      <SubType>
+      </SubType>
     </None>
+    <Compile Include="Utilities\BKTree.Builder.cs" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

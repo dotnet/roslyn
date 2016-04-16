@@ -163,29 +163,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (queryClause.Kind())
             {
                 case SyntaxKind.JoinClause:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.JoinKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.JoinKeyword);
                     multiple = true;
                     break;
                 case SyntaxKind.LetClause:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.LetKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.LetKeyword);
                     break;
                 case SyntaxKind.SelectClause:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.SelectKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.SelectKeyword);
                     break;
                 case SyntaxKind.WhereClause:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.WhereKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.WhereKeyword);
                     break;
                 case SyntaxKind.OrderByClause:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.OrderByKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.OrderByKeyword);
                     multiple = true;
                     break;
                 case SyntaxKind.QueryContinuation:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.IntoKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.IntoKeyword);
                     break;
                 case SyntaxKind.GroupClause:
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.GroupKeyword) + " " +SyntaxFacts.GetText(SyntaxKind.ByKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.GroupKeyword) + " " + SyntaxFacts.GetText(SyntaxKind.ByKeyword);
                     multiple = true;
                     break;
                 case SyntaxKind.FromClause:
@@ -193,12 +193,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return;
                     }
-                    clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword); 
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword);
                     break;
                 default:
-                    clauseKind = "unknown";
-                    Debug.Assert(false, "invalid query clause kind " + queryClause.Kind());
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(queryClause.Kind());
             }
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(

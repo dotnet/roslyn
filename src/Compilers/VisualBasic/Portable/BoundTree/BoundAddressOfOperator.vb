@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundAddressOfOperator
+    Friend Partial Class BoundAddressOfOperator
 
-        Private ReadOnly m_DelegateResolutionResultCache As New ConcurrentDictionary(Of TypeSymbol, Binder.DelegateResolutionResult)()
+        Private ReadOnly _delegateResolutionResultCache As New ConcurrentDictionary(Of TypeSymbol, Binder.DelegateResolutionResult)()
 
         ''' <summary>
         ''' Gets the <see>Binder.DelegateResolutionResult</see> for the given targetType. 
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' of the AddressOf operand to the target type
         ''' </returns>
         Friend Function GetDelegateResolutionResult(targetType As TypeSymbol, ByRef delegateResolutionResult As Binder.DelegateResolutionResult) As Boolean
-            Return m_DelegateResolutionResultCache.TryGetValue(targetType, delegateResolutionResult)
+            Return _delegateResolutionResultCache.TryGetValue(targetType, delegateResolutionResult)
         End Function
 
         ''' <summary>
@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetConversionClassification(targetType As TypeSymbol) As ConversionKind
             Dim delegateResolutionResult As Binder.DelegateResolutionResult = Nothing
 
-            If Not m_DelegateResolutionResultCache.TryGetValue(targetType, delegateResolutionResult) Then
+            If Not _delegateResolutionResultCache.TryGetValue(targetType, delegateResolutionResult) Then
                 delegateResolutionResult = Binder.InterpretDelegateBinding(Me, targetType, isForHandles:=False)
-                m_DelegateResolutionResultCache.TryAdd(targetType, delegateResolutionResult)
+                _delegateResolutionResultCache.TryAdd(targetType, delegateResolutionResult)
             End If
 
             Return delegateResolutionResult.DelegateConversions

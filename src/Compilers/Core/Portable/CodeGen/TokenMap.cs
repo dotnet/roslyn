@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// a sequential number.
     /// IL gen will use these fake tokens during codegen and later, when actual token values are known
     /// the method bodies will be patched.
-    /// To support thse two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
+    /// To support these two scenarios we need two maps - Item-->uint, and uint-->Item.  (the second is really just a list).
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal sealed class TokenMap<T> where T : class
     {
-        private readonly ConcurrentDictionary<T, uint> itemIdentityToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<T, uint> _itemIdentityToToken = new ConcurrentDictionary<T, uint>(ReferenceEqualityComparer.Instance);
 
-        private readonly Dictionary<T, uint> itemToToken = new Dictionary<T, uint>();
-        private readonly ArrayBuilder<T> items = new ArrayBuilder<T>();
+        private readonly Dictionary<T, uint> _itemToToken = new Dictionary<T, uint>();
+        private readonly ArrayBuilder<T> _items = new ArrayBuilder<T>();
 
         public uint GetOrAddTokenFor(T item, out bool referenceAdded)
         {
             uint tmp;
-            if (itemIdentityToToken.TryGetValue(item, out tmp))
+            if (_itemIdentityToToken.TryGetValue(item, out tmp))
             {
                 referenceAdded = false;
                 return (uint)tmp;
@@ -45,33 +45,33 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // NOTE: cannot use GetOrAdd here since items and itemToToken must be in sync
             // so if we do need to add we have to take a lock and modify both collections.
-            lock (items)
+            lock (_items)
             {
-                if (!itemToToken.TryGetValue(item, out token))
+                if (!_itemToToken.TryGetValue(item, out token))
                 {
-                    token = (uint)items.Count;
-                    items.Add(item);
-                    itemToToken.Add(item, token);
+                    token = (uint)_items.Count;
+                    _items.Add(item);
+                    _itemToToken.Add(item, token);
                 }
             }
 
-            referenceAdded = itemIdentityToToken.TryAdd(item, token);
+            referenceAdded = _itemIdentityToToken.TryAdd(item, token);
             return token;
         }
 
         public T GetItem(uint token)
         {
-            lock (items)
+            lock (_items)
             {
-                return items[(int)token];
+                return _items[(int)token];
             }
         }
 
         public IEnumerable<T> GetAllItems()
         {
-            lock (items)
+            lock (_items)
             {
-                return items.ToArray();
+                return _items.ToArray();
             }
         }
 
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         //      should probably return ROA instead of IE and cache that in Module. (and no need to return count)
         public IEnumerable<T> GetAllItemsAndCount(out int count)
         {
-            lock (items)
+            lock (_items)
             {
-                count = items.Count;
-                return items.ToArray();
+                count = _items.Count;
+                return _items.ToArray();
             }
         }
     }

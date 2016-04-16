@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return node.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia)
                 Case SyntaxKind.SingleLineIfStatement,
                      SyntaxKind.SingleLineElseClause
-                    ' Steer clear of single-line if's because they they have custom handling of statement 
+                    ' Steer clear of single-line if's because they have custom handling of statement 
                     ' terminators that may make it difficult to reuse sub-statements.
                     Return False
                 Case Else
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Parser requires look ahead of some number of tokens
             ' beyond EOL and some number of characters back.
-            ' Expand the change range to accomodate look ahead/behind.
+            ' Expand the change range to accommodate look ahead/behind.
             Dim span = ExpandToNearestStatements(
                 _baseTreeRoot,
                 ExpandByLookAheadAndBehind(_baseTreeRoot, _change.Span))
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' As of 2013/03/14, the compiler never attempts to incrementally parse a tree containing
             ' annotations.  Our goal in instituting this restriction is to prevent API clients from
-            ' taking a depedency on the survival of annotations.
+            ' taking a dependency on the survival of annotations.
             If node.ContainsAnnotations Then
                 Return False
             End If
@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _lineBufferOffset = _lineBufferOffset + _curNodeLength
 
             ' this will just verify that we do not have any prefetched tokens, including current. 
-            ' otherwise advancing linebuffer offeset could go out of sync with token stream.
+            ' otherwise advancing line buffer offset could go out of sync with token stream.
             MyBase.MoveToNextSyntaxNodeInTrivia()
 
             TryPopNode()

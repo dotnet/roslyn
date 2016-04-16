@@ -15,26 +15,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct SyntaxTreeDiagnosticEnumerator
     {
-        private readonly SyntaxTree syntaxTree;
-        private NodeIterationStack stack;
-        private Diagnostic current;
-        private int position;
+        private readonly SyntaxTree _syntaxTree;
+        private NodeIterationStack _stack;
+        private Diagnostic _current;
+        private int _position;
         private const int DefaultStackCapacity = 8;
 
         internal SyntaxTreeDiagnosticEnumerator(SyntaxTree syntaxTree, GreenNode node, int position)
         {
-            this.syntaxTree = null;
-            this.current = null;
-            this.position = position;
+            _syntaxTree = null;
+            _current = null;
+            _position = position;
             if (node != null && node.ContainsDiagnostics)
             {
-                this.syntaxTree = syntaxTree;
-                this.stack = new NodeIterationStack(DefaultStackCapacity);
-                this.stack.PushNodeOrToken(node);
+                _syntaxTree = syntaxTree;
+                _stack = new NodeIterationStack(DefaultStackCapacity);
+                _stack.PushNodeOrToken(node);
             }
             else
             {
-                this.stack = new NodeIterationStack();
+                _stack = new NodeIterationStack();
             }
         }
 
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// enumerator was at the end of the diagnostic list.</returns>
         public bool MoveNext()
         {
-            while (this.stack.Any())
+            while (_stack.Any())
             {
-                var diagIndex = this.stack.Top.DiagnosticIndex;
-                var node = this.stack.Top.Node;
+                var diagIndex = _stack.Top.DiagnosticIndex;
+                var node = _stack.Top.Node;
                 var diags = node.GetDiagnostics();
                 if (diagIndex < diags.Length - 1)
                 {
@@ -60,17 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
                     // don't produce locations outside of tree span
-                    var length = this.syntaxTree.GetRoot().FullSpan.Length;
-                    var spanStart = Math.Min(this.position - leadingWidthAlreadyCounted + sdi.Offset, length);
+                    var length = _syntaxTree.GetRoot().FullSpan.Length;
+                    var spanStart = Math.Min(_position - leadingWidthAlreadyCounted + sdi.Offset, length);
                     var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
 
-                    current = new CSDiagnostic(sdi, new SourceLocation(this.syntaxTree, new TextSpan(spanStart, spanWidth)));
+                    _current = new CSDiagnostic(sdi, new SourceLocation(_syntaxTree, new TextSpan(spanStart, spanWidth)));
 
-                    stack.UpdateDiagnosticIndexForStackTop(diagIndex);
+                    _stack.UpdateDiagnosticIndexForStackTop(diagIndex);
                     return true;
                 }
 
-                var slotIndex = this.stack.Top.SlotIndex;
+                var slotIndex = _stack.Top.SlotIndex;
             tryAgain:
                 if (slotIndex < node.SlotCount - 1)
                 {
@@ -83,21 +83,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!child.ContainsDiagnostics)
                     {
-                        this.position += child.FullWidth;
+                        _position += child.FullWidth;
                         goto tryAgain;
                     }
 
-                    this.stack.UpdateSlotIndexForStackTop(slotIndex);
-                    this.stack.PushNodeOrToken(child);
+                    _stack.UpdateSlotIndexForStackTop(slotIndex);
+                    _stack.PushNodeOrToken(child);
                 }
                 else
                 {
                     if (node.SlotCount == 0)
                     {
-                        this.position += node.Width;
+                        _position += node.Width;
                     }
 
-                    this.stack.Pop();
+                    _stack.Pop();
                 }
             }
 
@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Diagnostic Current
         {
-            get { return this.current; }
+            get { return _current; }
         }
 
         private struct NodeIteration
         {
-            internal GreenNode Node;
+            internal readonly GreenNode Node;
             internal int DiagnosticIndex;
             internal int SlotIndex;
 
@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct NodeIterationStack
         {
-            private NodeIteration[] stack;
-            private int count;
+            private NodeIteration[] _stack;
+            private int _count;
 
             internal NodeIterationStack(int capacity)
             {
                 Debug.Assert(capacity > 0);
-                this.stack = new NodeIteration[capacity];
-                this.count = 0;
+                _stack = new NodeIteration[capacity];
+                _count = 0;
             }
 
             internal void PushNodeOrToken(GreenNode node)
@@ -169,32 +169,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Push(GreenNode node)
             {
-                if (this.count >= this.stack.Length)
+                if (_count >= _stack.Length)
                 {
-                    var tmp = new NodeIteration[this.stack.Length * 2];
-                    Array.Copy(this.stack, tmp, this.stack.Length);
-                    this.stack = tmp;
+                    var tmp = new NodeIteration[_stack.Length * 2];
+                    Array.Copy(_stack, tmp, _stack.Length);
+                    _stack = tmp;
                 }
 
-                this.stack[this.count] = new NodeIteration(node);
-                this.count++;
+                _stack[_count] = new NodeIteration(node);
+                _count++;
             }
 
             internal void Pop()
             {
-                this.count--;
+                _count--;
             }
 
             internal bool Any()
             {
-                return this.count > 0;
+                return _count > 0;
             }
 
             internal NodeIteration Top
             {
                 get
                 {
-                    return this[this.count - 1];
+                    return this[_count - 1];
                 }
             }
 
@@ -202,24 +202,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    Debug.Assert(this.stack != null);
-                    Debug.Assert(index >= 0 && index < this.count);
-                    return this.stack[index];
+                    Debug.Assert(_stack != null);
+                    Debug.Assert(index >= 0 && index < _count);
+                    return _stack[index];
                 }
             }
 
             internal void UpdateSlotIndexForStackTop(int slotIndex)
             {
-                Debug.Assert(this.stack != null);
-                Debug.Assert(this.count > 0);
-                this.stack[this.count - 1].SlotIndex = slotIndex;
+                Debug.Assert(_stack != null);
+                Debug.Assert(_count > 0);
+                _stack[_count - 1].SlotIndex = slotIndex;
             }
 
             internal void UpdateDiagnosticIndexForStackTop(int diagnosticIndex)
             {
-                Debug.Assert(this.stack != null);
-                Debug.Assert(this.count > 0);
-                this.stack[this.count - 1].DiagnosticIndex = diagnosticIndex;
+                Debug.Assert(_stack != null);
+                Debug.Assert(_count > 0);
+                _stack[_count - 1].DiagnosticIndex = diagnosticIndex;
             }
         }
     }

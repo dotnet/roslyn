@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this should be relatively uncommon
                     // most symbols that may be contained in a type
                     // know their containing type and can override ContainingType
-                    // with a more precicse implementation
+                    // with a more precise implementation
                     return containerAsType;
                 }
 
@@ -240,18 +240,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <para>
-        /// Get a source location key for sorting. For performance, it's important that this be 
+        /// Get a source location key for sorting. For performance, it's important that this
         /// be able to be returned from a symbol without doing any additional allocations (even
         /// if nothing is cached yet.)
         /// </para>
         /// <para>
-        /// Only members of source namespaces, original source types, and namespaces that can be merged
-        /// need implement this function.
+        /// Only (original) source symbols and namespaces that can be merged
+        /// need implement this function if they want to do so for efficiency.
         /// </para>
         /// </summary>
         internal virtual LexicalSortKey GetLexicalSortKey()
         {
-            throw ExceptionUtilities.Unreachable;
+            var locations = this.Locations;
+            var declaringCompilation = this.DeclaringCompilation;
+            Debug.Assert(declaringCompilation != null); // require that it is a source symbol
+            return (locations.Length > 0) ? new LexicalSortKey(locations[0], declaringCompilation) : LexicalSortKey.NotInSource;
         }
 
         /// <summary>
@@ -438,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MethodKind.ReducedExtension:
                                 break;
                             case MethodKind.Destructor:
-                                // You wouldn't think that destructors would be referencable by name, but
+                                // You wouldn't think that destructors would be referenceable by name, but
                                 // dev11 only prevents them from being invoked - they can still be assigned
                                 // to delegates.
                                 return true;
@@ -676,7 +679,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
-            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            var declaringReferences = this.DeclaringSyntaxReferences;
+            if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
+            {
+                return this.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken);
+            }
+
+            foreach (var syntaxRef in declaringReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -742,13 +751,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
-        internal void AddSemanticDiagnostics(DiagnosticBag diagnostics)
+        internal void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
-                compilation.SemanticDiagnostics.AddRange(diagnostics);
+                compilation.DeclarationDiagnostics.AddRange(diagnostics);
             }
         }
 
@@ -925,7 +934,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (CustomModifier modifier in customModifiers)
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, (TypeSymbol)modifier.Modifier))
+                var modifierType = (NamedTypeSymbol)modifier.Modifier;
+
+                // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
+                if (modifierType.IsUnboundGenericType)
+                {
+                    modifierType = modifierType.OriginalDefinition;
+                }
+
+                if (DeriveUseSiteDiagnosticFromType(ref result, modifierType))
                 {
                     return true;
                 }

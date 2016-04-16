@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class MethodSymbol :
+    internal partial class MethodSymbol :
         Cci.ITypeMemberReference,
         Cci.IMethodReference,
         Cci.IGenericMethodInstanceReference,
@@ -365,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Enforce C#'s notion of internal virtual
                 // If the method is private or internal and virtual but not final
-                // Set the new bit to indicate that it can only be overriden
+                // Set the new bit to indicate that it can only be overridden
                 // by classes that can normally access this member.
                 Accessibility accessibility = this.DeclaredAccessibility;
                 return (accessibility == Accessibility.Private ||
@@ -633,6 +634,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 CheckDefinitionInvariant();
                 return default(ImmutableArray<byte>);
+            }
+        }
+
+        Cci.INamespace Cci.IMethodDefinition.ContainingNamespace
+        {
+            get
+            {
+                return ContainingNamespace;
             }
         }
     }

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var service = document.GetLanguageService<ISymbolDeclarationService>();
             var declarations = service.GetDeclarations(container);
-            var tokens = declarations.SelectMany(r => r.GetSyntax().DescendantTokens());
+            var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
 
             var name = symbol.Name;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

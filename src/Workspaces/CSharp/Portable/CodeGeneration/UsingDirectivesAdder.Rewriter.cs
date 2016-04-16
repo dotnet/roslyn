@@ -3,15 +3,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -19,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly Document document;
-            private readonly IDictionary<SyntaxNode, IList<INamespaceSymbol>> namespacesToImport;
-            private readonly CancellationToken cancellationToken;
-            private readonly bool placeSystemNamespaceFirst;
+            private readonly Document _document;
+            private readonly IDictionary<SyntaxNode, IList<INamespaceSymbol>> _namespacesToImport;
+            private readonly CancellationToken _cancellationToken;
+            private readonly bool _placeSystemNamespaceFirst;
 
             public Rewriter(
                 Document document,
@@ -30,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 bool placeSystemNamespaceFirst,
                 CancellationToken cancellationToken)
             {
-                this.document = document;
-                this.namespacesToImport = namespacesToImport;
-                this.placeSystemNamespaceFirst = placeSystemNamespaceFirst;
-                this.cancellationToken = cancellationToken;
+                _document = document;
+                _namespacesToImport = namespacesToImport;
+                _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _cancellationToken = cancellationToken;
             }
 
             private IList<UsingDirectiveSyntax> CreateDirectives(IList<INamespaceSymbol> namespaces)
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var usingDirectives =
                     from n in namespaces
                     let displayString = n.ToDisplayString(SymbolDisplayFormats.NameFormat)
-                    let name = SyntaxFactory.ParseName(displayString)
+                    let name = SyntaxFactory.ParseName(displayString).WithAdditionalAnnotations(Simplifier.Annotation)
                     select SyntaxFactory.UsingDirective(name);
 
                 return usingDirectives.ToList();
@@ -52,18 +48,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var result = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
 
                 IList<INamespaceSymbol> namespaces;
-                if (!namespacesToImport.TryGetValue(node, out namespaces))
+                if (!_namespacesToImport.TryGetValue(node, out namespaces))
                 {
                     return result;
                 }
 
-                if (!result.CanAddUsingDirectives(cancellationToken))
+                if (!result.CanAddUsingDirectives(_cancellationToken))
                 {
                     return result;
                 }
 
                 var directives = CreateDirectives(namespaces);
-                return result.AddUsingDirectives(directives, placeSystemNamespaceFirst, Formatter.Annotation);
+                return result.AddUsingDirectives(directives, _placeSystemNamespaceFirst, Formatter.Annotation);
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
@@ -71,18 +67,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var result = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
 
                 IList<INamespaceSymbol> namespaces;
-                if (!namespacesToImport.TryGetValue(node, out namespaces))
+                if (!_namespacesToImport.TryGetValue(node, out namespaces))
                 {
                     return result;
                 }
 
-                if (!result.CanAddUsingDirectives(cancellationToken))
+                if (!result.CanAddUsingDirectives(_cancellationToken))
                 {
                     return result;
                 }
 
                 var directives = CreateDirectives(namespaces);
-                return result.AddUsingDirectives(directives, placeSystemNamespaceFirst, Formatter.Annotation);
+                return result.AddUsingDirectives(directives, _placeSystemNamespaceFirst, Formatter.Annotation);
             }
         }
     }

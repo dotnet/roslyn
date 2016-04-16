@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal partial class TriviaDataFactory
     {
-        private class FormattedComplexTrivia : TriviaDataWithList<SyntaxTrivia>
+        private class FormattedComplexTrivia : TriviaDataWithList
         {
-            private readonly CSharpTriviaFormatter formatter;
-            private readonly IList<TextChange> textChanges;
+            private readonly CSharpTriviaFormatter _formatter;
+            private readonly IList<TextChange> _textChanges;
 
             public FormattedComplexTrivia(
                 FormattingContext context,
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, spaces);
 
-                this.formatter = new CSharpTriviaFormatter(context, formattingRules, token1, token2, originalString, this.LineBreaks, this.Spaces);
-                this.textChanges = formatter.FormatToTextChanges(cancellationToken);
+                _formatter = new CSharpTriviaFormatter(context, formattingRules, token1, token2, originalString, this.LineBreaks, this.Spaces);
+                _textChanges = _formatter.FormatToTextChanges(cancellationToken);
             }
 
             public override bool TreatAsElastic
@@ -50,17 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public override bool ContainsChanges
             {
-                get { return this.textChanges.Count > 0; }
+                get { return _textChanges.Count > 0; }
             }
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
             {
-                return this.textChanges;
+                return _textChanges;
             }
 
             public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
             {
-                return this.formatter.FormatToSyntaxTrivia(cancellationToken);
+                return _formatter.FormatToSyntaxTrivia(cancellationToken);
             }
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)

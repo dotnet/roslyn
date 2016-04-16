@@ -8,33 +8,33 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class ReadOnlyUnmanagedMemoryStream : Stream
     {
-        private readonly object memoryOwner;
-        private readonly IntPtr data;
-        private readonly int length;
-        private int position;
+        private readonly object _memoryOwner;
+        private readonly IntPtr _data;
+        private readonly int _length;
+        private int _position;
 
         public ReadOnlyUnmanagedMemoryStream(object memoryOwner, IntPtr data, int length)
         {
-            this.memoryOwner = memoryOwner;
-            this.data = data;
-            this.length = length;
+            _memoryOwner = memoryOwner;
+            _data = data;
+            _length = length;
         }
 
         public unsafe override int ReadByte()
         {
-            if (position == length)
+            if (_position == _length)
             {
                 return -1;
             }
 
-            return ((byte*)data)[position++];
+            return ((byte*)_data)[_position++];
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int bytesRead = Math.Min(count, length - position);
-            Marshal.Copy(this.data + this.position, buffer, offset, bytesRead);
-            this.position += bytesRead;
+            int bytesRead = Math.Min(count, _length - _position);
+            Marshal.Copy(_data + _position, buffer, offset, bytesRead);
+            _position += bytesRead;
             return bytesRead;
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return length;
+                return _length;
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return position;
+                return _position;
             }
 
             set
@@ -99,28 +99,28 @@ namespace Microsoft.CodeAnalysis
                         break;
 
                     case SeekOrigin.Current:
-                        target = checked(offset + position);
+                        target = checked(offset + _position);
                         break;
 
                     case SeekOrigin.End:
-                        target = checked(offset + length);
+                        target = checked(offset + _length);
                         break;
 
                     default:
-                        throw new ArgumentOutOfRangeException("origin");
+                        throw new ArgumentOutOfRangeException(nameof(origin));
                 }
             }
             catch (OverflowException)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
-            if (target < 0 || target >= length)
+            if (target < 0 || target >= _length)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
-            position = (int)target;
+            _position = (int)target;
             return target;
         }
 

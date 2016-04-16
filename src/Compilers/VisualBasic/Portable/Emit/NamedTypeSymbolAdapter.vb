@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class NamedTypeSymbol
+    Friend Partial Class NamedTypeSymbol
         Implements ITypeReference
         Implements ITypeDefinition
         Implements INamedTypeReference
@@ -42,13 +42,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As EmitContext) As PrimitiveTypeCode Implements ITypeReference.TypeCode
+        Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
             Debug.Assert(Not Me.IsAnonymousType)
             Debug.Assert(Me.IsDefinitionOrDistinct())
             If Me.IsDefinition Then
                 Return Me.PrimitiveTypeCode
             End If
-            Return PrimitiveTypeCode.NotPrimitive
+            Return Cci.PrimitiveTypeCode.NotPrimitive
         End Function
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
@@ -405,32 +405,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Function
 
-        Friend Overridable Iterator Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
+        Friend Overridable Function GetInterfacesToEmit() As IEnumerable(Of NamedTypeSymbol)
             Debug.Assert(IsDefinition)
             Debug.Assert(TypeOf ContainingModule Is SourceModuleSymbol)
 
+            ' Synthesized implements should go first. Currently they are used only by
+            ' ComClass feature, which depends on the order of implemented interfaces.
             Dim synthesized As IEnumerable(Of NamedTypeSymbol) = GetSynthesizedImplements()
-            If synthesized IsNot Nothing Then
-                ' Synthesized implements should go first. Currently they are used only by
-                ' ComClass feature, which depends on the order of implemented interfaces.
-                For Each [interface] In synthesized
-                    Yield [interface]
-                Next
-            End If
 
             ' If this type implements I, and the base class also implements interface I, and this class
             ' does not implement all the members of I, then do not emit I as an interface. This prevents
             ' the CLR from using implicit interface implementation.
-            Dim base = Me.BaseTypeNoUseSiteDiagnostics
-            Dim result = From i In Me.InterfacesNoUseSiteDiagnostics
-                         Where Not (base IsNot Nothing AndAlso
-                                    base.ImplementsInterface(i, Nothing) AndAlso
-                                    Not Me.ImplementsAllMembersOfInterface(i))
-                         Select i
+            Dim interfaces = Me.InterfacesNoUseSiteDiagnostics
+            If interfaces.IsEmpty Then
+                Return If(synthesized, SpecializedCollections.EmptyEnumerable(Of NamedTypeSymbol)())
+            End If
 
-            For Each [interface] In result
-                Yield [interface]
-            Next
+            Dim base = Me.BaseTypeNoUseSiteDiagnostics
+            Dim result As IEnumerable(Of NamedTypeSymbol) =
+                interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
+                                     Return Not (base IsNot Nothing AndAlso
+                                                 base.ImplementsInterface(sym, Nothing) AndAlso
+                                                 Not Me.ImplementsAllMembersOfInterface(sym))
+                                 End Function)
+
+            Return If(synthesized Is Nothing, result, synthesized.Concat(result))
         End Function
 
         Private ReadOnly Property ITypeDefinitionIsAbstract As Boolean Implements ITypeDefinition.IsAbstract
@@ -813,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 'Debug.Assert(((ITypeReference)this).AsNamespaceTypeDefinition != null);
                 CheckDefinitionInvariant()
-                Return Me.DeclaredAccessibility = Accessibility.Public
+                Return PEModuleBuilder.MemberVisibility(Me) = Cci.TypeMemberVisibility.Public
             End Get
         End Property
 
@@ -855,9 +854,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
 
+            Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
+
+            If Me.HasTypeArgumentsCustomModifiers Then
+                modifiers = Me.TypeArgumentsCustomModifiers
+            End If
+
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
-            For Each t In Me.TypeArgumentsNoUseSiteDiagnostics
-                builder.Add(moduleBeingBuilt.Translate(t, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics))
+            Dim arguments = Me.TypeArgumentsNoUseSiteDiagnostics
+            For i As Integer = 0 To arguments.Length - 1
+                Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+
+                If Not modifiers.IsDefault AndAlso Not modifiers(i).IsDefaultOrEmpty Then
+                    arg = New Cci.ModifiedTypeReference(arg, modifiers(i).As(Of Cci.ICustomModifier))
+                End If
+
+                builder.Add(arg)
             Next
 
             Return builder.ToImmutableAndFree

@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class DataFlowPass
+    internal partial class DataFlowPass
     {
         protected struct VariableIdentifier : IEquatable<VariableIdentifier>
         {

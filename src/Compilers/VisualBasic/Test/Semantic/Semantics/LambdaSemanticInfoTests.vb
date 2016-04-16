@@ -639,7 +639,7 @@ End Module
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(544647, "DevDiv")>
+        <Fact, WorkItem(544647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544647")>
         Public Sub InvokeGenericOverloadedMethod()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -678,7 +678,7 @@ End Module
             Assert.NotNull(info.Symbol)
         End Sub
 
-        <Fact, WorkItem(566495, "DevDiv")>
+        <Fact, WorkItem(566495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566495")>
         Public Sub Bug566495()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
         <compilation>
@@ -738,7 +738,7 @@ BC30203: Identifier expected.
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_01()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -765,7 +765,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_02()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -791,7 +791,7 @@ End Class
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
         End Sub
 
-        <Fact, WorkItem(960755, "DevDiv")>
+        <Fact, WorkItem(960755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/960755")>
         Public Sub Bug960755_03()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -819,6 +819,154 @@ End Class
             Assert.Equal("Sub System.Collections.Generic.ICollection(Of C).Add(item As C)", symbolInfo.Symbol.ToTestDisplayString())
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
+        Public Sub ParameterReference_01()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Function stuff() As Func(Of Program, String)
+        Return Function(a) a.
+    End Function
+
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Return Function(a) a.
+                             ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
+        Public Sub ParameterReference_02()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        M1(Function(a) a.)
+    End Sub
+
+    Sub M1(l as Func(Of Program, String))
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        M1(Function(a) a.)
+                         ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
+        Public Sub ParameterReference_03()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        Dim l as Func(Of Program, String) = Function(a) a.
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Dim l as Func(Of Program, String) = Function(a) a.
+                                                          ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString().Trim())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1179899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1179899")>
+        Public Sub ParameterReference_04()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="InstantiatingNamespace">
+        <file name="a.vb">
+Imports System
+
+Class Program
+    Shared Sub Main(args As String())
+    End Sub
+
+    Sub stuff()
+        Dim l = CType(Function(a) a. , Func(Of Program, String))
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC30203: Identifier expected.
+        Dim l = CType(Function(a) a. , Func(Of Program, String))
+                                     ~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "a").Single()
+
+            Assert.Equal("a.", node.Parent.ToString().Trim())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+
+            Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
     End Class

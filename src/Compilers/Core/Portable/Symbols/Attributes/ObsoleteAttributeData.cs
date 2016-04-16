@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class ObsoleteAttributeData
     {
-        private readonly string message;
-        private readonly bool isError;
+        private readonly string _message;
+        private readonly bool _isError;
         public static readonly ObsoleteAttributeData Uninitialized = new ObsoleteAttributeData();
 
         private ObsoleteAttributeData() : this(null, false)
@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis
 
         public ObsoleteAttributeData(string message, bool isError)
         {
-            this.message = message;
-            this.isError = isError;
+            _message = message;
+            _isError = isError;
         }
 
         /// <summary>
         /// True if an error should be thrown for the <see cref="ObsoleteAttribute"/>. Default is false in which case
         /// a warning is thrown.
         /// </summary>
-        public bool IsError { get { return isError; } }
+        public bool IsError { get { return _isError; } }
 
         /// <summary>
         /// The message that will be shown when an error/warning is created for <see cref="ObsoleteAttribute"/>.
         /// </summary>
-        public string Message { get { return message; } }
+        public string Message { get { return _message; } }
 
         internal bool IsUninitialized
         {

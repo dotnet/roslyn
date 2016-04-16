@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
-    partial class CodeGenerator
+    internal partial class CodeGenerator
     {
         private void EmitUnaryOperatorExpression(BoundUnaryOperator expression, bool used)
         {
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (operatorKind.Operator())
             {
                 case UnaryOperatorKind.UnaryMinus:
-                    builder.EmitOpCode(ILOpCode.Neg);
+                    _builder.EmitOpCode(ILOpCode.Neg);
                     break;
 
                 case UnaryOperatorKind.BitwiseComplement:
-                    builder.EmitOpCode(ILOpCode.Not);
+                    _builder.EmitOpCode(ILOpCode.Not);
                     break;
 
                 case UnaryOperatorKind.UnaryPlus:
@@ -59,104 +60,185 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (operatorKind.EmitsAsCheckedInstruction())
             {
-                EmitBinaryCheckedOperatorExpression(expression, used);
-                return;
-            }
-
-            // if operator does not have sideeffects itself and is not shortcircuiting
-            // we can simply emit sideefects from the first operand and then from the second one
-            if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
-            {
-                EmitExpression(expression.Left, false);
-                EmitExpression(expression.Right, false);
-                return;
-            }
-
-            if (IsConditional(operatorKind))
-            {
-                EmitBinaryCondOperator(expression, true);
+                EmitBinaryOperator(expression);
             }
             else
             {
-                EmitBinaryArithOperator(expression);
+                // if operator does not have side-effects itself and is not short-circuiting
+                // we can simply emit side-effects from the first operand and then from the second one
+                if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
+                {
+                    EmitExpression(expression.Left, false);
+                    EmitExpression(expression.Right, false);
+                    return;
+                }
+
+                if (IsConditional(operatorKind))
+                {
+                    EmitBinaryCondOperator(expression, true);
+                }
+                else
+                {
+                    EmitBinaryOperator(expression);
+                }
             }
 
             EmitPopIfUnused(used);
         }
 
-        private void EmitBinaryArithOperator(BoundBinaryOperator expression)
+        private void EmitBinaryOperator(BoundBinaryOperator expression)
+        {
+            BoundExpression child = expression.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                EmitBinaryOperatorSimple(expression);
+                return;
+            }
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+            var operatorKind = binary.OperatorKind;
+
+            if (!operatorKind.EmitsAsCheckedInstruction() && IsConditional(operatorKind))
+            {
+                EmitBinaryOperatorSimple(expression);
+                return;
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(expression);
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+                operatorKind = binary.OperatorKind;
+
+                if (!operatorKind.EmitsAsCheckedInstruction() && IsConditional(operatorKind))
+                {
+                    break;
+                }
+            }
+
+            EmitExpression(child, true);
+
+            do
+            {
+                binary = stack.Pop();
+
+                EmitExpression(binary.Right, true);
+                bool isChecked = binary.OperatorKind.EmitsAsCheckedInstruction();
+                if (isChecked)
+                {
+                    EmitBinaryCheckedOperatorInstruction(binary);
+                }
+                else
+                {
+                    EmitBinaryOperatorInstruction(binary);
+                }
+
+                EmitConversionToEnumUnderlyingType(binary, @checked: isChecked);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == expression);
+            stack.Free();
+        }
+
+        private void EmitBinaryOperatorSimple(BoundBinaryOperator expression)
         {
             EmitExpression(expression.Left, true);
             EmitExpression(expression.Right, true);
 
+            bool isChecked = expression.OperatorKind.EmitsAsCheckedInstruction();
+            if (isChecked)
+            {
+                EmitBinaryCheckedOperatorInstruction(expression);
+            }
+            else
+            {
+                EmitBinaryOperatorInstruction(expression);
+            }
+
+            EmitConversionToEnumUnderlyingType(expression, @checked: isChecked);
+        }
+
+        private void EmitBinaryOperatorInstruction(BoundBinaryOperator expression)
+        {
             switch (expression.OperatorKind.Operator())
             {
                 case BinaryOperatorKind.Multiplication:
-                    builder.EmitOpCode(ILOpCode.Mul);
+                    _builder.EmitOpCode(ILOpCode.Mul);
                     break;
 
                 case BinaryOperatorKind.Addition:
-                    builder.EmitOpCode(ILOpCode.Add);
+                    _builder.EmitOpCode(ILOpCode.Add);
                     break;
 
                 case BinaryOperatorKind.Subtraction:
-                    builder.EmitOpCode(ILOpCode.Sub);
+                    _builder.EmitOpCode(ILOpCode.Sub);
                     break;
 
                 case BinaryOperatorKind.Division:
                     if (IsUnsignedBinaryOperator(expression))
                     {
-                        builder.EmitOpCode(ILOpCode.Div_un);
+                        _builder.EmitOpCode(ILOpCode.Div_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Div);
+                        _builder.EmitOpCode(ILOpCode.Div);
                     }
                     break;
 
                 case BinaryOperatorKind.Remainder:
                     if (IsUnsignedBinaryOperator(expression))
                     {
-                        builder.EmitOpCode(ILOpCode.Rem_un);
+                        _builder.EmitOpCode(ILOpCode.Rem_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Rem);
+                        _builder.EmitOpCode(ILOpCode.Rem);
                     }
                     break;
 
                 case BinaryOperatorKind.LeftShift:
-                    builder.EmitOpCode(ILOpCode.Shl);
+                    _builder.EmitOpCode(ILOpCode.Shl);
                     break;
 
                 case BinaryOperatorKind.RightShift:
                     if (IsUnsignedBinaryOperator(expression))
                     {
-                        builder.EmitOpCode(ILOpCode.Shr_un);
+                        _builder.EmitOpCode(ILOpCode.Shr_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Shr);
+                        _builder.EmitOpCode(ILOpCode.Shr);
                     }
                     break;
 
                 case BinaryOperatorKind.And:
-                    builder.EmitOpCode(ILOpCode.And);
+                    _builder.EmitOpCode(ILOpCode.And);
                     break;
 
                 case BinaryOperatorKind.Xor:
-                    builder.EmitOpCode(ILOpCode.Xor);
+                    _builder.EmitOpCode(ILOpCode.Xor);
                     break;
 
                 case BinaryOperatorKind.Or:
-                    builder.EmitOpCode(ILOpCode.Or);
+                    _builder.EmitOpCode(ILOpCode.Or);
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.OperatorKind.Operator());
             }
-
-            EmitConversionToEnumUnderlyingType(expression, @checked: false);
         }
 
         private void EmitShortCircuitingOperator(BoundBinaryOperator condition, bool sense, bool stopSense, bool stopValue)
@@ -179,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(condition.Left, ref lazyFallThrough, stopSense);
             EmitCondExpr(condition.Right, sense);
 
-            // if fallthrough was not initialized, no one is going to take that branch
+            // if fall-through was not initialized, no-one is going to take that branch
             // and we are done with Right on stack
             if (lazyFallThrough == null)
             {
@@ -187,18 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var labEnd = new object();
-            builder.EmitBranch(ILOpCode.Br, labEnd);
+            _builder.EmitBranch(ILOpCode.Br, labEnd);
 
             // if we get to fallThrough, we should not have Right on stack. Adjust for that.
-            builder.AdjustStack(-1);
+            _builder.AdjustStack(-1);
 
-            builder.MarkLabel(lazyFallThrough);
-            builder.EmitBoolConstant(stopValue);
-            builder.MarkLabel(labEnd);
+            _builder.MarkLabel(lazyFallThrough);
+            _builder.EmitBoolConstant(stopValue);
+            _builder.MarkLabel(labEnd);
         }
 
         //NOTE: odd positions assume inverted sense
-        private static readonly ILOpCode[] CompOpCodes = new ILOpCode[]
+        private static readonly ILOpCode[] s_compOpCodes = new ILOpCode[]
         {
             //  <            <=               >                >=
             ILOpCode.Clt,    ILOpCode.Cgt,    ILOpCode.Cgt,    ILOpCode.Clt,     // Signed
@@ -340,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 opIdx += 8;
             }
 
-            EmitBinaryCondOperatorHelper(CompOpCodes[opIdx], binOp.Left, binOp.Right, sense);
+            EmitBinaryCondOperatorHelper(s_compOpCodes[opIdx], binOp.Left, binOp.Right, sense);
             return;
         }
 
@@ -354,8 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitBox(comparandType, comparand.Syntax);
             }
 
-            builder.EmitConstantValue(nullOrZero);
-            builder.EmitOpCode(ILOpCode.Cgt_un);
+            _builder.EmitConstantValue(nullOrZero);
+            _builder.EmitOpCode(ILOpCode.Cgt_un);
         }
 
         private void EmitIsNullOrZero(BoundExpression comparand, ConstantValue nullOrZero)
@@ -368,15 +450,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitBox(comparandType, comparand.Syntax);
             }
 
-            builder.EmitConstantValue(nullOrZero);
-            builder.EmitOpCode(ILOpCode.Ceq);
+            _builder.EmitConstantValue(nullOrZero);
+            _builder.EmitOpCode(ILOpCode.Ceq);
         }
 
         private void EmitBinaryCondOperatorHelper(ILOpCode opCode, BoundExpression left, BoundExpression right, bool sense)
         {
             EmitExpression(left, true);
             EmitExpression(right, true);
-            this.builder.EmitOpCode(opCode);
+            _builder.EmitOpCode(opCode);
             EmitIsSense(sense);
         }
 
@@ -399,10 +481,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(constantValue.Discriminator == ConstantValueTypeDiscriminator.Boolean);
                 var constant = constantValue.BooleanValue;
-                builder.EmitBoolConstant(constant == sense);
+                _builder.EmitBoolConstant(constant == sense);
                 return;
             }
-            
+
             if (condition.Kind == BoundKind.BinaryOperator)
             {
                 var binOp = (BoundBinaryOperator)condition;
@@ -441,15 +523,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // <expr>
             // sub.ovf
 
-            builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+            _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
 
             if (type == UnaryOperatorKind.Long)
             {
-                builder.EmitOpCode(ILOpCode.Conv_i8);
+                _builder.EmitOpCode(ILOpCode.Conv_i8);
             }
 
             EmitExpression(expression.Operand, used: true);
-            builder.EmitOpCode(ILOpCode.Sub_ovf);
+            _builder.EmitOpCode(ILOpCode.Sub_ovf);
 
             EmitPopIfUnused(used);
         }
@@ -516,25 +598,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (type)
             {
                 case SpecialType.System_Byte:
-                    builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.UInt8, @checked);
+                    _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.UInt8, @checked);
                     break;
                 case SpecialType.System_SByte:
-                    builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.Int8, @checked);
+                    _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.Int8, @checked);
                     break;
                 case SpecialType.System_Int16:
-                    builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.Int16, @checked);
+                    _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.Int16, @checked);
                     break;
                 case SpecialType.System_UInt16:
-                    builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.UInt16, @checked);
+                    _builder.EmitNumericConversion(Microsoft.Cci.PrimitiveTypeCode.Int32, Microsoft.Cci.PrimitiveTypeCode.UInt16, @checked);
                     break;
             }
         }
 
-        private void EmitBinaryCheckedOperatorExpression(BoundBinaryOperator expression, bool used)
+        private void EmitBinaryCheckedOperatorInstruction(BoundBinaryOperator expression)
         {
-            EmitExpression(expression.Left, true);
-            EmitExpression(expression.Right, true);
-
             var unsigned = IsUnsignedBinaryOperator(expression);
 
             switch (expression.OperatorKind.Operator())
@@ -542,43 +621,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BinaryOperatorKind.Multiplication:
                     if (unsigned)
                     {
-                        builder.EmitOpCode(ILOpCode.Mul_ovf_un);
+                        _builder.EmitOpCode(ILOpCode.Mul_ovf_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Mul_ovf);
+                        _builder.EmitOpCode(ILOpCode.Mul_ovf);
                     }
                     break;
 
                 case BinaryOperatorKind.Addition:
                     if (unsigned)
                     {
-                        builder.EmitOpCode(ILOpCode.Add_ovf_un);
+                        _builder.EmitOpCode(ILOpCode.Add_ovf_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Add_ovf);
+                        _builder.EmitOpCode(ILOpCode.Add_ovf);
                     }
                     break;
 
                 case BinaryOperatorKind.Subtraction:
                     if (unsigned)
                     {
-                        builder.EmitOpCode(ILOpCode.Sub_ovf_un);
+                        _builder.EmitOpCode(ILOpCode.Sub_ovf_un);
                     }
                     else
                     {
-                        builder.EmitOpCode(ILOpCode.Sub_ovf);
+                        _builder.EmitOpCode(ILOpCode.Sub_ovf);
                     }
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.OperatorKind.Operator());
             }
-
-            EmitConversionToEnumUnderlyingType(expression, @checked: true);
-
-            EmitPopIfUnused(used);
         }
 
         private static bool OperatorHasSideEffects(BinaryOperatorKind kind)
@@ -599,8 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (!sense)
             {
-                builder.EmitOpCode(ILOpCode.Ldc_i4_0);
-                builder.EmitOpCode(ILOpCode.Ceq);
+                _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                _builder.EmitOpCode(ILOpCode.Ceq);
             }
         }
 

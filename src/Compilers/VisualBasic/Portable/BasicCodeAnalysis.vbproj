@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -11,30 +10,17 @@
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
-    <VBSyntaxGeneratorToolPath>$(OutDir)\VBSyntaxGenerator.exe</VBSyntaxGeneratorToolPath>
-    <BoundTreeGeneratorToolPath>$(OutDir)\BoundTreeGenerator.exe</BoundTreeGeneratorToolPath>
-    <VBErrorFactsGeneratorToolPath>$(OutDir)\VBErrorFactsGenerator.exe</VBErrorFactsGeneratorToolPath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
-      <Project>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</Project>
-      <Name>VisualBasicSyntaxGenerator</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj">
-      <Project>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</Project>
-      <Name>CompilersBoundTreeGenerator</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj">
-      <Project>{909B656F-6095-4AC2-A5AB-C3F032315C45}</Project>
-      <Name>VisualBasicErrorFactsGenerator</Name>
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
+      <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
+      <Name>DeployCompilerGeneratorToolsRuntime</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
@@ -46,48 +32,20 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>
-    </RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <NoWarn>42014</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DefineTrace>true</DefineTrace>
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <RemoveIntegerChecks>true</RemoveIntegerChecks>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>42014</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <RootNamespace />
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(IntermediateOutputPath)BoundNodes.xml.Generated.vb" />
@@ -102,7 +60,7 @@
     <Compile Include="Analysis\FlowAnalysis\ControlFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\ControlFlowPass.vb" />
-    <Compile Include="Analysis\FlowAnalysis\DataFlowAnalysis.vb" />
+    <Compile Include="Analysis\FlowAnalysis\VisualBasicDataFlowAnalysis.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.LocalState.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.SlotCollection.vb" />
     <Compile Include="Analysis\FlowAnalysis\DataFlowPass.Symbols.vb" />
@@ -181,6 +139,7 @@
     <Compile Include="Binding\ForOrForEachBlockBinder.vb" />
     <Compile Include="Binding\ForEachEnumeratorInfo.vb" />
     <Compile Include="Binding\GetTypeBinder.vb" />
+    <Compile Include="Binding\IgnoreAccessibilityBinder.vb" />
     <Compile Include="Binding\IgnoreBaseClassesBinder.vb" />
     <Compile Include="Binding\ImplicitVariableBinder.vb" />
     <Compile Include="Binding\ImportAliasesBinder.vb" />
@@ -216,6 +175,7 @@
     <Compile Include="Binding\TypesOfImportedNamespacesMembersBinder.vb" />
     <Compile Include="Binding\UsingBlockBinder.vb" />
     <Compile Include="Binding\UsingInfo.vb" />
+    <Compile Include="BoundTree\BoundInterpolatedStringExpression.vb" />
     <Compile Include="BoundTree\BoundMyClassReference.vb" />
     <Compile Include="BoundTree\BoundMyBaseReference.vb" />
     <Compile Include="BoundTree\BoundAddressOfOperator.vb" />
@@ -300,9 +260,11 @@
     <Compile Include="BoundTree\BoundWithStatement.vb" />
     <Compile Include="BoundTree\BoundXmlAttribute.vb" />
     <Compile Include="BoundTree\BoundYieldStatement.vb" />
+    <Compile Include="BoundTree\Expression.vb" />
     <Compile Include="BoundTree\GroupTypeInferenceLambda.vb" />
     <Compile Include="BoundTree\NoOpStatementFlavor.vb" />
     <Compile Include="BoundTree\PseudoVariableExpressions.vb" />
+    <Compile Include="BoundTree\Statement.vb" />
     <Compile Include="BoundTree\UnboundLambda.vb" />
     <Compile Include="CodeGen\CodeGenerator.vb" />
     <Compile Include="CodeGen\EmitAddress.vb" />
@@ -319,6 +281,10 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.LocalDefUseSpan.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.Rewriter.vb" />
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
+    <Compile Include="CommandLine\VisualBasicCommandLineArguments.vb" />
+    <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
+    <Compile Include="CommandLine\VisualBasicCommandLineParser.vb" />
+    <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="Compilation\AwaitExpressionInfo.vb" />
     <Compile Include="Compilation\BoundNodeSummary.vb" />
     <Compile Include="Compilation\ClsComplianceChecker.vb" />
@@ -356,6 +322,7 @@
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
     <Compile Include="Compilation\VisualBasicCompilerDiagnosticAnalyzer.vb" />
     <Compile Include="Compilation\VisualBasicDiagnosticFilter.vb" />
+    <Compile Include="Compilation\VisualBasicScriptCompilationInfo.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
     <Compile Include="Declarations\DeclarationModifiers.vb" />
@@ -393,6 +360,7 @@
     <Compile Include="Emit\ModuleReference.vb" />
     <Compile Include="Emit\NamedTypeReference.vb" />
     <Compile Include="Emit\NamedTypeSymbolAdapter.vb" />
+    <Compile Include="Emit\NamespaceSymbolAdapter.vb" />
     <Compile Include="Emit\NoPia\EmbeddedEvent.vb" />
     <Compile Include="Emit\NoPia\EmbeddedField.vb" />
     <Compile Include="Emit\NoPia\EmbeddedMethod.vb" />
@@ -445,7 +413,6 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.vb" />
     <Compile Include="Lowering\AsyncRewriter\ClosureKind.vb" />
-    <Compile Include="Lowering\DebugAttributes.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass_ExpressionLambdas.vb" />
     <Compile Include="Lowering\ExpressionLambdaRewriter\ExpressionLambdaRewriter.vb" />
@@ -463,6 +430,7 @@
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.Analysis.vb" />
     <Compile Include="Lowering\LambdaRewriter\LambdaRewriter.vb" />
     <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaMethod.vb" />
+    <Compile Include="Lowering\LambdaRewriter\SynthesizedLambdaCacheFieldSymbol.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AddRemoveHandler.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_AnonymousTypeCreationExpression.vb" />
@@ -509,6 +477,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_RedimClause.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Return.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SelectCase.vb" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_SequencePoints.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_StringConcat.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_SyncLock.vb" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Throw.vb" />
@@ -571,6 +540,7 @@
     <Compile Include="Parser\Parser.vb" />
     <Compile Include="Parser\ParseReportError.vb" />
     <Compile Include="Parser\ParserExtensions.vb" />
+    <Compile Include="Parser\ParserFeature.vb" />
     <Compile Include="Parser\ParseScan.vb" />
     <Compile Include="Parser\ParseStatement.vb" />
     <Compile Include="Parser\ParseTerminal.vb" />
@@ -793,6 +763,7 @@
     <Compile Include="Symbols\Source\SynthesizedEventAccessorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedEventBackingFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedFieldSymbol.vb" />
+    <Compile Include="Symbols\Source\SynthesizedInteractiveInitializerMethod.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaKind.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedMainTypeEntryPoint.vb" />
@@ -848,6 +819,7 @@
     <Compile Include="Symbols\TypeSubstitution.vb" />
     <Compile Include="Symbols\TypeSymbol.vb" />
     <Compile Include="Symbols\TypeSymbolExtensions.vb" />
+    <Compile Include="Symbols\TypeWithModifiers.vb" />
     <Compile Include="Symbols\UnboundGenericType.vb" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.vb" />
     <Compile Include="Symbols\WellKnownMembers.vb" />
@@ -855,7 +827,9 @@
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.vb" />
     <Compile Include="Syntax\BaseSyntaxExtensions.vb" />
     <Compile Include="Syntax\BeginOfBlockSyntaxReference.vb" />
+    <Compile Include="Syntax\CaseBlockSyntax.vb" />
     <Compile Include="Syntax\CompilationUnitSyntax.vb" />
+    <Compile Include="Syntax\CrefOperatorReferenceSyntax.vb" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.vb" />
     <Compile Include="Syntax\ForOrForEachBlockSyntax.vb" />
     <Compile Include="Syntax\InternalSyntax\BadTokenSyntax.vb" />
@@ -879,16 +853,21 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxSubKind.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxToken.vb" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.vb" />
+    <Compile Include="Syntax\MethodBaseSyntax.vb" />
+    <Compile Include="Syntax\MethodBlockBaseSyntax.vb" />
+    <Compile Include="Syntax\MultiLineLambdaExpressionSyntax.vb" />
     <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.vb" />
     <Compile Include="Syntax\NameSyntax.vb" />
     <Compile Include="Syntax\SeparatedSyntaxListBuilder.vb" />
     <Compile Include="Syntax\SimpleSyntaxReference.vb" />
+    <Compile Include="Syntax\SingleLineLambdaExpressionSyntax.vb" />
+    <Compile Include="Syntax\SkippedTokensTriviaSyntax.vb" />
     <Compile Include="Syntax\StructuredTriviaSyntax.vb" />
     <Compile Include="Syntax\SyntaxEquivalence.vb" />
     <Compile Include="Syntax\SyntaxExtensions.vb" />
     <Compile Include="Syntax\SyntaxFactory.vb" />
     <Compile Include="Syntax\SyntaxFacts.vb" />
-    <Compile Include="Syntax\SyntaxFormatter.vb" />
+    <Compile Include="Syntax\SyntaxNormalizer.vb" />
     <Compile Include="Syntax\SyntaxKind.vb" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.vb" />
     <Compile Include="Syntax\SyntaxKindExtensions.vb" />
@@ -912,7 +891,10 @@
     <Compile Include="Syntax\SyntaxTreeDiagnosticEnumerator.vb" />
     <Compile Include="Syntax\SyntaxTriviaFunctions.vb" />
     <Compile Include="Syntax\SyntaxTriviaListBuilder.vb" />
+    <Compile Include="Syntax\LambdaUtilities.vb" />
+    <Compile Include="Syntax\TypeBlockSyntax.vb" />
     <Compile Include="Syntax\TypeStatementSyntax.vb" />
+    <Compile Include="Syntax\VisualBasicSyntaxVisitor.vb" />
     <Compile Include="Syntax\VisualBasicWarningStateMap.vb" />
     <Compile Include="Syntax\VisualBasicLineDirectiveMap.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxNode.vb" />
@@ -934,6 +916,7 @@
     </Compile>
     <Compile Include="VisualBasicCompilationOptions.vb" />
     <Compile Include="VisualBasicExtensions.vb" />
+    <Compile Include="VisualBasicFileSystemExtensions.vb" />
     <Compile Include="VisualBasicParseOptions.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
     <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
@@ -957,6 +940,8 @@
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.vb" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.vb" />
     <Compile Include="Compilation\ModuleCompilationState.vb" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <Content Include="Symbols\SymbolsAndNoPia.docx" />
     <ErrorCode Include="Errors\Errors.vb" />
     <SyntaxDefinition Include="Syntax\Syntax.xml">
@@ -968,12 +953,14 @@
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
-    <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="VBCSCompilerPortable" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
@@ -981,37 +968,31 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

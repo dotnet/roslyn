@@ -147,7 +147,7 @@ class Program
             CompileAndVerify(csSource, expectedOutput: "hello");
         }
 
-        [WorkItem(544427, "DevDiv")]
+        [WorkItem(544427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544427")]
         [Fact]
         public void WrongOrderConversion()
         {
@@ -181,7 +181,7 @@ public class Test
 }");
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DateTimeConstant()
         {
@@ -258,7 +258,7 @@ class Program
         Test.Int32();                       
     }
 }
-";                                                                                 
+";
 
             var expectedOutput = @"
 02/01/2013 22:32:47
@@ -273,7 +273,7 @@ null
 null
 0
 ";
-            
+
             // When the method with the attribute is in source.
             var verifier1 = CompileAndVerify(source1 + source2, expectedOutput: expectedOutput);
 
@@ -282,7 +282,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(602009, "DevDiv")]
+        [WorkItem(602009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602009")]
         [Fact]
         public void DefaultParameterValue_DecimalConstant()
         {
@@ -380,7 +380,7 @@ null
             CompileAndVerify(comp2, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion001()
         {
@@ -411,7 +411,7 @@ public class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion002()
         {
@@ -434,7 +434,7 @@ class Program
 
     static float Test2(float arg)
     {
-        var temp = (float)Mul2(arg); // conv.r4 here. We want result of Mull2 to have float precision.
+        var temp = (float)Mul2(arg); // conv.r4 here. We want result of Mul2 to have float precision.
         return temp / 2;
     }
 
@@ -459,7 +459,7 @@ class Program
 }");
         }
 
-        [WorkItem(659424, "DevDiv")]
+        [WorkItem(659424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/659424")]
         [Fact]
         public void FloatConversion003()
         {
@@ -482,7 +482,7 @@ class Program
 
     static float Test2(float arg)
     {
-        var temp = (float)(float?)Mul2(arg); // conv.r4 here. We want result of Mull2 to have float precision.
+        var temp = (float)(float?)Mul2(arg); // conv.r4 here. We want result of Mul2 to have float precision.
         return temp / 2;
     }
 
@@ -507,7 +507,7 @@ class Program
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900()
         {
@@ -568,7 +568,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Optimized()
         {
@@ -617,7 +617,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(448900, "DevDiv")]
+        [WorkItem(448900, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/448900")]
         [Fact]
         public void Regress448900_Folded()
         {
@@ -657,7 +657,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(674803, "DevDiv")]
+        [WorkItem(674803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674803")]
         [Fact]
         public void CastFrom0ToExplicitConversionViaEnum01()
         {
@@ -678,7 +678,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(844635, "DevDiv")]
+        [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact]
         public void RuntimeTypeCheckForGenericEnum()
         {
@@ -727,8 +727,8 @@ class G<T>
 }");
         }
 
-        [WorkItem(864605, "DevDiv")]
-        [WorkItem(864740, "DevDiv")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
+        [WorkItem(864740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864740")]
         [Fact]
         public void MethodGroupIsExpression()
         {
@@ -751,7 +751,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1084278, "DevDiv")]
+        [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
         public void NullableConversionFromConst()
         {
             var source =
@@ -784,6 +784,215 @@ class C
   IL_000c:  newobj     ""int?..ctor(int)""
   IL_0011:  call       ""void C.Use(int?)""
   IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void LiftedFromIntPtrConversions()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine((int?)M(null));
+        Console.WriteLine((int?)M((IntPtr)42));
+    }
+
+    static IntPtr? M(IntPtr? p)
+    {
+        return p;
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput:
+@"
+42");
+        }
+
+        [Fact]
+        public void LiftedToIntPtrConversions()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine((IntPtr?)M_int());
+        Console.WriteLine((IntPtr?)M_int(42));
+        Console.WriteLine((IntPtr?)M_long());
+        Console.WriteLine((IntPtr?)M_long(300));
+    }
+
+    static int? M_int(int? p = null) { return p; } 
+    static long? M_long(long? p = null) { return p; } 
+}
+";
+
+            CompileAndVerify(source, expectedOutput:
+@"
+42
+
+300
+");
+        }
+
+        [Fact]
+        public void LiftedToIntPtrConversionsOptimized()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Use((IntPtr?)(int?)(null));
+        Use((IntPtr?)(int?)(42));
+    }
+
+    static void Use(IntPtr? p) { } 
+}
+";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.IntPtr?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""void C.Use(System.IntPtr?)""
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0015:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_001a:  call       ""void C.Use(System.IntPtr?)""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        public void NullableNumericToIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte? b = 0;
+        IntPtr p = (IntPtr)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (byte? V_0) //b
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte?..ctor(byte)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""byte byte?.Value.get""
+  IL_000f:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0014:  box        ""System.IntPtr""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void NumericToNullableIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte b = 0;
+        IntPtr? p = (IntPtr?)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (byte V_0) //b
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0008:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_000d:  box        ""System.IntPtr?""
+  IL_0012:  call       ""void System.Console.WriteLine(object)""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(1210529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1210529")]
+        public void LiftedIntToIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Use((IntPtr?)M());
+    }
+
+    static int? M() { return 0; } 
+    static void Use(IntPtr? p) { } 
+}
+";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  1
+  .locals init (int? V_0,
+                System.IntPtr? V_1)
+  IL_0000:  call       ""int? C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""bool int?.HasValue.get""
+  IL_000d:  brtrue.s   IL_001a
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.IntPtr?""
+  IL_0017:  ldloc.1
+  IL_0018:  br.s       IL_002b
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""int int?.GetValueOrDefault()""
+  IL_0021:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0026:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_002b:  call       ""void C.Use(System.IntPtr?)""
+  IL_0030:  ret
 }");
         }
     }

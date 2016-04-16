@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// Object to store the decoded data from early bound well-known attributes.
         /// Created lazily only when some decoded data needs to be stored, null otherwise.
         /// </summary>
-        private EarlyWellKnownAttributeData lazyDecodeData;
+        private EarlyWellKnownAttributeData _lazyDecodeData;
 
         /// <summary>
         /// Gets or creates the decoded data object.
@@ -26,24 +26,24 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public T GetOrCreateData<T>() where T : EarlyWellKnownAttributeData, new()
         {
-            if (this.lazyDecodeData == null)
+            if (_lazyDecodeData == null)
             {
-                this.lazyDecodeData = new T();
+                _lazyDecodeData = new T();
             }
 
-            return (T)lazyDecodeData;
+            return (T)_lazyDecodeData;
         }
 
         /// <summary>
-        /// Returns true if some decoded data has been stored into <see cref="lazyDecodeData"/>.
+        /// Returns true if some decoded data has been stored into <see cref="_lazyDecodeData"/>.
         /// </summary>
         public bool HasDecodedData
         {
             get
             {
-                if (lazyDecodeData != null)
+                if (_lazyDecodeData != null)
                 {
-                    lazyDecodeData.VerifyDataStored(expected: true);
+                    _lazyDecodeData.VerifyDataStored(expected: true);
                     return true;
                 }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(this.HasDecodedData);
-                return this.lazyDecodeData;
+                return _lazyDecodeData;
             }
         }
 

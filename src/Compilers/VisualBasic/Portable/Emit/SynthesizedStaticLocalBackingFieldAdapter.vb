@@ -4,16 +4,16 @@ Imports System.Threading
 Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class SynthesizedStaticLocalBackingField
+    Friend Partial Class SynthesizedStaticLocalBackingField
         Implements IContextualNamedEntity
 
-        Private m_MetadataWriter As MetadataWriter
-        Private m_NameToEmit As String
+        Private _metadataWriter As MetadataWriter
+        Private _nameToEmit As String
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Debug.Assert(m_NameToEmit IsNot Nothing)
-                Return m_NameToEmit
+                Debug.Assert(_nameToEmit IsNot Nothing)
+                Return _nameToEmit
             End Get
         End Property
 
@@ -25,13 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
 
-            Interlocked.CompareExchange(m_MetadataWriter, metadataWriter, Nothing)
-            Debug.Assert(metadataWriter Is m_MetadataWriter)
+            Interlocked.CompareExchange(_metadataWriter, metadataWriter, Nothing)
+            Debug.Assert(metadataWriter Is _metadataWriter)
 
-            If m_NameToEmit Is Nothing Then
+            If _nameToEmit Is Nothing Then
                 Dim declaringMethod = DirectCast(Me.ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
                 Dim signature = GeneratedNames.MakeSignatureString(metadataWriter.GetMethodSignature(declaringMethod))
-                m_NameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
+                _nameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
             End If
         End Sub
 

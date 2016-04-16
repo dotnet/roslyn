@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// position in the supplied syntax tree and the set of diagnostics (warnings)
         /// whose reporting should either be suppressed or enabled at this position.
         /// </summary>
-        private readonly WarningStateMapEntry[] warningStateMapEntries;
+        private readonly WarningStateMapEntry[] _warningStateMapEntries;
 
         protected AbstractWarningStateMap(SyntaxTree syntaxTree)
         {
-            warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
+            _warningStateMapEntries = CreateWarningStateMapEntries(syntaxTree);
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Syntax
         /// </summary>
         private WarningStateMapEntry GetEntryAtOrBeforePosition(int position)
         {
-            Debug.Assert(warningStateMapEntries != null && warningStateMapEntries.Length > 0);
-            int r = Array.BinarySearch(warningStateMapEntries, new WarningStateMapEntry(position));
-            return warningStateMapEntries[r >= 0 ? r : ((~r) - 1)];
+            Debug.Assert(_warningStateMapEntries != null && _warningStateMapEntries.Length > 0);
+            int r = Array.BinarySearch(_warningStateMapEntries, new WarningStateMapEntry(position));
+            return _warningStateMapEntries[r >= 0 ? r : ((~r) - 1)];
         }
 
         /// <summary>

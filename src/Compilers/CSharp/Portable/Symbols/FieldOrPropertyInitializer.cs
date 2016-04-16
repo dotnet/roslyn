@@ -20,12 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal readonly SyntaxReference Syntax;
 
-        public FieldOrPropertyInitializer(FieldSymbol fieldOpt, SyntaxNode syntax)
+        /// <summary>
+        /// A sum of widths of spans of all preceding initializers 
+        /// (instance and static initializers are summed separately, and trivias are not counted).
+        /// </summary>
+        internal readonly int PrecedingInitializersLength;
+
+        public FieldOrPropertyInitializer(FieldSymbol fieldOpt, SyntaxNode syntax, int precedingInitializersLength)
         {
             Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) && fieldOpt != null || syntax is StatementSyntax);
 
             FieldOpt = fieldOpt;
             Syntax = syntax.GetReference();
+            PrecedingInitializersLength = precedingInitializersLength;
         }
     }
 }

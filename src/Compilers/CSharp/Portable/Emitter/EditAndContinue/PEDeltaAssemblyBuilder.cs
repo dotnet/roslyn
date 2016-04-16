@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -15,30 +16,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class PEDeltaAssemblyBuilder : PEAssemblyBuilderBase, IPEDeltaAssemblyBuilder
     {
-        private readonly EmitBaseline previousGeneration;
-        private readonly CSharpDefinitionMap previousDefinitions;
-        private readonly SymbolChanges changes;
+        private readonly EmitBaseline _previousGeneration;
+        private readonly CSharpDefinitionMap _previousDefinitions;
+        private readonly SymbolChanges _changes;
+        private readonly CSharpSymbolMatcher.DeepTranslator _deepTranslator;
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits,
             Func<ISymbol, bool> isAddedSymbol)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper: null, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
+            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
+            var initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag());
-            var module = previousGeneration.OriginalMetadata;
-            var compilation = sourceAssembly.DeclaringCompilation;
-            var metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(module), MetadataImportOptions.All);
-            var metadataDecoder = new Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule);
 
-            previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder);
+            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
+            // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
+            var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
+            var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
+            var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
-            var matchToMetadata = new CSharpSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly);
+            var matchToMetadata = new CSharpSymbolMatcher(metadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly);
 
             CSharpSymbolMatcher matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
@@ -47,24 +50,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
 
                 matchToPrevious = new CSharpSymbolMatcher(
-                    previousGeneration.AnonymousTypeMap, 
+                    previousGeneration.AnonymousTypeMap,
                     sourceAssembly: sourceAssembly,
-                    sourceContext: context, 
-                    otherAssembly: previousAssembly, 
+                    sourceContext: context,
+                    otherAssembly: previousAssembly,
                     otherContext: previousContext,
                     otherSynthesizedMembersOpt: previousGeneration.SynthesizedMembers);
             }
 
-            this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
-            this.previousGeneration = previousGeneration;
-            this.changes = new SymbolChanges(this.previousDefinitions, edits, isAddedSymbol);
+            _previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
+            _previousGeneration = previousGeneration;
+            _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
+
+            // Workaround for https://github.com/dotnet/roslyn/issues/3192.
+            // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
+            // so that next generation can look variables up and reuse their slots if possible.
+            //
+            // When we are about to allocate a slot for a lifted variable while compiling the next generation
+            // we map its type to the previous generation and then check the slot types that we stashed earlier.
+            // If the variable type matches we reuse it. In order to compare the previous variable type with the current one
+            // both need to be completely lowered (translated). Standard translation only goes one level deep. 
+            // Generic arguments are not translated until they are needed by metadata writer. 
+            //
+            // In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
+            // that translates the symbol recursively.
+            _deepTranslator = new CSharpSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object));
         }
 
-        public override int CurrentGenerationOrdinal => this.previousGeneration.Ordinal + 1;
+        public override int CurrentGenerationOrdinal => _previousGeneration.Ordinal + 1;
 
-        private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(
-            MetadataReader reader,
-            Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
+        internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
+        {
+            // Note: The translator is not aware of synthesized types. If type is a synthesized type it won't get mapped.
+            // In such case use the type itself. This can only happen for variables storing lambda display classes.
+            var visited = (TypeSymbol)_deepTranslator.Visit(type);
+            Debug.Assert((object)visited != null);
+            //Debug.Assert(visited != null || type is LambdaFrame || ((NamedTypeSymbol)type).ConstructedFrom is LambdaFrame);
+            return Translate(visited ?? type, null, diagnostics);
+        }
+
+        private EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)
+        {
+            if (initialBaseline.LazyMetadataSymbols != null)
+            {
+                return initialBaseline.LazyMetadataSymbols;
+            }
+
+            var originalMetadata = initialBaseline.OriginalMetadata;
+
+            // The purpose of this compilation is to provide PE symbols for original metadata.
+            // We need to transfer the references from the current source compilation but don't need its syntax trees.
+            var metadataCompilation = compilation.RemoveAllSyntaxTrees();
+
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap;
+            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
+            var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
+            var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
+            var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);
+
+            return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
+        }
+
+        // internal for testing
+        internal static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
             foreach (var handle in reader.TypeDefinitions)
@@ -84,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 int index;
                 if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
                 {
-                    var builder = ArrayBuilder<string>.GetInstance();
+                    var builder = ArrayBuilder<AnonymousTypeKeyField>.GetInstance();
                     if (TryGetAnonymousTypeKey(reader, def, builder))
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
@@ -101,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private static bool TryGetAnonymousTypeKey(
             MetadataReader reader,
             TypeDefinition def,
-            ArrayBuilder<string> builder)
+            ArrayBuilder<AnonymousTypeKeyField> builder)
         {
             foreach (var typeParameterHandle in def.GetGenericParameters())
             {
@@ -111,32 +159,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     return false;
                 }
-                builder.Add(fieldName);
+
+                builder.Add(new AnonymousTypeKeyField(fieldName, isKey: false, ignoreCase: false));
             }
             return true;
         }
 
-        private static EmitBaseline EnsureInitialized(
-            EmitBaseline previousGeneration,
-            Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.MetadataDecoder metadataDecoder)
-        {
-            if (previousGeneration.AnonymousTypeMap != null)
-            {
-                return previousGeneration;
-            }
-
-            var anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder);
-            return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap);
-        }
-
         internal EmitBaseline PreviousGeneration
         {
-            get { return this.previousGeneration; }
+            get { return _previousGeneration; }
         }
 
         internal CSharpDefinitionMap PreviousDefinitions
         {
-            get { return this.previousDefinitions; }
+            get { return _previousDefinitions; }
         }
 
         internal override bool SupportsPrivateImplClass
@@ -153,39 +189,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
             // Should contain all entries in previous generation.
-            Debug.Assert(this.previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
+            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
             return anonymousTypes;
         }
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
         {
-            return this.previousDefinitions.TryCreateVariableSlotAllocator(this.previousGeneration, method);
+            return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method, topLevelMethod);
         }
 
         internal override ImmutableArray<AnonymousTypeKey> GetPreviousAnonymousTypes()
         {
-            return ImmutableArray.CreateRange(this.previousGeneration.AnonymousTypeMap.Keys);
+            return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys);
         }
 
         internal override int GetNextAnonymousTypeIndex()
         {
-            return this.previousGeneration.GetNextAnonymousTypeIndex();
+            return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
         internal override bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return this.previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
         }
 
         internal SymbolChanges Changes
         {
-            get { return this.changes; }
+            get { return _changes; }
         }
 
         internal override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
         {
-            return this.changes.GetTopLevelTypes(context);
+            return _changes.GetTopLevelTypes(context);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

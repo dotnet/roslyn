@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.AnonymousDelegates
     Public Class CreationAndEmit : Inherits BasicTestBase
 
         <Fact>
-        <WorkItem(1024401)>
+        <WorkItem(1024401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024401")>
         Public Sub DebuggerDisplayAttributeWithNoTypeMember()
             Dim src = "
 Module Test
@@ -463,6 +463,38 @@ VB$AnonymousDelegate_6`2[System.Int32,System.Int32]
 15
 VB$AnonymousDelegate_6`2[System.Int64,System.Int64]
 ]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
+        Public Sub ContainingSymbol()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Test
+    Sub Main()
+        Dim x = Function(y) y + 1
+        System.Console.WriteLine(x)
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.DebugExe.WithRootNamespace("Ns1.Ns2"))
+
+            Dim tree As SyntaxTree = comp.SyntaxTrees.Single()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "x").Single()
+
+            Dim type = semanticModel.GetTypeInfo(x).Type
+            Assert.Equal("Function <generated method>(y As System.Object) As System.Object", type.ToTestDisplayString())
+            Assert.True(type.ContainingNamespace.IsGlobalNamespace)
+
+            Dim validator As Action(Of ModuleSymbol) =
+                Sub(m As ModuleSymbol)
+                    Dim anonDelegate = (From sym In m.GlobalNamespace.GetMembers()
+                                        Where sym.Name.Contains("AnonymousDelegate")).Single()
+                End Sub
+
+            CompileAndVerify(comp, symbolValidator:=validator, expectedOutput:="VB$AnonymousDelegate_0`2[System.Object,System.Object]")
         End Sub
 
     End Class

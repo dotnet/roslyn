@@ -11,35 +11,35 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SimpleTaskQueue
     {
-        private readonly TaskScheduler taskScheduler;
+        private readonly TaskScheduler _taskScheduler;
 
         /// <summary>
         /// An object to synchronize reads/writes of all mutable fields of this class.
         /// </summary>
-        private readonly object gate = new object();
+        private readonly object _gate = new object();
 
-        private Task latestTask;
-        private int taskCount;
+        private Task _latestTask;
+        private int _taskCount;
 
         public SimpleTaskQueue(TaskScheduler taskScheduler)
         {
-            this.taskScheduler = taskScheduler;
+            _taskScheduler = taskScheduler;
 
-            this.taskCount = 0;
-            this.latestTask = SpecializedTasks.EmptyTask;
+            _taskCount = 0;
+            _latestTask = SpecializedTasks.EmptyTask;
         }
 
         private TTask ScheduleTaskWorker<TTask>(Func<int, TTask> taskCreator, CancellationToken cancellationToken)
             where TTask : Task
         {
-            lock (gate)
+            lock (_gate)
             {
-                taskCount++;
-                int delay = (taskCount % 100) == 0 ? 1 : 0;
+                _taskCount++;
+                int delay = (_taskCount % 100) == 0 ? 1 : 0;
 
                 var task = taskCreator(delay);
 
-                this.latestTask = task;
+                _latestTask = task;
 
                 return task;
             }
@@ -47,29 +47,29 @@ namespace Roslyn.Utilities
 
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task>(delay => this.latestTask.ContinueWithAfterDelay(
-    taskAction, cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+            return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelay(
+                taskAction, cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task<T>>(delay => this.latestTask.ContinueWithAfterDelay(
-    t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+            return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelay(
+                t => taskFunc(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task>(delay => this.latestTask.ContinueWithAfterDelayFromAsync(
-    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+            return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
+                t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ScheduleTaskWorker<Task<T>>(delay => this.latestTask.ContinueWithAfterDelayFromAsync(
-    t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, this.taskScheduler),
+            return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
+                t => taskFuncAsync(), cancellationToken, delay, TaskContinuationOptions.None, _taskScheduler),
                 cancellationToken);
         }
 
@@ -77,7 +77,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return this.latestTask;
+                return _latestTask;
             }
         }
     }

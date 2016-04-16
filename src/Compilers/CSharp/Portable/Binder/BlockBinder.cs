@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BlockBinder : LocalScopeBinder
     {
-        private readonly SyntaxList<StatementSyntax> statements;
+        private readonly SyntaxList<StatementSyntax> _statements;
 
         public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements)
             : this(enclosing, statements, enclosing.Flags)
@@ -20,18 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BlockBinder(Binder enclosing, SyntaxList<StatementSyntax> statements, BinderFlags additionalFlags)
             : base(enclosing, enclosing.Flags | additionalFlags)
         {
-            this.statements = statements;
+            _statements = statements;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            return BuildLocals(this.statements);
+            return BuildLocals(_statements);
         }
 
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;
-            base.BuildLabels(this.statements, ref labels);
+            base.BuildLabels(_statements, ref labels);
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Kind() == SyntaxKind.Block)
             {
-                if (((BlockSyntax)node).Statements == statements)
+                if (((BlockSyntax)node).Statements == _statements)
                 {
                     return this.Locals;
                 }
             }
-            else if (statements.Count == 1 && statements.First() == node)
+            else if (_statements.Count == 1 && _statements.First() == node)
             {
                 return this.Locals;
             }

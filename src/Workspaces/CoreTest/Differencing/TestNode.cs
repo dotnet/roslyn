@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         public readonly TestNode[] Children;
         public TestNode Parent;
 
-        private TestNode lazyRoot;
+        private TestNode _lazyRoot;
 
         public TestNode(int label, int value, params TestNode[] children)
         {
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         {
             get
             {
-                if (lazyRoot == null)
+                if (_lazyRoot == null)
                 {
-                    lazyRoot = this.Parent == null ? this : this.Parent.Root;
+                    _lazyRoot = this.Parent == null ? this : this.Parent.Root;
                 }
 
-                return lazyRoot;
+                return _lazyRoot;
             }
         }
 

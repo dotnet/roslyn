@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 builder.Append(" "c)
                 builder.Append(SyntaxFacts.GetText(SyntaxKind.LineContinuationTrivia))
 
-                builder.Append(Me.Spaces.CreateIndentationString(Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic), Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic)))
+                builder.AppendIndentationString(Me.Spaces, Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic), Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic))
                 Return StringBuilderPool.ReturnAndFree(builder)
             End Function
 

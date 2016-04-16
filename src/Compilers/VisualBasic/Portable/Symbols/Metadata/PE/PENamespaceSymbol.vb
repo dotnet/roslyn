@@ -33,13 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' A map of NoPia local types immediately contained in this assembly.
         ''' Maps fully-qualified type name to the row id.
         ''' </summary>
-        Private m_lazyNoPiaLocalTypes As Dictionary(Of String, TypeDefinitionHandle)
+        Private _lazyNoPiaLocalTypes As Dictionary(Of String, TypeDefinitionHandle)
 
         ' Lazily filled in collection of all contained modules.
-        Private m_lazyModules As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyModules As ImmutableArray(Of NamedTypeSymbol)
 
         ' Lazily filled in collection of all contained types.
-        Private m_lazyFlattenedTypes As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyFlattenedTypes As ImmutableArray(Of NamedTypeSymbol)
 
         Friend NotOverridable Overrides ReadOnly Property Extent As NamespaceExtent
             Get
@@ -50,16 +50,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides Function GetModuleMembers() As ImmutableArray(Of NamedTypeSymbol)
             ' Since this gets called a LOT during binding, it's worth caching the result.
 
-            If m_lazyModules.IsDefault Then
+            If _lazyModules.IsDefault Then
                 ' We have to read all the types to discover which ones are modules, so I'm not 
                 ' sure there is any better strategy on first call then getting all type members
                 ' and filtering them.
                 ' Ordered.
                 Dim modules = GetTypeMembers().WhereAsArray(Function(t) t.TypeKind = TYPEKIND.Module)
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyModules, modules, Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyModules, modules, Nothing)
             End If
 
-            Return m_lazyModules
+            Return _lazyModules
         End Function
 
         Public Overrides Function GetModuleMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public NotOverridable Overloads Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Dim result = m_lazyFlattenedTypes
+            Dim result = _lazyFlattenedTypes
             If Not result.IsDefault Then
                 Return result
             End If
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             EnsureAllMembersLoaded()
             result = StaticCast(Of NamedTypeSymbol).From(m_lazyTypes.Flatten())
 
-            m_lazyFlattenedTypes = result
+            _lazyFlattenedTypes = result
             Return result
         End Function
 
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' recursively including those from nested namespaces. The row ids must be grouped by the 
         ''' fully-qualified namespace name in case-sensitive manner. There could be multiple groups 
         ''' for each fully-qualified namespace name. The groups must be sorted by their key in 
-        ''' case-insensensitive manner. Empty string must be used as namespace name for types 
+        ''' case-insensitive manner. Empty string must be used as namespace name for types 
         ''' immediately contained within Global namespace. Therefore, all types in THIS namespace, 
         ''' if any, must be in several first IGroupings.
         ''' </param>
@@ -167,8 +167,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))) = Nothing
 
             'TODO: Perhaps there is a cheaper way to calculate the length of the name without actually building it with ToDisplayString.
+            Dim isGlobalNamespace As Boolean = Me.IsGlobalNamespace
+
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
-                ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length,
+                isGlobalNamespace,
+                If(isGlobalNamespace, 0, ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length),
                 typesByNS,
                 CaseInsensitiveComparison.Comparer,
                 nestedTypes, nestedNamespaces)
@@ -259,8 +262,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     children.ToDictionary(Function(c) c.Name, CaseInsensitiveComparison.Comparer)
                 children.Free()
 
-                If m_lazyNoPiaLocalTypes Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyNoPiaLocalTypes, noPiaLocalTypes, Nothing)
+                If _lazyNoPiaLocalTypes Is Nothing Then
+                    Interlocked.CompareExchange(_lazyNoPiaLocalTypes, noPiaLocalTypes, Nothing)
                 End If
 
                 If Interlocked.CompareExchange(m_lazyTypes, typesDict, Nothing) Is Nothing Then
@@ -305,8 +308,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim typeDef As TypeDefinitionHandle = Nothing
 
                 ' See if this is a NoPia local type, which we should unify.
-                If m_lazyNoPiaLocalTypes IsNot Nothing AndAlso
-                    m_lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.FullName, typeDef) Then
+                If _lazyNoPiaLocalTypes IsNot Nothing AndAlso
+                    _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.FullName, typeDef) Then
 
                     result = DirectCast(New MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, isNoPiaLocalType), NamedTypeSymbol)
                     Debug.Assert(isNoPiaLocalType)

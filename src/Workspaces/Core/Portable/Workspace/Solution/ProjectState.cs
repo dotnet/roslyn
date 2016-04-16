@@ -16,16 +16,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class ProjectState
     {
-        private readonly ProjectInfo projectInfo;
-        private readonly HostLanguageServices languageServices;
-        private readonly SolutionServices solutionServices;
-        private readonly ImmutableDictionary<DocumentId, DocumentState> documentStates;
-        private readonly ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates;
-        private readonly IReadOnlyList<DocumentId> documentIds;
-        private readonly IReadOnlyList<DocumentId> additionalDocumentIds;
-        private readonly AsyncLazy<VersionStamp> lazyLatestDocumentVersion;
-        private readonly AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion;
-        private AnalyzerOptions analyzerOptions;
+        private readonly ProjectInfo _projectInfo;
+        private readonly HostLanguageServices _languageServices;
+        private readonly SolutionServices _solutionServices;
+        private readonly ImmutableDictionary<DocumentId, DocumentState> _documentStates;
+        private readonly ImmutableDictionary<DocumentId, TextDocumentState> _additionalDocumentStates;
+        private readonly IReadOnlyList<DocumentId> _documentIds;
+        private readonly IReadOnlyList<DocumentId> _additionalDocumentIds;
+        private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
+        private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
+
+        // this will be initialized lazily.
+        private AnalyzerOptions _analyzerOptionsDoNotAccessDirectly;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -38,15 +40,15 @@ namespace Microsoft.CodeAnalysis
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
-            this.projectInfo = projectInfo;
-            this.solutionServices = solutionServices;
-            this.languageServices = languageServices;
-            this.documentIds = documentIds.ToImmutableReadOnlyListOrEmpty();
-            this.additionalDocumentIds = additionalDocumentIds.ToImmutableReadOnlyListOrEmpty();
-            this.documentStates = documentStates;
-            this.additionalDocumentStates = additionalDocumentStates;
-            this.lazyLatestDocumentVersion = lazyLatestDocumentVersion;
-            this.lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
+            _projectInfo = projectInfo;
+            _solutionServices = solutionServices;
+            _languageServices = languageServices;
+            _documentIds = documentIds.ToImmutableReadOnlyListOrEmpty();
+            _additionalDocumentIds = additionalDocumentIds.ToImmutableReadOnlyListOrEmpty();
+            _documentStates = documentStates;
+            _additionalDocumentStates = additionalDocumentStates;
+            _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
+            _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         }
 
         internal ProjectState(ProjectInfo projectInfo, HostLanguageServices languageServices, SolutionServices solutionServices)
@@ -55,36 +57,36 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfNull(languageServices);
             Contract.ThrowIfNull(solutionServices);
 
-            this.languageServices = languageServices;
-            this.solutionServices = solutionServices;
+            _languageServices = languageServices;
+            _solutionServices = solutionServices;
 
-            this.projectInfo = FixProjectInfo(projectInfo);
+            _projectInfo = FixProjectInfo(projectInfo);
 
-            this.documentIds = this.projectInfo.Documents.Select(d => d.Id).ToImmutableArray();
-            this.additionalDocumentIds = this.ProjectInfo.AdditionalDocuments.Select(d => d.Id).ToImmutableArray();
+            _documentIds = _projectInfo.Documents.Select(d => d.Id).ToImmutableArray();
+            _additionalDocumentIds = _projectInfo.AdditionalDocuments.Select(d => d.Id).ToImmutableArray();
 
             var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
-                this.projectInfo.Documents.Select(d =>
+                _projectInfo.Documents.Select(d =>
                     new KeyValuePair<DocumentId, DocumentState>(d.Id,
-                        CreateDocument(this.ProjectInfo, d, languageServices, solutionServices))));
+                        CreateDocument(_projectInfo, d, languageServices, solutionServices))));
 
-            this.documentStates = docStates;
+            _documentStates = docStates;
 
             var additionalDocStates = ImmutableDictionary.CreateRange<DocumentId, TextDocumentState>(
-                    this.projectInfo.AdditionalDocuments.Select(d =>
+                    _projectInfo.AdditionalDocuments.Select(d =>
                         new KeyValuePair<DocumentId, TextDocumentState>(d.Id, TextDocumentState.Create(d, solutionServices))));
 
-            this.additionalDocumentStates = additionalDocStates;
+            _additionalDocumentStates = additionalDocStates;
 
-            this.lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
-            this.lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
+            _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
+            _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
         {
             if (projectInfo.CompilationOptions == null)
             {
-                var compilationFactory = this.languageServices.GetService<ICompilationFactoryService>();
+                var compilationFactory = _languageServices.GetService<ICompilationFactoryService>();
                 if (compilationFactory != null)
                 {
                     projectInfo = projectInfo.WithCompilationOptions(compilationFactory.GetDefaultCompilationOptions());
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis
 
             if (projectInfo.ParseOptions == null)
             {
-                var syntaxTreeFactory = this.languageServices.GetService<ISyntaxTreeFactoryService>();
+                var syntaxTreeFactory = _languageServices.GetService<ISyntaxTreeFactoryService>();
                 if (syntaxTreeFactory != null)
                 {
                     projectInfo = projectInfo.WithParseOptions(syntaxTreeFactory.GetDefaultParseOptions());
@@ -130,12 +132,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         private AsyncLazy<VersionStamp> CreateLazyLatestDocumentTopLevelChangeVersion(
-            TextDocumentState newDocument, 
+            TextDocumentState newDocument,
             ImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates)
         {
             VersionStamp oldVersion;
-            if (this.lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out oldVersion))
+            if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out oldVersion))
             {
                 return new AsyncLazy<VersionStamp>(c => ComputeTopLevelChangeTextVersionAsync(oldVersion, newDocument, c), cacheResult: true);
             }
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis
 
             return doc;
         }
-        
+
         public ProjectId Id
         {
             get { return this.ProjectInfo.Id; }
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis
 
         public HostLanguageServices LanguageServices
         {
-            get { return this.languageServices; }
+            get { return _languageServices; }
         }
 
         public string Name
@@ -231,12 +233,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (analyzerOptions == null)
+                if (_analyzerOptionsDoNotAccessDirectly == null)
                 {
-                    this.analyzerOptions = new AnalyzerOptions(this.additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
+                    _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(_additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>());
                 }
 
-                return analyzerOptions;
+                return _analyzerOptionsDoNotAccessDirectly;
             }
         }
 
@@ -247,12 +249,12 @@ namespace Microsoft.CodeAnalysis
 
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
         {
-            return this.lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
+            return _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
         }
 
         public Task<VersionStamp> GetLatestDocumentTopLevelChangeVersionAsync(CancellationToken cancellationToken)
         {
-            return this.lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
+            return _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
         }
 
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -264,7 +266,7 @@ namespace Microsoft.CodeAnalysis
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ProjectInfo ProjectInfo
         {
-            get { return this.projectInfo; }
+            get { return _projectInfo; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -304,9 +306,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public bool HasAllInformation
+        {
+            get { return this.ProjectInfo.HasAllInformation; }
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool HasDocuments
         {
-            get { return this.documentIds.Count > 0; }
+            get { return _documentIds.Count > 0; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -318,48 +326,48 @@ namespace Microsoft.CodeAnalysis
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IReadOnlyList<DocumentId> DocumentIds
         {
-            get { return this.documentIds; }
+            get { return _documentIds; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IReadOnlyList<DocumentId> AdditionalDocumentIds
         {
-            get { return this.additionalDocumentIds; }
+            get { return _additionalDocumentIds; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         private ImmutableDictionary<DocumentId, DocumentState> DocumentStates
         {
-            get { return this.documentStates; }
+            get { return _documentStates; }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         private ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates
         {
-            get { return this.additionalDocumentStates; }
+            get { return _additionalDocumentStates; }
         }
 
         public bool ContainsDocument(DocumentId documentId)
         {
-            return this.documentStates.ContainsKey(documentId);
+            return _documentStates.ContainsKey(documentId);
         }
 
         public bool ContainsAdditionalDocument(DocumentId documentId)
         {
-            return this.additionalDocumentStates.ContainsKey(documentId);
+            return _additionalDocumentStates.ContainsKey(documentId);
         }
 
         public DocumentState GetDocumentState(DocumentId documentId)
         {
             DocumentState state;
-            this.documentStates.TryGetValue(documentId, out state);
+            _documentStates.TryGetValue(documentId, out state);
             return state;
         }
 
         public TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
         {
             TextDocumentState state;
-            this.additionalDocumentStates.TryGetValue(documentId, out state);
+            _additionalDocumentStates.TryGetValue(documentId, out state);
             return state;
         }
 
@@ -374,15 +382,15 @@ namespace Microsoft.CodeAnalysis
             Lazy<AnalyzerOptions> lazyAnalyzerOptions = null)
         {
             return new ProjectState(
-                projectInfo ?? this.projectInfo,
-                this.languageServices,
-                this.solutionServices,
-                documentIds.IsDefault ? this.documentIds : documentIds,
-                additionalDocumentIds.IsDefault ? this.additionalDocumentIds : additionalDocumentIds,
-                documentStates ?? this.documentStates,
-                additionalDocumentStates ?? this.additionalDocumentStates,
-                latestDocumentVersion ?? this.lazyLatestDocumentVersion,
-                latestDocumentTopLevelChangeVersion ?? this.lazyLatestDocumentTopLevelChangeVersion);
+                projectInfo ?? _projectInfo,
+                _languageServices,
+                _solutionServices,
+                documentIds.IsDefault ? _documentIds : documentIds,
+                additionalDocumentIds.IsDefault ? _additionalDocumentIds : additionalDocumentIds,
+                documentStates ?? _documentStates,
+                additionalDocumentStates ?? _additionalDocumentStates,
+                latestDocumentVersion ?? _lazyLatestDocumentVersion,
+                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
         }
 
         public ProjectState UpdateName(string name)
@@ -443,9 +451,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             // update parse options for all documents too
-            var docMap = this.documentStates;
+            var docMap = _documentStates;
 
-            foreach (var docId in this.documentStates.Keys)
+            foreach (var docId in _documentStates.Keys)
             {
                 var oldDocState = this.GetDocumentState(docId);
                 var newDocState = oldDocState.UpdateParseOptions(options);
@@ -455,6 +463,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithParseOptions(options).WithVersion(this.Version.GetNewerVersion()),
                 documentStates: docMap);
+        }
+
+        public ProjectState UpdateHasAllInformation(bool hasAllInformation)
+        {
+            if (hasAllInformation == this.HasAllInformation)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithHasAllInformation(hasAllInformation).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
@@ -630,7 +648,7 @@ namespace Microsoft.CodeAnalysis
             AsyncLazy<VersionStamp> dependentDocumentVersion;
             AsyncLazy<VersionStamp> dependentSemanticVersion;
             GetLatestDependentVersions(
-                newDocumentStates, this.additionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                newDocumentStates, _additionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out dependentDocumentVersion, out dependentSemanticVersion);
 
             return this.With(
@@ -654,7 +672,7 @@ namespace Microsoft.CodeAnalysis
             AsyncLazy<VersionStamp> dependentDocumentVersion;
             AsyncLazy<VersionStamp> dependentSemanticVersion;
             GetLatestDependentVersions(
-                this.documentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                _documentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out dependentDocumentVersion, out dependentSemanticVersion);
 
             return this.With(
@@ -679,13 +697,13 @@ namespace Microsoft.CodeAnalysis
                 if (oldDocument.TryGetTextVersion(out oldVersion))
                 {
                     VersionStamp documentVersion;
-                    if (!this.lazyLatestDocumentVersion.TryGetValue(out documentVersion) || documentVersion == oldVersion)
+                    if (!_lazyLatestDocumentVersion.TryGetValue(out documentVersion) || documentVersion == oldVersion)
                     {
                         recalculateDocumentVersion = true;
                     }
 
                     VersionStamp semanticVersion;
-                    if (!this.lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out semanticVersion) || semanticVersion == oldVersion)
+                    if (!_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out semanticVersion) || semanticVersion == oldVersion)
                     {
                         recalculateSemanticVersion = true;
                     }
@@ -696,13 +714,13 @@ namespace Microsoft.CodeAnalysis
                 new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
                 textChanged ?
                     new AsyncLazy<VersionStamp>(newDocument.GetTextVersionAsync, cacheResult: true) :
-                    this.lazyLatestDocumentVersion;
+                    _lazyLatestDocumentVersion;
 
             dependentSemanticVersion = recalculateSemanticVersion ?
                 new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c), cacheResult: true) :
                 textChanged ?
                     CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates) :
-                    this.lazyLatestDocumentTopLevelChangeVersion;
+                    _lazyLatestDocumentTopLevelChangeVersion;
         }
     }
 }

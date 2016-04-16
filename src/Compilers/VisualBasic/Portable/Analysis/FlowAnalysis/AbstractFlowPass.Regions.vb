@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' A cache of the state at the backward branch point of each loop.  This is not needed
         ''' during normal flow analysis, but is needed for region analysis.
         ''' </summary>
-        Private ReadOnly loopHeadState As Dictionary(Of BoundLoopStatement, LocalState)
+        Private ReadOnly _loopHeadState As Dictionary(Of BoundLoopStatement, LocalState)
 
         Protected ReadOnly Property IsInside As Boolean
             Get

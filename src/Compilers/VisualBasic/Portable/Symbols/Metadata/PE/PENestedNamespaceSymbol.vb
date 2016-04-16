@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' as soon as symbols for children are created.
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_TypesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
+        Private _typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
         ''' <summary>
         ''' Constructor.
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             m_ContainingNamespaceSymbol = containingNamespace
             m_Name = name
-            m_TypesByNS = typesByNS
+            _typesByNS = typesByNS
         End Sub
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -116,12 +116,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Protected Overrides Sub EnsureAllMembersLoaded()
-            Dim typesByNS = m_TypesByNS
+            Dim typesByNS = _typesByNS
 
             If m_lazyTypes Is Nothing OrElse m_lazyMembers Is Nothing Then
                 Debug.Assert(typesByNS IsNot Nothing)
                 LoadAllMembers(typesByNS)
-                Interlocked.Exchange(m_TypesByNS, Nothing)
+                Interlocked.Exchange(_typesByNS, Nothing)
             End If
         End Sub
 
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         '''     NotApplicable - if there are no types.
         ''' </summary>
         Protected Overrides Function GetDeclaredAccessibilityOfMostAccessibleDescendantType() As Accessibility
-            Dim typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)) = m_TypesByNS
+            Dim typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)) = _typesByNS
 
             If typesByNS IsNot Nothing AndAlso m_lazyTypes Is Nothing Then
                 ' Calculate this without creating symbols for children

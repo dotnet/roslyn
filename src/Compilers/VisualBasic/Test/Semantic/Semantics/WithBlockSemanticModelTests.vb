@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #Region "Symbol / Type Info"
 
         <Fact>
-        Sub WithAliasedStaticField()
+        Public Sub WithAliasedStaticField()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -49,7 +49,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
+        Public Sub WithDeclaresAnonymousLocalSymbolAndTypeInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -75,8 +75,8 @@ End Module
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
         End Sub
 
-        <Fact(), WorkItem(544083, "DevDiv")>
-        Sub WithSpeculativeSymbolInfo()
+        <Fact(), WorkItem(544083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544083")>
+        Public Sub WithSpeculativeSymbolInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -95,7 +95,7 @@ End Module
     </file>
 </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression(".property2")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -114,7 +114,7 @@ End Module
 #Region "FlowAnalysis"
 
         <Fact>
-        Sub UseWithVariableInNestedLambda()
+        Public Sub UseWithVariableInNestedLambda()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -141,9 +141,9 @@ End Module
             Assert.Empty(dataFlowResults.DataFlowsIn)
             Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Empty(dataFlowResults.ReadInside)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadOutside))
             Assert.Empty(dataFlowResults.WrittenInside)
-            Assert.Equal("f, x", GetSymbolNamesSortedAndJoined(dataFlowResults.WrittenOutside))
+            Assert.Equal("x, f", GetSymbolNamesJoined(dataFlowResults.WrittenOutside))
 
             Assert.Empty(controlFlowResults.EntryPoints)
             Assert.False(controlFlowResults.EndPointIsReachable)
@@ -152,7 +152,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub WithDeclaresAnonymousLocalDataFlow()
+        Public Sub WithDeclaresAnonymousLocalDataFlow()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -184,7 +184,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub EmptyWith()
+        Public Sub EmptyWith()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation>
     <file name="a.vb">
@@ -202,9 +202,9 @@ End Module
 
             Assert.Empty(dataFlowResults.VariablesDeclared)
             Assert.Empty(dataFlowResults.AlwaysAssigned)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.DataFlowsIn))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
             Assert.Empty(dataFlowResults.DataFlowsOut)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowResults.ReadInside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.ReadOutside)
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.WrittenOutside)
@@ -216,6 +216,65 @@ End Module
         End Sub
 
 #End Region
+
+        <Fact, WorkItem(2662, "https://github.com/dotnet/roslyn/issues/2662")>
+        Public Sub Issue2662()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module Program
+    Sub Main(args As String())
+
+    End Sub
+    Private Sub AddCustomer()
+        Dim theCustomer As New Customer
+
+        With theCustomer
+            .Name = "Abc"
+            .URL = "http://www.microsoft.com/"
+            .City = "Redmond"
+            .Print(.Name)
+        End With
+    End Sub
+
+    <Extension()>
+    Public Sub Print(ByVal cust As Customer, str As String)
+        Console.WriteLine(str)
+    End Sub
+
+    Public Class Customer
+        Public Property Name As String
+        Public Property City As String
+        Public Property URL As String
+
+        Public Property Comments As New List(Of String)
+    End Class
+End Module
+    ]]></file>
+</compilation>, {SystemCoreRef})
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim withBlock = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of WithBlockSyntax)().Single()
+
+            Dim name = withBlock.Statements(3).DescendantNodes().OfType(Of IdentifierNameSyntax).Where(Function(i) i.Identifier.ValueText = "Name").Single()
+            model.GetAliasInfo(name)
+
+            Dim result2 = model.AnalyzeDataFlow(withBlock, withBlock)
+            Assert.True(result2.Succeeded)
+
+            model = compilation.GetSemanticModel(tree)
+            model.GetAliasInfo(name)
+
+            Assert.Equal("theCustomer As Program.Customer", model.GetSymbolInfo(withBlock.WithStatement.Expression).Symbol.ToTestDisplayString())
+        End Sub
 
     End Class
 

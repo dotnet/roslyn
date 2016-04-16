@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <Tree Root="SyntaxNode">
@@ -591,11 +591,10 @@
       </PropertyComment>
     </Field>
     <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken">
-        <PropertyComment>
-          <summary>SyntaxToken representing the colon.</summary>
-        </PropertyComment>
-      </Kind>
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the colon.</summary>
+      </PropertyComment>
     </Field>
     <Field Name="WhenFalse" Type="ExpressionSyntax">
       <PropertyComment>
@@ -1039,7 +1038,7 @@
     <Field Name="Name" Type="IdentifierNameSyntax">
       <Kind Name="IdentifierName"/>
       <PropertyComment>
-        <summary>IdentifierNameSyntax representing the identifer name.</summary>
+        <summary>IdentifierNameSyntax representing the identifier name.</summary>
       </PropertyComment>
     </Field>
     <Field Name="ColonToken" Type="SyntaxToken">
@@ -1086,9 +1085,25 @@
       <summary>Creates an CastExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="AnonymousMethodExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="AnonymousMethodExpression"/>
+  <AbstractNode Name="AnonymousFunctionExpressionSyntax" Base="ExpressionSyntax">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
+    </TypeComment>
     <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AsyncKeyword"/>
+      <PropertyComment>
+        <summary>Gets the "async" token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode">
+      <PropertyComment>
+        <summary>ExpressionSyntax or BlockSyntax representing the body of the lambda expression.</summary>
+      </PropertyComment>
+    </Field>
+  </AbstractNode>
+  <Node Name="AnonymousMethodExpressionSyntax" Base="AnonymousFunctionExpressionSyntax">
+    <Kind Name="AnonymousMethodExpression"/>
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AsyncKeyword"/>
       <PropertyComment>
         <summary>Gets the "async" token.</summary>
@@ -1105,7 +1120,8 @@
         <summary>List of parameters of the anonymous method expression, or null if there no parameters are specified.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Block" Type="BlockSyntax">
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
+      <Kind Name="Block"/>
       <PropertyComment>
         <summary>BlockSyntax node representing the body of the anonymous method.</summary>
       </PropertyComment>
@@ -1117,9 +1133,21 @@
       <summary>Creates an AnonymousMethodExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="SimpleLambdaExpressionSyntax" Base="ExpressionSyntax">
+  <AbstractNode Name="LambdaExpressionSyntax" Base="AnonymousFunctionExpressionSyntax">
+    <TypeComment>
+      <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
+    </TypeComment>
+    <Field Name="ArrowToken" Type="SyntaxToken">
+      <!-- should be EqualsGreaterThanToken -->
+      <Kind Name="EqualsGreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing equals greater than.</summary>
+      </PropertyComment>
+    </Field>
+  </AbstractNode>
+  <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="SimpleLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AsyncKeyword"/>
       <PropertyComment>
         <summary>Gets the "async" token.</summary>
@@ -1131,14 +1159,14 @@
         <summary>ParameterSyntax node representing the parameter of the lambda expression.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ArrowToken" Type="SyntaxToken">
+    <Field Name="ArrowToken" Type="SyntaxToken" Override="true">
       <!-- should be EqualsGreaterThanToken -->
       <Kind Name="EqualsGreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode">
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <PropertyComment>
         <summary>SyntaxNode representing the body of the lambda expression.</summary>
       </PropertyComment>
@@ -1150,9 +1178,9 @@
       <summary>Creates an SimpleLambdaExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="ParenthesizedLambdaExpressionSyntax" Base="ExpressionSyntax">
+  <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
-    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="AsyncKeyword" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="AsyncKeyword"/>
       <PropertyComment>
         <summary>Gets the "async" token.</summary>
@@ -1163,14 +1191,14 @@
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ArrowToken" Type="SyntaxToken">
+    <Field Name="ArrowToken" Type="SyntaxToken" Override="true">
       <!-- should be EqualsGreaterThanToken -->
       <Kind Name="EqualsGreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing equals greater than.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Body" Type="CSharpSyntaxNode">
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <PropertyComment>
         <summary>SyntaxNode representing the body of the lambda expression.</summary>
       </PropertyComment>
@@ -1245,16 +1273,16 @@
     <Kind Name="AnonymousObjectMemberDeclarator"/>
     <Field Name="NameEquals" Type="NameEqualsSyntax" Optional="true">
       <PropertyComment>
-        <summary>NameEqualsSyntax representing the optional name of the property being initialized.</summary>
+        <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
-        <summary>ExpressionSyntax representing the value the property is initialized with.</summary>
+        <summary>ExpressionSyntax representing the value the member is initialized with.</summary>
       </PropertyComment>
     </Field>
     <FactoryComment>
-      <summary>Creates an AnonymousObjectPropertyInitializerSyntax node.</summary>
+      <summary>Creates an AnonymousObjectMemberDeclaratorSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="AnonymousObjectCreationExpressionSyntax" Base="ExpressionSyntax">
@@ -1273,7 +1301,7 @@
     </Field>
     <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;">
       <PropertyComment>
-        <summary>SeparatedSyntaxList of AnonymousObjectPropertyInitializerSyntax representing the list of object property initializers.</summary>
+        <summary>SeparatedSyntaxList of AnonymousObjectMemberDeclaratorSyntax representing the list of object member initializers.</summary>
       </PropertyComment>
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
@@ -1575,7 +1603,7 @@
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
   <Node Name="InterpolationFormatClauseSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="InterpolationFormatClause"  Optional="true"/>
+    <Kind Name="InterpolationFormatClause"/>
     <Field Name="ColonToken" Type="SyntaxToken"/>
     <Field Name="FormatStringToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringTextToken"/>
@@ -2284,10 +2312,11 @@
         <summary>Gets the open bracket token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true"/>
-    <PropertyComment>
-      <summary>Gets the optional construct targeted by the attribute.</summary>
-    </PropertyComment>
+    <Field Name="Target" Type="AttributeTargetSpecifierSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the optional construct targeted by the attribute.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Attributes" Type="SeparatedSyntaxList&lt;AttributeSyntax&gt;">
       <PropertyComment>
         <summary>Gets the attribute declaration list.</summary>
@@ -3116,7 +3145,7 @@
     <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true" />
     <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true" />
     <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
-    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken" />
     </Field>
   </Node>
@@ -3163,7 +3192,7 @@
     </Field>
     <Field Name="AccessorList" Type="AccessorListSyntax" Override="true" Optional="true"/>
     <Field Name="ExpressionBody" Type="ArrowExpressionClauseSyntax" Optional="true"/>
-    <Field Name="Semicolon" Type="SyntaxToken" Optional="true">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
@@ -3943,6 +3972,35 @@
     </Field>
     <Field Name="File" Type="SyntaxToken">
       <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LoadDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="LoadDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LoadKeyword" Type="SyntaxToken">
+      <Kind Name="LoadKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="ShebangDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="ShebangDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ExclamationToken" Type="SyntaxToken">
+      <Kind Name="ExclamationToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

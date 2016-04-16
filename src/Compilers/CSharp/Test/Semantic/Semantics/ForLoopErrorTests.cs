@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         // Condition expression
         [Fact]
-        public void CS1525ERR_InvalidExprTerm_ConditionExpresssion()
+        public void CS1525ERR_InvalidExprTerm_ConditionExpression()
         {
             var text =
 @"

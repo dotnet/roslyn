@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         protected SymbolCompletionState state;
         protected readonly SourceMemberContainerTypeSymbol containingType;
-        private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
         protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType)
         {
@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasComplete(CompletionPart part)
         {
             return state.HasComplete(part);
-        }
-
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
-        {
-            state.DefaultForceComplete(this);
         }
 
         public abstract override string Name { get; }
@@ -201,20 +196,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            var bag = this.lazyCustomAttributesBag;
+            var bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
             }
 
-            if (LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref lazyCustomAttributesBag))
+            if (LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);
             }
 
-            Debug.Assert(lazyCustomAttributesBag.IsSealed);
-            return this.lazyCustomAttributesBag;
+            Debug.Assert(_lazyCustomAttributesBag.IsSealed);
+            return _lazyCustomAttributesBag;
         }
 
         /// <summary>
@@ -238,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonFieldWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -255,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonFieldEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -295,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var lazyCustomAttributesBag = this.lazyCustomAttributesBag;
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonFieldEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
@@ -426,8 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
             Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
-            Debug.Assert(this.lazyCustomAttributesBag != null);
-            Debug.Assert(this.lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
+            Debug.Assert(_lazyCustomAttributesBag != null);
+            Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
             var data = (CommonFieldWellKnownAttributeData)decodedData;
@@ -515,18 +510,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null ? data.Offset : null;
             }
         }
-
     }
 
     internal abstract class SourceFieldSymbolWithSyntaxReference : SourceFieldSymbol
     {
-        private readonly string name;
-        private readonly Location location;
-        private readonly SyntaxReference syntaxReference;
+        private readonly string _name;
+        private readonly Location _location;
+        private readonly SyntaxReference _syntaxReference;
 
-        private string lazyDocComment;
-        private ConstantValue lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private string _lazyDocComment;
+        private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
 
         protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
@@ -536,16 +530,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax != null);
             Debug.Assert(location != null);
 
-            this.name = name;
-            this.syntaxReference = syntax;
-            this.location = location;
+            _name = name;
+            _syntaxReference = syntax;
+            _location = location;
         }
 
         public SyntaxTree SyntaxTree
         {
             get
             {
-                return this.syntaxReference.SyntaxTree;
+                return _syntaxReference.SyntaxTree;
             }
         }
 
@@ -553,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (CSharpSyntaxNode)this.syntaxReference.GetSyntax();
+                return (CSharpSyntaxNode)_syntaxReference.GetSyntax();
             }
         }
 
@@ -561,20 +555,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            return new LexicalSortKey(location, this.DeclaringCompilation);
+            return new LexicalSortKey(_location, this.DeclaringCompilation);
         }
 
         public sealed override ImmutableArray<Location> Locations
         {
             get
             {
-                return ImmutableArray.Create(location);
+                return ImmutableArray.Create(_location);
             }
         }
 
@@ -582,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return location;
+                return _location;
             }
         }
 
@@ -590,13 +584,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>(syntaxReference);
+                return ImmutableArray.Create<SyntaxReference>(_syntaxReference);
             }
         }
 
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
         internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
@@ -695,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = DiagnosticBag.GetInstance();
             if (startsCycle)
             {
-                diagnostics.Add(ErrorCode.ERR_CircConstValue, this.location, this);
+                diagnostics.Add(ErrorCode.ERR_CircConstValue, _location, this);
             }
 
             var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
@@ -710,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
         {
-            return earlyDecodingWellKnownAttributes ? this.lazyConstantEarlyDecodingValue : this.lazyConstantValue;
+            return earlyDecodingWellKnownAttributes ? _lazyConstantEarlyDecodingValue : _lazyConstantValue;
         }
 
         private void SetLazyConstantValue(
@@ -725,16 +719,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (earlyDecodingWellKnownAttributes)
             {
-                Interlocked.CompareExchange(ref this.lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);
+                Interlocked.CompareExchange(ref _lazyConstantEarlyDecodingValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset);
             }
             else
             {
-                if (Interlocked.CompareExchange(ref this.lazyConstantValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset) == Microsoft.CodeAnalysis.ConstantValue.Unset)
+                if (Interlocked.CompareExchange(ref _lazyConstantValue, value, Microsoft.CodeAnalysis.ConstantValue.Unset) == Microsoft.CodeAnalysis.ConstantValue.Unset)
                 {
 #if REPORT_ALL
                     Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
 #endif
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                     this.state.NotePartComplete(CompletionPart.ConstantValue);
                 }
             }

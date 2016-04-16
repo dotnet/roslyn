@@ -16,25 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
     internal sealed class EmbeddedTypesManager :
         EmbeddedTypesManager<PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, CSharpSyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
     {
-        private readonly ConcurrentDictionary<AssemblySymbol, string> assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
-        private readonly ConcurrentDictionary<Symbol, bool> reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);
-        private NamedTypeSymbol lazySystemStringType = ErrorTypeSymbol.UnknownResultType;
-        private readonly MethodSymbol[] lazyWellKnownTypeMethods;
+        private readonly ConcurrentDictionary<AssemblySymbol, string> _assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
+        private readonly ConcurrentDictionary<Symbol, bool> _reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);
+        private NamedTypeSymbol _lazySystemStringType = ErrorTypeSymbol.UnknownResultType;
+        private readonly MethodSymbol[] _lazyWellKnownTypeMethods;
 
         public EmbeddedTypesManager(PEModuleBuilder moduleBeingBuilt) :
             base(moduleBeingBuilt)
         {
-            lazyWellKnownTypeMethods = new MethodSymbol[(int)WellKnownMember.Count];
+            _lazyWellKnownTypeMethods = new MethodSymbol[(int)WellKnownMember.Count];
 
-            for (int i = 0; i < lazyWellKnownTypeMethods.Length; i++)
+            for (int i = 0; i < _lazyWellKnownTypeMethods.Length; i++)
             {
-                lazyWellKnownTypeMethods[i] = ErrorMethodSymbol.UnknownMethod;
+                _lazyWellKnownTypeMethods[i] = ErrorMethodSymbol.UnknownMethod;
             }
         }
 
         public NamedTypeSymbol GetSystemStringType(CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            if ((object)lazySystemStringType == (object)ErrorTypeSymbol.UnknownResultType)
+            if ((object)_lazySystemStringType == (object)ErrorTypeSymbol.UnknownResultType)
             {
                 var typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     typeSymbol = null;
                 }
 
-                if (Interlocked.CompareExchange(ref lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType) == ErrorTypeSymbol.UnknownResultType)
+                if (Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType) == ErrorTypeSymbol.UnknownResultType)
                 {
                     if (info != null)
                     {
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 }
             }
 
-            return lazySystemStringType;
+            return _lazySystemStringType;
         }
 
         public MethodSymbol GetWellKnownMethod(WellKnownMember method, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return LazyGetWellKnownTypeMethod(ref lazyWellKnownTypeMethods[(int)method],
+            return LazyGetWellKnownTypeMethod(ref _lazyWellKnownTypeMethods[(int)method],
                                               method,
                                               syntaxNodeOpt,
                                               diagnostics);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor:
                     // The interface needs to have a coclass attribute so that we can tell at runtime that it should be
-                    // instantiable. The attribute cannot refer directly to the coclass, however, because we can't embed
+                    // instantiatable. The attribute cannot refer directly to the coclass, however, because we can't embed
                     // classes, and we can't emit a reference to the PIA. We don't actually need
                     // the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
                     return new SynthesizedAttributeData(ctor,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             string guidString;
 
-            if (assemblyGuidMap.TryGetValue(assembly, out guidString))
+            if (_assemblyGuidMap.TryGetValue(assembly, out guidString))
             {
                 return guidString;
             }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             Debug.Assert(guidString == null);
 
             assembly.GetGuidString(out guidString);
-            return assemblyGuidMap.GetOrAdd(assembly, guidString);
+            return _assemblyGuidMap.GetOrAdd(assembly, guidString);
         }
 
         protected override void OnGetTypesCompleted(ImmutableArray<EmbeddedType> types, DiagnosticBag diagnostics)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             foreach (EmbeddedType t in types)
             {
                 // Note, once we reached this point we are no longer interested in guid values, using null.
-                assemblyGuidMap.TryAdd(t.UnderlyingNamedType.ContainingAssembly, null);
+                _assemblyGuidMap.TryAdd(t.UnderlyingNamedType.ContainingAssembly, null);
             }
 
             foreach (AssemblySymbol a in ModuleBeingBuilt.GetReferencedAssembliesUsedSoFar())
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             {
                 foreach (AssemblySymbol indirectRef in m.GetReferencedAssemblySymbols())
                 {
-                    if (!indirectRef.IsMissing && indirectRef.IsLinked && assemblyGuidMap.ContainsKey(indirectRef))
+                    if (!indirectRef.IsMissing && indirectRef.IsLinked && _assemblyGuidMap.ContainsKey(indirectRef))
                     {
                         // WRNID_IndirectRefToLinkedAssembly2/WRN_ReferencedAssemblyReferencesLinkedPIA
                         Error(diagnostics, ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA, null,
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         private static void ReportNotEmbeddableSymbol(ErrorCode error, Symbol symbol, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, EmbeddedTypesManager optTypeManager)
         {
             // Avoid complaining about the same symbol too much.
-            if (optTypeManager == null || optTypeManager.reportedSymbolsMap.TryAdd(symbol.OriginalDefinition, true))
+            if (optTypeManager == null || optTypeManager._reportedSymbolsMap.TryAdd(symbol.OriginalDefinition, true))
             {
                 Error(diagnostics, error, syntaxNodeOpt, symbol.OriginalDefinition);
             }

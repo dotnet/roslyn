@@ -25,8 +25,8 @@ namespace Roslyn.Utilities
         // a different tree will either return the same type of node as the original, or will fail.  
         protected struct PathSegment
         {
-            public int Ordinal { get; private set; }
-            public int Kind { get; private set; }
+            public int Ordinal { get; }
+            public int Kind { get; }
 
             public PathSegment(int ordinal, int kind)
                 : this()
@@ -36,16 +36,16 @@ namespace Roslyn.Utilities
             }
         }
 
-        private readonly List<PathSegment> segments = new List<PathSegment>();
-        private readonly int kind;
-        private readonly bool trackKinds;
+        private readonly List<PathSegment> _segments = new List<PathSegment>();
+        private readonly int _kind;
+        private readonly bool _trackKinds;
 
         public SyntaxPath(SyntaxNodeOrToken nodeOrToken, bool trackKinds = true)
         {
-            this.trackKinds = trackKinds;
-            this.kind = nodeOrToken.RawKind;
+            _trackKinds = trackKinds;
+            _kind = nodeOrToken.RawKind;
             AddSegment(nodeOrToken);
-            segments.TrimExcess();
+            _segments.TrimExcess();
         }
 
         private void AddSegment(SyntaxNodeOrToken nodeOrToken)
@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
             var parent = nodeOrToken.Parent;
             if (parent != null)
             {
-                AddSegment((SyntaxNodeOrToken)parent);
+                AddSegment(parent);
 
                 // TODO(cyrusn): Is there any way to optimize this for large lists?  I would like to
                 // be able to do a binary search.  However, there's no easy way to tell if a node
@@ -67,11 +67,11 @@ namespace Roslyn.Utilities
                 {
                     if (nodeOrToken == child)
                     {
-                        segments.Add(new PathSegment(ordinal, nodeOrToken.RawKind));
+                        _segments.Add(new PathSegment(ordinal, nodeOrToken.RawKind));
                         return;
                     }
 
-                    if (!trackKinds || (trackKinds && child.RawKind == kind))
+                    if (!_trackKinds || (_trackKinds && child.RawKind == kind))
                     {
                         ordinal++;
                     }
@@ -90,7 +90,7 @@ namespace Roslyn.Utilities
             nodeOrToken = default(SyntaxNodeOrToken);
 
             var current = (SyntaxNodeOrToken)root;
-            foreach (var segment in this.segments)
+            foreach (var segment in _segments)
             {
                 current = FindChild(current, segment);
 
@@ -100,7 +100,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            if (!trackKinds || (trackKinds && current.RawKind == kind))
+            if (!_trackKinds || (_trackKinds && current.RawKind == _kind))
             {
                 nodeOrToken = current;
                 return true;
@@ -114,7 +114,7 @@ namespace Roslyn.Utilities
             var ordinal = segment.Ordinal;
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (!trackKinds || (trackKinds && child.RawKind == segment.Kind))
+                if (!_trackKinds || (_trackKinds && child.RawKind == segment.Kind))
                 {
                     if (ordinal == 0)
                     {
@@ -186,23 +186,23 @@ namespace Roslyn.Utilities
             }
 
             return
-                this.trackKinds == other.trackKinds &&
-                this.kind == other.kind &&
-                this.segments.SequenceEqual(other.segments, (x, y) => x.Equals(y));
+                _trackKinds == other._trackKinds &&
+                _kind == other._kind &&
+                _segments.SequenceEqual(other._segments, (x, y) => x.Equals(y));
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.trackKinds, Hash.Combine(this.kind, GetSegmentHashCode()));
+            return Hash.Combine(_trackKinds, Hash.Combine(_kind, GetSegmentHashCode()));
         }
 
         private int GetSegmentHashCode()
         {
             var hash = 1;
 
-            for (int i = 0; i < this.segments.Count; i++)
+            for (int i = 0; i < _segments.Count; i++)
             {
-                var segment = this.segments[i];
+                var segment = _segments[i];
                 hash = Hash.Combine(Hash.Combine(segment.Kind, segment.Ordinal), hash);
             }
 

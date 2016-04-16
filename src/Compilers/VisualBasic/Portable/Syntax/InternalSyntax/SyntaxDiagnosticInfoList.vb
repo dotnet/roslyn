@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Implements IEnumerator(Of DiagnosticInfo), IDisposable, IEnumerator
 
             Private Structure NodeIteration
-                Friend node As GreenNode
+                Friend ReadOnly node As GreenNode
                 Friend diagnosticIndex As Integer
                 Friend slotIndex As Integer
 

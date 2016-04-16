@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal sealed class LongestCommonSubstring : LongestCommonSubsequence<string>
     {
-        private static readonly LongestCommonSubstring Instance = new LongestCommonSubstring();
+        private static readonly LongestCommonSubstring s_instance = new LongestCommonSubstring();
 
         private LongestCommonSubstring()
         {
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         public static double ComputeDistance(string oldValue, string newValue)
         {
-            return Instance.ComputeDistance(oldValue, oldValue.Length, newValue, newValue.Length);
+            return s_instance.ComputeDistance(oldValue, oldValue.Length, newValue, newValue.Length);
         }
 
         public static IEnumerable<SequenceEdit> GetEdits(string oldValue, string newValue)
         {
-            return Instance.GetEdits(oldValue, oldValue.Length, newValue, newValue.Length);
+            return s_instance.GetEdits(oldValue, oldValue.Length, newValue, newValue.Length);
         }
     }
 }

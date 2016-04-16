@@ -56,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim variableDeclarator = TryCast(reusableSyntax.Parent, VariableDeclaratorSyntax)
                 If variableDeclarator IsNot Nothing Then
                     Dim names = (New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)).Add(reusableSyntax)
-                    Dim newVariableDeclartor = variableDeclarator.WithNames(names)
+                    Dim newVariableDeclarator = variableDeclarator.WithNames(names)
                     Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
                     If fieldDecl IsNot Nothing Then
-                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclartor))
+                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))
                     End If
                 End If
             End If

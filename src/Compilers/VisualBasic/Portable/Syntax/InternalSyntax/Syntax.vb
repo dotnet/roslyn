@@ -22,7 +22,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Shared ReadOnly ElasticZeroSpace As SyntaxTrivia = Whitespace(String.Empty, elastic:=True)
 
         Friend Shared Function EndOfLine(text As String, Optional elastic As Boolean = False) As SyntaxTrivia
-            Dim trivia = SyntaxTrivia(SyntaxKind.EndOfLineTrivia, text)
+
+            Dim trivia As SyntaxTrivia = Nothing
+
+            ' use predefined trivia
+            Select Case text
+                Case vbCr
+                    trivia = If(elastic, SyntaxFactory.ElasticCarriageReturn, SyntaxFactory.CarriageReturn)
+                Case vbLf
+                    trivia = If(elastic, SyntaxFactory.ElasticLineFeed, SyntaxFactory.LineFeed)
+                Case vbCrLf
+                    trivia = If(elastic, SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxFactory.CarriageReturnLineFeed)
+            End Select
+
+            ' note: predefined trivia might not yet be defined during initialization
+            If trivia IsNot Nothing Then
+                Return trivia
+            End If
+
+            trivia = SyntaxTrivia(SyntaxKind.EndOfLineTrivia, text)
             If Not elastic Then
                 Return trivia
             End If

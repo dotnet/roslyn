@@ -143,9 +143,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestReplaceTriviaDeep()
             ' The parser for VB will stop when it sees the #end if directive which is a different 
-            ' behaviour from the C# compiler.  That said the whitespace trivia was only turned to double for the
+            ' behavior from the C# compiler.  That said the whitespace trivia was only turned to double for the
             ' DirectiveTrivia and not the whitespace between the identifier and operators.
-            ' Added for parity of scenario with Directives but capturing difference in behaviour
+            ' Added for parity of scenario with Directives but capturing difference in behavior
             Dim SourceText = "#if true then" & Environment.NewLine & "a + " & Environment.NewLine & "#end if" & Environment.NewLine & " + b"
             Dim expr As ExpressionSyntax = SyntaxFactory.ParseExpression(SourceText, consumeFullText:=False)
 
@@ -185,8 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + b")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                         Where tr.Kind = SyntaxKind.WhitespaceTrivia
-                         Select tr).ToList
+                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)
             Dim rtext = replaced.ToFullString()
@@ -198,8 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + (c - b)")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                         Where tr.Kind = SyntaxKind.WhitespaceTrivia
-                         Select tr).ToList
+                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)
             Dim rtext = replaced.ToFullString()

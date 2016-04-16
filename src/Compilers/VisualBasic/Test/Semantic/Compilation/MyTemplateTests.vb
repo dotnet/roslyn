@@ -52,7 +52,7 @@ End Class
             Assert.NotNull(MyTemplate)
 
             Dim text = MyTemplate.GetText.ToString
-            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text)
+            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
 
         End Sub
 
@@ -77,7 +77,7 @@ End Class
             Dim MyTemplate = GetMyTemplateTree(compilation)
 
             Dim text = MyTemplate.GetText.ToString
-            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text)
+            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
         End Sub
 
         <Fact()>
@@ -101,7 +101,7 @@ End Class
             Dim MyTemplate = GetMyTemplateTree(compilation)
 
             Dim text = MyTemplate.GetText.ToString
-            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text)
+            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
         End Sub
 
         <Fact()>
@@ -215,7 +215,6 @@ End Class
             compilation.VerifyDiagnostics()
 
             CompileAndVerify(compilation, expectedOutput:="HelloWinform")
-
         End Sub
 
         <Fact()>

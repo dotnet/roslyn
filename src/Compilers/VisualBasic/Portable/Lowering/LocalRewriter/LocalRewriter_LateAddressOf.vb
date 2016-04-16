@@ -11,13 +11,13 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitLateAddressOfOperator(node As BoundLateAddressOfOperator) As BoundNode
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' just preserve the node to report an error in ExpressionLambdaRewriter
                 Return MyBase.VisitLateAddressOfOperator(node)
             End If
 
             Dim targetType = DirectCast(node.Type, NamedTypeSymbol)
-            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, Me.diagnostics)
+            Dim lambda = BuildDelegateRelaxationLambda(node.Syntax, targetType, node.MemberAccess, node.Binder, Me._diagnostics)
 
             Return Me.VisitExpressionNode(lambda)
         End Function
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' These parameters will be used in the method invocation as passed parameters.
             Dim lambdaBoundParameters(invokeParameterCount - 1) As BoundExpression
 
-            For parameterIndex = 0 To lambdaSymbolParameters.Count - 1
+            For parameterIndex = 0 To lambdaSymbolParameters.Length - 1
                 Dim lambdaSymbolParameter = lambdaSymbolParameters(parameterIndex)
                 Dim boundParameter = New BoundParameter(syntaxNode,
                                                         lambdaSymbolParameter,

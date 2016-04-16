@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports System.Text
@@ -51,7 +51,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem(546059, "DevDiv")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode2()
             Dim sources = <compilation>
@@ -76,7 +76,7 @@ BC30002: Type 'Microsoft.VisualBasic.Embedded' is not defined.
 
         ' The Embedded attribute should only be available for 
         ' user-define code if vb runtime is included.
-        <WorkItem(546059, "DevDiv")>
+        <WorkItem(546059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546059")>
         <Fact()>
         Public Sub EmbeddedAttributeRequiresOtherEmbeddedCode3()
             Dim sources = <compilation>
@@ -199,7 +199,7 @@ End Class
             compilationVerifier.Compilation.AssertNoErrors()
         End Sub
 
-        <WorkItem(545438, "DevDiv"), WorkItem(546887, "DevDiv")>
+        <WorkItem(545438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545438"), WorkItem(546887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546887")>
         <Fact()>
         Public Sub InternalXmlHelper_ValueProperty()
             Dim symbols = <expected>
@@ -275,7 +275,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub VbCore_NoSymbols()
+        Public Sub VbCore_NoSymbols()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -306,7 +306,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_SymbolInGetType()
+        Public Sub VbCore_SingleSymbol_SymbolInGetType()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -360,7 +360,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_Constants()
+        Public Sub VbCore_SingleSymbol_Constants()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -417,7 +417,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_Constants_WithVbRuntime()
+        Public Sub VbCore_SingleSymbol_Constants_WithVbRuntime()
             MyBase.CompileAndVerify(source:=
 <compilation>
     <file name="a.vb">
@@ -476,7 +476,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_Constants_All()
+        Public Sub VbCore_SingleSymbol_Constants_All()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -518,7 +518,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators()
+        Public Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -569,7 +569,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators_CompareString()
+        Public Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators_CompareString()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -628,7 +628,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators_CompareString2()
+        Public Sub VbCore_SingleSymbol_CompilerServices_EmbeddedOperators_CompareString2()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -688,7 +688,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Conversions()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Conversions()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -739,7 +739,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToBoolean_String()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToBoolean_String()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -802,7 +802,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToBoolean_Object()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToBoolean_Object()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -866,7 +866,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToSByte_String()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToSByte_String()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -930,7 +930,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToSByte_Object()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Conversions_ToSByte_Object()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -996,7 +996,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_Utils_CopyArray()
+        Public Sub VbCore_SingleSymbol_CompilerServices_Utils_CopyArray()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1050,7 +1050,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl()
+        Public Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1102,7 +1102,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl_ForLoopControl()
+        Public Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl_ForLoopControl()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1157,7 +1157,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl_ForLoopControl_ForNextCheckR8()
+        Public Sub VbCore_SingleSymbol_CompilerServices_ObjectFlowControl_ForLoopControl_ForNextCheckR8()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1213,7 +1213,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_StaticLocalInitFlag()
+        Public Sub VbCore_SingleSymbol_CompilerServices_StaticLocalInitFlag()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1266,7 +1266,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_StaticLocalInitFlag_State()
+        Public Sub VbCore_SingleSymbol_CompilerServices_StaticLocalInitFlag_State()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1321,7 +1321,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_IncompleteInitialization()
+        Public Sub VbCore_SingleSymbol_CompilerServices_IncompleteInitialization()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1373,7 +1373,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_IncompleteInitialization_Throw()
+        Public Sub VbCore_SingleSymbol_CompilerServices_IncompleteInitialization_Throw()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1437,7 +1437,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_StandardModuleAttribute()
+        Public Sub VbCore_SingleSymbol_CompilerServices_StandardModuleAttribute()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1491,7 +1491,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_DesignerGeneratedAttribute()
+        Public Sub VbCore_SingleSymbol_CompilerServices_DesignerGeneratedAttribute()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1546,7 +1546,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_OptionCompareAttribute()
+        Public Sub VbCore_SingleSymbol_CompilerServices_OptionCompareAttribute()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1599,7 +1599,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_CompilerServices_OptionTextAttribute()
+        Public Sub VbCore_SingleSymbol_CompilerServices_OptionTextAttribute()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1654,7 +1654,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_HideModuleNameAttribute()
+        Public Sub VbCore_SingleSymbol_HideModuleNameAttribute()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1707,8 +1707,8 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        <WorkItem(544511, "DevDiv")>
-        Sub VbCore_SingleSymbol_Strings_AscW_Char()
+        <WorkItem(544511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544511")>
+        Public Sub VbCore_SingleSymbol_Strings_AscW_Char()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1741,7 +1741,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_Strings_ChrW_Char()
+        Public Sub VbCore_SingleSymbol_Strings_ChrW_Char()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1799,7 +1799,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_SingleSymbol_Strings_ChrW_Char_MultipleEmits()
+        Public Sub VbCore_SingleSymbol_Strings_ChrW_Char_MultipleEmits()
             Dim compilation = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1863,7 +1863,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_TypesReferencedFromAttributes()
+        Public Sub VbCore_TypesReferencedFromAttributes()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1940,7 +1940,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_TypesReferencedFromAttributes_Array()
+        Public Sub VbCore_TypesReferencedFromAttributes_Array()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -2015,7 +2015,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_EnsurePrivateConstructorsEmitted()
+        Public Sub VbCore_EnsurePrivateConstructorsEmitted()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -2106,7 +2106,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_EmbeddedAttributeOnAssembly_NoReferences()
+        Public Sub VbCore_EmbeddedAttributeOnAssembly_NoReferences()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -2145,7 +2145,7 @@ symbolValidator:=Sub([module])
         End Sub
 
         <Fact()>
-        Sub VbCore_EmbeddedAttributeOnAssembly_References_NoDebug()
+        Public Sub VbCore_EmbeddedAttributeOnAssembly_References_NoDebug()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -2493,7 +2493,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub VbCore_CompilationOptions()
+        Public Sub VbCore_CompilationOptions()
             Dim withoutVbCore As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
     <compilation name="VbCore_CompilationOptions1">
         <file name="a.vb"><![CDATA[
@@ -2552,9 +2552,7 @@ End Class
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe.WithEmbedVbCoreRuntime(True))
-            Dim actual = GetPdbXml(compilation)
-
-            Dim expected =
+            compilation.VerifyPdb(
 <symbols>
     <files>
         <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="43, DF,  2, C2, F5, 5F, 6A, CB,  8, D3, 1F, D2, 8E, 4F, FE,  A, 8F, C2, 76, D7, "/>
@@ -2573,9 +2571,6 @@ End Class
                 <entry offset="0x4" startLine="7" startColumn="9" endLine="7" endColumn="32" document="1"/>
                 <entry offset="0x10" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
-            <locals>
-                <local name="ch" il_index="0" il_start="0x0" il_end="0x11" attributes="0"/>
-            </locals>
             <scope startOffset="0x0" endOffset="0x11">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="Microsoft.VisualBasic" importlevel="file"/>
@@ -2584,9 +2579,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDB.PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -2814,7 +2807,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
 </errors>)
 
-            ' Remove the reference to System.XML.Linq and verify compilation behaviour that the 
+            ' Remove the reference to System.XML.Linq and verify compilation behavior that the 
             ' diagnostic is not produced.
             compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -2894,7 +2887,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_UsingEmbedVBCore()
             'Static Locals use types contained within VB Runtime so verify with VBCore option to ensure the feature works
-            'usign VBCore which would be the case with platforms such as Phone.
+            'using VBCore which would be the case with platforms such as Phone.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">
@@ -2992,7 +2985,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_IncorrectDefinedTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
-            'local scenarios should work correctly buyt if we define the types incorrectly we should generate errors although we 
+            'local scenarios should work correctly but if we define the types incorrectly we should generate errors although we 
             'should not crash.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
@@ -3027,8 +3020,10 @@ End Namespace
               options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(False))
 
             compilation.VerifyDiagnostics(
-                                    Diagnostic(ERRID.ERR_StructCantInherit, "Inherits System.Exception"),
-                                    Diagnostic(ERRID.ERR_UseOfKeywordFromStructure1, "MyBase").WithArguments("MyBase"))
+    Diagnostic(ERRID.ERR_NewInStruct, "New").WithLocation(20, 24),
+    Diagnostic(ERRID.ERR_StructCantInherit, "Inherits System.Exception").WithLocation(19, 13),
+    Diagnostic(ERRID.ERR_UseOfKeywordFromStructure1, "MyBase").WithArguments("MyBase").WithLocation(21, 17)
+                                    )
         End Sub
 
         Private Sub AssertTypeAndItsMembersAreImplicitlyDeclared(type As NamedTypeSymbol)
@@ -3064,8 +3059,8 @@ End Namespace
             Next
         End Sub
 
-        <Fact, WorkItem(544291, "DevDiv")>
-        Sub VbCoreSyncLockOnObject()
+        <Fact, WorkItem(544291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544291")>
+        Public Sub VbCoreSyncLockOnObject()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3107,7 +3102,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545772, "DevDiv")>
+        <Fact(), WorkItem(545772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545772")>
         Public Sub VbCoreNoStdLib()
             Dim source =
 <compilation>
@@ -3153,7 +3148,7 @@ End Module
 
 #Region "Symbols Validator"
 
-        Private Shared NormalizeRegex As New Regex("^(\s*)", RegexOptions.Multiline)
+        Private Shared ReadOnly s_normalizeRegex As New Regex("^(\s*)", RegexOptions.Multiline)
 
         Private Sub ValidateSourceSymbols([module] As ModuleSymbol)
             ValidateSourceSymbol([module].GlobalNamespace)
@@ -3210,7 +3205,7 @@ End Module
             expected = expected.Trim()
 
             ' normalize
-            Dim matches = NormalizeRegex.Matches(expected)
+            Dim matches = s_normalizeRegex.Matches(expected)
             Dim captures = matches(matches.Count - 1).Groups(1).Captures
             Dim indent = captures(captures.Count - 1).Value
             If indent.Length > 0 Then
@@ -3311,17 +3306,9 @@ End Module
                                            allReferences:=NoVbRuntimeReferences,
                                            expectedOutput:=expectedOutput,
                                            sourceSymbolValidator:=sourceSymbolValidator,
-                                           validator:=Translate(validator),
+                                           validator:=validator,
                                            symbolValidator:=symbolValidator,
                                            options:=options)
-        End Function
-
-        Private Function Translate(action As Action(Of PEAssembly)) As Action(Of PEAssembly, TestEmitters)
-            If action IsNot Nothing Then
-                Return Sub(a, _omitted) action(a)
-            Else
-                Return Nothing
-            End If
         End Function
 
 #End Region

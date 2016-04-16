@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Dim noOfArguments = argumentList.Arguments.Count
 
                         If noOfArguments > 0 Then
-                            Dim newMemberAccess = SyntaxFactory.SimpleMemberAccessExpression(argumentList.Arguments.ElementAt(0).GetArgumentExpression(), memberAccess.OperatorToken, memberAccess.Name)
+                            Dim newMemberAccess = SyntaxFactory.SimpleMemberAccessExpression(argumentList.Arguments(0).GetArgumentExpression(), memberAccess.OperatorToken, memberAccess.Name)
 
                             ' Below removes the first argument
                             ' we need to reuse the separators to maintain existing formatting & comments in the arguments itself

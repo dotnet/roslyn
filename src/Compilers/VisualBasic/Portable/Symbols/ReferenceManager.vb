@@ -1,10 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Instrumentation
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports MetadataOrDiagnostic = System.Object
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -111,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim result As New AssemblyDataForCompilation(vbReference.Compilation, vbReference.Properties.EmbedInteropTypes)
-                Debug.Assert(vbReference.Compilation.m_lazyAssemblySymbol IsNot Nothing)
+                Debug.Assert(vbReference.Compilation._lazyAssemblySymbol IsNot Nothing)
                 Return result
             End Function
 
@@ -128,78 +130,100 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Sub CreateSourceAssemblyForCompilation(compilation As VisualBasicCompilation)
-                Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_CreateSourceAssembly, message:=compilation.AssemblyName)
-                    ' We are reading the Reference Manager state outside of a lock by accessing 
-                    ' IsBound and HasCircularReference properties.
-                    ' Once isBound flag is flipped the state of the manager is available and doesn't change.
-                    ' 
-                    ' If two threads are building SourceAssemblySymbol and the first just updated 
-                    ' set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
-                    ' the second thread may end up reusing the Reference Manager data the first thread calculated. 
-                    ' That's ok since 
-                    ' 1) the second thread would produce the same data,
-                    ' 2) all results calculated by the second thread will be thrown away since the first thread 
-                    '    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
+                ' We are reading the Reference Manager state outside of a lock by accessing 
+                ' IsBound and HasCircularReference properties.
+                ' Once isBound flag is flipped the state of the manager is available and doesn't change.
+                ' 
+                ' If two threads are building SourceAssemblySymbol and the first just updated 
+                ' set isBound flag to 1 but not yet set lazySourceAssemblySymbol,
+                ' the second thread may end up reusing the Reference Manager data the first thread calculated. 
+                ' That's ok since 
+                ' 1) the second thread would produce the same data,
+                ' 2) all results calculated by the second thread will be thrown away since the first thread 
+                '    already acquired SymbolCacheAndReferenceManagerStateGuard that is needed to publish the data.
 
-                    ' Given compilation is the first compilation that shares this manager and its symbols are requested.
-                    ' Perform full reference resolution and binding.
-                    If Not IsBound AndAlso CreateSourceAssemblyFullBind(compilation) Then
+                ' Given compilation is the first compilation that shares this manager and its symbols are requested.
+                ' Perform full reference resolution and binding.
+                If Not IsBound AndAlso CreateAndSetSourceAssemblyFullBind(compilation) Then
 
-                        ' we have successfully bound the references for the compilation
+                    ' we have successfully bound the references for the compilation
 
-                    ElseIf Not HasCircularReference Then
-                        ' Another compilation that shares the manager with the given compilation
-                        ' already bound its references and produced tables that we can use to construct 
-                        ' source assembly symbol faster.
+                ElseIf Not HasCircularReference Then
+                    ' Another compilation that shares the manager with the given compilation
+                    ' already bound its references and produced tables that we can use to construct 
+                    ' source assembly symbol faster.
 
-                        CreateAndSetSourceAssemblyReuseData(compilation)
-                    Else
-                        ' We encountered a circular reference while binding the previous compilation.
-                        ' This compilation can't share bound references with other compilations. Create a new manager.
+                    CreateAndSetSourceAssemblyReuseData(compilation)
+                Else
+                    ' We encountered a circular reference while binding the previous compilation.
+                    ' This compilation can't share bound references with other compilations. Create a new manager.
 
-                        ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
+                    ' NOTE: The CreateSourceAssemblyFullBind is going to replace compilation's reference manager with newManager.
 
-                        Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
-                        Dim successful = newManager.CreateSourceAssemblyFullBind(compilation)
+                    Dim newManager = New ReferenceManager(Me.SimpleAssemblyName, Me.IdentityComparer, Me.ObservedMetadata)
+                    Dim successful = newManager.CreateAndSetSourceAssemblyFullBind(compilation)
 
-                        ' The new manager isn't shared with any other compilation so there is no other 
-                        ' thread but the current one could have initialized it.
-                        Debug.Assert(successful)
+                    ' The new manager isn't shared with any other compilation so there is no other 
+                    ' thread but the current one could have initialized it.
+                    Debug.Assert(successful)
 
-                        newManager.AssertBound()
-                    End If
+                    newManager.AssertBound()
+                End If
 
-                    AssertBound()
-                    Debug.Assert(compilation.m_lazyAssemblySymbol IsNot Nothing)
-                End Using
+                AssertBound()
+                Debug.Assert(compilation._lazyAssemblySymbol IsNot Nothing)
             End Sub
 
-            ''' <summary>
-            ''' Creates a <see cref="PEAssemblySymbol"/> from specified metadata. 
-            ''' </summary>
-            ''' <remarks>
-            ''' Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="VisualBasicSymbolMatcher"/>.
-            ''' 
-            ''' The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
-            ''' stored on this <see cref="ReferenceManager"/>. Each AssemblyRef is matched against the assembly identities
-            ''' using an exact equality comparison. No unification Or further resolution is performed.
-            ''' </remarks>
-            Friend Function CreatePEAssemblyForAssemblyMetadata(metadata As AssemblyMetadata, importOptions As MetadataImportOptions) As PEAssemblySymbol
+            '''  <summary>
+            '''  Creates a <see cref="PEAssemblySymbol"/> from specified metadata. 
+            '''  </summary>
+            '''  <remarks>
+            '''  Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="VisualBasicSymbolMatcher"/>.
+            '''  
+            '''  The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
+            '''  stored on this <see cref="ReferenceManager"/>. We assume that the dependencies of the baseline metadata are 
+            '''  the same as the dependencies of the current compilation. This is not exactly true when the dependencies use 
+            '''  time-based versioning pattern, e.g. AssemblyVersion("1.0.*"). In that case we assume only the version
+            '''  changed And nothing else.
+            '''  
+            '''  Each AssemblyRef is matched against the assembly identities using an exact equality comparison modulo version. 
+            '''  AssemblyRef with lower version in metadata is matched to a PE assembly symbol with the higher version 
+            '''  (provided that the assembly name, culture, PKT And flags are the same) if there is no symbol with the exactly matching version. 
+            '''  If there are multiple symbols with higher versions selects the one with the minimal version among them.
+            '''  
+            '''  Matching to a higher version is necessary to support EnC for projects whose P2P dependencies use time-based versioning pattern. 
+            '''  The versions of the dependent projects seen from the IDE will be higher than 
+            '''  the one written in the metadata at the time their respective baselines are built.
+            '''  
+            '''  No other unification or further resolution is performed.
+            '''  </remarks>
+            ''' <param name="metadata"></param>
+            ''' <param name="importOptions"></param>
+            ''' <param name="assemblyReferenceIdentityMap">
+            ''' A map of the PE assembly symbol identities to the identities of the original metadata AssemblyRefs.
+            ''' This map will be used in emit when serializing AssemblyRef table of the delta. For the delta to be compatible with
+            ''' the original metadata we need to map the identities of the PE assembly symbols back to the original AssemblyRefs (if different).
+            ''' In other words, we pretend that the versions of the dependencies haven't changed.
+            ''' </param>
+            Friend Function CreatePEAssemblyForAssemblyMetadata(metadata As AssemblyMetadata, importOptions As MetadataImportOptions, <Out> ByRef assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity)) As PEAssemblySymbol
                 AssertBound()
 
                 ' If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
                 Debug.Assert(Not HasCircularReference)
 
-                Dim referencedAssembliesByIdentity = New Dictionary(Of AssemblyIdentity, AssemblySymbol)()
+                Dim referencedAssembliesByIdentity = New AssemblyIdentityMap(Of AssemblySymbol)()
                 For Each symbol In Me.ReferencedAssemblies
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol)
                 Next
 
                 Dim assembly = metadata.GetAssembly
                 Dim peReferences = assembly.AssemblyReferences.SelectAsArray(AddressOf MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity)
+
+                assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences)
+
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
-                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.ContainsKey(unified.OriginalReference))
+                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False))
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then
@@ -209,11 +233,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return assemblySymbol
             End Function
 
-            Private Shared Function MapAssemblyIdentityToResolvedSymbol(identity As AssemblyIdentity, map As Dictionary(Of AssemblyIdentity, AssemblySymbol)) As AssemblySymbol
+            Private Shared Function MapAssemblyIdentityToResolvedSymbol(identity As AssemblyIdentity, map As AssemblyIdentityMap(Of AssemblySymbol)) As AssemblySymbol
                 Dim symbol As AssemblySymbol = Nothing
-                If map.TryGetValue(identity, symbol) Then
+                If map.TryGetValue(identity, symbol, AddressOf CompareVersionPartsSpecifiedInSource) Then
                     Return symbol
                 End If
+
+                If map.TryGetValue(identity, symbol, Function(v1, v2, s) True) Then
+                    ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                    Throw New NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}")
+                End If
+
                 Return New MissingAssemblySymbol(identity)
             End Function
 
@@ -228,11 +258,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 InitializeAssemblyReuseData(assemblySymbol, Me.ReferencedAssemblies, Me.UnifiedAssemblies)
 
-                If compilation.m_lazyAssemblySymbol Is Nothing Then
+                If compilation._lazyAssemblySymbol Is Nothing Then
                     SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        If compilation.m_lazyAssemblySymbol Is Nothing Then
-                            compilation.m_lazyAssemblySymbol = assemblySymbol
-                            Debug.Assert(compilation.m_referenceManager Is Me)
+                        If compilation._lazyAssemblySymbol Is Nothing Then
+                            compilation._lazyAssemblySymbol = assemblySymbol
+                            Debug.Assert(compilation._referenceManager Is Me)
                         End If
                     End SyncLock
                 End If
@@ -256,175 +286,173 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ' Returns false if another compilation sharing this manager finished binding earlier and we should reuse its results.
-            Friend Function CreateSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
+            Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
-                Dim assemblySymbol As SourceAssemblySymbol
-                Dim referencedAssembliesMap As Dictionary(Of MetadataReference, ReferencedAssembly)
-                Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer)
-                Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
-                Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
-                Dim hasCircularReference As Boolean
-
-                ' Let's process our references and separate Assembly refs from addmodule.
-                Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
-                Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
-                Dim references As ImmutableArray(Of MetadataReference) = Nothing
-
-                Dim resolutionDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                Dim referenceMap As ImmutableArray(Of ResolvedReference) = Nothing
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
+                Dim supersedeLowerVersions = compilation.Options.ReferencesSupersedeLowerVersions
+                Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
-                    referenceMap = ResolveMetadataReferences(
+                    Dim boundReferenceDirectiveMap As IDictionary(Of ValueTuple(Of String, String), MetadataReference) = Nothing
+                    Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
+                    Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.
+                    Dim explicitReferences As ImmutableArray(Of MetadataReference) = Nothing
+
+                    Dim referenceMap As ImmutableArray(Of ResolvedReference) = ResolveMetadataReferences(
                         compilation,
-                        references,
+                        assemblyReferencesBySimpleName,
+                        explicitReferences,
                         boundReferenceDirectiveMap,
                         boundReferenceDirectives,
                         referencedAssemblies,
                         modules,
-                        diagnostics)
+                        resolutionDiagnostics)
 
-                    resolutionDiagnostics = diagnostics.ToReadOnly()
-                Finally
-                    diagnostics.Free()
-                End Try
+                    Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
+                    Dim explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData)
 
-                Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
+                    ' Let's bind all the references and resolve missing one (if resolver is available)
+                    Dim hasCircularReference As Boolean
+                    Dim corLibraryIndex As Integer
+                    Dim implicitlyResolvedReferences As ImmutableArray(Of MetadataReference) = Nothing
+                    Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
+                    Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
-                Dim assembliesArray As AssemblyData() = New AssemblyData(referencedAssemblies.Length) {}
-                assembliesArray(0) = assemblyBeingBuiltData
-                For i = 1 To assembliesArray.Length - 1
-                    assembliesArray(i) = referencedAssemblies(i - 1)
-                Next
+                    Dim bindingResult() As BoundInputAssembly = Bind(compilation,
+                                                                     explicitAssemblyData,
+                                                                     modules,
+                                                                     explicitReferences,
+                                                                     referenceMap,
+                                                                     compilation.Options.MetadataReferenceResolver,
+                                                                     compilation.Options.MetadataImportOptions,
+                                                                     supersedeLowerVersions,
+                                                                     assemblyReferencesBySimpleName,
+                                                                     allAssemblyData,
+                                                                     implicitlyResolvedReferences,
+                                                                     implicitlyResolvedReferenceMap,
+                                                                     resolutionDiagnostics,
+                                                                     hasCircularReference,
+                                                                     corLibraryIndex)
 
-                Dim allAssemblies As ImmutableArray(Of AssemblyData) = assembliesArray.AsImmutableOrNull()
+                    Debug.Assert(bindingResult.Length = allAssemblyData.Length)
 
-                ' Let's bind all the references
-                Dim corLibraryIndex As Integer
-                Dim bindingResult() As BoundInputAssembly = Bind(allAssemblies, hasCircularReference, corLibraryIndex)
+                    Dim references = explicitReferences.AddRange(implicitlyResolvedReferences)
+                    referenceMap = referenceMap.AddRange(implicitlyResolvedReferenceMap)
 
-                Debug.Assert(bindingResult.Length = allAssemblies.Length)
+                    Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
+                    Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer) = Nothing
+                    Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
 
-                ' Create AssemblySymbols for assemblies that can't use any existing symbols.
-                Dim newSymbols As New List(Of Integer)
+                    BuildReferencedAssembliesAndModulesMaps(
+                        bindingResult,
+                        references,
+                        referenceMap,
+                        modules.Length,
+                        referencedAssemblies.Length,
+                        assemblyReferencesBySimpleName,
+                        supersedeLowerVersions,
+                        referencedAssembliesMap,
+                        referencedModulesMap,
+                        aliasesOfReferencedAssemblies)
 
-                For i As Integer = 1 To bindingResult.Length - 1 Step 1
-                    If bindingResult(i).AssemblySymbol Is Nothing Then
+                    ' Create AssemblySymbols for assemblies that can't use any existing symbols.
+                    Dim newSymbols As New List(Of Integer)
 
-                        Dim compilationData = TryCast(allAssemblies(i), AssemblyDataForCompilation)
-
-                        If compilationData IsNot Nothing Then
-                            bindingResult(i).AssemblySymbol = New Retargeting.RetargetingAssemblySymbol(compilationData.Compilation.SourceAssembly,
-                                                                                                        compilationData.IsLinked)
-                        Else
-                            Dim fileData = DirectCast(allAssemblies(i), AssemblyDataForFile)
-
-                            bindingResult(i).AssemblySymbol = New Symbols.Metadata.PE.PEAssemblySymbol(fileData.Assembly,
-                                                                                                fileData.DocumentationProvider,
-                                                                                                fileData.IsLinked,
-                                                                                                fileData.EffectiveImportOptions)
+                    For i As Integer = 1 To bindingResult.Length - 1 Step 1
+                        If bindingResult(i).AssemblySymbol Is Nothing Then
+                            ' symbol hasn't been found in the cache, create a new one
+                            bindingResult(i).AssemblySymbol = DirectCast(allAssemblyData(i), AssemblyDataForMetadataOrCompilation).CreateAssemblySymbol()
+                            newSymbols.Add(i)
                         End If
 
-                        newSymbols.Add(i)
-                    End If
+                        Debug.Assert(allAssemblyData(i).IsLinked = bindingResult(i).AssemblySymbol.IsLinked)
+                    Next
 
-                    Debug.Assert(allAssemblies(i).IsLinked = bindingResult(i).AssemblySymbol.IsLinked)
-                Next
+                    Dim assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules)
 
-                assemblySymbol = New SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), modules)
+                    Dim corLibrary As AssemblySymbol
 
-                Dim corLibrary As AssemblySymbol
-
-                If corLibraryIndex = 0 Then
-                    corLibrary = assemblySymbol
-                ElseIf corLibraryIndex > 0 Then
-                    corLibrary = bindingResult(corLibraryIndex).AssemblySymbol
-                Else
-                    corLibrary = MissingCorLibrarySymbol.Instance
-                End If
-
-                assemblySymbol.SetCorLibrary(corLibrary)
-
-                ' Setup bound references for newly created AssemblySymbols
-                ' This should be done after we created/found all AssemblySymbols 
-                Dim missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol) = Nothing
-
-                ' Setup bound references for newly created SourceAssemblySymbol
-                Dim moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol)) = Nothing
-                SetupReferencesForSourceAssembly(assemblySymbol, assemblyBeingBuiltData, bindingResult, missingAssemblies, moduleReferences)
-
-                If newSymbols.Count > 0 Then
-                    ' Only if we detected that a referenced assembly refers to the assembly being built
-                    ' we allow the references to get ahold of the assembly being built.
-                    If hasCircularReference Then
-                        bindingResult(0).AssemblySymbol = assemblySymbol
-                    End If
-
-                    InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblies, bindingResult, missingAssemblies)
-                End If
-
-                ' Setup references for the compilation
-                referencedAssembliesMap = New Dictionary(Of MetadataReference, ReferencedAssembly)(referenceMap.Length)
-                referencedModulesMap = New Dictionary(Of MetadataReference, Integer)(modules.Length)
-
-                Dim sourceModule = assemblySymbol.SourceModule
-                Dim referencedAssemblySymbols = sourceModule.GetReferencedAssemblySymbols()
-
-                For i As Integer = 0 To referenceMap.Length - 1 Step 1
-
-                    If referenceMap(i).IsSkipped Then
-                        Continue For
-                    End If
-
-
-                    If referenceMap(i).Kind = MetadataImageKind.Module Then
-                        ' add 1 for the manifest module
-                        Dim moduleIndex = 1 + referenceMap(i).Index
-                        referencedModulesMap.Add(references(i), moduleIndex)
-                        referencedAssembliesMap.Add(references(i), New ReferencedAssembly(assemblySymbol, aliases:=ImmutableArray(Of String).Empty))
+                    If corLibraryIndex = 0 Then
+                        corLibrary = assemblySymbol
+                    ElseIf corLibraryIndex > 0 Then
+                        corLibrary = bindingResult(corLibraryIndex).AssemblySymbol
                     Else
-                        Dim assemblyIndex = referenceMap(i).Index
-                        referencedAssembliesMap.Add(references(i), New ReferencedAssembly(referencedAssemblySymbols(assemblyIndex), aliases:=ImmutableArray(Of String).Empty))
+                        corLibrary = MissingCorLibrarySymbol.Instance
                     End If
-                Next
 
-                If compilation.m_lazyAssemblySymbol Is Nothing Then
-                    SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        If compilation.m_lazyAssemblySymbol Is Nothing Then
+                    assemblySymbol.SetCorLibrary(corLibrary)
 
-                            If IsBound Then
-                                ' Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
-                                ' Drop the results and reuse the symbols that were created for the other compilation.
-                                Return False
-                            End If
+                    ' Setup bound references for newly created AssemblySymbols
+                    ' This should be done after we created/found all AssemblySymbols 
+                    Dim missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol) = Nothing
 
-                            UpdateSymbolCacheNoLock(newSymbols, allAssemblies, bindingResult)
+                    ' -1 for assembly being built
+                    Dim totalReferencedAssemblyCount = allAssemblyData.Length - 1
 
-                            InitializeNoLock(
-                                referencedAssembliesMap,
-                                referencedModulesMap,
-                                boundReferenceDirectiveMap,
-                                boundReferenceDirectives,
-                                hasCircularReference,
-                                resolutionDiagnostics,
-                                If(corLibrary Is assemblySymbol, Nothing, corLibrary),
-                                modules,
-                                moduleReferences,
-                                referencedAssemblySymbols,
-                                sourceModule.GetUnifiedAssemblies())
+                    ' Setup bound references for newly created SourceAssemblySymbol
+                    Dim moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol)) = Nothing
+                    SetupReferencesForSourceAssembly(assemblySymbol,
+                                                     modules,
+                                                     totalReferencedAssemblyCount,
+                                                     bindingResult,
+                                                     missingAssemblies,
+                                                     moduleReferences)
 
-                            ' Make sure that the given compilation holds on this instance of reference manager.
-                            Debug.Assert(compilation.m_referenceManager Is Me OrElse hasCircularReference)
-                            compilation.m_referenceManager = Me
-
-                            ' Finally, publish the source symbol after all data have been written.
-                            ' Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
-                            compilation.m_lazyAssemblySymbol = assemblySymbol
+                    If newSymbols.Count > 0 Then
+                        ' Only if we detected that a referenced assembly refers to the assembly being built
+                        ' we allow the references to get a hold of the assembly being built.
+                        If hasCircularReference Then
+                            bindingResult(0).AssemblySymbol = assemblySymbol
                         End If
-                    End SyncLock
-                End If
 
-                Return True
+                        InitializeNewSymbols(newSymbols, assemblySymbol, allAssemblyData, bindingResult, missingAssemblies)
+                    End If
+
+                    If compilation._lazyAssemblySymbol Is Nothing Then
+                        SyncLock SymbolCacheAndReferenceManagerStateGuard
+                            If compilation._lazyAssemblySymbol Is Nothing Then
+
+                                If IsBound Then
+                                    ' Another thread has finished constructing AssemblySymbol for another compilation that shares this manager.
+                                    ' Drop the results and reuse the symbols that were created for the other compilation.
+                                    Return False
+                                End If
+
+                                UpdateSymbolCacheNoLock(newSymbols, allAssemblyData, bindingResult)
+
+                                InitializeNoLock(
+                                    referencedAssembliesMap,
+                                    referencedModulesMap,
+                                    boundReferenceDirectiveMap,
+                                    boundReferenceDirectives,
+                                    explicitReferences,
+                                    implicitlyResolvedReferences,
+                                    hasCircularReference,
+                                    resolutionDiagnostics.ToReadOnly(),
+                                    If(corLibrary Is assemblySymbol, Nothing, corLibrary),
+                                    modules,
+                                    moduleReferences,
+                                    assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
+                                    aliasesOfReferencedAssemblies,
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies())
+
+                                ' Make sure that the given compilation holds on this instance of reference manager.
+                                Debug.Assert(compilation._referenceManager Is Me OrElse hasCircularReference)
+                                compilation._referenceManager = Me
+
+                                ' Finally, publish the source symbol after all data have been written.
+                                ' Once lazyAssemblySymbol is non-null other readers might start reading the data written above.
+                                compilation._lazyAssemblySymbol = assemblySymbol
+                            End If
+                        End SyncLock
+                    End If
+
+                    Return True
+                Finally
+                    resolutionDiagnostics.Free()
+                    assemblyReferencesBySimpleName.Free()
+                End Try
             End Function
 
             Private Shared Sub InitializeNewSymbols(newSymbols As List(Of Integer),
@@ -448,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Dim linkedReferencedAssemblies As New List(Of AssemblySymbol)()
+                Dim linkedReferencedAssembliesBuilder = ArrayBuilder(Of AssemblySymbol).GetInstance()
 
                 ' Setup CorLibrary and NoPia stuff for newly created assemblies
 
@@ -459,27 +487,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' Setup linked referenced assemblies.
-                    linkedReferencedAssemblies.Clear()
+                    linkedReferencedAssembliesBuilder.Clear()
 
                     If assemblies(i).IsLinked Then
-                        linkedReferencedAssemblies.Add(bindingResult(i).AssemblySymbol)
+                        linkedReferencedAssembliesBuilder.Add(bindingResult(i).AssemblySymbol)
                     End If
 
                     For Each referenceBinding In bindingResult(i).ReferenceBinding
                         If referenceBinding.IsBound AndAlso
                            assemblies(referenceBinding.DefinitionIndex).IsLinked Then
-                            linkedReferencedAssemblies.Add(
+                            linkedReferencedAssembliesBuilder.Add(
                                 bindingResult(referenceBinding.DefinitionIndex).AssemblySymbol)
                         End If
                     Next
 
-                    If linkedReferencedAssemblies.Count > 0 Then
-                        bindingResult(i).AssemblySymbol.SetLinkedReferencedAssemblies(
-                            ImmutableArray.CreateRange(Of AssemblySymbol)(linkedReferencedAssemblies.Distinct()))
+                    If linkedReferencedAssembliesBuilder.Count > 0 Then
+                        linkedReferencedAssembliesBuilder.RemoveDuplicates()
+                        bindingResult(i).AssemblySymbol.SetLinkedReferencedAssemblies(linkedReferencedAssembliesBuilder.ToImmutable())
                     End If
 
                     bindingResult(i).AssemblySymbol.SetCorLibrary(corLibrary)
                 Next
+
+                linkedReferencedAssembliesBuilder.Free()
 
                 If missingAssemblies IsNot Nothing Then
                     For Each missingAssembly In missingAssemblies.Values
@@ -607,47 +637,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Shared Sub SetupReferencesForSourceAssembly(
                 sourceAssembly As SourceAssemblySymbol,
-                assemblyBeingBuiltData As AssemblyDataForAssemblyBeingBuilt,
+                modules As ImmutableArray(Of PEModule),
+                totalReferencedAssemblyCount As Integer,
                 bindingResult() As BoundInputAssembly,
                 ByRef missingAssemblies As Dictionary(Of AssemblyIdentity, MissingAssemblySymbol),
                 ByRef moduleReferences As ImmutableArray(Of ModuleReferences(Of AssemblySymbol))
             )
-                Dim modules As ImmutableArray(Of ModuleSymbol) = sourceAssembly.Modules
-                Dim moduleCount = modules.Length
+                Dim moduleSymbols = sourceAssembly.Modules
+                Debug.Assert(moduleSymbols.Length = 1 + modules.Length)
+
+                Dim moduleReferencesBuilder = If(moduleSymbols.Length > 1, ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)).GetInstance(), Nothing)
+
                 Dim refsUsed As Integer = 0
-                Dim moduleReferencesBuilder As ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)) =
-                    If(moduleCount > 1, ArrayBuilder(Of ModuleReferences(Of AssemblySymbol)).GetInstance(), Nothing)
+                For moduleIndex As Integer = 0 To moduleSymbols.Length - 1 Step 1
+                    Dim refsCount As Integer = If(moduleIndex = 0, totalReferencedAssemblyCount, modules(moduleIndex - 1).ReferencedAssemblies.Length)
 
-                For j As Integer = 0 To moduleCount - 1 Step 1
-                    Dim refsCount As Integer = assemblyBeingBuiltData.ReferencesCountForModule(j)
-                    Dim names(refsCount - 1) As AssemblyIdentity
+                    Dim identities(refsCount - 1) As AssemblyIdentity
                     Dim symbols(refsCount - 1) As AssemblySymbol
-
-                    assemblyBeingBuiltData.AssemblyReferences.CopyTo(refsUsed, names, 0, refsCount)
 
                     Dim unifiedAssemblies As ArrayBuilder(Of UnifiedAssembly(Of AssemblySymbol)) = Nothing
 
                     For k As Integer = 0 To refsCount - 1 Step 1
-                        Dim referenceBinding = bindingResult(0).ReferenceBinding(refsUsed + k)
-                        If referenceBinding.IsBound Then
-                            symbols(k) = GetAssemblyDefinitionSymbol(bindingResult, referenceBinding, unifiedAssemblies)
+                        Dim boundReference = bindingResult(0).ReferenceBinding(refsUsed + k)
+                        If boundReference.IsBound Then
+                            symbols(k) = GetAssemblyDefinitionSymbol(bindingResult, boundReference, unifiedAssemblies)
                         Else
-                            symbols(k) = GetOrAddMissingAssemblySymbol(names(k), missingAssemblies)
+                            symbols(k) = GetOrAddMissingAssemblySymbol(boundReference.ReferenceIdentity, missingAssemblies)
                         End If
+
+                        identities(k) = boundReference.ReferenceIdentity
                     Next
 
-                    Dim references = New ModuleReferences(Of AssemblySymbol)(names.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty())
+                    Dim references = New ModuleReferences(Of AssemblySymbol)(identities.AsImmutableOrNull(),
+                                                                             symbols.AsImmutableOrNull(),
+                                                                             unifiedAssemblies.AsImmutableOrEmpty())
 
-                    If j > 0 Then
+                    If moduleIndex > 0 Then
                         moduleReferencesBuilder.Add(references)
                     End If
 
-                    modules(j).SetReferences(references, sourceAssembly)
+                    moduleSymbols(moduleIndex).SetReferences(references, sourceAssembly)
 
                     refsUsed += refsCount
                 Next
 
-                moduleReferences = If(moduleReferencesBuilder Is Nothing, ImmutableArray(Of ModuleReferences(Of AssemblySymbol)).Empty, moduleReferencesBuilder.ToImmutableAndFree())
+                moduleReferences = moduleReferencesBuilder.ToImmutableOrEmptyAndFree()
             End Sub
 
             Private Shared Function GetAssemblyDefinitionSymbol(bindingResult As BoundInputAssembly(),
@@ -689,40 +723,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private MustInherit Class AssemblyDataForMetadataOrCompilation
                 Inherits AssemblyData
 
-                Private m_Assemblies As List(Of AssemblySymbol)
-                Protected m_Identity As AssemblyIdentity
-                Protected m_ReferencedAssemblies As ImmutableArray(Of AssemblyIdentity)
-                Protected ReadOnly m_EmbedInteropTypes As Boolean
+                Private _assemblies As List(Of AssemblySymbol)
+                Private ReadOnly _identity As AssemblyIdentity
+                Private ReadOnly _referencedAssemblies As ImmutableArray(Of AssemblyIdentity)
+                Private ReadOnly _embedInteropTypes As Boolean
 
-                'This is the name of the compilation that is being built. 
-                'This should be the assembly name w/o the extension. It is
-                'used to compute whether or not it is possible that this
-                'assembly will give friend access to the compilation.
-                Protected ReadOnly m_CompilationName As String
+                Protected Sub New(identity As AssemblyIdentity,
+                                  referencedAssemblies As ImmutableArray(Of AssemblyIdentity),
+                                  embedInteropTypes As Boolean)
 
-                Protected Sub New(embedInteropTypes As Boolean, compilationName As String)
-                    m_EmbedInteropTypes = embedInteropTypes
-                    m_CompilationName = compilationName
+                    Debug.Assert(identity IsNot Nothing)
+                    Debug.Assert(Not referencedAssemblies.IsDefault)
+
+                    _embedInteropTypes = embedInteropTypes
+                    _identity = identity
+                    _referencedAssemblies = referencedAssemblies
                 End Sub
+
+                Friend MustOverride Function CreateAssemblySymbol() As AssemblySymbol
 
                 Public Overrides ReadOnly Property Identity As AssemblyIdentity
                     Get
-                        Return m_Identity
+                        Return _identity
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property AvailableSymbols As IEnumerable(Of AssemblySymbol)
                     Get
-                        If (m_Assemblies Is Nothing) Then
-                            m_Assemblies = New List(Of AssemblySymbol)()
+                        If (_assemblies Is Nothing) Then
+                            _assemblies = New List(Of AssemblySymbol)()
 
                             ' This should be done lazy because while we creating
                             ' instances of this type, creation of new SourceAssembly symbols
                             ' might change the set of available AssemblySymbols.
-                            AddAvailableSymbols(m_Assemblies)
+                            AddAvailableSymbols(_assemblies)
                         End If
 
-                        Return m_Assemblies
+                        Return _assemblies
                     End Get
                 End Property
 
@@ -730,92 +767,88 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Overrides ReadOnly Property AssemblyReferences As ImmutableArray(Of AssemblyIdentity)
                     Get
-                        Return m_ReferencedAssemblies
+                        Return _referencedAssemblies
                     End Get
                 End Property
 
                 Public Overrides Function BindAssemblyReferences(assemblies As ImmutableArray(Of AssemblyData), assemblyIdentityComparer As AssemblyIdentityComparer) As AssemblyReferenceBinding()
-                    Return ReferenceManager.ResolveReferencedAssemblies(m_ReferencedAssemblies, assemblies, assemblyIdentityComparer, okToResolveAgainstCompilationBeingCreated:=True)
+                    Return ResolveReferencedAssemblies(_referencedAssemblies, assemblies, definitionStartIndex:=0, assemblyIdentityComparer:=assemblyIdentityComparer)
                 End Function
 
                 Public NotOverridable Overrides ReadOnly Property IsLinked As Boolean
                     Get
-                        Return m_EmbedInteropTypes
+                        Return _embedInteropTypes
                     End Get
                 End Property
             End Class
 
-            Private Class AssemblyDataForFile
+            Private NotInheritable Class AssemblyDataForFile
                 Inherits AssemblyDataForMetadataOrCompilation
 
-                Private ReadOnly m_Assembly As PEAssembly
-                Private ReadOnly m_CachedSymbols As WeakList(Of IAssemblySymbol)
-                Private ReadOnly m_DocumentationProvider As DocumentationProvider
-                Private ReadOnly m_compilationImportOptions As MetadataImportOptions
-
-                Public ReadOnly Property Assembly As PEAssembly
-                    Get
-                        Return m_Assembly
-                    End Get
-                End Property
+                Public ReadOnly Assembly As PEAssembly
 
                 ''' <summary>
                 ''' Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 ''' </summary>
-                Public ReadOnly Property CachedSymbols As WeakList(Of IAssemblySymbol)
-                    Get
-                        Return m_CachedSymbols
-                    End Get
-                End Property
+                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbol)
 
-                Public ReadOnly Property DocumentationProvider As DocumentationProvider
-                    Get
-                        Return m_DocumentationProvider
-                    End Get
-                End Property
+                Public ReadOnly DocumentationProvider As DocumentationProvider
+
+                ''' <summary>
+                ''' Import options of the compilation being built.
+                ''' </summary>
+                Private ReadOnly _compilationImportOptions As MetadataImportOptions
+
+                ' This is the name of the compilation that is being built. 
+                ' This should be the assembly name w/o the extension. It is
+                ' used to compute whether or not it is possible that this
+                ' assembly will give friend access to the compilation.
+                Private ReadOnly _sourceAssemblySimpleName As String
+
+                Private _internalsVisibleComputed As Boolean = False
+                Private _internalsPotentiallyVisibleToCompilation As Boolean = False
 
                 Public Sub New(assembly As PEAssembly,
                                cachedSymbols As WeakList(Of IAssemblySymbol),
                                embedInteropTypes As Boolean,
                                documentationProvider As DocumentationProvider,
-                               compilationName As String,
+                               sourceAssemblySimpleName As String,
                                compilationImportOptions As MetadataImportOptions)
 
-                    MyBase.New(embedInteropTypes, compilationName)
+                    MyBase.New(assembly.Identity, assembly.AssemblyReferences, embedInteropTypes)
 
+                    Debug.Assert(documentationProvider IsNot Nothing)
                     Debug.Assert(cachedSymbols IsNot Nothing)
-                    Debug.Assert(assembly IsNot Nothing)
 
-                    m_CachedSymbols = cachedSymbols
-                    m_Assembly = assembly
-                    m_Identity = assembly.Identity
-                    m_ReferencedAssemblies = assembly.AssemblyReferences
-
-                    m_DocumentationProvider = If(documentationProvider, DocumentationProvider.Default)
-                    m_compilationImportOptions = compilationImportOptions
+                    Me.CachedSymbols = cachedSymbols
+                    Me.Assembly = assembly
+                    Me.DocumentationProvider = documentationProvider
+                    _compilationImportOptions = compilationImportOptions
+                    _sourceAssemblySimpleName = sourceAssemblySimpleName
                 End Sub
 
-                Private m_InternalsVisibleComputed As Boolean = False
-                Private m_InternalsVisibleToCompilation As Boolean = False
+                Friend Overrides Function CreateAssemblySymbol() As AssemblySymbol
+                    Return New PEAssemblySymbol(Assembly, DocumentationProvider, IsLinked, EffectiveImportOptions)
+                End Function
 
                 Friend ReadOnly Property InternalsMayBeVisibleToCompilation As Boolean
                     Get
-                        If Not m_InternalsVisibleComputed Then
-                            m_InternalsVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(m_CompilationName, m_Assembly)
-                            m_InternalsVisibleComputed = True
+                        If Not _internalsVisibleComputed Then
+                            _internalsPotentiallyVisibleToCompilation = InternalsMayBeVisibleToAssemblyBeingCompiled(_sourceAssemblySimpleName, Assembly)
+                            _internalsVisibleComputed = True
                         End If
 
-                        Return m_InternalsVisibleToCompilation
+                        Return _internalsPotentiallyVisibleToCompilation
                     End Get
                 End Property
 
                 Friend ReadOnly Property EffectiveImportOptions As MetadataImportOptions
                     Get
-                        If InternalsMayBeVisibleToCompilation AndAlso m_compilationImportOptions = MetadataImportOptions.Public Then
+                        If InternalsMayBeVisibleToCompilation AndAlso _compilationImportOptions = MetadataImportOptions.Public Then
                             Return MetadataImportOptions.Internal
                         End If
 
-                        Return m_compilationImportOptions
+                        Return _compilationImportOptions
                     End Get
                 End Property
 
@@ -824,8 +857,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' accessing cached symbols requires a lock
                     SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        For Each assemblySymbol In m_CachedSymbols
-                            Dim peAssembly = TryCast(assemblySymbol, Symbols.Metadata.PE.PEAssemblySymbol)
+                        For Each assemblySymbol In CachedSymbols
+                            Dim peAssembly = TryCast(assemblySymbol, PEAssemblySymbol)
                             If IsMatchingAssembly(peAssembly) Then
                                 assemblies.Add(peAssembly)
                             End If
@@ -834,10 +867,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Sub
 
                 Public Overrides Function IsMatchingAssembly(candidateAssembly As AssemblySymbol) As Boolean
-                    Return IsMatchingAssembly(TryCast(candidateAssembly, Symbols.Metadata.PE.PEAssemblySymbol))
+                    Return IsMatchingAssembly(TryCast(candidateAssembly, PEAssemblySymbol))
                 End Function
 
-                Private Overloads Function IsMatchingAssembly(peAssembly As Symbols.Metadata.PE.PEAssemblySymbol) As Boolean
+                Private Overloads Function IsMatchingAssembly(peAssembly As PEAssemblySymbol) As Boolean
                     If peAssembly Is Nothing Then
                         Return False
                     End If
@@ -861,79 +894,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End Function
 
-
                 Public Overrides ReadOnly Property ContainsNoPiaLocalTypes() As Boolean
                     Get
-                        Return m_Assembly.ContainsNoPiaLocalTypes()
+                        Return Assembly.ContainsNoPiaLocalTypes()
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property DeclaresTheObjectClass As Boolean
                     Get
-                        Return m_Assembly.DeclaresTheObjectClass
+                        Return Assembly.DeclaresTheObjectClass
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property SourceCompilation As Compilation
+                    Get
+                        Return Nothing
                     End Get
                 End Property
             End Class
 
-            Private Class AssemblyDataForCompilation
+            Private NotInheritable Class AssemblyDataForCompilation
                 Inherits AssemblyDataForMetadataOrCompilation
 
-                Private ReadOnly m_Compilation As VisualBasicCompilation
-
-                Public ReadOnly Property Compilation As VisualBasicCompilation
-                    Get
-                        Return m_Compilation
-                    End Get
-                End Property
+                Public ReadOnly Compilation As VisualBasicCompilation
 
                 Public Sub New(compilation As VisualBasicCompilation, embedInteropTypes As Boolean)
-                    MyBase.New(embedInteropTypes, compilation.AssemblyName)
+                    MyBase.New(compilation.Assembly.Identity, GetReferencedAssemblies(compilation), embedInteropTypes)
 
                     Debug.Assert(compilation IsNot Nothing)
-                    m_Compilation = compilation
+                    Me.Compilation = compilation
+                End Sub
 
-                    Dim assembly As AssemblySymbol = compilation.Assembly
-
-                    m_Identity = assembly.Identity
-
+                Private Shared Function GetReferencedAssemblies(compilation As VisualBasicCompilation) As ImmutableArray(Of AssemblyIdentity)
                     ' Collect information about references
                     Dim refs = ArrayBuilder(Of AssemblyIdentity).GetInstance()
 
-                    Dim modules = assembly.Modules
-                    Dim mCount As Integer = modules.Length
-                    Dim i As Integer
+                    Dim modules = compilation.Assembly.Modules
 
                     ' Filter out linked assemblies referenced by the source module.
                     Dim sourceReferencedAssemblies = modules(0).GetReferencedAssemblies()
                     Dim sourceReferencedAssemblySymbols = modules(0).GetReferencedAssemblySymbols()
-                    Dim rCount As Integer = sourceReferencedAssemblies.Length
 
-                    Debug.Assert(rCount = sourceReferencedAssemblySymbols.Length)
+                    Debug.Assert(sourceReferencedAssemblies.Length = sourceReferencedAssemblySymbols.Length)
 
-                    For i = 0 To rCount - 1 Step 1
+                    For i = 0 To sourceReferencedAssemblies.Length - 1
                         If Not sourceReferencedAssemblySymbols(i).IsLinked Then
                             refs.Add(sourceReferencedAssemblies(i))
                         End If
                     Next
 
-                    For i = 1 To mCount - 1 Step 1
+                    For i = 1 To modules.Length - 1
                         refs.AddRange(modules(i).GetReferencedAssemblies())
                     Next
 
-                    m_ReferencedAssemblies = refs.ToImmutableAndFree()
-                End Sub
+                    Return refs.ToImmutableAndFree()
+                End Function
+
+                Friend Overrides Function CreateAssemblySymbol() As AssemblySymbol
+                    Return New RetargetingAssemblySymbol(Compilation.SourceAssembly, IsLinked)
+                End Function
 
                 Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
-                    assemblies.Add(m_Compilation.Assembly)
+                    assemblies.Add(Compilation.Assembly)
 
                     ' accessing cached symbols requires a lock
                     SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        m_Compilation.AddRetargetingAssemblySymbolsNoLock(assemblies)
+                        Compilation.AddRetargetingAssemblySymbolsNoLock(assemblies)
                     End SyncLock
                 End Sub
 
                 Public Overrides Function IsMatchingAssembly(candidateAssembly As AssemblySymbol) As Boolean
-                    Dim retargeting = TryCast(candidateAssembly, Retargeting.RetargetingAssemblySymbol)
+                    Dim retargeting = TryCast(candidateAssembly, RetargetingAssemblySymbol)
                     Dim asm As AssemblySymbol
 
                     If retargeting IsNot Nothing Then
@@ -942,10 +973,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         asm = TryCast(candidateAssembly, SourceAssemblySymbol)
                     End If
 
-                    Debug.Assert(Not (TypeOf asm Is Retargeting.RetargetingAssemblySymbol))
+                    Debug.Assert(TypeOf asm IsNot RetargetingAssemblySymbol)
 
-                    Return asm Is m_Compilation.Assembly
-
+                    Return asm Is Compilation.Assembly
                 End Function
 
                 Public Overrides ReadOnly Property ContainsNoPiaLocalTypes As Boolean
@@ -956,7 +986,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Overrides ReadOnly Property DeclaresTheObjectClass As Boolean
                     Get
-                        Return m_Compilation.DeclaresTheObjectClass
+                        Return Compilation.DeclaresTheObjectClass
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property SourceCompilation As Compilation
+                    Get
+                        Return Compilation
                     End Get
                 End Property
             End Class
@@ -965,14 +1001,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' For testing purposes only.
             ''' </summary>
             Friend Shared Function IsSourceAssemblySymbolCreated(compilation As VisualBasicCompilation) As Boolean
-                Return compilation.m_lazyAssemblySymbol IsNot Nothing
+                Return compilation._lazyAssemblySymbol IsNot Nothing
             End Function
 
             ''' <summary>
             ''' For testing purposes only.
             ''' </summary>
             Friend Shared Function IsReferenceManagerInitialized(compilation As VisualBasicCompilation) As Boolean
-                Return compilation.m_referenceManager.IsBound
+                Return compilation._referenceManager.IsBound
             End Function
         End Class
     End Class

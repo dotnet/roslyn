@@ -2,19 +2,18 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Represents a compiler generated field.
+    /// Represents a compiler generated field or captured variable.
     /// </summary>
     internal abstract class SynthesizedFieldSymbolBase : FieldSymbol
     {
-        private readonly NamedTypeSymbol containingType;
-        private readonly string name;
-        private readonly DeclarationModifiers modifiers;
+        private readonly NamedTypeSymbol _containingType;
+        private readonly string _name;
+        private readonly DeclarationModifiers _modifiers;
 
         public SynthesizedFieldSymbolBase(
             NamedTypeSymbol containingType,
@@ -26,33 +25,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingType != null);
             Debug.Assert(!string.IsNullOrEmpty(name));
 
-            this.containingType = containingType;
-            this.name = name;
-            this.modifiers = (isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private) |
+            _containingType = containingType;
+            _name = name;
+            _modifiers = (isPublic ? DeclarationModifiers.Public : DeclarationModifiers.Private) |
                 (isReadOnly ? DeclarationModifiers.ReadOnly : DeclarationModifiers.None) |
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
+        }
+
+        internal abstract bool SuppressDynamicAttribute
+        {
+            get;
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            // do not emit Dynamic or CompilerGenerated attributes for fields inside compiler generated types:
-            if (containingType.IsImplicitlyDeclared)
-            {
-                return;
-            }
-
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-
-            // TODO (tomat): do we need to emit dynamic attribute on any synthesized field?
-            if (this.Type.ContainsDynamic())
+            // do not emit CompilerGenerated attributes for fields inside compiler generated types:
+            if (!_containingType.IsImplicitlyDeclared)
             {
-                // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, customModifiersCount: 0));
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            if (!this.SuppressDynamicAttribute &&
+                this.Type.ContainsDynamic() &&
+                compilation.HasDynamicEmitAttributes() &&
+                compilation.CanEmitBoolean())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length));
             }
         }
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReadOnly
         {
-            get { return (this.modifiers & DeclarationModifiers.ReadOnly) != 0; }
+            get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
         public override bool IsVolatile
@@ -118,14 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingType; }
+            get { return _containingType; }
         }
 
         public override NamedTypeSymbol ContainingType
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -144,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return ModifierUtils.EffectiveAccessibility(this.modifiers); }
+            get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
         }
 
         public override bool IsStatic
         {
-            get { return (this.modifiers & DeclarationModifiers.Static) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Static) != 0; }
         }
 
         internal override bool HasSpecialName

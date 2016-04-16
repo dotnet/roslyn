@@ -506,7 +506,7 @@ class X
         /// (ArraySubType, SizeConst), (SizeParamIndex, SafeArraySubType) not allowed, others ignored
         /// </summary>
         [Fact]
-        public void NativeTypeFixedArray() 
+        public void NativeTypeFixedArray()
         {
             var source = @"
 using System;
@@ -616,7 +616,7 @@ public class X
         /// (SafeArraySubType, SafeArrayUserDefinedSubType) not allowed together unless VT_DISPATCH, VT_UNKNOWN, VT_RECORD; others ignored.
         /// </summary>
         [Fact]
-        public void NativeTypeSafeArray() 
+        public void NativeTypeSafeArray()
         {
             var source = @"
 using System;
@@ -701,7 +701,7 @@ public class X
             };
 
             // RefEmit has slightly different encoding of the type name
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs, emitOptions: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -734,35 +734,7 @@ public class X
                 { "SafeArray7", new byte[] { 0x1d, 0x24, 0x01, 0x58 } },
             };
 
-            // RefEmit emits assembly-qualified type names even for types contained in the assembly (X)
-            CompileAndVerifyFieldMarshal(source, (fieldName, assembly, emitOptions) => 
-            {
-                if (emitOptions != TestEmitters.RefEmit)
-                {
-                    return cciBlobs[fieldName];
-                }
-
-                string displayName = assembly.Identity.GetDisplayName();
-                byte[] typeName;
-
-                switch (fieldName) 
-                {
-                    case "SafeArray5":
-                        typeName = e.GetBytes("System.Collections.Generic.List`1[[X, " + displayName + "]][][], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                        return new byte[] { 0x1d, 0x09, 0x80 }.Append((byte)typeName.Length).Append(typeName);
-
-                    case "SafeArray6":
-                        typeName = e.GetBytes("X, " + displayName);
-                        return new byte[] { 0x1d, 0x0d }.Append((byte)typeName.Length).Append(typeName);
-
-                    case "SafeArray7":
-                        typeName = e.GetBytes("X, " + displayName);
-                        return new byte[] { 0x1d, 0x24 }.Append((byte)typeName.Length).Append(typeName);
-
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(fieldName);
-                }
-            });
+            CompileAndVerifyFieldMarshal(source, cciBlobs);
         }
 
         [Fact]
@@ -847,7 +819,7 @@ public class X
         }
 
         [Fact]
-        public void NativeTypeFixedSysString_Errors() 
+        public void NativeTypeFixedSysString_Errors()
         {
             var source = @"
 #pragma warning disable 169
@@ -1027,7 +999,7 @@ enum E
 
 ";
 
-            CompileAndVerifyFieldMarshal(source, (name, _omitted1, _omitted2) => (name == "e" || name == "X") ? new byte[] { 0x02 } : null);
+            CompileAndVerifyFieldMarshal(source, (name, _omitted1) => (name == "e" || name == "X") ? new byte[] { 0x02 } : null);
         }
 
         #endregion
@@ -1063,11 +1035,11 @@ class X
     }
 }
 ";
-            var blobs = new Dictionary<string, byte[]>() 
+            var blobs = new Dictionary<string, byte[]>()
             {
                 { "foo:",                  new byte[] { 0x14 } }, // return value
                 { "foo:IDispatch",         new byte[] { 0x1a } },
-                { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } }, 
+                { "foo:LPArray0",          new byte[] { 0x2a, 0x50 } },
                 { "foo:SafeArray8",        new byte[] { 0x1d, 0x00 } },
                 { "foo:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
             };
@@ -1109,7 +1081,7 @@ public partial class X
             CompileAndVerifyFieldMarshal(source, blobs, isField: false);
         }
 
-        [WorkItem(544508, "DevDiv")]
+        [WorkItem(544508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544508")]
         [Fact]
         public void Parameters_Property_Accessors()
         {
@@ -1129,7 +1101,7 @@ public interface I
         set;
     }
 }";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "get_P:", new byte[] { 0x13 } }, // return value for get accessor
                     { "set_P:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, // value parameter for set accessor
@@ -1137,7 +1109,7 @@ public interface I
                 isField: false);
         }
 
-        [WorkItem(544508, "DevDiv")]
+        [WorkItem(544508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544508")]
         [Fact]
         public void Parameters_Event_Accessors()
         {
@@ -1156,14 +1128,14 @@ class C
         remove { }
     }
 }";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
-                    { "add_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, 
-                    { "remove_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } }, 
+                    { "add_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
+                    { "remove_E:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
                 },
                 isField: false);
         }
-        
+
         [Fact]
         public void Parameters_Indexer_Getter()
         {
@@ -1177,7 +1149,7 @@ public class C
     }
 }
 ";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "get_Item:a", new byte[] { 0x13 } },
                     { "get_Item:b", new byte[] { 0x13 } },
@@ -1199,7 +1171,7 @@ public class C
     }
 }
 ";
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { "set_Item:" + ParameterSymbol.ValueParameterName, new byte[] { 0x13 } },
                     { "set_Item:a", new byte[] { 0x13 } },
@@ -1208,7 +1180,7 @@ public class C
                 isField: false);
         }
 
-        [WorkItem(544509, "DevDiv")]
+        [WorkItem(544509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544509")]
         [Fact]
         public void Parameters_DelegateType()
         {
@@ -1227,7 +1199,7 @@ class C
 }";
             var marshalAsBstr = new byte[] { 0x13 };
 
-            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>() 
+            CompileAndVerifyFieldMarshal(source, new Dictionary<string, byte[]>()
                 {
                     { ".ctor:object", null },
                     { ".ctor:method", null },
@@ -1248,7 +1220,7 @@ class C
                 },
                 isField: false);
         }
-        
+
         [Fact]
         public void Parameters_Errors()
         {
@@ -1332,11 +1304,11 @@ class X
                 { "f:VBByRefStr_e1", new byte[] { 0x22 } },
                 { "f:VBByRefStr_e2", new byte[] { 0x22 } },
                 { "f:VBByRefStr_e3", new byte[] { 0x22 } },
-            }, 
+            },
             isField: false);
         }
 
-        [Fact, WorkItem(545374, "DevDiv")]
+        [Fact, WorkItem(545374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545374")]
         public void ImportOptionalMarshalAsParameter()
         {
             string text1 = @"
@@ -1368,7 +1340,7 @@ class C
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");
 
-            CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"0").VerifyIL("C.Main", @"
+            CompileAndVerify(comp2, expectedOutput: @"0").VerifyIL("C.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  2

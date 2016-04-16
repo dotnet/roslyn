@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class AssemblySymbol
         Inherits Symbol
-        Implements IAssemblySymbol
+        Implements IAssemblySymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the main module. If there is no existing assembly that can be used as a source for the primitive types, 
         ''' the value is a Compilation.MissingCorLibrary. 
         ''' </summary>
-        Private m_CorLibrary As AssemblySymbol
+        Private _corLibrary As AssemblySymbol
 
         ''' <summary>
         ''' The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property CorLibrary As AssemblySymbol
             Get
-                Return m_CorLibrary
+                Return _corLibrary
             End Get
         End Property
 
@@ -51,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="corLibrary"></param>
         Friend Sub SetCorLibrary(corLibrary As AssemblySymbol)
-            Debug.Assert(m_CorLibrary Is Nothing)
-            m_CorLibrary = corLibrary
+            Debug.Assert(_corLibrary Is Nothing)
+            _corLibrary = corLibrary
         End Sub
 
         ''' <summary>
@@ -79,9 +79,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
+        ''' 
+        ''' Otherwise, this returns <code>nothing</code>.
+        ''' </summary>
+        Public MustOverride Function GetMetadata() As AssemblyMetadata Implements IAssemblySymbol.GetMetadata
+
+        ''' <summary>
         ''' Get the name of this assembly.
         ''' </summary>
         Public MustOverride ReadOnly Property Identity As AssemblyIdentity Implements IAssemblySymbol.Identity
+
+        Public MustOverride ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblySymbolInternal.AssemblyVersionPattern
 
         ''' <summary>
         ''' Target architecture of the machine.
@@ -266,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function ResolveForwardedType(fullyQualifiedMetadataName As String) As NamedTypeSymbol
             If fullyQualifiedMetadataName Is Nothing Then
-                Throw New ArgumentNullException("fullyQualifiedMetadataName")
+                Throw New ArgumentNullException(NameOf(fullyQualifiedMetadataName))
             End If
 
             Dim emittedName = MetadataTypeName.FromFullName(fullyQualifiedMetadataName)
@@ -412,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=False, isWellKnownType:=False)
         End Function
 
-        Private Shared ReadOnly m_NestedTypeNameSeparators As Char() = {"+"c}
+        Private Shared ReadOnly s_nestedTypeNameSeparators As Char() = {"+"c}
 
         ''' <summary>
         ''' Lookup a type within the assembly using its canonical CLR metadata name (names are compared case-sensitively).
@@ -433,29 +442,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetTypeByMetadataName(metadataName As String, includeReferences As Boolean, isWellKnownType As Boolean, Optional useCLSCompliantNameArityEncoding As Boolean = False) As NamedTypeSymbol
 
             If metadataName Is Nothing Then
-                Throw New ArgumentNullException("metadataName")
+                Throw New ArgumentNullException(NameOf(metadataName))
             End If
 
-            Dim type As NamedTypeSymbol = Nothing
+            Dim type As NamedTypeSymbol
             Dim mdName As MetadataTypeName
 
             If metadataName.Contains("+"c) Then
 
-                Dim parts() As String = metadataName.Split(m_NestedTypeNameSeparators)
+                Dim parts() As String = metadataName.Split(s_nestedTypeNameSeparators)
+                Debug.Assert(parts.Length > 0)
+                mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
+                type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
 
-                If parts.Length > 0 Then
-                    mdName = MetadataTypeName.FromFullName(parts(0), useCLSCompliantNameArityEncoding)
-                    type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
+                Dim i As Integer = 1
 
-                    Dim i As Integer = 1
-
-                    While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
-                        mdName = MetadataTypeName.FromTypeName(parts(i))
-                        Dim temp = type.LookupMetadataType(mdName)
-                        type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
-                        i += 1
-                    End While
-                End If
+                While type IsNot Nothing AndAlso Not type.IsErrorType() AndAlso i < parts.Length
+                    mdName = MetadataTypeName.FromTypeName(parts(i))
+                    Dim temp = type.LookupMetadataType(mdName)
+                    type = If(Not isWellKnownType OrElse IsValidWellKnownType(temp), temp, Nothing)
+                    i += 1
+                End While
             Else
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding)
                 type = GetTopLevelTypeByMetadataName(mdName, includeReferences, isWellKnownType)
@@ -466,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
         ''' <summary>
-        ''' Lookup a top level type within the assembly or one of the assemblies reeferenced by the primary module, 
+        ''' Lookup a top level type within the assembly or one of the assemblies referenced by the primary module, 
         ''' names are compared case-sensitively. In case of ambiguity, type from this assembly wins,
         ''' otherwise Nothing is returned.
         ''' </summary>
@@ -515,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean
+        Friend Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean
             Return candidate IsNot Nothing AndAlso (candidate.Kind <> SymbolKind.ErrorType OrElse Not (TypeOf candidate Is MissingMetadataTypeSymbol))
         End Function
 
@@ -574,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
+        Friend Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
             If result Is Nothing OrElse result.TypeKind = TypeKind.Error Then
                 Return False
             End If

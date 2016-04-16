@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
     {
-        private readonly PropertySymbol property;
-        private readonly MethodSymbol overriddenAccessor;
-        private readonly ImmutableArray<ParameterSymbol> parameters;
+        private readonly PropertySymbol _property;
+        private readonly MethodSymbol _overriddenAccessor;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         public SynthesizedSealedPropertyAccessor(PropertySymbol property, MethodSymbol overriddenAccessor)
         {
@@ -28,16 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(property.IsSealed);
             Debug.Assert((object)overriddenAccessor != null);
 
-            this.property = property;
-            this.overriddenAccessor = overriddenAccessor;
-            this.parameters = SynthesizedParameterSymbol.DeriveParameters(overriddenAccessor, this);
+            _property = property;
+            _overriddenAccessor = overriddenAccessor;
+            _parameters = SynthesizedParameterSymbol.DeriveParameters(overriddenAccessor, this);
         }
 
         internal MethodSymbol OverriddenAccessor
         {
             get
             {
-                return overriddenAccessor;
+                return _overriddenAccessor;
             }
         }
 
@@ -45,13 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return property.ContainingType;
+                return _property.ContainingType;
             }
-        }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return LexicalSortKey.NotInSource;
         }
 
         public override ImmutableArray<Location> Locations
@@ -66,10 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Accessibility overriddenAccessibility = this.overriddenAccessor.DeclaredAccessibility;
+                Accessibility overriddenAccessibility = _overriddenAccessor.DeclaredAccessibility;
 
                 if (overriddenAccessibility == Accessibility.ProtectedOrInternal &&
-                    !this.ContainingAssembly.HasInternalAccessTo(overriddenAccessor.ContainingAssembly))
+                    !this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
                 {
                     // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
                     // but it's not clear why.  It seems like it would make more sense to just correct
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Debug.Assert(AccessCheck.IsSymbolAccessible(overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
+                    Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
                     return overriddenAccessibility;
                 }
             }
@@ -115,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.CallingConvention;
+                return _overriddenAccessor.CallingConvention;
             }
         }
 
@@ -123,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.MethodKind;
+                return _overriddenAccessor.MethodKind;
             }
         }
 
@@ -155,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.IsVararg;
+                return _overriddenAccessor.IsVararg;
             }
         }
 
@@ -163,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.ReturnsVoid;
+                return _overriddenAccessor.ReturnsVoid;
             }
         }
 
@@ -171,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.ReturnType;
+                return _overriddenAccessor.ReturnType;
             }
         }
 
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.parameters;
+                return _parameters;
             }
         }
 
@@ -216,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.ReturnTypeCustomModifiers;
+                return _overriddenAccessor.ReturnTypeCustomModifiers;
             }
         }
 
@@ -224,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return property;
+                return _property;
             }
         }
 
@@ -264,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return overriddenAccessor.Name;
+                return _overriddenAccessor.Name;
             }
         }
 

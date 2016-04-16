@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected class FormattedWhitespace : TriviaData
         {
-            private readonly string newString;
+            private readonly string _newString;
 
             public FormattedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, string language) :
                 base(optionSet, language)
@@ -22,20 +22,20 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                this.newString = CreateString();
+                _newString = CreateString(this.OptionSet.GetOption(FormattingOptions.NewLine, language));
             }
 
-            private string CreateString()
+            private string CreateString(string newLine)
             {
                 if (this.SecondTokenIsFirstTokenOnLine)
                 {
                     var builder = StringBuilderPool.Allocate();
                     for (int i = 0; i < this.LineBreaks; i++)
                     {
-                        builder.AppendLine();
+                        builder.Append(newLine);
                     }
 
-                    builder.Append(this.Spaces.CreateIndentationString(this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language)));
+                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
             {
-                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, this.newString));
+                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
             }
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)

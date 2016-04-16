@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -7,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -247,7 +247,7 @@ class Derived : Base
             Assert.Equal(0, derived2SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
         }
 
-        [WorkItem(540145, "DevDiv")]
+        [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
         [Fact]
         public void Regress6304_01()
         {
@@ -267,7 +267,7 @@ abstract public class TestClass2 : TestClass1
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "P2").WithArguments("TestClass2.P2", "TestClass1.P2"));
         }
 
-        [WorkItem(540145, "DevDiv")]
+        [WorkItem(540145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540145")]
         [Fact]
         public void Regress6304_02()
         {
@@ -811,7 +811,7 @@ public class CSIPropImpl : VBIPropImpl, IProp
             );
         }
 
-        [WorkItem(546143, "DevDiv")]
+        [WorkItem(546143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
         [Fact]
         public void AccessorWithImportedGenericType()
         {
@@ -851,8 +851,8 @@ public class G<T>
             }
         }
 
-        [WorkItem(546143, "DevDiv")]
-        [Fact]
+        [WorkItem(546143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546143")]
+        [ClrOnlyFact]
         public void OverridingExplicitInterfaceImplementationFromSource()
         {
             var il = @"
@@ -917,11 +917,109 @@ class Derived : Base
 }
 ";
 
-            CompileAndVerify(csharp, new[] { CompileIL(il) }, emitOptions: TestEmitters.CCI, expectedOutput: @"
+            CompileAndVerify(csharp, new[] { CompileIL(il) }, expectedOutput: @"
 1
 1
 1
 ");
+        }
+
+        [WorkItem(1102883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102883")]
+        [Fact]
+        public void Bug1102883_ReproSteps()
+        {
+            const string sourceFromReproSteps = @"
+class A
+{
+    void Foo()
+    {
+        var d = new Disposable();
+        d.Dispose();
+    }
+}
+class Disposable : System.IDisposable
+{
+    void IDisposable.Dispose() { }
+    public void Dispose() { }
+}
+";
+            // The using directive 'using System;' is not present in the repro steps,
+            // but is required to successfully bind the interface name IDisposable 
+            // in the explicit interface implementation IDisposable.Dispose().
+            // We are testing both cases: with and without the using directive.
+            // FindImplementationForInterfaceMember should return the explicit interface implementation 
+            // if it is successfully bound, and should fall back to the public method Dispose() otherwise.
+            const string sourceWithUsingDirective = @"
+using System;
+" + sourceFromReproSteps;
+
+            var testCases = new[] {
+                Tuple.Create(sourceFromReproSteps, new { isInterfaceNameBound = false, isDisposeExpected = true }),
+                Tuple.Create(sourceWithUsingDirective, new { isInterfaceNameBound = true, isDisposeExpected = false })
+              };
+
+            foreach (var testCase in testCases)
+            {
+                var source = testCase.Item1;
+                var expectedResult = testCase.Item2;
+
+                var compilation = CreateCompilationWithMscorlib(source);
+                var syntaxTree = compilation.SyntaxTrees.Single();
+                var nodes = syntaxTree.GetRoot().DescendantNodes();
+
+                var invocationSyntax = nodes.OfType<InvocationExpressionSyntax>().Single();
+                Assert.Equal("d.Dispose()", invocationSyntax.ToString());
+
+                var memberAccessSyntax = (MemberAccessExpressionSyntax)invocationSyntax.Expression;
+                Assert.Equal("d.Dispose", memberAccessSyntax.ToString());
+
+                var identifierSyntax = (IdentifierNameSyntax)memberAccessSyntax.Expression;
+                Assert.Equal("d", identifierSyntax.ToString());
+                Assert.Equal("d", identifierSyntax.Identifier.Text);
+                Assert.Equal(0, identifierSyntax.Arity);
+
+                var memberNameSyntax = memberAccessSyntax.Name;
+                Assert.Equal("Dispose", memberNameSyntax.ToString());
+                Assert.Equal("Dispose", memberNameSyntax.Identifier.Text);
+                Assert.Equal(0, memberNameSyntax.Arity);
+
+                var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                var classDisposable = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Disposable");
+                Assert.Equal(TypeKind.Class, classDisposable.TypeKind);
+                Assert.Equal("Disposable", classDisposable.Name);
+
+                var localD = (LocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
+                Assert.Equal("d", localD.Name);
+                Assert.Equal("Disposable", localD.Type.Name);
+                Assert.Equal(classDisposable, localD.Type);
+
+                var methodDispose = (MethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
+                Assert.Equal("Dispose", methodDispose.Name);
+                Assert.Equal(0, methodDispose.Arity);
+                Assert.Equal(0, methodDispose.ParameterCount);
+                Assert.True(methodDispose.ReturnsVoid);
+                Assert.Equal(classDisposable, methodDispose.ContainingType);
+                Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
+                Assert.False(methodDispose.IsExplicitInterfaceImplementation);
+
+                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
+                var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
+                var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
+                Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);
+
+                var memberAccessed = memberAccessSyntax;
+
+                // BEGIN CODE FROM REPRO STEPS
+
+                var methodSymbol = semanticModel.GetSymbolInfo(memberAccessed).Symbol as IMethodSymbol;
+                var type = methodSymbol.ContainingType;
+                var disposeMethod = (IMethodSymbol)compilation.GetSpecialType(SpecialType.System_IDisposable).GetMembers("Dispose").Single();
+                var isDispose = methodSymbol.Equals(type.FindImplementationForInterfaceMember(disposeMethod));
+
+                // END CODE FROM REPRO STEPS
+
+                Assert.Equal(expectedResult.isDisposeExpected, isDispose);
+            }
         }
     }
 }

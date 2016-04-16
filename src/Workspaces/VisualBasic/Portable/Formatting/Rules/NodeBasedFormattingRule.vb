@@ -116,12 +116,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
             If multiLineLambda IsNot Nothing Then
                 ' unlike C#, we need to consider statement terminator token when setting range for indentation
-                Dim baseToken = multiLineLambda.Begin.GetFirstToken(includeZeroWidth:=True)
-                Dim lastBeginningToken = If(multiLineLambda.Begin.GetLastToken().Kind = SyntaxKind.None, multiLineLambda.Begin.GetLastToken(includeZeroWidth:=True), multiLineLambda.Begin.GetLastToken())
+                Dim baseToken = multiLineLambda.SubOrFunctionHeader.GetFirstToken(includeZeroWidth:=True)
+                Dim lastBeginningToken = If(multiLineLambda.SubOrFunctionHeader.GetLastToken().Kind = SyntaxKind.None, multiLineLambda.SubOrFunctionHeader.GetLastToken(includeZeroWidth:=True), multiLineLambda.SubOrFunctionHeader.GetLastToken())
+
+                SetAlignmentBlockOperation(operations, baseToken,
+                                        baseToken.GetNextToken(includeZeroWidth:=True),
+                                        multiLineLambda.GetLastToken(includeZeroWidth:=True))
 
                 AddIndentBlockOperation(operations, baseToken,
                                         lastBeginningToken.GetNextToken(includeZeroWidth:=True),
-                                        multiLineLambda.End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                                        multiLineLambda.EndSubOrFunctionStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
                 Return
             End If
 
@@ -148,9 +152,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim caseBlock = TryCast(node, CaseBlockSyntax)
-            If caseBlock IsNot Nothing AndAlso pair.Item2.GetNextToken().IsKind(SyntaxKind.CaseKeyword) Then
-                AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
-                Return
+            If caseBlock IsNot Nothing Then
+                Dim nextTokenAfterCase = pair.Item2.GetNextToken()
+                If nextTokenAfterCase.IsKind(SyntaxKind.CaseKeyword) Then
+                    ' Make sure the comments in the empty case block are indented
+                    If caseBlock.Statements.Count = 0 Then
+                        Dim caseBlockLastToken = caseBlock.GetLastToken()
+                        operations.Add(FormattingOperations.CreateIndentBlockOperation(caseBlockLastToken, nextTokenAfterCase, TextSpan.FromBounds(caseBlockLastToken.Span.End, nextTokenAfterCase.SpanStart), 1, IndentBlockOption.RelativePosition))
+                        Return
+                    End If
+
+                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
+                    Return
+                End If
             End If
 
             AddIndentBlockOperation(operations, pair.Item1, pair.Item2)
@@ -259,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return
             End If
 
-            ' if base token is first token of the conent of the parent element, don't do anything
+            ' if base token is first token of the content of the parent element, don't do anything
             If element.Content.First().GetFirstToken(includeZeroWidth:=True) = baseToken Then
                 Return
             End If
@@ -307,29 +321,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim [module] = TryCast(node, ModuleBlockSyntax)
             If [module] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [module].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [module].End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                    [module].BlockStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [module].EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
             Dim [class] = TryCast(node, ClassBlockSyntax)
             If [class] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [class].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [class].End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                    [class].BlockStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [class].EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
             Dim [struct] = TryCast(node, StructureBlockSyntax)
             If [struct] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [struct].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [struct].End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                    [struct].BlockStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [struct].EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
             Dim [interface] = TryCast(node, InterfaceBlockSyntax)
             If [interface] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [interface].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [interface].End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                    [interface].BlockStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [interface].EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
             Dim [enum] = TryCast(node, EnumBlockSyntax)
@@ -342,8 +356,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim [method] = TryCast(node, MethodBlockBaseSyntax)
             If [method] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [method].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
-                    [method].End.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
+                    [method].BlockStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [method].EndBlockStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
             End If
 
             Dim [property] = TryCast(node, PropertyBlockSyntax)
@@ -452,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim [case] = TryCast(node, CaseBlockSyntax)
             If [case] IsNot Nothing Then
                 Return ValueTuple.Create(
-                    [case].Begin.GetLastToken().GetNextToken(includeZeroWidth:=True),
+                    [case].CaseStatement.GetLastToken().GetNextToken(includeZeroWidth:=True),
                     [case].GetLastToken(includeZeroWidth:=True))
             End If
 
@@ -485,7 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return node.GetLastToken(includeZeroWidth:=True)
             End If
 
-            ' get all enclosing forblock statements
+            ' get all enclosing for block statements
             Dim forBlocks = nextStatement.GetAncestors(Of ForOrForEachBlockSyntax)()
 
             ' get count of the for blocks

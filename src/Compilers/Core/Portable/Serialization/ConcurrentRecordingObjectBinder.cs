@@ -12,16 +12,16 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class ConcurrentRecordingObjectBinder : RecordingObjectBinder
     {
-        private readonly ConcurrentDictionary<TypeKey, Type> typeMap =
+        private readonly ConcurrentDictionary<TypeKey, Type> _typeMap =
             new ConcurrentDictionary<TypeKey, Type>();
 
-        private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> readerMap =
+        private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
             new ConcurrentDictionary<Type, Func<ObjectReader, object>>();
 
         public override Type GetType(string assemblyName, string typeName)
         {
             Type type;
-            if (!this.typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
+            if (!_typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
             {
                 Debug.Assert(false, assemblyName + "/" + typeName + " don't exist");
             }
@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
         public override Func<ObjectReader, object> GetReader(Type type)
         {
             Func<ObjectReader, object> reader;
-            if (!this.readerMap.TryGetValue(type, out reader))
+            if (!_readerMap.TryGetValue(type, out reader))
             {
                 Debug.Assert(false, type.ToString() + " reader doesn't exist");
             }
@@ -42,7 +42,7 @@ namespace Roslyn.Utilities
 
         private bool HasConstructor(Type type)
         {
-            return this.readerMap.ContainsKey(type);
+            return _readerMap.ContainsKey(type);
         }
 
         public override void Record(Type type)
@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
             if (type != null)
             {
                 var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
-                this.typeMap.TryAdd(key, type);
+                _typeMap.TryAdd(key, type);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Roslyn.Utilities
                         return;
                     }
 
-                    this.readerMap.TryAdd(type, readable.GetReader());
+                    _readerMap.TryAdd(type, readable.GetReader());
                 }
 
                 Record(type);

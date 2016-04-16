@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
         ''' <summary>
         ''' Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.vb
         ''' </summary>
-        Private Shared ReadOnly SourcePia1 As XElement = <compilation name="Pia1"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourcePia1 As XElement = <compilation name="Pia1"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
@@ -45,7 +45,7 @@ End Namespace
         ''' <summary>
         ''' Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.dll
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes1_IL As XElement = <compilation name="LocalTypes1"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes1_IL As XElement = <compilation name="LocalTypes1"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
@@ -68,7 +68,7 @@ End Class
         ''' <summary>
         ''' Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.vb
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes1 As XElement = <compilation name="LocalTypes1"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes1 As XElement = <compilation name="LocalTypes1"><file name="a.vb"><![CDATA[
 Public Class LocalTypes1
     Public Sub Test1(x As I1, y As NS1.I2)
     End Sub
@@ -78,7 +78,7 @@ End Class
         ''' <summary>
         ''' Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.dll
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes2_IL As XElement = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes2_IL As XElement = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
@@ -103,7 +103,7 @@ End Class
         ''' <summary>
         ''' Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.vb
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes2 As XElement = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes2 As XElement = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
 Public Class LocalTypes2
     Public Sub Test2(ByVal x As S1, ByVal y As NS1.S2)
     End Sub
@@ -113,7 +113,7 @@ End Class
         ''' <summary>
         ''' Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.dll
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes3_IL As XElement = <compilation name="LocalTypes3"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes3_IL As XElement = <compilation name="LocalTypes3"><file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -168,7 +168,7 @@ End Class
         ''' <summary>
         ''' Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.vb
         ''' </summary>
-        Private Shared ReadOnly SourceLocalTypes3 As XElement = <compilation name="LocalTypes3"><file name="a.vb"><![CDATA[
+        Private Shared ReadOnly s_sourceLocalTypes3 As XElement = <compilation name="LocalTypes3"><file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 
 Public Class LocalTypes3
@@ -216,9 +216,9 @@ End Class
 
         <Fact()>
         Public Sub HideLocalTypeDefinitions()
-            Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL)
+            Dim compilation2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL)
             CompileAndVerify(compilation2)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
@@ -282,9 +282,9 @@ End Class
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
-            Dim compilation2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL)
+            Dim compilation2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL)
             CompileAndVerify(compilation2)
             LocalTypeSubstitution1(compilation1, compilation2)
         End Sub
@@ -292,11 +292,11 @@ End Class
         <Fact()>
         Public Sub LocalTypeSubstitution1_2()
             Dim compilation1 = CreateCompilationWithMscorlib(
-                SourceLocalTypes1,
+                s_sourceLocalTypes1,
                 references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation1)
             Dim compilation2 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes2,
+                    s_sourceLocalTypes2,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation2)
             LocalTypeSubstitution1(compilation1, compilation2)
@@ -304,14 +304,14 @@ End Class
 
         <Fact()>
         Public Sub LocalTypeSubstitution1_3()
-            Dim compilation0 = CreateCompilationWithMscorlib(SourcePia1)
+            Dim compilation0 = CreateCompilationWithMscorlib(s_sourcePia1)
             CompileAndVerify(compilation0)
             Dim compilation1 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes1,
+                    s_sourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation1)
             Dim compilation2 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes2,
+                    s_sourceLocalTypes2,
                     references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             CompileAndVerify(compilation2)
             LocalTypeSubstitution1(compilation1, compilation2)
@@ -534,7 +534,7 @@ End Class
         <Fact()>
         Public Sub CyclicReference_1()
             Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
-            Dim compilation1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL)
+            Dim compilation1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL)
             CompileAndVerify(compilation1)
             Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
             CyclicReference(piaRef, localTypes1Ref)
@@ -544,7 +544,7 @@ End Class
         Public Sub CyclicReference_2()
             Dim piaRef = TestReferences.SymbolsTests.NoPia.Pia1
             Dim compilation1 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes1,
+                    s_sourceLocalTypes1,
                     references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation1)
             Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
@@ -553,11 +553,11 @@ End Class
 
         <Fact()>
         Public Sub CyclicReference_3()
-            Dim pia1 = CreateCompilationWithMscorlib(SourcePia1)
+            Dim pia1 = CreateCompilationWithMscorlib(s_sourcePia1)
             CompileAndVerify(pia1)
             Dim piaRef = New VisualBasicCompilationReference(pia1)
             Dim compilation1 = CreateCompilationWithMscorlib(
-                    SourceLocalTypes1,
+                    s_sourceLocalTypes1,
                     references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
             CompileAndVerify(compilation1)
             Dim localTypes1Ref = New VisualBasicCompilationReference(compilation1)
@@ -578,7 +578,7 @@ End Class
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_1()
-            Dim compilation3 = CreateCompilationWithMscorlib(SourceLocalTypes3_IL)
+            Dim compilation3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3_IL)
             CompileAndVerify(compilation3)
             GenericsClosedOverLocalTypes1(compilation3)
         End Sub
@@ -586,7 +586,7 @@ End Class
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_2()
             Dim compilation3 = CreateCompilationWithMscorlib(
-                SourceLocalTypes3,
+                s_sourceLocalTypes3,
                 references:={TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(True)})
             CompileAndVerify(compilation3)
             GenericsClosedOverLocalTypes1(compilation3)
@@ -594,10 +594,10 @@ End Class
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes1_3()
-            Dim pia1 = CreateCompilationWithMscorlib(SourcePia1)
+            Dim pia1 = CreateCompilationWithMscorlib(s_sourcePia1)
             CompileAndVerify(pia1)
             Dim compilation3 = CreateCompilationWithMscorlib(
-                SourceLocalTypes3,
+                s_sourceLocalTypes3,
                 references:={New VisualBasicCompilationReference(pia1, embedInteropTypes:=True)})
             CompileAndVerify(compilation3)
             GenericsClosedOverLocalTypes1(compilation3)
@@ -1139,7 +1139,7 @@ class C3 {}
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(argType)
         End Sub
 
-        <Fact, WorkItem(685240, "DevDiv")>
+        <Fact, WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")>
         Public Sub Bug685240()
 
             Dim piaSource =
@@ -1202,10 +1202,10 @@ End Class
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
-            CompileAndVerify(consumer, emitOptions:=TestEmitters.RefEmitBug)
+            CompileAndVerify(consumer)
         End Sub
 
-        <Fact, WorkItem(528047, "DevDiv")>
+        <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>
         Public Sub OverloadResolutionWithEmbeddedInteropType()
             Dim source1 =
 <compilation>

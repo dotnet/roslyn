@@ -29,11 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
             return RewriteWhileStatement(
-                node.Syntax, 
-                AddConditionSequencePoint(rewrittenCondition, node), 
-                conditionSequencePointSpan, 
-                rewrittenBody, 
+                node.Syntax,
+                AddConditionSequencePoint(rewrittenCondition, node),
+                conditionSequencePointSpan,
+                rewrittenBody,
                 node.BreakLabel,
                 node.ContinueLabel,
                 node.HasErrors);

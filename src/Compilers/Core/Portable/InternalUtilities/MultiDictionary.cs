@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,44 +9,55 @@ using System.Diagnostics;
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
-    internal sealed class MultiDictionary<K, V>
+    internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K, V>.ValueSet>>
     {
-        public struct ValueSet
+        public struct ValueSet : IEnumerable<V>
         {
-            public struct Enumerator
+            public struct Enumerator : IEnumerator<V>
             {
-                private readonly V value;
-                private ImmutableHashSet<V>.Enumerator values;
-                private int count;
+                private readonly V _value;
+                private ImmutableHashSet<V>.Enumerator _values;
+                private int _count;
 
                 public Enumerator(ValueSet v)
                 {
-                    if (v.value == null)
+                    if (v._value == null)
                     {
-                        value = default(V);
-                        values = default(ImmutableHashSet<V>.Enumerator);
-                        count = 0;
+                        _value = default(V);
+                        _values = default(ImmutableHashSet<V>.Enumerator);
+                        _count = 0;
                     }
                     else
                     {
-                        var set = v.value as ImmutableHashSet<V>;
+                        var set = v._value as ImmutableHashSet<V>;
                         if (set == null)
                         {
-                            value = (V)v.value;
-                            values = default(ImmutableHashSet<V>.Enumerator);
-                            count = 1;
+                            _value = (V)v._value;
+                            _values = default(ImmutableHashSet<V>.Enumerator);
+                            _count = 1;
                         }
                         else
                         {
-                            value = default(V);
-                            values = set.GetEnumerator();
-                            count = set.Count;
-                            Debug.Assert(count > 1);
+                            _value = default(V);
+                            _values = set.GetEnumerator();
+                            _count = set.Count;
+                            Debug.Assert(_count > 1);
                         }
 
-                        Debug.Assert(count == v.Count);
+                        Debug.Assert(_count == v.Count);
                     }
                 }
+
+                public void Dispose()
+                {
+                }
+
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
+
+                object IEnumerator.Current => this.Current;
 
                 // Note that this property is not guaranteed to throw either before MoveNext()
                 // has been called or after the end of the set has been reached.
@@ -53,55 +65,64 @@ namespace Roslyn.Utilities
                 {
                     get
                     {
-                        return count > 1 ? values.Current : value;
+                        return _count > 1 ? _values.Current : _value;
                     }
                 }
 
                 public bool MoveNext()
                 {
-                    switch (count)
+                    switch (_count)
                     {
                         case 0:
                             return false;
 
                         case 1:
-                            count = 0;
+                            _count = 0;
                             return true;
 
                         default:
-                            if (values.MoveNext())
+                            if (_values.MoveNext())
                             {
                                 return true;
                             }
 
-                            count = 0;
+                            _count = 0;
                             return false;
                     }
                 }
             }
 
             // Stores either a single V or an ImmutableHashSet<V>
-            private readonly object value;
+            private readonly object _value;
 
             public int Count
             {
                 get
                 {
-                    if (value == null)
+                    if (_value == null)
                     {
                         return 0;
                     }
                     else
                     {
-                        var set = value as ImmutableHashSet<V>;
-                        return set == null ? 1 : set.Count;
+                        return (_value as ImmutableHashSet<V>)?.Count ?? 1;
                     }
                 }
             }
 
             public ValueSet(object value)
             {
-                this.value = value;
+                _value = value;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            IEnumerator<V> IEnumerable<V>.GetEnumerator()
+            {
+                return GetEnumerator();
             }
 
             public Enumerator GetEnumerator()
@@ -111,17 +132,17 @@ namespace Roslyn.Utilities
 
             public ValueSet Add(V v)
             {
-                Debug.Assert(value != null);
+                Debug.Assert(_value != null);
 
-                var set = value as ImmutableHashSet<V>;
+                var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    if (ImmutableHashSet<V>.Empty.KeyComparer.Equals((V)value, v))
+                    if (ImmutableHashSet<V>.Empty.KeyComparer.Equals((V)_value, v))
                     {
                         return this;
                     }
 
-                    set = ImmutableHashSet.Create((V)value);
+                    set = ImmutableHashSet.Create((V)_value);
                 }
 
                 return new ValueSet(set.Add(v));
@@ -129,24 +150,24 @@ namespace Roslyn.Utilities
 
             public V Single()
             {
-                Debug.Assert(value is V); // Implies value != null
-                return (V)value;
+                Debug.Assert(_value is V); // Implies value != null
+                return (V)_value;
             }
         }
 
-        private readonly Dictionary<K, ValueSet> dictionary;
+        private readonly Dictionary<K, ValueSet> _dictionary;
 
         public int Count
         {
             get
             {
-                return this.dictionary.Count;
+                return _dictionary.Count;
             }
         }
 
         public IEnumerable<K> Keys
         {
-            get { return this.dictionary.Keys; }
+            get { return _dictionary.Keys; }
         }
 
         // Returns an empty set if there is no such key in the dictionary.
@@ -155,44 +176,49 @@ namespace Roslyn.Utilities
             get
             {
                 ValueSet set;
-                return this.dictionary.TryGetValue(k, out set) ? set : default(ValueSet);
+                return _dictionary.TryGetValue(k, out set) ? set : default(ValueSet);
             }
         }
 
         public MultiDictionary()
         {
-            this.dictionary = new Dictionary<K, ValueSet>();
+            _dictionary = new Dictionary<K, ValueSet>();
         }
 
         public MultiDictionary(IEqualityComparer<K> comparer)
         {
-            this.dictionary = new Dictionary<K, ValueSet>(comparer);
+            _dictionary = new Dictionary<K, ValueSet>(comparer);
         }
 
         public MultiDictionary(int capacity, IEqualityComparer<K> comparer)
         {
-            this.dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
+            _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
         }
 
         public void Add(K k, V v)
         {
             ValueSet set;
-            this.dictionary[k] = this.dictionary.TryGetValue(k, out set) ? set.Add(v) : new ValueSet(v);
+            _dictionary[k] = _dictionary.TryGetValue(k, out set) ? set.Add(v) : new ValueSet(v);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public IEnumerator<KeyValuePair<K, ValueSet>> GetEnumerator()
         {
-            return this.dictionary.GetEnumerator();
+            return _dictionary.GetEnumerator();
         }
 
         public bool ContainsKey(K k)
         {
-            return this.dictionary.ContainsKey(k);
+            return _dictionary.ContainsKey(k);
         }
 
         internal void Clear()
         {
-            this.dictionary.Clear();
+            _dictionary.Clear();
         }
     }
 }

@@ -14,21 +14,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private struct EmitState
         {
-            private int maxStack;
-            private int curStack;
-            private int instructionsEmitted;
+            private int _maxStack;
+            private int _curStack;
+            private int _instructionsEmitted;
 
             internal int InstructionsEmitted
             {
                 get
                 {
-                    return instructionsEmitted;
+                    return _instructionsEmitted;
                 }
             }
 
             internal void InstructionAdded()
             {
-                instructionsEmitted += 1;
+                _instructionsEmitted += 1;
             }
 
             /// <summary>
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return maxStack;
+                    return _maxStack;
                 }
                 private set
                 {
                     Debug.Assert(value >= 0 && value <= ushort.MaxValue);
-                    maxStack = value;
+                    _maxStack = value;
                 }
             }
 
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return curStack;
+                    return _curStack;
                 }
                 private set
                 {
                     Debug.Assert(value >= 0 && value <= ushort.MaxValue);
-                    curStack = value;
+                    _curStack = value;
                 }
             }
 

@@ -8,21 +8,21 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LockBinder : LockOrUsingBinder 
+    internal sealed class LockBinder : LockOrUsingBinder
     {
-        private readonly LockStatementSyntax syntax;
+        private readonly LockStatementSyntax _syntax;
 
         public LockBinder(Binder enclosing, LockStatementSyntax syntax)
             : base(enclosing)
         {
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax
         {
             get
             {
-                return syntax.Expression;
+                return _syntax.Expression;
             }
         }
 
@@ -38,21 +38,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)exprType == null)
             {
-                if (expr.ConstantValue != ConstantValue.Null) // Dev10 allows the null literal.
+                if (expr.ConstantValue != ConstantValue.Null || Compilation.FeatureStrictEnabled) // Dev10 allows the null literal.
                 {
                     Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, expr.Display);
                     hasErrors = true;
                 }
             }
-            else if (!exprType.IsReferenceType)
+            else if (!exprType.IsReferenceType && (exprType.IsValueType || Compilation.FeatureStrictEnabled))
             {
                 Error(diagnostics, ErrorCode.ERR_LockNeedsReference, exprSyntax, exprType);
                 hasErrors = true;
             }
 
-            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
-            return new BoundLockStatement(syntax, expr, stmt, hasErrors);
+            return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
     }
 }

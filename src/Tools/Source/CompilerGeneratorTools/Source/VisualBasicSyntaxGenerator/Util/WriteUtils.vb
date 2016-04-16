@@ -51,7 +51,7 @@ Public MustInherit Class WriteUtils
 #If OLDSTYLE Then
         Return nodeStructure.Name
 #Else
-        If nodeStructure.Name.EndsWith("Syntax") Then
+        If nodeStructure.Name.EndsWith("Syntax", StringComparison.Ordinal) Then
             Return nodeStructure.Name.Substring(0, nodeStructure.Name.Length - 6)
         Else
             Return nodeStructure.Name
@@ -103,7 +103,7 @@ Public MustInherit Class WriteUtils
     ' If conflictName is not nothing, make sure the name doesn't conflict with that name.
     Protected Function FieldParamName(nodeField As ParseNodeField, Optional conflictName As String = Nothing) As String
         Dim name As String = nodeField.Name
-        If String.Equals(name, conflictName, StringComparison.InvariantCultureIgnoreCase) Then
+        If String.Equals(name, conflictName, StringComparison.OrdinalIgnoreCase) Then
             name += "Parameter"
         End If
         Return Ident(LowerFirstCharacter(name))
@@ -113,7 +113,7 @@ Public MustInherit Class WriteUtils
     ' If conflictName is not nothing, make sure the name doesn't conflict with that name.
     Protected Function ChildParamName(nodeChild As ParseNodeChild, Optional conflictName As String = Nothing) As String
         Dim name As String = OptionalChildName(nodeChild)
-        If String.Equals(name, conflictName, StringComparison.InvariantCultureIgnoreCase) Then
+        If String.Equals(name, conflictName, StringComparison.OrdinalIgnoreCase) Then
             name += "Parameter"
         End If
         Return Ident(LowerFirstCharacter(name))
@@ -177,7 +177,7 @@ Public MustInherit Class WriteUtils
             End If
             Return UpperFirstCharacter(nodeChild.SeparatorsName)
         Else
-            Throw New ApplicationException("Shouldn't get here")
+            Throw New InvalidOperationException("Shouldn't get here")
         End If
     End Function
 
@@ -425,7 +425,7 @@ Public MustInherit Class WriteUtils
             Case SimpleType.NodeKind
                 Return NodeKindString
             Case Else
-                Throw New ApplicationException("Unexpected simple type")
+                Throw New InvalidOperationException("Unexpected simple type")
         End Select
 
     End Function
@@ -443,7 +443,7 @@ Public MustInherit Class WriteUtils
     ' The name of the visitor method for a structure type
     Protected Function VisitorMethodName(nodeStructure As ParseNodeStructure) As String
         Dim nodeName = nodeStructure.Name
-        If nodeName.EndsWith("Syntax") Then nodeName = nodeName.Substring(0, nodeName.Length - 6)
+        If nodeName.EndsWith("Syntax", StringComparison.Ordinal) Then nodeName = nodeName.Substring(0, nodeName.Length - 6)
 
         Return "Visit" + nodeName
     End Function
@@ -456,7 +456,7 @@ Public MustInherit Class WriteUtils
     ' Given a list of ParseNodeKinds, find the common structure that encapsulates all
     ' of them, or else return Nothing if there is no common structure.
     Protected Function GetCommonStructure(kindList As List(Of ParseNodeKind)) As ParseNodeStructure
-        Dim structList = kindList.ConvertAll(Function(kind) kind.NodeStructure) ' list of the structures.
+        Dim structList = kindList.Select(Function(kind) kind.NodeStructure).ToList() ' list of the structures.
 
         ' Any candidate ancestor is an ancestor (or same) of the first element
         Dim candidate As ParseNodeStructure = structList(0)
@@ -555,7 +555,7 @@ Public MustInherit Class WriteUtils
         text = text.Trim()
 
         While text.Length >= LineLength
-            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(" ")
+            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(" "c)
             If split < 0 Then split = LineLength
 
             Dim line As String = text.Substring(0, split).Trim()
@@ -642,7 +642,7 @@ Public MustInherit Class WriteUtils
 
 
 
-    ' Generate and XML comment with the given description and remarks sections. If emtpy, the sections are ommitted.
+    ' Generate and XML comment with the given description and remarks sections. If empty, the sections are omitted.
     Protected Sub GenerateXmlComment(writer As TextWriter, descriptionText As String, remarksText As String, indent As Integer)
         GenerateXmlCommentPart(writer, descriptionText, "summary", indent)
         GenerateXmlCommentPart(writer, remarksText, "remarks", indent)
@@ -704,7 +704,7 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    Private VBKeywords As String() = {
+    Private ReadOnly _VBKeywords As String() = {
         "ADDHANDLER",
         "ADDRESSOF",
         "ALIAS",
@@ -860,7 +860,7 @@ Public MustInherit Class WriteUtils
 
     ' If the string is a keyword, escape it. Otherwise just return it.
     Protected Function Ident(id As String) As String
-        If VBKeywords.Contains(id.ToUpperInvariant()) Then
+        If _VBKeywords.Contains(id.ToUpperInvariant()) Then
             Return "[" + id + "]"
         Else
             Return id

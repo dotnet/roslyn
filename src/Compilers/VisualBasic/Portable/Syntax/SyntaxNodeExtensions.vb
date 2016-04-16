@@ -129,7 +129,7 @@ TryAgain:
                     Dim memberAccess = DirectCast(input, MemberAccessExpressionSyntax)
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        ' See if this is an identifier qualified with XmlElementAccessExpression or XmlDescendantAccessExpression
                         Dim receiver As ExpressionSyntax = If(memberAccess.Expression, GetCorrespondingConditionalAccessReceiver(memberAccess))
 
                         If receiver IsNot Nothing Then
@@ -302,7 +302,7 @@ TryAgain:
         ''' Returns true if all arguments are of the specified kind and they are also missing.
         ''' </summary>
         <Extension()>
-        Function AllAreMissing(arguments As IEnumerable(Of VisualBasicSyntaxNode), kind As SyntaxKind) As Boolean
+        Public Function AllAreMissing(arguments As IEnumerable(Of VisualBasicSyntaxNode), kind As SyntaxKind) As Boolean
             Return Not arguments.Any(Function(arg) Not (arg.Kind = kind AndAlso DirectCast(arg, IdentifierNameSyntax).IsMissing))
         End Function
 
@@ -311,7 +311,7 @@ TryAgain:
         ''' </summary>
         ''' <param name="arguments"></param>
         <Extension()>
-        Function AllAreMissingIdentifierName(arguments As IEnumerable(Of VisualBasicSyntaxNode)) As Boolean
+        Public Function AllAreMissingIdentifierName(arguments As IEnumerable(Of VisualBasicSyntaxNode)) As Boolean
             Return arguments.AllAreMissing(SyntaxKind.IdentifierName)
         End Function
 
@@ -319,7 +319,7 @@ TryAgain:
         ''' Given a syntax node of query clause returns its leading keyword
         ''' </summary>
         <Extension()>
-        Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VisualBasicSyntaxNode) As SyntaxToken
+        Public Function QueryClauseKeywordOrRangeVariableIdentifier(syntax As VisualBasicSyntaxNode) As SyntaxToken
             Select Case syntax.Kind
 
                 Case SyntaxKind.CollectionRangeVariable

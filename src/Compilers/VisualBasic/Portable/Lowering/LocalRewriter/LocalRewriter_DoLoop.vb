@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntax = DirectCast(node.Syntax, DoLoopBlockSyntax)
 
-            Return RewriteWhileStatement(syntax,
+            Return RewriteWhileStatement(node,
                                          syntax.DoStatement,
                                          syntax.LoopStatement,
                                          VisitExpressionNode(node.ConditionOpt),
@@ -108,7 +108,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' {GotoIfTrue|False condition start}
             ' exit:
 
-            Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(syntax.DoStatement, rewrittenBottomCondition, Not node.ConditionIsUntil, startLabel)
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while methods invoked in the condition are being executed.
+            Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
+                syntax.DoStatement,
+                AddConditionSequencePoint(rewrittenBottomCondition, node),
+                jumpIfTrue:=Not node.ConditionIsUntil,
+                label:=startLabel)
 
             If Not conditionResumeTarget.IsDefaultOrEmpty Then
                 ifConditionGotoStart = New BoundStatementList(ifConditionGotoStart.Syntax, conditionResumeTarget.Add(ifConditionGotoStart))

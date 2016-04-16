@@ -212,15 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             If member.IsMustOverride AndAlso currType IsNot container Then
                                 If Not overriddenMembers.Contains(member) Then
-                                    If member.Kind = SymbolKind.Event Then
-                                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritEventNotOverridden,
-                                                                   member,
-                                                                   CustomSymbolDisplayFormatter.QualifiedName(currType),
-                                                                   CustomSymbolDisplayFormatter.ShortErrorName(container)),
-                                                       container.Locations(0)))
-                                    Else
-                                        unimplementedMembers.Add(member)
-                                    End If
+                                    unimplementedMembers.Add(member)
                                 End If
                             End If
 
@@ -252,17 +244,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         For Each member In unimplementedMembers
                             If Not member.IsAccessor Then
-                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
+                                If member.Kind = SymbolKind.Event Then
+                                    diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritEventNotOverridden,
+                                                                                            member,
+                                                                                            CustomSymbolDisplayFormatter.QualifiedName(member.ContainingType),
+                                                                                            CustomSymbolDisplayFormatter.ShortErrorName(container)),
+                                                    container.Locations(0)))
+                                Else
+                                    diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
+                                End If
                             Else
                                 ' accessor is reported on the containing property.
                                 Debug.Assert(unimplementedMembers.Contains(DirectCast(member, MethodSymbol).AssociatedSymbol))
                             End If
                         Next
 
-                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_BaseOnlyClassesMustBeExplicit2,
+                        If diagnosticInfos.Count > 0 Then
+                            diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_BaseOnlyClassesMustBeExplicit2,
                                                                    CustomSymbolDisplayFormatter.ShortErrorName(container),
                                                                    New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())),
                                                        container.Locations(0)))
+                        Else
+                            diagnosticInfos.Free()
+                        End If
                     End If
                 End If
 
@@ -502,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        ' If this member overriddes another member, return that overridden member, else return Nothing.
+        ' If this member overrides another member, return that overridden member, else return Nothing.
         Protected Shared Function GetOverriddenMember(sym As Symbol) As Symbol
             Select Case sym.Kind
                 Case SymbolKind.Method
@@ -575,13 +579,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits OverrideHidingHelper
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared RuntimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()
-            OverrideHidingHelper(Of MethodSymbol).RuntimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
-            OverrideHidingHelper(Of PropertySymbol).RuntimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
-            OverrideHidingHelper(Of EventSymbol).RuntimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
+            OverrideHidingHelper(Of MethodSymbol).s_runtimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
+            OverrideHidingHelper(Of PropertySymbol).s_runtimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
+            OverrideHidingHelper(Of EventSymbol).s_runtimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
         End Sub
 
         ''' <summary>
@@ -590,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' method is declared "override").
         ''' 
         ''' Methods in the overridden list may not be virtual or may have different
-        ''' accessibities, types, accessors, etc.  They are really candidates to be
+        ''' accessibilities, types, accessors, etc.  They are really candidates to be
         ''' overridden.
         ''' 
         ''' All found accessible candidates of overridden members are collected in two 
@@ -633,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' NOTE: If our goal is to make source references and metadata references indistinguishable, then we should really
             ' distinguish between the "current" compilation and other compilations, rather than between source and metadata.
             ' However, doing so would require adding a new parameter to the public API (i.e. which compilation to consider
-            ' "current") and that extra complexicity does not seem to provide significant benefit.  Our fallback goal is:
+            ' "current") and that extra complexity does not seem to provide significant benefit.  Our fallback goal is:
             ' if a source assembly builds successfully, then compilations referencing that assembly should build against
             ' both source and metadata or fail to build against both source and metadata.  Our expectation is that an exact
             ' match (which is required for successful compilation) should roundtrip through metadata, so this requirement
@@ -711,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If If(overridingIsFromSomeCompilation,
                         sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
                             SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
-                        RuntimeSignatureComparer.Equals(overridingSym, member)) Then
+                        s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
 
                         If accessible Then
                             If exactMatchIgnoringCustomModifiers Then
@@ -769,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                builder As ArrayBuilder(Of TSymbol))
 
             ' We should only add a member to a builder if it does not match any 
-            ' symbols from previously processed (derived) clases 
+            ' symbols from previously processed (derived) classes 
 
             ' This is supposed to help avoid adding multiple symbols one of 
             ' which overrides another one, in the following case

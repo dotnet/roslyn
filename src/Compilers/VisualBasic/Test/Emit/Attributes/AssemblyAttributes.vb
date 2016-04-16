@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -32,8 +34,8 @@ End Class
         Assert.Equal(New Version(1, 2, 3, 4), other.Assembly.Identity.Version)
     End Sub
 
-    <Fact, WorkItem(543708, "DevDiv")>
-    Public Sub VersionAttribute02()
+    <Fact, WorkItem(543708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543708")>
+    Public Sub VersionAttribute_FourParts()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -47,9 +49,34 @@ End Class
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(New Version(1, 22, 333, 4444), r.Version)
                                   End Sub)
+    End Sub
 
-        ' ---------------------------------------------
-        comp = CreateCompilationWithMscorlib(
+    <Fact>
+    Public Sub VersionAttribute_TwoParts()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.2")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(1, r.Version.Major)
+                                      Assert.Equal(2, r.Version.Minor)
+                                      Assert.Equal(0, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
+                                  End Sub)
+    End Sub
+
+    <Fact>
+    Public Sub VersionAttribute_WildCard()
+        Dim now = Date.Now
+        Dim days = 0, seconds = 0
+        VersionTestHelpers.GetDefautVersion(now, days, seconds)
+
+        Dim comp = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
@@ -57,15 +84,39 @@ Public Class C
 End Class
 ]]>
     </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(now))
+
         VerifyAssemblyTable(comp, Sub(r)
                                       Assert.Equal(10101, r.Version.Major)
                                       Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(days, r.Version.Build)
+                                      Assert.Equal(seconds, r.Version.Revision)
                                   End Sub)
 
     End Sub
 
-    <Fact, WorkItem(545948, "DevDiv")>
+    <Fact>
+    Public Sub VersionAttribute_Overflow()
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithCurrentLocalTime(#2300/1/1#))
+
+        VerifyAssemblyTable(comp, Sub(r)
+                                      Assert.Equal(10101, r.Version.Major)
+                                      Assert.Equal(0, r.Version.Minor)
+                                      Assert.Equal(65535, r.Version.Build)
+                                      Assert.Equal(0, r.Version.Revision)
+                                  End Sub)
+
+    End Sub
+
+    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub VersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -104,24 +155,7 @@ BC36962: The specified version string does not conform to the required format - 
 
     End Sub
 
-    <Fact>
-    Public Sub FileVersionAttribute()
-        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
-<compilation>
-    <file name="a.vb"><![CDATA[
-<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
-Public Class C
- Friend Sub Foo()
- End Sub
-End Class
-]]>
-    </file>
-</compilation>, OutputKind.DynamicallyLinkedLibrary)
-        Assert.Empty(other.GetDiagnostics())
-        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
-    End Sub
-
-    <Fact, WorkItem(545948, "DevDiv")>
+    <Fact, WorkItem(545948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545948")>
     Public Sub SatelliteContractVersionAttributeErr()
         Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -151,7 +185,58 @@ BC36976: The specified version string does not conform to the recommended format
     End Sub
 
     <Fact>
-    Public Sub FileVersionAttributeWrn()
+    Public Sub FileVersionAttribute()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2.3.4", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MaxValue()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("65535.65535.65535.65535")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("65535.65535.65535.65535", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttribute_MissingParts()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        Assert.Empty(other.GetDiagnostics())
+        Assert.Equal("1.2", DirectCast(other.Assembly, SourceAssemblySymbol).FileVersion)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_Wildcard()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -168,6 +253,27 @@ End Class
 BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
 <Assembly: System.Reflection.AssemblyFileVersion("1.2.*")>
                                                  ~~~~~~~
+]]></error>)
+    End Sub
+
+    <Fact>
+    Public Sub FileVersionAttributeWrn_OutOfRange()
+        Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+Public Class C
+ Friend Sub Foo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>, OutputKind.DynamicallyLinkedLibrary)
+        CompilationUtils.AssertTheseDiagnostics(other,
+<error><![CDATA[
+BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
+<Assembly: System.Reflection.AssemblyFileVersion("1.65536")>
+                                                 ~~~~~~~~~
 ]]></error>)
     End Sub
 
@@ -327,7 +433,7 @@ BC36982: Assembly culture strings may not contain embedded NUL characters.
 ]]></error>)
     End Sub
 
-    <Fact, WorkItem(545951, "DevDiv")>
+    <Fact, WorkItem(545951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545951")>
     Public Sub CultureAttributeErr()
 
         Dim src = <compilation>
@@ -352,6 +458,7 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
     End Sub
 
     <Fact>
+    <WorkItem(5866, "https://github.com/dotnet/roslyn/issues/5866")>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">
@@ -427,7 +534,7 @@ BC42371: Referenced assembly 'en_UK, Version=0.0.0.0, Culture=en-UK, PublicKeyTo
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch1">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -447,15 +554,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch2">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
-        CompileAndVerify(compilation).VerifyDiagnostics()
+        CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_usRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_usRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)}).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch3">
     <file name="a.vb"><![CDATA[
 <Assembly: System.Reflection.AssemblyCultureAttribute("en-US")>
 
@@ -475,12 +587,20 @@ end class
 </expected>)
 
         compilation = CreateCompilationWithMscorlibAndReferences(
-<compilation>
+<compilation name="CultureAttributeMismatch4">
     <file name="a.vb">
     </file>
 </compilation>, {compilation.EmitToImageReference()}, TestOptions.ReleaseDll)
 
         CompileAndVerify(compilation,
+                         dependencies:={New ModuleData(en_UKRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       en_UKRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False),
+                                        New ModuleData(neutralRef.Compilation.Assembly.Identity,
+                                                       OutputKind.DynamicallyLinkedLibrary,
+                                                       neutralRef.Compilation.EmitToArray(),
+                                                       ImmutableArray(Of Byte).Empty, False)},
                          sourceSymbolValidator:=Sub(m As ModuleSymbol)
                                                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length)
 
@@ -491,7 +611,8 @@ end class
                          symbolValidator:=Sub(m As ModuleSymbol)
                                               Assert.Equal(2, m.GetReferencedAssemblySymbols().Length)
                                               Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()(1).ToTestDisplayString())
-                                          End Sub).VerifyDiagnostics()
+                                          End Sub).
+            VerifyDiagnostics()
 
         compilation = CreateCompilationWithMscorlibAndReferences(
 <compilation>
@@ -619,13 +740,13 @@ End Class
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
-    <Fact(), WorkItem(529922, "DevDiv")>
+    <Fact(), WorkItem(529922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529922")>
     Public Sub AlgorithmIdAttribute()
 
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
 
         Dim hash_resources = {New ResourceDescription("hash_resource", "snKey.snk",
-            Function() New MemoryStream(TestResources.SymbolsTests.General.snKey, writable:=False),
+            Function() New MemoryStream(TestResources.General.snKey, writable:=False),
             True)}
 
         Dim compilation As VisualBasicCompilation
@@ -640,9 +761,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
@@ -670,9 +791,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.None, assembly.HashAlgorithm)
@@ -700,9 +821,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm)
@@ -730,9 +851,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module})
 
-        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
@@ -760,9 +881,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA256, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -791,9 +912,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA384, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -825,9 +946,9 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={MscorlibRef_v4_0_30316_17626, hash_module})
 
-        CompileAndVerify(compilation, verify:=False, emitOptions:=TestEmitters.RefEmitBug,
+        CompileAndVerify(compilation, verify:=False,
             manifestResources:=hash_resources,
-            validator:=Sub(peAssembly, _omitted)
+            validator:=Sub(peAssembly)
                            Dim reader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = reader.GetAssemblyDefinition()
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA512, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
@@ -869,8 +990,8 @@ end class
     ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll, references:={hash_module_Comp.EmitToImageReference()})
 
-        CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug,
-            validator:=Sub(peAssembly, _omitted)
+        CompileAndVerify(compilation,
+            validator:=Sub(peAssembly)
                            Dim metadataReader = peAssembly.ManifestModule.GetMetadataReader()
                            Dim assembly As AssemblyDefinition = metadataReader.GetAssemblyDefinition()
                            Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm)
@@ -964,7 +1085,7 @@ Imports System.Reflection
 
     End Sub
 
-    <Fact, WorkItem(546635, "DevDiv")>
+    <Fact, WorkItem(546635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546635")>
     Public Sub AssemblyFlagsAttribute02()
         Dim comp = CreateVisualBasicCompilation("AssemblyFlagsAttribute02",
         <![CDATA[<Assembly: System.Reflection.AssemblyFlags(12345)>]]>,
@@ -1024,7 +1145,7 @@ Imports System.Reflection
 
 #Region "Helpers"
 
-    Shared DefaultNetModuleSourceHeader As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceHeader As String = <![CDATA[
 Imports System
 Imports System.Reflection
 Imports System.Security.Permissions
@@ -1035,7 +1156,7 @@ Imports System.Security.Permissions
 <Assembly: UserDefinedAssemblyAttrAllowMultiple("UserDefinedAssemblyAttrAllowMultiple")>
 ]]>.Value
 
-    Shared DefaultNetModuleSourceBody As String = <![CDATA[
+    Private Shared ReadOnly s_defaultNetModuleSourceBody As String = <![CDATA[
 Public Class NetModuleClass
 End Class
 
@@ -1077,8 +1198,8 @@ End Class
                                                         Optional netModuleSourceBody As String = Nothing,
                                                         Optional references As IEnumerable(Of MetadataReference) = Nothing,
                                                         Optional nameSuffix As String = "") As ModuleMetadata
-        Dim netmoduleSource As String = If(netModuleSourceHeader, DefaultNetModuleSourceHeader) & If(netModuleSourceBody, DefaultNetModuleSourceBody)
-        Dim netmoduleCompilation = CreateCompilationWithMscorlib({netmoduleSource}, references:=references, compOptions:=TestOptions.ReleaseModule, assemblyName:="NetModuleWithAssemblyAttributes" & nameSuffix)
+        Dim netmoduleSource As String = If(netModuleSourceHeader, s_defaultNetModuleSourceHeader) & If(netModuleSourceBody, s_defaultNetModuleSourceBody)
+        Dim netmoduleCompilation = CreateCompilationWithMscorlib({netmoduleSource}, references:=references, options:=TestOptions.ReleaseModule, assemblyName:="NetModuleWithAssemblyAttributes" & nameSuffix)
         Dim diagnostics = netmoduleCompilation.GetDiagnostics()
         Dim bytes = netmoduleCompilation.EmitToArray()
         Return ModuleMetadata.CreateFromImage(bytes)
@@ -1136,7 +1257,7 @@ End Class
         Assert.Equal(18, metadataReader.CustomAttributes.Count)
         Assert.Equal(0, metadataReader.DeclarativeSecurityAttributes.Count)
 
-        Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
         Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
         Dim consoleappCompilation = CreateCompilationWithMscorlibAndReferences(consoleappSource, {netModuleWithAssemblyAttributes.GetReference()})
@@ -1339,14 +1460,14 @@ End Class
         Next
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleBadMulti()
         Dim source As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultiple("UserDefinedAssemblyAttrNoAllowMultiple (from source)")>
 ]]>.Value
 
         Dim netmodule1Ref = GetNetModuleWithAssemblyAttributesRef()
-        Dim comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=TestOptions.ReleaseDll)
+        Dim comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, options:=TestOptions.ReleaseDll)
         ' error BC36978: Attribute 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' in 'NetModuleWithAssemblyAttributes.netmodule' cannot be applied multiple times.
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsageInNetModule2).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", "NetModuleWithAssemblyAttributes.netmodule"))
@@ -1356,14 +1477,14 @@ End Class
         Assert.Equal(5, attrs.Length)
 
         ' Build NetModule
-        comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, compOptions:=TestOptions.ReleaseModule)
+        comp = CreateCompilationWithMscorlib({source}, references:={netmodule1Ref}, options:=TestOptions.ReleaseModule)
         comp.VerifyDiagnostics()
         Dim netmodule2Ref = comp.EmitToImageReference()
 
         attrs = comp.Assembly.GetAttributes()
         Assert.Equal(1, attrs.Length)
 
-        comp = CreateCompilationWithMscorlib({""}, references:={netmodule1Ref, netmodule2Ref}, compOptions:=TestOptions.ReleaseDll)
+        comp = CreateCompilationWithMscorlib({""}, references:={netmodule1Ref, netmodule2Ref}, options:=TestOptions.ReleaseDll)
         ' error BC36978: Attribute 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' in 'NetModuleWithAssemblyAttributes.netmodule' cannot be applied multiple times.
         comp.VerifyDiagnostics(
             Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsageInNetModule2).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", "NetModuleWithAssemblyAttributes.netmodule"))
@@ -1373,7 +1494,7 @@ End Class
         Assert.Equal(5, attrs.Length)
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub InternalsVisibleToAttributeDropIdentical()
         Dim source =
             <compilation>
@@ -1387,7 +1508,7 @@ Imports System.Runtime.CompilerServices
             </compilation>
 
         Dim comp = CreateCompilationWithMscorlib(source, OutputKind.DynamicallyLinkedLibrary)
-        CompileAndVerify(comp, emitOptions:=TestEmitters.RefEmitBug)
+        CompileAndVerify(comp)
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
             expectedSrcAttrCount:=2,
@@ -1395,7 +1516,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="InternalsVisibleToAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical()
         Dim source =
             <compilation>
@@ -1431,7 +1552,7 @@ Imports System.Runtime.CompilerServices
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceDropIdentical_02()
         Dim source1 As String = <![CDATA[
 <Assembly: UserDefinedAssemblyAttrNoAllowMultipleAttribute(0)> ' unique
@@ -1445,10 +1566,10 @@ Imports System.Runtime.CompilerServices
 Imports System
 ]]>.Value
 
-        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultHeaderString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=TestOptions.ReleaseDll).ToMetadataReference()
+        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultHeaderString & s_defaultNetModuleSourceBody}, references:=Nothing, options:=TestOptions.ReleaseDll).ToMetadataReference()
         Dim netmodule1Ref As MetadataReference = GetNetModuleWithAssemblyAttributesRef(source2, "", references:={defsRef}, nameSuffix:="1")
 
-        Dim comp = CreateCompilationWithMscorlib({source1}, references:={defsRef, netmodule1Ref}, compOptions:=TestOptions.ReleaseDll)
+        Dim comp = CreateCompilationWithMscorlib({source1}, references:={defsRef, netmodule1Ref}, options:=TestOptions.ReleaseDll)
         ' duplicate ignored, no error because identical
         comp.VerifyDiagnostics()
 
@@ -1458,7 +1579,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
 
         Dim netmodule2Ref As MetadataReference = GetNetModuleWithAssemblyAttributesRef(source1, "", references:={defsRef}, nameSuffix:="2")
-        comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule1Ref, netmodule2Ref}, compOptions:=TestOptions.ReleaseDll)
+        comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule1Ref, netmodule2Ref}, options:=TestOptions.ReleaseDll)
         ' duplicate ignored, no error because identical
         comp.VerifyDiagnostics()
 
@@ -1468,7 +1589,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrNoAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_01()
         ' Duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1489,8 +1610,8 @@ Imports System
 <Assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text2 := "str1", Text := "str1")> ' unique
                     ]]>.Value
 
-        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({""}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
+        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader & netmoduleAttributes, s_defaultNetModuleSourceBody)
+        Dim comp = CreateCompilationWithMscorlib({""}, references:={netmoduleRef}, options:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1499,7 +1620,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodules
         Dim netmodule1Attributes As String = <![CDATA[
@@ -1532,13 +1653,13 @@ Imports System
 Imports System
 ]]>.Value
 
-        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultImportsString & DefaultNetModuleSourceBody}, references:=Nothing, compOptions:=TestOptions.ReleaseDll).ToMetadataReference()
-        Dim netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader, "", references:={defsRef})
+        Dim defsRef As MetadataReference = CreateCompilationWithMscorlib({defaultImportsString & s_defaultNetModuleSourceBody}, references:=Nothing, options:=TestOptions.ReleaseDll).ToMetadataReference()
+        Dim netmodule0Ref = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader, "", references:={defsRef})
         Dim netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(netmodule1Attributes, "", references:={defsRef})
         Dim netmodule2Ref = GetNetModuleWithAssemblyAttributesRef(netmodule2Attributes, "", references:={defsRef})
         Dim netmodule3Ref = GetNetModuleWithAssemblyAttributesRef(netmodule3Attributes, "", references:={defsRef})
 
-        Dim comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref}, compOptions:=TestOptions.ReleaseDll)
+        Dim comp = CreateCompilationWithMscorlib({""}, references:={defsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref}, options:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1547,7 +1668,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_01()
         ' All duplicate ignored attributes in netmodule
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1572,8 +1693,8 @@ Imports System
 <Assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text2 := "str1", Text := "str1")> ' unique
                     ]]>.Value
 
-        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
+        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader & netmoduleAttributes, s_defaultNetModuleSourceBody)
+        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, options:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1582,7 +1703,7 @@ Imports System
             attrTypeName:="UserDefinedAssemblyAttrAllowMultipleAttribute")
     End Sub
 
-    <Fact(), WorkItem(546963, "DevDiv")>
+    <Fact(), WorkItem(546963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546963")>
     Public Sub AssemblyAttributesFromSourceAndNetModuleDropIdentical_02()
         ' Duplicate ignored attributes in netmodule & source
         Dim netmoduleAttributes As String = <![CDATA[
@@ -1611,8 +1732,8 @@ Imports System
 <Assembly: UserDefinedAssemblyAttrAllowMultipleAttribute(0, Text2 := "str1", Text := "str1")> ' unique
                     ]]>.Value
 
-        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(DefaultNetModuleSourceHeader & netmoduleAttributes, DefaultNetModuleSourceBody)
-        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, compOptions:=TestOptions.ReleaseDll)
+        Dim netmoduleRef = GetNetModuleWithAssemblyAttributesRef(s_defaultNetModuleSourceHeader & netmoduleAttributes, s_defaultNetModuleSourceBody)
+        Dim comp = CreateCompilationWithMscorlib({sourceAttributes}, references:={netmoduleRef}, options:=TestOptions.ReleaseDll)
         Dim diagnostics = comp.GetDiagnostics()
 
         TestDuplicateAssemblyAttributesNotEmitted(comp.Assembly,
@@ -1622,7 +1743,7 @@ Imports System
     End Sub
 #End Region
 
-    <Fact, WorkItem(545527, "DevDiv")>
+    <Fact, WorkItem(545527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545527")>
     Public Sub CompilationRelaxationsAndRuntimeCompatibility_MultiModule()
         Dim moduleSrc =
 <compilation>
@@ -1660,7 +1781,7 @@ End Class
             End Sub)
     End Sub
 
-    <Fact, WorkItem(546460, "DevDiv")>
+    <Fact, WorkItem(546460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546460")>
     Public Sub RuntimeCompatibilityAttribute_False()
         ' VB emits catch(Exception) even for an empty catch, so it can never catch non-Exception objects.
 
@@ -1691,7 +1812,7 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 </errors>)
     End Sub
 
-    <Fact, WorkItem(530585, "DevDiv")>
+    <Fact, WorkItem(530585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530585")>
     Public Sub Bug16465()
         Dim modSource =
         <![CDATA[
@@ -1734,7 +1855,7 @@ End Class
         Dim metadataReader = metadata.GetMetadataReader()
 
 
-        Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
+        Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere")
         Assert.False(token.IsNil())   'could the type ref be located? If not then the attribute's not there.
 
         Dim attributes = m.GetCustomAttributesForToken(token)
@@ -1768,7 +1889,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Assert.True(expectedStr.Equals(actualStr), AssertEx.GetAssertMessage(expectedStr, actualStr))
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_1()
         Dim mod1Source =
 <compilation name="M1">
@@ -1820,7 +1941,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
         Next
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_2()
         Dim mod1Source =
 <compilation name="M1">
@@ -1868,7 +1989,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_3()
         Dim mod1Source =
 <compilation name="M1">
@@ -1918,7 +2039,7 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
 
     End Sub
 
-    <Fact, WorkItem(530579, "DevDiv")>
+    <Fact, WorkItem(530579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530579")>
     Public Sub Bug530579_4()
         Dim mod1Source =
 <compilation name="M1">

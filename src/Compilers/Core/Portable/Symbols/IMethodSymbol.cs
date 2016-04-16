@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis
     /// Represents a method or method-like symbol (including constructor,
     /// destructor, operator, or property/event accessor).
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IMethodSymbol : ISymbol
     {
         /// <summary>
@@ -42,9 +46,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns whether this method is using CLI VARARG calling convention. This is used for
         /// C-style variable argument lists. This is used extremely rarely in C# code and is
-        /// represented using the undocumented “__arglist” keyword.
+        /// represented using the undocumented "__arglist" keyword.
         ///
-        /// Note that methods with “params” on the last parameter are indicated with the “IsParams”
+        /// Note that methods with "params" on the last parameter are indicated with the "IsParams"
         /// property on ParameterSymbol, and are not represented with this property.
         /// </summary>
         bool IsVararg { get; }

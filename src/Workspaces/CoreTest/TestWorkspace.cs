@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     internal class TestWorkspace : Workspace
     {
         // Forces serialization of mutation calls. Must take this lock before taking stateLock.
-        private readonly NonReentrantLock serializationLock = new NonReentrantLock();
+        private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
 
         public TestWorkspace(HostServices hostServices = null)
             : base(hostServices ?? new AdhocWorkspace().Services.HostServices, "Test")
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public void AddProject(ProjectId projectId, string projectName, string language = LanguageNames.CSharp)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.AddProject(projectId, projectName, projectName, language));

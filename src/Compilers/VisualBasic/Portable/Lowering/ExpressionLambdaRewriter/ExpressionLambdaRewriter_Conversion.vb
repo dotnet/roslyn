@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                ' NOTE: All other cases fall trough to the regular conversion
+                ' NOTE: All other cases fall through to the regular conversion
             End If
 
             ' Check if we have a special conversion that uses a helper.
@@ -246,10 +246,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConvertIfNeeded(objectConversion, _factory.SpecialType(SpecialType.System_Object), typeTo, False)
                 End If
 
-            ElseIf underlyingTo.IsStringType() AndAlso underlyingFrom.IsCharArrayRankOne() Then
+            ElseIf underlyingTo.IsStringType() AndAlso underlyingFrom.IsCharSZArray() Then
                 Return [New](SpecialMember.System_String__CtorSZArrayChar, rewrittenOperand)
 
-            ElseIf underlyingFrom.IsReferenceType AndAlso underlyingTo.IsCharArrayRankOne() Then
+            ElseIf underlyingFrom.IsReferenceType AndAlso underlyingTo.IsCharSZArray() Then
                 Dim helper As Symbol
                 Dim argumentType As TypeSymbol
                 If underlyingFrom.IsStringType() Then

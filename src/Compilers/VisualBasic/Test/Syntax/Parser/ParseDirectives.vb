@@ -22,6 +22,20 @@ Public Class ParseDirectives
     End Sub
 
     <Fact>
+    Public Sub ParseReferenceDirective()
+        ParseAndVerify(<![CDATA[
+            #r "reference"
+        ]]>, TestOptions.Script)
+
+        ParseAndVerify(<![CDATA[
+            #r "reference"
+        ]]>,
+        <errors>
+            <error id="36964" message="#R is only allowed in scripts" start="14" end="15"/>
+        </errors>)
+    End Sub
+
+    <Fact>
     Public Sub FloatsAndUnaryNot()
         ParseAndVerify(<![CDATA[
 Imports System
@@ -148,7 +162,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871, "DevDiv")>
+    <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub FW_Hash()
         ParseAndVerify(<![CDATA[
@@ -160,7 +174,7 @@ End Module
     End Sub
 
 
-    <WorkItem(679758, "DevDiv")>
+    <WorkItem(679758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679758")>
     <Fact>
     Public Sub TypeCharMismatch()
         ParseAndVerify(<![CDATA[
@@ -174,8 +188,8 @@ End Module
         )
     End Sub
 
-    <WorkItem(530922, "DevDiv")>
-    <WorkItem(658448, "DevDiv")>
+    <WorkItem(530922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530922")>
+    <WorkItem(658448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658448")>
     <Fact>
     Public Sub FullWidthDirective()
         ParseAndVerify(<![CDATA[
@@ -255,7 +269,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(531493, "DevDiv")>
+    <WorkItem(531493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531493")>
     <Fact>
     Public Sub Repro18189()
         ParseAndVerify(<![CDATA[
@@ -266,7 +280,7 @@ REM _
         ]]>)
     End Sub
 
-    <WorkItem(697520, "DevDiv")>
+    <WorkItem(697520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697520")>
     <Fact>
     Public Sub BigShift()
         ParseAndVerify(<![CDATA[
@@ -297,7 +311,7 @@ End Module
 )
     End Sub
 
-    <WorkItem(530921, "DevDiv")>
+    <WorkItem(530921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530921")>
     <Fact>
     Public Sub Repro17195()
         ParseAndVerify(<![CDATA[
@@ -310,7 +324,7 @@ _
         ]]>)
     End Sub
 
-    <WorkItem(530679, "DevDiv")>
+    <WorkItem(530679, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530679")>
     <Fact>
     Public Sub Repro16694()
         ParseAndVerify(<![CDATA[
@@ -333,7 +347,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(545871, "DevDiv")>
+    <WorkItem(545871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545871")>
     <Fact>
     Public Sub ParseIfDirectiveWithCChar()
         ParseAndVerify(<![CDATA[
@@ -380,7 +394,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(538581, "DevDiv")>
+    <WorkItem(538581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538581")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithBad()
         ParseAndVerify(<![CDATA[
@@ -392,7 +406,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(528617, "DevDiv")>
+    <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact>
     Public Sub LineContinuationInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -407,7 +421,7 @@ End Module
         </errors>)
     End Sub
 
-    <WorkItem(545211, "DevDiv")>
+    <WorkItem(545211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545211")>
     <Fact>
     Public Sub FunctionKeywordInDisabledText()
         ParseAndVerify(<![CDATA[
@@ -417,7 +431,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(586984, "DevDiv")>
+    <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore()
         ParseAndVerify(<![CDATA[
@@ -446,7 +460,7 @@ Region
         ]]>)
     End Sub
 
-    <WorkItem(586984, "DevDiv")>
+    <WorkItem(586984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586984")>
     <Fact>
     Public Sub DW_Underscore_001()
         ParseAndVerify(<![CDATA[
@@ -484,7 +498,7 @@ Region
     Diagnostic(ERRID.ERR_LbNoMatchingIf, "#End If"))
     End Sub
 
-    <WorkItem(538578, "DevDiv")>
+    <WorkItem(538578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538578")>
     <Fact>
     Public Sub ParseDisabledIfDirectiveWithUnderscore()
         ParseAndVerify(<![CDATA[
@@ -571,7 +585,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(542109, "DevDiv")>
+    <WorkItem(542109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542109")>
     <Fact>
     Public Sub BC30277_ParseConstTypeChar()
         ParseAndVerify(<![CDATA[
@@ -583,7 +597,7 @@ _ _
         </errors>)
     End Sub
 
-    <WorkItem(541882, "DevDiv")>
+    <WorkItem(541882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541882")>
     <Fact>
     Public Sub ParseConstWithLineContinuation()
         ParseAndVerify(<![CDATA[
@@ -604,7 +618,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(528617, "DevDiv")>
+    <WorkItem(528617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528617")>
     <Fact()>
     Public Sub ParseConstWithLineContinuation1()
         ParseAndVerify(<![CDATA[
@@ -619,8 +633,8 @@ blah _
         </errors>)
     End Sub
 
-    <WorkItem(537851, "DevDiv")>
-    <WorkItem(538488, "DevDiv")>
+    <WorkItem(537851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537851")>
+    <WorkItem(538488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538488")>
     <Fact>
     Public Sub ParseLiteralIfDirective()
         ParseAndVerify(<![CDATA[
@@ -649,7 +663,7 @@ blah _
         ]]>)
     End Sub
 
-    <WorkItem(538486, "DevDiv")>
+    <WorkItem(538486, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538486")>
     <Fact>
     Public Sub ParseNothingStringCompare()
         ParseAndVerify(<![CDATA[
@@ -673,7 +687,7 @@ End Class
         ]]>)
     End Sub
 
-    <WorkItem(536090, "DevDiv")>
+    <WorkItem(536090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536090")>
     <Fact>
     Public Sub BC30035ERR_Syntax_ParsePreprocessorIfAfterLineTerminator()
         ParseAndVerify(<![CDATA[
@@ -690,7 +704,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(538589, "DevDiv")>
+    <WorkItem(538589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538589")>
     <Fact>
     Public Sub ParsePreprocessorSeparatedWithColon()
         ParseAndVerify(<![CDATA[
@@ -906,6 +920,20 @@ End Class
         </errors>)
     End Sub
 
+    <WorkItem(620, "https://github.com/dotnet/roslyn/issues/620")>
+    <Fact>
+    Public Sub TestRecentUnicodeVersion()
+        ' Ensure that the characters Ǉ and ǈ are considered matching under case insensitivity
+        ParseAndVerify(<![CDATA[
+#Const Ǉ = True
+#if ǈ
+Class MissingEnd
+#end if
+        ]]>,
+        Diagnostic(ERRID.ERR_ExpectedEndClass, "Class MissingEnd").WithLocation(4, 1)
+        )
+    End Sub
+
     <WorkItem(893259, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30012_ParsePreProcessorIfIncompleteExpression()
@@ -1108,7 +1136,7 @@ Sub DynLateSetLHS010()
              </errors>)
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion()
@@ -1118,7 +1146,7 @@ Sub DynLateSetLHS010()
         Diagnostic(ERRID.ERR_ExpectedEndRegion, "#Region ""Start"""))
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(904877, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30681ERR_ExpectedEndRegion2()
@@ -1190,7 +1218,7 @@ End Class
         </errors>)
     End Sub
 
-    <WorkItem(527211, "DevDiv")>
+    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
     <WorkItem(927710, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30205ERR_ExpectedEOS()
@@ -1230,15 +1258,15 @@ End Module]]>,
 
         Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(text), options, "")
 
-        Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2"))
+        Dim tk = tree.GetRoot().FindToken(text.IndexOf("class c2", StringComparison.Ordinal))
         Assert.Equal(SyntaxKind.ClassKeyword, tk.Kind)
 
-        tk = tree.GetRoot().FindToken(text.IndexOf("class c1"))
+        tk = tree.GetRoot().FindToken(text.IndexOf("class c1", StringComparison.Ordinal))
         Assert.Equal(260, tk.FullWidth)
 
     End Sub
 
-    <WorkItem(537144, "DevDiv")>
+    <WorkItem(537144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537144")>
     <WorkItem(929947, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseNestedDirectives()
@@ -1251,7 +1279,7 @@ End Module]]>,
     End Sub
 
 
-    <WorkItem(538483, "DevDiv")>
+    <WorkItem(538483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538483")>
     <Fact>
     Public Sub ParseDirectiveWithStatementOnLine()
         ParseAndVerify(<![CDATA[
@@ -1263,7 +1291,7 @@ End Module]]>,
             </error>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 0)
     End Sub
 
-    <WorkItem(538750, "DevDiv")>
+    <WorkItem(538750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538750")>
     <Fact>
     Public Sub ParseDirectiveWithStrings()
         ParseAndVerify(<![CDATA[
@@ -1316,7 +1344,7 @@ End Class
             ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
-    <WorkItem(528675, "DevDiv")>
+    <WorkItem(528675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528675")>
     <Fact()>
     Public Sub ParseDirectiveAfterLabel()
         ParseAndVerify(<![CDATA[
@@ -1331,7 +1359,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845()
         ParseAndVerify(<![CDATA[
@@ -1341,7 +1369,7 @@ End Module
                 </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_1()
         ParseAndVerify(<![CDATA[
@@ -1351,7 +1379,7 @@ End Module
                            </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_2()
         ParseAndVerify(<![CDATA[
@@ -1362,7 +1390,7 @@ End Module
              </errors>)
     End Sub
 
-    <WorkItem(552845, "DevDiv")>
+    <WorkItem(552845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552845")>
     <Fact()>
     Public Sub Repro552845_3()
         ParseAndVerify(<![CDATA[
@@ -1375,7 +1403,7 @@ End Module
 
 
     <WorkItem(9710, "DevDiv_Projects/Roslyn")>
-    <WorkItem(542447, "DevDiv")>
+    <WorkItem(542447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542447")>
     <Fact>
     Public Sub ParseConditionalIfElseIfElse()
         ParseAndVerify(<![CDATA[
@@ -1429,7 +1457,7 @@ Namespace CHDIR48
      </errors>)
     End Sub
 
-    <WorkItem(675842, "DevDiv")>
+    <WorkItem(675842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675842")>
     <Fact()>
     Public Sub BadDateInConditionalCompilation()
         ' Failed to parse.
@@ -1542,7 +1570,7 @@ BC30059: Constant expression is required.
 </expected>)
     End Sub
 
-    <WorkItem(780817, "DevDiv")>
+    <WorkItem(780817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780817")>
     <Fact>
     Public Sub ParseProjConstsCaseInsensitivity()
 
@@ -2466,7 +2494,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator1()
+    Public Sub ParseWarningDirective_StatementSeparator1()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning :]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="17" end="17"/>
@@ -2483,7 +2511,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator2()
+    Public Sub ParseWarningDirective_StatementSeparator2()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42024 :'comment]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="23" end="23"/>
@@ -2501,7 +2529,7 @@ End Module]]>,
     End Sub
 
     <Fact>
-    Public Sub ParseWarningDirective_StatementSeperator3()
+    Public Sub ParseWarningDirective_StatementSeparator3()
         Dim tree = ParseAndVerify(<![CDATA[#Disable :
 ]]>,
             <errors>
@@ -3030,28 +3058,28 @@ End Module
     Private Class CustomDiagnosticAnalyzer
         Inherits DiagnosticAnalyzer
 
-        Private ReadOnly descriptor As DiagnosticDescriptor
-        Private ReadOnly kind As SyntaxKind
-        Private ReadOnly reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic)
+        Private ReadOnly _descriptor As DiagnosticDescriptor
+        Private ReadOnly _kind As SyntaxKind
+        Private ReadOnly _reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic)
 
         Public Sub New(descriptor As DiagnosticDescriptor, kind As SyntaxKind, reporter As Func(Of SyntaxNode, DiagnosticDescriptor, Diagnostic))
-            Me.descriptor = descriptor
-            Me.kind = kind
-            Me.reporter = reporter
+            Me._descriptor = descriptor
+            Me._kind = kind
+            Me._reporter = reporter
         End Sub
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, kind)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, _kind)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get
-                Return ImmutableArray.Create(descriptor)
+                Return ImmutableArray.Create(_descriptor)
             End Get
         End Property
 
         Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-            context.ReportDiagnostic(reporter(context.Node, descriptor))
+            context.ReportDiagnostic(_reporter(context.Node, _descriptor))
         End Sub
     End Class
 
@@ -3092,13 +3120,13 @@ End Module
         Dim analyzers = {analyzer}
         Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
         Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
 
         Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
         diagOptions.Add("ｓｏＭｅＩｄ", ReportDiagnostic.Error)
         Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         diagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -3107,7 +3135,7 @@ End Module
         CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
@@ -3199,13 +3227,13 @@ End Module
         Dim analyzers = {analyzer}
         Dim expectedId = analyzer.SupportedDiagnostics.Single.Id
         Dim expectedMsg = analyzer.SupportedDiagnostics.Single.MessageFormat
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15))
 
         Dim diagOptions = New Dictionary(Of String, ReportDiagnostic)
         diagOptions.Add("__someThing_123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", ReportDiagnostic.Error)
         Dim compOptions = TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(diagOptions)
-        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         diagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -3214,7 +3242,7 @@ End Module
         CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers)
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
+        CreateCompilationWithMscorlibAndVBRuntime(compXml, compOptions).VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing, False,
             New Test.Utilities.DiagnosticDescription(expectedId, "As Long", Nothing, Nothing, Nothing, False, GetType(String)).WithLocation(10, 15).WithWarningAsError(True))
 
         compOptions = TestOptions.ReleaseExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)

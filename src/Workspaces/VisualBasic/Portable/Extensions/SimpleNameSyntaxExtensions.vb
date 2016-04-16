@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         ' Returns true if this looks like a possible type name that is on it's own (i.e. not after a
         ' dot).  This function is not exhaustive and additional checks may be added if they are
-        ' beleived to be valuable.
+        ' believed to be valuable.
         <Extension()>
         Public Function LooksLikeStandaloneTypeName(simpleName As SimpleNameSyntax) As Boolean
             If simpleName Is Nothing Then
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            ' Looks good.  However, feel free to add additional checks if this funciton is too
+            ' Looks good.  However, feel free to add additional checks if this function is too
             ' lenient in some circumstances.
             Return True
         End Function

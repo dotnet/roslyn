@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal class CodeFix
     {
+        internal readonly Project Project;
         internal readonly CodeAction Action;
         internal readonly ImmutableArray<Diagnostic> Diagnostics;
 
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// 
         /// Implementation-wise the <see cref="PrimaryDiagnostic"/> is always the first diagnostic that
         /// the <see cref="CodeFixProvider"/> supplied when registering the fix (<see 
-        /// cref="CodeFixContext.RegisterFix(CodeAction, IEnumerable{Diagnostic})"/>). This could change
+        /// cref="CodeFixContext.RegisterCodeFix(CodeAction, IEnumerable{Diagnostic})"/>). This could change
         /// in the future, if we decide to change the UI to depict the true mapping between fixes and diagnostics
         /// or if we decide to use some other heuristic to determine the <see cref="PrimaryDiagnostic"/>.
         /// </remarks>
@@ -41,15 +42,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        internal CodeFix(CodeAction action, Diagnostic diagnostic)
+        internal CodeFix(Project project, CodeAction action, Diagnostic diagnostic)
         {
+            this.Project = project;
             this.Action = action;
             this.Diagnostics = ImmutableArray.Create(diagnostic);
         }
 
-        internal CodeFix(CodeAction action, ImmutableArray<Diagnostic> diagnostics)
+        internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
             Debug.Assert(!diagnostics.IsDefault);
+            this.Project = project;
             this.Action = action;
             this.Diagnostics = diagnostics;
         }

@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceDestructorSymbol : SourceMethodSymbol
     {
-        private TypeSymbol lazyReturnType;
+        private TypeSymbol _lazyReturnType;
 
         internal SourceDestructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             DestructorDeclarationSyntax syntax,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body.GetReferenceOrNull(), syntax.Identifier.GetLocation())
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), syntax.Identifier.GetLocation())
         {
             const MethodKind methodKind = MethodKind.Destructor;
             Location location = this.Locations[0];
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var syntax = GetSyntax();
             var bodyBinder = this.DeclaringCompilation.GetBinder(syntaxReferenceOpt);
-            this.lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
+            _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
         }
 
         internal DestructorDeclarationSyntax GetSyntax()
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnType;
+                return _lazyReturnType;
             }
         }
 

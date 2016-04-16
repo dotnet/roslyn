@@ -17,15 +17,17 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// May represent assembly definition or assembly reference identity.
     /// </remarks>
-    partial class AssemblyIdentity
+    public partial class AssemblyIdentity
     {
+        internal const string InvariantCultureDisplay = "neutral";
+
         /// <summary>
         /// Returns the display name of the assembly identity.
         /// </summary>
         /// <param name="fullKey">True if the full public key should be included in the name. Otherwise public key token is used.</param>
         /// <returns>The display name.</returns>
         /// <remarks>
-        /// Characters ',', '=', '"', '\'', '\' occuring in the simple name are escaped by backslash in the display name.
+        /// Characters ',', '=', '"', '\'', '\' occurring in the simple name are escaped by backslash in the display name.
         /// Any character '\t' is replaced by two characters '\' and 't',
         /// Any character '\n' is replaced by two characters '\' and 'n',
         /// Any character '\r' is replaced by two characters '\' and 'r',
@@ -39,12 +41,12 @@ namespace Microsoft.CodeAnalysis
                 return BuildDisplayName(fullKey: true);
             }
 
-            if (lazyDisplayName == null)
+            if (_lazyDisplayName == null)
             {
-                lazyDisplayName = BuildDisplayName(fullKey: false);
+                _lazyDisplayName = BuildDisplayName(fullKey: false);
             }
 
-            return lazyDisplayName;
+            return _lazyDisplayName;
         }
 
         /// <summary>
@@ -62,21 +64,28 @@ namespace Microsoft.CodeAnalysis
             EscapeName(sb, Name);
 
             sb.Append(", Version=");
-            sb.Append(version.Major);
+            sb.Append(_version.Major);
             sb.Append(".");
-            sb.Append(version.Minor);
+            sb.Append(_version.Minor);
             sb.Append(".");
-            sb.Append(version.Build);
+            sb.Append(_version.Build);
             sb.Append(".");
-            sb.Append(version.Revision);
+            sb.Append(_version.Revision);
 
             sb.Append(", Culture=");
-            sb.Append(cultureName.Length != 0 ? cultureName : "neutral");
+            if (_cultureName.Length == 0)
+            {
+                sb.Append(InvariantCultureDisplay);
+            }
+            else
+            {
+                EscapeName(sb, _cultureName);
+            }
 
             if (fullKey && HasPublicKey)
             {
                 sb.Append(", PublicKey=");
-                AppendKey(sb, publicKey);
+                AppendKey(sb, _publicKey);
             }
             else
             {
@@ -96,7 +105,7 @@ namespace Microsoft.CodeAnalysis
                 sb.Append(", Retargetable=Yes");
             }
 
-            switch (contentType)
+            switch (_contentType)
             {
                 case AssemblyContentType.Default:
                     break;
@@ -106,7 +115,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(contentType);
+                    throw ExceptionUtilities.UnexpectedValue(_contentType);
             }
 
             string result = sb.ToString();
@@ -131,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             AssemblyIdentityParts parts;
@@ -164,7 +173,7 @@ namespace Microsoft.CodeAnalysis
 
             if (displayName == null)
             {
-                throw new ArgumentNullException("displayName");
+                throw new ArgumentNullException(nameof(displayName));
             }
 
             if (displayName.IndexOf('\0') >= 0)
@@ -258,7 +267,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    culture = string.Equals(propertyValue, "neutral", StringComparison.OrdinalIgnoreCase) ? null : propertyValue;
+                    culture = string.Equals(propertyValue, InvariantCultureDisplay, StringComparison.OrdinalIgnoreCase) ? null : propertyValue;
                     parsedParts |= AssemblyIdentityParts.Culture;
                 }
                 else if (string.Equals(propertyName, "PublicKey", StringComparison.OrdinalIgnoreCase))
@@ -610,7 +619,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        const int MaxPublicKeyBytes = 2048;
+        private const int MaxPublicKeyBytes = 2048;
 
         private static bool TryParsePublicKey(string value, out ImmutableArray<byte> key)
         {
@@ -631,7 +640,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        const int PublicKeyTokenBytes = 8;
+        private const int PublicKeyTokenBytes = 8;
 
         private static bool TryParsePublicKeyToken(string value, out ImmutableArray<byte> token)
         {
@@ -751,27 +760,6 @@ namespace Microsoft.CodeAnalysis
             if (quoted)
             {
                 result.Append('"');
-            }
-        }
-
-        private static bool CanBeEscaped(char c)
-        {
-            switch (c)
-            {
-                case ',':
-                case '=':
-                case '\\':
-                case '/':
-                case '"':
-                case '\'':
-                case 't':
-                case 'n':
-                case 'r':
-                case 'u':
-                    return true;
-
-                default:
-                    return false;
             }
         }
 

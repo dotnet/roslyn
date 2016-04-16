@@ -2,7 +2,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
 
             TestTypeKindHelper(assembly)
         End Sub
@@ -84,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         End Sub
 
         <Fact>
-        <WorkItem(546314, "DevDiv")>
+        <WorkItem(546314, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546314")>
         Public Sub Bug15562()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim module0 = assembly.Modules(0)
             Dim system = (From n In module0.GlobalNamespace.GetMembers()
                           Where n.Name.Equals("System")).Cast(Of NamespaceSymbol)().Single()

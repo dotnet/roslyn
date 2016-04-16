@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System;
 using System.Diagnostics;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,19 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> expressions;
             MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
             expressions.Insert(0, format);
-            var stringFactory = factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
+            var stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
 
             // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
             // the arguments first in this situation because we do not know what conversions will be
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
-            var result = factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
+            var result = _factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, conversion.Type, @checked: false);
+                result = MakeImplicitConversion(result, conversion.Type);
             }
 
             return result;
@@ -37,10 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions)
         {
-            factory.Syntax = node.Syntax;
+            _factory.Syntax = node.Syntax;
             int n = node.Parts.Length - 1;
             var formatString = PooledStringBuilder.GetInstance();
-            expressions = ArrayBuilder<BoundExpression>.GetInstance(n+1);
+            expressions = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
             int nextFormatPosition = 0;
             for (int i = 0; i <= n; i++)
             {
@@ -64,11 +61,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         formatString.Builder.Append(":").Append(fillin.Format.ConstantValue.StringValue);
                     }
                     formatString.Builder.Append("}");
-                    expressions.Add(fillin.Value); // NOTE: must still be lowered
+                    var value = fillin.Value;
+                    if (value.Type?.TypeKind == TypeKind.Dynamic)
+                    {
+                        value = MakeConversion(value, _compilation.ObjectType, @checked: false);
+                    }
+
+                    expressions.Add(value); // NOTE: must still be lowered
                 }
             }
 
-            format = factory.StringLiteral(formatString.ToStringAndFree());
+            format = _factory.StringLiteral(formatString.ToStringAndFree());
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         i++;
                     }
                 }
-                return factory.StringLiteral(builder.ToStringAndFree());
+                return _factory.StringLiteral(builder.ToStringAndFree());
             }
 
             // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
@@ -112,13 +115,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and then lower it along with its arguments.
             expressions.Insert(0, format);
             var stringType = node.Type;
-            var result = factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
+            var result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
                 allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeConversion(result, node.Type, @checked: false);
+                result = MakeImplicitConversion(result, node.Type);
             }
             return result;
         }

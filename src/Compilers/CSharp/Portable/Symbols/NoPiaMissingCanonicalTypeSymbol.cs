@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A NoPiaMissingCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
     /// embedded type symbol that was attempted to be substituted with canonical type, but the
-    /// canonocal type couldn't be found.
+    /// canonical type couldn't be found.
     /// </summary>
     internal class NoPiaMissingCanonicalTypeSymbol : ErrorTypeSymbol
     // TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.
     {
-        private readonly AssemblySymbol embeddingAssembly;
-        private readonly string fullTypeName;
-        private readonly string guid;
-        private readonly string scope;
-        private readonly string identifier;
+        private readonly AssemblySymbol _embeddingAssembly;
+        private readonly string _fullTypeName;
+        private readonly string _guid;
+        private readonly string _scope;
+        private readonly string _identifier;
 
         public NoPiaMissingCanonicalTypeSymbol(
             AssemblySymbol embeddingAssembly,
@@ -29,18 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string scope,
             string identifier)
         {
-            this.embeddingAssembly = embeddingAssembly;
-            this.fullTypeName = fullTypeName;
-            this.guid = guid;
-            this.scope = scope;
-            this.identifier = identifier;
+            _embeddingAssembly = embeddingAssembly;
+            _fullTypeName = fullTypeName;
+            _guid = guid;
+            _scope = scope;
+            _identifier = identifier;
         }
 
         public AssemblySymbol EmbeddingAssembly
         {
             get
             {
-                return this.embeddingAssembly;
+                return _embeddingAssembly;
             }
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.fullTypeName;
+                return _fullTypeName;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.guid;
+                return _guid;
             }
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.scope;
+                return _scope;
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.identifier;
+                return _identifier;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, fullTypeName);
+                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _fullTypeName);
             }
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             return ReferenceEquals(this, t2);
         }

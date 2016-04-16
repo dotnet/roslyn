@@ -11,7 +11,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
 
         ''' <summary>
-        ''' Analyses the tree trying to figure which locals may live on stack. It is 
+        ''' context of expression evaluation. 
+        ''' it will affect inference of stack behavior
+        ''' it will also affect when expressions can be dup-reused
+        '''     Example:
+        '''         Foo(x, ref x)     x cannot be duped as it is used in different context  
+        ''' </summary>
+        Private Enum ExprContext
+            None
+            Sideeffects
+            Value
+            Address
+            AssignmentTarget
+            Box
+        End Enum
+
+        ''' <summary>
+        ''' Analyzes the tree trying to figure which locals may live on stack. It is 
         ''' a fairly delicate process and must be very familiar with how CodeGen works. 
         ''' It is essentially a part of CodeGen.
         ''' 
@@ -21,61 +37,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private NotInheritable Class Analyzer
             Inherits BoundTreeRewriter
 
-            ''' <summary>
-            ''' context of expression evaluation. 
-            ''' it will affect inference of stack behavior
-            ''' it will also affect when expressions can be dup-reused
-            '''     Example:
-            '''         Foo(x, ref x)     x cannot be duped as it is used in different context  
-            ''' </summary>
-            Private Enum ExprContext
-                None
-                Sideeffects
-                Value
-                Address
-                AssignmentTarget
-                Box
-            End Enum
+            Private ReadOnly _container As Symbol
 
-            Private container As Symbol
+            Private _counter As Integer = 0
+            Private ReadOnly _evalStack As ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext))
+            Private ReadOnly _debugFriendly As Boolean
 
-            Private counter As Integer = 0
-            Private evalStack As Integer = 0
-            Private context As ExprContext = ExprContext.None
-            Private assignmentLocal As BoundLocal = Nothing
+            Private _context As ExprContext = ExprContext.None
+            Private _assignmentLocal As BoundLocal = Nothing
 
-            Private lastExpression As BoundExpression = Nothing
-            Private lastExprContext As ExprContext = ExprContext.None
-            Private lastExpressionCnt As Integer = 0
-
-            Private ReadOnly locals As New Dictionary(Of LocalSymbol, LocalDefUseInfo)
+            Private ReadOnly _locals As New Dictionary(Of LocalSymbol, LocalDefUseInfo)
 
             ''' <summary>
             ''' fake local that represents the eval stack. when we need to ensure that eval
             ''' stack is not blocked by stack Locals, we record an access to empty.
             ''' </summary>
-            Private ReadOnly empty As DummyLocal
+            Private ReadOnly _empty As DummyLocal
 
             ' we need to guarantee same stack patterns at branches and labels. we do that by placing 
             ' a fake dummy local at one end of a branch and force that it is accessible at another.
             ' if any stack local tries to intervene and misbalance the stack, it will clash with 
             ' the dummy and will be rejected.
-            Private ReadOnly dummyVariables As New Dictionary(Of Object, DummyLocal)
+            Private ReadOnly _dummyVariables As New Dictionary(Of Object, DummyLocal)
 
-            Private Sub New(container As Symbol)
-                Me.container = container
-                Me.empty = New DummyLocal(container)
+            Private _recursionDepth As Integer
+
+            Private Sub New(container As Symbol,
+                            evalStack As ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)),
+                            debugFriendly As Boolean)
+
+                Me._container = container
+                Me._evalStack = evalStack
+                Me._debugFriendly = debugFriendly
+                Me._empty = New DummyLocal(container)
 
                 ' this is the top of eval stack
-                DeclareLocal(empty, 0)
-                RecordVarWrite(empty)
+                DeclareLocal(_empty, 0)
+                RecordDummyWrite(_empty)
             End Sub
 
-            Public Shared Function Analyze(container As Symbol, node As BoundNode, <Out> ByRef locals As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundNode
-                Dim analyser = New Analyzer(container)
+            Public Shared Function Analyze(
+                             container As Symbol,
+                             node As BoundNode,
+                             debugFriendly As Boolean,
+                             <Out> ByRef locals As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundNode
 
-                Dim rewritten As BoundNode = analyser.Visit(node)
-                locals = analyser.locals
+                Dim evalStack = ArrayBuilder(Of ValueTuple(Of BoundExpression, ExprContext)).GetInstance()
+                Dim analyzer = New Analyzer(container, evalStack, debugFriendly)
+                Dim rewritten As BoundNode = analyzer.Visit(node)
+                evalStack.Free()
+
+                locals = analyzer._locals
 
                 Return rewritten
             End Function
@@ -94,130 +106,102 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return result
             End Function
 
-            Private Shared Function CanDup(prevNode As BoundExpression, curNode As BoundExpression) As Boolean
-                If prevNode Is Nothing Then
-                    Return False
-                End If
-
-                If prevNode.Type <> curNode.Type Then
-                    Return False
-                End If
-
-                ' TODO: constants
-                '       Codegen sometimes folds constants (conditional ops, anything else?) 
-                '       We cannot currently rely on constants being actually emitted so we cannot dup them.
-                '       It could be attractive to do that though for big constants like doubles.
-                Dim prevConst As ConstantValue = prevNode.ConstantValueOpt
-                If prevConst IsNot Nothing Then
-                    Return False
-                End If
-
-                ' locals
-                Dim prevAsLocal = TryCast(prevNode, BoundLocal)
-                Dim curAsLocal = TryCast(curNode, BoundLocal)
-                If prevAsLocal IsNot Nothing AndAlso curAsLocal IsNot Nothing Then
-                    Return prevAsLocal.LocalSymbol Is curAsLocal.LocalSymbol
-                End If
-
-                ' prameters
-                Dim prevAsParam = TryCast(prevNode, BoundParameter)
-                Dim curAsParam = TryCast(curNode, BoundParameter)
-                If prevAsParam IsNot Nothing AndAlso curAsParam IsNot Nothing Then
-                    ' TODO: it may be unnecessary to dup when it is ldloc[0-4]
-                    '       just dup always for now for simplicity.
-                    Return prevAsParam.ParameterSymbol Is curAsParam.ParameterSymbol
-                End If
-
-                ' TODO: fields, constants, sequence points ...
-
-                Return False
-            End Function
-
-            ''' <summary>
-            ''' Recursively rewrites the node or simply replaces it with a dup node
-            ''' if we have just seen exactly same node.
-            ''' </summary>
-            Private Function ReuseOrVisit(node As BoundExpression, context As ExprContext) As BoundExpression
-                ' TODO: can we dup expressions in assignment contexts? 
-                If context = ExprContext.AssignmentTarget OrElse context = ExprContext.Sideeffects Then
-                    Return DirectCast(MyBase.Visit(node), BoundExpression)
-                End If
-
-                ' it must be most recent expression
-                ' it can be a ref when we want a value, but cannot be the other way
-                ' TODO: we could reuse boxed values, but we would need to make the Dup to know it was boxed
-                If Me.counter = Me.lastExpressionCnt + 1 AndAlso
-                        Me.lastExprContext <> ExprContext.Box AndAlso
-                        (Me.lastExprContext = context OrElse Me.lastExprContext <> ExprContext.Value) AndAlso CanDup(Me.lastExpression, node) Then
-
-                    Me.lastExpressionCnt = Me.counter
-
-                    ' when duping something not created in a Value context, we are actually duping a reference.
-                    ' record that so that codegen could know if it is a value or a reference.
-                    Dim dupRef As Boolean = Me.lastExprContext <> ExprContext.Value
-
-                    ' change the context to the most recently used. 
-                    ' Why? If we obtained a value from a duped reference, we now have a value on the stack.
-                    Me.lastExprContext = context
-
-                    Return New BoundDup(node.Syntax, dupRef, node.Type)
-                Else
-
-                    Dim result As BoundExpression = BaseVisitExpression(node)
-
-                    Me.lastExpressionCnt = Me.counter
-                    Me.lastExprContext = context
-                    Me.lastExpression = result
-
-                    Return result
-                End If
-            End Function
-
-            Private Function BaseVisitExpression(node As BoundExpression) As BoundExpression
-                ' Do Not recurse into constant expressions. Their children do Not push any locals.
-                ' TODO: we may consider duping the constants though (see comments in CanDup)
-                If node.ConstantValueOpt Is Nothing Then
-                    node = DirectCast(MyBase.Visit(node), BoundExpression)
-                End If
-
-                Return node
-            End Function
-
-            Private Function VisitExpression(node As BoundExpression, context As ExprContext) As BoundExpression
+            Private Function VisitExpressionCore(node As BoundExpression, context As ExprContext) As BoundExpression
                 If node Is Nothing Then
-                    Me.counter += 1
+                    Me._counter += 1
                     Return node
                 End If
 
-                Dim prevContext As ExprContext = Me.context
-                Dim prevStack As Integer = Me.evalStack
+                Dim prevContext As ExprContext = Me._context
+                Dim prevStack As Integer = Me.StackDepth()
+                Me._context = context
 
-                Me.context = context
-                Dim result As BoundExpression = ReuseOrVisit(node, context)
-                Me.counter += 1
+                ' Don not recurse into constant expressions. Their children do Not push any values.
+                Dim result = If(node.ConstantValueOpt Is Nothing,
+                                DirectCast(MyBase.Visit(node), BoundExpression),
+                                node)
+
+                _context = prevContext
+                _counter += 1
 
                 Select Case context
 
                     Case ExprContext.Sideeffects
-                        Me.evalStack = prevStack
-
-                    Case ExprContext.Value,
-                        ExprContext.Address,
-                        ExprContext.Box
-                        Me.evalStack = prevStack + 1
+                        SetStackDepth(prevStack)
 
                     Case ExprContext.AssignmentTarget
-                        Me.evalStack = prevStack
-                        If LhsUsesStackWhenAssignedTo(node, context) Then
-                            Me.evalStack = prevStack + 1
-                        End If
+                        Exit Select
+
+                    Case ExprContext.Value, ExprContext.Address, ExprContext.Box
+                        SetStackDepth(prevStack)
+                        PushEvalStack(node, context)
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(context)
                 End Select
 
-                Me.context = prevContext
                 Return result
+            End Function
+
+            Private Sub PushEvalStack(result As BoundExpression, context As ExprContext)
+                Debug.Assert(result IsNot Nothing OrElse context = ExprContext.None)
+                _evalStack.Add(ValueTuple.Create(result, context))
+            End Sub
+
+            Private Function StackDepth() As Integer
+                Return _evalStack.Count
+            End Function
+
+            Private Function EvalStackIsEmpty() As Boolean
+                Return StackDepth() = 0
+            End Function
+
+            Private Sub SetStackDepth(depth As Integer)
+                _evalStack.Clip(depth)
+            End Sub
+
+            Private Sub PopEvalStack()
+                SetStackDepth(_evalStack.Count - 1)
+            End Sub
+
+            Private Sub ClearEvalStack()
+                _evalStack.Clear()
+            End Sub
+
+            Private Function VisitExpression(node As BoundExpression, context As ExprContext) As BoundExpression
+                Dim result As BoundExpression
+
+                _recursionDepth += 1
+
+                If _recursionDepth > 1 Then
+                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                    result = VisitExpressionCore(node, context)
+                Else
+                    result = VisitExpressionCoreWithStackGuard(node, context)
+                End If
+
+                _recursionDepth -= 1
+
+                Return result
+            End Function
+
+            Private Function VisitExpressionCoreWithStackGuard(node As BoundExpression, context As ExprContext) As BoundExpression
+                Debug.Assert(_recursionDepth = 1)
+
+                Try
+                    Dim result = VisitExpressionCore(node, context)
+                    Debug.Assert(_recursionDepth = 1)
+
+                    Return result
+
+                Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                    Throw New CancelledByStackGuardException(ex, node)
+                End Try
+            End Function
+
+            Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function VisitSpillSequence(node As BoundSpillSequence) As BoundNode
@@ -225,26 +209,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Function VisitStatement(node As BoundNode) As BoundNode
+                Debug.Assert(node Is Nothing OrElse EvalStackIsEmpty())
 
-                Dim prevContext As ExprContext = Me.context
-                Dim prevStack As Integer = Me.evalStack
+                Dim origStack = StackDepth()
+                Dim prevContext As ExprContext = Me._context
 
                 Dim result As BoundNode = MyBase.Visit(node)
 
-                ClearLastExpression()
+                ' prevent cross-statement local optimizations
+                ' when emitting debug-friendly code.
+                If _debugFriendly Then
+                    EnsureOnlyEvalStack()
+                End If
 
-                Me.counter += 1
-                Me.evalStack = prevStack
-                Me.context = prevContext
+                Me._context = prevContext
+                SetStackDepth(origStack)
+                _counter += 1
 
                 Return result
             End Function
 
-            Private Sub ClearLastExpression()
-                Me.lastExpressionCnt = 0
-                Me.lastExpression = Nothing
-                Me.lastExprContext = ExprContext.None
-            End Sub
 
             ''' <summary>
             ''' here we have a case of indirect assignment:  *t1 = expr;
@@ -290,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
-                Debug.Assert(Me.evalStack = 0, "entering blocks when evaluation stack is not empty?")
+                Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?")
 
                 ' normally we would not allow stack locals
                 ' when evaluation stack is not empty.
@@ -333,20 +317,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '      postfix: Seq{var temp, ref operand; operand initializers; *operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
                 '
                 '  1) temp is used as the result of the sequence (and that is the only reason why it is declared in the outer sequence).
-                '  2) all sideeffects except the last one do not use the temp.
-                '  3) last sideeffect is an indirect assignment of a sequence (and target does not involve the temp).
+                '  2) all side-effects except the last one do not use the temp.
+                '  3) last side-effect is an indirect assignment of a sequence (and target does not involve the temp).
                 '            
-                '  Note that in a case of Sideeffects context, the result value will be ignored and therefore
+                '  Note that in a case of side-effects context, the result value will be ignored and therefore
                 '  all usages of the nested temp will be confined to the nested sequence that is executed at +1 stack.
                 '
                 '  We will detect such case and indicate +1 as the desired stack depth at local accesses.
                 ' ---------------------------------------------------
                 '    
-                Dim declarationStack As Integer = Me.evalStack
+                Dim declarationStack As Integer = Me.StackDepth()
 
                 Dim locals = node.Locals
                 If Not locals.IsEmpty Then
-                    If Me.context = ExprContext.Sideeffects Then
+                    If Me._context = ExprContext.Sideeffects Then
                         DeclareLocals(locals, declarationStack)
 
                         ' ---------------------------------------------------
@@ -373,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' rewrite operands
 
-                Dim origContext As ExprContext = Me.context
+                Dim origContext As ExprContext = Me._context
 
                 Dim sideeffects As ImmutableArray(Of BoundExpression) = node.SideEffects
                 Dim rewrittenSideeffects As ArrayBuilder(Of BoundExpression) = Nothing
@@ -420,14 +404,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             '        if (lastSideeffect != null)
             '        {
-            '            // last sideeffect must be an indirect assignment of a sequence.
+            '            // last side-effect must be an indirect assignment of a sequence.
             '            if (lastSideeffect.Kind == BoundKind.AssignmentOperator)
             '            {
             '                var assignment = (BoundAssignmentOperator)lastSideeffect;
             '                if (IsIndirectAssignment(assignment) &&
             '                    assignment.Right.Kind == BoundKind.Sequence)
             '                {
-            '                    // and no other sideeffects should use the variable
+            '                    // and no other side-effects should use the variable
             '                    var localUsedWalker = new LocalUsedWalker(local);
             '                    for (int i = 0; i < sideeffects.Count - 1; i++)
             '                    {
@@ -503,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Public Overrides Function VisitLocal(node As BoundLocal) As BoundNode
                 If node.ConstantValueOpt Is Nothing Then
-                    Select Case Me.context
+                    Select Case Me._context
                         Case ExprContext.Address
                             If node.LocalSymbol.IsByRef Then
                                 RecordVarRead(node.LocalSymbol)
@@ -512,15 +496,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             End If
 
                         Case ExprContext.AssignmentTarget
-                            Debug.Assert(Me.assignmentLocal Is Nothing)
+                            Debug.Assert(Me._assignmentLocal Is Nothing)
 
                             ' actual assignment will happen later, after Right is evaluated
                             ' just remember what we are assigning to.
-                            Me.assignmentLocal = node
-
-                            ' whatever is available as lastExpression is still available 
-                            ' (adjust for visit of this node)
-                            Me.lastExpressionCnt += 1
+                            Me._assignmentLocal = node
 
                         Case ExprContext.Sideeffects
                             ' do nothing
@@ -539,8 +519,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Visit a local in context of regular assignment
                 Dim left = DirectCast(VisitExpression(node.ByRefLocal, ExprContext.AssignmentTarget), BoundLocal)
 
-                Dim storedAssignmentLocal = Me.assignmentLocal
-                Me.assignmentLocal = Nothing
+                Dim storedAssignmentLocal = Me._assignmentLocal
+                Me._assignmentLocal = Nothing
 
                 ' Visit a l-value expression in context of 'address'
                 Dim right As BoundExpression = VisitExpression(node.LValue, ExprContext.Address)
@@ -560,16 +540,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
-                Dim isIndirectAssignement As Boolean = IsIndirectAssignment(node)
+                Dim isIndirect As Boolean = IsIndirectAssignment(node)
 
                 Dim left As BoundExpression = VisitExpression(node.Left,
-                                                              If(isIndirectAssignement,
+                                                              If(isIndirect,
                                                                  ExprContext.Address,
                                                                  ExprContext.AssignmentTarget))
 
                 ' must delay recording a write until after RHS is evaluated
-                Dim storedAssignmentLocal = Me.assignmentLocal
-                Me.assignmentLocal = Nothing
+                Dim storedAssignmentLocal = Me._assignmentLocal
+                Me._assignmentLocal = Nothing
+                Debug.Assert(Me._context <> ExprContext.AssignmentTarget, "assignment expression cannot be a target of another assignment")
 
                 ' Left on the right should be Nothing by this time
                 Debug.Assert(node.LeftOnTheRightOpt Is Nothing)
@@ -577,42 +558,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Do not visit "Left on the right"
                 'Me.counter += 1
 
+                Dim rhsContext As ExprContext
+                If Me._context = ExprContext.Address Then
+                    ' we need the address of rhs so we cannot have it on the stack.
+                    rhsContext = ExprContext.Address
+                Else
+
+                    Debug.Assert(Me._context = ExprContext.Value OrElse
+                                 Me._context = ExprContext.Box OrElse
+                                 Me._context = ExprContext.Sideeffects, "assignment expression cannot be a target of another assignment")
+                    ' we only need a value of rhs, so if otherwise possible it can be a stack value.
+                    rhsContext = ExprContext.Value
+                End If
+
                 Dim right As BoundExpression = node.Right
 
                 ' if right is a struct ctor, it may be optimized into in-place call
                 ' Such call will push the receiver ref before the arguments
                 ' so we need to ensure that arguments cannot use stack temps
                 Dim leftType As TypeSymbol = left.Type
-                Dim cookie As Object = Nothing
+                Dim mayPushReceiver As Boolean = False
                 If right.Kind = BoundKind.ObjectCreationExpression Then
                     Dim ctor = DirectCast(right, BoundObjectCreationExpression).ConstructorOpt
                     If ctor IsNot Nothing AndAlso ctor.ParameterCount <> 0 Then
-                        cookie = GetStackStateCookie()
+                        mayPushReceiver = True
                     End If
                 End If
 
-                Debug.Assert(Me.context <> ExprContext.AssignmentTarget, "assignment expression cannot be a target of another assignment")
-
-                Dim rhsContext As ExprContext
-                If Me.context = ExprContext.Address Then
-                    ' we need the address of rhs so we cannot have it on the stack.
-                    rhsContext = ExprContext.Address
-                Else
-
-                    Debug.Assert(Me.context = ExprContext.Value OrElse
-                                 Me.context = ExprContext.Box OrElse
-                                 Me.context = ExprContext.Sideeffects, "assignment expression cannot be a target of another assignment")
-                    ' we only need a value of rhs, so if otherwise possible it can be a stack value.
-                    rhsContext = ExprContext.Value
+                If mayPushReceiver Then
+                    'push unknown value just to prevent access to stack locals.
+                    PushEvalStack(Nothing, ExprContext.None)
                 End If
 
                 right = VisitExpression(node.Right, rhsContext)
 
-                If cookie IsNot Nothing Then
-                    ' There is still RHS on the stack, adjust for that
-                    Me.evalStack -= 1
-                    EnsureStackState(cookie)
-                    Me.evalStack += 1
+                If mayPushReceiver Then
+                    PopEvalStack()
                 End If
 
                 ' if assigning to a local, now it is the time to record the Write
@@ -623,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(node.Left.Type.IsSameTypeIgnoringCustomModifiers(node.Right.Type),
                                  "cannot use stack when assignment involves implicit coercion of the value")
 
-                    Debug.Assert(Not isIndirectAssignement, "indirect assignment is a read, not a write")
+                    Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
 
                     RecordVarWrite(storedAssignmentLocal.LocalSymbol)
                 End If
@@ -688,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     receiver = VisitExpression(receiver, context)
                 Else
-                    Me.counter += 1
+                    Me._counter += 1
                     Debug.Assert(receiver Is Nothing OrElse receiver.Kind = BoundKind.TypeExpression)
                 End If
 
@@ -734,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim rewrittenArguments As ImmutableArray(Of BoundExpression) = If(constructor Is Nothing, node.Arguments,
                                                                                  VisitArguments(node.Arguments, constructor.Parameters))
                 Debug.Assert(node.InitializerOpt Is Nothing)
-                Me.counter += 1
+                Me._counter += 1
 
                 Return node.Update(constructor, rewrittenArguments, Nothing, node.Type)
             End Function
@@ -743,10 +724,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' regardless of purpose, array access visits its children as values
 
                 ' TODO: do we need to save/restore old context here?
-                Dim oldContext = Me.context
-                Me.context = ExprContext.Value
+                Dim oldContext = Me._context
+                Me._context = ExprContext.Value
                 Dim result As BoundNode = MyBase.VisitArrayAccess(node)
-                Me.context = oldContext
+                Me._context = oldContext
 
                 Return result
             End Function
@@ -765,8 +746,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         ' need address when assigning to a field and receiver is not a reference
                         '              when accessing a field of a struct unless we only need Value and Value is preferred.
                         If receiver.Type.IsValueType AndAlso
-                            (context = ExprContext.AssignmentTarget OrElse
-                             context = ExprContext.Address OrElse
+                            (_context = ExprContext.AssignmentTarget OrElse
+                             _context = ExprContext.Address OrElse
                              CodeGenerator.FieldLoadMustUseRef(receiver)) Then
 
                             receiver = VisitExpression(receiver, ExprContext.Address)
@@ -774,12 +755,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             receiver = VisitExpression(receiver, ExprContext.Value)
                         End If
                     End If
-
-                    ' whatever is available as lastExpression is still available 
-                    ' (adjust for visit of this node)
-                    Me.lastExpressionCnt += 1
                 Else
-                    Me.counter += 1
+                    Me._counter += 1
                     receiver = Nothing
                 End If
 
@@ -799,13 +776,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
                 Dim result As BoundNode = MyBase.VisitConditionalGoto(node)
-                Me.evalStack -= 1 ' condition gets consumed
+                Me.PopEvalStack() ' condition gets consumed
                 RecordBranch(node.Label)
                 Return result
             End Function
 
             Public Overrides Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundNode
-                Dim origStack = Me.evalStack
+                Dim origStack = Me.StackDepth
                 Dim testExpression As BoundExpression = DirectCast(Me.Visit(node.TestExpression), BoundExpression)
 
                 Debug.Assert(node.ConvertedTestExpression Is Nothing)
@@ -817,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' implicit branch here
                 Dim cookie As Object = GetStackStateCookie()
 
-                Me.evalStack = origStack  ' else expression is evaluated with original stack
+                Me.SetStackDepth(origStack)  ' else expression is evaluated with original stack
                 Dim elseExpression As BoundExpression = DirectCast(Me.Visit(node.ElseExpression), BoundExpression)
 
                 ' implicit label here
@@ -827,17 +804,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitTernaryConditionalExpression(node As BoundTernaryConditionalExpression) As BoundNode
-                Dim origStack As Integer = Me.evalStack
+                Dim origStack As Integer = Me.StackDepth
                 Dim condition = DirectCast(Me.Visit(node.Condition), BoundExpression)
 
                 Dim cookie As Object = GetStackStateCookie() ' implicit goto here
 
-                Me.evalStack = origStack ' consequence is evaluated with original stack
+                Me.SetStackDepth(origStack) ' consequence is evaluated with original stack
                 Dim whenTrue = DirectCast(Me.Visit(node.WhenTrue), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
 
-                Me.evalStack = origStack ' alternative is evaluated with original stack
+                Me.SetStackDepth(origStack) ' alternative is evaluated with original stack
                 Dim whenFalse = DirectCast(Me.Visit(node.WhenFalse), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
@@ -853,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EnsureOnlyEvalStack()
                 End If
 
-                Dim origStack = Me.evalStack
+                Dim origStack = StackDepth()
 
                 Dim receiverOrCondition = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
 
@@ -861,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' access Is evaluated with original stack 
                 ' (this Is Not entirely true, codegen will keep receiver on the stack, but that Is irrelevant here)
-                Me.evalStack = origStack
+                Me.SetStackDepth(origStack)
 
                 Dim whenNotNull = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
 
@@ -870,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim whenNull As BoundExpression = Nothing
 
                 If node.WhenNullOpt IsNot Nothing Then
-                    Me.evalStack = origStack
+                    Me.SetStackDepth(origStack)
                     whenNull = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
                     EnsureStackState(cookie) ' implicit label here
                 End If
@@ -882,18 +859,114 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return MyBase.VisitConditionalAccessReceiverPlaceholder(node)
             End Function
 
+            Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
+                EnsureOnlyEvalStack()
+
+                Dim origStack As Integer = Me.StackDepth
+
+                Me.PushEvalStack(Nothing, ExprContext.None)
+
+                Dim cookie As Object = GetStackStateCookie() ' implicit goto here
+
+                Me.SetStackDepth(origStack) ' consequence is evaluated with original stack
+                Dim valueTypeReceiver = DirectCast(Me.Visit(node.ValueTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Me.SetStackDepth(origStack) ' alternative is evaluated with original stack
+                Dim referenceTypeReceiver = DirectCast(Me.Visit(node.ReferenceTypeReceiver), BoundExpression)
+
+                EnsureStackState(cookie) ' implicit label here
+
+                Return node.Update(valueTypeReceiver, referenceTypeReceiver, node.Type)
+            End Function
+
             Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
+                ' Do not blow the stack due to a deep recursion on the left. 
+
+                Dim child As BoundExpression = node.Left
+
+                If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                    Return VisitBinaryOperatorSimple(node)
+                End If
+
+                Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+                stack.Push(node)
+
+                Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
+
+                Do
+                    stack.Push(binary)
+                    child = binary.Left
+
+                    If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                        Exit Do
+                    End If
+
+                    binary = DirectCast(child, BoundBinaryOperator)
+                Loop
+
+
+                Dim prevStack As Integer = Me.StackDepth()
+
+                Dim left = DirectCast(Me.Visit(child), BoundExpression)
+
+                Do
+                    binary = stack.Pop()
+
+                    ' Short-circuit operators need to emulate implicit branch/label
+                    Dim isLogical As Boolean
+                    Dim cookie As Object = Nothing
+
+                    Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                        Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
+                            isLogical = True
+                            ' implicit branch here
+                            cookie = GetStackStateCookie()
+
+                            Me.SetStackDepth(prevStack)  ' right is evaluated with original stack
+
+                        Case Else
+                            isLogical = False
+                    End Select
+
+                    Dim right = DirectCast(Me.Visit(binary.Right), BoundExpression)
+
+                    If isLogical Then
+                        ' implicit label here
+                        EnsureStackState(cookie)
+                    End If
+
+                    Dim type As TypeSymbol = Me.VisitType(binary.Type)
+                    left = binary.Update(binary.OperatorKind, left, right, binary.Checked, binary.ConstantValueOpt, type)
+
+                    If stack.Count = 0 Then
+                        Exit Do
+                    End If
+
+                    _counter += 1
+                    SetStackDepth(prevStack)
+                    PushEvalStack(node, ExprContext.Value)
+                Loop
+
+                Debug.Assert(binary Is node)
+                stack.Free()
+
+                Return left
+            End Function
+
+            Private Function VisitBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
                 Select Case (node.OperatorKind And BinaryOperatorKind.OpMask)
                     Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
                         ' Short-circuit operators need to emulate implicit branch/label
 
-                        Dim origStack = Me.evalStack
+                        Dim origStack = Me.StackDepth
                         Dim left As BoundExpression = DirectCast(Me.Visit(node.Left), BoundExpression)
 
                         ' implicit branch here
                         Dim cookie As Object = GetStackStateCookie()
 
-                        Me.evalStack = origStack  ' right is evaluated with original stack
+                        Me.SetStackDepth(origStack)  ' right is evaluated with original stack
                         Dim right As BoundExpression = DirectCast(Me.Visit(node.Right), BoundExpression)
 
                         ' implicit label here
@@ -909,11 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Public Overrides Function VisitUnaryOperator(node As BoundUnaryOperator) As BoundNode
                 ' checked(-x) is emitted as "0 - x"
                 If node.Checked AndAlso (node.OperatorKind And UnaryOperatorKind.OpMask) = UnaryOperatorKind.Minus Then
-                    Dim storedStack = Me.evalStack
-                    Me.evalStack += 1
-                    CannotReusePreviousExpression() ' Loaded 0 on the stack.
+                    Dim storedStack = Me.StackDepth
+                    Me.PushEvalStack(Nothing, ExprContext.None)
                     Dim operand = DirectCast(Me.Visit(node.Operand), BoundExpression)
-                    Me.evalStack = storedStack
+                    Me.SetStackDepth(storedStack)
                     Return node.Update(node.OperatorKind, operand, node.Checked, node.ConstantValueOpt, node.Type)
 
                 Else
@@ -929,15 +1001,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If expressionStatement.Expression.Kind = BoundKind.Local Then
                     ' It is required by code gen that if node.ExpressionStatement 
                     ' is a local it should not be optimized out 
-                    locals(DirectCast(expressionStatement.Expression, BoundLocal).LocalSymbol).ShouldNotSchedule()
+                    Dim local = DirectCast(expressionStatement.Expression, BoundLocal).LocalSymbol
+                    ShouldNotSchedule(local)
                 End If
 
-                Dim origStack = Me.evalStack
+                Dim origStack = Me.StackDepth
 
                 EnsureOnlyEvalStack()
                 Dim exprPlaceholderOpt As BoundRValuePlaceholder = DirectCast(Me.Visit(node.ExprPlaceholderOpt), BoundRValuePlaceholder)
                 ' expression value is consumed by the switch
-                Me.evalStack = origStack
+                Me.SetStackDepth(origStack)
 
                 EnsureOnlyEvalStack()
 
@@ -968,7 +1041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Public Overrides Function VisitUnstructuredExceptionOnErrorSwitch(node As BoundUnstructuredExceptionOnErrorSwitch) As BoundNode
                 Dim value = DirectCast(Visit(node.Value), BoundExpression)
 
-                Me.evalStack -= 1 ' value gets consumed
+                Me.PopEvalStack() ' value gets consumed
                 Return node.Update(value, Me.VisitList(node.Jumps))
             End Function
 
@@ -977,7 +1050,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim resumeNextLabel = DirectCast(Visit(node.ResumeNextLabel), BoundLabelStatement)
                 Dim resumeTargetTemporary = DirectCast(Visit(node.ResumeTargetTemporary), BoundLocal)
 
-                Me.evalStack -= 1 ' value gets consumed
+                Me.PopEvalStack() ' value gets consumed
 
                 Return node.Update(resumeTargetTemporary, resumeLabel, resumeNextLabel, node.Jumps)
             End Function
@@ -1004,27 +1077,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
-                Dim origStack As Integer = Me.evalStack
+                Dim origStack As Integer = Me.StackDepth
 
                 DeclareLocal(node.LocalOpt, origStack)
 
                 EnsureOnlyEvalStack()
                 Dim exceptionVariableOpt As BoundExpression = Me.VisitExpression(node.ExceptionSourceOpt, ExprContext.Value)
-                Me.evalStack = origStack
+                Me.SetStackDepth(origStack)
 
                 EnsureOnlyEvalStack()
                 Dim errorLineNumberOpt As BoundExpression = Me.VisitExpression(node.ErrorLineNumberOpt, ExprContext.Value)
-                Me.evalStack = origStack
+                Me.SetStackDepth(origStack)
 
                 EnsureOnlyEvalStack()
                 Dim exceptionFilterOpt As BoundExpression = Me.VisitExpression(node.ExceptionFilterOpt, ExprContext.Value)
-                Me.evalStack = origStack
+                Me.SetStackDepth(origStack)
 
                 EnsureOnlyEvalStack()
                 Dim body As BoundBlock = DirectCast(Me.Visit(node.Body), BoundBlock)
 
                 EnsureOnlyEvalStack()
-                Return node.Update(node.LocalOpt, exceptionVariableOpt, errorLineNumberOpt, exceptionFilterOpt, body)
+                Return node.Update(node.LocalOpt, exceptionVariableOpt, errorLineNumberOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll)
             End Function
 
             Public Overrides Function VisitArrayInitialization(node As BoundArrayInitialization) As BoundNode
@@ -1070,62 +1143,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ''' </summary>
             ''' <remarks></remarks>
             Private Sub EnsureOnlyEvalStack()
-                CannotReusePreviousExpression()
-                RecordVarRead(empty)
+                RecordVarRead(_empty)
             End Sub
 
             Private Function GetStackStateCookie() As Object
-                CannotReusePreviousExpression()
-
                 ' create a dummy and start tracing it
-                Dim dummy As New DummyLocal(Me.container)
-                Me.dummyVariables.Add(dummy, dummy)
-                Me.locals.Add(dummy, New LocalDefUseInfo(Me.evalStack))
-                RecordVarWrite(dummy)
+                Dim dummy As New DummyLocal(Me._container)
+                Me._dummyVariables.Add(dummy, dummy)
+                Me._locals.Add(dummy, New LocalDefUseInfo(Me.StackDepth))
+                RecordDummyWrite(dummy)
 
                 Return dummy
             End Function
 
             Private Sub EnsureStackState(cookie As Object)
-                CannotReusePreviousExpression()
-                RecordVarRead(Me.dummyVariables(cookie))
+                RecordVarRead(Me._dummyVariables(cookie))
             End Sub
 
             ' called on branches and labels
             Private Sub RecordBranch(label As LabelSymbol)
-
-                CannotReusePreviousExpression()
-
                 Dim dummy As DummyLocal = Nothing
-                If Me.dummyVariables.TryGetValue(label, dummy) Then
+                If Me._dummyVariables.TryGetValue(label, dummy) Then
                     RecordVarRead(dummy)
                 Else
                     ' create a dummy and start tracing it
-                    dummy = New DummyLocal(Me.container)
-                    Me.dummyVariables.Add(label, dummy)
-                    Me.locals.Add(dummy, New LocalDefUseInfo(Me.evalStack))
-                    RecordVarWrite(dummy)
+                    dummy = New DummyLocal(Me._container)
+                    Me._dummyVariables.Add(label, dummy)
+                    Me._locals.Add(dummy, New LocalDefUseInfo(Me.StackDepth))
+                    RecordDummyWrite(dummy)
                 End If
             End Sub
 
             Private Sub RecordLabel(label As LabelSymbol)
-                CannotReusePreviousExpression()
-
                 Dim dummy As DummyLocal = Nothing
-                If Me.dummyVariables.TryGetValue(label, dummy) Then
+                If Me._dummyVariables.TryGetValue(label, dummy) Then
                     RecordVarRead(dummy)
 
                 Else
                     ' this is a backwards jump with nontrivial stack requirements
                     ' just use empty.
-                    dummy = empty
-                    Me.dummyVariables.Add(label, dummy)
+                    dummy = _empty
+                    Me._dummyVariables.Add(label, dummy)
                     RecordVarRead(dummy)
                 End If
-            End Sub
-
-            Private Sub CannotReusePreviousExpression()
-                ClearLastExpression()
             End Sub
 
             Private Sub RecordVarRef(local As LocalSymbol)
@@ -1136,7 +1196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 ' if we ever take a reference of a local, it must be a real local.
-                locals(local).ShouldNotSchedule()
+                ShouldNotSchedule(local)
             End Sub
 
             Private Sub RecordVarRead(local As LocalSymbol)
@@ -1144,7 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
 
-                Dim locInfo As LocalDefUseInfo = locals(local)
+                Dim locInfo As LocalDefUseInfo = _locals(local)
 
                 If locInfo.CannotSchedule Then
                     Return
@@ -1158,55 +1218,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' if accessing real val, check stack
                 If Not TypeOf local Is DummyLocal Then
-                    If locInfo.StackAtDeclaration <> evalStack Then
+                    If locInfo.StackAtDeclaration <> StackDepth() AndAlso
+                        Not EvalStackHasLocal(local) Then
                         ' reading at different eval stack.
                         locInfo.ShouldNotSchedule()
                         Return
                     End If
                 Else
                     ' dummy must be accessed on same stack.
-                    Debug.Assert(local Is empty OrElse locInfo.StackAtDeclaration = evalStack)
+                    Debug.Assert(local Is _empty OrElse locInfo.StackAtDeclaration = StackDepth())
                 End If
 
                 Dim definedAt As LocalDefUseSpan = locInfo.localDefs.Last()
-                definedAt.SetEnd(Me.counter)
+                definedAt.SetEnd(Me._counter)
 
-                Dim locDef As New LocalDefUseSpan(counter)
+                Dim locDef As New LocalDefUseSpan(_counter)
                 locInfo.localDefs.Add(locDef)
             End Sub
 
+            Private Function EvalStackHasLocal(local As LocalSymbol) As Boolean
+                Dim top = _evalStack.Last()
+
+                Return top.Item2 = If(Not local.IsByRef, ExprContext.Value, ExprContext.Address) AndAlso
+                   top.Item1.Kind = BoundKind.Local AndAlso
+                   DirectCast(top.Item1, BoundLocal).LocalSymbol = local
+            End Function
+
             Private Sub RecordVarWrite(local As LocalSymbol)
+                Debug.Assert(local.SynthesizedKind <> SynthesizedLocalKind.OptimizerTemp)
+
                 If Not CanScheduleToStack(local) Then
                     Return
                 End If
 
-                Dim locInfo = locals(local)
+                Dim locInfo = _locals(local)
                 If locInfo.CannotSchedule Then
                     Return
                 End If
 
-                ' if accessing real val, check stack
-                If Not TypeOf local Is DummyLocal Then
+                ' check stack
+                ' -1 because real assignment "consumes" value.
+                Dim evalStack = Me.StackDepth - 1
 
-                    ' -1 because real assignment "consumes" value.
-                    Dim evalStack = Me.evalStack - 1
-
-                    If locInfo.StackAtDeclaration <> evalStack Then
-                        ' writing at different eval stack.
-                        locInfo.ShouldNotSchedule()
-                        Return
-                    End If
-                Else
-                    ' dummy must be accessed on same stack.
-                    Debug.Assert(local Is empty OrElse locInfo.StackAtDeclaration = evalStack)
+                If locInfo.StackAtDeclaration <> evalStack Then
+                    ' writing at different eval stack.
+                    locInfo.ShouldNotSchedule()
+                    Return
                 End If
 
-                Dim locDef = New LocalDefUseSpan(Me.counter)
+                Dim locDef = New LocalDefUseSpan(Me._counter)
                 locInfo.localDefs.Add(locDef)
             End Sub
 
-            Private Shared Function CanScheduleToStack(local As LocalSymbol) As Boolean
-                Return local.CanScheduleToStack
+            Private Sub RecordDummyWrite(local As LocalSymbol)
+                Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.OptimizerTemp)
+
+                Dim locInfo = _locals(local)
+
+                ' dummy must be accessed on same stack.
+                Debug.Assert(local Is _empty OrElse locInfo.StackAtDeclaration = StackDepth())
+
+                Dim locDef = New LocalDefUseSpan(Me._counter)
+                locInfo.localDefs.Add(locDef)
+            End Sub
+
+            Private Sub ShouldNotSchedule(local As LocalSymbol)
+                Dim localDefInfo As LocalDefUseInfo = Nothing
+                If _locals.TryGetValue(local, localDefInfo) Then
+                    localDefInfo.ShouldNotSchedule()
+                End If
+            End Sub
+
+            Private Function CanScheduleToStack(local As LocalSymbol) As Boolean
+                Return local.CanScheduleToStack AndAlso
+                        (Not _debugFriendly OrElse Not local.SynthesizedKind.IsLongLived())
             End Function
 
             Private Sub DeclareLocals(locals As ImmutableArray(Of LocalSymbol), stack As Integer)
@@ -1218,7 +1303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Private Sub DeclareLocal(local As LocalSymbol, stack As Integer)
                 If local IsNot Nothing Then
                     If CanScheduleToStack(local) Then
-                        Me.locals.Add(local, New LocalDefUseInfo(stack))
+                        Me._locals.Add(local, New LocalDefUseInfo(stack))
                     End If
                 End If
             End Sub
@@ -1227,4 +1312,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
     End Class
 End Namespace
-

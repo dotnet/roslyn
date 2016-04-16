@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class WellKnownMembers
     {
-        private readonly static ImmutableArray<MemberDescriptor> descriptors;
+        private readonly static ImmutableArray<MemberDescriptor> s_descriptors;
 
         static WellKnownMembers()
         {
@@ -2220,17 +2220,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.Microsoft_VisualBasic_CallType,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // My_InternalXmlHelper__Value
-                (byte)(MemberFlags.Property | MemberFlags.Static),                                                          // Flags
-                (byte)WellKnownType.My_InternalXmlHelper,                                                                   // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.GenericTypeInstance,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
-                    1,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Xml_Linq_XElement,
-
                 // System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine,                                     // DeclaringTypeId
@@ -2799,7 +2788,6 @@ namespace Microsoft.CodeAnalysis
                 "TypeName",                                 // Microsoft_VisualBasic_Information__TypeName
                 "VbTypeName",                               // Microsoft_VisualBasic_Information__VbTypeName
                 "CallByName",                               // Microsoft_VisualBasic_Interaction__CallByName
-                "Value",                                    // My_InternalXmlHelper__Value
                 "MoveNext",                                 // System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext
                 "SetStateMachine",                          // System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine
                 "SetException",                             // System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetException
@@ -2840,12 +2828,12 @@ namespace Microsoft.CodeAnalysis
                 "Format",                                   // System_String__Format_IFormatProvider
             };
 
-            descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
+            s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
         }
 
         public static MemberDescriptor GetDescriptor(WellKnownMember member)
         {
-            return descriptors[(int)member];
+            return s_descriptors[(int)member];
         }
 
         /// <summary>

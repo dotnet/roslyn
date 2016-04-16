@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Create a local for the function return value. The local's type is the same as the function's return type
             Select Case methodBlock.Kind
                 Case SyntaxKind.FunctionBlock
-                    Dim begin As MethodStatementSyntax = DirectCast(methodBlock, MethodBlockSyntax).Begin
+                    Dim begin As MethodStatementSyntax = DirectCast(methodBlock, MethodBlockSyntax).SubOrFunctionStatement
 
                     ' Note, it is an error if a parameter has the same name as the function.  
                     Return LocalSymbol.Create(methodSymbol, Me, begin.Identifier, LocalDeclarationKind.FunctionValue,
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OperatorBlock
                     Debug.Assert(Not methodSymbol.ReturnType.IsVoidType())
                     ' Function Return Value variable isn't accessible within an operator body
-                    Return New SynthesizedLocal(methodSymbol, methodSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, DirectCast(methodBlock, OperatorBlockSyntax).Begin)
+                    Return New SynthesizedLocal(methodSymbol, methodSymbol.ReturnType, SynthesizedLocalKind.FunctionReturnValue, DirectCast(methodBlock, OperatorBlockSyntax).BlockStatement)
 
                 Case SyntaxKind.AddHandlerAccessorBlock
                     If DirectCast(methodSymbol.AssociatedSymbol, EventSymbol).IsWindowsRuntimeEvent AndAlso

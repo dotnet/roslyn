@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_LibNotFound = 2017
         'ERR_MaximumErrors = 2020       unused in Roslyn.
         ERR_IconFileAndWin32ResFile = 2023
-        'WRN_ReservedReference = 2024       'unissued by native compiler due to bug. 
+        'WRN_ReservedReference = 2024       ' unused by native compiler due to bug. 
         WRN_NoConfigInResponseFile = 2025
         ' WRN_InvalidWarningId = 2026       ' unused in Roslyn.
         'ERR_WatsonSendNotOptedIn = 2027
@@ -67,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidFormatForGuidForOption = 2043
         ERR_MissingGuidForOption = 2044
         ERR_BadChecksumAlgorithm = 2045
+        ERR_MutuallyExclusiveOptions = 2046
 
         '// The naming convention is that if your error requires arguments, to append
         '// the number of args taken, e.g. AmbiguousName2
@@ -80,9 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//in other contexts, please make sure to appropriately modify Bindable::ResolveOverloadingShouldSkipBadMember
         ERR_UnreferencedAssemblyEvent3 = 30005
         ERR_UnreferencedModuleEvent3 = 30006
-        ERR_UnreferencedAssemblyBase3 = 30007
+        ' ERR_UnreferencedAssemblyBase3 = 30007
         ERR_UnreferencedModuleBase3 = 30008
-        ERR_UnreferencedAssemblyImplements3 = 30009
+        ' ERR_UnreferencedAssemblyImplements3 = 30009
         ERR_UnreferencedModuleImplements3 = 30010
 
         'ERR_CodegenError = 30011
@@ -667,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_RequiredNonObsoleteNewCall4 = 30920
         ERR_InheritsTypeArgAccessMismatch7 = 30921
         ERR_InheritsTypeArgAccessMismatchOutside5 = 30922
-        'ERR_AccessMismatchTypeArgImplEvent7 = 30923    unsued in Roslyn
+        'ERR_AccessMismatchTypeArgImplEvent7 = 30923    unused in Roslyn
         'ERR_AccessMismatchTypeArgImplEvent5 = 30924    unused in Roslyn
         ERR_PartialTypeAccessMismatch3 = 30925
         ERR_PartialTypeBadMustInherit1 = 30926
@@ -903,8 +904,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MixingWinRTAndNETEvents = 31202
         ERR_AddParamWrongForWinRT = 31203
         ERR_RemoveParamWrongForWinRT = 31204
-        ERR_ReImplementatingWinRTInterface5 = 31205
-        ERR_ReImplementatingWinRTInterface4 = 31206
+        ERR_ReImplementingWinRTInterface5 = 31205
+        ERR_ReImplementingWinRTInterface4 = 31206
         ERR_XmlEndElementNoMatchingStart = 31207
         ERR_UndefinedTypeOrNamespace1 = 31208
         ERR_BadInterfaceInterfaceSpecifier1 = 31209
@@ -943,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MustOverridesInClass1 = 31411
         ERR_HandlesSyntaxInClass = 31412
         ERR_SynthMemberShadowsMustOverride5 = 31413
-        'ERR_CantImplementNonVirtual3 = 31415   unsued in Roslyn
+        'ERR_CantImplementNonVirtual3 = 31415   unused in Roslyn
         ' ERR_MemberShadowsSynthMustOverride5 = 31416   unused in Roslyn
         ERR_CannotOverrideInAccessibleMember = 31417
         ERR_HandlesSyntaxInModule = 31418
@@ -987,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//       Failure to do so may break customer code.
 
         '// AVAILABLE                             31451 - 31497
-        ERR_ContantStringTooLong = 31498
+        ERR_ConstantStringTooLong = 31498
         ERR_MustInheritEventNotOverridden = 31499
         ERR_BadAttributeSharedProperty1 = 31500
         ERR_BadAttributeReadOnlyProperty1 = 31501
@@ -1580,7 +1581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_SignButNoPrivateKey = 36961
         ERR_InvalidVersionFormat = 36962
 
-        ERR_NoScriptsSpecified = 36963
+        ERR_ExpectedSingleScript = 36963
         ERR_ReferenceDirectiveOnlyAllowedInScripts = 36964
         ERR_NamespaceNotAllowedInScript = 36965
         ERR_KeywordNotAllowedInScript = 36966
@@ -1666,7 +1667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NullPropagatingOpInExpressionTree = 37240
         ERR_TooLongOrComplexExpression = 37241
 
-        ERR_StructParameterlessInstanceCtorMustBePublic = 37242
+        ERR_BadPdbData = 37242
         ERR_AutoPropertyCantBeWriteOnly = 37243
 
         ERR_ExpressionDoesntHaveName = 37244
@@ -1675,6 +1676,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InReferencedAssembly = 37247
         ERR_EncReferenceToAddedMember = 37248
         ERR_InterpolationFormatWhitespace = 37249
+        ERR_InterpolationAlignmentOutOfRange = 37250
+        ERR_InterpolatedStringFactoryError = 37251
+        ERR_DebugEntryPointNotSourceMethodDefinition = 37252
+        ERR_InvalidPathMap = 37253
+        ERR_PublicSignNoKey = 37254
+        ERR_TooManyUserStrings = 37255
+        ERR_PeWritingFailure = 37256
 
         ERR_LastPlusOne
 
@@ -1726,7 +1734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_ExpectedInitComponentCall2 = 40054
         WRN_NamespaceCaseMismatch3 = 40055
         WRN_UndefinedOrEmptyNamespaceOrClass1 = 40056
-        WRN_UndefinedOrEmpyProjectNamespaceOrClass1 = 40057
+        WRN_UndefinedOrEmptyProjectNamespaceOrClass1 = 40057
         'WRN_InterfacesWithNoPIAMustHaveGuid1 = 40058 ' Not reported by Dev11.
         WRN_IndirectRefToLinkedAssembly2 = 40059
         WRN_DelaySignButNoKey = 40060
@@ -1769,7 +1777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_SharedMemberThroughInstance = 42025
         WRN_RecursivePropertyCall = 42026
 
-        WRN_OverlapingCatch = 42029
+        WRN_OverlappingCatch = 42029
         WRN_DefAsgUseNullRefByRef = 42030
         WRN_DuplicateCatch = 42031
         WRN_ObjectMath1Not = 42032
@@ -1875,7 +1883,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
-        WRN_UnreachableCode = 42365
+        ' // AVAILABLE 42365
+
         WRN_InvalidVersionFormat = 42366
         WRN_MainIgnored = 42367
         WRN_EmptyPrefixAndXmlnsLocalName = 42368
@@ -1896,7 +1905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         ' // AVAILABLE                             42379 - 49998
-
+        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -1904,22 +1913,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
         ' // AVAILABLE                             50003 - 54999   
-
-        '// Feature classification for the /LangVersion switch errors starts at 55000, must be ordered, and indexed starting at 55000.
-        '// Don't start with a capital letter or put a '.' at the end of these messages as they are all intended to be in-place text
-        '// substitutions for error #36716 (ERR_LanguageVersion) defined above.
-
-        FEATUREID_First = 55000
-        FEATUREID_AutoProperties = 55000
-        FEATUREID_LineContinuation = 55001
-        FEATUREID_StatementLambdas = 55002
-        FEATUREID_CoContraVariance = 55003
-        FEATUREID_CollectionInitializers = 55004
-        FEATUREID_SubLambdas = 55005
-        FEATUREID_ArrayLiterals = 55006
-        FEATUREID_NullPropagatingOperator = 55007
-        FEATUREID_NameOfOperator = 55008
-        FEATUREID_Last = 55008
 
         ' Adding diagnostic arguments from resx file
         IDS_ProjectSettingsLocationName = 56000
@@ -1933,6 +1926,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
         IDS_InvalidPreprocessorConstantType = 56010
+        IDS_ToolName = 56011
 
+        ' Feature codes
+        FEATURE_AutoProperties
+        FEATURE_LineContinuation
+        FEATURE_StatementLambdas
+        FEATURE_CoContraVariance
+        FEATURE_CollectionInitializers
+        FEATURE_SubLambdas
+        FEATURE_ArrayLiterals
+        FEATURE_AsyncExpressions
+        FEATURE_Iterators
+        FEATURE_GlobalNamespace
+        FEATURE_NullPropagatingOperator
+        FEATURE_NameOfExpressions
+        FEATURE_ReadonlyAutoProperties
+        FEATURE_RegionsEverywhere
+        FEATURE_MultilineStringLiterals
+        FEATURE_CObjInAttributeArguments
+        FEATURE_LineContinuationComments
+        FEATURE_TypeOfIsNot
+        FEATURE_YearFirstDateLiterals
+        FEATURE_WarningDirectives
+        FEATURE_PartialModules
+        FEATURE_PartialInterfaces
+        FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
     End Enum
 End Namespace

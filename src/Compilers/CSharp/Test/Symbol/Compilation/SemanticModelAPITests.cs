@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol1, symbol2);
         }
 
-        [WorkItem(539740, "DevDiv")]
+        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
         [Fact]
         public void NamespaceWithoutName()
         {
@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text =
 @"
 // Peter Golde[7/19/2010]: I managed to construct the following interesting example today,
-// which Dev10 does compile. Interestingly, the resolution of one “using” can depend
-// on the resolution of another “using” later in the same namespace.
+// which Dev10 does compile. Interestingly, the resolution of one ""using"" can depend
+// on the resolution of another ""using"" later in the same namespace.
 using K = A.Q;
 using L = B.R;
  
@@ -572,7 +572,7 @@ namespace N {
             Assert.Equal(bOuter, cBaseType);
         }
 
-        [Fact, WorkItem(528655, "DevDiv")]
+        [Fact, WorkItem(528655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528655")]
         public void ErrorSymbolForInvalidCode()
         {
             var text = @"
@@ -592,7 +592,7 @@ public class A
             Assert.Equal(1, invalid.Count());
         }
 
-        [Fact, WorkItem(543225, "DevDiv"), WorkItem(529057, "DevDiv")]
+        [Fact, WorkItem(543225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543225"), WorkItem(529057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529057")]
         public void MergePartialMethodAndParameterSymbols()
         {
             var text = @"
@@ -634,7 +634,7 @@ partial class PC
             // the declaration one is what one can get from GetMembers()
             Assert.Same(pMethodSym, pmSym01);
 
-            // with decl|impl point to each nother
+            // with decl|impl point to each other
             Assert.Null(pmSym01.PartialDefinitionPart);
             Assert.Same(pmSym02, pmSym01.PartialImplementationPart);
 
@@ -652,7 +652,7 @@ partial class PC
             Assert.Equal(1, ppSym02.Locations.Length);
         }
 
-        [Fact, WorkItem(544221, "DevDiv")]
+        [Fact, WorkItem(544221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544221")]
         public void GetTypeInfoForOptionalParameterDefaultValueInDelegate()
         {
             var text = @"
@@ -680,7 +680,7 @@ class Test
             Assert.Equal("System.Int32", type2.Type.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(544231, "DevDiv")]
+        [Fact, WorkItem(544231, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544231")]
         public void GetDeclSymbolForParameterOfPartialMethod()
         {
             var text1 = @"
@@ -721,7 +721,7 @@ partial class Partial001
             Assert.NotEqual(sym1.Locations[0], sym2.Locations[0]);
         }
 
-        [Fact, WorkItem(544473, "DevDiv")]
+        [Fact, WorkItem(544473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544473")]
         public void GetDeclSymbolForTypeParameterOfPartialMethod()
         {
             var text1 = @"
@@ -911,7 +911,7 @@ class AnonTypeTest
             Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results);
         }
 
-        [Fact(), WorkItem(542861, "DevDiv"), WorkItem(529673, "DevDiv")]
+        [Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
         public void GetSymbolInfoForAccessorParameters()
         {
             var text = @"
@@ -961,7 +961,7 @@ public class Test
             Assert.NotEqual(parasym, argsym2);
         }
 
-        [WorkItem(545648, "DevDiv")]
+        [WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
         [Fact]
         public void AliasDeclaredSymbolWithConflict()
         {
@@ -986,7 +986,7 @@ class X { }
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"));
         }
 
-        [WorkItem(529751, "DevDiv")]
+        [WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         [Fact]
         public void ExternAlias()
         {
@@ -1030,7 +1030,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "c").WithArguments("c"));
         }
 
-        [Fact, WorkItem(546687, "DevDiv"), WorkItem(529751, "DevDiv")]
+        [Fact, WorkItem(546687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546687"), WorkItem(529751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529751")]
         public void ExternAliasWithoutTarget()
         {
             var source = @"
@@ -1066,7 +1066,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "C").WithArguments("C", "X"));
         }
 
-        [WorkItem(545648, "DevDiv")]
+        [WorkItem(545648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545648")]
         [Fact]
         public void UsingDirectiveAliasSemanticInfo()
         {
@@ -1088,7 +1088,7 @@ class Test
             Assert.Equal(SymbolKind.Alias, model.GetDeclaredSymbol(usingSyntax).Kind);
         }
 
-        [WorkItem(545882, "DevDiv")]
+        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInPlaceOfActual()
         {
@@ -1118,7 +1118,7 @@ class Test
             Assert.Equal(0, method.ParameterCount);
         }
 
-        [WorkItem(545882, "DevDiv")]
+        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void SpeculativelyBindConstructorInitializerInNewLocation()
         {
@@ -1223,7 +1223,7 @@ enum C
         }
 
         [Fact]
-        [WorkItem(648305, "DevDiv")]
+        [WorkItem(648305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648305")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1267,7 +1267,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(746002, "DevDiv")]
+        [WorkItem(746002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746002")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument2()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1311,7 +1311,7 @@ interface I
         }
 
         [Fact]
-        [WorkItem(657701, "DevDiv")]
+        [WorkItem(657701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657701")]
         public void TestGetSpeculativeSemanticModelInConstructorDefaultValueArgument()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -1439,7 +1439,7 @@ class C
             Assert.Equal("Hello", constantInfo.Value);
         }
 
-        [WorkItem(529893, "DevDiv")]
+        [WorkItem(529893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529893")]
         [Fact]
         public void AliasCalledVar()
         {
@@ -1864,7 +1864,7 @@ foreach(short ele in a)
             Assert.Equal(SymbolKind.Method, sortedCandidates[1].Kind);
         }
 
-        [WorkItem(545882, "DevDiv")]
+        [WorkItem(545882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882")]
         [Fact]
         public void TestGetSpeculativeSemanticModelForConstructorInitializer_UnsupportedLocation()
         {
@@ -2028,7 +2028,7 @@ unsafe class C
             Assert.Equal("p", symbol.Name);
         }
 
-        [WorkItem(663704, "DevDiv")]
+        [WorkItem(663704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/663704")]
         [Fact]
         public void TestGetSpeculativeSemanticModelInsideUnknownAccessor()
         {
@@ -2130,7 +2130,7 @@ class C
         }
 
         [Fact]
-        public void TestGetSpeculativeSemanticModelForInexerAccessorBody()
+        public void TestGetSpeculativeSemanticModelForIndexerAccessorBody()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 
@@ -2408,7 +2408,7 @@ class C
             TypeSyntax speculatedTypeSyntax,
             SpeculativeBindingOption bindingOption,
             SymbolKind expectedSymbolKind,
-            string expectedTypeDislayString)
+            string expectedTypeDisplayString)
         {
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
@@ -2427,12 +2427,12 @@ class C
             var symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             var typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             if (speculatedTypeSyntax.Kind() == SyntaxKind.QualifiedName)
             {
@@ -2441,12 +2441,12 @@ class C
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
             }
         }
 
@@ -2811,7 +2811,7 @@ class A
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(731108, "DevDiv")]
+        [WorkItem(731108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731108")]
         [Fact]
         public void Repro731108()
         {
@@ -2843,7 +2843,7 @@ public class C
             Assert.Equal(TypeKind.Error, ((ParameterSymbol)symbol).Type.TypeKind);
         }
 
-        [WorkItem(783566, "DevDiv")]
+        [WorkItem(783566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
         [Fact]
         public void SpeculateAboutYieldStatement1()
         {
@@ -2863,7 +2863,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2876,7 +2876,7 @@ class C
             Assert.Equal(TypeKind.Error, info.ConvertedType.TypeKind);
         }
 
-        [WorkItem(783566, "DevDiv")]
+        [WorkItem(783566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]
         [Fact]
         public void SpeculateAboutYieldStatement2()
         {
@@ -2898,7 +2898,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("return");
+            var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
 
             SemanticModel speculativeModel;
@@ -2911,7 +2911,7 @@ class C
             Assert.Equal(SpecialType.System_Int64, info.ConvertedType.SpecialType);
         }
 
-        [WorkItem(791794, "DevDiv")]
+        [WorkItem(791794, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791794")]
         [Fact]
         public void SpeculateAboutOmittedArraySizeInCref()
         {
@@ -2928,7 +2928,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("int");
+            var position = source.IndexOf("int", StringComparison.Ordinal);
             var typeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.IEnumerable<C[]>");
 
             SemanticModel speculativeModel;
@@ -2943,7 +2943,7 @@ class C
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [WorkItem(784255, "DevDiv")]
+        [WorkItem(784255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784255")]
         [Fact]
         public void Repro784255()
         {
@@ -2967,7 +2967,7 @@ struct S
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var position = source.IndexOf("struct");
+            var position = source.IndexOf("struct", StringComparison.Ordinal);
             var attributeSyntax = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Category"));
 
             SemanticModel speculativeModel;
@@ -2978,7 +2978,7 @@ struct S
             var info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
         }
 
-        [WorkItem(1015557)]
+        [WorkItem(1015557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015557")]
         [Fact(Skip = "1015557")]
         public void GetSpeculativeSymbolInfoForGenericNameInCref()
         {
@@ -3145,7 +3145,7 @@ class Derived : Test
             Assert.Equal(stringType, identifierInfo.ConvertedType);
         }
 
-        [WorkItem(850907, "DevDiv")]
+        [WorkItem(850907, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850907")]
         [Fact]
         public void ExtensionMethodViability()
         {
@@ -3173,7 +3173,7 @@ static class Extensions
             Assert.Contains(extensionMethod.ReduceExtensionMethod(), memberGroup);
         }
 
-        [WorkItem(849698, "DevDiv")]
+        [WorkItem(849698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
         [Fact]
         public void LookupExternAlias()
         {
@@ -3205,9 +3205,9 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
-        [WorkItem(1019366, "DevDiv")]
+        [WorkItem(1019366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
         [WorkItem(273, "CodePlex")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug1019366()
         {
             var source = @"
@@ -3325,6 +3325,136 @@ namespace Microsoft.Conformance.Expressions
     } 
 }"
                 );
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null;
+        try
+        {
+            G(() => x1);
+        }
+        catch (Exception x2) when (G(() => x2))
+        {
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var discarded = model.GetEnclosingSymbol(match.Index);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        do
+        {
+            G(() => x1);
+        }
+        while (G(() => x2));
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            {
+                var x = tree.GetRoot().FindToken(match.Index + 4).Parent;
+                var discarded = model.GetEnclosingSymbol(match.Index);
+                var disc = model.GetSymbolInfo(x);
+            }
+        }
+
+        [Fact, WorkItem(1504, "https://github.com/dotnet/roslyn/issues/1504")]
+        public void ContainingSymbol04()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool G<T>(Func<T> f) => true;
+    static void F()
+    {
+        Exception x1 = null, x2 = null;
+        if (G(() => x1));
+        {
+            G(() => x2);
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
+            var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""Hello, world!"");
+        Console.WriteLine($""{DateTime.Now.ToString()}.{args[0]}"");
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            {
+                Assert.False(model.GetConstantValue(interp).HasValue);
+            }
+        }
+
+        [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
+        [Fact]
+        public void TypeOfDynamic()
+        {
+            var source = @"
+using System;
+using System.Dynamic;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            dynamic a = 5;
+        }   
+     }
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
+            int spanStart = source.IndexOf("dynamic a = 5;");
+            var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
         }
 
         #region "regression helper"

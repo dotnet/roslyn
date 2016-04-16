@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly CodeGenerationAbstractNamedTypeSymbol constructedFrom;
-        private readonly IList<ITypeSymbol> typeArguments;
+        private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
+        private readonly IList<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
             CodeGenerationAbstractNamedTypeSymbol constructedFrom,
@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
                    constructedFrom.Name, constructedFrom.SpecialType, typeMembers)
         {
-            this.constructedFrom = constructedFrom;
+            _constructedFrom = constructedFrom;
             this.OriginalDefinition = constructedFrom.OriginalDefinition;
-            this.typeArguments = typeArguments;
+            _typeArguments = typeArguments;
         }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
         {
             get
             {
-                return ImmutableArray.CreateRange(this.typeArguments);
+                return ImmutableArray.CreateRange(_typeArguments);
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.Arity;
+                return _constructedFrom.Arity;
             }
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.IsGenericType;
+                return _constructedFrom.IsGenericType;
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.IsScriptClass;
+                return _constructedFrom.IsScriptClass;
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.IsImplicitClass;
+                return _constructedFrom.IsImplicitClass;
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.MemberNames;
+                return _constructedFrom.MemberNames;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return constructedFrom;
+                return _constructedFrom;
             }
         }
 
@@ -143,27 +143,27 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
         {
             // TODO(cyrusn): construct these.
-            return ImmutableArray.CreateRange(this.constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
+            return ImmutableArray.CreateRange(_constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
         }
 
         public override TypeKind TypeKind
         {
             get
             {
-                return this.constructedFrom.TypeKind;
+                return _constructedFrom.TypeKind;
             }
         }
 
         protected override CodeGenerationSymbol Clone()
         {
-            return new CodeGenerationConstructedNamedTypeSymbol(this.constructedFrom, this.typeArguments, this.TypeMembers);
+            return new CodeGenerationConstructedNamedTypeSymbol(_constructedFrom, _typeArguments, this.TypeMembers);
         }
 
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters
         {
             get
             {
-                return constructedFrom.TypeParameters;
+                return _constructedFrom.TypeParameters;
             }
         }
     }

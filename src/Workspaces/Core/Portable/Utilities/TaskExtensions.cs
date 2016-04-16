@@ -2,9 +2,12 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -13,16 +16,35 @@ namespace Roslyn.Utilities
     {
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-#if false  // eventually this will go live for check-in
 #if DEBUG
-            if (Microsoft.CodeAnalysis.Workspace.PrimaryWorkspace != null &&  // only care if we are in a UI situation.. this keeps normal unit tests from failing                                
-                Thread.CurrentThread.IsThreadPoolThread)
+            var threadKind = ForegroundThreadDataInfo.CurrentForegroundThreadDataKind;
+            if (threadKind == ForegroundThreadDataKind.Unknown)
             {
-                // This check is meant to catch improper waits on background threads when integration tests are run.
-                System.Diagnostics.Debug.Fail("WaitAndGetResult called from thread pool thread.");
+                // If you hit this when running tests then your code is in error.  WaitAndGetResult
+                // should only be called from a foreground thread.  There are a few ways you may 
+                // want to fix this.
+                //
+                // First, if you're actually calling this directly *in test code* then you could 
+                // either:
+                //
+                //  1) Mark the test with [WpfFact].  This is not preferred, and should only be
+                //     when testing an actual UI feature (like command handlers).
+                //  2) Make the test actually async (preferred).
+                //
+                // If you are calling WaitAndGetResult from product code, then that code must
+                // be a foreground thread (i.e. a command handler).  It cannot be from a threadpool
+                // thread *ever*.
+                throw new InvalidOperationException($"{nameof(WaitAndGetResult)} can only be called from a 'foreground' thread.");
             }
 #endif
-#endif
+
+            return WaitAndGetResult_CanCallOnBackground(task, cancellationToken);
+        }
+
+        // Only call this *extremely* special situations.  This will synchronously block a threadpool
+        // thread.  In the future we are going ot be removing this and disallowing its use.
+        public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
+        {
             task.Wait(cancellationToken);
             return task.Result;
         }
@@ -258,7 +280,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
+            nextTask.ContinueWith(ReportFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -301,12 +323,7 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-
-            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
-               CancellationToken.None,
-               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-               TaskScheduler.Default);
-
+            ReportFatalError(nextTask, continuationFunction);
             return nextTask;
         }
 
@@ -336,6 +353,31 @@ namespace Roslyn.Utilities
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        internal static void ReportFatalError(Task task, object continuationFunction)
+        {
+            task.ContinueWith(ReportFatalErrorWorker, continuationFunction,
+               CancellationToken.None,
+               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+               TaskScheduler.Default);
+        }
+
+        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+        private static void ReportFatalErrorWorker(Task task, object continuationFunction)
+        {
+            var exception = task.Exception;
+            var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();
+            exception.Data["ContinuationFunction"] = methodInfo.DeclaringType.FullName + "::" + methodInfo.Name;
+
+            // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
+            // > !threads // find thread with System.ExecutionEngineException
+            //   ...
+            //   67   65 4760 692b5d60   1029220 Preemptive  CD9AE70C:FFFFFFFF 012ad0f8 0     MTA (Threadpool Worker) System.ExecutionEngineException 03c51108 
+            //   ...
+            // > ~67s     // switch to thread 67
+            // > !dso     // dump stack objects
+            FatalError.Report(exception);
         }
     }
 }

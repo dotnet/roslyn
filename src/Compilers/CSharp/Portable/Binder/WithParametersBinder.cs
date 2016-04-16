@@ -14,20 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class WithParametersBinder : Binder
     {
-        private readonly ImmutableArray<ParameterSymbol> parameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal WithParametersBinder(ImmutableArray<ParameterSymbol> parameters, Binder next)
             : base(next)
         {
             Debug.Assert(!parameters.IsDefaultOrEmpty);
-            this.parameters = parameters;
+            _parameters = parameters;
         }
 
         protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderLocals())
             {
-                foreach (var parameter in this.parameters)
+                foreach (var parameter in _parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
                     {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(result.IsClear);
 
-            foreach (ParameterSymbol parameter in parameters)
+            foreach (ParameterSymbol parameter in _parameters)
             {
                 if (parameter.Name == name)
                 {

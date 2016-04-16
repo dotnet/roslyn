@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Host
             var service = GetService<TWorkspaceService>();
             if (service == null)
             {
-                throw new InvalidOperationException(WorkspacesResources.WorkspaceServicesUnavailable);
+                throw new InvalidOperationException(string.Format(WorkspacesResources.WorkspaceServicesUnavailable, typeof(TWorkspaceService).FullName));
             }
 
             return service;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// A factory that constructs <see cref="SourceText"/>.
         /// </summary>
-        public virtual ITextFactoryService TextFactory
+        internal virtual ITextFactoryService TextFactory
         {
             get { return this.GetRequiredService<ITextFactoryService>(); }
         }

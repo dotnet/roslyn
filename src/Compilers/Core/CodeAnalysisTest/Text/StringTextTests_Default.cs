@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class StringTextTest_Default
     {
-        private Encoding currentEncoding;
+        private Encoding _currentEncoding;
 
         protected byte[] GetBytes(Encoding encoding, string source)
         {
-            currentEncoding = encoding;
+            _currentEncoding = encoding;
             return encoding.GetBytesWithPreamble(source);
         }
 

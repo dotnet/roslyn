@@ -15,40 +15,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits StateMachineRewriter(Of CapturedSymbolOrExpression)
 
         ''' <summary>
-        ''' Spill field allocator controlls allocation and reusage of the set of fields 
+        ''' Spill field allocator controls allocation and reuse of the set of fields 
         ''' used to spilling expressions; current implementation allows reuse of fields 
         ''' of the same type on high-level statement level
         ''' </summary>
         Private Class SpillFieldAllocator
-            Private ReadOnly F As SyntheticBoundNodeFactory
-            Private ReadOnly AllocatedFields As New KeyedStack(Of TypeSymbol, FieldSymbol)
-            Private ReadOnly RealizedSpills As New HashSet(Of FieldSymbol)(ReferenceEqualityComparer.Instance)
+            Private ReadOnly _F As SyntheticBoundNodeFactory
+            Private ReadOnly _allocatedFields As New KeyedStack(Of TypeSymbol, FieldSymbol)
+            Private ReadOnly _realizedSpills As New HashSet(Of FieldSymbol)(ReferenceEqualityComparer.Instance)
 
             Private _nextHoistedFieldId As Integer
 
             Friend Sub New(f As SyntheticBoundNodeFactory)
-                Me.F = f
+                Me._F = f
                 Me._nextHoistedFieldId = 0
             End Sub
 
             Friend Function AllocateField(type As TypeSymbol) As FieldSymbol
                 Dim field As FieldSymbol = Nothing
-                If Not Me.AllocatedFields.TryPop(type, field) Then
+                If Not Me._allocatedFields.TryPop(type, field) Then
                     _nextHoistedFieldId += 1
 
-                    field = F.StateMachineField(type,
-                                              F.CurrentMethod,
+                    field = _F.StateMachineField(type,
+                                              _F.CurrentMethod,
                                               GeneratedNames.ReusableHoistedLocalFieldName(_nextHoistedFieldId),
                                               Accessibility.Friend)
                 End If
-                Me.RealizedSpills.Add(field)
+                Me._realizedSpills.Add(field)
                 Return field
             End Function
 
             Friend Sub FreeField(field As FieldSymbol)
-                Debug.Assert(Me.RealizedSpills.Contains(field))
-                Me.RealizedSpills.Remove(field)
-                Me.AllocatedFields.Push(field.Type, field)
+                Debug.Assert(Me._realizedSpills.Contains(field))
+                Me._realizedSpills.Remove(field)
+                Me._allocatedFields.Push(field.Type, field)
             End Sub
 
         End Class

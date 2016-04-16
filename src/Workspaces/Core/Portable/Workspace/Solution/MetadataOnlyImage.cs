@@ -14,52 +14,71 @@ namespace Microsoft.CodeAnalysis
     internal class MetadataOnlyImage
     {
         public static readonly MetadataOnlyImage Empty = new MetadataOnlyImage(storage: null, assemblyName: string.Empty);
-        private static readonly EmitOptions EmitOptions = new EmitOptions(metadataOnly: true);
+        private static readonly EmitOptions s_emitOptions = new EmitOptions(metadataOnly: true);
 
-        private readonly ITemporaryStreamStorage storage;
-        private readonly string assemblyName;
+        private readonly ITemporaryStreamStorage _storage;
+        private readonly string _assemblyName;
 
         private MetadataOnlyImage(ITemporaryStreamStorage storage, string assemblyName)
         {
-            this.storage = storage;
-            this.assemblyName = assemblyName;
+            _storage = storage;
+            _assemblyName = assemblyName;
         }
 
         public bool IsEmpty
         {
-            get { return this.storage == null; }
+            get { return _storage == null; }
         }
 
-        public static MetadataOnlyImage Create(ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
+        public static MetadataOnlyImage Create(Workspace workspace, ITemporaryStorageService service, Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+            try
             {
-                // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
-                //       we don't allocate anything for skeleton assembly.
-                using (var stream = SerializableBytes.CreateWritableStream())
+                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+
+                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: EmitOptions, cancellationToken: cancellationToken);
-
-                    if (emitResult.Success)
+                    // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
+                    //       we don't allocate anything for skeleton assembly.
+                    using (var stream = SerializableBytes.CreateWritableStream())
                     {
-                        var storage = service.CreateTemporaryStreamStorage(cancellationToken);
+                        // note: cloning compilation so we don't retain all the generated symbols after its emitted.
+                        // * REVIEW * is cloning clone p2p reference compilation as well?
+                        var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
 
-                        stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
+                        if (emitResult.Success)
+                        {
+                            workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                            var storage = service.CreateTemporaryStreamStorage(cancellationToken);
 
-                        return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                            stream.Position = 0;
+                            storage.WriteStream(stream, cancellationToken);
+
+                            return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                        }
+                        else
+                        {
+                            workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                            foreach (var diagnostic in emitResult.Diagnostics)
+                            {
+                                workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                            }
+                        }
                     }
                 }
+            }
+            finally
+            {
+                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
             }
 
             return Empty;
         }
 
-        private static readonly ConditionalWeakTable<MetadataReference, Stream> lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
+        private static readonly ConditionalWeakTable<MetadataReference, Stream> s_lifetime = new ConditionalWeakTable<MetadataReference, Stream>();
 
         public MetadataReference CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)
         {
@@ -69,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // first see whether we can use native memory directly.
-            var stream = this.storage.ReadStream();
+            var stream = _storage.ReadStream();
             var supportNativeMemory = stream as ISupportDirectMemoryAccess;
             if (supportNativeMemory != null)
             {
@@ -82,12 +101,12 @@ namespace Microsoft.CodeAnalysis
                     documentation: documentationProvider,
                     aliases: aliases,
                     embedInteropTypes: embedInteropTypes,
-                    display: this.assemblyName);
+                    display: _assemblyName);
 
                 // tie lifetime of stream to metadata reference we created. native memory's lifetime is tied to
                 // stream internally and stream is shared between same temporary storage. so here, we should be 
                 // sharing same native memory for all skeleton assemblies from same project snapshot.
-                lifetime.GetValue(referenceWithNativeMemory, _ => stream);
+                s_lifetime.GetValue(referenceWithNativeMemory, _ => stream);
 
                 return referenceWithNativeMemory;
             }
@@ -104,14 +123,14 @@ namespace Microsoft.CodeAnalysis
                 documentation: documentationProvider,
                 aliases: aliases,
                 embedInteropTypes: embedInteropTypes,
-                display: this.assemblyName);
+                display: _assemblyName);
         }
 
         public void Cleanup()
         {
-            if (this.storage != null)
+            if (_storage != null)
             {
-                this.storage.Dispose();
+                _storage.Dispose();
             }
         }
     }

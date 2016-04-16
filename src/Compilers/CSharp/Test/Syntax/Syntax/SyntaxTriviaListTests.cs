@@ -168,8 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(list.Count + 1, new[] { triviaD }));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(list.Count));
-            Assert.Throws<ArgumentException>(() => list.Add(default(SyntaxTrivia)));
-            Assert.Throws<ArgumentException>(() => list.Insert(0, default(SyntaxTrivia)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Add(default(SyntaxTrivia)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(0, default(SyntaxTrivia)));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxTrivia>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxTrivia>)null));
             Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(elementA, (IEnumerable<SyntaxTrivia>)null));
@@ -214,10 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(-1, triviaD));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(1, new[] { triviaD }));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(-1, new[] { triviaD }));
-            Assert.Throws<ArgumentException>(() => list.Replace(triviaD, triviaE));
-            Assert.Throws<ArgumentException>(() => list.ReplaceRange(triviaD, new[] { triviaE }));
-            Assert.Throws<ArgumentException>(() => list.Add(default(SyntaxTrivia)));
-            Assert.Throws<ArgumentException>(() => list.Insert(0, default(SyntaxTrivia)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Replace(triviaD, triviaE));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.ReplaceRange(triviaD, new[] { triviaE }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Add(default(SyntaxTrivia)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Insert(0, default(SyntaxTrivia)));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxTrivia>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxTrivia>)null));
         }

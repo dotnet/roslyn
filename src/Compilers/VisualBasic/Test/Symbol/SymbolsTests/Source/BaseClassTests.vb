@@ -509,7 +509,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(850140, "DevDiv")>
+        <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -532,7 +532,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(850140, "DevDiv")>
+        <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140_a()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -555,7 +555,7 @@ BC30907: This inheritance causes circular dependencies between interface 'A' and
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(850140, "DevDiv")>
+        <WorkItem(850140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850140")>
         <Fact>
         Public Sub InterfaceCycleBug850140_b()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1127,7 +1127,7 @@ End Class
         End Sub
 
 
-        <WorkItem(538503, "DevDiv")>
+        <WorkItem(538503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538503")>
         <Fact>
         Public Sub TypeFromBaseInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1150,7 +1150,7 @@ End Interface
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(538500, "DevDiv")>
+        <WorkItem(538500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538500")>
         <Fact>
         Public Sub TypeThroughBaseInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1770,7 +1770,7 @@ End Class
 
         End Sub
 
-        <WorkItem(538878, "DevDiv")>
+        <WorkItem(538878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538878")>
         <Fact>
         Public Sub ProtectedNestedBase()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1799,7 +1799,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(537949, "DevDiv")>
+        <WorkItem(537949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537949")>
         <Fact>
         Public Sub ImplementingNestedInherited()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1819,7 +1819,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(538509, "DevDiv")>
+        <WorkItem(538509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538509")>
         <Fact>
         Public Sub ImplementingNestedInherited1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1845,7 +1845,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(538811, "DevDiv")>
+        <WorkItem(538811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538811")>
         <Fact>
         Public Sub OverloadedViaInterfaceInheritance()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1924,7 +1924,7 @@ BC30685: 'Foo' is ambiguous across the inherited interfaces 'IB' and 'IA(Of Stri
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(539775, "DevDiv")>
+        <WorkItem(539775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539775")>
         <Fact>
         Public Sub AmbiguousNestedInterfaceInheritedFromMultipleGenericInstantiations()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1951,7 +1951,7 @@ BC30685: 'B' is ambiguous across the inherited interfaces 'A(Of A(Of T).B)' and 
             CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors)
         End Sub
 
-        <WorkItem(538809, "DevDiv")>
+        <WorkItem(538809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538809")>
         <Fact>
         Public Sub Bug4532()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2012,7 +2012,7 @@ BC31447: Class 'A(Of T).E' cannot reference itself in Inherits clause.
         ''' whether or not the base type of the containing type has been
         ''' evaluated.
         ''' </summary>
-        <WorkItem(539744, "DevDiv")>
+        <WorkItem(539744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539744")>
         <Fact>
         Public Sub BaseTypeEvaluationOrder()
             Dim text =
@@ -2172,7 +2172,7 @@ End Class
 
         End Sub
 
-        <WorkItem(544454, "DevDiv")>
+        <WorkItem(544454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544454")>
         <Fact()>
         Public Sub InterfaceImplementedWithPrivateType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2221,7 +2221,7 @@ End Class
             CompilationUtils.CreateCompilationWithMscorlibAndReferences(c2Source, {MetadataReference.CreateFromImage(compilationImage)}).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(792711, "DevDiv")>
+        <WorkItem(792711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792711")>
         <Fact>
         Public Sub Repro792711()
             Dim source =
@@ -2242,8 +2242,8 @@ End Class
             Assert.Equal(TypeKind.Class, derived.TypeKind)
         End Sub
 
-        <WorkItem(862536, "DevDiv")>
-        <Fact(Skip:="862536")>
+        <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
+        <Fact>
         Public Sub Repro862536()
             Dim source =
                 <compilation>
@@ -2272,8 +2272,8 @@ BC30296: Interface 'A(Of T).B(Of S).B(Of U)' cannot inherit from itself:
 ]]></errors>)
         End Sub
 
-        <WorkItem(862536, "DevDiv")>
-        <Fact(Skip:="862536")>
+        <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
+        <Fact>
         Public Sub ExpandingBaseInterface()
             Dim source =
                 <compilation>
@@ -2303,8 +2303,8 @@ Interface B : Inherits C(Of Integer).NotFound
             Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
         End Sub
 
-        <WorkItem(862536, "DevDiv")>
-        <Fact(Skip:="862536")>
+        <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
+        <Fact>
         Public Sub ExpandingBaseInterfaceChain()
             Dim source =
                 <compilation>
@@ -2338,8 +2338,8 @@ Interface B : Inherits C(Of Integer).NotFound
             Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
         End Sub
 
-        <WorkItem(862536, "DevDiv")>
-        <Fact(Skip:="862536")>
+        <WorkItem(862536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862536")>
+        <Fact>
         Public Sub ExpandingBaseClass()
             Dim source =
                 <compilation>
@@ -2368,42 +2368,7 @@ Class B : Inherits C(Of Integer).NotFound
             Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
         End Sub
 
-        <WorkItem(862536, "DevDiv")>
-        <Fact(Skip:="862536")>
-        Public Sub ExpandingBaseClassChain()
-            Dim source =
-                <compilation>
-                    <file name="a.vb">
-Class C(Of T) : Inherits D(Of C(Of T))
-End Class
-
-Class D(Of T) : Inherits C(Of D(Of T))
-End Class
-
-Class B : Inherits C(Of Integer).NotFound
-End Class
-    </file>
-                </compilation>
-
-            ' Can't find NotFound in C(Of Integer), so we check the base type D(Of C(Of Integer)), etc.
-            Dim comp = CreateCompilationWithMscorlib(source)
-            comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC30296: Class 'C(Of T)' cannot inherit from itself: 
-    'C(Of T)' inherits from 'D(Of C(Of T))'.
-    'D(Of C(Of T))' inherits from 'C(Of T)'.
-Class C(Of T) : Inherits D(Of C(Of T))
-                         ~~~~~~~~~~~~~
-BC30002: Type 'C.NotFound' is not defined.
-Interface B : Inherits C(Of Integer).NotFound
-                       ~~~~~~~~~~~~~~~~~~~~~~
-]]></errors>)
-
-            Dim model = comp.GetSemanticModel(comp.SyntaxTrees.Single())
-            Dim typeC = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").Construct(comp.GetSpecialType(SpecialType.System_Int32))
-            Assert.Equal(0, model.LookupSymbols(0, typeC, "NotFound").Length)
-        End Sub
-
-        <WorkItem(1036374)>
+        <WorkItem(1036374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036374")>
         <Fact()>
         Public Sub InterfaceCircularInheritance_01()
             Dim source =
@@ -2432,7 +2397,7 @@ BC30296: Interface 'A(Of T)' cannot inherit from itself:
 ]]></errors>)
         End Sub
 
-        <WorkItem(1036374)>
+        <WorkItem(1036374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036374")>
         <Fact()>
         Public Sub InterfaceCircularInheritance_02()
             Dim source =

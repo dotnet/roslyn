@@ -12,25 +12,25 @@ namespace Roslyn.Utilities
     internal sealed class WeakList<T> : IEnumerable<T>
         where T : class
     {
-        private WeakReference<T>[] items;
-        private int size;
+        private WeakReference<T>[] _items;
+        private int _size;
 
         public WeakList()
         {
-            items = SpecializedCollections.EmptyArray<WeakReference<T>>();
+            _items = SpecializedCollections.EmptyArray<WeakReference<T>>();
         }
 
         private void Resize()
         {
-            Debug.Assert(size == items.Length);
-            Debug.Assert(items.Length == 0 || items.Length >= MinimalNonEmptySize);
+            Debug.Assert(_size == _items.Length);
+            Debug.Assert(_items.Length == 0 || _items.Length >= MinimalNonEmptySize);
 
-            int alive = items.Length;
+            int alive = _items.Length;
             int firstDead = -1;
-            for (int i = 0; i < items.Length; i++)
+            for (int i = 0; i < _items.Length; i++)
             {
                 T target;
-                if (!items[i].TryGetTarget(out target))
+                if (!_items[i].TryGetTarget(out target))
                 {
                     if (firstDead == -1)
                     {
@@ -41,17 +41,17 @@ namespace Roslyn.Utilities
                 }
             }
 
-            if (alive < items.Length / 4)
+            if (alive < _items.Length / 4)
             {
                 // If we have just a few items left we shrink the array.
                 // We avoid expanding the array until the number of new items added exceeds half of its capacity.
                 Shrink(firstDead, alive);
             }
-            else if (alive >= 3 * items.Length / 4)
+            else if (alive >= 3 * _items.Length / 4)
             {
                 // If we have a lot of items alive we expand the array since just compacting them 
                 // wouldn't free up much space (we would end up calling Resize again after adding a few more items).
-                var newItems = new WeakReference<T>[GetExpandedSize(items.Length)];
+                var newItems = new WeakReference<T>[GetExpandedSize(_items.Length)];
 
                 if (firstDead >= 0)
                 {
@@ -59,28 +59,28 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    Array.Copy(items, 0, newItems, 0, items.Length);
-                    Debug.Assert(size == items.Length);
+                    Array.Copy(_items, 0, newItems, 0, _items.Length);
+                    Debug.Assert(_size == _items.Length);
                 }
 
-                items = newItems;
+                _items = newItems;
             }
             else
             {
                 // Compact in-place to make space for new items at the end.
                 // We will free up to length/4 slots in the array.
-                Compact(firstDead, items);
+                Compact(firstDead, _items);
             }
 
-            Debug.Assert(items.Length > 0 && size < 3 * items.Length / 4, "length: " + items.Length + " size: " + size);
+            Debug.Assert(_items.Length > 0 && _size < 3 * _items.Length / 4, "length: " + _items.Length + " size: " + _size);
         }
 
         private void Shrink(int firstDead, int alive)
         {
             int newSize = GetExpandedSize(alive);
-            var newItems = (newSize == items.Length) ? items : new WeakReference<T>[newSize];
+            var newItems = (newSize == _items.Length) ? _items : new WeakReference<T>[newSize];
             Compact(firstDead, newItems);
-            items = newItems;
+            _items = newItems;
         }
 
         private const int MinimalNonEmptySize = 4;
@@ -91,23 +91,23 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Copies all live references from <see cref="items"/> to <paramref name="result"/>.
+        /// Copies all live references from <see cref="_items"/> to <paramref name="result"/>.
         /// Assumes that all references prior <paramref name="firstDead"/> are alive.
         /// </summary>
         private void Compact(int firstDead, WeakReference<T>[] result)
         {
-            Debug.Assert(items[firstDead].IsNull());
+            Debug.Assert(_items[firstDead].IsNull());
 
-            if (!ReferenceEquals(items, result))
+            if (!ReferenceEquals(_items, result))
             {
-                Array.Copy(items, 0, result, 0, firstDead);
+                Array.Copy(_items, 0, result, 0, firstDead);
             }
 
-            int oldSize = size;
+            int oldSize = _size;
             int j = firstDead;
             for (int i = firstDead + 1; i < oldSize; i++)
             {
-                var item = items[i];
+                var item = _items[i];
 
                 T target;
                 if (item.TryGetTarget(out target))
@@ -116,14 +116,14 @@ namespace Roslyn.Utilities
                 }
             }
 
-            size = j;
+            _size = j;
 
             // free WeakReferences
-            if (ReferenceEquals(items, result))
+            if (ReferenceEquals(_items, result))
             {
                 while (j < oldSize)
                 {
-                    items[j++] = null;
+                    _items[j++] = null;
                 }
             }
         }
@@ -134,40 +134,40 @@ namespace Roslyn.Utilities
         /// </summary>
         public int WeakCount
         {
-            get { return size; }
+            get { return _size; }
         }
 
         public WeakReference<T> GetWeakReference(int index)
         {
-            if (index < 0 || index >= size)
+            if (index < 0 || index >= _size)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            return items[index];
+            return _items[index];
         }
 
         public void Add(T item)
         {
-            if (size == items.Length)
+            if (_size == _items.Length)
             {
                 Resize();
             }
 
-            Debug.Assert(size < items.Length);
-            items[size++] = new WeakReference<T>(item);
+            Debug.Assert(_size < _items.Length);
+            _items[_size++] = new WeakReference<T>(item);
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            int count = size;
-            int alive = size;
+            int count = _size;
+            int alive = _size;
             int firstDead = -1;
 
             for (int i = 0; i < count; i++)
             {
                 T item;
-                if (items[i].TryGetTarget(out item))
+                if (_items[i].TryGetTarget(out item))
                 {
                     yield return item;
                 }
@@ -186,10 +186,10 @@ namespace Roslyn.Utilities
 
             if (alive == 0)
             {
-                items = SpecializedCollections.EmptyArray<WeakReference<T>>();
-                size = 0;
+                _items = SpecializedCollections.EmptyArray<WeakReference<T>>();
+                _size = 0;
             }
-            else if (alive < items.Length / 4)
+            else if (alive < _items.Length / 4)
             {
                 // If we have just a few items left we shrink the array.
                 Shrink(firstDead, alive);
@@ -201,6 +201,6 @@ namespace Roslyn.Utilities
             return GetEnumerator();
         }
 
-        internal WeakReference<T>[] TestOnly_UnderlyingArray { get { return items; } }
+        internal WeakReference<T>[] TestOnly_UnderlyingArray { get { return _items; } }
     }
 }

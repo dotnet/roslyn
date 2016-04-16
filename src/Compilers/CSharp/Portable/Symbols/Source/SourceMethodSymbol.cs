@@ -50,32 +50,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualBit = 1 << 29;
             private const int IsMetadataVirtualLockedBit = 1 << 30;
 
-            private int flags;
+            private int _flags;
 
             public bool ReturnsVoid
             {
-                get { return (this.flags & ReturnsVoidBit) != 0; }
-                set { this.flags = value ? (this.flags | ReturnsVoidBit) : (this.flags & ~ReturnsVoidBit); }
+                get { return (_flags & ReturnsVoidBit) != 0; }
+                set { _flags = value ? (_flags | ReturnsVoidBit) : (_flags & ~ReturnsVoidBit); }
             }
 
             public MethodKind MethodKind
             {
-                get { return (MethodKind)((this.flags >> MethodKindOffset) & MethodKindMask); }
+                get { return (MethodKind)((_flags >> MethodKindOffset) & MethodKindMask); }
             }
 
             public bool IsExtensionMethod
             {
-                get { return (this.flags & IsExtensionMethodBit) != 0; }
+                get { return (_flags & IsExtensionMethodBit) != 0; }
             }
 
             public bool IsMetadataVirtualLocked
             {
-                get { return (this.flags & IsMetadataVirtualLockedBit) != 0; }
+                get { return (_flags & IsMetadataVirtualLockedBit) != 0; }
             }
 
             public DeclarationModifiers DeclarationModifiers
             {
-                get { return (DeclarationModifiers)((this.flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
+                get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
             }
 
 #if DEBUG
@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
-                int returnsVoidInt = returnsVoid ? ReturnsVoidBit: 0;
+                int returnsVoidInt = returnsVoid ? ReturnsVoidBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
-                this.flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
@@ -127,15 +127,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This flag is immutable, so there's no reason to set a lock bit, as we do below.
                 if (ignoreInterfaceImplementationChanges)
                 {
-                    return (this.flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
+                    return (_flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
                 }
 
                 if (!IsMetadataVirtualLocked)
                 {
-                    ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualLockedBit);
+                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualLockedBit);
                 }
 
-                return (this.flags & IsMetadataVirtualBit) != 0;
+                return (_flags & IsMetadataVirtualBit) != 0;
             }
 
             public void EnsureMetadataVirtual()
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
                 // reflect the final, emitted modifier.
                 Debug.Assert(!IsMetadataVirtualLocked);
-                if ((this.flags & IsMetadataVirtualBit) == 0)
+                if ((_flags & IsMetadataVirtualBit) == 0)
                 {
-                    ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualBit);
+                    ThreadSafeFlagOperations.Set(ref _flags, IsMetadataVirtualBit);
                 }
             }
         }
@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected Flags flags;
 
-        private readonly NamedTypeSymbol containingType;
-        private ParameterSymbol lazyThisParameter;
-        private TypeSymbol iteratorElementType;
+        private readonly NamedTypeSymbol _containingType;
+        private ParameterSymbol _lazyThisParameter;
+        private TypeSymbol _iteratorElementType;
 
-        private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
-        private CustomAttributesBag<CSharpAttributeData> lazyReturnTypeCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
-        private OverriddenOrHiddenMembersResult lazyOverriddenOrHiddenMembers;
+        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
@@ -178,17 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //null if has never been computed. Initial binding diagnostics
         //are stashed here in service of API usage patterns
         //where method body diagnostics are requested multiple times.
-        private ImmutableArray<Diagnostic> cachedDiagnostics;
+        private ImmutableArray<Diagnostic> _cachedDiagnostics;
         internal ImmutableArray<Diagnostic> Diagnostics
         {
-            get { return cachedDiagnostics; }
+            get { return _cachedDiagnostics; }
         }
 
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
         {
             //return the diagnostics that were actually saved in the event that there were two threads racing. 
-            diagsWritten = ImmutableInterlocked.InterlockedInitialize(ref cachedDiagnostics, newSet);
-            return cachedDiagnostics;
+            diagsWritten = ImmutableInterlocked.InterlockedInitialize(ref _cachedDiagnostics, newSet);
+            return _cachedDiagnostics;
         }
 
         protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
-            this.containingType = containingType;
+            _containingType = containingType;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         try
                         {
                             MethodChecks(diagnostics);
-                            AddSemanticDiagnostics(diagnostics);
+                            AddDeclarationDiagnostics(diagnostics);
                         }
                         finally
                         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -569,11 +569,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
-        }
-
         /// <summary>
         /// Overridden by <see cref="SourceMemberMethodSymbol"/>, 
         /// which might return locations of partial methods.
@@ -627,14 +622,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            thisParameter = lazyThisParameter;
+            thisParameter = _lazyThisParameter;
             if ((object)thisParameter != null || IsStatic)
             {
                 return true;
             }
 
-            Interlocked.CompareExchange(ref lazyThisParameter, new ThisParameterSymbol(this), null);
-            thisParameter = lazyThisParameter;
+            Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
+            thisParameter = _lazyThisParameter;
             return true;
         }
 
@@ -642,12 +637,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return iteratorElementType;
+                return _iteratorElementType;
             }
             set
             {
-                Debug.Assert((object)iteratorElementType == null || iteratorElementType == value);
-                Interlocked.CompareExchange(ref iteratorElementType, value, null);
+                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
+                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
             }
         }
 
@@ -665,12 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 this.LazyMethodChecks();
-                if (this.lazyOverriddenOrHiddenMembers == null)
+                if (_lazyOverriddenOrHiddenMembers == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
+                    Interlocked.CompareExchange(ref _lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
                 }
 
-                return this.lazyOverriddenOrHiddenMembers;
+                return _lazyOverriddenOrHiddenMembers;
             }
         }
 
@@ -807,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the syntax list of custom attributes that declares atributes for this method symbol.
+        /// Gets the syntax list of custom attributes that declares attributes for this method symbol.
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
@@ -815,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the syntax list of custom attributes that declares atributes for return type of this method.
+        /// Gets the syntax list of custom attributes that declares attributes for return type of this method.
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
         {
@@ -832,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonMethodEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -849,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -866,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonReturnTypeWellKnownAttributeData GetDecodedReturnTypeWellKnownAttributeData()
         {
-            var attributesBag = this.lazyReturnTypeCustomAttributesBag;
+            var attributesBag = _lazyReturnTypeCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetReturnTypeAttributesBag();
@@ -883,13 +878,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            var bag = this.lazyCustomAttributesBag;
+            var bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
             }
 
-            return GetAttributesBag(ref lazyCustomAttributesBag, forReturnType: false);
+            return GetAttributesBag(ref _lazyCustomAttributesBag, forReturnType: false);
         }
 
         /// <summary>
@@ -900,13 +895,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetReturnTypeAttributesBag()
         {
-            var bag = this.lazyReturnTypeCustomAttributesBag;
+            var bag = _lazyReturnTypeCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
             }
 
-            return GetAttributesBag(ref lazyReturnTypeCustomAttributesBag, forReturnType: true);
+            return GetAttributesBag(ref _lazyReturnTypeCustomAttributesBag, forReturnType: true);
         }
 
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag(ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag, bool forReturnType)
@@ -988,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return null;
                 }
-                else 
+                else
                 {
                     CSharpAttributeData boundAttribute;
                     ObsoleteAttributeData obsoleteData;
@@ -1000,9 +995,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                         }
 
-                            return boundAttribute;
-                        }
+                        return boundAttribute;
                     }
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -1022,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var lazyCustomAttributesBag = this.lazyCustomAttributesBag;
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonMethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
@@ -1130,10 +1125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AttributeDescription description)
         {
             if (arguments.Attribute.IsTargetAttribute(this, description))
-        {
-            if (this.IsAccessor())
             {
-                // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
+                if (this.IsAccessor())
+                {
+                    // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
                     AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
                     arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                 }
@@ -1238,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
-            if (this.IsGenericMethod || (object)containingType != null && containingType.IsGenericType)
+            if (this.IsGenericMethod || (object)_containingType != null && _containingType.IsGenericType)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -1347,10 +1342,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (symbolPart != AttributeLocation.Return)
             {
-                Debug.Assert(this.lazyCustomAttributesBag != null);
-                Debug.Assert(this.lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
+                Debug.Assert(_lazyCustomAttributesBag != null);
+                Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
 
-                if (this.containingType.IsComImport && this.containingType.TypeKind == TypeKind.Class)
+                if (_containingType.IsComImport && _containingType.TypeKind == TypeKind.Class)
                 {
                     switch (this.MethodKind)
                     {
@@ -1368,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (!this.IsAbstract && !this.IsExtern)
                             {
                                 // CS0423: Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract
-                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, this.containingType);
+                                diagnostics.Add(ErrorCode.ERR_ComImportWithImpl, this.Locations[0], this, _containingType);
                             }
 
                             break;
@@ -1518,6 +1513,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
                 }
+
+                if (this.IsAsync)
+                {
+                    // Async kick-off method calls MoveNext, which contains user code. 
+                    // This means we need to emit DebuggerStepThroughAttribute in order
+                    // to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                }
             }
         }
 
@@ -1525,9 +1528,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody( Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
         {
-            if (containingType.IsInterface)
+            if (_containingType.IsInterface)
             {
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
             }

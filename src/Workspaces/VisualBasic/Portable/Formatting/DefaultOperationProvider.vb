@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
+        Public Sub AddSuppressOperations(operations As List(Of SuppressOperation), node As SyntaxNode, lastToken As SyntaxToken, optionSet As OptionSet, nextAction As NextAction(Of SuppressOperation)) Implements IFormattingRule.AddSuppressOperations
         End Sub
 
         Public Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AnchorIndentationOperation)) Implements IFormattingRule.AddAnchorIndentationOperations
@@ -52,8 +52,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
             End If
 
-            Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
-            If attributeNode IsNot Nothing AndAlso previousToken.Kind = SyntaxKind.GreaterThanToken Then
+            If previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
+
+                ' This AttributeList is the last applied attribute
+                ' If this AttributeList belongs to a parameter then apply no line operation
+                If previousToken.Parent.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent.Parent Is ParameterSyntax Then
+                    Return Nothing
+                End If
+
+                Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
+            End If
+
+            If currentToken.Kind = SyntaxKind.LessThanToken AndAlso currentToken.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent Is AttributeListSyntax Then
+
+                ' The case of the previousToken belonging to another AttributeList is handled in the previous condition
+                If (previousToken.Kind = SyntaxKind.CommaToken OrElse previousToken.Kind = SyntaxKind.OpenParenToken) AndAlso
+                   currentToken.Parent.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent.Parent Is ParameterSyntax Then
+                    Return Nothing
+                End If
+
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 

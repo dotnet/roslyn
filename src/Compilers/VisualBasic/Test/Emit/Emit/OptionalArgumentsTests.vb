@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class OptionalArgumentsTests
         Inherits BasicTestBase
 
-        Dim librarySource As XElement =
+        Private ReadOnly _librarySource As XElement =
             <compilation>
                 <file name="library.vb">
                     <![CDATA[
@@ -154,9 +154,9 @@ End Module
 ]]></file>
             </compilation>
 
-        Dim classLibrary As MetadataReference = CreateHelperLibrary(librarySource.Value)
+        Private ReadOnly _classLibrary As MetadataReference = CreateHelperLibrary(_librarySource.Value)
 
-        Function CreateHelperLibrary(source As String) As MetadataReference
+        Public Function CreateHelperLibrary(source As String) As MetadataReference
             Dim libraryCompilation = VisualBasicCompilation.Create("library",
                                                         {VisualBasicSyntaxTree.ParseText(source)},
                                                         {MsvbRef, MscorlibRef, SystemCoreRef},
@@ -192,7 +192,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1
 Member: OptionalArg
@@ -228,7 +228,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.Int32, Name=i, Optional=True, DefaultValue=System.Reflection.Missing
@@ -265,7 +265,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = hello world
 Member: OptionalArg
@@ -303,7 +303,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 1/26/2012 12:00:00 AM
 Member: OptionalArg
@@ -342,7 +342,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 i = 999.99
 Member: OptionalArg
@@ -351,7 +351,7 @@ Attribute: System.Runtime.CompilerServices.DecimalConstantAttribute(999.99)
 ]]>)
         End Sub
 
-        <WorkItem(543530, "DevDiv")>
+        <WorkItem(543530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543530")>
         <Fact()>
         Public Sub OptionalForConstructorofAttribute()
             Dim source =
@@ -387,7 +387,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:="Nothing;Nothing;C1;")
         End Sub
 
@@ -421,7 +421,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=False, DefaultValue=1/26/2012 12:00:00 AM
@@ -458,7 +458,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: OptionalArg
 Parameter: Type=System.DateTime, Name=i, Optional=True, DefaultValue=1/26/2012 12:00:00 AM
@@ -481,7 +481,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)"))
         End Sub
 
@@ -507,7 +507,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
    1/26/2012 12:00:00 AM
 ]]>)
@@ -538,7 +538,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
    999.99
 ]]>)
@@ -566,7 +566,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 1/1/0001 12:00:00 AM
 ]]>)
@@ -651,7 +651,7 @@ End Module
 </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 True
 True
@@ -684,7 +684,7 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotDeclared1, "p").WithArguments("p"))
         End Sub
 
@@ -728,7 +728,7 @@ End Interface
             Return attributes.Where(Function(a) a.AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesMetadata()
             Dim ilSource = <![CDATA[
@@ -831,7 +831,7 @@ System.Decimal: 3
 ]]>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues()
             Dim source1 =
@@ -955,7 +955,7 @@ BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(
 ]]>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesSameValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1009,7 +1009,7 @@ End Class
             End If
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1097,7 +1097,7 @@ Delegate Sub D(<DateTimeConstant(1), DefaultParameterValue(2)> o As DateTime)
 ]]></errors>)
         End Sub
 
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_PartialMethods()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1140,7 +1140,7 @@ BC37226: The parameter has multiple distinct default values.
         ''' <summary>
         ''' Should not report differences if either value is bad.
         ''' </summary>
-        <WorkItem(529684, "DevDiv")>
+        <WorkItem(529684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529684")>
         <Fact()>
         Public Sub TestDuplicateConstantAttributesDifferentValues_BadValue()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1186,16 +1186,16 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
    0
 False
 ]]>)
         End Sub
 
-        <WorkItem(543076, "DevDiv")>
+        <WorkItem(543076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543076")>
         <Fact()>
         Public Sub TestPropertyIntegerOptionalDouble()
             Dim source =
@@ -1215,7 +1215,7 @@ End Module
 ]]></file>
 </compilation>
             CompileAndVerify(source,
-                             additionalRefs:={classLibrary},
+                             additionalRefs:={_classLibrary},
                              expectedOutput:=<![CDATA[
 Member: get_PropertyIntegerOptionalDouble
 Parameter: Type=System.Int32, Name=i, Optional=False, DefaultValue=
@@ -1223,7 +1223,7 @@ Parameter: Type=System.Double, Name=j, Optional=True, DefaultValue=100
 ]]>)
         End Sub
 
-        <WorkItem(543093, "DevDiv")>
+        <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
         <Fact()>
         Public Sub TestIntegerWithDateTimeOptionalValue()
             Dim source =
@@ -1239,11 +1239,11 @@ End Module
     </file>
 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "IntegerWithDateTimeOptionalValue()").WithArguments("Date", "Integer"))
         End Sub
 
-        <WorkItem(543093, "DevDiv")>
+        <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
         <Fact()>
         Public Sub TestStringWithOptionalDateTimeValue()
             ' Error when option strict is on
@@ -1267,7 +1267,7 @@ End Module
                         </file>
                     </compilation>
 
-                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
                 Dim diag = expectedDiagnostics(i)
                 If diag IsNot Nothing Then
                     comp.VerifyDiagnostics(diag)
@@ -1278,7 +1278,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543139, "DevDiv")>
+        <WorkItem(543139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543139")>
         <Fact()>
         Public Sub TestOverrideOptionalArgumentFromMetadata()
             Dim source =
@@ -1298,17 +1298,17 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        <WorkItem(543227, "DevDiv")>
+        <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
         <Fact()>
-        Public Sub TestMultpleEnumDefaultValuesFromMetadata()
+        Public Sub TestMultipleEnumDefaultValuesFromMetadata()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1322,10 +1322,10 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={classLibrary})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
             comp.VerifyDiagnostics()
             CompileAndVerify(source,
-                 additionalRefs:={classLibrary},
+                 additionalRefs:={_classLibrary},
                  expectedOutput:=<![CDATA[
 Member: TestWithMultipleOptionalEnumValues
 Parameter: Type=Library+Animal, Name=e1, Optional=True, DefaultValue=Dog

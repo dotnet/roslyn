@@ -17,25 +17,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A map from Operator name to number of parameters and kind.
         ''' </summary>
-        Private Shared ReadOnly OperatorNames As Dictionary(Of String, OperatorInfo)
+        Private Shared ReadOnly s_operatorNames As Dictionary(Of String, OperatorInfo)
 
         ''' <summary>
         ''' Operator kind and expected number of parameters.
         ''' </summary>
         Friend Structure OperatorInfo
-            Private ReadOnly m_Id As Integer
+            Private ReadOnly _Id As Integer
 
             Public Sub New(op As UnaryOperatorKind)
-                m_Id = (1 Or (op << 2))
+                _Id = (1 Or (op << 2))
             End Sub
 
             Public Sub New(op As BinaryOperatorKind)
-                m_Id = (2 Or (op << 2))
+                _Id = (2 Or (op << 2))
             End Sub
 
             Public ReadOnly Property ParamCount As Integer
                 Get
-                    Return (m_Id And 3)
+                    Return (_Id And 3)
                 End Get
             End Property
 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return UnaryOperatorKind.Error
                     End If
 
-                    Return CType(m_Id >> 2, UnaryOperatorKind)
+                    Return CType(_Id >> 2, UnaryOperatorKind)
                 End Get
             End Property
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return BinaryOperatorKind.Error
                     End If
 
-                    Return CType(m_Id >> 2, BinaryOperatorKind)
+                    Return CType(_Id >> 2, BinaryOperatorKind)
                 End Get
             End Property
         End Structure
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GetOperatorInfo(name As String) As OperatorInfo
             Dim result As OperatorInfo = Nothing
 
-            If name.Length > 3 AndAlso IdentifierComparison.Equals("op_", name.Substring(0, 3)) AndAlso OperatorNames.TryGetValue(name, result) Then
+            If name.Length > 3 AndAlso IdentifierComparison.Equals("op_", name.Substring(0, 3)) AndAlso s_operatorNames.TryGetValue(name, result) Then
                 Return result
             End If
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             operators.Add(WellKnownMemberNames.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
             operators.Add(WellKnownMemberNames.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
 
-            OperatorNames = operators
+            s_operatorNames = operators
         End Sub
 
         Friend Shared Function GetOperatorTokenKind(name As String) As SyntaxKind
@@ -866,9 +866,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Filter out unexpected underlying types for Nullable and enum types
             If ((leftIsEnum OrElse leftIsNullable) AndAlso
-                (leftEnumUnderlying.IsStringType() OrElse leftEnumUnderlying.IsObjectType() OrElse leftEnumUnderlying.IsCharArrayRankOne())) OrElse
+                (leftEnumUnderlying.IsStringType() OrElse leftEnumUnderlying.IsObjectType() OrElse leftEnumUnderlying.IsCharSZArray())) OrElse
                ((rightIsEnum OrElse rightIsNullable) AndAlso
-                (rightEnumUnderlying.IsStringType() OrElse rightEnumUnderlying.IsObjectType() OrElse rightEnumUnderlying.IsCharArrayRankOne())) Then
+                (rightEnumUnderlying.IsStringType() OrElse rightEnumUnderlying.IsObjectType() OrElse rightEnumUnderlying.IsCharSZArray())) Then
                 Return BinaryOperatorKind.Error
             End If
 
@@ -937,11 +937,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Operands of type 1-dimensional array of Char are treated as if they
                 ' were of type String.
-                If leftSpecialType = SpecialType.None AndAlso leftEnumUnderlying.IsCharArrayRankOne() Then
+                If leftSpecialType = SpecialType.None AndAlso leftEnumUnderlying.IsCharSZArray() Then
                     leftSpecialType = SpecialType.System_String
                 End If
 
-                If rightSpecialType = SpecialType.None AndAlso rightEnumUnderlying.IsCharArrayRankOne() Then
+                If rightSpecialType = SpecialType.None AndAlso rightEnumUnderlying.IsCharSZArray() Then
                     rightSpecialType = SpecialType.System_String
                 End If
 
@@ -974,10 +974,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' were of type String.
             If (leftEnumUnderlying.SpecialType <> SpecialType.System_Object AndAlso
                    Not leftEnumUnderlying.IsIntrinsicType() AndAlso
-                   Not leftEnumUnderlying.IsCharArrayRankOne()) OrElse
+                   Not leftEnumUnderlying.IsCharSZArray()) OrElse
                (rightEnumUnderlying.SpecialType <> SpecialType.System_Object AndAlso
                    Not rightEnumUnderlying.IsIntrinsicType() AndAlso
-                   Not rightEnumUnderlying.IsCharArrayRankOne()) OrElse
+                   Not rightEnumUnderlying.IsCharSZArray()) OrElse
                (leftEnumUnderlying.IsDateTimeType() AndAlso rightEnumUnderlying.IsDateTimeType() AndAlso
                    opCode = BinaryOperatorKind.Subtract) Then ' Let (Date - Date) use operator overloading.
                 Return True
@@ -1933,12 +1933,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' is no most specific narrowing conversion, then the conversion is undefined and a compile-time error occurs.
             ' When collecting the candidate user-defined conversions for a type T?, the user-defined conversion operators
             ' defined by T are used instead. If the type being converted to is also a nullable value type, then any of
-            ' T’s user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
+            ' T's user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
             ' operator from T to S is lifted to be a conversion from T? to S? 
             '
             ' !!! Dev10 implementation doesn't match the spec here (the behavior is duplicated):
             ' !!! 1) If there were applicable Widening CType operators applicable according to the
-            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType opeartors are not considered at all.
+            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType operators are not considered at all.
             ' !!!    Nullable lifting isn't considered too.
             ' !!! 2) With "Most Specific Narrowing Conversion" behavior is slightly different. If there is a conversion
             ' !!!    operator that converts from the most specific source type to the most specific target type, then
@@ -1954,7 +1954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conversionKinds = ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)).GetInstance()
             conversionKinds.ZeroInit(opSet.Count)
 
-            Dim applicable = BitArray.Create(opSet.Count)
+            Dim applicable = BitVector.Create(opSet.Count)
             Dim bestMatch As MethodSymbol = Nothing
 
             If DetermineMostSpecificWideningConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteDiagnostics:=useSiteDiagnostics) Then
@@ -1988,7 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not (sourceUnderlying.IsErrorType() OrElse destinationUnderlying.IsErrorType()) Then
                     ' All candidates applicable to the underlying types should be applicable to the original types, no reason to 
-                    ' do viability checks for the secont time.
+                    ' do viability checks for the second time.
 
                     If DetermineMostSpecificWideningConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteDiagnostics:=useSiteDiagnostics) Then
                         If bestMatch IsNot Nothing Then
@@ -2026,7 +2026,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2078,12 +2078,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim viableCandidates As Integer = 0
@@ -2248,7 +2248,7 @@ Done:
 
         Private Shared Function ChooseMostSpecificConversionOperator(
             opSet As ArrayBuilder(Of MethodSymbol),
-            applicable As BitArray,
+            applicable As BitVector,
             mostSpecificSourceType As TypeSymbol,
             mostSpecificTargetType As TypeSymbol,
             <Out()> ByRef bestMatchIsAmbiguous As Boolean
@@ -2338,11 +2338,11 @@ Done:
             End If
 
             ' Ignore user defined conversions between types that already have intrinsic conversions.
-            ' This could happen for generics after generic param substituion.
+            ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
-                Dim useSiteDiagnoctics As HashSet(Of DiagnosticInfo) = Nothing
-                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnoctics)) OrElse
-                   Not useSiteDiagnoctics.IsNullOrEmpty Then
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse
+                   Not useSiteDiagnostics.IsNullOrEmpty Then
                     Return False
                 End If
             End If
@@ -2360,7 +2360,7 @@ Done:
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
             conversionKinds As ArrayBuilder(Of KeyValuePair(Of ConversionKind, ConversionKind)),
-            <[In]()> ByRef applicable As BitArray,
+            <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
@@ -2419,12 +2419,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim haveWideningInConversions As Integer = 0
@@ -2522,8 +2522,8 @@ Done:
                             ' Note that {Narrowing in, Widening (non-identity) out} operator is not considered as an applicable candidate.
                             ' In fact, an operator like this cannot exist unless nullable in/out conversions are involved.
                             ' Basically we would be dealing with an operator that converts from type derived from source to type derived from destination,
-                            ' it would have to be difined in one of those types. When we collect operators we only visit source, destination and their
-                            ' bases. So, in order for such an operator to be found, there must be an inheritense relationship between source and
+                            ' it would have to be defined in one of those types. When we collect operators we only visit source, destination and their
+                            ' bases. So, in order for such an operator to be found, there must be an inheritance relationship between source and
                             ' destination and the operator must be defined in a type that is in between of them in the inheritance hierarchy. Thus,
                             ' there would be an inheritance relationship between parameter type ant return type of the operator, which makes the operator
                             ' inapplicable - there would be a predefined conversion between the types.
@@ -2662,7 +2662,7 @@ Done:
         ''' The most encompassed type in a set of types is the one type that is encompassed
         ''' by all other types in the set. If no single type is encompassed by all other types,
         ''' then the set has no most encompassed type. In intuitive terms, the most encompassed
-        ''' type is the “smallest” type in the set—the one type that can be converted from each
+        ''' type is the "smallest" type in the set—the one type that can be converted from each
         ''' of the other types through a narrowing conversion.
         ''' </summary>
         Private Shared Function MostEncompassed(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
@@ -2707,7 +2707,7 @@ Next_i:
         ''' The most encompassing type in a set of types is the one type that encompasses
         ''' all other types in the set. If no single type encompasses all other types, then
         ''' the set has no most encompassing type. In intuitive terms, the most encompassing
-        ''' type is the “largest” type in the set—the one type to which each of the other
+        ''' type is the "largest" type in the set—the one type to which each of the other
         ''' types can be converted through a widening conversion.
         ''' </summary>
         Private Shared Function MostEncompassing(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
@@ -2785,11 +2785,11 @@ Next_i:
             Dim result As Integer = 0
             Dim definition As MethodSymbol = method.OriginalDefinition
 
-            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.Parameters(0).Type, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
-            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitArray.Null) <> TypeParameterKind.None Then
+            If DetectReferencesToGenericParameters(definition.ReturnType, TypeParameterKind.Type, BitVector.Null) <> TypeParameterKind.None Then
                 result += 1
             End If
 
@@ -2893,7 +2893,7 @@ Next_i:
         End Sub
 
         ''' <summary>
-        ''' Returns True if we should stop climbing inheritence hierarchy.
+        ''' Returns True if we should stop climbing inheritance hierarchy.
         ''' </summary>
         Private Shared Function CollectUserDefinedOperators(
             type As TypeSymbol,
@@ -3239,7 +3239,7 @@ Next_i:
                                                                            ImmutableArray.Create(Of BoundExpression)(argument1, argument2)),
                                                                         Nothing, Nothing, lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
-                                                                        callerInfoOpt:=Nothing,
+                                                                        callerInfoOpt:=Nothing, forceExpandedForm:=False,
                                                                         useSiteDiagnostics:=useSiteDiagnostics)
             candidates.Free()
 
@@ -3269,35 +3269,35 @@ Next_i:
         Private NotInheritable Class LiftedParameterSymbol
             Inherits ParameterSymbol
 
-            Private ReadOnly m_ParameterToLift As ParameterSymbol
-            Private ReadOnly m_Type As TypeSymbol
+            Private ReadOnly _parameterToLift As ParameterSymbol
+            Private ReadOnly _type As TypeSymbol
 
             Public Sub New(parameter As ParameterSymbol, type As TypeSymbol)
                 Debug.Assert(parameter.IsDefinition)
                 Debug.Assert(type.IsNullableType())
-                m_ParameterToLift = parameter
-                m_Type = type
+                _parameterToLift = parameter
+                _type = type
             End Sub
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return m_ParameterToLift.Name
+                    Return _parameterToLift.Name
                 End Get
             End Property
 
             Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-                Return m_ParameterToLift.GetUseSiteErrorInfo()
+                Return _parameterToLift.GetUseSiteErrorInfo()
             End Function
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return m_ParameterToLift.ContainingSymbol
+                    Return _parameterToLift.ContainingSymbol
                 End Get
             End Property
 
             Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return m_ParameterToLift.CustomModifiers
+                    Return _parameterToLift.CustomModifiers
                 End Get
             End Property
 
@@ -3309,98 +3309,98 @@ Next_i:
 
             Friend Overrides ReadOnly Property ExplicitDefaultConstantValue(inProgress As SymbolsInProgress(Of ParameterSymbol)) As ConstantValue
                 Get
-                    Return m_ParameterToLift.ExplicitDefaultConstantValue(inProgress)
+                    Return _parameterToLift.ExplicitDefaultConstantValue(inProgress)
                 End Get
             End Property
 
             Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
                 Get
-                    Return m_ParameterToLift.HasExplicitDefaultValue
+                    Return _parameterToLift.HasExplicitDefaultValue
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsByRef As Boolean
                 Get
-                    Return m_ParameterToLift.IsByRef
+                    Return _parameterToLift.IsByRef
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
                 Get
-                    Return m_ParameterToLift.IsExplicitByRef
+                    Return _parameterToLift.IsExplicitByRef
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsOptional As Boolean
                 Get
-                    Return m_ParameterToLift.IsOptional
+                    Return _parameterToLift.IsOptional
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsMetadataOut As Boolean
                 Get
-                    Return m_ParameterToLift.IsMetadataOut
+                    Return _parameterToLift.IsMetadataOut
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsMetadataIn As Boolean
                 Get
-                    Return m_ParameterToLift.IsMetadataIn
+                    Return _parameterToLift.IsMetadataIn
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
                 Get
-                    Return m_ParameterToLift.MarshallingInformation
+                    Return _parameterToLift.MarshallingInformation
                 End Get
             End Property
 
 
             Friend Overrides ReadOnly Property HasOptionCompare As Boolean
                 Get
-                    Return m_ParameterToLift.HasOptionCompare
+                    Return _parameterToLift.HasOptionCompare
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsIDispatchConstant As Boolean
                 Get
-                    Return m_ParameterToLift.IsIDispatchConstant
+                    Return _parameterToLift.IsIDispatchConstant
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsIUnknownConstant As Boolean
                 Get
-                    Return m_ParameterToLift.IsIUnknownConstant
+                    Return _parameterToLift.IsIUnknownConstant
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerLineNumber
+                    Return _parameterToLift.IsCallerLineNumber
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerMemberName
+                    Return _parameterToLift.IsCallerMemberName
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                 Get
-                    Return m_ParameterToLift.IsCallerFilePath
+                    Return _parameterToLift.IsCallerFilePath
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+            Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
                 Get
-                    Return m_ParameterToLift.HasByRefBeforeCustomModifiers
+                    Return _parameterToLift.CountOfCustomModifiersPrecedingByRef
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsParamArray As Boolean
                 Get
-                    Return m_ParameterToLift.IsParamArray
+                    Return _parameterToLift.IsParamArray
                 End Get
             End Property
 
@@ -3412,13 +3412,13 @@ Next_i:
 
             Public Overrides ReadOnly Property Ordinal As Integer
                 Get
-                    Return m_ParameterToLift.Ordinal
+                    Return _parameterToLift.Ordinal
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Type As TypeSymbol
                 Get
-                    Return m_Type
+                    Return _type
                 End Get
             End Property
         End Class

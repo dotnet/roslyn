@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Module ScannerStateExtensions
+    Friend Module ScannerStateExtensions
         <Extension()>
         Friend Function IsVBState(state As ScannerState) As Boolean
             Return state <= ScannerState.VBAllowLeadingMultilineTrivia
@@ -287,13 +287,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             prevToken = tk
             _currentToken = New ScannerToken(_scannerPreprocessorState, _lineBufferOffset, _endOfTerminatorTrivia, Nothing, state)
 
-            Dim tList = triviaListPool.Allocate()
+            Dim tList = _triviaListPool.Allocate()
             ScanSingleLineTrivia(tList)
             Debug.Assert(tList.Count > 0)
             Dim lastTrivia = DirectCast(tList(tList.Count - 1), SyntaxTrivia)
             tList.RemoveLast()
             Dim precedingTrivia = MakeTriviaArray(tList)
-            triviaListPool.Free(tList)
+            _triviaListPool.Free(tList)
 
             Debug.Assert(lastTrivia.Kind = SyntaxKind.ColonTrivia)
             Debug.Assert(lastTrivia.Width = 1)
@@ -312,6 +312,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim tk = _prevToken.InnerTokenObject
             Debug.Assert(tk IsNot Nothing)
 
+            ' If _currentToken is EndOfXmlToken, then we've reached the end of an
+            ' XML document, possibly followed by multiline trivia. In that case, we
+            ' need to include any additional blank lines following the previous token.
+            Dim includeFollowingBlankLines = _currentToken.InnerTokenObject IsNot Nothing AndAlso
+                _currentToken.InnerTokenObject.Kind = SyntaxKind.EndOfXmlToken
+
             AbandonAllTokens()
             RevertState(_prevToken)
 
@@ -324,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _lineBufferOffset += offset
             _endOfTerminatorTrivia = _lineBufferOffset
 
-            toAdd = ScanSingleLineTrivia()
+            toAdd = ScanSingleLineTrivia(includeFollowingBlankLines)
 
             Dim state = ScannerState.VB
             tk = SyntaxToken.AddTrailingTrivia(tk, toAdd.Node)
@@ -574,7 +580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     token = Me.GetNextToken(allowLeadingMultilineTrivia:=False)
 
                 Case ScannerState.VBAllowLeadingMultilineTrivia
-                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not IsScanningDirective)
+                    token = Me.GetNextToken(allowLeadingMultilineTrivia:=Not _isScanningDirective)
 
                 Case ScannerState.Misc
                     token = Me.ScanXmlMisc()

@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol
         {
             /// <summary> Name to be used as metadata name during emit </summary>
-            private NameAndIndex nameAndIndex;
+            private NameAndIndex _nameAndIndex;
 
-            private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-            private readonly ImmutableArray<Symbol> members;
+            private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+            private readonly ImmutableArray<Symbol> _members;
 
             /// <summary> This list consists of synthesized method symbols for ToString, 
             /// Equals and GetHashCode which are not part of symbol table </summary>
@@ -46,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal readonly ImmutableArray<AnonymousTypePropertySymbol> Properties;
 
             /// <summary> Maps member names to symbol(s) </summary>
-            private readonly MultiDictionary<string, Symbol> nameToSymbols = new MultiDictionary<string, Symbol>();
+            private readonly MultiDictionary<string, Symbol> _nameToSymbols = new MultiDictionary<string, Symbol>();
 
             /// <summary> Anonymous type manager owning this template </summary>
             internal readonly AnonymousTypeManager Manager;
 
             /// <summary> Smallest location of the template, actually contains the smallest location 
             /// of all the anonymous type instances created using this template during EMIT </summary>
-            private Location smallestLocation;
+            private Location _smallestLocation;
 
             /// <summary> Key pf the anonymous type descriptor </summary>
             internal readonly string TypeDescriptorKey;
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.Manager = manager;
                 this.TypeDescriptorKey = typeDescr.Key;
-                this.smallestLocation = typeDescr.Location;
+                _smallestLocation = typeDescr.Location;
 
                 // Will be set when the type's metadata is ready to be emitted, 
                 // <anonymous-type>.Name will throw exception if requested
                 // before that moment.
-                this.nameAndIndex = null;
+                _nameAndIndex = null;
 
                 int fieldsCount = typeDescr.Fields.Length;
 
@@ -102,25 +102,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         members[memberIndex++] = property.GetMethod;
                     }
 
-                    this.typeParameters = typeParametersArray.AsImmutable();
+                    _typeParameters = typeParametersArray.AsImmutable();
                     this.Properties = propertiesArray.AsImmutable();
                 }
                 else
                 {
-                    this.typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                    _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
                     this.Properties = ImmutableArray<AnonymousTypePropertySymbol>.Empty;
                 }
 
                 // Add a constructor
                 members[memberIndex++] = new AnonymousTypeConstructorSymbol(this, this.Properties);
-                this.members = members.AsImmutable();
+                _members = members.AsImmutable();
 
-                Debug.Assert(memberIndex == this.members.Length);
+                Debug.Assert(memberIndex == _members.Length);
 
                 // fill nameToSymbols map
-                foreach (var symbol in this.members)
+                foreach (var symbol in _members)
                 {
-                    this.nameToSymbols.Add(symbol.Name, symbol);
+                    _nameToSymbols.Add(symbol.Name, symbol);
                 }
 
                 // special members: Equals, GetHashCode, ToString
@@ -131,9 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SpecialMembers = specialMembers.AsImmutable();
             }
 
-            internal ImmutableArray<string> GetPropertyNames()
+            internal AnonymousTypeKey GetAnonymousTypeKey()
             {
-                return this.Properties.SelectAsArray(p => p.Name);
+                var properties = this.Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
+                return new AnonymousTypeKey(properties);
             }
 
             /// <summary>
@@ -146,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    Debug.Assert(this.smallestLocation != null);
-                    return this.smallestLocation;
+                    Debug.Assert(_smallestLocation != null);
+                    return _smallestLocation;
                 }
             }
 
@@ -155,11 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return this.nameAndIndex;
+                    return _nameAndIndex;
                 }
                 set
                 {
-                    var oldValue = Interlocked.CompareExchange(ref this.nameAndIndex, value, null);
+                    var oldValue = Interlocked.CompareExchange(ref _nameAndIndex, value, null);
                     Debug.Assert(oldValue == null ||
                         ((oldValue.Name == value.Name) && (oldValue.Index == value.Index)));
                 }
@@ -178,14 +179,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Loop until we managed to set location OR we detected that we don't need to set it 
                     // in case 'location' in type descriptor is bigger that the one in smallestLocation
 
-                    Location currentSmallestLocation = this.smallestLocation;
+                    Location currentSmallestLocation = _smallestLocation;
                     if (currentSmallestLocation != null && this.Manager.Compilation.CompareSourceLocations(currentSmallestLocation, location) < 0)
                     {
                         // The template's smallest location do not need to be changed
                         return;
                     }
 
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref this.smallestLocation, location, currentSmallestLocation), currentSmallestLocation))
+                    if (ReferenceEquals(Interlocked.CompareExchange(ref _smallestLocation, location, currentSmallestLocation), currentSmallestLocation))
                     {
                         // Changed successfully, proceed to updating the fields
                         return;
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers()
             {
-                return this.members;
+                return _members;
             }
 
             internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -216,9 +217,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return StaticCast<TypeSymbol>.From(this.TypeParameters); }
             }
 
+            internal override bool HasTypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return CreateEmptyTypeArgumentsCustomModifiers();
+                }
+            }
+
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
-                var symbols = this.nameToSymbols[name];
+                var symbols = _nameToSymbols[name];
                 var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
                 foreach (var symbol in symbols)
                 {
@@ -240,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override IEnumerable<string> MemberNames
             {
-                get { return this.nameToSymbols.Keys; }
+                get { return _nameToSymbols.Keys; }
             }
 
             public override Symbol ContainingSymbol
@@ -250,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name
             {
-                get { return this.nameAndIndex.Name; }
+                get { return _nameAndIndex.Name; }
             }
 
             internal override bool HasSpecialName
@@ -265,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int Arity
             {
-                get { return this.typeParameters.Length; }
+                get { return _typeParameters.Length; }
             }
 
             public override bool IsImplicitlyDeclared
@@ -275,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<TypeParameterSymbol> TypeParameters
             {
-                get { return this.typeParameters; }
+                get { return _typeParameters; }
             }
 
             public override bool IsAbstract

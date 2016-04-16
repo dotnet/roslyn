@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis
             internal TValue value;
         }
 
-        private readonly int size;
-        private readonly Func<TKey, TValue> valueFactory;
-        private readonly Func<TKey, int> keyHash;
-        private readonly Func<TKey, TValue, bool> keyValueEquality;
+        private readonly int _size;
+        private readonly Func<TKey, TValue> _valueFactory;
+        private readonly Func<TKey, int> _keyHash;
+        private readonly Func<TKey, TValue, bool> _keyValueEquality;
 
         public CachingFactory(int size,
                 Func<TKey, TValue> valueFactory,
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis
                 Func<TKey, TValue, bool> keyValueEquality) :
             base(size)
         {
-            this.size = size;
-            this.valueFactory = valueFactory;
-            this.keyHash = keyHash;
-            this.keyValueEquality = keyValueEquality;
+            _size = size;
+            _valueFactory = valueFactory;
+            _keyHash = keyHash;
+            _keyValueEquality = keyValueEquality;
         }
 
         public void Add(TKey key, TValue value)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
-                if (keyValueEquality(key, candidate))
+                if (_keyValueEquality(key, candidate))
                 {
                     value = candidate;
                     return true;
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
-                if (keyValueEquality(key, candidate))
+                if (_keyValueEquality(key, candidate))
                 {
                     return candidate;
                 }
             }
 
-            var value = valueFactory(key);
+            var value = _valueFactory(key);
             entries[idx].hash = hash;
             entries[idx].value = value;
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Ensure result is non-zero to avoid
             // treating an empty entry as valid.
-            int result = this.keyHash(key) | this.size;
+            int result = _keyHash(key) | _size;
             Debug.Assert(result != 0);
             return result;
         }
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis
     internal class CachingIdentityFactory<TKey, TValue> : CachingBase<CachingIdentityFactory<TKey, TValue>.Entry>
         where TKey : class
     {
-        private readonly Func<TKey, TValue> valueFactory;
-        private readonly ObjectPool<CachingIdentityFactory<TKey, TValue>> pool;
+        private readonly Func<TKey, TValue> _valueFactory;
+        private readonly ObjectPool<CachingIdentityFactory<TKey, TValue>> _pool;
 
         internal struct Entry
         {
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis
         public CachingIdentityFactory(int size, Func<TKey, TValue> valueFactory) :
             base(size)
         {
-            this.valueFactory = valueFactory;
+            _valueFactory = valueFactory;
         }
 
         public CachingIdentityFactory(int size, Func<TKey, TValue> valueFactory, ObjectPool<CachingIdentityFactory<TKey, TValue>> pool) :
             this(size, valueFactory)
         {
-            this.pool = pool;
+            _pool = pool;
         }
 
         public void Add(TKey key, TValue value)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                 return entries[idx].value;
             }
 
-            var value = valueFactory(key);
+            var value = _valueFactory(key);
             entries[idx].key = key;
             entries[idx].value = value;
 
@@ -199,14 +199,11 @@ namespace Microsoft.CodeAnalysis
 
         public void Free()
         {
-            var pool = this.pool;
+            var pool = _pool;
 
             // Array.Clear(this.entries, 0, this.entries.Length);
 
-            if (pool != null)
-            {
-                pool.Free(this);
-            }
+            pool?.Free(this);
         }
     }
 

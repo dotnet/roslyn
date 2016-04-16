@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="VisualBasicFormatterId" Value="DB0ECF67-B860-4331-AE0E-0F4C96449E7D"/>
+  <ManagedComponent
+    ComponentId="VisualBasicFormatterId"
+    ComponentLevel="63000"
+    AssemblyName="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider">
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicResultProvider">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+          </Filter>
+          <Interface Name="IDkmClrResultProvider"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFormatter">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+          </Filter>
+          <Interface Name="IDkmClrFormatter"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

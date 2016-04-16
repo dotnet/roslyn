@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public abstract partial class StructuredTriviaSyntax : CSharpSyntaxNode, IStructuredTriviaSyntax
     {
-        private SyntaxTrivia parent;
+        private SyntaxTrivia _parent;
 
         internal StructuredTriviaSyntax(Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
             : base(green, position, parent == null ? null : parent.SyntaxTree)
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var parent = (CSharpSyntaxNode)trivia.Token.Parent;
             var position = trivia.Position;
             var red = (StructuredTriviaSyntax)node.CreateRed(parent, position);
-            red.parent = trivia;
+            red._parent = trivia;
             return red;
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                return this.parent;
+                return _parent;
             }
         }
     }

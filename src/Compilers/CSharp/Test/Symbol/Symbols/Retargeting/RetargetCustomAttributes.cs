@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             public NamedTypeSymbol oldMsCorLib_debuggerTypeProxyAttributeType, newMsCorLib_debuggerTypeProxyAttributeType;
             public MethodSymbol oldMsCorLib_debuggerTypeProxyAttributeCtor, newMsCorLib_debuggerTypeProxyAttributeCtor;
             public NamedTypeSymbol oldMsCorLib_systemType, newMsCorLib_systemType;
-            
-            private static readonly AttributeDescription attribute = new AttributeDescription(
+
+            private static readonly AttributeDescription s_attribute = new AttributeDescription(
                 "System.Diagnostics",
                 "DebuggerTypeProxyAttribute",
                 new byte[][] { new byte[] { (byte)SignatureAttributes.Instance, 1, (byte)SignatureTypeCode.Void, (byte)SignatureTypeCode.TypeHandle, (byte)AttributeDescription.TypeHandleTarget.SystemType } });
@@ -61,7 +61,7 @@ class TestClass
         return testParameter;
     }
 }";
-                var compilation1 = CSharpCompilation.Create("C1", new[] { Parse(source) },new[] { OldMsCorLib }, TestOptions.ReleaseDll);
+                var compilation1 = CSharpCompilation.Create("C1", new[] { Parse(source) }, new[] { OldMsCorLib }, TestOptions.ReleaseDll);
                 c1 = new CSharpCompilationReference(compilation1);
 
                 var c1Assembly = compilation1.Assembly;
@@ -84,12 +84,12 @@ class TestClass
                 newMsCorLib_debuggerTypeProxyAttributeType = c2MscorlibAssemblyRef.GetTypeByMetadataName("System.Diagnostics.DebuggerTypeProxyAttribute");
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeType, newMsCorLib_debuggerTypeProxyAttributeType);
 
-                oldMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)oldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Where(
-                    (m) => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == oldMsCorLib_systemType).Single();
+                oldMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)oldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
+                    m => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == oldMsCorLib_systemType);
 
-                newMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)newMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Where(
-                    (m) => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == newMsCorLib_systemType).Single();
-                
+                newMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)newMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
+                    m => ((MethodSymbol)m).ParameterCount == 1 && ((MethodSymbol)m).ParameterTypes[0] == newMsCorLib_systemType);
+
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeCtor, newMsCorLib_debuggerTypeProxyAttributeCtor);
             }
 
@@ -100,34 +100,34 @@ class TestClass
 
                 // Verify GetAttributes(AttributeType from Retargeted assembly)
                 TestAttributeRetargeting(symbol.GetAttributes(newMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetAttributes(AttributeType from Underlying assembly)
                 Assert.Empty(symbol.GetAttributes(oldMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetAttributes(AttributeCtor from Retargeted assembly)
                 TestAttributeRetargeting(symbol.GetAttributes(newMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetAttributes(AttributeCtor from Underlying assembly)
                 Assert.Empty(symbol.GetAttributes(oldMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetAttributes(namespaceName, typeName, ctorSignature)
-                TestAttributeRetargeting(symbol.GetAttributes(attribute));
+                TestAttributeRetargeting(symbol.GetAttributes(s_attribute));
             }
 
             public void TestAttributeRetargeting_ReturnTypeAttributes(MethodSymbol symbol)
             {
                 // Verify GetReturnTypeAttributes()
                 TestAttributeRetargeting(symbol.GetReturnTypeAttributes());
-                
+
                 // Verify GetReturnTypeAttributes(AttributeType from Retargeted assembly)
                 TestAttributeRetargeting(symbol.GetReturnTypeAttributes().Where(a => a.AttributeClass == newMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetReturnTypeAttributes(AttributeType from Underlying assembly) returns nothing. Shouldn't match to old attr type
                 Assert.Empty(symbol.GetReturnTypeAttributes().Where(a => a.AttributeClass == oldMsCorLib_debuggerTypeProxyAttributeType));
-                
+
                 // Verify GetReturnTypeAttributes(AttributeCtor from Retargeted assembly)
                 TestAttributeRetargeting(symbol.GetReturnTypeAttributes().Where(a => a.AttributeConstructor == newMsCorLib_debuggerTypeProxyAttributeCtor));
-                
+
                 // Verify GetReturnTypeAttributes(AttributeCtor from Underlying assembly) returns nothing. Shouldn't match to old attr type.
                 Assert.Empty(symbol.GetReturnTypeAttributes().Where(a => a.AttributeConstructor == oldMsCorLib_debuggerTypeProxyAttributeCtor));
             }
@@ -135,7 +135,7 @@ class TestClass
             private void TestAttributeRetargeting(IEnumerable<CSharpAttributeData> attributes)
             {
                 Assert.Equal(1, attributes.Count());
-                
+
                 var attribute = attributes.First();
                 Assert.IsType<RetargetingAttributeData>(attribute);
 
@@ -265,7 +265,7 @@ class TestClass
         }
 
         [Fact]
-        [WorkItem(569089, "DevDiv"), WorkItem(575948, "DevDiv")]
+        [WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089"), WorkItem(575948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575948")]
         public void NullArrays()
         {
             var source1 = @"

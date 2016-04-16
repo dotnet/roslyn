@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private class TextTracker
         {
-            private readonly Workspace workspace;
-            private readonly DocumentId documentId;
+            private readonly Workspace _workspace;
+            private readonly DocumentId _documentId;
             internal readonly SourceTextContainer TextContainer;
-            private EventHandler<TextChangeEventArgs> weakOnTextChanged;
-            private readonly Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler;
+            private readonly EventHandler<TextChangeEventArgs> _weakOnTextChanged;
+            private readonly Action<Workspace, DocumentId, SourceText, PreservationMode> _onChangedHandler;
 
             internal TextTracker(
                 Workspace workspace,
@@ -27,30 +27,30 @@ namespace Microsoft.CodeAnalysis
                 SourceTextContainer textContainer,
                 Action<Workspace, DocumentId, SourceText, PreservationMode> onChangedHandler)
             {
-                this.workspace = workspace;
-                this.documentId = documentId;
+                _workspace = workspace;
+                _documentId = documentId;
                 this.TextContainer = textContainer;
-                this.onChangedHandler = onChangedHandler;
+                _onChangedHandler = onChangedHandler;
 
                 // use weak event so TextContainer cannot accidentally keep workspace alive.
-                this.weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
+                _weakOnTextChanged = WeakEventHandler<TextChangeEventArgs>.Create(this, (target, sender, args) => target.OnTextChanged(sender, args));
             }
 
             public void Connect()
             {
-                this.TextContainer.TextChanged += this.weakOnTextChanged;
+                this.TextContainer.TextChanged += _weakOnTextChanged;
             }
 
             public void Disconnect()
             {
-                this.TextContainer.TextChanged -= this.weakOnTextChanged;
+                this.TextContainer.TextChanged -= _weakOnTextChanged;
             }
 
             private void OnTextChanged(object sender, TextChangeEventArgs e)
             {
                 // ok, the version changed.  Report that we've got an edit so that we can analyze
                 // this source file and update anything accordingly.
-                onChangedHandler(this.workspace, this.documentId, e.NewText, PreservationMode.PreserveIdentity); 
+                _onChangedHandler(_workspace, _documentId, e.NewText, PreservationMode.PreserveIdentity);
             }
         }
     }

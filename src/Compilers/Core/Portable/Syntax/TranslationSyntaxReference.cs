@@ -12,27 +12,27 @@ namespace Microsoft.CodeAnalysis.Syntax
     /// </summary>
     internal abstract class TranslationSyntaxReference : SyntaxReference
     {
-        private readonly SyntaxReference reference;
+        private readonly SyntaxReference _reference;
 
         protected TranslationSyntaxReference(SyntaxReference reference)
         {
-            this.reference = reference;
+            _reference = reference;
         }
 
         public sealed override TextSpan Span
         {
-            get { return reference.Span; }
+            get { return _reference.Span; }
         }
 
         public sealed override SyntaxTree SyntaxTree
         {
-            get { return reference.SyntaxTree; }
+            get { return _reference.SyntaxTree; }
         }
 
         public sealed override SyntaxNode GetSyntax(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var node = Translate(reference, cancellationToken);
-            Debug.Assert(node.SyntaxTree == this.reference.SyntaxTree);
+            var node = Translate(_reference, cancellationToken);
+            Debug.Assert(node.SyntaxTree == _reference.SyntaxTree);
             return node;
         }
 

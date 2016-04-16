@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The document that the reference was found in.
         /// </summary>
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
         /// <summary>
         /// If the symbol was bound through an alias, then this is the alias that was used.
         /// </summary>
-        public IAliasSymbol Alias { get; private set; }
+        public IAliasSymbol Alias { get; }
 
         /// <summary>
         /// The actual source location for a given symbol.
         /// </summary>
-        public Location Location { get; private set; }
+        public Location Location { get; }
 
         /// <summary>
         /// Indicates if this is an implicit reference to the definition.  i.e. the definition wasn't
@@ -34,17 +34,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// example, this can happen with special methods like GetEnumerator that are used
         /// implicitly by a 'for each' statement.
         /// </summary>
-        public bool IsImplicit { get; private set; }
+        public bool IsImplicit { get; }
 
-        public CandidateReason CandidateReason { get; private set; }
+        /// <summary>
+        /// Indicates if this is a location where the reference is written to.
+        /// </summary>
+        internal bool IsWrittenTo { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, CandidateReason candidateReason)
+        public CandidateReason CandidateReason { get; }
+
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, bool isWrittenTo, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
             this.Alias = alias;
             this.Location = location;
             this.IsImplicit = isImplicit;
+            this.IsWrittenTo = isWrittenTo;
             this.CandidateReason = candidateReason;
         }
 

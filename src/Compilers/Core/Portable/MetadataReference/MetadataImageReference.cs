@@ -13,19 +13,19 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class MetadataImageReference : PortableExecutableReference
     {
-        private readonly string display;
-        private readonly Metadata metadata;
+        private readonly string _display;
+        private readonly Metadata _metadata;
 
         internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider documentation, string filePath, string display)
             : base(properties, filePath, documentation ?? DocumentationProvider.Default)
         {
-            this.display = display;
-            this.metadata = metadata;
+            _display = display;
+            _metadata = metadata;
         }
 
         protected override Metadata GetMetadataImpl()
         {
-            return metadata;
+            return _metadata;
         }
 
         protected override DocumentationProvider CreateDocumentationProvider()
@@ -37,18 +37,18 @@ namespace Microsoft.CodeAnalysis
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
         {
             return new MetadataImageReference(
-                this.metadata,
+                _metadata,
                 properties,
                 this.DocumentationProvider,
                 this.FilePath,
-                this.display);
+                _display);
         }
 
         public override string Display
         {
             get
             {
-                return display ?? FilePath ?? (Properties.Kind == MetadataImageKind.Assembly ? CodeAnalysisResources.InMemoryAssembly : CodeAnalysisResources.InMemoryModule);
+                return _display ?? FilePath ?? (Properties.Kind == MetadataImageKind.Assembly ? CodeAnalysisResources.InMemoryAssembly : CodeAnalysisResources.InMemoryModule);
             }
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         {
             var sb = new StringBuilder();
             sb.Append(Properties.Kind == MetadataImageKind.Module ? "Module" : "Assembly");
-            if (!Properties.Aliases.IsDefaultOrEmpty)
+            if (!Properties.Aliases.IsEmpty)
             {
                 sb.Append(" Aliases={");
                 sb.Append(string.Join(", ", Properties.Aliases));
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis
                 sb.Append("'");
             }
 
-            if (display != null)
+            if (_display != null)
             {
                 sb.Append(" Display='");
-                sb.Append(display);
+                sb.Append(_display);
                 sb.Append("'");
             }
 

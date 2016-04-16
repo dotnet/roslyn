@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string CurrentPropertyName = WellKnownMemberNames.CurrentPropertyName;
         private const string MoveNextMethodName = WellKnownMemberNames.MoveNextMethodName;
 
-        private readonly ForEachStatementSyntax syntax;
+        private readonly ForEachStatementSyntax _syntax;
         private SourceLocalSymbol IterationVariable
         {
             get
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(enclosing)
         {
             Debug.Assert(syntax != null);
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var iterationVariable = SourceLocalSymbol.MakeForeachLocal(
                 (MethodSymbol)this.ContainingMemberOrLambda,
                 this,
-                this.syntax.Type,
-                this.syntax.Identifier,
-                this.syntax.Expression);
+                _syntax.Type,
+                _syntax.Identifier,
+                _syntax.Expression);
 
             return ImmutableArray.Create<LocalSymbol>(iterationVariable);
         }
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
-        { 
-            BoundExpression collectionExpr = this.Next.BindValue(syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
+        {
+            BoundExpression collectionExpr = this.Next.BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the type in syntax is "var", then the type should be set explicitly so that the
             // Type property doesn't fail.
 
-            TypeSyntax typeSyntax = this.syntax.Type;
+            TypeSyntax typeSyntax = _syntax.Type;
 
             bool isVar;
             AliasSymbol alias;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
             this.IterationVariable.SetTypeSymbol(iterationVariableType);
 
-            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
             hasErrors = hasErrors || iterationVariableType.IsErrorType();
 
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasErrors)
             {
                 return new BoundForEachStatement(
-                    syntax,
+                    _syntax,
                     null, // can't be sure that it's complete
                     default(Conversion),
                     boundIterationVariableType,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasErrors |= hasNameConflicts;
 
-            var foreachKeyword = syntax.ForEachKeyword;
+            var foreachKeyword = _syntax.ForEachKeyword;
             ReportDiagnosticsIfObsolete(diagnostics, builder.GetEnumeratorMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.MoveNextMethod, foreachKeyword, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, builder.CurrentPropertyGetter, foreachKeyword, hasBaseReceiver: false);
@@ -141,18 +141,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversion.OriginalUserDefinedConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.ForEachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
+                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, _syntax.ForEachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
                 }
                 else
                 {
                     SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, inferredType, iterationVariableType);
-                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.ForEachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
+                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, _syntax.ForEachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
                 }
                 hasErrors = true;
             }
             else
             {
-                ReportDiagnosticsIfObsolete(diagnostics, elementConversion, syntax.ForEachKeyword, hasBaseReceiver: false);
+                ReportDiagnosticsIfObsolete(diagnostics, elementConversion, _syntax.ForEachKeyword, hasBaseReceiver: false);
             }
 
             // Spec (§8.8.4):
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversion(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
-            builder.EnumeratorConversion = this.Conversions.ClassifyConversion(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, this.syntax), ref useSiteDiagnostics);
+            builder.EnumeratorConversion = this.Conversions.ClassifyConversion(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
 
-            diagnostics.Add(syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
+            diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
 
             // Due to the way we extracted the various types, these conversions should always be possible.
             // CAVEAT: if we're iterating over an array of pointers, the current conversion will fail since we
@@ -176,8 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (builder.ElementType.IsPointerType() && collectionExpr.Type.IsArray()) ||
                 (builder.ElementType.IsNullableType() && builder.ElementType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single().IsErrorType() && collectionExpr.Type.IsArray()));
             Debug.Assert(builder.EnumeratorConversion.IsValid ||
-                this.Compilation.GetSpecialType(SpecialType.System_Object).TypeKind == TypeKind.Error,
-                "Conversions to object succeed unless there's a problem with the object type");
+                this.Compilation.GetSpecialType(SpecialType.System_Object).TypeKind == TypeKind.Error ||
+                !useSiteDiagnostics.IsNullOrEmpty(),
+                "Conversions to object succeed unless there's a problem with the object type or the source type");
 
             // If user-defined conversions could occur here, we would need to check for ObsoleteAttribute.
             Debug.Assert((object)builder.CollectionConversion.Method == null,
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CollectionType);
 
             return new BoundForEachStatement(
-                syntax,
+                _syntax,
                 builder.Build(this.Flags),
                 elementConversion,
                 boundIterationVariableType,
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Spec seems to refer to null literals, but Dev10 reports anything known to be null.
                 Debug.Assert(collectionExpr.ConstantValue.IsNull); // only constant value with no type
-                diagnostics.Add(ErrorCode.ERR_NullNotValid, syntax.Expression.Location);
+                diagnostics.Add(ErrorCode.ERR_NullNotValid, _syntax.Expression.Location);
 
                 return false;
             }
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)collectionExprType == null) // There's no way to enumerate something without a type.
             {
                 // The null literal was caught above, so anything else with a null type is a method group or anonymous function
-                diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, syntax.Expression.Location, collectionExpr.Display);
+                diagnostics.Add(ErrorCode.ERR_AnonMethGrpInForEach, _syntax.Expression.Location, collectionExpr.Display);
                 // CONSIDER: dev10 also reports ERR_ForEachMissingMember (i.e. failed pattern match).
 
                 return false;
@@ -343,18 +344,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
             {
                 // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
-                builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, this.syntax);
+                builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
                 builder.ElementType =
                     collectionExprType.IsDynamic() ?
-                    (this.syntax.Type.IsVar ? (TypeSymbol)DynamicTypeSymbol.Instance : GetSpecialType(SpecialType.System_Object, diagnostics, this.syntax)) :
+                    (_syntax.Type.IsVar ? (TypeSymbol)DynamicTypeSymbol.Instance : GetSpecialType(SpecialType.System_Object, diagnostics, _syntax)) :
                     ((ArrayTypeSymbol)collectionExprType).ElementType;
 
                 // CONSIDER: 
                 // For arrays none of these members will actually be emitted, so it seems strange to prevent compilation if they can't be found.
                 // skip this work in the batch case? (If so, also special case string, which won't use the pattern methods.)
-                builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, this.syntax);
-                builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, this.syntax);
-                builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, this.syntax);
+                builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, _syntax);
+                builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, _syntax);
+                builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
 
                 Debug.Assert((object)builder.GetEnumeratorMethod == null ||
                     builder.GetEnumeratorMethod.ReturnType == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
@@ -391,25 +392,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     useSiteDiagnosticBag.Free();
 
-                    diagnostics.Add(this.syntax, useSiteDiagnostics);
+                    diagnostics.Add(_syntax, useSiteDiagnostics);
                     return true;
                 }
 
                 MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
-                diagnostics.Add(ErrorCode.ERR_BadGetEnumerator, this.syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
+                diagnostics.Add(ErrorCode.ERR_BadGetEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
                 return false;
             }
 
             if (IsIEnumerable(collectionExprType))
             {
                 // This indicates a problem with the special IEnumerable type - it should have satisfied the GetEnumerator pattern.
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType, GetEnumeratorMethodName);
                 return false;
             }
 
             if (AllInterfacesContainsIEnumerable(ref builder, collectionExprType, diagnostics, out foundMultipleGenericIEnumerableInterfaces))
             {
-                CSharpSyntaxNode errorLocationSyntax = this.syntax.Expression;
+                CSharpSyntaxNode errorLocationSyntax = _syntax.Expression;
 
                 if (foundMultipleGenericIEnumerableInterfaces)
                 {
@@ -464,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!string.IsNullOrEmpty(collectionExprType.Name) || !collectionExpr.HasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
+                diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
             }
             return false;
         }
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnose: false,
                 useSiteDiagnostics: ref useSiteDiagnostics);
 
-            diagnostics.Add(this.syntax.Expression, useSiteDiagnostics);
+            diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             if (!lookupResult.IsMultiViable)
             {
@@ -571,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.OverloadResolution.MethodInvocationOverloadResolution(candidateMethods, typeArguments, arguments, overloadResolutionResult, ref useSiteDiagnostics);
-            diagnostics.Add(syntax.Expression, useSiteDiagnostics);
+            diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             MethodSymbol result = null;
 
@@ -583,11 +584,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (warningsOnly)
                     {
-                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(), result);
+                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, _syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(), result);
                     }
                     result = null;
                 }
-                else if (result.CallsAreOmitted(syntax.SyntaxTree))
+                else if (result.CallsAreOmitted(_syntax.SyntaxTree))
                 {
                     // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
                     // We don't want to want to allow this case, see StatementBinder::bindPatternToMethod.
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (warningsOnly)
                 {
-                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(),
+                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, _syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(),
                         overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
                 }
             }
@@ -665,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnose: false,
                     useSiteDiagnostics: ref useSiteDiagnostics);
 
-                diagnostics.Add(this.syntax.Expression, useSiteDiagnostics);
+                diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
                 useSiteDiagnostics = null;
 
                 if (!lookupResult.IsSingleViable)
@@ -693,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     bool isAccessible = this.IsAccessible(currentPropertyGetterCandidate, ref useSiteDiagnostics);
-                    diagnostics.Add(this.syntax.Expression, useSiteDiagnostics);
+                    diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
                     if (!isAccessible)
                     {
@@ -732,10 +733,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (this.IsAccessible(patternMemberCandidate, ref useSiteDiagnostics))
             {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, this.syntax.Expression.Location, enumeratorType, MessageID.IDS_Collection.Localize(), patternMemberCandidate);
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, _syntax.Expression.Location, enumeratorType, MessageID.IDS_Collection.Localize(), patternMemberCandidate);
             }
 
-            diagnostics.Add(this.syntax.Expression, useSiteDiagnostics);
+            diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
         }
 
         private static bool IsIEnumerable(TypeSymbol type)
@@ -799,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(syntax.Expression, useSiteDiagnostics);
+            diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             builder.CollectionType = implementedIEnumerable;
             return (object)implementedIEnumerable != null;
@@ -860,17 +861,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnose: true,
                         useSiteDiagnostics: ref useSiteDiagnostics);
 
-                    diagnostics.Add(this.syntax.Expression, useSiteDiagnostics);
+                    diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
                     if (lookupResult.Error != null)
                     {
-                        diagnostics.Add(lookupResult.Error, this.syntax.Expression.Location);
+                        diagnostics.Add(lookupResult.Error, _syntax.Expression.Location);
                     }
                 }
             }
             else if (!warningsOnly)
             {
-                diagnostics.Add(ErrorCode.ERR_NoSuchMember, this.syntax.Expression.Location, patternType, memberName);
+                diagnostics.Add(ErrorCode.ERR_NoSuchMember, _syntax.Expression.Location, patternType, memberName);
             }
         }
     }

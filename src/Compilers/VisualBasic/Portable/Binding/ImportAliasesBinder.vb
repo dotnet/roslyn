@@ -20,11 +20,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ImportAliasesBinder
         Inherits Binder
 
-        Private ReadOnly m_importedAliases As Dictionary(Of String, AliasAndImportsClausePosition)
+        Private ReadOnly _importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition)
 
-        Public Sub New(containingBinder As Binder, importedAliases As Dictionary(Of String, AliasAndImportsClausePosition))
+        Public Sub New(containingBinder As Binder, importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition))
             MyBase.New(containingBinder)
-            m_importedAliases = importedAliases
+
+            Debug.Assert(importedAliases IsNot Nothing)
+
+            _importedAliases = importedAliases
 
             ' Binder.Lookup relies on the following invariant.
             Debug.Assert(TypeOf containingBinder Is SourceFileBinder OrElse TypeOf containingBinder Is SourceModuleBinder OrElse
@@ -43,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(lookupResult.IsClear)
 
             Dim [alias] As AliasAndImportsClausePosition = Nothing
-            If m_importedAliases.TryGetValue(name, [alias]) Then
+            If _importedAliases.TryGetValue(name, [alias]) Then
                 ' Got an alias. Return it without checking arity.
 
                 Dim res = CheckViability([alias].Alias, arity, options, Nothing, useSiteDiagnostics)
@@ -60,12 +63,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                     options As LookupOptions,
                                                                     originalBinder As Binder)
-            For Each [alias] In m_importedAliases.Values
+            For Each [alias] In _importedAliases.Values
                 If originalBinder.CheckViability([alias].Alias.Target, -1, options, Nothing, useSiteDiagnostics:=Nothing).IsGoodOrAmbiguous Then
                     nameSet.AddSymbol([alias].Alias, [alias].Alias.Name, 0)
                 End If
             Next
         End Sub
+
+        Public Overrides ReadOnly Property ContainingMember As Symbol
+            Get
+                Return Me.Compilation.SourceModule
+            End Get
+        End Property
     End Class
 
 End Namespace

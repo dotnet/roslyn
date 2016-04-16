@@ -2,33 +2,34 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     // HashBucket used when emitting hash table based string switch.
-    // Each hash bucket contains the list of "<string constant, label>" keyvalue pairs
+    // Each hash bucket contains the list of "<string constant, label>" key-value pairs
     // having identical hash value.
     using HashBucket = List<KeyValuePair<ConstantValue, object>>;
 
     internal struct SwitchStringJumpTableEmitter
     {
-        private readonly ILBuilder builder;
+        private readonly ILBuilder _builder;
 
         /// <summary>
         /// Switch key for the jump table
         /// </summary>
-        private readonly LocalOrParameter key;
+        private readonly LocalOrParameter _key;
 
         /// <summary>
         /// Switch case labels
         /// </summary>
-        private readonly KeyValuePair<ConstantValue, object>[] caseLabels;
+        private readonly KeyValuePair<ConstantValue, object>[] _caseLabels;
 
         /// <summary>
         /// Fall through label for the jump table
         /// </summary>
-        private readonly object fallThroughLabel;
+        private readonly object _fallThroughLabel;
 
         /// <summary>
         /// Delegate to emit string compare call and conditional branch based on the compare result.
@@ -47,17 +48,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Delegate to emit string compare call
         /// </summary>
-        private readonly EmitStringCompareAndBranch emitStringCondBranchDelegate;
+        private readonly EmitStringCompareAndBranch _emitStringCondBranchDelegate;
 
         /// <summary>
         /// Delegate to emit string hash
         /// </summary>
-        private readonly GetStringHashCode computeStringHashcodeDelegate;
+        private readonly GetStringHashCode _computeStringHashcodeDelegate;
 
         /// <summary>
         /// Local storing the key hash value, used for emitting hash table based string switch.
         /// </summary>
-        private readonly LocalDefinition keyHash;
+        private readonly LocalDefinition _keyHash;
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
@@ -71,39 +72,39 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(caseLabels.Length > 0);
             Debug.Assert(emitStringCondBranchDelegate != null);
 
-            this.builder = builder;
-            this.key = key;
-            this.caseLabels = caseLabels;
-            this.fallThroughLabel = fallThroughLabel;
-            this.keyHash = keyHash;
-            this.emitStringCondBranchDelegate = emitStringCondBranchDelegate;
-            this.computeStringHashcodeDelegate = computeStringHashcodeDelegate;
+            _builder = builder;
+            _key = key;
+            _caseLabels = caseLabels;
+            _fallThroughLabel = fallThroughLabel;
+            _keyHash = keyHash;
+            _emitStringCondBranchDelegate = emitStringCondBranchDelegate;
+            _computeStringHashcodeDelegate = computeStringHashcodeDelegate;
         }
 
         internal void EmitJumpTable()
         {
-            Debug.Assert(keyHash == null || ShouldGenerateHashTableSwitch(this.caseLabels.Length));
+            Debug.Assert(_keyHash == null || ShouldGenerateHashTableSwitch(_caseLabels.Length));
 
-            if (keyHash != null)
+            if (_keyHash != null)
             {
                 EmitHashTableSwitch();
             }
             else
             {
-                EmitNonHashTableSwitch(this.caseLabels);
+                EmitNonHashTableSwitch(_caseLabels);
             }
         }
 
         private void EmitHashTableSwitch()
         {
             // Hash value for the key must have already been computed and loaded into keyHash
-            Debug.Assert(keyHash != null);
+            Debug.Assert(_keyHash != null);
 
             // Compute hash value for each case label constant and store the hash buckets
             // into a dictionary indexed by hash value.
             Dictionary<uint, HashBucket> stringHashMap = ComputeStringHashMap(
-                                                            this.caseLabels, 
-                                                            this.computeStringHashcodeDelegate);
+                                                            _caseLabels,
+                                                            _computeStringHashcodeDelegate);
 
             // Emit conditional jumps to hash buckets.
             // EmitHashBucketJumpTable returns a map from hashValues to hashBucketLabels.
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // hashBucketLabel:
                 //  Emit direct string comparisons for each case label in hash bucket
 
-                builder.MarkLabel(hashBucketLabelsMap[kvPair.Key]);
+                _builder.MarkLabel(hashBucketLabelsMap[kvPair.Key]);
 
                 HashBucket hashBucket = kvPair.Value;
                 this.EmitNonHashTableSwitch(hashBucket.ToArray());
@@ -143,11 +144,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Emit conditional jumps to hash buckets by using an integral switch jump table based on keyHash.
             var hashBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
-                builder: builder,
+                builder: _builder,
                 caseLabels: jumpTableLabels,
-                fallThroughLabel: this.fallThroughLabel,
+                fallThroughLabel: _fallThroughLabel,
                 keyTypeCode: Cci.PrimitiveTypeCode.UInt32,
-                key: keyHash);
+                key: _keyHash);
 
             hashBucketJumpTableEmitter.EmitJumpTable();
 
@@ -156,13 +157,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitNonHashTableSwitch(KeyValuePair<ConstantValue, object>[] labels)
         {
-            // Direct string comparision for each case label
+            // Direct string comparison for each case label
             foreach (var kvPair in labels)
             {
                 this.EmitCondBranchForStringSwitch(kvPair.Key, kvPair.Value);
             }
 
-            builder.EmitBranch(ILOpCode.Br, this.fallThroughLabel);
+            _builder.EmitBranch(ILOpCode.Br, _fallThroughLabel);
         }
 
         private void EmitCondBranchForStringSwitch(ConstantValue stringConstant, object targetLabel)
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 (stringConstant.IsString || stringConstant.IsNull));
             Debug.Assert(targetLabel != null);
 
-            this.emitStringCondBranchDelegate(this.key, stringConstant, targetLabel);
+            _emitStringCondBranchDelegate(_key, stringConstant, targetLabel);
         }
 
         // Compute hash value for each case label constant and store the hash buckets

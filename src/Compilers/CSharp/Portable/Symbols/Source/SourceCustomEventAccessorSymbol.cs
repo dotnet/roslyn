@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </remarks>
     internal sealed class SourceCustomEventAccessorSymbol : SourceEventAccessorSymbol
     {
-        private readonly ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
-        private readonly string name;
+        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
+        private readonly string _name;
 
         internal SourceCustomEventAccessorSymbol(
             SourceEventSymbol @event,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   syntax.Body.GetReferenceOrNull(),
+                   syntax.Body?.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()))
         {
             Debug.Assert(syntax != null);
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations = (object)implementedAccessor == null ? ImmutableArray<MethodSymbol>.Empty : ImmutableArray.Create<MethodSymbol>(implementedAccessor);
             }
 
-            this.explicitInterfaceImplementations = explicitInterfaceImplementations;
-            this.name = name;
+            _explicitInterfaceImplementations = explicitInterfaceImplementations;
+            _name = name;
             this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
                 @event.Modifiers,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            this.name = GetOverriddenAccessorName(@event, isAdder) ?? this.name;
+            _name = GetOverriddenAccessorName(@event, isAdder) ?? _name;
         }
 
         internal AccessorDeclarationSyntax GetSyntax()
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            get { return this.explicitInterfaceImplementations; }
+            get { return _explicitInterfaceImplementations; }
         }
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         public override bool IsImplicitlyDeclared

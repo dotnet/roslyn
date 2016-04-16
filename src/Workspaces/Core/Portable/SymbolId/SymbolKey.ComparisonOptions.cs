@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
                 CompareMethodTypeParametersByName = 0x4
             }
 
-            private readonly Option flags;
+            private readonly Option _flags;
 
             public ComparisonOptions(bool ignoreCase, bool ignoreAssemblyKeys, bool compareMethodTypeParametersByName)
             {
-                this.flags =
+                _flags =
                     BoolToOption(ignoreCase, Option.IgnoreCase) |
                     BoolToOption(ignoreAssemblyKeys, Option.IgnoreAssemblyKeys) |
                     BoolToOption(compareMethodTypeParametersByName, Option.CompareMethodTypeParametersByName);
@@ -29,22 +29,22 @@ namespace Microsoft.CodeAnalysis
 
             public bool IgnoreCase
             {
-                get { return (this.flags & Option.IgnoreCase) == Option.IgnoreCase; }
+                get { return (_flags & Option.IgnoreCase) == Option.IgnoreCase; }
             }
 
             public bool IgnoreAssemblyKey
             {
-                get { return (this.flags & Option.IgnoreAssemblyKeys) == Option.IgnoreAssemblyKeys; }
+                get { return (_flags & Option.IgnoreAssemblyKeys) == Option.IgnoreAssemblyKeys; }
             }
 
             public bool CompareMethodTypeParametersByName
             {
-                get { return (this.flags & Option.CompareMethodTypeParametersByName) == Option.CompareMethodTypeParametersByName; }
+                get { return (_flags & Option.CompareMethodTypeParametersByName) == Option.CompareMethodTypeParametersByName; }
             }
 
             public byte FlagsValue
             {
-                get { return (byte)flags; }
+                get { return (byte)_flags; }
             }
 
             private static Option BoolToOption(bool value, Option option)

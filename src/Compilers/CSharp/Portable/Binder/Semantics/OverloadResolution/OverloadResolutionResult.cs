@@ -8,8 +8,8 @@ using Roslyn.Utilities;
 
 #if DEBUG
 using System.Text;
-#endif
 
+#endif
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class OverloadResolutionResult<TMember> where TMember : Symbol
     {
-        private MemberResolutionResult<TMember> bestResult;
-        private ThreeState bestResultState;
+        private MemberResolutionResult<TMember> _bestResult;
+        private ThreeState _bestResultState;
         internal readonly ArrayBuilder<MemberResolutionResult<TMember>> ResultsBuilder;
 
         // Create an overload resolution result from a single result.
@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void Clear()
         {
-            this.bestResult = default(MemberResolutionResult<TMember>);
-            this.bestResultState = ThreeState.Unknown;
+            _bestResult = default(MemberResolutionResult<TMember>);
+            _bestResultState = ThreeState.Unknown;
             this.ResultsBuilder.Clear();
         }
 
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (!this.bestResultState.HasValue())
+                if (!_bestResultState.HasValue())
                 {
-                    this.bestResultState = TryGetBestResult(this.ResultsBuilder, out this.bestResult);
+                    _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
                 }
 
-                return this.bestResultState == ThreeState.True && bestResult.Result.IsValid;
+                return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
             }
         }
 
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.bestResultState == ThreeState.True && bestResult.Result.IsValid);
-                return bestResult;
+                Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
+                return _bestResult;
             }
         }
 
@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.bestResultState == ThreeState.True);
-                return bestResult;
+                Debug.Assert(_bestResultState == ThreeState.True);
+                return _bestResult;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return bestResultState.Value();
+                return _bestResultState.Value();
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <remarks>
         /// Overload resolution (effectively) starts out assuming that all candidates are valid and then
-        /// gradually disqualifies them.  Therefore, our strategry will be to perform our checks in the
+        /// gradually disqualifies them.  Therefore, our strategy will be to perform our checks in the
         /// reverse order - the farther a candidate got through the process without being flagged, the
         /// "better" it was.
         /// 
@@ -329,13 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and argument analysis.  We don't want to report unsupported metadata unless nothing else went wrong -
             // otherwise we'd report errors about losing candidates, effectively "pulling in" unnecessary assemblies.
 
-            bool haveMultipleSupported = false;
+            bool supportedRequiredParameterMissingConflicts = false;
             MemberResolutionResult<TMember> firstSupported = default(MemberResolutionResult<TMember>);
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
+            var supportedInPriorityOrder = new MemberResolutionResult<TMember>[4]; // from highest to lowest priority
+            const int requiredParameterMissingPriority = 0;
+            const int nameUsedForPositionalPriority = 1;
+            const int noCorrespondingNamedParameterPriority = 2;
+            const int noCorrespondingParameterPriority = 3;
+
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
-                switch(result.Result.Kind)
+                switch (result.Result.Kind)
                 {
                     case MemberResolutionKind.UnsupportedMetadata:
                         if (firstSupported.IsNull)
@@ -344,17 +350,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case MemberResolutionKind.NoCorrespondingNamedParameter:
-                    case MemberResolutionKind.NoCorrespondingParameter:
-                    case MemberResolutionKind.RequiredParameterMissing:
-                    case MemberResolutionKind.NameUsedForPositional:
-                        if (firstSupported.IsNull)
+                        if (supportedInPriorityOrder[noCorrespondingNamedParameterPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[noCorrespondingNamedParameterPriority].Result.BadArgumentsOpt[0])
                         {
-                            firstSupported = result;
+                            supportedInPriorityOrder[noCorrespondingNamedParameterPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.NoCorrespondingParameter:
+                        if (supportedInPriorityOrder[noCorrespondingParameterPriority].IsNull)
+                        {
+                            supportedInPriorityOrder[noCorrespondingParameterPriority] = result;
+                        }
+                        break;
+                    case MemberResolutionKind.RequiredParameterMissing:
+                        if (supportedInPriorityOrder[requiredParameterMissingPriority].IsNull)
+                        {
+                            Debug.Assert(!supportedRequiredParameterMissingConflicts);
+                            supportedInPriorityOrder[requiredParameterMissingPriority] = result;
                         }
                         else
                         {
-                            haveMultipleSupported = true;
-                            break; // Optimization: Nothing else to be learned.
+                            supportedRequiredParameterMissingConflicts = true;
+                        }
+                        break;
+                    case MemberResolutionKind.NameUsedForPositional:
+                        if (supportedInPriorityOrder[nameUsedForPositionalPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[nameUsedForPositionalPriority].Result.BadArgumentsOpt[0])
+                        {
+                            supportedInPriorityOrder[nameUsedForPositionalPriority] = result;
                         }
                         break;
                     default:
@@ -365,12 +388,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            foreach (var supported in supportedInPriorityOrder)
+            {
+                if (supported.IsNotNull)
+                {
+                    firstSupported = supported;
+                    break;
+                }
+            }
+
             // If there are any supported candidates, we don't care about unsupported candidates.
             if (firstSupported.IsNotNull)
             {
                 // If there are multiple supported candidates, we don't have a good way to choose the best
                 // one so we report a general diagnostic (below).
-                if (!haveMultipleSupported && !isMethodGroupConversion)
+                if (!(firstSupported.Result.Kind == MemberResolutionKind.RequiredParameterMissing && supportedRequiredParameterMissingConflicts) && !isMethodGroupConversion)
                 {
                     switch (firstSupported.Result.Kind)
                     {
@@ -532,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportNameUsedForPositional(
             MemberResolutionResult<TMember> bad,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
@@ -554,9 +586,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportNoCorrespondingNamedParameter(
             MemberResolutionResult<TMember> bad,
             string methodName,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             AnalyzedArguments arguments,
-            NamedTypeSymbol delegateTypeBeingInvoked, 
+            NamedTypeSymbol delegateTypeBeingInvoked,
             ImmutableArray<Symbol> symbols)
         {
             // We know that there is at least one method that had a number of arguments
@@ -636,12 +668,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void ReportBadParameterCount(
-            DiagnosticBag diagnostics, 
-            string name, 
+            DiagnosticBag diagnostics,
+            string name,
             AnalyzedArguments arguments,
-            ImmutableArray<Symbol> symbols, 
-            Location location, 
-            NamedTypeSymbol typeContainingConstructor, 
+            ImmutableArray<Symbol> symbols,
+            Location location,
+            NamedTypeSymbol typeContainingConstructor,
             NamedTypeSymbol delegateTypeBeingInvoked)
         {
             // error CS1501: No overload for method 'M' takes n arguments
@@ -881,7 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasExpressionType())
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
-                if (argument.Kind == BoundKind.UnboundLambda)
+                // The argument and parameter type might match, but may not have same in/out modifiers
+                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParm)
                 {
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
                 }
@@ -993,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsParams)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
-                if ((object)arrayType != null)
+                if ((object)arrayType != null && arrayType.IsSZArray)
                 {
                     return arrayType.ElementType;
                 }
@@ -1216,18 +1249,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static OverloadResolutionResult<TMember> GetInstance()
         {
-            return Pool.Allocate();
+            return s_pool.Allocate();
         }
 
         internal void Free()
         {
             this.Clear();
-            Pool.Free(this);
+            s_pool.Free(this);
         }
 
         //2) Expose the pool or the way to create a pool or the way to get an instance.
         //       for now we will expose both and figure which way works better
-        private static readonly ObjectPool<OverloadResolutionResult<TMember>> Pool = CreatePool();
+        private static readonly ObjectPool<OverloadResolutionResult<TMember>> s_pool = CreatePool();
 
         private static ObjectPool<OverloadResolutionResult<TMember>> CreatePool()
         {

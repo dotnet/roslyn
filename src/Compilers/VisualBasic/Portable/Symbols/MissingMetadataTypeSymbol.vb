@@ -50,7 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
                 If containingAssembly.IsMissing Then
-                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, Me)
+                    Dim arg = If(Me.SpecialType <> SpecialType.None, DirectCast(CustomSymbolDisplayFormatter.DefaultErrorFormat(Me), Object), Me)
+                    Return ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, containingAssembly.Identity, arg)
                 Else
                     Dim containingModule As ModuleSymbol = Me.ContainingModule
 
@@ -70,28 +71,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Class TopLevel
             Inherits MissingMetadataTypeSymbol
 
-            Private ReadOnly m_NamespaceName As String
-            Private ReadOnly m_ContainingModule As ModuleSymbol
-            Private m_LazyContainingNamespace As NamespaceSymbol
+            Private ReadOnly _namespaceName As String
+            Private ReadOnly _containingModule As ModuleSymbol
+            Private _lazyContainingNamespace As NamespaceSymbol
 
             ''' <summary>
             ''' SpecialType.TypeId
             ''' </summary>
-            Private m_LazyTypeId As Integer = (-1)
+            Private _lazyTypeId As Integer = (-1)
 
             Public Sub New([module] As ModuleSymbol, [namespace] As String, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
                 Debug.Assert([module] IsNot Nothing)
                 Debug.Assert([namespace] IsNot Nothing)
 
-                m_NamespaceName = [namespace]
-                m_ContainingModule = [module]
+                _namespaceName = [namespace]
+                _containingModule = [module]
             End Sub
 
             Public Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName, Optional typeId As SpecialType = CType(-1, SpecialType))
                 Me.New([module], fullname, fullname.ForcedArity = -1 OrElse fullname.ForcedArity = fullname.InferredArity)
                 Debug.Assert(typeId = CType(-1, SpecialType) OrElse typeId = SpecialType.None OrElse Arity = 0 OrElse MangleName)
-                m_LazyTypeId = typeId
+                _lazyTypeId = typeId
             End Sub
 
             Private Sub New([module] As ModuleSymbol, ByRef fullname As MetadataTypeName, mangleName As Boolean)
@@ -107,29 +108,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' </summary>
             Public ReadOnly Property NamespaceName As String
                 Get
-                    Return m_NamespaceName
+                    Return _namespaceName
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
                 Get
-                    Return m_ContainingModule
+                    Return _containingModule
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
                 Get
-                    Return m_ContainingModule.ContainingAssembly
+                    Return _containingModule.ContainingAssembly
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    If m_LazyContainingNamespace Is Nothing Then
-                        Dim container As NamespaceSymbol = m_ContainingModule.GlobalNamespace
+                    If _lazyContainingNamespace Is Nothing Then
+                        Dim container As NamespaceSymbol = _containingModule.GlobalNamespace
 
-                        If m_NamespaceName.Length > 0 Then
-                            Dim namespaces = MetadataHelpers.SplitQualifiedName(m_NamespaceName)
+                        If _namespaceName.Length > 0 Then
+                            Dim namespaces = MetadataHelpers.SplitQualifiedName(_namespaceName)
                             Dim i As Integer
 
                             For i = 0 To namespaces.Length - 1 Step 1
@@ -159,35 +160,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             End While
                         End If
 
-                        Interlocked.CompareExchange(m_LazyContainingNamespace, container, Nothing)
+                        Interlocked.CompareExchange(_lazyContainingNamespace, container, Nothing)
                     End If
 
-                    Return m_LazyContainingNamespace
+                    Return _lazyContainingNamespace
                 End Get
             End Property
 
             Public Overrides ReadOnly Property SpecialType As SpecialType
                 Get
-                    If m_LazyTypeId = -1 Then
+                    If _lazyTypeId = -1 Then
                         Dim typeId As SpecialType = SpecialType.None
-                        Dim containingAssembly As AssemblySymbol = m_ContainingModule.ContainingAssembly
+                        Dim containingAssembly As AssemblySymbol = _containingModule.ContainingAssembly
 
                         If (Arity = 0 OrElse MangleName) AndAlso
-                           containingAssembly IsNot Nothing AndAlso containingAssembly Is containingAssembly.CorLibrary AndAlso m_ContainingModule.Ordinal = 0 Then
+                           containingAssembly IsNot Nothing AndAlso containingAssembly Is containingAssembly.CorLibrary AndAlso _containingModule.Ordinal = 0 Then
                             ' Check the name 
-                            Dim emittedName As String = MetadataHelpers.BuildQualifiedName(m_NamespaceName, MetadataName)
+                            Dim emittedName As String = MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName)
                             typeId = SpecialTypes.GetTypeFromMetadataName(emittedName)
                         End If
 
-                        Interlocked.CompareExchange(m_LazyTypeId, typeId, -1)
+                        Interlocked.CompareExchange(_lazyTypeId, typeId, -1)
                     End If
 
-                    Return CType(m_LazyTypeId, SpecialType)
+                    Return CType(_lazyTypeId, SpecialType)
                 End Get
             End Property
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(m_ContainingModule, Hash.Combine(MetadataName, Hash.Combine(m_NamespaceName, Arity)))
+                Return Hash.Combine(_containingModule, Hash.Combine(MetadataName, Hash.Combine(_namespaceName, Arity)))
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean
@@ -199,16 +200,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Return other IsNot Nothing AndAlso String.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) AndAlso
                     Arity = other.Arity AndAlso
-                    String.Equals(m_NamespaceName, other.m_NamespaceName, StringComparison.Ordinal) AndAlso
-                    m_ContainingModule.Equals(other.m_ContainingModule)
+                    String.Equals(_namespaceName, other._namespaceName, StringComparison.Ordinal) AndAlso
+                    _containingModule.Equals(other._containingModule)
             End Function
 
             Friend Overrides Function GetEmittedNamespaceName() As String
-                Return m_NamespaceName
+                Return _namespaceName
             End Function
 
             Private Function GetDebuggerDisplay() As String
-                Dim fullName As String = MetadataHelpers.BuildQualifiedName(m_NamespaceName, m_Name)
+                Dim fullName As String = MetadataHelpers.BuildQualifiedName(_namespaceName, m_Name)
 
                 If _arity > 0 Then
                     fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"
@@ -222,18 +223,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Class TopLevelWithCustomErrorInfo
             Inherits TopLevel
 
-            Private ReadOnly m_ErrorInfo As DiagnosticInfo
+            Private ReadOnly _errorInfo As DiagnosticInfo
 
             Public Sub New(moduleSymbol As ModuleSymbol, ByRef emittedName As MetadataTypeName, errorInfo As DiagnosticInfo, Optional typeId As SpecialType = CType(-1, SpecialType))
                 MyBase.New(moduleSymbol, emittedName, typeId)
 
                 Debug.Assert(errorInfo IsNot Nothing)
-                Me.m_ErrorInfo = errorInfo
+                Me._errorInfo = errorInfo
             End Sub
 
             Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
                 Get
-                    Return m_ErrorInfo
+                    Return _errorInfo
                 End Get
             End Property
         End Class
@@ -244,13 +245,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Class Nested
             Inherits MissingMetadataTypeSymbol
 
-            Private ReadOnly m_ContainingType As NamedTypeSymbol
+            Private ReadOnly _containingType As NamedTypeSymbol
 
             Public Sub New(containingType As NamedTypeSymbol, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
                 Debug.Assert(containingType IsNot Nothing)
 
-                m_ContainingType = containingType
+                _containingType = containingType
             End Sub
 
             Public Sub New(containingType As NamedTypeSymbol, ByRef emittedName As MetadataTypeName)
@@ -266,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return m_ContainingType
+                    Return _containingType
                 End Get
             End Property
 
@@ -277,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Property
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(m_ContainingType, Hash.Combine(MetadataName, Arity))
+                Return Hash.Combine(_containingType, Hash.Combine(MetadataName, Arity))
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean
@@ -289,13 +290,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Return other IsNot Nothing AndAlso String.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) AndAlso
                     Arity = other.Arity AndAlso
-                    m_ContainingType.Equals(other.m_ContainingType)
+                    _containingType.Equals(other._containingType)
             End Function
 
             Private Function GetDebuggerDisplay() As String
                 Dim fullName As String
 
-                fullName = m_ContainingType.ToString() & "." & Me.Name
+                fullName = _containingType.ToString() & "." & Me.Name
 
                 If _arity > 0 Then
                     fullName = fullName & "(Of " & New String(","c, _arity - 1) & ")"

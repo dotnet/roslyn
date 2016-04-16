@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                ' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We will maintain comptability.
+                ' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We will maintain compatibility.
                 Return True
             Else
                 Return False
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>
         ''' Forces binding and decoding of attributes.
-        ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain comptability.
+        ''' NOTE: Conditional symbols on the overridden method must be inherited by the overriding method, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get
@@ -266,7 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
                 Else
                     If Me.IsOverrides AndAlso Me.ConstructedFrom Is Me Then
-                        Return OverriddenMembers.OverriddenMember
+                        If IsDefinition Then
+                            Return OverriddenMembers.OverriddenMember
+                        End If
+
+                        Return OverriddenMembersResult(Of MethodSymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenMethod)
                     End If
                 End If
 
@@ -397,6 +401,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property IsScriptInitializer As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend ReadOnly Property IsSubmissionConstructor As Boolean
             Get
                 Return IsScriptConstructor AndAlso ContainingAssembly.IsInteractive
@@ -471,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim array = DirectCast(firstType, ArrayTypeSymbol)
-            Return array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_String
+            Return array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_String
         End Function
 
         Friend Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult
@@ -747,6 +757,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend MustOverride Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
 
+        ''' <summary>
+        ''' Specifies whether existing, "unused" locals (corresponding to proxies) are preserved during lambda rewriting.
+        ''' </summary>
+        ''' <remarks>
+        ''' This value will be checked by the <see cref="LambdaRewriter"/> and is needed so that existing locals aren't
+        ''' omitted in the EE (method symbols in the EE will override this property to return True).
+        ''' </remarks>
+        Friend Overridable ReadOnly Property PreserveOriginalLocals As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
 #Region "IMethodSymbol"
 
         Private ReadOnly Property IMethodSymbol_Arity As Integer Implements IMethodSymbol.Arity
@@ -798,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function IMethodSymbol_GetTypeInferredDuringReduction(reducedFromTypeParameter As ITypeParameterSymbol) As ITypeSymbol Implements IMethodSymbol.GetTypeInferredDuringReduction
-            Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)("reducedFromTypeParameter"))
+            Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)(NameOf(reducedFromTypeParameter)))
         End Function
 
         Private ReadOnly Property IMethodSymbol_ReducedFrom As IMethodSymbol Implements IMethodSymbol.ReducedFrom
@@ -809,15 +832,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IMethodSymbol_ReduceExtensionMethod(receiverType As ITypeSymbol) As IMethodSymbol Implements IMethodSymbol.ReduceExtensionMethod
             If receiverType Is Nothing Then
-                Throw New ArgumentNullException("receiverType")
+                Throw New ArgumentNullException(NameOf(receiverType))
             End If
 
-            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)("receiverType"))
+            Return Me.ReduceExtensionMethod(receiverType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(receiverType)))
         End Function
 
         Private ReadOnly Property IMethodSymbol_Parameters As ImmutableArray(Of IParameterSymbol) Implements IMethodSymbol.Parameters
             Get
-                Return ImmutableArray.Create(Of IParameterSymbol, ParameterSymbol)(Me.Parameters)
+                Return ImmutableArray(Of IParameterSymbol).CastUp(Me.Parameters)
             End Get
         End Property
 

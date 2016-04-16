@@ -160,7 +160,7 @@ namespace ns1
             }
         }
 
-        // Overriden Abstract Methods
+        // Overridden Abstract Methods
         public override int abst(ref string x, params int[] y)
         {
             Console.WriteLine("    c1.abst(ref string, params int[])");
@@ -523,7 +523,7 @@ namespace ns1
             }
         }
 
-        // Overriden Abstract Methods
+        // Overridden Abstract Methods
         public override int abst(ref string x, params int[] y)
         {
             Console.WriteLine("    c2<T>.abst(ref string, params int[])");
@@ -538,7 +538,7 @@ namespace ns1
             return 1;
         }
 
-        // Overriden Virtual Methods
+        // Overridden Virtual Methods
         public override int virt(ref int x, c1 y, params c2<string>[] z)
         {
             Console.WriteLine("    c2<T>.virt(ref int, c1, params c2<string>[])");
@@ -1577,7 +1577,7 @@ namespace ns1
                 Console.WriteLine("    c8.prop2.get()");
                 return _prop2;
             }
-            // Inaccessibile Setter
+            // Inaccessible Setter
             private set
             {
                 _prop2 = value;
@@ -3029,7 +3029,7 @@ namespace ns1
                 TT tt = default(TT); UU uu = default(UU); VV vv = default(VV);
                 T t = default(T); U u = default(U);
 
-                // Delegate Binding, Compound Assignemnt
+                // Delegate Binding, Compound Assignment
                 Del2<TT, UU, VV> d2 = foo; d2 += foo<TT, UU, VV>; d2 -= foo;
                 Del3<TT, VV, UU> d3 = foo; d3 += foo<TT, VV, UU>; d3 -= foo;
                 Del4<UU, TT, VV> d4 = foo; d4 += foo<UU, TT, VV>; d4 -= foo;
@@ -3038,7 +3038,7 @@ namespace ns1
                 d3(tt, vv, uu);
                 d4((a, b, c) => null, (a, b, c) => vv, (a, b, c) => { uu.Equals(vv); });
 
-                // Delegate Binding, Compound Assignemnt
+                // Delegate Binding, Compound Assignment
                 Del2<int, Del, VV> d22 = foo; d22 += (foo); d22 -= foo<int, Del, VV>;
                 Del3<long, int, Exception> d32 = foo; d32 += foo<long, int, Exception>; d32 -= ((foo));
                 Del4<T, U, Dictionary<List<TT>, Dictionary<List<UU>, VV>>> d42 = foo; d42 += foo; d42 -= foo;
@@ -3047,7 +3047,7 @@ namespace ns1
                 d32(1, 0, null);
                 d42((a, b, c) => null, (a, b, c) => null, (a, b, c) => { uu.Equals(vv); });
 
-                // Delegate Relaxation, Compound Assignement
+                // Delegate Relaxation, Compound Assignment
                 Del1 d1 = foo; d1 += foo<T, U>;
                 Del3<InvalidCastException, ArgumentNullException, NullReferenceException, Exception> d33 = foo<int, long>;
                 d33 -= foo<int, long>; d33 += foo<int, double>;

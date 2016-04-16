@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class DocumentationProvider
     {
-        public static readonly DocumentationProvider Default = new NullDocumentationProvider();
+        public static DocumentationProvider Default { get; } = new NullDocumentationProvider();
 
         protected DocumentationProvider()
         {

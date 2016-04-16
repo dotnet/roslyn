@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
-        [Fact, WorkItem(544450, "DevDiv")]
+        [Fact, WorkItem(544450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544450")]
         public void TestBug12780()
         {
             string source = @"
@@ -144,7 +144,7 @@ struct Conv
             var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(529279, "DevDiv")]
+        [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
         public void TestNullableWithGenericConstraints01()
         {
             string source = @"
@@ -169,7 +169,7 @@ static class Program
             CompileAndVerify(source, expectedOutput: "Hola");
         }
 
-        [Fact, WorkItem(543996, "DevDiv")]
+        [Fact, WorkItem(543996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543996")]
         public void TestNonLiftedUDCOnStruct()
         {
             string source = @"using System;
@@ -210,10 +210,10 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput:"TrueTrue");
+            CompileAndVerify(source, expectedOutput: "TrueTrue");
         }
 
-        [Fact, WorkItem(543997, "DevDiv")]
+        [Fact, WorkItem(543997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543997")]
         public void TestImplicitLiftedUDCOnStruct()
         {
             string source = @"using System;
@@ -280,7 +280,7 @@ namespace Test
             CompileAndVerify(source, expectedOutput: "123t");
         }
 
-        [Fact, WorkItem(545091, "DevDiv")]
+        [Fact, WorkItem(545091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545091")]
         public void TestImplicitUDCInNullCoalescingOperand()
         {
             string source = @"using System;
@@ -308,12 +308,11 @@ class A
             CompileAndVerify(source, expectedOutput: "implicit C");
         }
 
-        [WorkItem(545377, "DevDiv")]
+        [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
         [Fact]
         public void TestLiftedVsUnlifted()
         {
-
-            // The correct behaviour here is to choose operator 2. Binary operator overload
+            // The correct behavior here is to choose operator 2. Binary operator overload
             // resolution should determine that the best built-in addition operator is
             // lifted int + int, which has signature int? + int? --> int?. However, the 
             // native compiler gets this wrong. The native compiler, pretends
@@ -360,7 +359,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: "2");
         }
 
-        [WorkItem(545377, "DevDiv")]
+        [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
         [Fact]
         public void TestLiftedVsUnlifted_Combinations()
         {
@@ -663,7 +662,7 @@ ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD";
         }
 
         [Fact]
-        [WorkItem(1084278, "DevDiv")]
+        [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
         public void NullableConversionFromFloatingPointConst()
         {
             var source = @"

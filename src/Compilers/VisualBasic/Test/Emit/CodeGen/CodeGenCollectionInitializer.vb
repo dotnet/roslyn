@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub CollectionInitializerAsRefTypeEqualsNew()
+        Public Sub CollectionInitializerAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -57,7 +57,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsNewRefType()
+        Public Sub CollectionInitializerAsNewRefType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -103,7 +103,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsValueTypeEqualsNewNoParamConstructor()
+        Public Sub CollectionInitializerAsValueTypeEqualsNewNoParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -188,7 +188,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsValueTypeEqualsNewOneParamConstructor()
+        Public Sub CollectionInitializerAsValueTypeEqualsNewOneParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -280,7 +280,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsNewValueTypeOneParamConstructor()
+        Public Sub CollectionInitializerAsNewValueTypeOneParamConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -371,7 +371,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerForTypeParameter()
+        Public Sub CollectionInitializerForTypeParameter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -496,7 +496,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerAsRefTypeEqualsNewNested()
+        Public Sub CollectionInitializerAsRefTypeEqualsNewNested()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -562,7 +562,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithLambdasAndLifting()
+        Public Sub CollectionInitializerWithLambdasAndLifting()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -606,19 +606,19 @@ Hello World!
   IL_0011:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0016:  dup
   IL_0017:  ldloc.0
-  IL_0018:  ldftn      "Sub C1._Closure$__1-0._Lambda$__1()"
+  IL_0018:  ldftn      "Sub C1._Closure$__1-0._Lambda$__0()"
   IL_001e:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0023:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0028:  dup
-  IL_0029:  ldsfld     "C1._Closure$__.$I1-2 As System.Action"
+  IL_0029:  ldsfld     "C1._Closure$__.$I1-1 As System.Action"
   IL_002e:  brfalse.s  IL_0037
-  IL_0030:  ldsfld     "C1._Closure$__.$I1-2 As System.Action"
+  IL_0030:  ldsfld     "C1._Closure$__.$I1-1 As System.Action"
   IL_0035:  br.s       IL_004d
   IL_0037:  ldsfld     "C1._Closure$__.$I As C1._Closure$__"
-  IL_003c:  ldftn      "Sub C1._Closure$__._Lambda$__1-2()"
+  IL_003c:  ldftn      "Sub C1._Closure$__._Lambda$__1-1()"
   IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0047:  dup
-  IL_0048:  stsfld     "C1._Closure$__.$I1-2 As System.Action"
+  IL_0048:  stsfld     "C1._Closure$__.$I1-1 As System.Action"
   IL_004d:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0052:  dup
   IL_0053:  ldc.i4.0
@@ -633,7 +633,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithLambdasAndLifting_2()
+        Public Sub CollectionInitializerWithLambdasAndLifting_2()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -671,7 +671,7 @@ End Class
   IL_0007:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_000c:  dup
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub C1._Closure$__1-0._Lambda$__1()"
+  IL_000e:  ldftn      "Sub C1._Closure$__1-0._Lambda$__0()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_001e:  stfld      "C1._Closure$__1-0.$VB$Local_x As System.Collections.Generic.List(Of System.Action)"
@@ -686,7 +686,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerWithByRefExtensionMethod()
+        Public Sub CollectionInitializerWithByRefExtensionMethod()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -751,7 +751,7 @@ End Namespace
         End Sub
 
         <Fact()>
-        Sub CollectionInitializerPropertyInitializer()
+        Public Sub CollectionInitializerPropertyInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -795,9 +795,9 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(544125, "DevDiv")>
+        <WorkItem(544125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544125")>
         <Fact()>
-        Sub CollectionInitializerFieldInitializer()
+        Public Sub CollectionInitializerFieldInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">

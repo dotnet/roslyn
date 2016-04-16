@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 
@@ -12,11 +13,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class UnresolvedAnalyzerReference : AnalyzerReference
     {
-        private readonly string unresolvedPath;
+        private readonly string _unresolvedPath;
 
         public UnresolvedAnalyzerReference(string unresolvedPath)
         {
-            this.unresolvedPath = unresolvedPath;
+            if (unresolvedPath == null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedPath));
+            }
+
+            _unresolvedPath = unresolvedPath;
         }
 
         public override string Display
@@ -31,13 +37,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                return unresolvedPath;
+                return _unresolvedPath;
             }
         }
 
-        public override bool IsUnresolved
+        public override object Id
         {
-            get { return true; }
+            get
+            {
+                return _unresolvedPath;
+            }
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()

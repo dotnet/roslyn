@@ -48,6 +48,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        ''' </summary>
+        Friend MustOverride ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+
+        Friend Function CreateEmptyTypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Dim arity = Me.Arity
+
+            If arity > 0 Then
+                Return CreateEmptyTypeArgumentsCustomModifiers(arity)
+            Else
+                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+            End If
+        End Function
+
+        Friend Shared Function CreateEmptyTypeArgumentsCustomModifiers(arity As Integer) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Debug.Assert(arity > 0)
+            Return ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(arity, ImmutableArray(Of CustomModifier).Empty).ToImmutableAndFree()
+        End Function
+
+        Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
@@ -189,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' For delegate types, gets the delegate's invoke method.  Returns null on
-        ''' all other kinds of types.  Note that is is possible to have an ill-formed 
+        ''' all other kinds of types.  Note that it is possible to have an ill-formed 
         ''' delegate type imported from metadata which does not have an Invoke method.
         ''' Such a type will be classified as a delegate but its DelegateInvokeMethod
         ''' would be null.
@@ -260,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' This method is an entry point for the Binder to collect extension methods with the given name
-        ''' declared within this named type. Overriden by RetargetingNamedTypeSymbol.
+        ''' declared within this named type. Overridden by RetargetingNamedTypeSymbol.
         ''' </summary>
         Friend Overridable Sub AppendProbableExtensionMethods(name As String, methods As ArrayBuilder(Of MethodSymbol))
             If Me.MightContainExtensionMethods Then
@@ -305,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim candidates = Me.GetSimpleNonTypeMembers(Name)
 
                 For Each member In candidates
-                    appendThrough.AddMemeberIfExtension(methods, member)
+                    appendThrough.AddMemberIfExtension(methods, member)
                 Next
             End If
         End Sub
@@ -482,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Validate the map for use of alpha-renamed type parameters.
             substitution.ThrowIfSubstitutingToAlphaRenamedTypeParameter()
 
-            Return DirectCast(InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            Return DirectCast(InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
         ''' <summary>
@@ -530,11 +552,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns true if the type is a submission class. 
         ''' </summary>
-        Public Overridable ReadOnly Property IsSubmissionClass As Boolean
+        Public ReadOnly Property IsSubmissionClass As Boolean
             Get
-                Return False
+                Return TypeKind = TypeKind.Submission
             End Get
         End Property
+
+        Friend Function GetScriptConstructor() As SynthesizedConstructorBase
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(InstanceConstructors.Single(), SynthesizedConstructorBase)
+        End Function
+
+        Friend Function GetScriptInitializer() As SynthesizedInteractiveInitializerMethod
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single(), SynthesizedInteractiveInitializerMethod)
+        End Function
+
+        Friend Function GetScriptEntryPoint() As SynthesizedEntryPointSymbol
+            Debug.Assert(IsScriptClass)
+            Dim name = If(TypeKind = TypeKind.Submission, SynthesizedEntryPointSymbol.FactoryName, SynthesizedEntryPointSymbol.MainName)
+            Return DirectCast(GetMembers(name).Single(), SynthesizedEntryPointSymbol)
+        End Function
 
         ''' <summary>
         ''' Returns true if the type is the implicit class that holds onto invalid global members (like methods or
@@ -633,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>
         ''' Forces binding and decoding of attributes.
-        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain comptability.
+        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get
@@ -663,8 +701,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend MustOverride ReadOnly Property HasDeclarativeSecurity As Boolean
 
         'This represents the declared base type and base interfaces, once bound. 
-        Private lazyDeclaredBase As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
-        Private lazyDeclaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = Nothing
+        Private _lazyDeclaredBase As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
+        Private _lazyDeclaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = Nothing
 
         ''' <summary>
         ''' NamedTypeSymbol calls derived implementations of this method when declared base type
@@ -692,13 +730,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the bases that are being resolved must be specified here to prevent potential infinite recursion.
         ''' </summary>
         Friend Overridable Function GetDeclaredBase(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
-            If lazyDeclaredBase Is ErrorTypeSymbol.UnknownResultType Then
+            If _lazyDeclaredBase Is ErrorTypeSymbol.UnknownResultType Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
-                AtomicStoreReferenceAndDiagnostics(lazyDeclaredBase, MakeDeclaredBase(basesBeingResolved, diagnostics), diagnostics, ErrorTypeSymbol.UnknownResultType)
+                AtomicStoreReferenceAndDiagnostics(_lazyDeclaredBase, MakeDeclaredBase(basesBeingResolved, diagnostics), diagnostics, ErrorTypeSymbol.UnknownResultType)
                 diagnostics.Free()
             End If
 
-            Return lazyDeclaredBase
+            Return _lazyDeclaredBase
         End Function
 
         Friend Overridable Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
@@ -744,13 +782,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the bases that are being resolved must be specified here to prevent potential infinite recursion.
         ''' </summary>
         Friend Overridable Function GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As ImmutableArray(Of NamedTypeSymbol)
-            If lazyDeclaredInterfaces.IsDefault Then
+            If _lazyDeclaredInterfaces.IsDefault Then
                 Dim diagnostics = DiagnosticBag.GetInstance()
-                AtomicStoreArrayAndDiagnostics(lazyDeclaredInterfaces, MakeDeclaredInterfaces(basesBeingResolved, diagnostics), diagnostics)
+                AtomicStoreArrayAndDiagnostics(_lazyDeclaredInterfaces, MakeDeclaredInterfaces(basesBeingResolved, diagnostics), diagnostics)
                 diagnostics.Free()
             End If
 
-            Return lazyDeclaredInterfaces
+            Return _lazyDeclaredInterfaces
         End Function
 
         Friend Function GetDeclaredInterfacesWithDefinitionUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
@@ -800,8 +838,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
 
-        Private lazyBaseType As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
-        Private lazyInterfaces As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyBaseType As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
+        Private _lazyInterfaces As ImmutableArray(Of NamedTypeSymbol)
 
         ''' <summary>
         ''' Base type. 
@@ -809,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
             Get
-                If Me.lazyBaseType Is ErrorTypeSymbol.UnknownResultType Then
+                If Me._lazyBaseType Is ErrorTypeSymbol.UnknownResultType Then
                     ' force resolution of bases in containing type
                     ' to make base resolution errors more deterministic
                     If ContainingType IsNot Nothing Then
@@ -819,11 +857,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim diagnostics = DiagnosticBag.GetInstance
                     Dim acyclicBase = Me.MakeAcyclicBaseType(diagnostics)
 
-                    AtomicStoreReferenceAndDiagnostics(Me.lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
+                    AtomicStoreReferenceAndDiagnostics(Me._lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
                     diagnostics.Free()
                 End If
 
-                Return Me.lazyBaseType
+                Return Me._lazyBaseType
             End Get
         End Property
 
@@ -832,15 +870,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                If Me.lazyInterfaces.IsDefault Then
+                If Me._lazyInterfaces.IsDefault Then
                     Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance
                     Dim acyclicInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.MakeAcyclicInterfaces(diagnostics)
 
-                    AtomicStoreArrayAndDiagnostics(Me.lazyInterfaces, acyclicInterfaces, diagnostics)
+                    AtomicStoreArrayAndDiagnostics(Me._lazyInterfaces, acyclicInterfaces, diagnostics)
                     diagnostics.Free()
                 End If
 
-                Return Me.lazyInterfaces
+                Return Me._lazyInterfaces
             End Get
         End Property
 
@@ -853,11 +891,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             'NOTE: we can be at race with another thread here.
             ' the worst thing that can happen though, is that error on same cycle may be reported twice
-            ' if two threads analyse the same cycle at the same time but start from different ends.
+            ' if two threads analyze the same cycle at the same time but start from different ends.
             '
             ' For now we decided that this is something we can live with.
 
-            Dim base = Me.lazyBaseType
+            Dim base = Me._lazyBaseType
             If base IsNot ErrorTypeSymbol.UnknownResultType Then
                 Return base
             End If
@@ -871,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' while not forcing actual Interfaces to be realized.
         ''' </summary>
         Friend Function GetBestKnownInterfacesNoUseSiteDiagnostics() As ImmutableArray(Of NamedTypeSymbol)
-            Dim interfaces = Me.lazyInterfaces
+            Dim interfaces = Me._lazyInterfaces
             If Not interfaces.IsDefault Then
                 Return interfaces
             End If
@@ -974,6 +1012,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             Next
+
+            If Me.HasTypeArgumentsCustomModifiers Then
+                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                For Each modifiers In Me.TypeArgumentsCustomModifiers
+                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
+                Next
+
+                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
+            End If
 
             Return argsErrorInfo
         End Function

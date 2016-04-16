@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string SymbolName = "this";
 
-        private readonly MethodSymbol containingMethod;
-        private readonly TypeSymbol containingType;
+        private readonly MethodSymbol _containingMethod;
+        private readonly TypeSymbol _containingType;
 
         internal ThisParameterSymbol(MethodSymbol forMethod) : this(forMethod, forMethod.ContainingType)
         {
         }
         internal ThisParameterSymbol(MethodSymbol forMethod, TypeSymbol containingType)
         {
-            this.containingMethod = forMethod;
-            this.containingType = containingType;
+            _containingMethod = forMethod;
+            _containingType = containingType;
         }
 
         public override string Name
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbol Type
         {
-            get { return containingType; }
+            get { return _containingType; }
         }
 
         public override RefKind RefKind
@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return
-                    ((object)containingType == null || containingType.TypeKind != TypeKind.Struct) ? RefKind.None :
-                    ((object)containingMethod != null && containingMethod.MethodKind == MethodKind.Constructor) ? RefKind.Out :
+                    ((object)_containingType == null || _containingType.TypeKind != TypeKind.Struct) ? RefKind.None :
+                    ((object)_containingMethod != null && _containingMethod.MethodKind == MethodKind.Constructor) ? RefKind.Out :
                     RefKind.Ref;
             }
         }
 
         public override ImmutableArray<Location> Locations
         {
-            get { return (object)containingMethod != null ? containingMethod.Locations : ImmutableArray<Location>.Empty; }
+            get { return (object)_containingMethod != null ? _containingMethod.Locations : ImmutableArray<Location>.Empty; }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return (Symbol)containingMethod ?? containingType; }
+            get { return (Symbol)_containingMethod ?? _containingType; }
         }
 
         internal override ConstantValue ExplicitDefaultConstantValue
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
     }
 }

@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal partial class TriviaDataFactory
     {
-        private class ModifiedComplexTrivia : TriviaDataWithList<SyntaxTrivia>
+        private class ModifiedComplexTrivia : TriviaDataWithList
         {
-            private readonly ComplexTrivia original;
+            private readonly ComplexTrivia _original;
 
             public ModifiedComplexTrivia(OptionSet optionSet, ComplexTrivia original, int lineBreaks, int space)
                 : base(optionSet, original.Token1.Language)
             {
                 Contract.ThrowIfNull(original);
 
-                this.original = original;
+                _original = original;
 
                 // linebreak and space can become negative during formatting. but it should be normalized to >= 0
                 // at the end.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public override bool TreatAsElastic
             {
-                get { return this.original.TreatAsElastic; }
+                get { return _original.TreatAsElastic; }
             }
 
             public override bool IsWhitespaceOnlyTrivia
@@ -53,19 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {
-                return this.original.WithSpace(space, context, formattingRules);
+                return _original.WithSpace(space, context, formattingRules);
             }
 
             public override TriviaData WithLine(
                 int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
             {
-                return this.original.WithLine(line, indentation, context, formattingRules, cancellationToken);
+                return _original.WithLine(line, indentation, context, formattingRules, cancellationToken);
             }
 
             public override TriviaData WithIndentation(
                 int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
             {
-                return this.original.WithIndentation(indentation, context, formattingRules, cancellationToken);
+                return _original.WithIndentation(indentation, context, formattingRules, cancellationToken);
             }
 
             public override void Format(
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 Contract.ThrowIfFalse(this.SecondTokenIsFirstTokenOnLine);
 
-                var token1 = this.original.Token1;
-                var token2 = this.original.Token2;
+                var token1 = _original.Token1;
+                var token2 = _original.Token2;
 
                 var triviaList = new TriviaList(token1.TrailingTrivia, token2.LeadingTrivia);
                 Contract.ThrowIfFalse(triviaList.Count > 0);
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     new FormattedComplexTrivia(
                         context,
                         formattingRules,
-                        this.original.Token1,
-                        this.original.Token2,
+                        _original.Token1,
+                        _original.Token2,
                         this.LineBreaks,
                         this.Spaces,
-                        this.original.OriginalString,
+                        _original.OriginalString,
                         cancellationToken));
             }
 

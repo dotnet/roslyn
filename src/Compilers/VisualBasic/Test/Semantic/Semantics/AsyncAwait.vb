@@ -4978,7 +4978,7 @@ BC42357: Some overloads here take an Async Function rather than an Async Sub. Co
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(547087, "DevDiv")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_1()
             Dim source =
 <compilation>
@@ -5055,7 +5055,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 
         End Sub
 
-        <Fact(), WorkItem(547087, "DevDiv")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_2()
             Dim source =
 <compilation>
@@ -5104,7 +5104,7 @@ BC42105: Function 'Test3' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547087, "DevDiv")>
+        <Fact(), WorkItem(547087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547087")>
         Public Sub Bug17912_3()
             Dim source =
 <compilation>
@@ -5207,7 +5207,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(568948, "DevDiv")>
+        <Fact(), WorkItem(568948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568948")>
         Public Sub Bug568948()
             Dim source =
 <compilation>
@@ -5252,7 +5252,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, LatestReferences, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithReferences(source, LatestVbReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -5495,7 +5495,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(), WorkItem(1066694, "DevDiv")>
+        <Fact(), WorkItem(1066694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066694")>
         Public Sub Bug1066694()
             Dim source =
 <compilation>
@@ -5568,7 +5568,7 @@ Changed
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1068084, "DevDiv")>
+        <Fact(), WorkItem(1068084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068084")>
         Public Sub Bug1068084()
             Dim source =
 <compilation>
@@ -5598,7 +5598,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(1021941, "DevDiv")>
+        <Fact(), WorkItem(1021941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021941")>
         Public Sub Bug1021941()
             Dim source =
 <compilation>
@@ -5658,6 +5658,49 @@ End Class
 M2 is called for item 'Foo'
 M1 is called for item 'Bar'
 ]]>)
+        End Sub
+
+        <Fact(), WorkItem(1173166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173166"), WorkItem(2878, "https://github.com/dotnet/roslyn/issues/2878")>
+        Public Sub CompoundAssignment()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class Test
+    Private _field As UInteger
+
+    Shared Sub Main()
+        Dim t as New Test()
+        System.Console.WriteLine(t._field)
+        t.EventHandler(-1).Wait()
+        System.Console.WriteLine(t._field)
+    End Sub
+
+    Private Async Function EventHandler(args As Integer) As System.Threading.Tasks.Task
+        Await RunAsync(Async Function()
+                                   System.Console.WriteLine(args)
+                                   _field += CUInt(1)
+                       End Function)
+    End Function
+
+    Private Async Function RunAsync(x As System.Func(Of System.Threading.Tasks.Task)) As System.Threading.Tasks.Task
+        Await x()
+    End Function
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+
+            Dim expected As Xml.Linq.XCData = <![CDATA[
+0
+-1
+1
+]]>
+            CompileAndVerify(compilation, expected)
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
         End Sub
 
     End Class

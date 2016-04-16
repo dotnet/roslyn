@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public staticLambdaFrame As LambdaFrame
 
         ' Can be Nothing if we're not emitting.
+        ' During the lowering phase, however, it cannot be Nothing.
         Public ReadOnly ModuleBuilderOpt As PEModuleBuilder
 
         ''' <summary> Flat array of created methods, non-empty if not-nothing </summary>

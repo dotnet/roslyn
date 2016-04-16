@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Generate method group and arguments for RemoveNamespaceAttributes.
                 removeNamespacesGroup = GetXmlMethodOrPropertyGroup(syntax,
-                                                                    GetWellKnownType(WellKnownType.My_InternalXmlHelper, syntax, diagnostics),
+                                                                    GetInternalXmlHelperType(syntax, diagnostics),
                                                                     StringConstants.XmlRemoveNamespaceAttributesMethodName,
                                                                     Nothing,
                                                                     diagnostics)
@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateArrayType(elementType As TypeSymbol) As ArrayTypeSymbol
-            Return New ArrayTypeSymbol(elementType, ImmutableArray(Of CustomModifier).Empty, rank:=1, compilation:=Compilation)
+            Return ArrayTypeSymbol.CreateSZArray(elementType, ImmutableArray(Of CustomModifier).Empty, compilation:=Compilation)
         End Function
 
         Private Shared Function GetXmlnsXmlName(prefix As String) As XmlName
@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               ImmutableArray.Create(Of BoundExpression)(prefix, [namespace]),
                                                               diagnostics)
             Else
-                Dim type = GetWellKnownType(WellKnownType.My_InternalXmlHelper, syntax, diagnostics)
+                Dim type = GetInternalXmlHelperType(syntax, diagnostics)
                 Dim group = GetXmlMethodOrPropertyGroup(syntax, type, StringConstants.XmlCreateNamespaceAttributeMethodName, Nothing, diagnostics)
                 objectCreation = BindInvocationExpressionIfGroupNotNothing(syntax, group, ImmutableArray.Create(Of BoundExpression)(prefix, [namespace]), diagnostics)
             End If
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' with embedded expression values since CreateAttribute handles Nothing values.
                 value = BindXmlEmbeddedExpression(DirectCast(valueSyntax, XmlEmbeddedExpressionSyntax), diagnostics)
                 Dim group = GetXmlMethodOrPropertyGroup(valueSyntax,
-                                                        GetWellKnownType(WellKnownType.My_InternalXmlHelper, syntax, diagnostics),
+                                                        GetInternalXmlHelperType(syntax, diagnostics),
                                                         StringConstants.XmlCreateAttributeMethodName,
                                                         Nothing,
                                                         diagnostics)
@@ -582,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private NotInheritable Class XmlNameComparer
             Implements IEqualityComparer(Of XmlName)
 
-            Public Shared Instance As New XmlNameComparer()
+            Public Shared ReadOnly Instance As New XmlNameComparer()
 
             Private Function IEqualityComparer_Equals(x As XmlName, y As XmlName) As Boolean Implements IEqualityComparer(Of XmlName).Equals
                 Return String.Equals(x.LocalName, y.LocalName, StringComparison.Ordinal) AndAlso String.Equals(x.XmlNamespace, y.XmlNamespace, StringComparison.Ordinal)
@@ -653,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If receiverType.IsOrDerivedFrom(xmlType, useSiteDiagnostics) OrElse receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
-                                                            GetWellKnownType(WellKnownType.My_InternalXmlHelper, syntax, diagnostics),
+                                                            GetInternalXmlHelperType(syntax, diagnostics),
                                                             StringConstants.XmlAttributeValueMethodName,
                                                             Nothing,
                                                             diagnostics)
@@ -1422,9 +1422,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class XmlNamespaceImportsBinder
         Inherits Binder
 
-        Private ReadOnly _namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
+        Private ReadOnly _namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public Sub New(containingBinder As Binder, namespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition))
+        Public Sub New(containingBinder As Binder, namespaces As IReadOnlyDictionary(Of String, XmlNamespaceAndImportsClausePosition))
             MyBase.New(containingBinder)
             Debug.Assert(namespaces IsNot Nothing)
             Debug.Assert(namespaces.Count > 0)

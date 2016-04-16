@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class LocalConstantDefinition : Cci.ILocalDefinition
     {
-        private readonly string name;
-        private readonly Location location;
-        private readonly Cci.IMetadataConstant compileTimeValue;
-        private readonly bool isDynamic;
+        private readonly string _name;
+        private readonly Location _location;
+        private readonly Cci.IMetadataConstant _compileTimeValue;
+        private readonly bool _isDynamic;
 
         //Gives the synthesized dynamic attributes of the local definition
-        private readonly ImmutableArray<TypedConstant> dynamicTransformFlags;
+        private readonly ImmutableArray<TypedConstant> _dynamicTransformFlags;
 
         public LocalConstantDefinition(string name, Location location, Cci.IMetadataConstant compileTimeValue, bool isDynamic = false,
             ImmutableArray<TypedConstant> dynamicTransformFlags = default(ImmutableArray<TypedConstant>))
@@ -27,91 +27,45 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!string.IsNullOrEmpty(name));
             Debug.Assert(compileTimeValue != null);
 
-            this.name = name;
-            this.location = location;
-            this.compileTimeValue = compileTimeValue;
-            this.isDynamic = isDynamic;
-            this.dynamicTransformFlags = dynamicTransformFlags;
+            _name = name;
+            _location = location;
+            _compileTimeValue = compileTimeValue;
+            _isDynamic = isDynamic;
+            _dynamicTransformFlags = dynamicTransformFlags;
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name => _name;
 
-        public Location Location
-        {
-            get { return location; }
-        }
+        public Location Location => _location;
 
-        public Cci.IMetadataConstant CompileTimeValue
-        {
-            get { return compileTimeValue; }
-        }
+        public Cci.IMetadataConstant CompileTimeValue => _compileTimeValue;
 
-        public Cci.ITypeReference Type
-        {
-            get { return this.compileTimeValue.Type; }
-        }
+        public Cci.ITypeReference Type => _compileTimeValue.Type;
 
-        public bool IsConstant
-        {
-            get { return true; }
-        }
+        public bool IsConstant => true;
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
-        }
+            => ImmutableArray<Cci.ICustomModifier>.Empty;
 
-        public bool IsModified
-        {
-            get { return false; }
-        }
+        public bool IsModified => false;
 
-        public bool IsPinned
-        {
-            get { return false; }
-        }
+        public bool IsPinned => false;
 
-        public bool IsReference
-        {
-            get { return false; }
-        }
+        public bool IsReference => false;
 
-        public LocalSlotConstraints Constraints
-        {
-            get { return LocalSlotConstraints.None; }
-        }
+        public LocalSlotConstraints Constraints => LocalSlotConstraints.None;
 
-        public bool IsDynamic
-        {
-            get { return this.isDynamic; }
-        }
+        public bool IsDynamic => _isDynamic;
 
-        public uint PdbAttributes
-        {
-            get { return Cci.PdbWriter.DefaultLocalAttributesValue; }
-        }
+        public uint PdbAttributes => Cci.PdbWriter.DefaultLocalAttributesValue;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags
-        {
-            get { return this.dynamicTransformFlags; }
-        }
+        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
 
-        public int SlotIndex
-        {
-            get { return -1; }
-        }
+        public int SlotIndex => -1;
 
-        public byte[] Signature
-        {
-            get { return null; }
-        }
+        public byte[] Signature => null;
 
         public LocalSlotDebugInfo SlotInfo
-        {
-            get { return new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None); }
-        }
+            => new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None);
     }
 }

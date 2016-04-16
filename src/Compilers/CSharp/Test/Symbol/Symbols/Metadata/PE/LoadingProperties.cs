@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestExplicitImplementationGeneric()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestExplicitImplementationConstructed()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestExplicitImplementationDefRefDef()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestTypeParameterPositions()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.CSharp,
                 });
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(1, outerInterface.Arity);
             Assert.Equal(TypeKind.Interface, outerInterface.TypeKind);
 
-            var outerInterfaceProperty = outerInterface.GetMembers().Where(m => m.Kind == SymbolKind.Property).Single();
+            var outerInterfaceProperty = outerInterface.GetMembers().Single(m => m.Kind == SymbolKind.Property);
 
             var outerClass = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Outer").Single();
             Assert.Equal(1, outerClass.Arity);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(1, innerInterface.Arity);
             Assert.Equal(TypeKind.Interface, innerInterface.TypeKind);
 
-            var innerInterfaceProperty = innerInterface.GetMembers().Where(m => m.Kind == SymbolKind.Property).Single();
+            var innerInterfaceProperty = innerInterface.GetMembers().Single(m => m.Kind == SymbolKind.Property);
 
             var innerClass1 = (NamedTypeSymbol)outerClass.GetTypeMembers("Inner1").Single();
             CheckInnerClassHelper(innerClass1, "IGeneric2<A>.Property", outerInterfaceProperty);
@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestExplicitImplementationMultipleAndPartial()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                new[] 
-                { 
+                new[]
+                {
                     TestReferences.NetFx.v4_0_30319.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Properties.IL,
                 });
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Null(@class.FindImplementationForInterfaceMember(interfaceProperty3));
         }
 
-        [WorkItem(543263, "DevDiv")]
+        [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
         [Fact]
         public void TestMixedAccessorModifiers()
         {
@@ -298,12 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             const VirtualnessModifiers @override = VirtualnessModifiers.Override;
             const VirtualnessModifiers @sealed = VirtualnessModifiers.Sealed;
 
-            VirtualnessModifiers[] modList = new[] 
-            { 
-                @none, 
-                @abstract, 
-                @virtual, 
-                @override, 
+            VirtualnessModifiers[] modList = new[]
+            {
+                @none,
+                @abstract,
+                @virtual,
+                @override,
                 @sealed,
             };
 
@@ -364,9 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 }
             }
         }
-
         [Flags]
-        enum VirtualnessModifiers
+
+        private enum VirtualnessModifiers
         {
             None = 0,
             Abstract = 1,

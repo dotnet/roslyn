@@ -93,7 +93,7 @@ End Module
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType_")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType_", StringComparison.Ordinal)).ToList()
                                                   Assert.Equal(1, list.Count())
                                                   Dim type = list.First()
                                                   Assert.Equal("VB$AnonymousType_0", type.Name)
@@ -135,7 +135,7 @@ End Structure
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
                                                   Assert.Equal(1, list.Count())
                                                   Dim type = list.First()
                                                   Assert.Equal("VB$AnonymousType_0", type.Name)
@@ -180,7 +180,7 @@ End Class
                              additionalRefs:={SystemCoreRef},
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim types = m.ContainingAssembly.GlobalNamespace.GetTypeMembers()
-                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Select(Function(t) t).ToList()
+                                                  Dim list = types.Where(Function(t) t.Name.StartsWith("VB$AnonymousType", StringComparison.Ordinal)).ToList()
                                                   ' no unification - diff in key
                                                   Assert.Equal(2, list.Count())
                                                   Dim type = m.ContainingAssembly.GlobalNamespace.GetTypeMembers("VB$AnonymousType_1").Single()
@@ -261,7 +261,7 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
-            Dim position = compilationDef.<file>.Value.IndexOf("Dim v2") - 1
+            Dim position = compilationDef.<file>.Value.IndexOf("Dim v2", StringComparison.Ordinal) - 1
 
             ' The sole purpose of this is to check if there will be any asserts 
             ' or exceptions related to adjusted names/locations of anonymous types 
@@ -571,7 +571,7 @@ End Module
         </file>
     </compilation>
 
-            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION")
+            Dim position = compilationDef.<file>.Value.IndexOf("'POSITION", StringComparison.Ordinal)
 
             CompileAndVerify(compilationDef,
                              additionalRefs:={SystemCoreRef},
@@ -610,7 +610,7 @@ End Module
         End Sub
 
         <Fact>
-        <WorkItem(641639, "DevDiv")>
+        <WorkItem(641639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641639")>
         Public Sub Bug641639()
             Dim moduleDef =
     <compilation name="TestModule">
@@ -733,6 +733,78 @@ End Module
         End Function
 
 #End Region
+
+        <Fact, WorkItem(1319, "https: //github.com/dotnet/roslyn/issues/1319")>
+        Public Sub MultipleNetmodulesWithAnonymousTypes()
+            Dim compilationDef1 =
+    <compilation>
+        <file name="a.vb">
+Class A
+    Friend o1 As Object = new with { .hello = 1, .world = 2 }
+    Friend d1 As Object = Function() 1
+    public shared Function M1() As String
+        return "Hello, "
+    End Function
+End Class
+        </file>
+    </compilation>
+
+            Dim compilationDef2 =
+    <compilation>
+        <file name="a.vb">
+Class B
+    Inherits A
+
+    Friend o2 As Object = new with { .hello = 1, .world = 2 }
+    Friend d2 As Object = Function() 1
+    public shared Function M2() As String
+        return "world!"
+    End Function
+End Class
+        </file>
+    </compilation>
+
+            Dim compilationDef3 =
+    <compilation>
+        <file name="a.vb">
+Class Module1
+    Friend o3 As Object = new with { .hello = 1, .world = 2 }
+    Friend d3 As Object = Function() 1
+
+    public shared Sub Main()
+        System.Console.Write(A.M1())
+        System.Console.WriteLine(B.M2())
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib(compilationDef1, options:=TestOptions.ReleaseModule.WithModuleName("A"))
+            comp1.VerifyDiagnostics()
+            Dim ref1 = comp1.EmitToImageReference()
+
+            Dim comp2 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {ref1}, options:=TestOptions.ReleaseModule.WithModuleName("B"))
+            comp2.VerifyDiagnostics()
+            Dim ref2 = comp2.EmitToImageReference()
+
+            Dim comp3 = CreateCompilationWithMscorlibAndReferences(compilationDef3, {ref1, ref2}, options:=TestOptions.ReleaseExe.WithModuleName("C"))
+            comp3.VerifyDiagnostics()
+
+            Dim mA = comp3.Assembly.Modules(1)
+            Assert.Equal("VB$AnonymousType_0<A>`2", mA.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Single().MetadataName)
+            Assert.Equal("VB$AnonymousDelegate_0<A>`1", mA.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousDelegate")).Single().MetadataName)
+
+            Dim mB = comp3.Assembly.Modules(2)
+            Assert.Equal("VB$AnonymousType_0<B>`2", mB.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Single().MetadataName)
+            Assert.Equal("VB$AnonymousDelegate_0<B>`1", mB.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousDelegate")).Single().MetadataName)
+
+            CompileAndVerify(comp3, expectedOutput:="Hello, world!", symbolValidator:=
+                             Sub(m)
+                                 Dim mC = DirectCast(m, PEModuleSymbol)
+                                 Assert.Equal("VB$AnonymousType_0`2", mC.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousType")).Single().MetadataName)
+                                 Assert.Equal("VB$AnonymousDelegate_0`1", mC.GlobalNamespace.GetTypeMembers().Where(Function(t) t.Name.StartsWith("VB$AnonymousDelegate")).Single().MetadataName)
+                             End Sub)
+        End Sub
 
     End Class
 

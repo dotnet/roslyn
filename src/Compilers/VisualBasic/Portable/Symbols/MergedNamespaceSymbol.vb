@@ -74,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' module extent namespace will be another module extent namespace. This is basically no different than type members of namespaces,
             ' so it shouldn't be TOO unexpected.
 
-            Debug.Assert(namespacesToMerge.Count <> 0)
+            Debug.Assert(namespacesToMerge.Length <> 0)
 
-            If namespacesToMerge.Count = 1 Then
+            If namespacesToMerge.Length = 1 Then
                 Dim result = namespacesToMerge(0)
                 Return result
             Else
@@ -650,7 +650,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' of memory overhead) unless there is actual merging going on. 
                 Debug.Assert(namespaceArray.Count <> 0)
                 If namespaceArray.Count = 0 Then
-                    Debug.Assert(False)
                     namespaceArray.Free()
                     Return Me
                 End If
@@ -665,8 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return result
                     End If
 
-                    Debug.Assert(False)
-                    Return Me
+                    Throw ExceptionUtilities.Unreachable
                 End If
 
                 Dim lookup = New SmallDictionary(Of NamespaceSymbol, Boolean)()

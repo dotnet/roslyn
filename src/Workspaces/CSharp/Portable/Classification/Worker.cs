@@ -24,23 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     /// </summary>
     internal partial class Worker
     {
-#if DEBUG
-        /// <summary>
-        /// nonOverlappingSpans spans used for Debug validation that spans that worker produces
-        /// are not mutually overlapping.
-        /// </summary>
-        private SimpleIntervalTree<TextSpan> nonOverlappingSpans;
-#endif
-
-        private readonly TextSpan textSpan;
-        private readonly List<ClassifiedSpan> result;
-        private readonly CancellationToken cancellationToken;
+        private readonly TextSpan _textSpan;
+        private readonly List<ClassifiedSpan> _result;
+        private readonly CancellationToken _cancellationToken;
 
         private Worker(TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            this.result = result;
-            this.textSpan = textSpan;
-            this.cancellationToken = cancellationToken;
+            _result = result;
+            _textSpan = textSpan;
+            _cancellationToken = cancellationToken;
         }
 
         internal static void CollectClassifiedSpans(
@@ -60,31 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             worker.ClassifyNode(node);
         }
 
-        [System.Diagnostics.Conditional("DEBUG")]
-        private void Validate(TextSpan textSpan)
-        {
-#if DEBUG
-            if (nonOverlappingSpans == null)
-            {
-                nonOverlappingSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance);
-            }
-
-            // new span should not overlap with any span that we already have.
-            Contract.Requires(!nonOverlappingSpans.GetOverlappingIntervals(textSpan.Start, textSpan.Length).Any());
-
-            nonOverlappingSpans = nonOverlappingSpans.AddInterval(textSpan);
-#endif
-        }
-
         private void AddClassification(TextSpan span, string type)
         {
-            Validate(span);
-            this.result.Add(new ClassifiedSpan(type, span));
+            _result.Add(new ClassifiedSpan(type, span));
         }
 
         private void AddClassification(SyntaxTrivia trivia, string type)
         {
-            if (trivia.Width() > 0 && textSpan.OverlapsWith(trivia.Span))
+            if (trivia.Width() > 0 && _textSpan.OverlapsWith(trivia.Span))
             {
                 AddClassification(trivia.Span, type);
             }
@@ -92,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void AddClassification(SyntaxToken token, string type)
         {
-            if (token.Width() > 0 && textSpan.OverlapsWith(token.Span))
+            if (token.Width() > 0 && _textSpan.OverlapsWith(token.Span))
             {
                 AddClassification(token.Span, type);
             }
@@ -111,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyNode(SyntaxNode node)
         {
-            foreach (var token in node.DescendantTokens(span: this.textSpan, descendIntoTrivia: false))
+            foreach (var token in node.DescendantTokens(span: _textSpan, descendIntoTrivia: false))
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 ClassifyToken(token);
             }
         }
@@ -121,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private void ClassifyToken(SyntaxToken token)
         {
             var span = token.Span;
-            if (span.Length != 0 && textSpan.OverlapsWith(span))
+            if (span.Length != 0 && _textSpan.OverlapsWith(span))
             {
                 var type = ClassificationHelpers.GetClassification(token);
 
@@ -133,20 +108,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
             foreach (var trivia in token.LeadingTrivia)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 ClassifyTrivia(trivia);
             }
 
             foreach (var trivia in token.TrailingTrivia)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 ClassifyTrivia(trivia);
             }
         }
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
         {
-            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.IsRegularComment())
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }
@@ -174,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifySkippedTokens(SkippedTokensTriviaSyntax skippedTokens)
         {
-            if (!textSpan.OverlapsWith(skippedTokens.Span))
+            if (!_textSpan.OverlapsWith(skippedTokens.Span))
             {
                 return;
             }

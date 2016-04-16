@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return GetCodeGenerationService(workspace, destination.Language).UpdateDeclarationModifiers(destination, newModifiers, options ?? new CodeGenerationOptions(reuseSyntax: true), cancellationToken);
         }
 
-        public static TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode destination, Workspace workspace, Accessibility newAccesibility, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode
+        public static TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode destination, Workspace workspace, Accessibility newAccessibility, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode
         {
-            return GetCodeGenerationService(workspace, destination.Language).UpdateDeclarationAccessibility(destination, newAccesibility, options ?? new CodeGenerationOptions(reuseSyntax: true), cancellationToken);
+            return GetCodeGenerationService(workspace, destination.Language).UpdateDeclarationAccessibility(destination, newAccessibility, options ?? new CodeGenerationOptions(reuseSyntax: true), cancellationToken);
         }
 
         public static TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode destination, Workspace workspace, ITypeSymbol newType, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode

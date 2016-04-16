@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' The underlying AssemblySymbol, it leaks symbols that should be retargeted.
         ''' This cannot be an instance of RetargetingAssemblySymbol.
         ''' </summary>
-        Private ReadOnly m_UnderlyingAssembly As SourceAssemblySymbol
+        Private ReadOnly _underlyingAssembly As SourceAssemblySymbol
 
         ''' <summary>
         ''' The list of contained ModuleSymbol objects. First item in the list
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' from m_UnderlyingAssembly.Modules list, the rest are PEModuleSymbols for 
         ''' added modules.
         ''' </summary>
-        Private ReadOnly m_Modules As ImmutableArray(Of ModuleSymbol)
+        Private ReadOnly _modules As ImmutableArray(Of ModuleSymbol)
 
         ''' <summary>
         ''' An array of assemblies involved in canonical type resolution of
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' references used by a compilation referencing this assembly.
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
-        Private m_NoPiaResolutionAssemblies As ImmutableArray(Of AssemblySymbol)
+        Private _noPiaResolutionAssemblies As ImmutableArray(Of AssemblySymbol)
 
         ''' <summary>
         ''' An array of assemblies referenced by this assembly, which are linked (/l-ed) by 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' If this AssemblySymbol is linked too, it will be in this array too.
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
-        Private m_LinkedReferencedAssemblies As ImmutableArray(Of AssemblySymbol)
+        Private _linkedReferencedAssemblies As ImmutableArray(Of AssemblySymbol)
 
         ''' <summary>
         ''' A map from a local NoPia type to corresponding canonical type.
@@ -71,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Assembly is /l-ed by compilation that is using it as a reference.
         ''' </summary>
-        Private ReadOnly m_IsLinked As Boolean
+        Private ReadOnly _isLinked As Boolean
 
         ''' <summary>
         ''' Retargeted custom attributes
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         ''' <summary>
         ''' Constructor.
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Sub New(underlyingAssembly As SourceAssemblySymbol, isLinked As Boolean)
             Debug.Assert(underlyingAssembly IsNot Nothing)
 
-            m_UnderlyingAssembly = underlyingAssembly
+            _underlyingAssembly = underlyingAssembly
 
             Dim modules(underlyingAssembly.Modules.Length - 1) As ModuleSymbol
 
@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 modules(i) = New PEModuleSymbol(Me, peModuleSym.Module, peModuleSym.ImportOptions, i)
             Next
 
-            m_Modules = modules.AsImmutableOrNull()
-            m_IsLinked = isLinked
+            _modules = modules.AsImmutableOrNull()
+            _isLinked = isLinked
         End Sub
 
         ''' <summary>
@@ -115,28 +115,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <remarks></remarks>
         Public ReadOnly Property UnderlyingAssembly As SourceAssemblySymbol
             Get
-                Return m_UnderlyingAssembly
+                Return _underlyingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property Identity As AssemblyIdentity
             Get
-                Return m_UnderlyingAssembly.Identity
+                Return _underlyingAssembly.Identity
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                Return _underlyingAssembly.AssemblyVersionPattern
             End Get
         End Property
 
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
-                Return m_UnderlyingAssembly.PublicKey
+                Return _underlyingAssembly.PublicKey
             End Get
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_UnderlyingAssembly.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _underlyingAssembly.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingAssembly, m_LazyCustomAttributes)
+            Return RetargetingTranslator.GetRetargetedAttributes(_underlyingAssembly, _lazyCustomAttributes)
         End Function
 
         Friend ReadOnly Property RetargetingTranslator As RetargetingModuleSymbol.RetargetingSymbolTranslator
@@ -147,13 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_UnderlyingAssembly.Locations
+                Return _underlyingAssembly.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
             Get
-                Return m_Modules
+                Return _modules
             End Get
         End Property
 
@@ -177,50 +183,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Function
 
         Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
-            Return m_NoPiaResolutionAssemblies
+            Return _noPiaResolutionAssemblies
         End Function
 
         Friend Overrides Sub SetNoPiaResolutionAssemblies(assemblies As ImmutableArray(Of AssemblySymbol))
-            m_NoPiaResolutionAssemblies = assemblies
+            _noPiaResolutionAssemblies = assemblies
         End Sub
 
         Friend Overrides Sub SetLinkedReferencedAssemblies(assemblies As ImmutableArray(Of AssemblySymbol))
-            m_LinkedReferencedAssemblies = assemblies
+            _linkedReferencedAssemblies = assemblies
         End Sub
 
         Friend Overrides Function GetLinkedReferencedAssemblies() As ImmutableArray(Of AssemblySymbol)
-            Return m_LinkedReferencedAssemblies
+            Return _linkedReferencedAssemblies
         End Function
 
         Friend Overrides ReadOnly Property IsLinked As Boolean
             Get
-                Return m_IsLinked
+                Return _isLinked
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
-                Return m_UnderlyingAssembly.TypeNames
+                Return _underlyingAssembly.TypeNames
             End Get
         End Property
 
         Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
             Get
-                Return m_UnderlyingAssembly.NamespaceNames
+                Return _underlyingAssembly.NamespaceNames
             End Get
         End Property
 
         Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
-            Return m_UnderlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
+            Return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
-            Return m_UnderlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
+            Return _underlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
         End Function
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
-                Return m_UnderlyingAssembly.MightContainExtensionMethods
+                Return _underlyingAssembly.MightContainExtensionMethods
             End Get
         End Property
 
@@ -234,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
-            Return m_UnderlyingAssembly.GetGuidString(guidString)
+            Return _underlyingAssembly.GetGuidString(guidString)
         End Function
 
         Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
@@ -245,6 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End If
 
             Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
+        End Function
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return _underlyingAssembly.GetMetadata()
         End Function
     End Class
 End Namespace

@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis
     internal sealed class CustomAttributesBag<T>
         where T : AttributeData
     {
-        private ImmutableArray<T> customAttributes;
-        private WellKnownAttributeData decodedWellKnownAttributeData;
-        private EarlyWellKnownAttributeData earlyDecodedWellKnownAttributeData;
-        private int state;
+        private ImmutableArray<T> _customAttributes;
+        private WellKnownAttributeData _decodedWellKnownAttributeData;
+        private EarlyWellKnownAttributeData _earlyDecodedWellKnownAttributeData;
+        private int _state;
 
         /// <summary>
         /// Instance representing sealed custom attribute bag with no attributes.
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         private CustomAttributesBag(CustomAttributeBagCompletionPart part, ImmutableArray<T> customAttributes)
         {
-            this.customAttributes = customAttributes;
+            _customAttributes = customAttributes;
             this.NotePartComplete(part);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns a non-sealed custom attribute bag with null initialized <see cref="earlyDecodedWellKnownAttributeData"/>, null initialized <see cref="decodedWellKnownAttributeData"/> and uninitialized <see cref="customAttributes"/>.
+        /// Returns a non-sealed custom attribute bag with null initialized <see cref="_earlyDecodedWellKnownAttributeData"/>, null initialized <see cref="_decodedWellKnownAttributeData"/> and uninitialized <see cref="_customAttributes"/>.
         /// </summary>
         public static CustomAttributesBag<T> WithEmptyData()
         {
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return
                     this.IsSealed &&
-                    this.customAttributes.IsEmpty &&
-                    this.decodedWellKnownAttributeData == null &&
-                    this.earlyDecodedWellKnownAttributeData == null;
+                    _customAttributes.IsEmpty &&
+                    _decodedWellKnownAttributeData == null &&
+                    _earlyDecodedWellKnownAttributeData == null;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
-            var setOnOurThread = Interlocked.CompareExchange(ref this.earlyDecodedWellKnownAttributeData, data, null) == null;
+            var setOnOurThread = Interlocked.CompareExchange(ref _earlyDecodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
             return setOnOurThread;
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
         public bool SetDecodedWellKnownAttributeData(WellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
-            var setOnOurThread = Interlocked.CompareExchange(ref this.decodedWellKnownAttributeData, data, null) == null;
+            var setOnOurThread = Interlocked.CompareExchange(ref _decodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData);
             return setOnOurThread;
         }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         public bool SetAttributes(ImmutableArray<T> newCustomAttributes)
         {
             Debug.Assert(!newCustomAttributes.IsDefault);
-            var setOnOurThread = ImmutableInterlocked.InterlockedCompareExchange(ref this.customAttributes, newCustomAttributes, default(ImmutableArray<T>)) == default(ImmutableArray<T>);
+            var setOnOurThread = ImmutableInterlocked.InterlockedCompareExchange(ref _customAttributes, newCustomAttributes, default(ImmutableArray<T>)) == default(ImmutableArray<T>);
             NotePartComplete(CustomAttributeBagCompletionPart.Attributes);
             return setOnOurThread;
         }
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(IsPartComplete(CustomAttributeBagCompletionPart.Attributes));
-                Debug.Assert(!this.customAttributes.IsDefault);
-                return this.customAttributes;
+                Debug.Assert(!_customAttributes.IsDefault);
+                return _customAttributes;
             }
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData));
-                return this.decodedWellKnownAttributeData;
+                return _decodedWellKnownAttributeData;
             }
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
-                return this.earlyDecodedWellKnownAttributeData;
+                return _earlyDecodedWellKnownAttributeData;
             }
         }
 
@@ -139,17 +139,17 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (CustomAttributeBagCompletionPart)this.state;
+                return (CustomAttributeBagCompletionPart)_state;
             }
             set
             {
-                this.state = (int)value;
+                _state = (int)value;
             }
         }
 
         private void NotePartComplete(CustomAttributeBagCompletionPart part)
         {
-            ThreadSafeFlagOperations.Set(ref this.state, (int)(this.State | part));
+            ThreadSafeFlagOperations.Set(ref _state, (int)(this.State | part));
         }
 
         internal bool IsPartComplete(CustomAttributeBagCompletionPart part)

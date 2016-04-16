@@ -5,7 +5,6 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -166,15 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Serialization"
 
-        Private Shared _binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
+        Private Shared ReadOnly s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
         ''' <summary>
         ''' Serialize this node to a byte stream.
         ''' </summary>
         Public Overrides Sub SerializeTo(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing)
-            Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxNode_SerializeTo, cancellationToken:=cancellationToken)
-                Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=_binder, cancellationToken:=cancellationToken)
-                    writer.WriteValue(Me.Green)
-                End Using
+            Using writer = New ObjectWriter(stream, GetDefaultObjectWriterData(), binder:=s_binder, cancellationToken:=cancellationToken)
+                writer.WriteValue(Me.Green)
             End Using
         End Sub
 
@@ -182,32 +179,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Deserialize a syntax node from a byte stream.
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
-            Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxNode_DeserializeFrom, cancellationToken:=cancellationToken)
-                Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=_binder)
-                    Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
-                End Using
+            Using reader = New ObjectReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=s_binder)
+                Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function
 
-        Private Shared _defaultObjectReaderData As ObjectReaderData
+        Private Shared s_defaultObjectReaderData As ObjectReaderData
         Private Shared Function GetDefaultObjectReaderData() As ObjectReaderData
-            If _defaultObjectReaderData Is Nothing Then
-                Interlocked.CompareExchange(_defaultObjectReaderData, New ObjectReaderData(GetSerializationData()), Nothing)
+            If s_defaultObjectReaderData Is Nothing Then
+                Interlocked.CompareExchange(s_defaultObjectReaderData, New ObjectReaderData(GetSerializationData()), Nothing)
             End If
-            Return _defaultObjectReaderData
+            Return s_defaultObjectReaderData
         End Function
 
-        Private Shared _defaultObjectWriterData As ObjectWriterData
+        Private Shared s_defaultObjectWriterData As ObjectWriterData
         Private Shared Function GetDefaultObjectWriterData() As ObjectWriterData
-            If _defaultObjectWriterData Is Nothing Then
-                Interlocked.CompareExchange(_defaultObjectWriterData, New ObjectWriterData(GetSerializationData()), Nothing)
+            If s_defaultObjectWriterData Is Nothing Then
+                Interlocked.CompareExchange(s_defaultObjectWriterData, New ObjectWriterData(GetSerializationData()), Nothing)
             End If
-            Return _defaultObjectWriterData
+            Return s_defaultObjectWriterData
         End Function
 
-        Private Shared ReadOnly _serializationData As IEnumerable(Of Object)
+        Private Shared ReadOnly s_serializationData As IEnumerable(Of Object)
         Private Shared Function GetSerializationData() As IEnumerable(Of Object)
-            If _serializationData Is Nothing Then
+            If s_serializationData Is Nothing Then
                 Dim data = New Object() {
                     GetType(Object).GetTypeInfo().Assembly.FullName,
                     GetType(Microsoft.CodeAnalysis.DiagnosticInfo).GetTypeInfo().Assembly.FullName,
@@ -237,10 +232,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 .Concat(InternalSyntax.SyntaxFactory.GetWellKnownTrivia()) _
                 .ToImmutableArray()
 
-                Interlocked.CompareExchange(_serializationData, data, Nothing)
+                Interlocked.CompareExchange(s_serializationData, data, Nothing)
             End If
 
-            Return _serializationData
+            Return s_serializationData
         End Function
 #End Region
 
@@ -515,54 +510,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Shared Function FindTriviaByOffset(node As SyntaxNode, textOffset As Integer, Optional stepInto As Func(Of SyntaxTrivia, Boolean) = Nothing) As SyntaxTrivia
-            If textOffset >= 0 Then
-                For Each element In node.ChildNodesAndTokens()
-                    Dim fullWidth = element.FullWidth
-                    If textOffset < fullWidth Then
-                        If element.IsNode Then
-                            Return FindTriviaByOffset(element.AsNode(), textOffset, stepInto)
-                        ElseIf element.IsToken Then
-                            Dim token = element.AsToken()
-                            Dim leading = token.LeadingWidth
-                            If textOffset < token.LeadingWidth Then
-                                For Each trivia In token.LeadingTrivia
-                                    If textOffset < trivia.FullWidth Then
-                                        If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
-                                        End If
-
-                                        Return trivia
-                                    End If
-
-                                    textOffset -= trivia.FullWidth
-                                Next
-                            ElseIf textOffset >= leading + token.Width Then
-                                textOffset -= leading + token.Width
-                                For Each trivia In token.TrailingTrivia
-                                    If textOffset < trivia.FullWidth Then
-                                        If trivia.HasStructure AndAlso stepInto IsNot Nothing AndAlso stepInto(trivia) Then
-                                            Return FindTriviaByOffset(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode), textOffset, stepInto)
-                                        End If
-
-                                        Return trivia
-                                    End If
-
-                                    textOffset -= trivia.FullWidth
-                                Next
-                            End If
-
-                            Return Nothing
-                        End If
-                    End If
-
-                    textOffset -= fullWidth
-                Next
-            End If
-
-            Return Nothing
-        End Function
-
 #Region "Node Lookup"
         ''' <summary>
         ''' Returns child node or token that contains given position.
@@ -571,7 +518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'PERF: it is very important to keep this method fast.
 
             If Not FullSpan.Contains(position) Then
-                Throw New ArgumentOutOfRangeException("position")
+                Throw New ArgumentOutOfRangeException(NameOf(position))
             End If
 
             Dim childNodeOrToken = ChildSyntaxList.ChildThatContainsPosition(Me, position)
@@ -583,18 +530,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Core Overloads"
         Protected NotOverridable Overrides Function EquivalentToCore(other As SyntaxNode) As Boolean
             Return Me.IsEquivalentTo(TryCast(other, VisualBasicSyntaxNode))
-        End Function
-
-        Protected NotOverridable Overrides Function FindTokenCore(position As Integer, findInsideTrivia As Boolean) As SyntaxToken
-            Return FindToken(position, findInsideTrivia)
-        End Function
-
-        Protected Overrides Function FindTokenCore(position As Integer, stepInto As Func(Of SyntaxTrivia, Boolean)) As SyntaxToken
-            Return FindToken(position, stepInto.ToLanguageSpecific())
-        End Function
-
-        Protected NotOverridable Overrides Function FindTriviaCore(position As Integer, findInsideTrivia As Boolean) As SyntaxTrivia
-            Return FindTrivia(position, findInsideTrivia)
         End Function
 
         Protected Overrides ReadOnly Property SyntaxTreeCore As SyntaxTree
@@ -641,8 +576,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore)
         End Function
 
-        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxFormatter.Format(Me, indentation, elasticTrivia, useDefaultCasing:=False)
+        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) As SyntaxNode
+            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False)
         End Function
 #End Region
 
@@ -682,5 +617,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
+        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
+            Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
+        End Function
+
+        Friend Overrides Function GetLambda() As SyntaxNode
+            Return LambdaUtilities.GetLambda(Me)
+        End Function
     End Class
 End Namespace

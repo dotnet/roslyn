@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGen_Checked : CSharpTestBase
+    public class CodeGenCheckedTests : CSharpTestBase
     {
         [Fact]
         public void CheckedExpression_Signed()
@@ -939,7 +939,7 @@ class C
   IL_0005:  starg.s    V_0
   IL_0007:  ret
 }
-"); 
+");
 
             verifier.VerifyIL("C.PostIncNullable", @"{
   // Code size       48 (0x30)
@@ -2067,7 +2067,7 @@ class Program
 ";
             CompileAndVerify(source, expectedOutput: "0");
         }
-        
+
         [Fact]
         public void Test_024_16BitSignedInteger()
         {
@@ -2086,7 +2086,6 @@ public class MyClass
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 expectedOutput: "32000");
         }
 
@@ -2137,8 +2136,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"));
         }
 
-        [WorkItem(648109, "DevDiv")]
-        [Fact(Skip = "648109")]
+        [WorkItem(648109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648109")]
+        [Fact]
         public void CheckedExpressionWithDecimal()
         {
             var source = @"
@@ -2147,16 +2146,24 @@ class M
     void F()
     {   
         var r = checked(decimal.MaxValue + 1);
+        
+        // error should be reported regardless checked or not
+        // decimal math has not concept of ""checked""
+        var r1 = decimal.MaxValue + 1;
     }
 }";
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,25): error CS0220: The operation overflows at compile time in checked mode
+                // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "decimal.MaxValue + 1"));
+                Diagnostic(ErrorCode.ERR_DecConstError, "decimal.MaxValue + 1").WithLocation(6, 25),
+                // (10,18): error CS0463: Evaluation of the decimal constant expression failed
+                //         var r1 = decimal.MaxValue + 1;
+                Diagnostic(ErrorCode.ERR_DecConstError, "decimal.MaxValue + 1").WithLocation(10, 18)
+                );
         }
 
-        [WorkItem(543894, "DevDiv"), WorkItem(543924, "DevDiv")]
+        [WorkItem(543894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543894"), WorkItem(543924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543924")]
         [Fact]
         public void CheckedOperatorOnEnumOverflow()
         {
@@ -2187,7 +2194,7 @@ class Test
                 expectedOutput: "PASS");
         }
 
-        [WorkItem(529263, "DevDiv")]
+        [WorkItem(529263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529263")]
         [Fact]
         public void CheckedOperatorOnLambdaExpr()
         {
@@ -2219,7 +2226,7 @@ class Program
                 expectedOutput: "PASS");
         }
 
-        [Fact, WorkItem(543981, "DevDiv")]
+        [Fact, WorkItem(543981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543981")]
         public void CheckedOperatorOnUnaryExpression()
         {
             var source = @"
@@ -2265,7 +2272,7 @@ class Program
                 expectedOutput: "OV-0");
         }
 
-        [Fact, WorkItem(543983, "DevDiv")]
+        [Fact, WorkItem(543983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543983")]
         public void CheckedStatementWithCompoundAssignment()
         {
             var source = @"
@@ -2296,7 +2303,7 @@ public class MyClass
                 expectedOutput: "32000OV");
         }
 
-        [Fact, WorkItem(546872, "DevDiv")]
+        [Fact, WorkItem(546872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546872")]
         public void CheckPostIncrementOnBaseProtectedClassMember()
         {
             var source = @"

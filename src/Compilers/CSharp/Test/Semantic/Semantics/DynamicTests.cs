@@ -8,6 +8,7 @@ using Xunit;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -337,7 +338,7 @@ class B<T> : A<dynamic>, I<object>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "DevDiv")]
+        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeAndParameterNames()
         {
             string source = @"
@@ -366,7 +367,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667053, "DevDiv")]
+        [Fact, WorkItem(667053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667053")]
         public void OverrideChangesTypeGeneric()
         {
             string source = @"
@@ -834,7 +835,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(624322, "DevDiv")]
+        [WorkItem(624322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624322")]
         public void BinaryOps_VoidArgument()
         {
             string source = @"
@@ -1174,8 +1175,7 @@ class C
         object x = d1.N<int>; 
         d1.N<int*>();
         d1.N<System.TypedReference>();
-        // The dev11 compiler does not catch this one.
-        d1.N<S>(); 
+        d1.N<S>(); // The dev11 compiler does not catch this one.
     }
     static void Main() {}
 }";
@@ -1184,16 +1184,14 @@ class C
             comp.VerifyDiagnostics(
                 // (8,23): error CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>; 
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property"),
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property").WithLocation(8, 23),
                 // (9,14): error CS0306: The type 'int*' may not be used as a type argument
                 //         d1.N<int*>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
-                // (10,14): error CS0306: The type 'System.TypedReference' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(9, 14),
+                // (10,14): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         d1.N<System.TypedReference>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.TypedReference").WithArguments("System.TypedReference"),
-                // (12,14): error CS0718: 'S': static types cannot be used as type arguments
-                //         d1.N<S>(); 
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "S").WithArguments("S"));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(10, 14)
+                );
         }
 
         [Fact]
@@ -1212,7 +1210,7 @@ class C
     }
     static void Main() {}
 }";
-            TestDynamicMemberAccess(source);
+            TestDynamicMemberAccessCore(source);
         }
 
         [Fact]
@@ -1262,9 +1260,10 @@ class C
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,9): error CS1501: No overload for method 'Foo' takes 1 arguments
-                //         c.Foo(d);
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "1"));
+    // (9,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Foo(int, int)'
+    //         c.Foo(d);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("y", "C.Foo(int, int)").WithLocation(9, 11)
+                );
         }
 
         [Fact]
@@ -1298,7 +1297,7 @@ class C
         }
 
         [Fact]
-        public void TestDynamicMemberAccess_EarlyBoundReceiver_OuterIntance()
+        public void TestDynamicMemberAccess_EarlyBoundReceiver_OuterInstance()
         {
             string source = @"
 using System;
@@ -1357,7 +1356,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(608628, "DevDiv")]
+        [WorkItem(608628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608628")]
         public void MoreSpecificType()
         {
             string source = @"
@@ -1383,7 +1382,6 @@ class C
         [Fact]
         public void TestDynamicTypeInference()
         {
-           
             string source = @"
 public class E<W> where W : struct {}
 public class F<X> {}
@@ -1461,7 +1459,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(624410, "DevDiv")]
+        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void CompileTimeChecking_Elision3()
         {
             string source = @"
@@ -1501,7 +1499,7 @@ public class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(627101, "DevDiv")]
+        [Fact, WorkItem(627101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627101")]
         public void CompileTimeChecking_MethodConstraints_Elided1()
         {
             string source = @"
@@ -1523,7 +1521,7 @@ class C
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "DevDiv")]
+        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Elided2()
         {
             string source = @"
@@ -1547,7 +1545,7 @@ class Program
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(624684, "DevDiv")]
+        [Fact, WorkItem(624684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624684")]
         public void CompileTimeChecking_MethodConstraints_Explicit2()
         {
             string source = @"
@@ -1620,7 +1618,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(598621, "DevDiv")]
+        [WorkItem(598621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598621")]
         public void DynamicOverloadApplicability_ExplicitTypeArguments_ApplicabilitySucceeds_FinalValidationFails()
         {
             string source = @"
@@ -1853,7 +1851,7 @@ public class Derived : Base<List<dynamic>, List<object>>
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(633857, "DevDiv")]
+        [Fact, WorkItem(633857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633857")]
         public void Erasure_InterfaceSet()
         {
             string source = @"
@@ -2465,7 +2463,7 @@ class C : List<int>
             TestTypes(source);
         }
 
-        [Fact, WorkItem(578404, "DevDiv")]
+        [Fact, WorkItem(578404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
         public void ExpressionTrees()
         {
             string source = @"
@@ -2589,7 +2587,7 @@ class C : List<int>
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)"));
         }
 
-        [Fact, WorkItem(578401, "DevDiv")]
+        [Fact, WorkItem(578401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578401")]
         public void ExpressionTrees_ByRefDynamic()
         {
             string source = @"
@@ -2842,9 +2840,9 @@ class C : B
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS1501: No overload for method 'this' takes 2 arguments
+                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
-                Diagnostic(ErrorCode.ERR_BadArgCount, "c[d, d]").WithArguments("this", "2"),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //     c[d, q=>q, null] = 3; 
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "q=>q"),
@@ -3121,7 +3119,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(693741, "DevDiv")]
+        [WorkItem(693741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693741")]
         public void DynamicAndNull()
         {
             var source = @"
@@ -3222,7 +3220,7 @@ class C
 
         #endregion
 
-        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_01()
         {
             string source = @"
@@ -3253,7 +3251,7 @@ class Test
             Assert.Equal("void Test.Foo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        [Fact, WorkItem(922611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/922611"), WorkItem(56, "CodePlex")]
         public void Bug922611_02()
         {
             string source = @"
@@ -3286,7 +3284,7 @@ class Test
             Assert.Equal("void Test.Foo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_01()
         {
             string source = @"
@@ -3313,7 +3311,7 @@ class Program
             Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_02()
         {
             string source = @"
@@ -3340,7 +3338,7 @@ class Program
             Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_03()
         {
             string source = @"
@@ -3365,7 +3363,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(875140, "DevDiv")]
+        [Fact, WorkItem(875140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875140")]
         public void Bug875140_04()
         {
             string source = @"
@@ -3389,6 +3387,115 @@ class Program
 
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
             Assert.Equal("dynamic Program.Foo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1149588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1149588")]
+        public void AccessPropertyWithoutArguments()
+        {
+            string source1 = @"
+Imports System
+Imports System.Runtime.InteropServices
+<Assembly: PrimaryInteropAssembly(0, 0)>
+<Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
+<ComImport()>
+<Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E211"")>
+Public Interface IB
+    Property Value(Optional index As Object = Nothing) As Object
+End Interface
+";
+
+            var reference = BasicCompilationUtils.CompileToMetadata(source1);
+
+            string source2 = @"
+class CIB : IB
+{
+    public dynamic get_Value(object index = null)
+    {
+        return ""Test"";
+    }
+
+    public void set_Value(object index = null, object Value = null)
+    {
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        IB x = new CIB();
+        System.Console.WriteLine(x.Value.Length);
+    }
+}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation2, expectedOutput: @"4");
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void IncorrectArrayLength()
+        {
+            var il = @"
+.assembly extern mscorlib { }
+.assembly extern System.Core { }
+.assembly IncorrectArrayLength { }
+
+.class private auto ansi beforefieldinit D
+       extends [mscorlib]System.Object
+{
+  .field public class Generic`2<object,object> MissingTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> MissingFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[2](false true)}
+
+  .field public class Generic`2<object,object> ExtraTrue
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false true)}
+
+  .field public class Generic`2<object,object> ExtraFalse
+  .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[])
+           = {bool[4](false true false false)}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+} // end of class D
+
+.class public auto ansi beforefieldinit Generic`2<T,U>
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method Generic`2::.ctor
+
+} // end of class Generic`2
+";
+            var comp = CreateCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
+            var global = comp.GlobalNamespace;
+            var typeD = global.GetMember<NamedTypeSymbol>("D");
+            var typeG = global.GetMember<NamedTypeSymbol>("Generic");
+            var typeObject = comp.GetSpecialType(SpecialType.System_Object);
+            var typeGConstructed = typeG.Construct(typeObject, typeObject);
+
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
         }
     }
 }

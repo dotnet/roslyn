@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -47,18 +48,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' block that we are within has a finalizer state.  Initially true as we have the (trivial)
             ''' finalizer state of -1 at the top level.
             ''' </summary>
-            Protected HasFinalizerState As Boolean = True
+            Private _hasFinalizerState As Boolean = True
 
             ''' <summary>
             ''' If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
             ''' Initially set to -1, representing the no-op finalization required at the top level.
             ''' </summary>
-            Protected CurrentFinalizerState As Integer = -1
+            Private _currentFinalizerState As Integer = -1
 
             ''' <summary>
             ''' The set of local variables and parameters that were hoisted and need a proxy.
             ''' </summary>
-            Protected Friend ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
+            Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
             Private _nextFreeHoistedLocalSlot As Integer
@@ -72,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            nextFreeHoistedLocalSlot As Integer,
                            Diagnostics As DiagnosticBag)
 
-                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics, preserveOriginalLocals:=False)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)
@@ -84,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.F = F
                 Me.StateField = stateField
                 Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
-                Me.HoistedVariables = hoistedVariables
+                Me._hoistedVariables = hoistedVariables
                 Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
                 Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
 
@@ -148,15 +149,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.Dispatches = New Dictionary(Of LabelSymbol, List(Of Integer))()
                 End If
 
-                If Not Me.HasFinalizerState Then
-                    Me.CurrentFinalizerState = Me.NextState
+                If Not Me._hasFinalizerState Then
+                    Me._currentFinalizerState = Me.NextState
                     Me.NextState += 1
-                    Me.HasFinalizerState = True
+                    Me._hasFinalizerState = True
                 End If
 
                 Dim resumeLabel As GeneratedLabelSymbol = Me.F.GenerateLabel(ResumeLabelName)
                 Me.Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
-                Me.FinalizerStateMap.Add(stateNumber, Me.CurrentFinalizerState)
+                Me.FinalizerStateMap.Add(stateNumber, Me._currentFinalizerState)
 
                 Return New StateInfo(stateNumber, resumeLabel)
             End Function
@@ -220,9 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Wrap the node in a StateMachineScope for debugging
                 Dim translatedStatement As BoundNode = wrapped
                 If hoistedLocalsWithDebugScopes.Count > 0 Then
-                    translatedStatement = Me.F.Block(New BoundStateMachineScope(Me.F.Syntax,
-                                                             hoistedLocalsWithDebugScopes.ToImmutable(),
-                                                             DirectCast(translatedStatement, BoundStatement)).MakeCompilerGenerated)
+                    translatedStatement = MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), DirectCast(translatedStatement, BoundStatement))
                 End If
 
                 hoistedLocalsWithDebugScopes.Free()
@@ -230,9 +229,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return translatedStatement
             End Function
 
+            ''' <remarks>
+            ''' Must remain in sync with <see cref="TryUnwrapBoundStateMachineScope"/>.
+            ''' </remarks>
+            Friend Function MakeStateMachineScope(hoistedLocals As ImmutableArray(Of FieldSymbol), statement As BoundStatement) As BoundBlock
+                Return Me.F.Block(New BoundStateMachineScope(Me.F.Syntax, hoistedLocals, statement).MakeCompilerGenerated)
+            End Function
+
+            ''' <remarks>
+            ''' Must remain in sync with <see cref="MakeStateMachineScope"/>.
+            ''' </remarks>
+            Friend Function TryUnwrapBoundStateMachineScope(ByRef statement As BoundStatement, <Out> ByRef hoistedLocals As ImmutableArray(Of FieldSymbol)) As Boolean
+                If statement.Kind = BoundKind.Block Then
+                    Dim rewrittenBlock = DirectCast(statement, BoundBlock)
+                    Dim rewrittenStatements = rewrittenBlock.Statements
+                    If rewrittenStatements.Length = 1 AndAlso rewrittenStatements(0).Kind = BoundKind.StateMachineScope Then
+                        Dim stateMachineScope = DirectCast(rewrittenStatements(0), BoundStateMachineScope)
+                        statement = stateMachineScope.Statement
+                        hoistedLocals = stateMachineScope.Fields
+                        Return True
+                    End If
+                End If
+
+                hoistedLocals = ImmutableArray(Of FieldSymbol).Empty
+                Return False
+            End Function
+
             Private Function NeedsProxy(localOrParameter As Symbol) As Boolean
                 Debug.Assert(localOrParameter.Kind = SymbolKind.Local OrElse localOrParameter.Kind = SymbolKind.Parameter)
-                Return HoistedVariables.Contains(localOrParameter)
+                Return _hoistedVariables.Contains(localOrParameter)
             End Function
 
             Friend MustOverride Sub AddProxyFieldsForStateMachineScope(proxy As TProxy, proxyFields As ArrayBuilder(Of FieldSymbol))
@@ -254,22 +279,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
 
                 Dim oldDispatches As Dictionary(Of LabelSymbol, List(Of Integer)) = Me.Dispatches
-                Dim oldFinalizerState As Integer = Me.CurrentFinalizerState
-                Dim oldHasFinalizerState As Boolean = Me.HasFinalizerState
+                Dim oldFinalizerState As Integer = Me._currentFinalizerState
+                Dim oldHasFinalizerState As Boolean = Me._hasFinalizerState
 
                 Me.Dispatches = Nothing
-                Me.CurrentFinalizerState = -1
-                Me.HasFinalizerState = False
+                Me._currentFinalizerState = -1
+                Me._hasFinalizerState = False
 
                 Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
                 Dim dispatchLabel As GeneratedLabelSymbol = Nothing
                 If Me.Dispatches IsNot Nothing Then
                     dispatchLabel = Me.F.GenerateLabel("tryDispatch")
 
-                    If Me.HasFinalizerState Then
+                    If Me._hasFinalizerState Then
                         ' cause the current finalizer state to arrive here and then "return false"
                         Dim finalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("finalizer")
-                        Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me.CurrentFinalizerState})
+                        Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
                         Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
                         tryBlock = Me.F.Block(Me.F.HiddenSequencePoint(),
@@ -293,8 +318,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     oldDispatches.Add(dispatchLabel, New List(Of Integer)(From kv In Dispatches.Values From n In kv Order By n Select n))
                 End If
 
-                Me.HasFinalizerState = oldHasFinalizerState
-                Me.CurrentFinalizerState = oldFinalizerState
+                Me._hasFinalizerState = oldHasFinalizerState
+                Me._currentFinalizerState = oldFinalizerState
 
                 Me.Dispatches = oldDispatches
 
@@ -329,26 +354,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.MaterializeProxy(node, Me.Proxies(Me.TopLevelMethod.MeParameter))
             End Function
 
+            Private Function TryRewriteLocal(local As LocalSymbol) As LocalSymbol
+                If NeedsProxy(local) Then
+                    ' no longer a local symbol
+                    Return Nothing
+                End If
+
+                Dim newLocal As LocalSymbol = Nothing
+                If Not LocalMap.TryGetValue(local, newLocal) Then
+                    Dim newType = VisitType(local.Type)
+                    If newType = local.Type Then
+                        ' keeping same local
+                        newLocal = local
+                    Else
+                        ' need a local of a different type
+                        newLocal = LocalSymbol.Create(local, newType)
+                        LocalMap.Add(local, newLocal)
+                    End If
+                End If
+
+                Return newLocal
+            End Function
+
             Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
-                ' Neither Async nor Iterator function allows await/yield in Catch block,
-                ' thus, it should not capture/hoist catch block local
+                ' Yield/Await aren't supported in Catch block, but we need to
+                ' rewrite the type of the variable owned by the catch block.
+                ' Note that this variable might be a closure frame reference.
                 Dim rewrittenCatchLocal As LocalSymbol = Nothing
 
                 Dim origLocal As LocalSymbol = node.LocalOpt
                 If origLocal IsNot Nothing Then
-                    ' local may be either the original local of a frame reference
-                    Debug.Assert(Not Me.Proxies.ContainsKey(origLocal), "captured local should not need rewriting")
-
-                    Dim newType = VisitType(origLocal.Type)
-                    If newType = origLocal.Type Then
-                        ' keeping same local
-                        rewrittenCatchLocal = origLocal
-
-                    Else
-                        ' need a local of a different type
-                        rewrittenCatchLocal = LocalSymbol.Create(origLocal, newType)
-                        Me.LocalMap.Add(origLocal, rewrittenCatchLocal)
-                    End If
+                    rewrittenCatchLocal = TryRewriteLocal(origLocal)
                 End If
 
                 Dim rewrittenExceptionVariable As BoundExpression = DirectCast(Me.Visit(node.ExceptionSourceOpt), BoundExpression)
@@ -364,7 +400,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    rewrittenExceptionVariable,
                                    rewrittenErrorLineNumber,
                                    rewrittenFilter,
-                                   rewrittenBody)
+                                   rewrittenBody,
+                                   isSynthesizedAsyncCatchAll:=node.IsSynthesizedAsyncCatchAll)
             End Function
 
 #End Region

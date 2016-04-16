@@ -78,7 +78,7 @@ class C
 }");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void TestForEachMultiDimensionalArray()
         {
@@ -98,7 +98,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 1.2
 2.3
 3.4
@@ -121,7 +121,7 @@ class C
   IL_0001:  ldc.i4.4
   IL_0002:  newobj     ""double[*,*]..ctor""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.$$method0x6000001-E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.E19C080DB8DAB85AF7CA3EF40FFB01B0778F9D25""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ldloc.0
@@ -165,7 +165,7 @@ class C
 }");
         }
 
-        [WorkItem(544937, "DevDiv")]
+        [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
         [Fact]
         public void TestForEachMultiDimensionalArrayBreakAndContinue()
         {
@@ -785,8 +785,7 @@ class Enumerable
             var compilation = CreateCompilationWithCustomILSource(csharp, il);
 
             // We specifically ignore user-defined conversions to interfaces, even from metadata.
-            // TODO (tomat): Ref.Emit test infrastructure issue
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI).VerifyIL("C.Test", @"{
+            CompileAndVerify(compilation).VerifyIL("C.Test", @"{
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (Enumerator V_0)
@@ -854,7 +853,7 @@ struct Enumerator
 }");
         }
 
-        [WorkItem(540943, "DevDiv")]
+        [WorkItem(540943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540943")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorStruct()
@@ -1050,7 +1049,7 @@ struct Enumerable
 }");
         }
 
-        [WorkItem(540943, "DevDiv")]
+        [WorkItem(540943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540943")]
         [Fact]
         public void TestForEachExplicitlyGetEnumeratorGenericStruct()
         {
@@ -1499,7 +1498,7 @@ class C
 3");
         }
 
-        [WorkItem(540952, "DevDiv")]
+        [WorkItem(540952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540952")]
         [Fact]
         public void TestGetEnumeratorWithParams()
         {
@@ -1543,7 +1542,7 @@ b
 c");
         }
 
-        [WorkItem(540954, "DevDiv")]
+        [WorkItem(540954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
         [Fact]
         public void TestMoveNextWithNonBoolDeclaredReturnType()
         {
@@ -1582,7 +1581,7 @@ class E<T>
             var compilation = CompileAndVerify(source, expectedOutput: "1");
         }
 
-        [WorkItem(540958, "DevDiv")]
+        [WorkItem(540958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540958")]
         [Fact]
         public void TestNonConstantNullInForeach()
         {
@@ -1819,7 +1818,62 @@ struct Enumerator : IEnumerator
 ");
         }
 
-        [Fact]
+        [Fact, WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2111")]
+        public void TestForEachValueTypeTypeParameterEnumeratorNoStruct()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C<T> where T : IEnumerator<T>
+{
+    void M()
+    {
+        foreach (var c in this) { }
+    }
+
+    public T GetEnumerator()
+    {
+        return default(T);
+    }
+}
+";
+            CompileAndVerify(source).VerifyIL("C<T>.M", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T C<T>.GetEnumerator()""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  br.s       IL_0017
+    IL_0009:  ldloca.s   V_0
+    IL_000b:  constrained. ""T""
+    IL_0011:  callvirt   ""T System.Collections.Generic.IEnumerator<T>.Current.get""
+    IL_0016:  pop
+    IL_0017:  ldloca.s   V_0
+    IL_0019:  constrained. ""T""
+    IL_001f:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0024:  brtrue.s   IL_0009
+    IL_0026:  leave.s    IL_003e
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  box        ""T""
+    IL_002e:  brfalse.s  IL_003d
+    IL_0030:  ldloca.s   V_0
+    IL_0032:  constrained. ""T""
+    IL_0038:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_003d:  endfinally
+  }
+  IL_003e:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(2094, "https://github.com/dotnet/roslyn/issues/2111")]
         public void TestForEachValueTypeTypeParameterEnumerator()
         {
             var source = @"
@@ -1842,7 +1896,7 @@ class C<T> where T : struct, IEnumerator<T>
             // CONSIDER: Dev10 does have a null check, but it seems unnecessary.
             CompileAndVerify(source).VerifyIL("C<T>.M", @"
 {
-  // Code size       53 (0x35)
+  // Code size       55 (0x37)
   .maxstack  1
   .locals init (T V_0)
   IL_0000:  ldarg.0
@@ -1859,16 +1913,16 @@ class C<T> where T : struct, IEnumerator<T>
     IL_0019:  constrained. ""T""
     IL_001f:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
     IL_0024:  brtrue.s   IL_0009
-    IL_0026:  leave.s    IL_0034
+    IL_0026:  leave.s    IL_0036
   }
   finally
   {
-    IL_0028:  ldloc.0
-    IL_0029:  box        ""T""
-    IL_002e:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0033:  endfinally
+    IL_0028:  ldloca.s   V_0
+    IL_002a:  constrained. ""T""
+    IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0035:  endfinally
   }
-  IL_0034:  ret
+  IL_0036:  ret
 }
 ");
         }

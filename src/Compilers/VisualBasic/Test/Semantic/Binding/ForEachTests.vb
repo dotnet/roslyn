@@ -2196,7 +2196,7 @@ BC30521: Overload resolution failed because no accessible 'Current' is most spec
         End Sub
 
         <Fact()>
-        Public Sub NoPreceedingWarningsWithAmbiguousCurrentImplementationsOnT()
+        Public Sub NoPrecedingWarningsWithAmbiguousCurrentImplementationsOnT()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -2206,7 +2206,7 @@ Imports System.Collections.Generic
 
 
 Class C1(Of T)
-    Shared Public Function GetEnumerator() As T     ' without a suceeding error, an instance static mismatch would have been reported as warning.
+    Shared Public Function GetEnumerator() As T     ' without a succeeding error, an instance static mismatch would have been reported as warning.
         Return Nothing
     End Function
 End Class
@@ -2459,7 +2459,7 @@ Class C1
         Next
     End Sub
 
-    Public Shared Sub UnconstraintTypeParameter(Of T)()
+    Public Shared Sub UnconstrainedTypeParameter(Of T)()
         Dim myCollection as T = nothing
         For Each element as Object in myCollection
             Console.WriteLine(element)
@@ -2823,7 +2823,7 @@ l
     <file name="a.vb">
 Class C
     Public Shared Sub Main()
-        For Each x As Char In "Heallo!"
+        For Each x As Char In "Hello!"
             If x = "a"c Then
                 continue For
             end if
@@ -2847,7 +2847,7 @@ o
   .locals init (String V_0,
                 Integer V_1,
                 Char V_2) //x
-  IL_0000:  ldstr      "Heallo!"
+  IL_0000:  ldstr      "Hello!"
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
@@ -3837,7 +3837,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
 </expected>)
         End Sub
 
-        <WorkItem(529048, "DevDiv")>
+        <WorkItem(529048, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
         <Fact()>
         Public Sub ForeachOutOfMethod()
             Dim source =
@@ -3852,7 +3852,7 @@ Next
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem(529048, "DevDiv")>
+        <WorkItem(529048, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529048")>
         <Fact()>
         Public Sub ForeachOutOfMethod_1()
             Dim source =
@@ -3869,7 +3869,7 @@ End Class
             Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem(543709, "DevDiv")>
+        <WorkItem(543709, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543709")>
         <Fact()>
         Public Sub Bug11622()
             Dim source =
@@ -3926,7 +3926,7 @@ MyCollection2 generic
 ]]>)
         End Sub
 
-        <WorkItem(529049, "DevDiv")>
+        <WorkItem(529049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
         <Fact>
         Public Sub ForLoopsOutOfMethod()
             Dim source =
@@ -3941,7 +3941,7 @@ Next
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem(529049, "DevDiv")>
+        <WorkItem(529049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529049")>
         <Fact>
         Public Sub ForLoopsOutOfMethod_1()
             Dim source =
@@ -3958,7 +3958,7 @@ End Class
     Diagnostic(ERRID.ERR_NextNoMatchingFor, "Next"))
         End Sub
 
-        <WorkItem(543842, "DevDiv")>
+        <WorkItem(543842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
         <Fact()>
         Public Sub ArraysAndUseSiteErrors()
             Dim source =
@@ -4004,7 +4004,7 @@ BC42104: Variable 'xs' is used before it has been assigned a value. A null refer
             )
         End Sub
 
-        <WorkItem(543842, "DevDiv")>
+        <WorkItem(543842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543842")>
         <Fact()>
         Public Sub StringsAndUseSiteErrors()
             Dim source =
@@ -4050,7 +4050,7 @@ BC42104: Variable 'xs' is used before it has been assigned a value. A null refer
             )
         End Sub
 
-        <WorkItem(545519, "DevDiv")>
+        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub NewForEachScopeDev12()
             Dim source =
@@ -4083,7 +4083,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(545519, "DevDiv")>
+        <WorkItem(545519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545519")>
         <Fact()>
         Public Sub OriginalDev11Test()
             Dim source =
@@ -4493,7 +4493,7 @@ Too bad the pattern does not work with late binding ...
 ]]>)
         End Sub
 
-        <WorkItem(847507, "DevDiv")>
+        <WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")>
         <Fact>
         Public Sub InferIterationVariableTypeWithErrors()
             Dim source =

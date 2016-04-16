@@ -10,33 +10,46 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    public class ExportCodeRefactoringProviderAttribute : ExportAttribute
+    public sealed class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
         /// <summary>
         /// The name of the <see cref="CodeRefactoringProvider"/>.  
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; set; }
 
         /// <summary>
-        /// The source language this provider can provide refactorings for.  See <see cref="LanguageNames"/>.
+        /// The source languages for which this provider can provide refactorings. See <see cref="LanguageNames"/>.
         /// </summary>
-        public string Language { get; private set; }
+        public string[] Languages { get; }
 
-        public ExportCodeRefactoringProviderAttribute(string name, string language)
+        /// <summary>
+        /// Attribute constructor used to specify availability of a code refactoring provider.
+        /// </summary>
+        /// <param name="firstLanguage">One language to which the code refactoring provider applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the code refactoring provider applies. See <see cref="LanguageNames"/>.</param>
+        public ExportCodeRefactoringProviderAttribute(string firstLanguage, params string[] additionalLanguages)
             : base(typeof(CodeRefactoringProvider))
         {
-            if (name == null)
+            if (firstLanguage == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(firstLanguage));
             }
 
-            if (language == null)
+            if (additionalLanguages == null)
             {
-                throw new ArgumentNullException("languageServices");
+                throw new ArgumentNullException(nameof(additionalLanguages));
             }
 
-            this.Name = name;
-            this.Language = language;
+            this.Name = null;
+
+            string[] languages = new string[additionalLanguages.Length + 1];
+            languages[0] = firstLanguage;
+            for (int index = 0; index < additionalLanguages.Length; index++)
+            {
+                languages[index + 1] = additionalLanguages[index];
+            }
+
+            this.Languages = languages;
         }
     }
 }

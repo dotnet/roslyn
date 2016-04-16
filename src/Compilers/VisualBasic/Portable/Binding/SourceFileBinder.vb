@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits Binder
 
         ' The source file this binder is associated with
-        Private ReadOnly m_sourceFile As SourceFile
+        Private ReadOnly _sourceFile As SourceFile
 
         Public Sub New(containingBinder As Binder, sourceFile As SourceFile, tree As SyntaxTree)
             MyBase.New(containingBinder, tree)
-            m_sourceFile = sourceFile
+            _sourceFile = sourceFile
         End Sub
 
         Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' If the source file had an option strict declaration in it, use that. Otherwise
                 ' defer to the global options.
-                If m_sourceFile.OptionStrict.HasValue Then
-                    Return If(m_sourceFile.OptionStrict.Value, OptionStrict.On, OptionStrict.Off)
+                If _sourceFile.OptionStrict.HasValue Then
+                    Return If(_sourceFile.OptionStrict.Value, OptionStrict.On, OptionStrict.Off)
                 Else
                     Return m_containingBinder.OptionStrict
                 End If
@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' If the source file had an option infer declaration in it, use that. Otherwise
                 ' defer to the global options.
-                If m_sourceFile.OptionInfer.HasValue Then
-                    Return m_sourceFile.OptionInfer.Value
+                If _sourceFile.OptionInfer.HasValue Then
+                    Return _sourceFile.OptionInfer.Value
                 Else
                     Return m_containingBinder.OptionInfer
                 End If
@@ -61,8 +61,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' If the source file had an option explicit declaration in it, use that. Otherwise
                 ' defer to the global options.
-                If m_sourceFile.OptionExplicit.HasValue Then
-                    Return m_sourceFile.OptionExplicit.Value
+                If _sourceFile.OptionExplicit.HasValue Then
+                    Return _sourceFile.OptionExplicit.Value
                 Else
                     Return m_containingBinder.OptionExplicit
                 End If
@@ -73,8 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 ' If the source file had an option compare declaration in it, use that. Otherwise
                 ' defer to the global options.
-                If m_sourceFile.OptionCompareText.HasValue Then
-                    Return m_sourceFile.OptionCompareText.Value
+                If _sourceFile.OptionCompareText.HasValue Then
+                    Return _sourceFile.OptionCompareText.Value
                 Else
                     Return m_containingBinder.OptionCompareText
                 End If
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property QuickAttributeChecker As QuickAttributeChecker
             Get
-                Return m_sourceFile.QuickAttributeChecker
+                Return _sourceFile.QuickAttributeChecker
             End Get
         End Property
     End Class

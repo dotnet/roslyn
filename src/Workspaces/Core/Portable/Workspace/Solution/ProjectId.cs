@@ -13,25 +13,25 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public class ProjectId : IEquatable<ProjectId>
+    public sealed class ProjectId : IEquatable<ProjectId>
     {
-        private string debugName;
+        private readonly string _debugName;
 
         /// <summary>
         /// The system generated unique id.
         /// </summary>
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         private ProjectId(string debugName)
         {
             this.Id = Guid.NewGuid();
-            this.debugName = debugName;
+            _debugName = debugName;
         }
 
         internal ProjectId(Guid guid, string debugName)
         {
             this.Id = guid;
-            this.debugName = debugName;
+            _debugName = debugName;
         }
 
         /// <summary>
@@ -43,14 +43,24 @@ namespace Microsoft.CodeAnalysis
             return new ProjectId(debugName);
         }
 
+        public static ProjectId CreateFromSerialized(Guid id, string debugName = null)
+        {
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            return new ProjectId(id, debugName);
+        }
+
         private string GetDebuggerDisplay()
         {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
+            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
         }
 
         internal string DebugName
         {
-            get { return debugName; }
+            get { return _debugName; }
         }
 
         public override string ToString()

@@ -9,10 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Protected ReadOnly _errid As ERRID
         Protected ReadOnly _diagnosticArguments As Object()
 
-        Sub New()
+        Public Sub New()
         End Sub
 
-        Sub New(id As ERRID, ParamArray diagnosticArguments As Object())
+        Public Sub New(id As ERRID, ParamArray diagnosticArguments As Object())
             DiagnosticInfo.AssertMessageSerializable(diagnosticArguments)
 
             _errid = id
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class BadCConst
         Inherits CConst
 
-        Sub New(id As ERRID, ParamArray args As Object())
+        Public Sub New(id As ERRID, ParamArray args As Object())
             MyBase.New(id, args)
         End Sub
 

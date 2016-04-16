@@ -17,10 +17,10 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class ObjectWriter : ObjectReaderWriterBase, IDisposable
     {
-        private readonly BinaryWriter writer;
-        private readonly ObjectWriterData dataMap;
-        private readonly RecordingObjectBinder binder;
-        private readonly CancellationToken cancellationToken;
+        private readonly BinaryWriter _writer;
+        private readonly ObjectWriterData _dataMap;
+        private readonly RecordingObjectBinder _binder;
+        private readonly CancellationToken _cancellationToken;
 
         internal ObjectWriter(
             Stream stream,
@@ -32,20 +32,20 @@ namespace Roslyn.Utilities
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            this.writer = new BinaryWriter(stream, Encoding.UTF8);
-            this.dataMap = new ObjectWriterData(defaultData);
-            this.binder = binder ?? new SimpleRecordingObjectBinder();
-            this.cancellationToken = cancellationToken;
+            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _dataMap = new ObjectWriterData(defaultData);
+            _binder = binder ?? new SimpleRecordingObjectBinder();
+            _cancellationToken = cancellationToken;
         }
 
         public ObjectBinder Binder
         {
-            get { return this.binder; }
+            get { return _binder; }
         }
 
         public void Dispose()
         {
-            this.dataMap.Dispose();
+            _dataMap.Dispose();
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteBoolean(bool value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteByte(byte value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Roslyn.Utilities
         public void WriteChar(char ch)
         {
             // write as UInt16 because binary writer fails on chars that are unicode surrogates
-            this.writer.Write((ushort)ch);
+            _writer.Write((ushort)ch);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteDecimal(decimal value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteDouble(double value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteSingle(float value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteInt32(int value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteInt64(long value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteSByte(sbyte value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteInt16(short value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteUInt32(uint value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteUInt64(ulong value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public void WriteUInt16(ushort value)
         {
-            this.writer.Write(value);
+            _writer.Write(value);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Roslyn.Utilities
         {
             if (value <= (byte.MaxValue >> 2))
             {
-                writer.Write((byte)value);
+                _writer.Write((byte)value);
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
@@ -176,8 +176,8 @@ namespace Roslyn.Utilities
                 byte byte1 = (byte)(value & 0xFF);
 
                 // high-bytes to low-bytes
-                writer.Write(byte0);
-                writer.Write(byte1);
+                _writer.Write(byte0);
+                _writer.Write(byte1);
             }
             else if (value <= (uint.MaxValue >> 2))
             {
@@ -188,10 +188,10 @@ namespace Roslyn.Utilities
                 byte byte3 = (byte)(value & 0xFF);
 
                 // hit-bits with 4-byte marker
-                writer.Write(byte0);
-                writer.Write(byte1);
-                writer.Write(byte2);
-                writer.Write(byte3);
+                _writer.Write(byte0);
+                _writer.Write(byte1);
+                _writer.Write(byte2);
+                _writer.Write(byte3);
             }
             else
             {
@@ -210,45 +210,45 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                writer.Write((byte)DataKind.Null);
+                _writer.Write((byte)DataKind.Null);
             }
             else
             {
                 int id;
-                if (dataMap.TryGetId(value, out id))
+                if (_dataMap.TryGetId(value, out id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
                     {
-                        writer.Write((byte)DataKind.StringRef_B);
-                        writer.Write((byte)id);
+                        _writer.Write((byte)DataKind.StringRef_B);
+                        _writer.Write((byte)id);
                     }
                     else if (id <= ushort.MaxValue)
                     {
-                        writer.Write((byte)DataKind.StringRef_S);
-                        writer.Write((ushort)id);
+                        _writer.Write((byte)DataKind.StringRef_S);
+                        _writer.Write((ushort)id);
                     }
                     else
                     {
-                        writer.Write((byte)DataKind.StringRef);
-                        writer.Write(id);
+                        _writer.Write((byte)DataKind.StringRef);
+                        _writer.Write(id);
                     }
                 }
                 else
                 {
-                    dataMap.Add(value);
+                    _dataMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
                         // Usual case - the string can be encoded as UTF8:
                         // We can use the UTF8 encoding of the binary writer.
 
-                        writer.Write((byte)DataKind.StringUtf8);
-                        writer.Write(value); 
+                        _writer.Write((byte)DataKind.StringUtf8);
+                        _writer.Write(value);
                     }
                     else
                     {
-                        writer.Write((byte)DataKind.StringUtf16);
+                        _writer.Write((byte)DataKind.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
 
@@ -259,7 +259,7 @@ namespace Roslyn.Utilities
                         }
 
                         WriteCompressedUInt((uint)value.Length);
-                        writer.Write(bytes);
+                        _writer.Write(bytes);
                     }
                 }
             }
@@ -272,7 +272,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                writer.Write((byte)DataKind.Null);
+                _writer.Write((byte)DataKind.Null);
             }
             else
             {
@@ -285,11 +285,11 @@ namespace Roslyn.Utilities
                 {
                     if ((bool)value)
                     {
-                        writer.Write((byte)DataKind.Boolean_T);
+                        _writer.Write((byte)DataKind.Boolean_T);
                     }
                     else
                     {
-                        writer.Write((byte)DataKind.Boolean_F);
+                        _writer.Write((byte)DataKind.Boolean_F);
                     }
                 }
                 else if (type == typeof(int))
@@ -297,22 +297,22 @@ namespace Roslyn.Utilities
                     int v = (int)value;
                     if (v == 0)
                     {
-                        writer.Write((byte)DataKind.Int32_Z);
+                        _writer.Write((byte)DataKind.Int32_Z);
                     }
                     else if (v >= 0 && v < byte.MaxValue)
                     {
-                        writer.Write((byte)DataKind.Int32_B);
-                        writer.Write((byte)v);
+                        _writer.Write((byte)DataKind.Int32_B);
+                        _writer.Write((byte)v);
                     }
                     else if (v >= 0 && v < ushort.MaxValue)
                     {
-                        writer.Write((byte)DataKind.Int32_S);
-                        writer.Write((ushort)v);
+                        _writer.Write((byte)DataKind.Int32_S);
+                        _writer.Write((ushort)v);
                     }
                     else
                     {
-                        writer.Write((byte)DataKind.Int32);
-                        writer.Write(v);
+                        _writer.Write((byte)DataKind.Int32);
+                        _writer.Write(v);
                     }
                 }
                 else if (type == typeof(string))
@@ -321,62 +321,62 @@ namespace Roslyn.Utilities
                 }
                 else if (type == typeof(short))
                 {
-                    writer.Write((byte)DataKind.Int16);
-                    writer.Write((short)value);
+                    _writer.Write((byte)DataKind.Int16);
+                    _writer.Write((short)value);
                 }
                 else if (type == typeof(long))
                 {
-                    writer.Write((byte)DataKind.Int64);
-                    writer.Write((long)value);
+                    _writer.Write((byte)DataKind.Int64);
+                    _writer.Write((long)value);
                 }
                 else if (type == typeof(char))
                 {
-                    writer.Write((byte)DataKind.Char);
+                    _writer.Write((byte)DataKind.Char);
                     this.WriteChar((char)value);
                 }
                 else if (type == typeof(sbyte))
                 {
-                    writer.Write((byte)DataKind.Int8);
-                    writer.Write((sbyte)value);
+                    _writer.Write((byte)DataKind.Int8);
+                    _writer.Write((sbyte)value);
                 }
                 else if (type == typeof(byte))
                 {
-                    writer.Write((byte)DataKind.UInt8);
-                    writer.Write((byte)value);
+                    _writer.Write((byte)DataKind.UInt8);
+                    _writer.Write((byte)value);
                 }
                 else if (type == typeof(ushort))
                 {
-                    writer.Write((byte)DataKind.UInt16);
-                    writer.Write((ushort)value);
+                    _writer.Write((byte)DataKind.UInt16);
+                    _writer.Write((ushort)value);
                 }
                 else if (type == typeof(uint))
                 {
-                    writer.Write((byte)DataKind.UInt32);
-                    writer.Write((uint)value);
+                    _writer.Write((byte)DataKind.UInt32);
+                    _writer.Write((uint)value);
                 }
                 else if (type == typeof(ulong))
                 {
-                    writer.Write((byte)DataKind.UInt64);
-                    writer.Write((ulong)value);
+                    _writer.Write((byte)DataKind.UInt64);
+                    _writer.Write((ulong)value);
                 }
                 else if (type == typeof(decimal))
                 {
-                    writer.Write((byte)DataKind.Decimal);
-                    writer.Write((decimal)value);
+                    _writer.Write((byte)DataKind.Decimal);
+                    _writer.Write((decimal)value);
                 }
                 else if (type == typeof(float))
                 {
-                    writer.Write((byte)DataKind.Float4);
-                    writer.Write((float)value);
+                    _writer.Write((byte)DataKind.Float4);
+                    _writer.Write((float)value);
                 }
                 else if (type == typeof(double))
                 {
-                    writer.Write((byte)DataKind.Float8);
-                    writer.Write((double)value);
+                    _writer.Write((byte)DataKind.Float8);
+                    _writer.Write((double)value);
                 }
                 else if (type == typeof(DateTime))
                 {
-                    writer.Write((byte)DataKind.DateTime);
+                    _writer.Write((byte)DataKind.DateTime);
                     this.WriteDateTime((DateTime)value);
                 }
                 else if (type.IsArray)
@@ -396,42 +396,42 @@ namespace Roslyn.Utilities
 
         private void WriteEnum(object value, Type enumType)
         {
-            writer.Write((byte)DataKind.Enum);
+            _writer.Write((byte)DataKind.Enum);
             this.WriteType(enumType);
 
             var type = Enum.GetUnderlyingType(enumType);
 
             if (type == typeof(int))
             {
-                writer.Write((int)value);
+                _writer.Write((int)value);
             }
             else if (type == typeof(short))
             {
-                writer.Write((short)value);
+                _writer.Write((short)value);
             }
             else if (type == typeof(byte))
             {
-                writer.Write((byte)value);
+                _writer.Write((byte)value);
             }
             else if (type == typeof(long))
             {
-                writer.Write((long)value);
+                _writer.Write((long)value);
             }
             else if (type == typeof(sbyte))
             {
-                writer.Write((sbyte)value);
+                _writer.Write((sbyte)value);
             }
             else if (type == typeof(ushort))
             {
-                writer.Write((ushort)value);
+                _writer.Write((ushort)value);
             }
             else if (type == typeof(uint))
             {
-                writer.Write((uint)value);
+                _writer.Write((uint)value);
             }
             else if (type == typeof(ulong))
             {
-                writer.Write((ulong)value);
+                _writer.Write((ulong)value);
             }
             else
             {
@@ -455,19 +455,19 @@ namespace Roslyn.Utilities
             switch (length)
             {
                 case 0:
-                    writer.Write((byte)DataKind.Array_0);
+                    _writer.Write((byte)DataKind.Array_0);
                     break;
                 case 1:
-                    writer.Write((byte)DataKind.Array_1);
+                    _writer.Write((byte)DataKind.Array_1);
                     break;
                 case 2:
-                    writer.Write((byte)DataKind.Array_2);
+                    _writer.Write((byte)DataKind.Array_2);
                     break;
                 case 3:
-                    writer.Write((byte)DataKind.Array_3);
+                    _writer.Write((byte)DataKind.Array_3);
                     break;
                 default:
-                    writer.Write((byte)DataKind.Array);
+                    _writer.Write((byte)DataKind.Array);
                     this.WriteCompressedUInt((uint)length);
                     break;
             }
@@ -483,35 +483,32 @@ namespace Roslyn.Utilities
         private void WriteType(Type type)
         {
             int id;
-            if (dataMap.TryGetId(type, out id))
+            if (_dataMap.TryGetId(type, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    writer.Write((byte)DataKind.TypeRef_B);
-                    writer.Write((byte)id);
+                    _writer.Write((byte)DataKind.TypeRef_B);
+                    _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    writer.Write((byte)DataKind.TypeRef_S);
-                    writer.Write((ushort)id);
+                    _writer.Write((byte)DataKind.TypeRef_S);
+                    _writer.Write((ushort)id);
                 }
                 else
                 {
-                    writer.Write((byte)DataKind.TypeRef);
-                    writer.Write(id);
+                    _writer.Write((byte)DataKind.TypeRef);
+                    _writer.Write(id);
                 }
             }
             else
             {
-                dataMap.Add(type);
+                _dataMap.Add(type);
 
-                if (this.binder != null)
-                {
-                    this.binder.Record(type);
-                }
+                _binder?.Record(type);
 
-                writer.Write((byte)DataKind.Type);
+                _writer.Write((byte)DataKind.Type);
 
                 string assemblyName = type.GetTypeInfo().Assembly.FullName;
                 string typeName = type.FullName;
@@ -526,33 +523,33 @@ namespace Roslyn.Utilities
 
         private void WriteObject(object instance)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             // write object ref if we already know this instance
             int id;
-            if (dataMap.TryGetId(instance, out id))
+            if (_dataMap.TryGetId(instance, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
                 {
-                    writer.Write((byte)DataKind.ObjectRef_B);
-                    writer.Write((byte)id);
+                    _writer.Write((byte)DataKind.ObjectRef_B);
+                    _writer.Write((byte)id);
                 }
                 else if (id <= ushort.MaxValue)
                 {
-                    writer.Write((byte)DataKind.ObjectRef_S);
-                    writer.Write((ushort)id);
+                    _writer.Write((byte)DataKind.ObjectRef_S);
+                    _writer.Write((ushort)id);
                 }
                 else
                 {
-                    writer.Write((byte)DataKind.ObjectRef);
-                    writer.Write(id);
+                    _writer.Write((byte)DataKind.ObjectRef);
+                    _writer.Write(id);
                 }
             }
             else
             {
                 // otherwise add this instance to the map
-                dataMap.Add(instance);
+                _dataMap.Add(instance);
 
                 var iwriteable = instance as IObjectWritable;
                 if (iwriteable != null)
@@ -567,20 +564,17 @@ namespace Roslyn.Utilities
 
         private void WriteWritableObject(IObjectWritable instance)
         {
-            writer.Write((byte)DataKind.Object_W);
+            _writer.Write((byte)DataKind.Object_W);
 
             Type type = instance.GetType();
             this.WriteType(type);
 
-            if (this.binder != null)
-            {
-                this.binder.Record(instance);
-            }
+            _binder?.Record(instance);
 
             instance.WriteTo(this);
         }
 
-        private Exception NotWritableException(string typeName)
+        private static Exception NotWritableException(string typeName)
         {
 #if COMPILERCORE
             throw new InvalidOperationException(string.Format(CodeAnalysisResources.NotWritableException, typeName));

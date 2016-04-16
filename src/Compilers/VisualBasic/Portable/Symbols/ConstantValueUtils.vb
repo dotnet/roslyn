@@ -5,20 +5,18 @@ Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend NotInheritable Class EvaluatedConstant
-        Public Shared ReadOnly None As New EvaluatedConstant(Nothing, Nothing, Nothing)
+    Friend Class EvaluatedConstant
+        Public Shared ReadOnly None As New EvaluatedConstant(Nothing, Nothing)
 
-        Public Sub New(value As ConstantValue, type As TypeSymbol, diagnostics As ImmutableArray(Of Diagnostic))
+        Public Sub New(value As ConstantValue, type As TypeSymbol)
             ' If a value is provided, a corresponding type must be provided.
             Debug.Assert((value Is Nothing) OrElse value.IsNull OrElse (type IsNot Nothing))
             Me.Value = value
             Me.Type = type
-            Me.Diagnostics = diagnostics.NullToEmpty()
         End Sub
 
         Public ReadOnly Value As ConstantValue
         Public ReadOnly Type As TypeSymbol
-        Public ReadOnly Diagnostics As ImmutableArray(Of Diagnostic)
     End Class
 
     Friend Module ConstantValueUtils
@@ -60,8 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(value IsNot Nothing)
             End If
 
-            ' Note: EvaluatedConstant.Diagnostics is not used.
-            Return New EvaluatedConstant(value, boundValueType, Nothing)
+            Return New EvaluatedConstant(value, boundValueType)
         End Function
 
         Private Function BindFieldOrEnumInitializer(binder As Binder,

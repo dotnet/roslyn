@@ -134,18 +134,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var cv82 = ConstantValue.Create((ulong)123456789);
             Assert.Equal(cv81.GetHashCode(), cv82.GetHashCode());
 
-            cv11 = ConstantValue.Create("123");
-            cv12 = ConstantValue.Create("321");
-            Assert.NotEqual(cv11.GetHashCode(), cv12.GetHashCode());
-
-            cv11 = ConstantValue.Create(1.1m);
-            cv12 = ConstantValue.Create(1.1m);
-            Assert.Equal(cv11.GetHashCode(), cv12.GetHashCode());
-
-            cv11 = ConstantValue.Create(DateTime.Now);
-            cv12 = ConstantValue.Create(new DateTime());
-            Assert.NotEqual(cv11.GetHashCode(), cv12.GetHashCode());
+            var cv91 = ConstantValue.Create(1.1m);
+            var cv92 = ConstantValue.Create(1.1m);
+            Assert.Equal(cv91.GetHashCode(), cv92.GetHashCode());
         }
+
+        // In general, different values are not required to have different hash codes.
+        // But for perf reasons we want hash functions with a good distribution, 
+        // so we expect hash codes to differ if a single component is incremented.
+        // But program correctness should be preserved even with a null hash function,
+        // so we need a way to disable these tests during such correctness validation.
+#if !DISABLE_GOOD_HASH_TESTS
+
+        [Fact]
+        public void ConstantValueGetHashCodeTest02()
+        {
+            var cv1 = ConstantValue.Create("1");
+            var cv2 = ConstantValue.Create("2");
+
+            Assert.NotEqual(cv1.GetHashCode(), cv2.GetHashCode());
+        }
+
+#endif
 
         [Fact]
         public void ConstantValueToStringTest01()

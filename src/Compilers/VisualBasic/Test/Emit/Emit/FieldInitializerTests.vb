@@ -338,7 +338,6 @@ End Class
 
     <file name="b.vb">
 Option strict on
-imports system
 
 partial Class C1
 
@@ -352,11 +351,11 @@ End Class
 
             ' not referencing vb runtime to get an error in the synthesized assignments
             ' coming from the field initializers
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
                 source,
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
-            AssertTheseDiagnostics(c1,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
     public x1 as string = 33 &amp; 2.34 'No inference here
@@ -826,7 +825,7 @@ BC30180: Keyword does not name a type.
 </expected>)
         End Sub
 
-        <WorkItem(541266, "DevDiv")>
+        <WorkItem(541266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541266")>
         <Fact>
         Public Sub AsNewMissingType()
             Dim source =
@@ -942,7 +941,7 @@ End Class
                 expectedOutput:=<![CDATA[2, 3]]>)
         End Sub
 
-        <WorkItem(541398, "DevDiv")>
+        <WorkItem(541398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541398")>
         <Fact>
         Public Sub ArrayFieldWithoutInitializer()
             Dim compilation = CompileAndVerify(

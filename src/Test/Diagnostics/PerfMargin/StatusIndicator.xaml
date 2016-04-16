@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="Roslyn.Hosting.Diagnostics.PerfMargin.StatusIndicator"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    >
+    <!-- 
+         This rectangle is used as a horizontal 'bar graph' like a digital VU meter.
+         The rectangle is filled with a gradient brush which ranges from green to red
+         along its long edge. A clipping region is then used to mask off the right hand
+         edge of the rectangle depending on the proportion of the bar graph that we want
+         to show. The X scale of the clipping region is animated to provide a visual
+         effect that preserves very short intervals.
+    -->
+    <Rectangle HorizontalAlignment="Left" VerticalAlignment="Center" Width="30" Height="8">
+        <Rectangle.Clip>
+            <RectangleGeometry Rect="0,0,30,10">
+                <RectangleGeometry.Transform>
+                    <ScaleTransform x:Name="clipScale" ScaleX="0" />
+                </RectangleGeometry.Transform>
+            </RectangleGeometry>
+        </Rectangle.Clip>
+        <Rectangle.Fill>
+            <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                <GradientStop Color="#FFC4FF00" Offset="0" />
+                <GradientStop Color="Red" Offset="1" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
+</UserControl>
+

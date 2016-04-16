@@ -17,6 +17,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         StateMachineStateField
         StateMachineHoistedUserVariableField
         StaticLocalField
+        TransparentIdentifier
+        AnonymousTransparentIdentifier
+        AnonymousType
 
         LambdaCacheField
     End Enum
@@ -43,6 +46,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return GeneratedNameKind.StateMachineAwaiterField
             ElseIf name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return GeneratedNameKind.StateMachineHoistedUserVariableField
+            ElseIf name.StartsWith(AnonymousTypeTemplateNamePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.AnonymousType
+            ElseIf name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
+                    name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
+                    name.Equals(StringConstants.It2, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.TransparentIdentifier
+            ElseIf name.Equals(StringConstants.ItAnonymous, StringComparison.Ordinal) Then
+                ' We distinguish StringConstants.ItAnonymous, because it won't be an instance
+                ' of an anonymous type.
+                Return GeneratedNameKind.AnonymousTransparentIdentifier
             End If
 
             Return GeneratedNameKind.None

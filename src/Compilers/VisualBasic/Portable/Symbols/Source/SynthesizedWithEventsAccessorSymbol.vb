@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SynthesizedWithEventsAccessorSymbol
         Inherits SynthesizedPropertyAccessorBase(Of PropertySymbol)
 
-        Private m_lazyParameters As ImmutableArray(Of ParameterSymbol)
-        Private m_lazyExplicitImplementations As ImmutableArray(Of MethodSymbol) ' lazily populated with explicit implementations
+        Private _lazyParameters As ImmutableArray(Of ParameterSymbol)
+        Private _lazyExplicitImplementations As ImmutableArray(Of MethodSymbol) ' lazily populated with explicit implementations
 
         Protected Sub New(container As SourceMemberContainerTypeSymbol, [property] As PropertySymbol)
             MyBase.New(container, [property])
@@ -25,13 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                If m_lazyExplicitImplementations.IsDefault Then
+                If _lazyExplicitImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedInitialize(
-                        m_lazyExplicitImplementations,
+                        _lazyExplicitImplementations,
                         GetExplicitInterfaceImplementations())
                 End If
 
-                Return m_lazyExplicitImplementations
+                Return _lazyExplicitImplementations
             End Get
         End Property
 
@@ -73,11 +73,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                If m_lazyParameters.IsDefault Then
-                    ImmutableInterlocked.InterlockedInitialize(m_lazyParameters, GetParameters())
+                If _lazyParameters.IsDefault Then
+                    ImmutableInterlocked.InterlockedInitialize(_lazyParameters, GetParameters())
                 End If
 
-                Return m_lazyParameters
+                Return _lazyParameters
             End Get
         End Property
 
@@ -152,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedWithEventsSetAccessorSymbol
         Inherits SynthesizedWithEventsAccessorSymbol
 
-        Private ReadOnly m_returnType As TypeSymbol
-        Private ReadOnly m_valueParameterName As String
+        Private ReadOnly _returnType As TypeSymbol
+        Private ReadOnly _valueParameterName As String
 
         Public Sub New(container As SourceMemberContainerTypeSymbol,
                        propertySymbol As PropertySymbol,
@@ -161,8 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        valueParameterName As String)
 
             MyBase.New(container, propertySymbol)
-            m_returnType = returnType
-            m_valueParameterName = valueParameterName
+            _returnType = returnType
+            _valueParameterName = valueParameterName
         End Sub
 
         Public Overrides ReadOnly Property IsSub As Boolean
@@ -183,13 +183,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             propertySymbol.CloneParameters(Me, parameters)
             ' Add the "value" parameter
-            parameters.Add(SynthesizedParameterSymbol.CreateSetAccessorValueParameter(Me, propertySymbol, m_valueParameterName))
+            parameters.Add(SynthesizedParameterSymbol.CreateSetAccessorValueParameter(Me, propertySymbol, _valueParameterName))
             Return parameters.ToImmutableAndFree()
         End Function
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return m_returnType
+                Return _returnType
             End Get
         End Property
 

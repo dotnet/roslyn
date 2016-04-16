@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
-    Module DirectiveSyntaxExtensions
+    Friend Module DirectiveSyntaxExtensions
         Private Class DirectiveInfo
             Private ReadOnly _startEndMap As IDictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)
 
@@ -26,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End Get
             End Property
 
-            Private ReadOnly _conditionalMap As IDictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))
+            Private ReadOnly _conditionalMap As IDictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax))
 
             ''' <summary>
             ''' Maps a #If/#ElseIf/#Else/#EndIf directive to its list of matching #If/#ElseIf/#Else/#End directives.
             ''' </summary>
-            Public ReadOnly Property ConditionalMap As IDictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))
+            Public ReadOnly Property ConditionalMap As IDictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax))
                 Get
                     Return _conditionalMap
                 End Get
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' A set of inactive regions spans.  The items in the tuple are the 
             ' start and end line *both inclusive* of the inactive region.  
-            ' Actual PP lines are not contined within.
+            ' Actual PP lines are not continued within.
             '
             ' Note: an interval syntaxTree might be a better structure here if there are lots of
             ' inactive regions.  Consider switching to that if necessary.
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Property
 
             Public Sub New(startEndMap As IDictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax),
-                           conditionalMap As IDictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax)),
+                           conditionalMap As IDictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax)),
                            inactiveRegionLines As ISet(Of Tuple(Of Integer, Integer)))
                 _startEndMap = startEndMap
                 _conditionalMap = conditionalMap
@@ -59,14 +59,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Sub
         End Class
 
-        Private ReadOnly _rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
+        Private ReadOnly s_rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
 
         Private Function GetDirectiveInfo(node As SyntaxNode, cancellationToken As CancellationToken) As DirectiveInfo
             Dim root = node.GetAbsoluteRoot()
-            Dim info = _rootToDirectiveInfo.GetValue(root,
+            Dim info = s_rootToDirectiveInfo.GetValue(root,
                             Function(r)
                                 Dim startEndMap = New Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)(DirectiveSyntaxEqualityComparer.Instance)
-                                Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
+                                Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
                                 Dim walker = New DirectiveWalker(startEndMap, conditionalMap, cancellationToken)
                                 walker.Visit(r)
                                 walker.Finish()
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetMatchingStartOrEndDirective(directive As DirectiveTriviaSyntax,
                                                        cancellationToken As CancellationToken) As DirectiveTriviaSyntax
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
             If directive.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse directive.Kind = SyntaxKind.ElseDirectiveTrivia Then
@@ -120,14 +120,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' </summary>
         <Extension()>
         Public Function GetMatchingConditionalDirectives(directive As DirectiveTriviaSyntax,
-                                                         cancellationToken As CancellationToken) As IEnumerable(Of DirectiveTriviaSyntax)
+                                                         cancellationToken As CancellationToken) As IReadOnlyList(Of DirectiveTriviaSyntax)
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
-            Dim result As IEnumerable(Of DirectiveTriviaSyntax) = Nothing
+            Dim result As IReadOnlyList(Of DirectiveTriviaSyntax) = Nothing
             If Not GetDirectiveInfo(directive, cancellationToken).ConditionalMap.TryGetValue(directive, result) Then
-                Return SpecializedCollections.EmptyEnumerable(Of DirectiveTriviaSyntax)()
+                Return SpecializedCollections.EmptyReadOnlyList(Of DirectiveTriviaSyntax)()
             End If
             Return result
         End Function

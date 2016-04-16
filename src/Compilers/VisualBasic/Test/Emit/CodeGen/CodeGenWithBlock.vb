@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub WithTestModuleField()
+        Public Sub WithTestModuleField()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -28,7 +28,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestLineContinuation()
+        Public Sub WithTestLineContinuation()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -57,7 +57,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestNested()
+        Public Sub WithTestNested()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -678,13 +678,13 @@ expectedOutput:="123")
   IL_000c:  dup
   IL_000d:  ldc.i4.s   123
   IL_000f:  stfld      "C2._Closure$__2-0.$VB$Local_val As Integer"
-  IL_0014:  ldftn      "Sub C2._Closure$__2-0._Lambda$__1()"
+  IL_0014:  ldftn      "Sub C2._Closure$__2-0._Lambda$__0()"
   IL_001a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001f:  callvirt   "Sub System.Action.Invoke()"
   IL_0024:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__2-0._Lambda$__1",
+            c.VerifyIL("C2._Closure$__2-0._Lambda$__0",
             <![CDATA[
 {
   // Code size       39 (0x27)
@@ -1731,13 +1731,13 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
   IL_0007:  ldc.i4.1
   IL_0008:  stfld      "C2.A As Integer"
   IL_000d:  ldarg.0
-  IL_000e:  ldftn      "Sub C2._Lambda$__3-1()"
+  IL_000e:  ldftn      "Sub C2._Lambda$__3-0()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  callvirt   "Sub System.Action.Invoke()"
   IL_001e:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Lambda$__3-1",
+            c.VerifyIL("C2._Lambda$__3-0",
             <![CDATA[
 {
   // Code size       32 (0x20)
@@ -1811,7 +1811,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
   IL_001a:  ldc.i4.1
   IL_001b:  stfld      "C2.ABC.A As Integer"
   IL_0020:  ldloc.0
-  IL_0021:  ldftn      "Sub C2._Closure$__3-0._Lambda$__1()"
+  IL_0021:  ldftn      "Sub C2._Closure$__3-0._Lambda$__0()"
   IL_0027:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_002c:  callvirt   "Sub System.Action.Invoke()"
   IL_0031:  ldarg.0
@@ -1822,7 +1822,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
 }
 
 ]]>)
-            c.VerifyIL("C2._Closure$__3-0._Lambda$__1",
+            c.VerifyIL("C2._Closure$__3-0._Lambda$__0",
             <![CDATA[
 {
   // Code size       42 (0x2a)
@@ -1893,15 +1893,15 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
   .locals init (VB$AnonymousDelegate_0(Of C2.ABC) V_0) //b
   IL_0000:  ldarg.0
   IL_0001:  initobj    "C2"
-  IL_0007:  ldsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_0007:  ldsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_000e:  ldsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_0013:  br.s       IL_002b
   IL_0015:  ldsfld     "C2._Closure$__.$I As C2._Closure$__"
-  IL_001a:  ldftn      "Function C2._Closure$__._Lambda$__3-1() As C2.ABC"
+  IL_001a:  ldftn      "Function C2._Closure$__._Lambda$__3-0() As C2.ABC"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of C2.ABC)..ctor(Object, System.IntPtr)"
   IL_0025:  dup
-  IL_0026:  stsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_0026:  stsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_002b:  stloc.0
   IL_002c:  ldarg.0
   IL_002d:  ldloc.0
@@ -1910,7 +1910,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
   IL_0038:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__._Lambda$__3-1",
+            c.VerifyIL("C2._Closure$__._Lambda$__3-0",
             <![CDATA[
 {
   // Code size       52 (0x34)
@@ -1924,14 +1924,14 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !")
   IL_0017:  ldc.i4.1
   IL_0018:  stfld      "C2.ABC.A As Integer"
   IL_001d:  dup
-  IL_001e:  ldftn      "Sub C2._Closure$__3-0._Lambda$__2()"
+  IL_001e:  ldftn      "Sub C2._Closure$__3-0._Lambda$__1()"
   IL_0024:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0029:  callvirt   "Sub System.Action.Invoke()"
   IL_002e:  ldfld      "C2._Closure$__3-0.$VB$Local_x As C2.ABC"
   IL_0033:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__3-0._Lambda$__2",
+            c.VerifyIL("C2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       42 (0x2a)
@@ -2026,7 +2026,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0043:  ldfld      "C2.ABC.A As Integer"
   IL_0048:  stfld      "C2._Closure$__4-0.$W3 As Integer"
   IL_004d:  dup
-  IL_004e:  ldftn      "Sub C2._Closure$__4-0._Lambda$__1()"
+  IL_004e:  ldftn      "Sub C2._Closure$__4-0._Lambda$__0()"
   IL_0054:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0059:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_005e:  ldnull
@@ -2040,7 +2040,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0076:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__4-0._Lambda$__1", <![CDATA[
+            c.VerifyIL("C2._Closure$__4-0._Lambda$__0", <![CDATA[
 {
   // Code size       66 (0x42)
   .maxstack  3
@@ -2053,24 +2053,24 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0011:  ldc.i4.2
   IL_0012:  stfld      "C2.ABC.A As Integer"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "C2._Closure$__4-0.$I2 As System.Action"
+  IL_0018:  ldfld      "C2._Closure$__4-0.$I1 As System.Action"
   IL_001d:  brfalse.s  IL_0027
   IL_001f:  ldarg.0
-  IL_0020:  ldfld      "C2._Closure$__4-0.$I2 As System.Action"
+  IL_0020:  ldfld      "C2._Closure$__4-0.$I1 As System.Action"
   IL_0025:  br.s       IL_003c
   IL_0027:  ldarg.0
   IL_0028:  ldarg.0
-  IL_0029:  ldftn      "Sub C2._Closure$__4-0._Lambda$__2()"
+  IL_0029:  ldftn      "Sub C2._Closure$__4-0._Lambda$__1()"
   IL_002f:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0034:  dup
   IL_0035:  stloc.0
-  IL_0036:  stfld      "C2._Closure$__4-0.$I2 As System.Action"
+  IL_0036:  stfld      "C2._Closure$__4-0.$I1 As System.Action"
   IL_003b:  ldloc.0
   IL_003c:  callvirt   "Sub System.Action.Invoke()"
   IL_0041:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__4-0._Lambda$__2", <![CDATA[
+            c.VerifyIL("C2._Closure$__4-0._Lambda$__1", <![CDATA[
 {
   // Code size       64 (0x40)
   .maxstack  2
@@ -2205,7 +2205,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0012:  dup
   IL_0013:  ldstr      "?"
   IL_0018:  stfld      "C2._Closure$__2-0.$VB$Local_sss As String"
-  IL_001d:  ldftn      "Sub C2._Closure$__2-0._Lambda$__1()"
+  IL_001d:  ldftn      "Sub C2._Closure$__2-0._Lambda$__0()"
   IL_0023:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0028:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_002d:  ldarg.0
@@ -2215,7 +2215,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0039:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__2-0._Lambda$__1",
+            c.VerifyIL("C2._Closure$__2-0._Lambda$__0",
             <![CDATA[
 {
   // Code size       60 (0x3c)
@@ -2227,24 +2227,24 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_000b:  ldc.i4.2
   IL_000c:  stfld      "C2.ABC.A As Integer"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "C2._Closure$__2-0.$I2 As System.Action"
+  IL_0012:  ldfld      "C2._Closure$__2-0.$I1 As System.Action"
   IL_0017:  brfalse.s  IL_0021
   IL_0019:  ldarg.0
-  IL_001a:  ldfld      "C2._Closure$__2-0.$I2 As System.Action"
+  IL_001a:  ldfld      "C2._Closure$__2-0.$I1 As System.Action"
   IL_001f:  br.s       IL_0036
   IL_0021:  ldarg.0
   IL_0022:  ldarg.0
-  IL_0023:  ldftn      "Sub C2._Closure$__2-0._Lambda$__2()"
+  IL_0023:  ldftn      "Sub C2._Closure$__2-0._Lambda$__1()"
   IL_0029:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_002e:  dup
   IL_002f:  stloc.0
-  IL_0030:  stfld      "C2._Closure$__2-0.$I2 As System.Action"
+  IL_0030:  stfld      "C2._Closure$__2-0.$I1 As System.Action"
   IL_0035:  ldloc.0
   IL_0036:  callvirt   "Sub System.Action.Invoke()"
   IL_003b:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__2-0._Lambda$__2",
+            c.VerifyIL("C2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -2317,15 +2317,15 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  initobj    "C2"
-  IL_0007:  ldsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_0007:  ldsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_000e:  ldsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_0013:  br.s       IL_002b
   IL_0015:  ldsfld     "C2._Closure$__.$I As C2._Closure$__"
-  IL_001a:  ldftn      "Sub C2._Closure$__._Lambda$__3-1()"
+  IL_001a:  ldftn      "Sub C2._Closure$__._Lambda$__3-0()"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0025:  dup
-  IL_0026:  stsfld     "C2._Closure$__.$I3-1 As <generated method>"
+  IL_0026:  stsfld     "C2._Closure$__.$I3-0 As <generated method>"
   IL_002b:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0030:  ldarg.0
   IL_0031:  ldsfld     "C2.ARR As C2.ABC"
@@ -2333,7 +2333,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_003b:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__._Lambda$__3-1",
+            c.VerifyIL("C2._Closure$__._Lambda$__3-0",
             <![CDATA[
 {
   // Code size       44 (0x2c)
@@ -2345,13 +2345,13 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_0010:  ldsflda    "C2.ARR As C2.ABC"
   IL_0015:  ldc.i4.2
   IL_0016:  stfld      "C2.ABC.A As Integer"
-  IL_001b:  ldftn      "Sub C2._Closure$__3-0._Lambda$__2()"
+  IL_001b:  ldftn      "Sub C2._Closure$__3-0._Lambda$__1()"
   IL_0021:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0026:  callvirt   "Sub System.Action.Invoke()"
   IL_002b:  ret
 }
 ]]>)
-            c.VerifyIL("C2._Closure$__3-0._Lambda$__2",
+            c.VerifyIL("C2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       41 (0x29)
@@ -2690,7 +2690,7 @@ End Structure
                     Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(545120, "DevDiv")>
+        <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2804,7 +2804,7 @@ End Class
   .maxstack  3
   IL_0000:  ldstr      ""
   IL_0005:  ldarg.0
-  IL_0006:  ldftn      "Function Clazz._Lambda$__2-1(Char) As String"
+  IL_0006:  ldftn      "Function Clazz._Lambda$__2-0(Char) As String"
   IL_000c:  newobj     "Sub System.Func(Of Char, String)..ctor(Object, System.IntPtr)"
   IL_0011:  call       "Function System.Linq.Enumerable.Select(Of Char, String)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, String)) As System.Collections.Generic.IEnumerable(Of String)"
   IL_0016:  callvirt   "Function Object.GetType() As System.Type"
@@ -2813,7 +2813,7 @@ End Class
   IL_0025:  ret
 }
 ]]>)
-            c.VerifyIL("Clazz._Lambda$__2-1",
+            c.VerifyIL("Clazz._Lambda$__2-0",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -2942,7 +2942,7 @@ End Class
     </file>
 </compilation>, expectedOutput:="0")
             c.VerifyDiagnostics()
-            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__2",
+            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       26 (0x1a)
@@ -3115,7 +3115,7 @@ End Structure
   IL_0036:  ldstr      " "
   IL_003b:  call       "Sub System.Console.Write(String)"
   IL_0040:  ldloc.0
-  IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__1()"
+  IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__0()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
@@ -3124,7 +3124,7 @@ End Structure
   IL_0058:  ret
 }
 ]]>)
-            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__1", <![CDATA[
+            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__0", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -3203,7 +3203,7 @@ End Structure
   IL_0036:  ldstr      " "
   IL_003b:  call       "Sub System.Console.Write(String)"
   IL_0040:  ldloc.0
-  IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__1()"
+  IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__0()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
@@ -3212,7 +3212,7 @@ End Structure
   IL_0058:  ret
 }
 ]]>)
-            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__1", <![CDATA[
+            c.VerifyIL("Clazz._Closure$__1-0._Lambda$__0", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -3311,7 +3311,7 @@ End Structure
   IL_0058:  call       "Sub System.Console.Write(String)"
   IL_005d:  ldstr      "*"
   IL_0062:  ldloc.2
-  IL_0063:  ldftn      "Function Clazz._Closure$__3-0._Lambda$__1(Char) As String"
+  IL_0063:  ldftn      "Function Clazz._Closure$__3-0._Lambda$__0(Char) As String"
   IL_0069:  newobj     "Sub System.Func(Of Char, String)..ctor(Object, System.IntPtr)"
   IL_006e:  call       "Function System.Linq.Enumerable.Select(Of Char, String)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, String)) As System.Collections.Generic.IEnumerable(Of String)"
   IL_0073:  call       "Function System.Linq.Enumerable.FirstOrDefault(Of String)(System.Collections.Generic.IEnumerable(Of String)) As String"
@@ -3326,7 +3326,7 @@ End Structure
   IL_0099:  ret
 }
 ]]>)
-            c.VerifyIL("Clazz._Closure$__3-0._Lambda$__1",
+            c.VerifyIL("Clazz._Closure$__3-0._Lambda$__0",
             <![CDATA[
 {
   // Code size       22 (0x16)
@@ -3390,6 +3390,34 @@ End Namespace
 23
 ]]>).
             VerifyDiagnostics()
+        End Sub
+
+        <Fact(), WorkItem(2640, "https://github.com/dotnet/roslyn/issues/2640")>
+        Public Sub WithUnusedArrayElement()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+  Private Structure MyStructure
+    Public x As Single
+  End Structure
+  Sub Main()
+    Dim unusedArrayInWith(0) As MyStructure
+    With unusedArrayInWith(GetIndex())
+      System.Console.WriteLine("Hello, World")
+    End With
+  End Sub
+
+  Function GetIndex() as Integer
+    System.Console.WriteLine("GetIndex")
+    Return 0
+  End Function
+End Module
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe, expectedOutput:=<![CDATA[
+GetIndex
+Hello, World
+]]>)
         End Sub
 
     End Class

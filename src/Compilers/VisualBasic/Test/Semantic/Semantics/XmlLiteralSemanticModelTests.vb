@@ -408,11 +408,11 @@ End Module
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
-            ValueExtensionProperty(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<y>.Value"))
-            ValueExtensionProperty(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<z>.Value"))
+            ValueExtensionPropertyCore(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<y>.Value"))
+            ValueExtensionPropertyCore(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<z>.Value"))
         End Sub
 
-        Private Sub ValueExtensionProperty(model As SemanticModel, expr As MemberAccessExpressionSyntax)
+        Private Sub ValueExtensionPropertyCore(model As SemanticModel, expr As MemberAccessExpressionSyntax)
             Dim info = model.GetSymbolInfo(expr)
             Dim symbol = TryCast(info.Symbol, PropertySymbol)
             Assert.NotNull(symbol)
@@ -421,7 +421,7 @@ End Module
             Assert.Equal(1, symbol.SetMethod.Parameters().Length)
         End Sub
 
-        <WorkItem(545659, "DevDiv")>
+        <WorkItem(545659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545659")>
         <Fact>
         Public Sub LookupValueExtensionProperty()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -484,7 +484,7 @@ BC30456: 'Value' is not a member of 'IEnumerable(Of Object)'.
             Next
         End Sub
 
-        <WorkItem(544421, "DevDiv")>
+        <WorkItem(544421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544421")>
         <Fact()>
         Public Sub XmlEndElementNoMatchingStart()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -509,7 +509,7 @@ End Module
             CheckSymbol(info.Type, "XElement")
         End Sub
 
-        <WorkItem(545167, "DevDiv")>
+        <WorkItem(545167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545167")>
         <Fact()>
         Public Sub XmlElementEndTag()
             Dim compilation = CreateCompilationWithMscorlib(

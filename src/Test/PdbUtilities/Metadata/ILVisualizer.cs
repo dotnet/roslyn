@@ -16,17 +16,17 @@ namespace Roslyn.Test.MetadataUtilities
 {
     public abstract class ILVisualizer
     {
-        private static readonly OpCode[] OneByteOpCodes;
-        private static readonly OpCode[] TwoByteOpCodes;
-         
+        private static readonly OpCode[] s_oneByteOpCodes;
+        private static readonly OpCode[] s_twoByteOpCodes;
+
         static ILVisualizer()
         {
-            OneByteOpCodes = new OpCode[0x100];
-            TwoByteOpCodes = new OpCode[0x100];
+            s_oneByteOpCodes = new OpCode[0x100];
+            s_twoByteOpCodes = new OpCode[0x100];
 
             var typeOfOpCode = typeof(OpCode);
 
-            foreach (FieldInfo fi in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
+            foreach (FieldInfo fi in typeof(OpCodes).GetTypeInfo().DeclaredFields)
             {
                 if (fi.FieldType != typeOfOpCode)
                 {
@@ -37,11 +37,11 @@ namespace Roslyn.Test.MetadataUtilities
                 var value = unchecked((ushort)opCode.Value);
                 if (value < 0x100)
                 {
-                    OneByteOpCodes[value] = opCode;
+                    s_oneByteOpCodes[value] = opCode;
                 }
                 else if ((value & 0xff00) == 0xfe00)
                 {
-                    TwoByteOpCodes[value & 0xff] = opCode;
+                    s_twoByteOpCodes[value & 0xff] = opCode;
                 }
             }
         }
@@ -59,11 +59,11 @@ namespace Roslyn.Test.MetadataUtilities
         {
             public readonly HandlerKind Kind;
             public readonly object ExceptionType;
-            public readonly uint StartOffset;
-            public readonly uint FilterHandlerStart;
-            public readonly uint EndOffset;
+            public readonly int StartOffset;
+            public readonly int FilterHandlerStart;
+            public readonly int EndOffset;
 
-            public HandlerSpan(HandlerKind kind, object exceptionType, uint startOffset, uint endOffset, uint filterHandlerStart = 0)
+            public HandlerSpan(HandlerKind kind, object exceptionType, int startOffset, int endOffset, int filterHandlerStart = 0)
             {
                 this.Kind = kind;
                 this.ExceptionType = exceptionType;
@@ -74,11 +74,11 @@ namespace Roslyn.Test.MetadataUtilities
 
             public int CompareTo(HandlerSpan other)
             {
-                int result = (int)this.StartOffset - (int)other.StartOffset;
+                int result = this.StartOffset - other.StartOffset;
                 if (result == 0)
                 {
                     // Both blocks have same start. Order larger (outer) before smaller (inner).
-                    result = (int)other.EndOffset - (int)this.EndOffset;
+                    result = other.EndOffset - this.EndOffset;
                 }
 
                 return result;
@@ -129,73 +129,82 @@ namespace Roslyn.Test.MetadataUtilities
         public abstract string VisualizeSymbol(uint token);
         public abstract string VisualizeLocalType(object type);
 
-        private static ulong ReadUlong(byte[] buffer, ref int pos)
+        private static ulong ReadUInt64(ImmutableArray<byte> buffer, ref int pos)
         {
-            ulong result = BitConverter.ToUInt64(buffer, pos);
-            pos += 8;
+            ulong result =
+                buffer[pos] |
+                (ulong)buffer[pos + 1] << 8 |
+                (ulong)buffer[pos + 2] << 16 |
+                (ulong)buffer[pos + 3] << 24 |
+                (ulong)buffer[pos + 4] << 32 |
+                (ulong)buffer[pos + 5] << 40 |
+                (ulong)buffer[pos + 6] << 48 |
+                (ulong)buffer[pos + 7] << 56;
+
+            pos += sizeof(ulong);
             return result;
         }
 
-        private static uint ReadUint(byte[] buffer, ref int pos)
+        private static uint ReadUInt32(ImmutableArray<byte> buffer, ref int pos)
         {
-            uint result = BitConverter.ToUInt32(buffer, pos);
-            pos += 4;
+            uint result = buffer[pos] | (uint)buffer[pos + 1] << 8 | (uint)buffer[pos + 2] << 16 | (uint)buffer[pos + 3] << 24;
+            pos += sizeof(uint);
             return result;
         }
 
-        private static int ReadInt(byte[] buffer, ref int pos)
+        private static int ReadInt32(ImmutableArray<byte> buffer, ref int pos)
         {
-            int result = BitConverter.ToInt32(buffer, pos);
-            pos += 4;
+            return unchecked((int)ReadUInt32(buffer, ref pos));
+        }
+
+        private static ushort ReadUInt16(ImmutableArray<byte> buffer, ref int pos)
+        {
+            ushort result = (ushort)(buffer[pos] | buffer[pos + 1] << 8);
+            pos += sizeof(ushort);
             return result;
         }
 
-        private static ushort ReadUShort(byte[] buffer, ref int pos)
-        {
-            ushort result = BitConverter.ToUInt16(buffer, pos);
-            pos += 4;
-            return result;
-        }
-
-        private static byte ReadByte(byte[] buffer, ref int pos)
+        private static byte ReadByte(ImmutableArray<byte> buffer, ref int pos)
         {
             byte result = buffer[pos];
-            pos += 1;
+            pos += sizeof(byte);
             return result;
         }
 
-        private static sbyte ReadSByte(byte[] buffer, ref int pos)
+        private static sbyte ReadSByte(ImmutableArray<byte> buffer, ref int pos)
         {
             sbyte result = unchecked((sbyte)buffer[pos]);
             pos += 1;
             return result;
         }
 
-        private static float ReadSingle(byte[] buffer, ref int pos)
+        private unsafe static float ReadSingle(ImmutableArray<byte> buffer, ref int pos)
         {
-            float result = BitConverter.ToSingle(buffer, pos);
-            pos += 4;
-            return result;
+            uint value = ReadUInt32(buffer, ref pos);
+            return *(float*)&value;
         }
 
-        private static double ReadDouble(byte[] buffer, ref int pos)
+        private unsafe static double ReadDouble(ImmutableArray<byte> buffer, ref int pos)
         {
-            double result = BitConverter.ToDouble(buffer, pos);
-            pos += 8;
-            return result;
+            ulong value = ReadUInt64(buffer, ref pos);
+            return *(double*)&value;
         }
 
         public void VisualizeHeader(StringBuilder sb, int codeSize, int maxStack, ImmutableArray<LocalInfo> locals)
         {
-            if (codeSize == 0)
+            if (codeSize >= 0 && maxStack >= 0)
             {
-                sb.AppendLine("  // Unrealized IL");
+                if (codeSize == 0)
+                {
+                    sb.AppendLine("  // Unrealized IL");
+                }
+                else
+                {
+                    sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
+                }
+
+                sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
             }
-            else
-            {
-                sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
-            }
-            sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
 
             int i = 0;
             foreach (var local in locals)
@@ -232,7 +241,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         public string DumpMethod(
             int maxStack,
-            byte[] ilBytes,
+            ImmutableArray<byte> ilBytes,
             ImmutableArray<LocalInfo> locals,
             IReadOnlyList<HandlerSpan> exceptionHandlers,
             IReadOnlyDictionary<int, string> markers = null)
@@ -245,7 +254,7 @@ namespace Roslyn.Test.MetadataUtilities
         public void DumpMethod(
             StringBuilder sb,
             int maxStack,
-            byte[] ilBytes,
+            ImmutableArray<byte> ilBytes,
             ImmutableArray<LocalInfo> locals,
             IReadOnlyList<HandlerSpan> exceptionHandlers,
             IReadOnlyDictionary<int, string> markers = null)
@@ -263,7 +272,7 @@ namespace Roslyn.Test.MetadataUtilities
         /// The blockOffset specifies the relative position of the block within method body (if known).
         /// </summary>
         public void DumpILBlock(
-            byte[] ilBytes,
+            ImmutableArray<byte> ilBytes,
             int length,
             StringBuilder sb,
             IReadOnlyList<HandlerSpan> spans = null,
@@ -282,7 +291,7 @@ namespace Roslyn.Test.MetadataUtilities
         }
 
         private int DumpILBlock(
-            byte[] ilBytes,
+            ImmutableArray<byte> ilBytes,
             int length,
             StringBuilder sb,
             IReadOnlyList<HandlerSpan> spans,
@@ -307,7 +316,7 @@ namespace Roslyn.Test.MetadataUtilities
                     sb.Append("{  // handler");
                     sb.AppendLine();
                 }
-                
+
                 if (StartsSpan(spans, spanIndex, curIndex + blockOffset))
                 {
                     sb.Append(indent);
@@ -346,12 +355,12 @@ namespace Roslyn.Test.MetadataUtilities
                     if (op1 == 0xfe && curIndex < length)
                     {
                         byte op2 = ilBytes[curIndex++];
-                        opCode = TwoByteOpCodes[op2];
+                        opCode = s_twoByteOpCodes[op2];
                         expectedSize = 2;
                     }
                     else
                     {
-                        opCode = OneByteOpCodes[op1];
+                        opCode = s_oneByteOpCodes[op1];
                         expectedSize = 1;
                     }
 
@@ -371,16 +380,16 @@ namespace Roslyn.Test.MetadataUtilities
                         case OperandType.InlineTok:
                         case OperandType.InlineType:
                             sb.Append(' ');
-                            sb.Append(VisualizeSymbol(ReadUint(ilBytes, ref curIndex)));
+                            sb.Append(VisualizeSymbol(ReadUInt32(ilBytes, ref curIndex)));
                             break;
 
                         case OperandType.InlineSig: // signature (calli), not emitted by C#/VB
-                            sb.AppendFormat(" 0x{0:x}", ReadUint(ilBytes, ref curIndex));
+                            sb.AppendFormat(" 0x{0:x}", ReadUInt32(ilBytes, ref curIndex));
                             break;
 
                         case OperandType.InlineString:
                             sb.Append(' ');
-                            sb.Append(VisualizeUserString(ReadUint(ilBytes, ref curIndex)));
+                            sb.Append(VisualizeUserString(ReadUInt32(ilBytes, ref curIndex)));
                             break;
 
                         case OperandType.InlineNone:
@@ -395,15 +404,15 @@ namespace Roslyn.Test.MetadataUtilities
                             break;
 
                         case OperandType.InlineVar:
-                            sb.AppendFormat(" V_{0}", ReadUShort(ilBytes, ref curIndex));
+                            sb.AppendFormat(" V_{0}", ReadUInt16(ilBytes, ref curIndex));
                             break;
 
                         case OperandType.InlineI:
-                            sb.AppendFormat(" 0x{0:x}", ReadUint(ilBytes, ref curIndex));
+                            sb.AppendFormat(" 0x{0:x}", ReadUInt32(ilBytes, ref curIndex));
                             break;
 
                         case OperandType.InlineI8:
-                            sb.AppendFormat(" 0x{0:x8}", ReadUlong(ilBytes, ref curIndex));
+                            sb.AppendFormat(" 0x{0:x8}", ReadUInt64(ilBytes, ref curIndex));
                             break;
 
                         case OperandType.ShortInlineR:
@@ -439,16 +448,16 @@ namespace Roslyn.Test.MetadataUtilities
                             break;
 
                         case OperandType.InlineBrTarget:
-                            sb.AppendFormat(" IL_{0:x4}", ReadInt(ilBytes, ref curIndex) + curIndex + blockOffset);
+                            sb.AppendFormat(" IL_{0:x4}", ReadInt32(ilBytes, ref curIndex) + curIndex + blockOffset);
                             break;
 
                         case OperandType.InlineSwitch:
-                            int labelCount = ReadInt(ilBytes, ref curIndex);
+                            int labelCount = ReadInt32(ilBytes, ref curIndex);
                             int instrEnd = curIndex + labelCount * 4;
                             sb.AppendLine("(");
                             for (int i = 0; i < labelCount; i++)
                             {
-                                sb.AppendFormat("        IL_{0:x4}", ReadInt(ilBytes, ref curIndex) + instrEnd + blockOffset);
+                                sb.AppendFormat("        IL_{0:x4}", ReadInt32(ilBytes, ref curIndex) + instrEnd + blockOffset);
                                 sb.AppendLine((i == labelCount - 1) ? ")" : ",");
                             }
                             break;
@@ -500,7 +509,7 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 int tryStartOffset = entry.TryOffset;
                 int tryEndOffset = entry.TryOffset + entry.TryLength;
-                var span = new HandlerSpan(HandlerKind.Try, null, (uint)tryStartOffset, (uint)tryEndOffset);
+                var span = new HandlerSpan(HandlerKind.Try, null, tryStartOffset, tryEndOffset);
 
                 if (result.Count == 0 || span.CompareTo(result[result.Count - 1]) != 0)
                 {
@@ -517,19 +526,19 @@ namespace Roslyn.Test.MetadataUtilities
                 switch (entry.Kind)
                 {
                     case ExceptionRegionKind.Catch:
-                        span = new HandlerSpan(HandlerKind.Catch, MetadataTokens.GetToken(entry.CatchType), (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Catch, MetadataTokens.GetToken(entry.CatchType), handlerStartOffset, handlerEndOffset);
                         break;
 
                     case ExceptionRegionKind.Fault:
-                        span = new HandlerSpan(HandlerKind.Fault, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Fault, null, handlerStartOffset, handlerEndOffset);
                         break;
 
                     case ExceptionRegionKind.Filter:
-                        span = new HandlerSpan(HandlerKind.Filter, null, (uint)handlerStartOffset, (uint)handlerEndOffset, (uint)entry.FilterOffset);
+                        span = new HandlerSpan(HandlerKind.Filter, null, handlerStartOffset, handlerEndOffset, entry.FilterOffset);
                         break;
 
                     case ExceptionRegionKind.Finally:
-                        span = new HandlerSpan(HandlerKind.Finally, null, (uint)handlerStartOffset, (uint)handlerEndOffset);
+                        span = new HandlerSpan(HandlerKind.Finally, null, handlerStartOffset, handlerEndOffset);
                         break;
 
                     default:

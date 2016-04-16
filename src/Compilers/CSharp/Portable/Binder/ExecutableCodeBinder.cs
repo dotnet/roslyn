@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class ExecutableCodeBinder : Binder
     {
-        private readonly Symbol memberSymbol;
-        private readonly CSharpSyntaxNode root;
-        private readonly MethodSymbol owner;
-        private SmallDictionary<CSharpSyntaxNode, Binder> lazyBinderMap;
+        private readonly Symbol _memberSymbol;
+        private readonly CSharpSyntaxNode _root;
+        private readonly MethodSymbol _owner;
+        private SmallDictionary<CSharpSyntaxNode, Binder> _lazyBinderMap;
 
         internal ExecutableCodeBinder(CSharpSyntaxNode root, Symbol memberSymbol, Binder next)
             : this(root, memberSymbol, next, next.Flags)
@@ -27,17 +27,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ExecutableCodeBinder(CSharpSyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
             : base(next, (next.Flags | additionalFlags) & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
         {
-            this.memberSymbol = memberSymbol;
-            this.root = root;
-            this.owner = memberSymbol as MethodSymbol;
+            _memberSymbol = memberSymbol;
+            _root = root;
+            _owner = memberSymbol as MethodSymbol;
         }
 
         internal override Symbol ContainingMemberOrLambda
         {
-            get { return this.owner ?? Next.ContainingMemberOrLambda; }
+            get { return _owner ?? Next.ContainingMemberOrLambda; }
         }
 
-        internal Symbol MemberSymbol { get { return this.memberSymbol; } }
+        internal Symbol MemberSymbol { get { return _memberSymbol; } }
 
         internal override Binder GetBinder(CSharpSyntaxNode node)
         {
@@ -49,16 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.lazyBinderMap == null)
+                if (_lazyBinderMap == null)
                 {
                     SmallDictionary<CSharpSyntaxNode, Binder> map;
-                    var methodSymbol = this.owner;
+                    var methodSymbol = _owner;
 
                     // Ensure that the member symbol is a method symbol.
-                    if ((object)methodSymbol != null && this.root != null)
+                    if ((object)methodSymbol != null && _root != null)
                     {
                         bool sawYield;
-                        map = LocalBinderFactory.BuildMap(methodSymbol, this.root, this, out sawYield);
+                        map = LocalBinderFactory.BuildMap(methodSymbol, _root, this, out sawYield);
                         if (sawYield && ((MethodSymbol)this.ContainingMemberOrLambda).MethodKind != MethodKind.AnonymousFunction)
                         {
                             for (Binder b = this; b != null; b = b.Next)
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         map = SmallDictionary<CSharpSyntaxNode, Binder>.Empty;
                     }
 
-                    Interlocked.CompareExchange(ref this.lazyBinderMap, map, null);
+                    Interlocked.CompareExchange(ref _lazyBinderMap, map, null);
                 }
 
-                return this.lazyBinderMap;
+                return _lazyBinderMap;
             }
         }
     }

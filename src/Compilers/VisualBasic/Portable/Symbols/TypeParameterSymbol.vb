@@ -307,12 +307,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             If substitution IsNot Nothing Then
                 Return substitution.GetSubstitutionFor(Me)
             End If
 
-            Return Me
+            Return New TypeWithModifiers(Me)
         End Function
 
         Public MustOverride ReadOnly Property HasReferenceTypeConstraint As Boolean Implements ITypeParameterSymbol.HasReferenceTypeConstraint
@@ -335,10 +335,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Return an array of substituted type parameters with duplicates removed.
         ''' </summary>
         Friend Shared Function InternalSubstituteTypeParametersDistinct(substitution As TypeSubstitution, types As ImmutableArray(Of TypeSymbol)) As ImmutableArray(Of TypeSymbol)
-            Return types.SelectAsArray(SubstituteFunc, substitution).Distinct()
+            Return types.SelectAsArray(s_substituteFunc, substitution).Distinct()
         End Function
 
-        Private Shared ReadOnly SubstituteFunc As Func(Of TypeSymbol, TypeSubstitution, TypeSymbol) = Function(type, substitution) type.InternalSubstituteTypeParameters(substitution)
+        Private Shared ReadOnly s_substituteFunc As Func(Of TypeSymbol, TypeSubstitution, TypeSymbol) = Function(type, substitution) type.InternalSubstituteTypeParameters(substitution).Type
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get

@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class SingleTypeDeclaration : SingleNamespaceOrTypeDeclaration
     {
-        private readonly DeclarationKind kind;
-        private readonly TypeDeclarationFlags flags;
-        private readonly ushort arity;
-        private readonly DeclarationModifiers modifiers;
-        private readonly ImmutableArray<SingleTypeDeclaration> children;
-        private readonly ICollection<string> memberNames;
+        private readonly DeclarationKind _kind;
+        private readonly TypeDeclarationFlags _flags;
+        private readonly ushort _arity;
+        private readonly DeclarationModifiers _modifiers;
+        private readonly ImmutableArray<SingleTypeDeclaration> _children;
+        private readonly ICollection<string> _memberNames;
 
         [Flags]
         internal enum TypeDeclarationFlags : byte
@@ -44,19 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind != DeclarationKind.Namespace);
 
-            this.kind = kind;
-            this.arity = (ushort)arity;
-            this.modifiers = modifiers;
-            this.memberNames = memberNames;
-            this.children = children;
-            this.flags = declFlags;
+            _kind = kind;
+            _arity = (ushort)arity;
+            _modifiers = modifiers;
+            _memberNames = memberNames;
+            _children = children;
+            _flags = declFlags;
         }
 
         public override DeclarationKind Kind
         {
             get
             {
-                return this.kind;
+                return _kind;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return children;
+                return _children;
             }
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.arity;
+                return _arity;
             }
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.modifiers;
+                return _modifiers;
             }
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return memberNames;
+                return _memberNames;
             }
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
+                return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.flags & TypeDeclarationFlags.HasAnyAttributes) != 0;
+                return (_flags & TypeDeclarationFlags.HasAnyAttributes) != 0;
             }
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.flags & TypeDeclarationFlags.HasBaseDeclarations) != 0;
+                return (_flags & TypeDeclarationFlags.HasBaseDeclarations) != 0;
             }
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.flags & TypeDeclarationFlags.AnyMemberHasAttributes) != 0;
+                return (_flags & TypeDeclarationFlags.AnyMemberHasAttributes) != 0;
             }
         }
 
@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
+                return (_flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
             }
         }
 
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
-            return StaticCast<SingleNamespaceOrTypeDeclaration>.From(children);
+            return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
         }
 
         internal TypeDeclarationIdentity Identity
@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // of same type across multiple containers
         internal struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
         {
-            private readonly SingleTypeDeclaration decl;
+            private readonly SingleTypeDeclaration _decl;
 
             internal TypeDeclarationIdentity(SingleTypeDeclaration decl)
             {
-                this.decl = decl;
+                _decl = decl;
             }
 
             public override bool Equals(object obj)
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Equals(TypeDeclarationIdentity other)
             {
-                var thisDecl = this.decl;
-                var otherDecl = other.decl;
+                var thisDecl = _decl;
+                var otherDecl = other._decl;
 
                 // same as itself
                 if ((object)thisDecl == otherDecl)
@@ -173,14 +173,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // arity, kind, name must match
-                if ((thisDecl.arity != otherDecl.arity) ||
-                    (thisDecl.kind != otherDecl.kind) ||
+                if ((thisDecl._arity != otherDecl._arity) ||
+                    (thisDecl._kind != otherDecl._kind) ||
                     (thisDecl.name != otherDecl.name))
                 {
                     return false;
                 }
 
-                if (thisDecl.kind == DeclarationKind.Enum || thisDecl.kind == DeclarationKind.Delegate)
+                if (thisDecl._kind == DeclarationKind.Enum || thisDecl._kind == DeclarationKind.Delegate)
                 {
                     // oh, so close, but enums and delegates cannot be partial
                     return false;
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode()
             {
-                var thisDecl = this.decl;
+                var thisDecl = _decl;
                 return Hash.Combine(thisDecl.Name.GetHashCode(),
                     Hash.Combine(thisDecl.Arity.GetHashCode(),
                     (int)thisDecl.Kind));

@@ -2528,20 +2528,20 @@ End Module
   // Code size      453 (0x1c5)
   .maxstack  3
   .locals init (Boolean V_0, //Bo
-  Object V_1, //Ob
-  SByte V_2, //SB
-  Byte V_3, //By
-  Short V_4, //Sh
-  UShort V_5, //US
-  Integer V_6, //In
-  UInteger V_7, //UI
-  Long V_8, //Lo
-  ULong V_9, //UL
-  Decimal V_10, //De
-  Single V_11, //Si
-  Double V_12, //Do
-  String V_13, //St
-  Integer V_14)
+                Object V_1, //Ob
+                SByte V_2, //SB
+                Byte V_3, //By
+                Short V_4, //Sh
+                UShort V_5, //US
+                Integer V_6, //In
+                UInteger V_7, //UI
+                Long V_8, //Lo
+                ULong V_9, //UL
+                Decimal V_10, //De
+                Single V_11, //Si
+                Double V_12, //Do
+                String V_13, //St
+                Integer V_14)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.1
@@ -2584,7 +2584,7 @@ End Module
   IL_004e:  neg
   IL_004f:  bne.un.s   IL_0062
   IL_0051:  ldarg.1
-  IL_0052:  dup
+  IL_0052:  ldarg.1
   IL_0053:  ldind.u1
   IL_0054:  brfalse.s  IL_005f
   IL_0056:  ldarg.0
@@ -2603,7 +2603,7 @@ End Module
   IL_006b:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
   IL_0070:  brfalse.s  IL_0084
   IL_0072:  ldarg.1
-  IL_0073:  dup
+  IL_0073:  ldarg.1
   IL_0074:  ldind.u1
   IL_0075:  brfalse.s  IL_0081
   IL_0077:  ldarg.0
@@ -2620,7 +2620,7 @@ End Module
   IL_0086:  ldloc.2
   IL_0087:  bne.un.s   IL_009b
   IL_0089:  ldarg.1
-  IL_008a:  dup
+  IL_008a:  ldarg.1
   IL_008b:  ldind.u1
   IL_008c:  brfalse.s  IL_0098
   IL_008e:  ldarg.0
@@ -2637,7 +2637,7 @@ End Module
   IL_009d:  ldloc.3
   IL_009e:  bne.un.s   IL_00b2
   IL_00a0:  ldarg.1
-  IL_00a1:  dup
+  IL_00a1:  ldarg.1
   IL_00a2:  ldind.u1
   IL_00a3:  brfalse.s  IL_00af
   IL_00a5:  ldarg.0
@@ -2654,7 +2654,7 @@ End Module
   IL_00b4:  ldloc.s    V_4
   IL_00b6:  bne.un.s   IL_00ca
   IL_00b8:  ldarg.1
-  IL_00b9:  dup
+  IL_00b9:  ldarg.1
   IL_00ba:  ldind.u1
   IL_00bb:  brfalse.s  IL_00c7
   IL_00bd:  ldarg.0
@@ -2671,7 +2671,7 @@ End Module
   IL_00cc:  ldloc.s    V_5
   IL_00ce:  bne.un.s   IL_00e2
   IL_00d0:  ldarg.1
-  IL_00d1:  dup
+  IL_00d1:  ldarg.1
   IL_00d2:  ldind.u1
   IL_00d3:  brfalse.s  IL_00df
   IL_00d5:  ldarg.0
@@ -2688,7 +2688,7 @@ End Module
   IL_00e4:  ldloc.s    V_6
   IL_00e6:  bne.un.s   IL_00fa
   IL_00e8:  ldarg.1
-  IL_00e9:  dup
+  IL_00e9:  ldarg.1
   IL_00ea:  ldind.u1
   IL_00eb:  brfalse.s  IL_00f7
   IL_00ed:  ldarg.0
@@ -2706,7 +2706,7 @@ End Module
   IL_00fe:  conv.ovf.i4.un
   IL_00ff:  bne.un.s   IL_0113
   IL_0101:  ldarg.1
-  IL_0102:  dup
+  IL_0102:  ldarg.1
   IL_0103:  ldind.u1
   IL_0104:  brfalse.s  IL_0110
   IL_0106:  ldarg.0
@@ -2724,7 +2724,7 @@ End Module
   IL_0117:  conv.ovf.i4
   IL_0118:  bne.un.s   IL_012c
   IL_011a:  ldarg.1
-  IL_011b:  dup
+  IL_011b:  ldarg.1
   IL_011c:  ldind.u1
   IL_011d:  brfalse.s  IL_0129
   IL_011f:  ldarg.0
@@ -2742,7 +2742,7 @@ End Module
   IL_0130:  conv.ovf.i4.un
   IL_0131:  bne.un.s   IL_0146
   IL_0133:  ldarg.1
-  IL_0134:  dup
+  IL_0134:  ldarg.1
   IL_0135:  ldind.u1
   IL_0136:  brfalse.s  IL_0143
   IL_0138:  ldarg.0
@@ -2762,7 +2762,7 @@ End Module
   IL_0150:  conv.ovf.i4
   IL_0151:  bne.un.s   IL_0166
   IL_0153:  ldarg.1
-  IL_0154:  dup
+  IL_0154:  ldarg.1
   IL_0155:  ldind.u1
   IL_0156:  brfalse.s  IL_0163
   IL_0158:  ldarg.0
@@ -2781,7 +2781,7 @@ End Module
   IL_016f:  conv.ovf.i4
   IL_0170:  bne.un.s   IL_0185
   IL_0172:  ldarg.1
-  IL_0173:  dup
+  IL_0173:  ldarg.1
   IL_0174:  ldind.u1
   IL_0175:  brfalse.s  IL_0182
   IL_0177:  ldarg.0
@@ -2799,7 +2799,7 @@ End Module
   IL_0189:  call       "Function System.Convert.ToInt32(Decimal) As Integer"
   IL_018e:  bne.un.s   IL_01a3
   IL_0190:  ldarg.1
-  IL_0191:  dup
+  IL_0191:  ldarg.1
   IL_0192:  ldind.u1
   IL_0193:  brfalse.s  IL_01a0
   IL_0195:  ldarg.0
@@ -2817,7 +2817,7 @@ End Module
   IL_01a7:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String) As Integer"
   IL_01ac:  bne.un.s   IL_01c1
   IL_01ae:  ldarg.1
-  IL_01af:  dup
+  IL_01af:  ldarg.1
   IL_01b0:  ldind.u1
   IL_01b1:  brfalse.s  IL_01be
   IL_01b3:  ldarg.0
@@ -2841,8 +2841,8 @@ End Module
 
         ' TODO: Update test case once bug 10352 and bug 10354 are fixed.
         ' TODO: Verify switch table is used in codegen for select case statement.
-        <WorkItem(542910, "DevDiv")>
-        <WorkItem(10354)>
+        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
+        <WorkItem(10354, "http://vstfdevdiv:8080/DevDiv_Projects/Roslyn/_workitems/edit/10354")>
         <Fact()>
         Public Sub SelectCase_SwitchTable_Conversions_01()
             Dim compVerifier = CompileAndVerify(
@@ -2921,22 +2921,22 @@ End Module
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
   IL_0003:  switch    (
-  IL_0041,
-  IL_0052,
-  IL_0064,
-  IL_0076,
-  IL_0088,
-  IL_009a,
-  IL_00ac,
-  IL_00be,
-  IL_00d0,
-  IL_00e2,
-  IL_00f5,
-  IL_0108,
-  IL_011b)
+        IL_0041,
+        IL_0052,
+        IL_0064,
+        IL_0076,
+        IL_0088,
+        IL_009a,
+        IL_00ac,
+        IL_00be,
+        IL_00d0,
+        IL_00e2,
+        IL_00f5,
+        IL_0108,
+        IL_011b)
   IL_003c:  br         IL_012e
   IL_0041:  ldarg.1
-  IL_0042:  dup
+  IL_0042:  ldarg.1
   IL_0043:  ldind.u1
   IL_0044:  brfalse.s  IL_004f
   IL_0046:  ldarg.0
@@ -2949,7 +2949,7 @@ End Module
   IL_0050:  stind.i1
   IL_0051:  ret
   IL_0052:  ldarg.1
-  IL_0053:  dup
+  IL_0053:  ldarg.1
   IL_0054:  ldind.u1
   IL_0055:  brfalse.s  IL_0061
   IL_0057:  ldarg.0
@@ -2963,7 +2963,7 @@ End Module
   IL_0062:  stind.i1
   IL_0063:  ret
   IL_0064:  ldarg.1
-  IL_0065:  dup
+  IL_0065:  ldarg.1
   IL_0066:  ldind.u1
   IL_0067:  brfalse.s  IL_0073
   IL_0069:  ldarg.0
@@ -2977,7 +2977,7 @@ End Module
   IL_0074:  stind.i1
   IL_0075:  ret
   IL_0076:  ldarg.1
-  IL_0077:  dup
+  IL_0077:  ldarg.1
   IL_0078:  ldind.u1
   IL_0079:  brfalse.s  IL_0085
   IL_007b:  ldarg.0
@@ -2991,7 +2991,7 @@ End Module
   IL_0086:  stind.i1
   IL_0087:  ret
   IL_0088:  ldarg.1
-  IL_0089:  dup
+  IL_0089:  ldarg.1
   IL_008a:  ldind.u1
   IL_008b:  brfalse.s  IL_0097
   IL_008d:  ldarg.0
@@ -3005,7 +3005,7 @@ End Module
   IL_0098:  stind.i1
   IL_0099:  ret
   IL_009a:  ldarg.1
-  IL_009b:  dup
+  IL_009b:  ldarg.1
   IL_009c:  ldind.u1
   IL_009d:  brfalse.s  IL_00a9
   IL_009f:  ldarg.0
@@ -3019,7 +3019,7 @@ End Module
   IL_00aa:  stind.i1
   IL_00ab:  ret
   IL_00ac:  ldarg.1
-  IL_00ad:  dup
+  IL_00ad:  ldarg.1
   IL_00ae:  ldind.u1
   IL_00af:  brfalse.s  IL_00bb
   IL_00b1:  ldarg.0
@@ -3033,7 +3033,7 @@ End Module
   IL_00bc:  stind.i1
   IL_00bd:  ret
   IL_00be:  ldarg.1
-  IL_00bf:  dup
+  IL_00bf:  ldarg.1
   IL_00c0:  ldind.u1
   IL_00c1:  brfalse.s  IL_00cd
   IL_00c3:  ldarg.0
@@ -3047,7 +3047,7 @@ End Module
   IL_00ce:  stind.i1
   IL_00cf:  ret
   IL_00d0:  ldarg.1
-  IL_00d1:  dup
+  IL_00d1:  ldarg.1
   IL_00d2:  ldind.u1
   IL_00d3:  brfalse.s  IL_00df
   IL_00d5:  ldarg.0
@@ -3061,7 +3061,7 @@ End Module
   IL_00e0:  stind.i1
   IL_00e1:  ret
   IL_00e2:  ldarg.1
-  IL_00e3:  dup
+  IL_00e3:  ldarg.1
   IL_00e4:  ldind.u1
   IL_00e5:  brfalse.s  IL_00f2
   IL_00e7:  ldarg.0
@@ -3075,7 +3075,7 @@ End Module
   IL_00f3:  stind.i1
   IL_00f4:  ret
   IL_00f5:  ldarg.1
-  IL_00f6:  dup
+  IL_00f6:  ldarg.1
   IL_00f7:  ldind.u1
   IL_00f8:  brfalse.s  IL_0105
   IL_00fa:  ldarg.0
@@ -3089,7 +3089,7 @@ End Module
   IL_0106:  stind.i1
   IL_0107:  ret
   IL_0108:  ldarg.1
-  IL_0109:  dup
+  IL_0109:  ldarg.1
   IL_010a:  ldind.u1
   IL_010b:  brfalse.s  IL_0118
   IL_010d:  ldarg.0
@@ -3103,7 +3103,7 @@ End Module
   IL_0119:  stind.i1
   IL_011a:  ret
   IL_011b:  ldarg.1
-  IL_011c:  dup
+  IL_011c:  ldarg.1
   IL_011d:  ldind.u1
   IL_011e:  brfalse.s  IL_012b
   IL_0120:  ldarg.0
@@ -3190,9 +3190,68 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
+        <Fact>
+        Public Sub SwitchOnNullableInt64WithInt32Label()
+
+            Dim compVerifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module C
+    Function F(ByVal x As Long?) As Boolean
+        Select Case x
+            Case 1:
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+
+    Sub Main()
+        System.Console.WriteLine(F(1))
+    End Sub
+End Module
+    ]]></file>
+</compilation>, expectedOutput:="True").VerifyIL("C.F(Long?)", <![CDATA[
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (Boolean V_0, //F
+                Long? V_1,
+                Boolean? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  call       "Function Long?.get_HasValue() As Boolean"
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  initobj    "Boolean?"
+  IL_0013:  ldloc.2
+  IL_0014:  br.s       IL_0026
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       "Function Long?.GetValueOrDefault() As Long"
+  IL_001d:  ldc.i4.1
+  IL_001e:  conv.i8
+  IL_001f:  ceq
+  IL_0021:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0026:  stloc.2
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_002e:  brfalse.s  IL_0034
+  IL_0030:  ldc.i4.1
+  IL_0031:  stloc.0
+  IL_0032:  br.s       IL_0036
+  IL_0034:  ldc.i4.0
+  IL_0035:  stloc.0
+  IL_0036:  ldloc.0
+  IL_0037:  ret
+}
+]]>)
+            VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
+        End Sub
+
 #Region "Select case string tests"
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -3244,7 +3303,7 @@ End Module
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function $$method0x6000001-ComputeStringHash(String) As UInteger"
+  IL_0003:  call       "Function ComputeStringHash(String) As UInteger"
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
   IL_000a:  ldc.i4     0x330ca589
@@ -3381,7 +3440,7 @@ End Module
             Dim reference = compVerifier.Compilation.EmitToImageReference()
             Dim comp = VisualBasicCompilation.Create("Name", references:={reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
-            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Where(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>")).Single(), NamedTypeSymbol)
+            Dim pid = DirectCast(comp.GlobalNamespace.GetMembers().Single(Function(s) s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)), NamedTypeSymbol)
 
             Dim member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single()
             Assert.Equal(Accessibility.Friend, member.DeclaredAccessibility)
@@ -3635,7 +3694,7 @@ End Module
 Equal to A]]>)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_Hash_SwitchTable_String_OptionCompareBinary_02()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -3673,7 +3732,7 @@ Equal to A]]>).VerifyIL("M1.Test", <![CDATA[
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function $$method0x6000001-ComputeStringHash(String) As UInteger"
+  IL_0003:  call       "Function ComputeStringHash(String) As UInteger"
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
   IL_000a:  ldc.i4     0x340ca71c
@@ -3965,7 +4024,7 @@ Equal to a]]>).VerifyIL("M1.Test", <![CDATA[
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_SwitchTable_String_RelationalEqualityClause()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4017,7 +4076,7 @@ End Module
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function $$method0x6000001-ComputeStringHash(String) As UInteger"
+  IL_0003:  call       "Function ComputeStringHash(String) As UInteger"
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
   IL_000a:  ldc.i4     0x330ca589
@@ -4292,7 +4351,7 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
         End Sub
 
-        <Fact, WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
         Public Sub SelectCase_String_Multiple_Hash_SwitchTable()
             Dim compVerifier = CompileAndVerify(
 <compilation>
@@ -4373,7 +4432,7 @@ End Module
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  call       "Function $$method0x6000001-ComputeStringHash(String) As UInteger"
+  IL_0003:  call       "Function ComputeStringHash(String) As UInteger"
   IL_0008:  stloc.1
   IL_0009:  ldloc.1
   IL_000a:  ldc.i4     0x330ca589
@@ -4531,10 +4590,10 @@ Class C
 End Class
 ]]></file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary).
-            VerifyDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
+            VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_MissingRuntimeHelper, "number").WithArguments("Microsoft.VisualBasic.CompilerServices.Operators.CompareString"))
         End Sub
 
-        <WorkItem(529047, "DevDiv")>
+        <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -4550,7 +4609,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(529047, "DevDiv")>
+        <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -4564,7 +4623,7 @@ End Class
                 Diagnostic(ERRID.ERR_EndSelectNoSelect, "End Select"))
         End Sub
 
-        <WorkItem(543410, "DevDiv")>
+        <WorkItem(543410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543410")>
         <Fact()>
         Public Sub SelectCase_GetType()
             Dim compVerifier = CompileAndVerify(
@@ -4589,8 +4648,8 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(634404, "DevDiv")>
-        <WorkItem(913556, "DevDiv")>
+        <WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")>
+        <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
             CompilationUtils.CreateCompilationWithReferences(
@@ -4729,7 +4788,7 @@ End Module
   IL_0000:  ldstr      ""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  call       "Function $$method0x6000001-ComputeStringHash(String) As UInteger"
+  IL_0007:  call       "Function ComputeStringHash(String) As UInteger"
   IL_000c:  stloc.1
   IL_000d:  ldloc.1
   IL_000e:  ldc.i4     0x330ca589

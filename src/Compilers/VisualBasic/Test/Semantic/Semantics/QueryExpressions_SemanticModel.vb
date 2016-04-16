@@ -3518,7 +3518,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(546132, "DevDiv")>
+        <WorkItem(546132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546132")>
         <Fact()>
         Public Sub SymbolnfoForFunctionAggregationSyntax()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -3561,7 +3561,7 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel As SemanticModel = compilation.GetSemanticModel(tree)
-            Dim node = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("aggr4(4)")).Parent, FunctionAggregationSyntax)
+            Dim node = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("aggr4(4)", StringComparison.Ordinal)).Parent, FunctionAggregationSyntax)
             Dim info = semanticModel.GetSymbolInfo(node)
 
             Assert.NotNull(info)
@@ -3570,7 +3570,7 @@ End Module
             Assert.Equal(2, info.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(542521, "DevDiv")>
+        <WorkItem(542521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542521")>
         <Fact()>
         Public Sub AddressOfOperatorInQuery()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3596,7 +3596,7 @@ End Module
             Assert.NotEmpty(diagnostics)
         End Sub
 
-        <WorkItem(542823, "DevDiv")>
+        <WorkItem(542823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542823")>
         <Fact()>
         Public Sub DefaultAggregateClauseInfo()
             Dim aggrClauseSymInfo = New AggregateClauseSymbolInfo()
@@ -3607,9 +3607,9 @@ End Module
             Assert.Equal(0, aggrClauseSymInfo.Select2.CandidateSymbols.Length)
         End Sub
 
-        <WorkItem(543084, "DevDiv")>
+        <WorkItem(543084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543084")>
         <Fact()>
-        Public Sub MissingIdentifierNameSyntaxInIncompletLetClause()
+        Public Sub MissingIdentifierNameSyntaxInIncompleteLetClause()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3630,14 +3630,14 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("n As")).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
+            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("n As", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
             Dim info = semanticModel.GetTypeInfo(node)
 
             Assert.NotNull(info)
             Assert.Equal(TypeInfo.None, info)
         End Sub
 
-        <WorkItem(542914, "DevDiv")>
+        <WorkItem(542914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542914")>
         <Fact()>
         Public Sub Bug10356()
             Dim compilation = CreateCompilationWithMscorlibAndReferences(
@@ -3662,14 +3662,14 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By")).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
+            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
 
             Dim containingSymbol = DirectCast(semanticModel, SemanticModel).GetEnclosingSymbol(node.SpanStart)
 
             Assert.Equal("Function (z As System.Int32) As <anonymous type: Key z As System.Int32, Key Group As ?>", DirectCast(containingSymbol, Symbol).ToTestDisplayString())
         End Sub
 
-        <WorkItem(543161, "DevDiv")>
+        <WorkItem(543161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543161")>
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType()
             Dim compilation = CreateCompilationWithMscorlib(
@@ -3728,7 +3728,7 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(546165, "DevDiv")>
+        <WorkItem(546165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546165")>
         <Fact()>
         Public Sub QueryInsideEnumMemberDecl()
             Dim compilation = CreateCompilationWithMscorlib(

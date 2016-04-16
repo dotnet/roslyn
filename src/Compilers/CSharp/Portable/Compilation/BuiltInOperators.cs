@@ -11,20 +11,20 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Internal cahe of built-in operators.
-    /// Cache is compilation-specific becuse it uses compilation-specific SpecialTypes.
+    /// Internal cache of built-in operators.
+    /// Cache is compilation-specific because it uses compilation-specific SpecialTypes.
     /// </summary>
     internal class BuiltInOperators
     {
-        private readonly CSharpCompilation Compilation;
+        private readonly CSharpCompilation _compilation;
 
         //actual lazily-constructed caches of built-in operators.
-        private ImmutableArray<UnaryOperatorSignature>[] builtInUnaryOperators;
-        private ImmutableArray<BinaryOperatorSignature>[][] builtInOperators;
+        private ImmutableArray<UnaryOperatorSignature>[] _builtInUnaryOperators;
+        private ImmutableArray<BinaryOperatorSignature>[][] _builtInOperators;
 
         internal BuiltInOperators(CSharpCompilation compilation)
         {
-            this.Compilation = compilation;
+            _compilation = compilation;
         }
 
         // PERF: Use int instead of UnaryOperatorKind so the compiler can use array literal initialization.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<UnaryOperatorSignature> GetSignaturesFromUnaryOperatorKinds(int[] operatorKinds)
         {
             var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-            foreach(var kind in operatorKinds)
+            foreach (var kind in operatorKinds)
             {
                 builder.Add(GetSignature((UnaryOperatorKind)kind));
             }
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
         {
-            if (builtInUnaryOperators == null)
+            if (_builtInUnaryOperators == null)
             {
                 var allOperators = new ImmutableArray<UnaryOperatorSignature>[]
                 {
@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<UnaryOperatorSignature>.Empty,
                 };
 
-                Interlocked.CompareExchange(ref builtInUnaryOperators, allOperators, null);
+                Interlocked.CompareExchange(ref _builtInUnaryOperators, allOperators, null);
             }
 
-            operators.AddRange(builtInUnaryOperators[kind.OperatorIndex()]);
+            operators.AddRange(_builtInUnaryOperators[kind.OperatorIndex()]);
         }
 
         internal UnaryOperatorSignature GetSignature(UnaryOperatorKind kind)
@@ -216,42 +216,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol opType = null;
             if (kind.IsLifted())
             {
-                var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
+                var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
                 switch (kind.OperandTypes())
                 {
-                    case UnaryOperatorKind.SByte: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_SByte)); break;
-                    case UnaryOperatorKind.Byte: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Byte)); break;
-                    case UnaryOperatorKind.Short: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Int16)); break;
-                    case UnaryOperatorKind.UShort: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_UInt16)); break;
-                    case UnaryOperatorKind.Int: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Int32)); break;
-                    case UnaryOperatorKind.UInt: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_UInt32)); break;
-                    case UnaryOperatorKind.Long: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Int64)); break;
-                    case UnaryOperatorKind.ULong: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_UInt64)); break;
-                    case UnaryOperatorKind.Char: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Char)); break;
-                    case UnaryOperatorKind.Float: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Single)); break;
-                    case UnaryOperatorKind.Double: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Double)); break;
-                    case UnaryOperatorKind.Decimal: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Decimal)); break;
-                    case UnaryOperatorKind.Bool: opType = nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Boolean)); break;
+                    case UnaryOperatorKind.SByte: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_SByte)); break;
+                    case UnaryOperatorKind.Byte: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Byte)); break;
+                    case UnaryOperatorKind.Short: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int16)); break;
+                    case UnaryOperatorKind.UShort: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt16)); break;
+                    case UnaryOperatorKind.Int: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int32)); break;
+                    case UnaryOperatorKind.UInt: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32)); break;
+                    case UnaryOperatorKind.Long: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64)); break;
+                    case UnaryOperatorKind.ULong: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64)); break;
+                    case UnaryOperatorKind.Char: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Char)); break;
+                    case UnaryOperatorKind.Float: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single)); break;
+                    case UnaryOperatorKind.Double: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double)); break;
+                    case UnaryOperatorKind.Decimal: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal)); break;
+                    case UnaryOperatorKind.Bool: opType = nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Boolean)); break;
                 }
             }
             else
             {
                 switch (kind.OperandTypes())
                 {
-                    case UnaryOperatorKind.SByte: opType = Compilation.GetSpecialType(SpecialType.System_SByte); break;
-                    case UnaryOperatorKind.Byte: opType = Compilation.GetSpecialType(SpecialType.System_Byte); break;
-                    case UnaryOperatorKind.Short: opType = Compilation.GetSpecialType(SpecialType.System_Int16); break;
-                    case UnaryOperatorKind.UShort: opType = Compilation.GetSpecialType(SpecialType.System_UInt16); break;
-                    case UnaryOperatorKind.Int: opType = Compilation.GetSpecialType(SpecialType.System_Int32); break;
-                    case UnaryOperatorKind.UInt: opType = Compilation.GetSpecialType(SpecialType.System_UInt32); break;
-                    case UnaryOperatorKind.Long: opType = Compilation.GetSpecialType(SpecialType.System_Int64); break;
-                    case UnaryOperatorKind.ULong: opType = Compilation.GetSpecialType(SpecialType.System_UInt64); break;
-                    case UnaryOperatorKind.Char: opType = Compilation.GetSpecialType(SpecialType.System_Char); break;
-                    case UnaryOperatorKind.Float: opType = Compilation.GetSpecialType(SpecialType.System_Single); break;
-                    case UnaryOperatorKind.Double: opType = Compilation.GetSpecialType(SpecialType.System_Double); break;
-                    case UnaryOperatorKind.Decimal: opType = Compilation.GetSpecialType(SpecialType.System_Decimal); break;
-                    case UnaryOperatorKind.Bool: opType = Compilation.GetSpecialType(SpecialType.System_Boolean); break;
+                    case UnaryOperatorKind.SByte: opType = _compilation.GetSpecialType(SpecialType.System_SByte); break;
+                    case UnaryOperatorKind.Byte: opType = _compilation.GetSpecialType(SpecialType.System_Byte); break;
+                    case UnaryOperatorKind.Short: opType = _compilation.GetSpecialType(SpecialType.System_Int16); break;
+                    case UnaryOperatorKind.UShort: opType = _compilation.GetSpecialType(SpecialType.System_UInt16); break;
+                    case UnaryOperatorKind.Int: opType = _compilation.GetSpecialType(SpecialType.System_Int32); break;
+                    case UnaryOperatorKind.UInt: opType = _compilation.GetSpecialType(SpecialType.System_UInt32); break;
+                    case UnaryOperatorKind.Long: opType = _compilation.GetSpecialType(SpecialType.System_Int64); break;
+                    case UnaryOperatorKind.ULong: opType = _compilation.GetSpecialType(SpecialType.System_UInt64); break;
+                    case UnaryOperatorKind.Char: opType = _compilation.GetSpecialType(SpecialType.System_Char); break;
+                    case UnaryOperatorKind.Float: opType = _compilation.GetSpecialType(SpecialType.System_Single); break;
+                    case UnaryOperatorKind.Double: opType = _compilation.GetSpecialType(SpecialType.System_Double); break;
+                    case UnaryOperatorKind.Decimal: opType = _compilation.GetSpecialType(SpecialType.System_Decimal); break;
+                    case UnaryOperatorKind.Bool: opType = _compilation.GetSpecialType(SpecialType.System_Boolean); break;
                 }
             }
             Debug.Assert((object)opType != null);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
         {
-            if (builtInOperators == null)
+            if (_builtInOperators == null)
             {
                 var logicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
                 {
@@ -560,10 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };
 
-                Interlocked.CompareExchange(ref builtInOperators, allOperators, null);
+                Interlocked.CompareExchange(ref _builtInOperators, allOperators, null);
             }
 
-            operators.AddRange(builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()]);
+            operators.AddRange(_builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()]);
         }
 
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)
@@ -584,11 +584,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LeftShift:
 
                 case BinaryOperatorKind.RightShift:
-                    TypeSymbol returnType = Compilation.GetSpecialType(SpecialType.System_Int32);
+                    TypeSymbol returnType = _compilation.GetSpecialType(SpecialType.System_Int32);
 
                     if (kind.IsLifted())
                     {
-                        returnType = Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(returnType);
+                        returnType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(returnType);
                     }
 
                     return new BinaryOperatorSignature(kind, left, returnType, left);
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThan:
                 case BinaryOperatorKind.GreaterThanOrEqual:
                 case BinaryOperatorKind.LessThanOrEqual:
-                    return new BinaryOperatorSignature(kind, left, left, Compilation.GetSpecialType(SpecialType.System_Boolean));
+                    return new BinaryOperatorSignature(kind, left, left, _compilation.GetSpecialType(SpecialType.System_Boolean));
             }
             return new BinaryOperatorSignature(kind, LeftType(kind), RightType(kind), ReturnType(kind));
         }
@@ -614,20 +614,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (kind.OperandTypes())
                 {
-                    case BinaryOperatorKind.Int: return Compilation.GetSpecialType(SpecialType.System_Int32);
-                    case BinaryOperatorKind.UInt: return Compilation.GetSpecialType(SpecialType.System_UInt32);
-                    case BinaryOperatorKind.Long: return Compilation.GetSpecialType(SpecialType.System_Int64);
-                    case BinaryOperatorKind.ULong: return Compilation.GetSpecialType(SpecialType.System_UInt64);
-                    case BinaryOperatorKind.Float: return Compilation.GetSpecialType(SpecialType.System_Single);
-                    case BinaryOperatorKind.Double: return Compilation.GetSpecialType(SpecialType.System_Double);
-                    case BinaryOperatorKind.Decimal: return Compilation.GetSpecialType(SpecialType.System_Decimal);
-                    case BinaryOperatorKind.Bool: return Compilation.GetSpecialType(SpecialType.System_Boolean);
+                    case BinaryOperatorKind.Int: return _compilation.GetSpecialType(SpecialType.System_Int32);
+                    case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
+                    case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
+                    case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
+                    case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
+                    case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
+                    case BinaryOperatorKind.Bool: return _compilation.GetSpecialType(SpecialType.System_Boolean);
                     case BinaryOperatorKind.ObjectAndString:
                     case BinaryOperatorKind.Object:
-                        return Compilation.GetSpecialType(SpecialType.System_Object);
+                        return _compilation.GetSpecialType(SpecialType.System_Object);
                     case BinaryOperatorKind.String:
                     case BinaryOperatorKind.StringAndObject:
-                        return Compilation.GetSpecialType(SpecialType.System_String);
+                        return _compilation.GetSpecialType(SpecialType.System_String);
                 }
             }
             Debug.Assert(false, "Bad operator kind in left type");
@@ -644,20 +644,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (kind.OperandTypes())
                 {
-                    case BinaryOperatorKind.Int: return Compilation.GetSpecialType(SpecialType.System_Int32);
-                    case BinaryOperatorKind.UInt: return Compilation.GetSpecialType(SpecialType.System_UInt32);
-                    case BinaryOperatorKind.Long: return Compilation.GetSpecialType(SpecialType.System_Int64);
-                    case BinaryOperatorKind.ULong: return Compilation.GetSpecialType(SpecialType.System_UInt64);
-                    case BinaryOperatorKind.Float: return Compilation.GetSpecialType(SpecialType.System_Single);
-                    case BinaryOperatorKind.Double: return Compilation.GetSpecialType(SpecialType.System_Double);
-                    case BinaryOperatorKind.Decimal: return Compilation.GetSpecialType(SpecialType.System_Decimal);
-                    case BinaryOperatorKind.Bool: return Compilation.GetSpecialType(SpecialType.System_Boolean);
+                    case BinaryOperatorKind.Int: return _compilation.GetSpecialType(SpecialType.System_Int32);
+                    case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
+                    case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
+                    case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
+                    case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
+                    case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
+                    case BinaryOperatorKind.Bool: return _compilation.GetSpecialType(SpecialType.System_Boolean);
                     case BinaryOperatorKind.ObjectAndString:
                     case BinaryOperatorKind.String:
-                        return Compilation.GetSpecialType(SpecialType.System_String);
+                        return _compilation.GetSpecialType(SpecialType.System_String);
                     case BinaryOperatorKind.StringAndObject:
                     case BinaryOperatorKind.Object:
-                        return Compilation.GetSpecialType(SpecialType.System_Object);
+                        return _compilation.GetSpecialType(SpecialType.System_Object);
                 }
             }
             Debug.Assert(false, "Bad operator kind in right type");
@@ -674,19 +674,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (kind.OperandTypes())
                 {
-                    case BinaryOperatorKind.Int: return Compilation.GetSpecialType(SpecialType.System_Int32);
-                    case BinaryOperatorKind.UInt: return Compilation.GetSpecialType(SpecialType.System_UInt32);
-                    case BinaryOperatorKind.Long: return Compilation.GetSpecialType(SpecialType.System_Int64);
-                    case BinaryOperatorKind.ULong: return Compilation.GetSpecialType(SpecialType.System_UInt64);
-                    case BinaryOperatorKind.Float: return Compilation.GetSpecialType(SpecialType.System_Single);
-                    case BinaryOperatorKind.Double: return Compilation.GetSpecialType(SpecialType.System_Double);
-                    case BinaryOperatorKind.Decimal: return Compilation.GetSpecialType(SpecialType.System_Decimal);
-                    case BinaryOperatorKind.Bool: return Compilation.GetSpecialType(SpecialType.System_Boolean);
-                    case BinaryOperatorKind.Object: return Compilation.GetSpecialType(SpecialType.System_Object);
+                    case BinaryOperatorKind.Int: return _compilation.GetSpecialType(SpecialType.System_Int32);
+                    case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
+                    case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
+                    case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
+                    case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
+                    case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
+                    case BinaryOperatorKind.Bool: return _compilation.GetSpecialType(SpecialType.System_Boolean);
+                    case BinaryOperatorKind.Object: return _compilation.GetSpecialType(SpecialType.System_Object);
                     case BinaryOperatorKind.ObjectAndString:
                     case BinaryOperatorKind.StringAndObject:
                     case BinaryOperatorKind.String:
-                        return Compilation.GetSpecialType(SpecialType.System_String);
+                        return _compilation.GetSpecialType(SpecialType.System_String);
                 }
             }
             Debug.Assert(false, "Bad operator kind in return type");
@@ -697,18 +697,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind.IsLifted());
 
-            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
+            var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
             switch (kind.OperandTypes())
             {
-                case BinaryOperatorKind.Int: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Int32));
-                case BinaryOperatorKind.UInt: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_UInt32));
-                case BinaryOperatorKind.Long: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Int64));
-                case BinaryOperatorKind.ULong: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_UInt64));
-                case BinaryOperatorKind.Float: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Single));
-                case BinaryOperatorKind.Double: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Double));
-                case BinaryOperatorKind.Decimal: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Decimal));
-                case BinaryOperatorKind.Bool: return nullable.Construct(Compilation.GetSpecialType(SpecialType.System_Boolean));
+                case BinaryOperatorKind.Int: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int32));
+                case BinaryOperatorKind.UInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32));
+                case BinaryOperatorKind.Long: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64));
+                case BinaryOperatorKind.ULong: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64));
+                case BinaryOperatorKind.Float: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single));
+                case BinaryOperatorKind.Double: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double));
+                case BinaryOperatorKind.Decimal: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal));
+                case BinaryOperatorKind.Bool: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
             }
             Debug.Assert(false, "Bad operator kind in lifted type");
             return null;

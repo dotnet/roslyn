@@ -12,34 +12,34 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Enumerates the elements of a <see cref="ChildSyntaxList" />.</summary>
         public struct Enumerator
         {
-            private SyntaxNode node;
-            private int count;
-            private int childIndex;
+            private SyntaxNode _node;
+            private int _count;
+            private int _childIndex;
 
             internal Enumerator(SyntaxNode node, int count)
             {
-                this.node = node;
-                this.count = count;
-                this.childIndex = -1;
+                _node = node;
+                _count = count;
+                _childIndex = -1;
             }
 
             // PERF: Initialize an Enumerator directly from a SyntaxNode without going
             // via ChildNodesAndTokens. This saves constructing an intermediate ChildSyntaxList
             internal void InitializeFrom(SyntaxNode node)
             {
-                this.node = node;
-                this.count = CountNodes(node.Green);
-                this.childIndex = -1;
+                _node = node;
+                _count = CountNodes(node.Green);
+                _childIndex = -1;
             }
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
-                var newIndex = this.childIndex + 1;
-                if (newIndex < this.count)
+                var newIndex = _childIndex + 1;
+                if (newIndex < _count)
                 {
-                    this.childIndex = newIndex;
+                    _childIndex = newIndex;
                     return true;
                 }
 
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return ItemInternal(node, this.childIndex);
+                    return ItemInternal(_node, _childIndex);
                 }
             }
 
             /// <summary>Sets the enumerator to its initial position, which is before the first element in the collection.</summary>
             public void Reset()
             {
-                this.childIndex = -1;
+                _childIndex = -1;
             }
 
             internal bool TryMoveNextAndGetCurrent(ref SyntaxNodeOrToken current)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                current = ItemInternal(node, this.childIndex);
+                current = ItemInternal(_node, _childIndex);
                 return true;
             }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             {
                 while (MoveNext())
                 {
-                    var nodeValue = ItemInternalAsNode(node, this.childIndex);
+                    var nodeValue = ItemInternalAsNode(_node, _childIndex);
                     if (nodeValue != null)
                     {
                         return nodeValue;
@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis
 
         private class EnumeratorImpl : IEnumerator<SyntaxNodeOrToken>
         {
-            private Enumerator enumerator;
+            private Enumerator _enumerator;
 
             internal EnumeratorImpl(SyntaxNode node, int count)
             {
-                this.enumerator = new Enumerator(node, count);
+                _enumerator = new Enumerator(node, count);
             }
 
             /// <summary>
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             ///   </returns>
             public SyntaxNodeOrToken Current
             {
-                get { return enumerator.Current; }
+                get { return _enumerator.Current; }
             }
 
             /// <summary>
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             ///   </returns>
             object IEnumerator.Current
             {
-                get { return enumerator.Current; }
+                get { return _enumerator.Current; }
             }
 
             /// <summary>
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             /// </returns>
             public bool MoveNext()
             {
-                return enumerator.MoveNext();
+                return _enumerator.MoveNext();
             }
 
             /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public void Reset()
             {
-                enumerator.Reset();
+                _enumerator.Reset();
             }
 
             /// <summary>

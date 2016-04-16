@@ -42,33 +42,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class UnboundArgumentErrorTypeSymbol : ErrorTypeSymbol
     {
-        public static ImmutableArray<TypeSymbol> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
+        public static ImmutableArray<TypeWithModifiers> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
         {
-            var result = ArrayBuilder<TypeSymbol>.GetInstance();
+            var result = ArrayBuilder<TypeWithModifiers>.GetInstance();
             for (int i = 0; i < n; i++)
             {
                 string name = (i < typeParameters.Length) ? typeParameters[i].Name : string.Empty;
-                result.Add(new UnboundArgumentErrorTypeSymbol(name, errorInfo));
+                result.Add(new TypeWithModifiers(new UnboundArgumentErrorTypeSymbol(name, errorInfo)));
             }
             return result.ToImmutableAndFree();
         }
 
         public static readonly ErrorTypeSymbol Instance = new UnboundArgumentErrorTypeSymbol(string.Empty, new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName));
 
-        private readonly string name;
-        private readonly DiagnosticInfo errorInfo;
+        private readonly string _name;
+        private readonly DiagnosticInfo _errorInfo;
 
         private UnboundArgumentErrorTypeSymbol(string name, DiagnosticInfo errorInfo)
         {
-            this.name = name;
-            this.errorInfo = errorInfo;
+            _name = name;
+            _errorInfo = errorInfo;
         }
 
         public override string Name
         {
             get
             {
-                return this.name;
+                return _name;
             }
         }
 
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.errorInfo;
+                return _errorInfo;
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             if ((object)t2 == (object)this)
             {
@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             UnboundArgumentErrorTypeSymbol other = t2 as UnboundArgumentErrorTypeSymbol;
-            return (object)other != null && string.Equals(other.name, this.name, StringComparison.Ordinal) && object.Equals(other.errorInfo, this.errorInfo);
+            return (object)other != null && string.Equals(other._name, _name, StringComparison.Ordinal) && object.Equals(other._errorInfo, _errorInfo);
         }
 
         public override int GetHashCode()
         {
-            return this.errorInfo == null
-                ? this.name.GetHashCode()
-                : Hash.Combine(this.name, this.errorInfo.Code);
+            return _errorInfo == null
+                ? _name.GetHashCode()
+                : Hash.Combine(_name, _errorInfo.Code);
         }
     }
 }

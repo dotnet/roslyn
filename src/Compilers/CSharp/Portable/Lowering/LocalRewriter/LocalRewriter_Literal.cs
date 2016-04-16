@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class LocalRewriter
+    internal partial class LocalRewriter
     {
         public override BoundNode VisitLiteral(BoundLiteral node)
         {
@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantValue.IsDecimal);
 
             var value = constantValue.DecimalValue;
-            var parts = new ConstantValueUtils.DecimalValue(value);
-            var scale = parts.Scale;
+            bool isNegative;
+            byte scale;
+            uint low, mid, high;
+            value.GetBits(out isNegative, out scale, out low, out mid, out high);
 
             var arguments = new ArrayBuilder<BoundExpression>();
             SpecialMember member;
@@ -64,25 +66,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we are building static constructor of System.Decimal, accessing static fields 
                 // would be bad.
-                var curMethod = this.factory.CurrentMethod;
+                var curMethod = _factory.CurrentMethod;
                 if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
                    curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
-                   !inExpressionLambda)
+                   !_inExpressionLambda)
                 {
-
                     Symbol useField = null;
 
                     if (value == decimal.Zero)
                     {
-                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
+                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
                     }
                     else if (value == decimal.One)
                     {
-                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
+                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
                     }
                     else if (value == decimal.MinusOne)
                     {
-                        useField = compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
+                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
                     }
 
                     if ((object)useField != null &&
@@ -96,38 +97,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //new decimal(int);
                 member = SpecialMember.System_Decimal__CtorInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
             }
             else if (scale == 0 && uint.MinValue <= value && value <= uint.MaxValue)
             {
                 //new decimal(uint);
                 member = SpecialMember.System_Decimal__CtorUInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), compilation.GetSpecialType(SpecialType.System_UInt32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
             }
             else if (scale == 0 && long.MinValue <= value && value <= long.MaxValue)
             {
                 //new decimal(long);
                 member = SpecialMember.System_Decimal__CtorInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), compilation.GetSpecialType(SpecialType.System_Int64)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
             }
             else if (scale == 0 && ulong.MinValue <= value && value <= ulong.MaxValue)
             {
                 //new decimal(ulong);
                 member = SpecialMember.System_Decimal__CtorUInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), compilation.GetSpecialType(SpecialType.System_UInt64)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
             }
             else
             {
                 //new decimal(int low, int mid, int high, bool isNegative, byte scale);
                 member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Low), compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Mid), compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.High), compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.IsNegative), compilation.GetSpecialType(SpecialType.System_Boolean)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(parts.Scale), compilation.GetSpecialType(SpecialType.System_Byte)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
+                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
             }
 
-            var ctor = (MethodSymbol)this.compilation.Assembly.GetSpecialTypeMember(member);
+            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
             Debug.Assert((object)ctor != null);
             Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
 
@@ -143,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantValue.IsDateTime);
 
             var arguments = new ArrayBuilder<BoundExpression>();
-            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), compilation.GetSpecialType(SpecialType.System_Int64)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
 
-            var ctor = (MethodSymbol)this.compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
+            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
             Debug.Assert((object)ctor != null);
             Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_DateTime);
 

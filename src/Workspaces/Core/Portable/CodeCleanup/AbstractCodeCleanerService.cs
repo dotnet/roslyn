@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
+        public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, IEnumerable<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (CleanupWholeNode(root.FullSpan, normalizedSpan))
                 {
                     // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return IterateAllCodeCleanupProviders(root, root, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), workspace, codeCleaners, cancellationToken);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, r => SpecializedCollections.SingletonEnumerable(r.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 if (newNodeAndAnnotations.Item1 == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return IterateAllCodeCleanupProviders(root, root, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), workspace, codeCleaners, cancellationToken);
+                    return await IterateAllCodeCleanupProvidersAsync(root, root, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
                 var annotatedRoot = newNodeAndAnnotations.Item1;
 
                 // Run the actual cleanup.
-                return IterateAllCodeCleanupProviders(root, annotatedRoot, r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.Item2, cancellationToken), workspace, codeCleaners, cancellationToken);
+                return await IterateAllCodeCleanupProvidersAsync(root, annotatedRoot, r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.Item2, cancellationToken), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 IEnumerable<TextSpan> spans = null;
 
 #if DEBUG
-                bool originalDocHasErrors = await annotatedDocument.HasAnyErrors(cancellationToken).ConfigureAwait(false);
+                bool originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var current = 0;
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        private SyntaxNode IterateAllCodeCleanupProviders(
+        private async Task<SyntaxNode> IterateAllCodeCleanupProvidersAsync(
             SyntaxNode originalRoot,
             SyntaxNode annotatedRoot,
             Func<SyntaxNode, IEnumerable<TextSpan>> spanGetter,
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                     using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
-                        currentRoot = codeCleaner.Cleanup(currentRoot, spans, workspace, cancellationToken);
+                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, workspace, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -616,14 +616,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             /// <summary>
             /// Indicates the current marker type
             /// </summary>
-            public SpanMarkerType Type { get; private set; }
+            public SpanMarkerType Type { get; }
 
             /// <summary>
             /// Indicates how to find the other side of the span marker if it is missing
             /// </summary>
-            public SpanMarkerType OppositeMarkerType { get; private set; }
+            public SpanMarkerType OppositeMarkerType { get; }
 
-            public SyntaxAnnotation Annotation { get; private set; }
+            public SyntaxAnnotation Annotation { get; }
 
             public static readonly string AnnotationId = "SpanMarker";
 
@@ -639,11 +639,11 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
             }
 
-            private static readonly char[] separators = new char[] { ' ' };
+            private static readonly char[] s_separators = new char[] { ' ' };
 
             public static SpanMarker FromAnnotation(SyntaxAnnotation annotation)
             {
-                var types = annotation.Data.Split(separators).Select(s => (SpanMarkerType)Enum.Parse(typeof(SpanMarkerType), s)).ToArray();
+                var types = annotation.Data.Split(s_separators).Select(s => (SpanMarkerType)Enum.Parse(typeof(SpanMarkerType), s)).ToArray();
                 return new SpanMarker(types[0], types[1], annotation);
             }
         }

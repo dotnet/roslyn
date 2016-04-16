@@ -15,14 +15,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbol
     {
-        // NOTE: hasByRefBeforeCustomModifiers is always false since RefKind is always None.
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
+
         public SynthesizedAccessorValueParameterSymbol(SourceMethodSymbol accessor, TypeSymbol paramType, int ordinal, ImmutableArray<CustomModifier> customModifiers)
-            : base(accessor, ordinal, paramType, RefKind.None, customModifiers, false, ParameterSymbol.ValueParameterName, accessor.Locations,
+            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
                    defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)
         {
+            _customModifiers = customModifiers;
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                return _customModifiers;
+            }
+        }
+
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return 0; // since RefKind is always None.
+            }
         }
 
         public override bool IsImplicitlyDeclared

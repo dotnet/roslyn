@@ -41,236 +41,243 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         // message will be either initially set or lazily set by caller
-        private string message;
+        private string _message;
 
         protected abstract string CreateMessage();
 
         /// <summary>
         /// Logger will call this to return LogMessage to its pool
         /// </summary>
-        public abstract void Free();
+        protected abstract void FreeCore();
 
         public string GetMessage()
         {
-            if (this.message == null)
+            if (_message == null)
             {
-                this.message = CreateMessage();
+                _message = CreateMessage();
             }
 
-            return this.message;
+            return _message;
+        }
+
+        public void Free()
+        {
+            _message = null;
+
+            FreeCore();
         }
 
         private sealed class StaticLogMessage : LogMessage
         {
-            private static readonly ObjectPool<StaticLogMessage> Pool = SharedPools.Default<StaticLogMessage>();
+            private static readonly ObjectPool<StaticLogMessage> s_pool = SharedPools.Default<StaticLogMessage>();
 
             public static LogMessage Construct(string message)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.message = message;
+                var logMessage = s_pool.Allocate();
+                logMessage._message = message;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.message;
+                return _message;
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.message == null)
+                if (_message == null)
                 {
                     return;
                 }
 
-                this.message = null;
-                Pool.Free(this);
+                _message = null;
+                s_pool.Free(this);
             }
         }
 
         private sealed class LazyLogMessage : LogMessage
         {
-            private static readonly ObjectPool<LazyLogMessage> Pool = SharedPools.Default<LazyLogMessage>();
+            private static readonly ObjectPool<LazyLogMessage> s_pool = SharedPools.Default<LazyLogMessage>();
 
-            private Func<string> messageGetter;
+            private Func<string> _messageGetter;
 
             public static LogMessage Construct(Func<string> messageGetter)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.messageGetter = messageGetter;
+                var logMessage = s_pool.Allocate();
+                logMessage._messageGetter = messageGetter;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.messageGetter();
+                return _messageGetter();
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.messageGetter == null)
+                if (_messageGetter == null)
                 {
                     return;
                 }
 
-                this.messageGetter = null;
-                Pool.Free(this);
+                _messageGetter = null;
+                s_pool.Free(this);
             }
         }
 
         private sealed class LazyLogMessage<TArg0> : LogMessage
         {
-            private static readonly ObjectPool<LazyLogMessage<TArg0>> Pool = SharedPools.Default<LazyLogMessage<TArg0>>();
+            private static readonly ObjectPool<LazyLogMessage<TArg0>> s_pool = SharedPools.Default<LazyLogMessage<TArg0>>();
 
-            private Func<TArg0, string> messageGetter;
-            private TArg0 arg;
+            private Func<TArg0, string> _messageGetter;
+            private TArg0 _arg;
 
             public static LogMessage Construct(Func<TArg0, string> messageGetter, TArg0 arg)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.messageGetter = messageGetter;
-                logMessage.arg = arg;
+                var logMessage = s_pool.Allocate();
+                logMessage._messageGetter = messageGetter;
+                logMessage._arg = arg;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.messageGetter(this.arg);
+                return _messageGetter(_arg);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.messageGetter == null)
+                if (_messageGetter == null)
                 {
                     return;
                 }
 
-                this.messageGetter = null;
-                this.arg = default(TArg0);
-                Pool.Free(this);
+                _messageGetter = null;
+                _arg = default(TArg0);
+                s_pool.Free(this);
             }
         }
 
         private sealed class LazyLogMessage<TArg0, TArg1> : LogMessage
         {
-            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1>> Pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1>>();
+            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1>> s_pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1>>();
 
-            private Func<TArg0, TArg1, string> messageGetter;
-            private TArg0 arg0;
-            private TArg1 arg1;
+            private Func<TArg0, TArg1, string> _messageGetter;
+            private TArg0 _arg0;
+            private TArg1 _arg1;
 
             internal static LogMessage Construct(Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.messageGetter = messageGetter;
-                logMessage.arg0 = arg0;
-                logMessage.arg1 = arg1;
+                var logMessage = s_pool.Allocate();
+                logMessage._messageGetter = messageGetter;
+                logMessage._arg0 = arg0;
+                logMessage._arg1 = arg1;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.messageGetter(arg0, arg1);
+                return _messageGetter(_arg0, _arg1);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.messageGetter == null)
+                if (_messageGetter == null)
                 {
                     return;
                 }
 
-                this.messageGetter = null;
-                this.arg0 = default(TArg0);
-                this.arg1 = default(TArg1);
-                Pool.Free(this);
+                _messageGetter = null;
+                _arg0 = default(TArg0);
+                _arg1 = default(TArg1);
+                s_pool.Free(this);
             }
         }
 
         private sealed class LazyLogMessage<TArg0, TArg1, TArg2> : LogMessage
         {
-            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1, TArg2>> Pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1, TArg2>>();
+            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1, TArg2>> s_pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1, TArg2>>();
 
-            private Func<TArg0, TArg1, TArg2, string> messageGetter;
-            private TArg0 arg0;
-            private TArg1 arg1;
-            private TArg2 arg2;
+            private Func<TArg0, TArg1, TArg2, string> _messageGetter;
+            private TArg0 _arg0;
+            private TArg1 _arg1;
+            private TArg2 _arg2;
 
             public static LogMessage Construct(Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.messageGetter = messageGetter;
-                logMessage.arg0 = arg0;
-                logMessage.arg1 = arg1;
-                logMessage.arg2 = arg2;
+                var logMessage = s_pool.Allocate();
+                logMessage._messageGetter = messageGetter;
+                logMessage._arg0 = arg0;
+                logMessage._arg1 = arg1;
+                logMessage._arg2 = arg2;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.messageGetter(arg0, arg1, arg2);
+                return _messageGetter(_arg0, _arg1, _arg2);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.messageGetter == null)
+                if (_messageGetter == null)
                 {
                     return;
                 }
 
-                this.messageGetter = null;
-                this.arg0 = default(TArg0);
-                this.arg1 = default(TArg1);
-                this.arg2 = default(TArg2);
-                Pool.Free(this);
+                _messageGetter = null;
+                _arg0 = default(TArg0);
+                _arg1 = default(TArg1);
+                _arg2 = default(TArg2);
+                s_pool.Free(this);
             }
         }
 
         private sealed class LazyLogMessage<TArg0, TArg1, TArg2, TArg3> : LogMessage
         {
-            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1, TArg2, TArg3>> Pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1, TArg2, TArg3>>();
+            private static readonly ObjectPool<LazyLogMessage<TArg0, TArg1, TArg2, TArg3>> s_pool = SharedPools.Default<LazyLogMessage<TArg0, TArg1, TArg2, TArg3>>();
 
-            private Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter;
-            private TArg0 arg0;
-            private TArg1 arg1;
-            private TArg2 arg2;
-            private TArg3 arg3;
+            private Func<TArg0, TArg1, TArg2, TArg3, string> _messageGetter;
+            private TArg0 _arg0;
+            private TArg1 _arg1;
+            private TArg2 _arg2;
+            private TArg3 _arg3;
 
             public static LogMessage Construct(Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
             {
-                var logMessage = Pool.Allocate();
-                logMessage.messageGetter = messageGetter;
-                logMessage.arg0 = arg0;
-                logMessage.arg1 = arg1;
-                logMessage.arg2 = arg2;
-                logMessage.arg3 = arg3;
+                var logMessage = s_pool.Allocate();
+                logMessage._messageGetter = messageGetter;
+                logMessage._arg0 = arg0;
+                logMessage._arg1 = arg1;
+                logMessage._arg2 = arg2;
+                logMessage._arg3 = arg3;
 
                 return logMessage;
             }
 
             protected override string CreateMessage()
             {
-                return this.messageGetter(arg0, arg1, arg2, arg3);
+                return _messageGetter(_arg0, _arg1, _arg2, _arg3);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
-                if (this.messageGetter == null)
+                if (_messageGetter == null)
                 {
                     return;
                 }
 
-                this.messageGetter = null;
-                this.arg0 = default(TArg0);
-                this.arg1 = default(TArg1);
-                this.arg2 = default(TArg2);
-                this.arg3 = default(TArg3);
-                Pool.Free(this);
+                _messageGetter = null;
+                _arg0 = default(TArg0);
+                _arg1 = default(TArg1);
+                _arg2 = default(TArg2);
+                _arg3 = default(TArg3);
+                s_pool.Free(this);
             }
         }
     }

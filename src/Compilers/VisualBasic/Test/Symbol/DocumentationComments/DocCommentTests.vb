@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly OptionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
+        Private Shared ReadOnly s_optionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
 
         <Fact>
         Public Sub NoXmlResolver()
@@ -69,7 +69,7 @@ Imports System
 Module Module0
 End Module
 ]]>
-                                                          </file>
+    </file>
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -135,7 +135,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                sources, parseOptions:=OptionsDiagnoseDocComments)
+                sources, parseOptions:=s_optionsDiagnoseDocComments)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)
@@ -199,7 +199,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(720931, "DevDiv")>
+        <WorkItem(720931, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720931")>
         <Fact>
         Public Sub Bug720931()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -240,7 +240,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(705788, "DevDiv")>
+        <WorkItem(705788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705788")>
         <Fact>
         Public Sub Bug705788()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -313,7 +313,7 @@ Bug705788
 </xml>)
         End Sub
 
-        <WorkItem(658453, "DevDiv")>
+        <WorkItem(658453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658453")>
         <Fact>
         Public Sub Bug658453()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -373,7 +373,7 @@ EmptyCref
             CheckSymbolInfoAndTypeInfo(model, names(0), "TState")
         End Sub
 
-        <WorkItem(762687, "DevDiv")>
+        <WorkItem(762687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762687")>
         <Fact>
         Public Sub Bug762687a()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -415,7 +415,7 @@ Bug762687
 </xml>)
         End Sub
 
-        <WorkItem(762687, "DevDiv")>
+        <WorkItem(762687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762687")>
         <Fact>
         Public Sub Bug762687b()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -457,7 +457,7 @@ Bug762687
 </xml>)
         End Sub
 
-        <WorkItem(664943, "DevDiv")>
+        <WorkItem(664943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/664943")>
         <Fact>
         Public Sub Bug664943()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -494,7 +494,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(679833, "DevDiv")>
+        <WorkItem(679833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679833")>
         <Fact>
         Public Sub Bug679833_DontCrash()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -559,7 +559,7 @@ End Enum
 </error>)
         End Sub
 
-        <WorkItem(665883, "DevDiv")>
+        <WorkItem(665883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665883")>
         <Fact>
         Public Sub Bug665883()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -594,7 +594,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(666241, "DevDiv")>
+        <WorkItem(666241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666241")>
         <Fact>
         Public Sub Bug666241()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -638,7 +638,7 @@ End Namespace
             CompilationUtils.AssertTheseDiagnostics(model.GetDiagnostics(), <error></error>)
         End Sub
 
-        <WorkItem(658793, "DevDiv")>
+        <WorkItem(658793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658793")>
         <Fact>
         Public Sub Bug658793()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -663,7 +663,7 @@ BC42309: XML comment has a tag with a 'cref' attribute '(' that could not be res
 </error>)
         End Sub
 
-        <WorkItem(721582, "DevDiv")>
+        <WorkItem(721582, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721582")>
         <Fact>
         Public Sub Bug721582()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -708,7 +708,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(657426, "DevDiv")>
+        <WorkItem(657426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657426")>
         <Fact>
         Public Sub Bug657426()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -749,7 +749,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322a()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -786,7 +786,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322b()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -844,7 +844,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322c()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -902,7 +902,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact>
         Public Sub Bug658322d()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -962,7 +962,7 @@ EmptyCref
 </xml>)
         End Sub
 
-        <WorkItem(658322, "DevDiv")>
+        <WorkItem(658322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658322")>
         <Fact()>
         Public Sub Bug658322e()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -1032,7 +1032,7 @@ AssemblyName
             CheckSymbolInfoAndTypeInfo(model, names(6), "TAttribute")
         End Sub
 
-        <WorkItem(665961, "DevDiv")>
+        <WorkItem(665961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665961")>
         <Fact()>
         Public Sub Bug665961()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -1072,7 +1072,7 @@ BC42024: Unused local variable: 'x'.
             Assert.Equal("Public Sub Main()", TryCast(model, SemanticModel).GetEnclosingSymbol(names(0).SpanStart).ToDisplayString())
         End Sub
 
-        <WorkItem(685473, "DevDiv")>
+        <WorkItem(685473, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685473")>
         <Fact()>
         Public Sub Bug685473()
             CompileCheckDiagnosticsAndXmlDocument(
@@ -4669,7 +4669,7 @@ AssemblyName
 </xml>)
         End Sub
 
-        <WorkItem(751828, "DevDiv")>
+        <WorkItem(751828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751828")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_751828()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4696,7 +4696,7 @@ End Class
             Assert.True(expSymInfo1.IsEmpty)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639a()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4728,7 +4728,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639b()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4762,7 +4762,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639c()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -4794,7 +4794,7 @@ End Class
             Assert.NotNull(expSymInfo1.Symbol)
         End Sub
 
-        <WorkItem(768639, "DevDiv")>
+        <WorkItem(768639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768639")>
         <Fact()>
         Public Sub GetSymbolInfo_Bug_768639d()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -6641,7 +6641,7 @@ End Class
 
             ' BREAK: dev11 includes "Sub Other(Of OT).S(a As System.Int32)"
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5, container:=DirectCast(symbols(0), NamedTypeSymbol)),
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5, container:=DirectCast(symbols(0), NamedTypeSymbol)),
                                     SymbolKind.Method),
                                "Function System.Object.Equals(obj As System.Object) As System.Boolean",
                                "Function System.Object.Equals(objA As System.Object, objB As System.Object) As System.Boolean",
@@ -6653,13 +6653,13 @@ End Class
                                "Sub System.Object.Finalize()")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5,
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5,
                                                         container:=DirectCast(symbols(0), NamedTypeSymbol),
                                                         name:="S"),
                                     SymbolKind.Method))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5,
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5,
                                                         container:=DirectCast(symbols(0), NamedTypeSymbol),
                                                         name:="GetHashCode"),
                                     SymbolKind.Method),
@@ -6686,7 +6686,7 @@ End Class
                                                  DirectCast(names(1), ExpressionSyntax),
                                                  "C(Of T).N1.N2.T")
 
-            Dim firstIndex = text.IndexOf("""t""") + 1
+            Dim firstIndex = text.IndexOf("""t""", StringComparison.Ordinal) + 1
             AssertLookupResult(FilterOfSymbolKindOnly(
                                     model.LookupSymbols(firstIndex,
                                                         name:="T"),
@@ -6711,7 +6711,7 @@ End Class
                                                            DirectCast(names(2), ExpressionSyntax),
                                                            "T")
 
-            Dim secondIndex = text.IndexOf("""t""", firstIndex + 5) + 1
+            Dim secondIndex = text.IndexOf("""t""", firstIndex + 5, StringComparison.Ordinal) + 1
 
             AssertLookupResult(FilterOfSymbolKindOnly(
                                     model.LookupSymbols(secondIndex,
@@ -6734,7 +6734,8 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="1104815")>
+        <Fact>
+        <WorkItem(4719, "https://github.com/dotnet/roslyn/issues/4719")>
         Public Sub CrefLookup()
             Dim source =
                 <compilation name="AssemblyName">
@@ -6762,8 +6763,15 @@ End Class
             Dim outer = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Outer")
             Dim inner = outer.GetMember(Of NamedTypeSymbol)("Inner")
 
-            Dim position = syntaxTree.ToString().IndexOf("(Of U)")
-            Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+            Dim position = syntaxTree.ToString().IndexOf("(Of U)", StringComparison.Ordinal)
+
+            Const bug4719IsFixed = False
+
+            If bug4719IsFixed Then
+                Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
+            Else
+                Assert.False(model.LookupSymbols(position, outer, inner.Name).Any())
+            End If
         End Sub
 
         <Fact()>
@@ -6848,7 +6856,7 @@ docComment.Trim().Replace(vbLf, "").Replace(vbCr, ""))
 Imports System
 
 Partial Public Class TestClass
-    ''' <summary> Delaration </summary>
+    ''' <summary> Declaration </summary>
     Partial Private Sub PS()
     End Sub
 End Class
@@ -6886,7 +6894,7 @@ AssemblyName
 </assembly>
 <members>
 <member name="M:TestClass.PS">
- <summary> Delaration </summary>
+ <summary> Declaration </summary>
 </member>
 </members>
 </doc>
@@ -6937,34 +6945,34 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
         End Sub
 
@@ -6996,34 +7004,34 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
         End Sub
 
@@ -7055,36 +7063,36 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
         End Sub
@@ -7117,36 +7125,36 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
         End Sub
@@ -7179,32 +7187,32 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""d.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""d.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""d""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""d""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "a As System.Int32", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c.""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c.""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
         End Sub
@@ -7247,13 +7255,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("name=""X""") + 6), SymbolKind.Field, SymbolKind.Parameter),
+                        text.IndexOf("name=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.Parameter),
                     "x As System.Int32")
 
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("cref=""X""") + 6), SymbolKind.Field, SymbolKind.Parameter),
+                        text.IndexOf("cref=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.Parameter),
                     "OuterClass.X As System.String")
         End Sub
 
@@ -7295,13 +7303,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("name=""X""") + 6), SymbolKind.Field, SymbolKind.TypeParameter),
+                        text.IndexOf("name=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.TypeParameter),
                     "X")
 
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("cref=""X""") + 6), SymbolKind.Field, SymbolKind.TypeParameter),
+                        text.IndexOf("cref=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.TypeParameter),
                     "OuterClass.X As System.String")
         End Sub
 
@@ -7336,13 +7344,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3), SymbolKind.Field),
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3), SymbolKind.Field),
                     "OuterClass(Of W).X As System.String")
 
             Dim symInteger =
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3,
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3,
                         name:="Int32"), SymbolKind.NamedType)
 
             AssertLookupResult(symInteger, "System.Int32")
@@ -7350,7 +7358,7 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3,
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3,
                         name:="Parse",
                         container:=DirectCast(symInteger(0), NamedTypeSymbol)), SymbolKind.Method),
                     "Function System.Int32.Parse(s As System.String) As System.Int32",
@@ -7401,10 +7409,10 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <WorkItem(684184, "DevDiv")>
+        <WorkItem(684184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684184")>
         <Fact>
         Public Sub Bug684184()
             Dim xmlText =
@@ -7447,7 +7455,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7492,7 +7500,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+            stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7541,7 +7549,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"),
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"),
                 ensureEnglishUICulture:=True)
             End Using
         End Sub
@@ -7593,7 +7601,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7643,7 +7651,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7677,11 +7685,7 @@ End Class
 </compilation>
 
             CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(xmlSource, xmlFile),
-    <error>
-        <![CDATA[
-BC42320: Unable to include XML fragment '**FILE**' of file '//target'.
-]]>
-    </error>,
+    <error><%= $"BC42320: Unable to include XML fragment '{xmlFile.ToString()}' of file '//target'." %></error>,
     <xml>
         <![CDATA[
 <?xml version="1.0"?>
@@ -7709,7 +7713,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7759,7 +7763,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+                stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8225,7 +8229,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8393,7 +8397,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8546,7 +8550,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8652,7 +8656,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8843,7 +8847,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -9018,7 +9022,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>)
         End Sub
 
         <Fact>
@@ -9077,7 +9081,7 @@ AssemblyName
                           New NameSyntaxInfo("TestStruct", {"TestStruct"}, {"TestStruct"}))
         End Sub
 
-        <WorkItem(703587, "DevDiv")>
+        <WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")>
         <Fact()>
         Private Sub ObjectMemberViaInterfaceA()
             Dim xmlSource =
@@ -9141,7 +9145,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'IEquatable(Of T).GetHash
 xmlDoc)
         End Sub
 
-        <WorkItem(703587, "DevDiv")>
+        <WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")>
         <Fact()>
         Private Sub ObjectMemberViaInterfaceB()
             Dim xmlSource =
@@ -10015,9 +10019,9 @@ AssemblyName
         End Sub
 
         Private Structure NameSyntaxInfo
-            Public Syntax As String
-            Public Symbols As String()
-            Public Types As String()
+            Public ReadOnly Syntax As String
+            Public ReadOnly Symbols As String()
+            Public ReadOnly Types As String()
 
             Public Sub New(syntax As String, symbols As String(), types As String())
                 Me.Syntax = syntax
@@ -10680,9 +10684,9 @@ AssemblyName
         <Fact>
         Public Sub ExtendedCref_BinaryOperator()
 
-            ExtendedCref_BinaryOperator(" &", "op_Concatenate", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore(" &", "op_Concatenate", <errors></errors>)
 
-            ExtendedCref_BinaryOperator("+", "op_Addition",
+            ExtendedCref_BinaryOperatorCore("+", "op_Addition",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator+(Clazz, String)' that could not be resolved.
@@ -10693,7 +10697,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator+(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("-", "op_Subtraction",
+            ExtendedCref_BinaryOperatorCore("-", "op_Subtraction",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator-(Clazz, String)' that could not be resolved.
@@ -10704,7 +10708,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator-(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("*", "op_Multiply",
+            ExtendedCref_BinaryOperatorCore("*", "op_Multiply",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator*(Clazz, String)' that could not be resolved.
@@ -10715,7 +10719,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator*(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("/", "op_Division",
+            ExtendedCref_BinaryOperatorCore("/", "op_Division",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator/(Clazz, String)' that could not be resolved.
@@ -10726,7 +10730,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator/(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("\", "op_IntegerDivision",
+            ExtendedCref_BinaryOperatorCore("\", "op_IntegerDivision",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator\(Clazz, String)' that could not be resolved.
@@ -10737,7 +10741,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator\(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("^", "op_Exponent",
+            ExtendedCref_BinaryOperatorCore("^", "op_Exponent",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator^(Clazz, String)' that could not be resolved.
@@ -10748,9 +10752,9 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator^(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<<", "op_LeftShift", <errors></errors>)
-            ExtendedCref_BinaryOperator(">>", "op_RightShift", <errors></errors>)
-            ExtendedCref_BinaryOperator("=", "op_Equality",
+            ExtendedCref_BinaryOperatorCore("<<", "op_LeftShift", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore(">>", "op_RightShift", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore("=", "op_Equality",
 <errors>
     <![CDATA[
 BC33033: Matching '<>' operator is required for 'Public Shared Operator =(a As Clazz, b As Integer) As Clazz'.
@@ -10767,7 +10771,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator=(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<>", "op_Inequality",
+            ExtendedCref_BinaryOperatorCore("<>", "op_Inequality",
 <errors>
     <![CDATA[
 BC33033: Matching '=' operator is required for 'Public Shared Operator <>(a As Clazz, b As Integer) As Clazz'.
@@ -10778,7 +10782,7 @@ BC33033: Matching '=' operator is required for 'Public Shared Operator <>(a As C
                            ~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<", "op_LessThan",
+            ExtendedCref_BinaryOperatorCore("<", "op_LessThan",
 <errors>
     <![CDATA[
 BC33033: Matching '>' operator is required for 'Public Shared Operator <(a As Clazz, b As Integer) As Clazz'.
@@ -10789,7 +10793,7 @@ BC33033: Matching '>' operator is required for 'Public Shared Operator <(a As Cl
                            ~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator(">", "op_GreaterThan",
+            ExtendedCref_BinaryOperatorCore(">", "op_GreaterThan",
 <errors>
     <![CDATA[
 BC33033: Matching '<' operator is required for 'Public Shared Operator >(a As Clazz, b As Integer) As Clazz'.
@@ -10800,7 +10804,7 @@ BC33033: Matching '<' operator is required for 'Public Shared Operator >(a As Cl
                            ~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<=", "op_LessThanOrEqual",
+            ExtendedCref_BinaryOperatorCore("<=", "op_LessThanOrEqual",
 <errors>
     <![CDATA[
 BC33033: Matching '>=' operator is required for 'Public Shared Operator <=(a As Clazz, b As Integer) As Clazz'.
@@ -10811,7 +10815,7 @@ BC33033: Matching '>=' operator is required for 'Public Shared Operator <=(a As 
                            ~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator(">=", "op_GreaterThanOrEqual",
+            ExtendedCref_BinaryOperatorCore(">=", "op_GreaterThanOrEqual",
 <errors>
     <![CDATA[
 BC33033: Matching '<=' operator is required for 'Public Shared Operator >=(a As Clazz, b As Integer) As Clazz'.
@@ -10825,7 +10829,7 @@ BC33033: Matching '<=' operator is required for 'Public Shared Operator >=(a As 
 
         End Sub
 
-        Private Sub ExtendedCref_BinaryOperator(op As String, opName As String, errors As XElement)
+        Private Sub ExtendedCref_BinaryOperatorCore(op As String, opName As String, errors As XElement)
             Dim invalidChars = op.Contains("<") OrElse op.Contains(">") OrElse op.Contains("&")
             Dim xmlSource =
                 If(Not invalidChars,
@@ -11122,7 +11126,7 @@ AssemblyName
                             New AliasInfo("aNamespace", "System.Collections.Generic"))
         End Sub
 
-        <WorkItem(757110, "DevDiv")>
+        <WorkItem(757110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757110")>
         <Fact>
         Public Sub NoAssemblyElementForNetModule()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -11356,7 +11360,7 @@ AssemblyName
                             New AliasInfo("ToString", Nothing))
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible1()
             Dim source =
@@ -11377,13 +11381,13 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible2()
             Dim source =
@@ -11406,13 +11410,13 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
         <Fact>
         Public Sub Inaccessible3()
             Dim lib1Source =
@@ -11447,7 +11451,7 @@ End Class
             Dim lib1Ref = CreateCompilationWithMscorlib(lib1Source).EmitToImageReference()
             Dim lib2Ref = CreateCompilationWithMscorlib(lib2Source).EmitToImageReference()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=s_optionsDiagnoseDocComments)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -11462,8 +11466,8 @@ End Class
             Assert.Equal("B", symbols(1).ContainingAssembly.Name)
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
-        <WorkItem(709199, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
+        <WorkItem(709199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709199")>
         <Fact>
         Public Sub ProtectedInstanceBaseMember()
             Dim source =
@@ -11485,7 +11489,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11498,8 +11502,8 @@ End Class
             Assert.Equal(expectedSymbol, actualSymbol)
         End Sub
 
-        <WorkItem(568006, "DevDiv")>
-        <WorkItem(709199, "DevDiv")>
+        <WorkItem(568006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568006")>
+        <WorkItem(709199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709199")>
         <Fact>
         Public Sub ProtectedSharedBaseMember()
             Dim source =
@@ -11521,7 +11525,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11534,7 +11538,7 @@ End Class
             Assert.Equal(expectedSymbol, actualSymbol)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub CrefsOnDelegate()
             Dim source =
@@ -11550,7 +11554,7 @@ Delegate Sub D(Of T)(p As T)
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'T' that could not be resolved.
 ''' <see cref="T"/>
@@ -11567,7 +11571,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'ToString' that could not
 ]]></errors>)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub TypeParametersOfAssociatedSymbol()
             Dim source =
@@ -11587,7 +11591,7 @@ Delegate Sub D(Of V)()
 </compilation>
 
             ' NOTE: Unlike C#, VB allows crefs to type parameters.
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42375: XML comment has a tag with a 'cref' attribute 'T' that bound to a type parameter.  Use the <typeparamref> tag instead.
 ''' <see cref='T'/>
@@ -11617,7 +11621,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'V' that could not be res
             Assert.True(model.GetSymbolInfo(crefSyntaxes(2)).IsEmpty)
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub MembersOfAssociatedSymbol()
             Dim source =
@@ -11652,7 +11656,7 @@ End Enum
 </compilation>
 
             ' None of these work in dev11.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11667,7 +11671,7 @@ End Enum
             Assert.Equal("E.F", model.GetSymbolInfo(crefSyntaxes(4)).Symbol.ToTestDisplayString())
         End Sub
 
-        <WorkItem(768624, "DevDiv")>
+        <WorkItem(768624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768624")>
         <Fact>
         Public Sub InnerVersusOuter()
             Dim source =
@@ -11685,7 +11689,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11697,7 +11701,7 @@ End Class
             Assert.Equal("Outer.Inner.F As System.Int32", model.GetSymbolInfo(crefSyntax).Symbol.ToTestDisplayString())
         End Sub
 
-        <WorkItem(531505, "DevDiv")>
+        <WorkItem(531505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")>
         <Fact>
         Private Sub Pia()
             Dim xmlSource =
@@ -11752,7 +11756,7 @@ AssemblyName
             CompileAndVerify(comp2, symbolValidator:=validator)
         End Sub
 
-        <WorkItem(790978, "DevDiv")>
+        <WorkItem(790978, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/790978")>
         <Fact>
         Public Sub SingleSymbol()
             Dim source =
@@ -11770,7 +11774,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             comp.VerifyDiagnostics()
 
             Dim expectedXmlText = <![CDATA[
@@ -11792,7 +11796,7 @@ End Class
             Assert.Equal(expectedXmlText, metadataSymbol.GetDocumentationCommentXml())
         End Sub
 
-        <Fact, WorkItem(908893, "DevDiv")>
+        <Fact, WorkItem(908893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908893")>
         Private Sub GenericTypeWithinGenericType()
             Dim xmlSource =
 <compilation name="AssemblyName">
@@ -11839,8 +11843,8 @@ xmlDoc)
 #Region "Helpers"
 
         Private Structure AliasInfo
-            Public Name As String
-            Public Target As String
+            Public ReadOnly Name As String
+            Public ReadOnly Target As String
 
             Public Sub New(name As String, target As String)
                 Me.Name = name
@@ -11884,6 +11888,10 @@ xmlDoc)
             Return If(str Is Nothing, obj, str.Replace(what, [with]))
         End Function
 
+        Private Shared Function AsXmlCommentText(file As TempFile) As String
+            Return TestHelpers.AsXmlCommentText(file.ToString())
+        End Function
+
         Private Function FormatSourceXml(xml As XElement, ParamArray obj() As Object) As XElement
             For Each file In xml.<file>
                 file.Value = String.Format(file.Value, obj)
@@ -11896,18 +11904,18 @@ xmlDoc)
             Return xml
         End Function
 
-        Friend Function FilterOfSymbolKindOnly(symbols As ImmutableArray(Of ISymbol), ParamArray kinds() As SymbolKind) As ImmutableArray(Of ISymbol)
+        Private Shared Function FilterOfSymbolKindOnly(symbols As ImmutableArray(Of ISymbol), ParamArray kinds() As SymbolKind) As ImmutableArray(Of ISymbol)
             Dim filter As New HashSet(Of SymbolKind)(kinds)
             Return (From s In symbols
                     Where filter.Contains(s.Kind)
                     Select s).AsImmutable()
         End Function
 
-        Friend Sub AssertLookupResult(actual As ImmutableArray(Of ISymbol), ParamArray expected() As String)
+        Private Shared Sub AssertLookupResult(actual As ImmutableArray(Of ISymbol), ParamArray expected() As String)
             AssertStringArraysEqual(expected, (From s In actual Select s.ToTestDisplayString()).ToArray)
         End Sub
 
-        Friend Function CheckSymbolInfoOnly(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of ISymbol)
+        Private Function CheckSymbolInfoOnly(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of ISymbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -11962,7 +11970,7 @@ xmlDoc)
 
         End Sub
 
-        Friend Function CheckTypeParameterCrefSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, Optional expected As String = Nothing) As ImmutableArray(Of Symbol)
+        Private Function CheckTypeParameterCrefSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, Optional expected As String = Nothing) As ImmutableArray(Of Symbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -11985,7 +11993,7 @@ xmlDoc)
             End If
         End Function
 
-        Friend Function CheckSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of Symbol)
+        Private Function CheckSymbolInfoAndTypeInfo(model As SemanticModel, syntax As ExpressionSyntax, ParamArray expected() As String) As ImmutableArray(Of Symbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim actual = model.GetSymbolInfo(syntax)
@@ -12011,13 +12019,13 @@ xmlDoc)
             End If
         End Function
 
-        Friend Sub AssertStringArraysEqual(a() As String, b() As String)
+        Private Shared Sub AssertStringArraysEqual(a() As String, b() As String)
             Assert.NotNull(a)
             Assert.NotNull(b)
             Assert.Equal(StringArraysToSortedString(a), StringArraysToSortedString(b))
         End Sub
 
-        Friend Function StringArraysToSortedString(a() As String) As String
+        Private Shared Function StringArraysToSortedString(a() As String) As String
             Dim builder As New StringBuilder
             Array.Sort(a)
             For Each s In a
@@ -12026,7 +12034,7 @@ xmlDoc)
             Return builder.ToString()
         End Function
 
-        Friend Sub TestSymbolAndTypeInfoForType(model As SemanticModel, syntax As TypeSyntax, expected As ISymbol)
+        Private Sub TestSymbolAndTypeInfoForType(model As SemanticModel, syntax As TypeSyntax, expected As ISymbol)
             EnsureSymbolInfoOnCrefReference(model, syntax)
 
             Dim expSymInfo = model.GetSymbolInfo(syntax)
@@ -12038,11 +12046,11 @@ xmlDoc)
             Assert.Equal(ConversionKind.Identity, conversion.Kind)
         End Sub
 
-        Friend Shared Function FindNodesOfTypeFromText(Of TNode As VisualBasicSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
+        Private Shared Function FindNodesOfTypeFromText(Of TNode As VisualBasicSyntaxNode)(tree As SyntaxTree, textToFind As String) As TNode()
             Dim text As String = tree.GetText().ToString()
             Dim list As New List(Of TNode)
 
-            Dim position As Integer = text.IndexOf(textToFind)
+            Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
             While position >= 0
                 Dim token As SyntaxToken = tree.GetRoot().FindToken(position, True)
                 If token.ValueText = textToFind Then
@@ -12051,13 +12059,13 @@ xmlDoc)
                         list.Add(node)
                     End If
                 End If
-                position = text.IndexOf(textToFind, position + 1)
+                position = text.IndexOf(textToFind, position + 1, StringComparison.Ordinal)
             End While
 
             Return list.ToArray()
         End Function
 
-        Friend Shared Function CompileCheckDiagnosticsAndXmlDocument(
+        Private Shared Function CompileCheckDiagnosticsAndXmlDocument(
             sources As XElement,
             errors As XElement,
             Optional expectedDocXml As XElement = Nothing,
@@ -12093,20 +12101,12 @@ xmlDoc)
                 End If
 
                 Try
-                    diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
+                    diagnostics = compilation.GetDiagnostics(CompilationStage.Compile).ToArray()
                 Finally
                     If ensureEnglishUICulture Then
                         Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
                     End If
                 End Try
-
-                If stringMapper IsNot Nothing Then
-                    For i = 0 To diagnostics.Count - 1
-                        Dim info = DirectCast(diagnostics(i), DiagnosticWithInfo).Info
-                        info = If(info.Arguments Is Nothing, ErrorFactory.ErrorInfo(CType(info.Code, ERRID)), ErrorFactory.ErrorInfo(CType(info.Code, ERRID), (From a In info.Arguments Select stringMapper(a)).ToArray()))
-                        diagnostics(i) = New VBDiagnostic(info, NoLocation.Singleton)
-                    Next
-                End If
 
                 CompilationUtils.AssertTheseDiagnostics(diagnostics.AsImmutable(), errors)
             End If
@@ -12163,7 +12163,7 @@ xmlDoc)
 
 #End Region
 
-        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <WorkItem(1087447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087447"), WorkItem(436, "CodePlex")>
         <Fact>
         Public Sub Bug1087447_01()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -12223,7 +12223,7 @@ EmptyCref
 
         End Sub
 
-        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <WorkItem(1087447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087447"), WorkItem(436, "CodePlex")>
         <Fact>
         Public Sub Bug1087447_02()
             Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
@@ -12280,6 +12280,93 @@ EmptyCref
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1115058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1115058")>
+        Public Sub UnterminatedElement()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Module Module1
+    '''<summary>
+    ''' Something
+    '''<summary>
+    Sub Main()
+        System.Console.WriteLine("Here")
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseExe,
+                parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            ' Compilation should succeed with warnings
+            AssertTheseDiagnostics(CompileAndVerify(compilation, expectedOutput:="Here").Diagnostics, <![CDATA[
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+]]>)
+        End Sub
+
+        ''' <summary>
+        ''' "--" is not valid within an XML comment.
+        ''' </summary>
+        <WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")>
+        <Fact>
+        Public Sub IncludeErrorDashDashInName()
+            Dim dir = Temp.CreateDirectory()
+            Dim path = dir.Path
+            Dim xmlFile = dir.CreateFile("---.xml").WriteAllText("<summary attrib="""" attrib=""""/>")
+            Dim source =
+<compilation name="DashDash">
+    <file name="a.vb">
+        <![CDATA[
+''' <include file='{0}' path='//param'/>
+Class C
+End Class
+]]>
+    </file>
+</compilation>
+            CompileCheckDiagnosticsAndXmlDocument(FormatSourceXml(source, System.IO.Path.Combine(path, "---.xml")),
+    <error/>,
+    <xml>
+        <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+DashDash
+</name>
+</assembly>
+<members>
+<member name="T:C">
+ <!--warning BC42320: Unable to include XML fragment '//param' of file '**FILE**'.-->
+</member>
+</members>
+</doc>
+]]>
+    </xml>,
+                stringMapper:=Function(o) StringReplace(o, System.IO.Path.Combine(TestHelpers.AsXmlCommentText(path), "- - -.xml"), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
     End Class

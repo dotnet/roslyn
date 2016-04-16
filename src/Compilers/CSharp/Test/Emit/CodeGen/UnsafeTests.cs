@@ -1289,7 +1289,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(546866, "DevDiv")]
+        [WorkItem(546866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546866")]
         [Fact]
         public void FixedStatementProperty()
         {
@@ -1976,6 +1976,7 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    static void nop() { }
     void Test()
     {
         try
@@ -1986,15 +1987,16 @@ unsafe class C
         }
         finally
         {
+            nop();
         }
     }
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       32 (0x20)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
@@ -2013,7 +2015,7 @@ unsafe class C
       IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
       IL_0012:  add
       IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
+      IL_0014:  leave.s    IL_001f
     }
     finally
     {
@@ -2024,9 +2026,10 @@ unsafe class C
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0019:  call       ""void C.nop()""
+    IL_001e:  endfinally
   }
-  IL_001a:  ret
+  IL_001f:  ret
 }
 ");
         }
@@ -2052,10 +2055,10 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
@@ -2074,7 +2077,7 @@ unsafe class C
       IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
       IL_0012:  add
       IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001c
+      IL_0014:  leave.s    IL_0019
     }
     finally
     {
@@ -2082,13 +2085,14 @@ unsafe class C
       IL_0017:  stloc.1
       IL_0018:  endfinally
     }
+    IL_0019:  leave.s    IL_001e
   }
   catch object
   {
-    IL_0019:  pop
-    IL_001a:  leave.s    IL_001c
+    IL_001b:  pop
+    IL_001c:  leave.s    IL_001e
   }
-  IL_001c:  ret
+  IL_001e:  ret
 }
 ");
         }
@@ -2114,7 +2118,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -2153,10 +2157,12 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    void nop() { }
     void Test()
     {
         try
         {
+            nop();
         }
         catch
         {
@@ -2168,38 +2174,39 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.Test", @"
-{
-  // Code size       28 (0x1c)
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
+                VerifyIL("C.Test",
+@"{
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    IL_0000:  leave.s    IL_001b
+    IL_0000:  ldarg.0
+    IL_0001:  call       ""void C.nop()""
+    IL_0006:  leave.s    IL_0021
   }
   catch object
   {
-    IL_0002:  pop
-    IL_0003:  ldstr      ""hello""
-    IL_0008:  stloc.1
-    IL_0009:  ldloc.1
-    IL_000a:  conv.i
-    IL_000b:  stloc.0
-    IL_000c:  ldloc.0
-    IL_000d:  brfalse.s  IL_0017
-    IL_000f:  ldloc.0
-    IL_0010:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-    IL_0015:  add
-    IL_0016:  stloc.0
-    IL_0017:  ldnull
-    IL_0018:  stloc.1
-    IL_0019:  leave.s    IL_001b
+    IL_0008:  pop
+    IL_0009:  ldstr      ""hello""
+    IL_000e:  stloc.1
+    IL_000f:  ldloc.1
+    IL_0010:  conv.i
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  brfalse.s  IL_001d
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_001b:  add
+    IL_001c:  stloc.0
+    IL_001d:  ldnull
+    IL_001e:  stloc.1
+    IL_001f:  leave.s    IL_0021
   }
-  IL_001b:  ret
-}
-");
+  IL_0021:  ret
+}");
         }
 
         [Fact]
@@ -2208,10 +2215,12 @@ unsafe class C
             var text = @"
 unsafe class C
 {
+    static void nop() { }
     void Test()
     {
         try
         {
+            nop();
         }
         catch
         {
@@ -2226,50 +2235,45 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       36 (0x24)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
+    IL_0000:  call       ""void C.nop()""
+    IL_0005:  leave.s    IL_0023
+  }
+  catch object
+  {
+    IL_0007:  pop
     .try
     {
-      IL_0000:  leave.s    IL_001d
+      IL_0008:  ldstr      ""hello""
+      IL_000d:  stloc.1
+      IL_000e:  ldloc.1
+      IL_000f:  conv.i
+      IL_0010:  stloc.0
+      IL_0011:  ldloc.0
+      IL_0012:  brfalse.s  IL_001c
+      IL_0014:  ldloc.0
+      IL_0015:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+      IL_001a:  add
+      IL_001b:  stloc.0
+      IL_001c:  leave.s    IL_0021
     }
-    catch object
+    finally
     {
-      IL_0002:  pop
-      .try
-      {
-        IL_0003:  ldstr      ""hello""
-        IL_0008:  stloc.1
-        IL_0009:  ldloc.1
-        IL_000a:  conv.i
-        IL_000b:  stloc.0
-        IL_000c:  ldloc.0
-        IL_000d:  brfalse.s  IL_0017
-        IL_000f:  ldloc.0
-        IL_0010:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-        IL_0015:  add
-        IL_0016:  stloc.0
-        IL_0017:  leave.s    IL_001d
-      }
-      finally
-      {
-        IL_0019:  ldnull
-        IL_001a:  stloc.1
-        IL_001b:  endfinally
-      }
+      IL_001e:  ldnull
+      IL_001f:  stloc.1
+      IL_0020:  endfinally
     }
+    IL_0021:  leave.s    IL_0023
   }
-  finally
-  {
-    IL_001c:  endfinally
-  }
-  IL_001d:  ret
+  IL_0023:  ret
 }
 ");
         }
@@ -2292,7 +2296,7 @@ unsafe class C
 }
 ";
             // Neither inner nor outer has finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       45 (0x2d)
@@ -2352,7 +2356,7 @@ unsafe class C
 }
 ";
             // Inner and outer both have finally blocks.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       50 (0x32)
@@ -2428,7 +2432,7 @@ unsafe class C
 }
 ";
             // Outer has finally, inner does not.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       48 (0x30)
@@ -2512,7 +2516,7 @@ unsafe class C
             //   1) nothing blows up with triple-nesting, and
             //   2) none of the fixed statements has a try-finally.
             // CONSIDER: Shorter test that performs the same checks.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size      187 (0xbb)
@@ -2642,7 +2646,7 @@ unsafe class C
 ";
             // CONSIDER: This is sort of silly since the using is optimized away.
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -2693,7 +2697,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally (matches dev11, but not clear why).
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       47 (0x2f)
@@ -2702,12 +2706,12 @@ unsafe class C
                 bool V_1,
                 char* V_2, //p
                 pinned string V_3)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
   .try
   {
-    IL_0002:  ldarg.0
-    IL_0003:  stloc.0
     IL_0004:  ldloc.0
     IL_0005:  ldloca.s   V_1
     IL_0007:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -2758,7 +2762,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             // CONSIDER: dev11 is smarter and skips the try-finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       46 (0x2e)
@@ -2842,7 +2846,7 @@ class Enumerator : System.IDisposable
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       62 (0x3e)
@@ -2922,44 +2926,36 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       26 (0x1a)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    .try
-    {
-      IL_0000:  ldstr      ""hello""
-      IL_0005:  stloc.1
-      IL_0006:  ldloc.1
-      IL_0007:  conv.i
-      IL_0008:  stloc.0
-      IL_0009:  ldloc.0
-      IL_000a:  brfalse.s  IL_0014
-      IL_000c:  ldloc.0
-      IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-      IL_0012:  add
-      IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
-    }
-    finally
-    {
-      IL_0016:  ldnull
-      IL_0017:  stloc.1
-      IL_0018:  endfinally
-    }
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  stloc.1
+    IL_0006:  ldloc.1
+    IL_0007:  conv.i
+    IL_0008:  stloc.0
+    IL_0009:  ldloc.0
+    IL_000a:  brfalse.s  IL_0014
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_0012:  add
+    IL_0013:  stloc.0
+    IL_0014:  leave.s    IL_0019
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0016:  ldnull
+    IL_0017:  stloc.1
+    IL_0018:  endfinally
   }
-  IL_001a:  ret
-}
-");
+  IL_0019:  ret
+}");
         }
 
         [Fact]
@@ -2986,7 +2982,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       23 (0x17)
@@ -3031,7 +3027,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3085,44 +3081,36 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       26 (0x1a)
   .maxstack  2
   .locals init (char* V_0, //p
                 pinned string V_1)
   .try
   {
-    .try
-    {
-      IL_0000:  ldstr      ""hello""
-      IL_0005:  stloc.1
-      IL_0006:  ldloc.1
-      IL_0007:  conv.i
-      IL_0008:  stloc.0
-      IL_0009:  ldloc.0
-      IL_000a:  brfalse.s  IL_0014
-      IL_000c:  ldloc.0
-      IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
-      IL_0012:  add
-      IL_0013:  stloc.0
-      IL_0014:  leave.s    IL_001a
-    }
-    finally
-    {
-      IL_0016:  ldnull
-      IL_0017:  stloc.1
-      IL_0018:  endfinally
-    }
+    IL_0000:  ldstr      ""hello""
+    IL_0005:  stloc.1
+    IL_0006:  ldloc.1
+    IL_0007:  conv.i
+    IL_0008:  stloc.0
+    IL_0009:  ldloc.0
+    IL_000a:  brfalse.s  IL_0014
+    IL_000c:  ldloc.0
+    IL_000d:  call       ""int System.Runtime.CompilerServices.RuntimeHelpers.OffsetToStringData.get""
+    IL_0012:  add
+    IL_0013:  stloc.0
+    IL_0014:  leave.s    IL_0019
   }
   finally
   {
-    IL_0019:  endfinally
+    IL_0016:  ldnull
+    IL_0017:  stloc.1
+    IL_0018:  endfinally
   }
-  IL_001a:  ret
-}
-");
+  IL_0019:  ret
+}");
         }
 
         [Fact]
@@ -3142,7 +3130,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3194,7 +3182,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       27 (0x1b)
@@ -3248,7 +3236,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             // CONSIDER: dev11 doesn't have a finally here, but that seems incorrect.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3301,7 +3289,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       27 (0x1b)
@@ -3355,7 +3343,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3405,7 +3393,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3455,7 +3443,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3504,7 +3492,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       22 (0x16)
@@ -3544,7 +3532,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       21 (0x15)
@@ -3585,7 +3573,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       36 (0x24)
@@ -3643,7 +3631,7 @@ unsafe class C
             //      branches out or not.  We should be conservative and assume that
             //      it does.
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       23 (0x17)
@@ -3707,7 +3695,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size      103 (0x67)
@@ -3774,7 +3762,7 @@ unsafe class C
         }
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).
                 VerifyIL("C.Test", @"
 {
   // Code size       23 (0x17)
@@ -5378,7 +5366,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem(546750, "DevDiv")]
+        [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionUnchecked_SizeOne()
         {
@@ -5464,7 +5452,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(546750, "DevDiv")]
+        [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact]
         public void NumericAdditionChecked_SizeOne()
         {
@@ -6156,7 +6144,7 @@ unsafe struct S
 ");
         }
 
-        [WorkItem(544155, "DevDiv")]
+        [WorkItem(544155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544155")]
         [Fact]
         public void SubtractPointerTypes()
         {
@@ -6854,8 +6842,8 @@ SubLong: Exception at 0 - -int.MinValue
         [Fact]
         public void CheckedNumericSubtractionOverflow4()
         {
-            var text = MakeNumericOverflowTest(NegativeNumericSubtractionCasesTemplate, "S02", "Sub", "-", "checked");            
-            
+            var text = MakeNumericOverflowTest(NegativeNumericSubtractionCasesTemplate, "S02", "Sub", "-", "checked");
+
             bool isx86 = (IntPtr.Size == 4);
             string expectedOutput;
 
@@ -7170,7 +7158,7 @@ AddULong: No exception at 1 + ulong.MaxValue (value = 0)
         public void UncheckedNumericAdditionOverflow2()
         {
             var text = MakeNumericOverflowTest(PositiveNumericAdditionCasesTemplate, "S02", "Add", "+", "unchecked");
-            
+
             bool isx86 = (IntPtr.Size == 4);
             string expectedOutput;
 
@@ -8235,7 +8223,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(544229, "DevDiv")]
+        [WorkItem(544229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544229")]
         [Fact]
         public void UnsafeTypeAsAttributeArgument()
         {
@@ -8259,19 +8247,19 @@ class A : Attribute
     }}
 }}
 ";
-            CompileAndVerify(string.Format(template, "int"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
-            CompileAndVerify(string.Format(template, "int*"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
-            CompileAndVerify(string.Format(template, "int**"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
-            CompileAndVerify(string.Format(template, "int[]"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
-            CompileAndVerify(string.Format(template, "int[][]"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
-            CompileAndVerify(string.Format(template, "int*[]"), options: TestOptions.UnsafeReleaseExe, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int*"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int**"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int[][]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
+            CompileAndVerify(string.Format(template, "int*[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True");
         }
 
         #endregion Functional tests
 
         #region Regression tests
 
-        [WorkItem(545026, "DevDiv")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void MixedSafeAndUnsafeFields()
         {
@@ -8301,7 +8289,7 @@ public class Test
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: false).VerifyDiagnostics();
         }
 
-        [WorkItem(545026, "DevDiv")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void SafeFieldBeforeUnsafeField()
         {
@@ -8318,7 +8306,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem(545026, "DevDiv")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
         [Fact]
         public void SafeFieldAfterUnsafeField()
         {
@@ -8335,7 +8323,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
         }
 
-        [WorkItem(545026, "DevDiv"), WorkItem(598170, "DevDiv")]
+        [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026"), WorkItem(598170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598170")]
         [Fact]
         public void FixedPassByRef()
         {
@@ -8388,7 +8376,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s.i"));
         }
 
-        [Fact, WorkItem(545293, "DevDiv"), WorkItem(881188, "DevDiv")]
+        [Fact, WorkItem(545293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545293"), WorkItem(881188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/881188")]
         public void EmptyAndFixedBufferStructIsInitialized()
         {
             var text = @"
@@ -8412,7 +8400,7 @@ public struct OuterStruct
                 );
         }
 
-        [Fact, WorkItem(545296, "DevDiv"), WorkItem(545999, "DevDiv")]
+        [Fact, WorkItem(545296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545296"), WorkItem(545999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545999")]
         public void FixedBufferAndStatementWithFixedArrayElementAsInitializer()
         {
             var text = @"
@@ -8428,7 +8416,7 @@ unsafe public struct FixedStruct
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: false).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(545299, "DevDiv")]
+        [Fact, WorkItem(545299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545299")]
         public void FixedStatementInlambda()
         {
             var text = @"
@@ -8466,7 +8454,7 @@ class A
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "b");
         }
 
-        [Fact, WorkItem(546865, "DevDiv")]
+        [Fact, WorkItem(546865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546865")]
         public void DontStackScheduleLocalPerformingPointerConversion()
         {
             var text = @"
@@ -8546,7 +8534,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem(546807, "DevDiv")]
+        [Fact, WorkItem(546807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
         public void PointerMemberAccessReadonlyField()
         {
             var text = @"
@@ -8614,7 +8602,7 @@ True");
 ");
         }
 
-        [Fact, WorkItem(546807, "DevDiv")]
+        [Fact, WorkItem(546807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546807")]
         public void PointerMemberAccessCall()
         {
             var text = @"
@@ -8689,7 +8677,7 @@ unsafe class Test
 }");
         }
 
-        [Fact, WorkItem(531327, "DevDiv")]
+        [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
         public void PointerParameter()
         {
             var text = @"
@@ -8708,10 +8696,10 @@ namespace N
 }
 ";
 
-            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false) );
+            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false));
         }
 
-        [Fact, WorkItem(531327, "DevDiv")]
+        [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
         public void PointerReturn()
         {
             var text = @"
@@ -8735,7 +8723,7 @@ unsafe struct S1
             var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false));
         }
 
-        [Fact, WorkItem(748530, "DevDiv")]
+        [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
         public void Repro748530()
         {
             var text = @"
@@ -8749,12 +8737,12 @@ unsafe class A
     }
 }
 ";
-            
+
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(682584, "DevDiv")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv()
         {
@@ -8800,7 +8788,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584, "DevDiv")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv001()
         {
@@ -8850,7 +8838,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584, "DevDiv")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv002()
         {
@@ -8892,7 +8880,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(682584, "DevDiv")]
+        [WorkItem(682584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682584")]
         [Fact]
         public void UnsafeMathConv002a()
         {
@@ -8933,7 +8921,7 @@ unsafe class C
 ");
         }
 
-        [WorkItem(857598, "DevDiv")]
+        [WorkItem(857598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/857598")]
         [Fact]
         public void VoidToNullable()
         {
@@ -8952,7 +8940,7 @@ class c1
 	}
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"0");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
             compVerifier.VerifyIL("C..ctor", @"
 {
   // Code size       21 (0x15)
@@ -8970,7 +8958,7 @@ class c1
 ");
         }
 
-        [WorkItem(907771, "DevDiv")]
+        [WorkItem(907771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
         [Fact]
         public void UnsafeBeforeReturn001()
         {
@@ -9043,7 +9031,7 @@ public unsafe class C
 ");
         }
 
-        [WorkItem(907771, "DevDiv")]
+        [WorkItem(907771, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907771")]
         [Fact]
         public void UnsafeBeforeReturn002()
         {
@@ -9132,6 +9120,101 @@ public unsafe class C
   IL_003e:  ret
 }
 ", sequencePoints: "C.ToManagedByteArray");
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SystemIntPtrInSignature_BreakingChange()
+        {
+            // NOTE: the IL is intentionally not compliant with ECMA spec 
+            //       in particular Metadata spec II.23.2.16 (Short form signatures) says that 
+            //       [mscorlib]System.IntPtr   is not supposed to be used in metadata
+            //       and short-version   'native int' is supposed to be used instead.
+            var ilSource =
+@"
+.class public AddressHelper{
+    .method public hidebysig static valuetype [mscorlib]System.IntPtr AddressOf<T>(!!0& t){
+        ldarg 0
+        ldind.i
+        ret
+    }    
+}
+";
+            var csharpSource =
+@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var s = string.Empty;
+            var i = AddressHelper.AddressOf(ref s);
+            System.Console.WriteLine(i);
+        }
+    }
+";
+            var cscomp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+
+            var expected = new[] {
+                // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language
+                //             var i = AddressHelper.AddressOf(ref s);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "AddressOf").WithArguments("AddressHelper.AddressOf<T>(?)").WithLocation(7, 35)
+            };
+
+            cscomp.VerifyDiagnostics(expected);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SystemIntPtrInSignature_BreakingChange_001()
+        {
+            var ilSource =
+@"
+.class public AddressHelper{
+    .method public hidebysig static native int AddressOf<T>(!!0& t){
+        ldc.i4.5
+	    conv.i
+	    ret
+    }    
+}
+";
+            var csharpSource =
+@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var s = string.Empty;
+            var i = AddressHelper.AddressOf(ref s);
+            System.Console.WriteLine(i);
+        }
+    }
+";
+            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
+
+            compilation.VerifyDiagnostics();
+
+            var result = CompileAndVerify(compilation, expectedOutput: "5");
+        }
+
+
+        [Fact, WorkItem(7550, "https://github.com/dotnet/roslyn/issues/7550")]
+        public void EnsureNullPointerIsPoppedIfUnused()
+        {
+            string source = @"
+public class A
+{
+    public unsafe byte* Ptr;
+
+    static void Main()
+    {
+        unsafe
+        {
+            var x = new A();
+            byte* ptr = (x == null) ? null : x.Ptr;
+        }
+        System.Console.WriteLine(""OK"");
+    }
+}
+";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK");
         }
 
         #endregion

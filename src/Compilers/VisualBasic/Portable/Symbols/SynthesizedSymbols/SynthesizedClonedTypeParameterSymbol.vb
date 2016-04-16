@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedClonedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private ReadOnly m_typeMapFactory As Func(Of Symbol, TypeSubstitution)
-        Private ReadOnly m_container As Symbol
-        Private ReadOnly m_correspondingMethodTypeParameter As TypeParameterSymbol
-        Private ReadOnly m_name As String
+        Private ReadOnly _typeMapFactory As Func(Of Symbol, TypeSubstitution)
+        Private ReadOnly _container As Symbol
+        Private ReadOnly _correspondingMethodTypeParameter As TypeParameterSymbol
+        Private ReadOnly _name As String
 
         ' cannot use original constraints, etc. since they may refer to original type parameters
-        Private m_lazyConstraints As ImmutableArray(Of TypeSymbol)
+        Private _lazyConstraints As ImmutableArray(Of TypeSymbol)
 
         Friend Shared Function MakeTypeParameters(origParameters As ImmutableArray(Of TypeParameterSymbol), container As Symbol,
                                                   mapFunction As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol)) As ImmutableArray(Of TypeParameterSymbol)
@@ -39,10 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(correspondingMethodTypeParameter.IsDefinition)
             Debug.Assert(correspondingMethodTypeParameter.ContainingSymbol <> container)
 
-            m_container = container
-            m_correspondingMethodTypeParameter = correspondingMethodTypeParameter
-            m_name = name
-            m_typeMapFactory = typeMapFactory
+            _container = container
+            _correspondingMethodTypeParameter = correspondingMethodTypeParameter
+            _name = name
+            _typeMapFactory = typeMapFactory
         End Sub
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
@@ -55,76 +55,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property TypeMap As TypeSubstitution
             Get
-                Return m_typeMapFactory(Me.m_container)
+                Return _typeMapFactory(Me._container)
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
-                If m_lazyConstraints.IsDefault Then
-                    Dim constraints = InternalSubstituteTypeParametersDistinct(TypeMap, m_correspondingMethodTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
-                    ImmutableInterlocked.InterlockedInitialize(m_lazyConstraints, constraints)
+                If _lazyConstraints.IsDefault Then
+                    Dim constraints = InternalSubstituteTypeParametersDistinct(TypeMap, _correspondingMethodTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                    ImmutableInterlocked.InterlockedInitialize(_lazyConstraints, constraints)
                 End If
-                Return m_lazyConstraints
+                Return _lazyConstraints
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_container
+                Return _container
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasConstructorConstraint As Boolean
             Get
-                Return m_correspondingMethodTypeParameter.HasConstructorConstraint
+                Return _correspondingMethodTypeParameter.HasConstructorConstraint
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasReferenceTypeConstraint As Boolean
             Get
-                Return m_correspondingMethodTypeParameter.HasReferenceTypeConstraint
+                Return _correspondingMethodTypeParameter.HasReferenceTypeConstraint
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
             Get
-                Return m_correspondingMethodTypeParameter.HasValueTypeConstraint
+                Return _correspondingMethodTypeParameter.HasValueTypeConstraint
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_correspondingMethodTypeParameter.Locations
+                Return _correspondingMethodTypeParameter.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return m_correspondingMethodTypeParameter.DeclaringSyntaxReferences
+                Return _correspondingMethodTypeParameter.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return m_correspondingMethodTypeParameter.Ordinal
+                Return _correspondingMethodTypeParameter.Ordinal
             End Get
         End Property
 
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
-                Return m_correspondingMethodTypeParameter.Variance
+                Return _correspondingMethodTypeParameter.Variance
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_name
+                Return _name
             End Get
         End Property
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()
-            m_correspondingMethodTypeParameter.EnsureAllConstraintsAreResolved()
+            _correspondingMethodTypeParameter.EnsureAllConstraintsAreResolved()
         End Sub
 
     End Class

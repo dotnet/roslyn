@@ -7,16 +7,16 @@ namespace Microsoft.CodeAnalysis
 {
     internal class SyntaxNodeLocationComparer : IComparer<SyntaxNode>
     {
-        private readonly Compilation compilation;
+        private readonly Compilation _compilation;
 
         public SyntaxNodeLocationComparer(Compilation compilation)
         {
-            this.compilation = compilation;
+            _compilation = compilation;
         }
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
-            return compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
+            return _compilation.CompareSourceLocations(x.GetLocation(), y.GetLocation());
         }
     }
 }

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8CE3A581-2969-4864-A803-013E9D977C3A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
+    <AssemblyName>vbc</AssemblyName>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LargeAddressAware>true</LargeAddressAware>
+    <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <OutDir>$(OutDir)vbccore\</OutDir>
+    <RestorePackages>true</RestorePackages>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">
+      <Project>{b5a6057a-eb4c-49fb-987d-943137e72e47}</Project>
+      <Name>CommonNetCoreReferences</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
+      <Link>CoreClrBuildClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\Vbc.cs">
+      <Link>Vbc.cs</Link>
+    </Compile>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vbc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="vbc.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

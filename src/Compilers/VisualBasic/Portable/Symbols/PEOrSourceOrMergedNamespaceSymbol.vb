@@ -29,18 +29,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The map actually stores ImmutableArray(Of MethodSymbol), but we are using ImmutableArray(Of Symbol)
         ''' in order to be able to pass the map to a more general API.
         ''' </summary>
-        Private m_lazyExtensionMethodsMap As Dictionary(Of String, ImmutableArray(Of Symbol))
+        Private _lazyExtensionMethodsMap As Dictionary(Of String, ImmutableArray(Of Symbol))
 
         ' counter of extension method queries against this namespace until we decide to build complete map
-        Private m_extQueryCnt As Integer
+        Private _extQueryCnt As Integer
 
-        Private Shared ReadOnly EmptyDictionary As New Dictionary(Of String, ImmutableArray(Of Symbol))()
+        Private Shared ReadOnly s_emptyDictionary As New Dictionary(Of String, ImmutableArray(Of Symbol))()
 
-        Private m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType As Byte = CByte(Accessibility.Private) ' Not calculated yet.
+        Private _lazyDeclaredAccessibilityOfMostAccessibleDescendantType As Byte = CByte(Accessibility.Private) ' Not calculated yet.
 
         Friend ReadOnly Property RawLazyDeclaredAccessibilityOfMostAccessibleDescendantType As Accessibility
             Get
-                Return CType(m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType, Accessibility)
+                Return CType(_lazyDeclaredAccessibilityOfMostAccessibleDescendantType, Accessibility)
             End Get
         End Property
 
@@ -55,23 +55,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend NotOverridable Overrides ReadOnly Property DeclaredAccessibilityOfMostAccessibleDescendantType As Accessibility
             Get
-                If m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private Then
-                    m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType = CByte(GetDeclaredAccessibilityOfMostAccessibleDescendantType())
+                If _lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private Then
+                    _lazyDeclaredAccessibilityOfMostAccessibleDescendantType = CByte(GetDeclaredAccessibilityOfMostAccessibleDescendantType())
 
                     ' Bubble up public accessibility
-                    If m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
+                    If _lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Public Then
                         Dim parent = TryCast(Me.ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
 
                         While parent IsNot Nothing AndAlso
-                              parent.m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private
+                              parent._lazyDeclaredAccessibilityOfMostAccessibleDescendantType = Accessibility.Private
 
-                            parent.m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType = CByte(Accessibility.Public)
+                            parent._lazyDeclaredAccessibilityOfMostAccessibleDescendantType = CByte(Accessibility.Public)
                             parent = TryCast(parent.ContainingSymbol, PEOrSourceOrMergedNamespaceSymbol)
                         End While
                     End If
                 End If
 
-                Return CType(m_LazyDeclaredAccessibilityOfMostAccessibleDescendantType, Accessibility)
+                Return CType(_lazyDeclaredAccessibilityOfMostAccessibleDescendantType, Accessibility)
             End Get
         End Property
 
@@ -86,10 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub AppendProbableExtensionMethods(name As String, methods As ArrayBuilder(Of MethodSymbol))
             Dim match As ImmutableArray(Of Symbol) = Nothing
 
-            If m_lazyExtensionMethodsMap Is Nothing Then
+            If _lazyExtensionMethodsMap Is Nothing Then
                 ' Do not force collection of all extension methods as that might be expensive
                 ' unless we see a lot of traffic here
-                Dim cnt = Interlocked.Increment(Me.m_extQueryCnt)
+                Dim cnt = Interlocked.Increment(Me._extQueryCnt)
 
                 ' 40 is a rough threshold when we consider current namespace to be popular enough to build a complete
                 ' cache of extension methods. Bigger number would favor dynamic scenarios like typing (vs. static compiling)
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' 
                 ' when I tested some typing scenarios in VB compiler, it seems that when this 
                 ' number in 30-50 range the time spent in GetExtensionMethods and EnsureExtensionMethodsAreCollected
-                ' are on the same order. Overal perf is not very sensitive to the threshold. 
+                ' are on the same order. Overall perf is not very sensitive to the threshold. 
                 '
                 ' "=" because we want only one thread to do collecting.
                 If cnt = 40 Then
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If m_lazyExtensionMethodsMap.TryGetValue(name, match) Then
+            If _lazyExtensionMethodsMap.TryGetValue(name, match) Then
                 methods.AddRange(match.As(Of MethodSymbol))
             End If
         End Sub
@@ -128,19 +128,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                   originalBinder As Binder,
                                                                   appendThrough As NamespaceSymbol)
             EnsureExtensionMethodsAreCollected()
-            appendThrough.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder, m_lazyExtensionMethodsMap)
+            appendThrough.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder, _lazyExtensionMethodsMap)
         End Sub
 
         ''' <summary>
         ''' Build and cache a map of probable extension methods for this namespace.
         ''' </summary>
         Private Sub EnsureExtensionMethodsAreCollected()
-            If m_lazyExtensionMethodsMap Is Nothing Then
+            If _lazyExtensionMethodsMap Is Nothing Then
                 Dim map As New Dictionary(Of String, ArrayBuilder(Of MethodSymbol))(CaseInsensitiveComparison.Comparer)
                 BuildExtensionMethodsMap(map)
 
                 If map.Count = 0 Then
-                    m_lazyExtensionMethodsMap = EmptyDictionary
+                    _lazyExtensionMethodsMap = s_emptyDictionary
                 Else
                     Dim extensionMethods As New Dictionary(Of String, ImmutableArray(Of Symbol))(map.Count, CaseInsensitiveComparison.Comparer)
 
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         extensionMethods.Add(pair.Key, StaticCast(Of Symbol).From(pair.Value.ToImmutableAndFree()))
                     Next
 
-                    m_lazyExtensionMethodsMap = extensionMethods
+                    _lazyExtensionMethodsMap = extensionMethods
                 End If
             End If
         End Sub

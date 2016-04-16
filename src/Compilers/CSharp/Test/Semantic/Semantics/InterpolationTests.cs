@@ -158,7 +158,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
                 );
         }
-        
+
         [Fact]
         public void TestHalfOpenInterp03()
         {
@@ -186,7 +186,7 @@ class Program {
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 77)
                 );
         }
-        
+
         [Fact]
         public void LambdaInInterp()
         {
@@ -246,6 +246,30 @@ class Program
             string expectedOutput = @"Hello,
 world.";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(306, "https://github.com/dotnet/roslyn/issues/306"), WorkItem(308, "https://github.com/dotnet/roslyn/issues/308")]
+        public void DynamicInterpolation()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main(string[] args)
+    {
+        dynamic nil = null;
+        dynamic a = new string[] {""Hello"", ""world""};
+        Console.WriteLine($""<{nil}>"");
+        Console.WriteLine($""<{a}>"");
+    }
+    Expression<Func<string>> M(dynamic d) {
+        return () => $""Dynamic: {d}"";
+    }
+}";
+            string expectedOutput = @"<>
+<System.String[]>";
+            var verifier = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -499,18 +523,19 @@ class Program
                 );
         }
 
-        [Fact]
-        public void NoFillIns()
+        [Fact, WorkItem(1119878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119878")]
+        public void NoFillIns01()
         {
             string source =
 @"class Program
 {
     static void Main()
     {
-        System.Console.WriteLine($""{{ x }}"");
+        System.Console.Write($""{{ x }}"");
+        System.Console.WriteLine($@""This is a test"");
     }
 }";
-            string expectedOutput = @"{ x }";
+            string expectedOutput = @"{ x }This is a test";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
@@ -551,12 +576,7 @@ class Program
 
         // Since the platform type System.FormattableString is not yet in our platforms (at the
         // time of writing), we explicitly include the required platform types into the sources under test.
-        const string formattableString = @"
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
+        private const string formattableString = @"
 /*============================================================
 **
 ** Class:  FormattableString
@@ -636,11 +656,6 @@ namespace System
 }
 
 
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
 /*============================================================
 **
 ** Class:  FormattableStringFactory
@@ -833,7 +848,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097388, "DevDiv")]
+        [WorkItem(1097388, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097388")]
         [Fact]
         public void InterpolationExpressionMustBeValue01()
         {
@@ -879,7 +894,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1097428, "DevDiv")]
+        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib01()
         {
@@ -910,7 +925,7 @@ class Program {
             );
         }
 
-        [WorkItem(1097428, "DevDiv")]
+        [WorkItem(1097428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097428")]
         [Fact]
         public void BadCorelib02()
         {
@@ -981,7 +996,7 @@ class Program {
     }
 }";
             var comp = CreateCompilation(text, options: Test.Utilities.TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            var compilation = CompileAndVerify(comp, emitOptions: CodeAnalysis.Test.Utilities.TestEmitters.RefEmitUnsupported, verify: false);
+            var compilation = CompileAndVerify(comp, verify: false);
             compilation.VerifyIL("System.Program.Main",
 @"{
   // Code size       35 (0x23)
@@ -1000,7 +1015,7 @@ class Program {
 }");
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax01()
         {
@@ -1025,7 +1040,7 @@ class Program
                 );
         }
 
-        [WorkItem(1097941, "DevDiv")]
+        [WorkItem(1097941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097941")]
         [Fact]
         public void Syntax02()
         {
@@ -1042,7 +1057,7 @@ class C
             Assert.True(SyntaxFactory.ParseSyntaxTree(text).GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax03()
         {
@@ -1063,8 +1078,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
                 );
         }
-        
-        [WorkItem(1099105, "DevDiv")]
+
+        [WorkItem(1099105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099105")]
         [Fact]
         public void NoUnexpandedForm()
         {
@@ -1086,7 +1101,7 @@ class Program {
 -System.String[]-");
         }
 
-        [WorkItem(1097386, "DevDiv")]
+        [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Dynamic01()
         {
@@ -1109,7 +1124,7 @@ class Program {
                 );
         }
 
-        [WorkItem(1099238, "DevDiv")]
+        [WorkItem(1099238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099238")]
         [Fact]
         public void Syntax04()
         {
@@ -1135,5 +1150,40 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(1098612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098612")]
+        public void MissingConversionFromFormattableStringToIFormattable()
+        {
+            var text =
+@"namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static FormattableString Create(string format, params object[] arguments)
+        {
+            return null;
+        }
+    }
+}
+
+namespace System
+{
+    public abstract class FormattableString
+    {
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyEmitDiagnostics(
+                // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
+                );
+        }
     }
 }

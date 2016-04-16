@@ -1,0 +1,68 @@
+﻿<options:AbstractOptionPageControl
+    x:Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.AdvancedOptionPageControl"
+    x:ClassModifier="Friend"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.VisualBasic.Options"
+    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <GroupBox x:Uid="HighlightingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
+                <StackPanel>
+                    <CheckBox x:Name="EnableHighlightReferences"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightReferences}" />
+                    <CheckBox x:Name="EnableHighlightKeywords"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightKeywords}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="OutliningGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}">
+                <StackPanel>
+                    <CheckBox x:Name="EnableOutlining"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableOutlining}" />
+                    <CheckBox x:Name="DisplayLineSeparators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="EnableLineCommit"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
+                    <CheckBox x:Name="EnableEndConstruct"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableEndConstruct}" />
+                    <CheckBox x:Name="AutomaticInsertionOfInterfaceAndMustOverrideMembers"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
+                    <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
+                    <CheckBox x:Name="ClosedFileDiagnostics"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="GoToDefinitionGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
+                <StackPanel>
+                    <CheckBox x:Name="NavigateToObjectBrowser"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_NavigateToObjectBrowser}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="ExtractMethodGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
+                <StackPanel>
+                    <CheckBox x:Name="DontPutOutOrRefOnStruct"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
+                    <CheckBox x:Name="AllowMovingDeclaration"
+                              Visibility="Collapsed"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</options:AbstractOptionPageControl>

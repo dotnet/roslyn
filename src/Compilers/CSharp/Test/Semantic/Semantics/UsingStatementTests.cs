@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class UsingStatementTests : CompilingTestBase
     {
-        string ManagedClass = @"
+        private readonly string _managedClass = @"
 class MyManagedType : System.IDisposable
 {
     public void Dispose()
     { }
 }";
 
-        string ManagedStruct = @"
+        private readonly string _managedStruct = @"
 struct MyManagedType : System.IDisposable
 {
     public void Dispose()
@@ -354,7 +354,7 @@ class Program
         }
     }
 }
-" + ManagedClass;
+" + _managedClass;
 
             var compilation = CreateCompilationWithMscorlib(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
@@ -362,7 +362,7 @@ class Program
 
         // The object created inside the "using" statement but declared no variable
         [Fact]
-        public void ResourceCreatedInsideUsingWithNoVarDecalred()
+        public void ResourceCreatedInsideUsingWithNoVarDeclared()
         {
             var source = @"
 using System;
@@ -375,7 +375,7 @@ class Program
         }
     }
 }
-" + ManagedStruct;
+" + _managedStruct;
             var compilation = CreateCompilationWithMscorlib(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
         }
@@ -396,7 +396,7 @@ class Program
         }
     }
 }
-" + ManagedStruct;
+" + _managedStruct;
 
             var compilation = CreateCompilationWithMscorlib(source);
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
@@ -424,7 +424,7 @@ class Program
         }
     }
 }
-" + ManagedClass;
+" + _managedClass;
 
             var compilation = CreateCompilationWithMscorlib(source);
 
@@ -453,7 +453,7 @@ class Program
 }
 class MyManagedTypeDerived : MyManagedType
 { }
-" + ManagedClass;
+" + _managedClass;
 
             var compilation = CreateCompilationWithMscorlib(source);
 
@@ -481,7 +481,7 @@ class Program
         }
     }
 }
-" + ManagedClass;
+" + _managedClass;
 
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
 
@@ -510,7 +510,7 @@ class Program
         }
     }
 }
-" + ManagedStruct;
+" + _managedStruct;
 
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
 
@@ -581,7 +581,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 
-        [WorkItem(543168, "DevDiv")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -600,7 +600,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529547, "DevDiv")]
+        [WorkItem(529547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529547")]
         [Fact]
         public void UnusedLocal()
         {
@@ -633,7 +633,7 @@ public class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545331, "DevDiv")]
+        [WorkItem(545331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545331")]
         [Fact]
         public void MissingIDisposable()
         {
@@ -675,7 +675,7 @@ class C
 
         #region help method
 
-        UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
+        private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -683,7 +683,7 @@ class C
             return usingStatements[index - 1];
         }
 
-        IEnumerable VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
+        private IEnumerable VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -699,7 +699,7 @@ class C
             }
         }
 
-        SymbolInfo VerifySymbolInfoForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
+        private SymbolInfo VerifySymbolInfoForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -713,7 +713,7 @@ class C
             return type;
         }
 
-        ISymbol VerifyLookUpSymbolForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
+        private ISymbol VerifyLookUpSymbolForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

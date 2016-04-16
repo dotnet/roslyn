@@ -89,7 +89,7 @@ public class Top : A<E> { // base is A<E>
             Assert.True(type.IsDefinition);
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             type.GetAllTypeParameters(allTypeParameters);
-            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments).SubstituteNamedType(type);
+            return new TypeMap(allTypeParameters.ToImmutableAndFree(), typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)).SubstituteNamedType(type);
         }
 
         [Fact]
@@ -185,6 +185,5 @@ class C1<C1T1, C1T2>
                 var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_byte, _char, _int, _int);
             });
         }
-
     }
 }

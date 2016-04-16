@@ -10,11 +10,11 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
         Public Overrides Function VisitNullableIsTrueOperator(node As BoundNullableIsTrueOperator) As BoundNode
             Debug.Assert(node.Operand.Type.IsNullableOfBoolean())
 
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node.Update(VisitExpression(node.Operand), node.Type)
             End If
 
@@ -24,17 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundLiteral(node.Syntax, ConstantValue.False, node.Type)
             End If
 
-            If operand.Kind = BoundKind.LoweredConditionalAccess Then
-                Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
-
-                If HasNoValue(conditional.WhenNullOpt) Then
-                    Debug.Assert(Not HasNoValue(conditional.WhenNotNull))
-                    Return conditional.Update(conditional.ReceiverOrCondition,
-                                              conditional.CaptureReceiver,
-                                              conditional.PlaceholderId,
-                                              NullableValueOrDefault(conditional.WhenNotNull),
-                                              New BoundLiteral(node.Syntax, ConstantValue.False, node.Type),
-                                              node.Type)
+            Dim whenNotNull As BoundExpression = Nothing
+            Dim whenNull As BoundExpression = Nothing
+            If IsConditionalAccess(operand, whenNotNull, whenNull) Then
+                If HasNoValue(whenNull) Then
+                    Debug.Assert(Not HasNoValue(whenNotNull))
+                    Return UpdateConditionalAccess(operand,
+                                              NullableValueOrDefault(whenNotNull),
+                                              New BoundLiteral(node.Syntax, ConstantValue.False, node.Type))
                 End If
             End If
 
@@ -42,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitUserDefinedUnaryOperator(node As BoundUserDefinedUnaryOperator) As BoundNode
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 Return node.Update(node.OperatorKind, VisitExpression(node.UnderlyingExpression), node.Type)
             End If
 
@@ -54,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitUnaryOperator(node As BoundUnaryOperator) As BoundNode
-            If (node.OperatorKind And UnaryOperatorKind.Lifted) = 0 OrElse inExpressionLambda Then
+            If (node.OperatorKind And UnaryOperatorKind.Lifted) = 0 OrElse _inExpressionLambda Then
                 Dim result As BoundNode = MyBase.VisitUnaryOperator(node)
                 If result.Kind = BoundKind.UnaryOperator Then
 
@@ -71,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression = node
             Dim kind As UnaryOperatorKind = node.OperatorKind
 
-            If Not node.HasErrors AndAlso ((kind And UnaryOperatorKind.Lifted) = 0) AndAlso (kind <> UnaryOperatorKind.Error) AndAlso Not inExpressionLambda Then
+            If Not node.HasErrors AndAlso ((kind And UnaryOperatorKind.Lifted) = 0) AndAlso (kind <> UnaryOperatorKind.Error) AndAlso Not _inExpressionLambda Then
                 Dim opType As TypeSymbol = node.Type
 
                 If opType.IsObjectType() Then
@@ -199,10 +196,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '                    |                   |
             '                OPERAND
             '
-            ' Implicit unwraping conversion if present is always O? -> O 
+            ' Implicit unwrapping conversion if present is always O? -> O 
             ' It is encoded as a disparity between CALL argument type and parameter type of the call symbol.
             '
-            ' Implicit wrapping conversion of the resilt, if present, is always T -> T?
+            ' Implicit wrapping conversion of the result, if present, is always T -> T?
             '
             ' The rewrite is:
             '   If (OPERAND.HasValue, CALL(OPERAND), Null)

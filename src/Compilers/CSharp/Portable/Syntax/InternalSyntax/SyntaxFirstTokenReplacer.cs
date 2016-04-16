@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal class SyntaxFirstTokenReplacer : CSharpSyntaxRewriter
     {
-        private readonly SyntaxToken oldToken;
-        private readonly SyntaxToken newToken;
-        private readonly int diagnosticOffsetDelta;
-        private bool foundOldToken;
+        private readonly SyntaxToken _oldToken;
+        private readonly SyntaxToken _newToken;
+        private readonly int _diagnosticOffsetDelta;
+        private bool _foundOldToken;
 
         private SyntaxFirstTokenReplacer(SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
         {
-            this.oldToken = oldToken;
-            this.newToken = newToken;
-            this.diagnosticOffsetDelta = diagnosticOffsetDelta;
-            this.foundOldToken = false;
+            _oldToken = oldToken;
+            _newToken = newToken;
+            _diagnosticOffsetDelta = diagnosticOffsetDelta;
+            _foundOldToken = false;
         }
 
         internal static TRoot Replace<TRoot>(TRoot root, SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var replacer = new SyntaxFirstTokenReplacer(oldToken, newToken, diagnosticOffsetDelta);
             var newRoot = (TRoot)replacer.Visit(root);
-            Debug.Assert(replacer.foundOldToken);
+            Debug.Assert(replacer._foundOldToken);
             return newRoot;
         }
 
@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (node != null)
             {
-                if (!this.foundOldToken)
+                if (!_foundOldToken)
                 {
                     var token = node as SyntaxToken;
                     if (token != null)
                     {
-                        Debug.Assert(token == oldToken);
-                        this.foundOldToken = true;
-                        return newToken; // NB: diagnostic offsets have already been updated (by SyntaxParser.AddSkippedSyntax)
+                        Debug.Assert(token == _oldToken);
+                        _foundOldToken = true;
+                        return _newToken; // NB: diagnostic offsets have already been updated (by SyntaxParser.AddSkippedSyntax)
                     }
 
-                    return UpdateDiagnosticOffset(base.Visit(node), this.diagnosticOffsetDelta);
+                    return UpdateDiagnosticOffset(base.Visit(node), _diagnosticOffsetDelta);
                 }
             }
 

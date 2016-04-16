@@ -161,8 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
             Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
 
-            If Not sourceFile.AliasImports Is Nothing Then
-                For Each [alias] In sourceFile.AliasImports.Values
+            If Not sourceFile.AliasImportsOpt Is Nothing Then
+                For Each [alias] In sourceFile.AliasImportsOpt.Values
                     If [alias].Alias.Target = DirectCast(symbol, NamespaceOrTypeSymbol) Then
                         Return [alias].Alias
                     End If

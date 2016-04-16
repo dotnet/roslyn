@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private ReadOnly _newSolution As Solution
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Sub New(tokenBeingRenamed As SyntaxToken, newSolution As Solution, cancellationToken As CancellationToken)
+        Public Sub New(tokenBeingRenamed As SyntaxToken, newSolution As Solution, cancellationToken As CancellationToken)
             _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, CaseInsensitiveComparison.Comparer)
             _newSolution = newSolution
             _cancellationToken = cancellationToken
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private Sub VisitMethodBlockBase(node As MethodBlockBaseSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.BlockStatement.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.BlockStatement.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.SubOrFunctionHeader.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.SubOrFunctionHeader.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
@@ -112,8 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.SubOrFunctionHeader.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.SubOrFunctionHeader.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
@@ -141,10 +141,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End If
 
             If controlVariable.Kind = SyntaxKind.VariableDeclarator Then
-                ' it's only legal to have one name in the variable declarator for for and for each loops.
+                ' it's only legal to have one name in the variable declarator for for and foreach loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
-                Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).Result
+                Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
                 Dim identifierToken = DirectCast(controlVariable, IdentifierNameSyntax).Identifier
                 Dim symbol = semanticModel.GetSymbolInfo(identifierToken).Symbol
 
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitCatchBlock(node As CatchBlockSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            Dim semanticModel = _newSolution.GetDocument(node.SyntaxTree).GetSemanticModelAsync(_cancellationToken).Result
+            Dim semanticModel = _newSolution.GetDocument(node.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
             Dim identifierToken = node.CatchStatement.IdentifierName?.Identifier
 
             If identifierToken.HasValue Then

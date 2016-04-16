@@ -13,25 +13,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal abstract partial class SyntaxParser : IDisposable
     {
         protected readonly Lexer lexer;
-        private readonly bool isIncremental;
-        private readonly bool allowModeReset;
+        private readonly bool _isIncremental;
+        private readonly bool _allowModeReset;
         protected readonly CancellationToken cancellationToken;
 
-        private LexerMode mode;
-        private Blender firstBlender;
-        private BlendedNode currentNode;
-        private SyntaxToken currentToken;
-        private ArrayElement<SyntaxToken>[] lexedTokens;
-        private CSharpSyntaxNode prevTokenTrailingTrivia;
-        private int firstToken;
-        private int tokenOffset;
-        private int tokenCount;
-        private int resetCount;
-        private int resetStart;
+        private LexerMode _mode;
+        private Blender _firstBlender;
+        private BlendedNode _currentNode;
+        private SyntaxToken _currentToken;
+        private ArrayElement<SyntaxToken>[] _lexedTokens;
+        private CSharpSyntaxNode _prevTokenTrailingTrivia;
+        private int _firstToken;
+        private int _tokenOffset;
+        private int _tokenCount;
+        private int _resetCount;
+        private int _resetStart;
 
-        private static readonly ObjectPool<BlendedNode[]> blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
+        private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
 
-        private BlendedNode[] blendedTokens;
+        private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
             Lexer lexer,
@@ -43,25 +43,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             CancellationToken cancellationToken = default(CancellationToken))
         {
             this.lexer = lexer;
-            this.mode = mode;
-            this.allowModeReset = allowModeReset;
+            _mode = mode;
+            _allowModeReset = allowModeReset;
             this.cancellationToken = cancellationToken;
-            this.currentNode = default(BlendedNode);
-            this.isIncremental = oldTree != null;
+            _currentNode = default(BlendedNode);
+            _isIncremental = oldTree != null;
 
             if (this.IsIncremental || allowModeReset)
             {
-                this.firstBlender = new Blender(lexer, oldTree, changes);
-                this.blendedTokens = blendedNodesPool.Allocate();
+                _firstBlender = new Blender(lexer, oldTree, changes);
+                _blendedTokens = s_blendedNodesPool.Allocate();
             }
             else
             {
-                this.firstBlender = default(Blender);
-                this.lexedTokens = new ArrayElement<SyntaxToken>[32];
+                _firstBlender = default(Blender);
+                _lexedTokens = new ArrayElement<SyntaxToken>[32];
             }
 
             // PreLex is not cancellable. 
-            //      If we may cancell why would we aggressively lex ahead?
+            //      If we may cancel why would we aggressively lex ahead?
             //      Cancellations in a constructor make disposing complicated
             //
             // So, if we have a real cancellation token, do not do prelexing.
@@ -73,27 +73,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Dispose()
         {
-            var blendedTokens = this.blendedTokens;
+            var blendedTokens = _blendedTokens;
             if (blendedTokens != null)
             {
-                Array.Clear(this.blendedTokens, 0, this.blendedTokens.Length);
-                blendedNodesPool.Free(this.blendedTokens);
-                this.blendedTokens = null;
+                _blendedTokens = null;
+                if (blendedTokens.Length < 4096)
+                {
+                    Array.Clear(blendedTokens, 0, blendedTokens.Length);
+                    s_blendedNodesPool.Free(blendedTokens);
+                }
+                else
+                {
+                    s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
+                }
             }
         }
 
         protected void ReInitialize()
         {
-            this.firstToken = 0;
-            this.tokenOffset = 0;
-            this.tokenCount = 0;
-            this.resetCount = 0;
-            this.resetStart = 0;
-            this.currentToken = null;
-            this.prevTokenTrailingTrivia = null;
-            if (this.IsIncremental || allowModeReset)
+            _firstToken = 0;
+            _tokenOffset = 0;
+            _tokenCount = 0;
+            _resetCount = 0;
+            _resetStart = 0;
+            _currentToken = null;
+            _prevTokenTrailingTrivia = null;
+            if (this.IsIncremental || _allowModeReset)
             {
-                this.firstBlender = new Blender(this.lexer, null, null);
+                _firstBlender = new Blender(this.lexer, null, null);
             }
         }
 
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.isIncremental;
+                return _isIncremental;
             }
         }
 
@@ -109,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // NOTE: Do not cancel in this method. It is called from the constructor.
             var size = Math.Min(4096, Math.Max(32, this.lexer.TextWindow.Text.Length / 2));
-            this.lexedTokens = new ArrayElement<SyntaxToken>[size];
+            _lexedTokens = new ArrayElement<SyntaxToken>[size];
             var lexer = this.lexer;
-            var mode = this.mode;
+            var mode = _mode;
 
             for (int i = 0; i < size; i++)
             {
@@ -126,34 +133,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected ResetPoint GetResetPoint()
         {
-            var pos = this.firstToken + this.tokenOffset;
-            if (this.resetCount == 0)
+            var pos = _firstToken + _tokenOffset;
+            if (_resetCount == 0)
             {
-                this.resetStart = pos; // low water mark
+                _resetStart = pos; // low water mark
             }
 
-            this.resetCount++;
-            return new ResetPoint(this.resetCount, this.mode, pos, prevTokenTrailingTrivia);
+            _resetCount++;
+            return new ResetPoint(_resetCount, _mode, pos, _prevTokenTrailingTrivia);
         }
 
         protected void Reset(ref ResetPoint point)
         {
-            this.mode = point.Mode;
-            var offset = point.Position - this.firstToken;
-            Debug.Assert(offset >= 0 && offset < this.tokenCount);
-            this.tokenOffset = offset;
-            this.currentToken = default(SyntaxToken);
-            this.currentNode = default(BlendedNode);
-            this.prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
-            if (this.blendedTokens != null)
+            _mode = point.Mode;
+            var offset = point.Position - _firstToken;
+            Debug.Assert(offset >= 0 && offset < _tokenCount);
+            _tokenOffset = offset;
+            _currentToken = default(SyntaxToken);
+            _currentNode = default(BlendedNode);
+            _prevTokenTrailingTrivia = point.PrevTokenTrailingTrivia;
+            if (_blendedTokens != null)
             {
                 // look forward for slots not holding a token
-                for (int i = this.tokenOffset; i < this.tokenCount; i++)
+                for (int i = _tokenOffset; i < _tokenCount; i++)
                 {
-                    if (this.blendedTokens[i].Token == null)
+                    if (_blendedTokens[i].Token == null)
                     {
                         // forget anything after and including any slot not holding a token
-                        this.tokenCount = i;
+                        _tokenCount = i;
                         break;
                     }
                 }
@@ -162,11 +169,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Release(ref ResetPoint point)
         {
-            Debug.Assert(this.resetCount == point.ResetCount);
-            this.resetCount--;
-            if (this.resetCount == 0)
+            Debug.Assert(_resetCount == point.ResetCount);
+            _resetCount--;
+            if (_resetCount == 0)
             {
-                this.resetStart = -1;
+                _resetStart = -1;
             }
         }
 
@@ -175,39 +182,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return this.lexer.Options; }
         }
 
-        /// <summary>
-        /// Interactive code - global statements, member declarations and expressions allowed.
-        /// </summary>
-        public bool IsInteractive
-        {
-            get { return Options.Kind == SourceCodeKind.Interactive; }
-        }
-
-        /// <summary>
-        /// Script - global statements and member declarations allowed, but not expressions.
-        /// </summary>
         public bool IsScript
         {
-            get { return Options.Kind != SourceCodeKind.Regular; }
+            get { return Options.Kind == SourceCodeKind.Script; }
         }
 
         protected LexerMode Mode
         {
             get
             {
-                return this.mode;
+                return _mode;
             }
 
             set
             {
-                if (this.mode != value)
+                if (_mode != value)
                 {
-                    Debug.Assert(this.allowModeReset);
+                    Debug.Assert(_allowModeReset);
 
-                    this.mode = value;
-                    this.currentToken = default(SyntaxToken);
-                    this.currentNode = default(BlendedNode);
-                    this.tokenCount = this.tokenOffset;
+                    _mode = value;
+                    _currentToken = default(SyntaxToken);
+                    _currentNode = default(BlendedNode);
+                    _tokenCount = _tokenOffset;
                 }
             }
         }
@@ -217,19 +213,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 // we will fail anyways. Assert is just to catch that earlier.
-                Debug.Assert(this.blendedTokens != null);
+                Debug.Assert(_blendedTokens != null);
 
                 //PERF: currentNode is a BlendedNode, which is a fairly large struct.
                 // the following code tries not to pull the whole struct into a local
                 // we only need .Node
-                var node = this.currentNode.Node;
+                var node = _currentNode.Node;
                 if (node != null)
                 {
                     return node;
                 }
 
                 this.ReadCurrentNode();
-                return this.currentNode.Node;
+                return _currentNode.Node;
             }
         }
 
@@ -244,36 +240,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ReadCurrentNode()
         {
-            if (this.tokenOffset == 0)
+            if (_tokenOffset == 0)
             {
-                this.currentNode = this.firstBlender.ReadNode(this.mode);
+                _currentNode = _firstBlender.ReadNode(_mode);
             }
             else
             {
-                this.currentNode = this.blendedTokens[this.tokenOffset - 1].Blender.ReadNode(this.mode);
+                _currentNode = _blendedTokens[_tokenOffset - 1].Blender.ReadNode(_mode);
             }
         }
 
         protected GreenNode EatNode()
         {
             // we will fail anyways. Assert is just to catch that earlier.
-            Debug.Assert(this.blendedTokens != null);
+            Debug.Assert(_blendedTokens != null);
 
             // remember result
             var result = CurrentNode.Green;
 
             // store possible non-token in token sequence 
-            if (this.tokenOffset >= this.blendedTokens.Length)
+            if (_tokenOffset >= _blendedTokens.Length)
             {
                 this.AddTokenSlot();
             }
 
-            this.blendedTokens[this.tokenOffset++] = this.currentNode;
-            this.tokenCount = this.tokenOffset; // forget anything after this slot
+            _blendedTokens[_tokenOffset++] = _currentNode;
+            _tokenCount = _tokenOffset; // forget anything after this slot
 
             // erase current state
-            this.currentNode = default(BlendedNode);
-            this.currentToken = default(SyntaxToken);
+            _currentNode = default(BlendedNode);
+            _currentToken = default(SyntaxToken);
 
             return result;
         }
@@ -282,50 +278,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.currentToken ?? (this.currentToken = this.FetchCurrentToken());
+                return _currentToken ?? (_currentToken = this.FetchCurrentToken());
             }
         }
 
         private SyntaxToken FetchCurrentToken()
         {
-            if (this.tokenOffset >= this.tokenCount)
+            if (_tokenOffset >= _tokenCount)
             {
                 this.AddNewToken();
             }
 
-            if (this.blendedTokens != null)
+            if (_blendedTokens != null)
             {
-                return this.blendedTokens[this.tokenOffset].Token;
+                return _blendedTokens[_tokenOffset].Token;
             }
             else
             {
-                return this.lexedTokens[this.tokenOffset];
+                return _lexedTokens[_tokenOffset];
             }
         }
 
         private void AddNewToken()
         {
-            if (this.blendedTokens != null)
+            if (_blendedTokens != null)
             {
-                if (this.tokenCount > 0)
+                if (_tokenCount > 0)
                 {
-                    this.AddToken(this.blendedTokens[this.tokenCount - 1].Blender.ReadToken(this.mode));
+                    this.AddToken(_blendedTokens[_tokenCount - 1].Blender.ReadToken(_mode));
                 }
                 else
                 {
-                    if (this.currentNode.Token != null)
+                    if (_currentNode.Token != null)
                     {
-                        this.AddToken(this.currentNode);
+                        this.AddToken(_currentNode);
                     }
                     else
                     {
-                        this.AddToken(this.firstBlender.ReadToken(this.mode));
+                        this.AddToken(_firstBlender.ReadToken(_mode));
                     }
                 }
             }
             else
             {
-                this.AddLexedToken(this.lexer.Lex(this.mode));
+                this.AddLexedToken(this.lexer.Lex(_mode));
             }
         }
 
@@ -333,52 +329,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddToken(BlendedNode tokenResult)
         {
             Debug.Assert(tokenResult.Token != null);
-            if (this.tokenCount >= this.blendedTokens.Length)
+            if (_tokenCount >= _blendedTokens.Length)
             {
                 this.AddTokenSlot();
             }
 
-            this.blendedTokens[this.tokenCount] = tokenResult;
-            this.tokenCount++;
+            _blendedTokens[_tokenCount] = tokenResult;
+            _tokenCount++;
         }
 
         private void AddLexedToken(SyntaxToken token)
         {
             Debug.Assert(token != null);
-            if (this.tokenCount >= this.lexedTokens.Length)
+            if (_tokenCount >= _lexedTokens.Length)
             {
                 this.AddLexedTokenSlot();
             }
 
-            this.lexedTokens[this.tokenCount].Value = token;
-            this.tokenCount++;
+            _lexedTokens[_tokenCount].Value = token;
+            _tokenCount++;
         }
 
         private void AddTokenSlot()
         {
             // shift tokens to left if we are far to the right
             // don't shift if reset points have fixed locked tge starting point at the token in the window
-            if (this.tokenOffset > (this.blendedTokens.Length >> 1)
-                && (this.resetStart == -1 || this.resetStart > this.firstToken))
+            if (_tokenOffset > (_blendedTokens.Length >> 1)
+                && (_resetStart == -1 || _resetStart > _firstToken))
             {
-                int shiftOffset = (this.resetStart == -1) ? this.tokenOffset : this.resetStart - this.firstToken;
-                int shiftCount = this.tokenCount - shiftOffset;
+                int shiftOffset = (_resetStart == -1) ? _tokenOffset : _resetStart - _firstToken;
+                int shiftCount = _tokenCount - shiftOffset;
                 Debug.Assert(shiftOffset > 0);
-                this.firstBlender = this.blendedTokens[shiftOffset - 1].Blender;
+                _firstBlender = _blendedTokens[shiftOffset - 1].Blender;
                 if (shiftCount > 0)
                 {
-                    Array.Copy(this.blendedTokens, shiftOffset, this.blendedTokens, 0, shiftCount);
+                    Array.Copy(_blendedTokens, shiftOffset, _blendedTokens, 0, shiftCount);
                 }
 
-                this.firstToken += shiftOffset;
-                this.tokenCount -= shiftOffset;
-                this.tokenOffset -= shiftOffset;
+                _firstToken += shiftOffset;
+                _tokenCount -= shiftOffset;
+                _tokenOffset -= shiftOffset;
             }
             else
             {
-                var old = this.blendedTokens;
-                Array.Resize(ref this.blendedTokens, this.blendedTokens.Length * 2);
-                blendedNodesPool.ForgetTrackedObject(old, replacement: this.blendedTokens);
+                var old = _blendedTokens;
+                Array.Resize(ref _blendedTokens, _blendedTokens.Length * 2);
+                s_blendedNodesPool.ForgetTrackedObject(old, replacement: _blendedTokens);
             }
         }
 
@@ -386,44 +382,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // shift tokens to left if we are far to the right
             // don't shift if reset points have fixed locked tge starting point at the token in the window
-            if (this.tokenOffset > (this.lexedTokens.Length >> 1)
-                && (this.resetStart == -1 || this.resetStart > this.firstToken))
+            if (_tokenOffset > (_lexedTokens.Length >> 1)
+                && (_resetStart == -1 || _resetStart > _firstToken))
             {
-                int shiftOffset = (this.resetStart == -1) ? this.tokenOffset : this.resetStart - this.firstToken;
-                int shiftCount = this.tokenCount - shiftOffset;
+                int shiftOffset = (_resetStart == -1) ? _tokenOffset : _resetStart - _firstToken;
+                int shiftCount = _tokenCount - shiftOffset;
                 Debug.Assert(shiftOffset > 0);
                 if (shiftCount > 0)
                 {
-                    Array.Copy(this.lexedTokens, shiftOffset, this.lexedTokens, 0, shiftCount);
+                    Array.Copy(_lexedTokens, shiftOffset, _lexedTokens, 0, shiftCount);
                 }
 
-                this.firstToken += shiftOffset;
-                this.tokenCount -= shiftOffset;
-                this.tokenOffset -= shiftOffset;
+                _firstToken += shiftOffset;
+                _tokenCount -= shiftOffset;
+                _tokenOffset -= shiftOffset;
             }
             else
             {
-                var tmp = new ArrayElement<SyntaxToken>[this.lexedTokens.Length * 2];
-                Array.Copy(this.lexedTokens, tmp, this.lexedTokens.Length);
-                this.lexedTokens = tmp;
+                var tmp = new ArrayElement<SyntaxToken>[_lexedTokens.Length * 2];
+                Array.Copy(_lexedTokens, tmp, _lexedTokens.Length);
+                _lexedTokens = tmp;
             }
         }
 
         protected SyntaxToken PeekToken(int n)
         {
             Debug.Assert(n >= 0);
-            while (this.tokenOffset + n >= this.tokenCount)
+            while (_tokenOffset + n >= _tokenCount)
             {
                 this.AddNewToken();
             }
 
-            if (this.blendedTokens != null)
+            if (_blendedTokens != null)
             {
-                return this.blendedTokens[this.tokenOffset + n].Token;
+                return _blendedTokens[_tokenOffset + n].Token;
             }
             else
             {
-                return this.lexedTokens[this.tokenOffset + n];
+                return _lexedTokens[_tokenOffset + n];
             }
         }
 
@@ -438,16 +434,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void MoveToNextToken()
         {
-            this.prevTokenTrailingTrivia = this.currentToken.GetTrailingTrivia();
+            _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();
 
-            this.currentToken = default(SyntaxToken);
+            _currentToken = default(SyntaxToken);
 
-            if (this.blendedTokens != null)
+            if (_blendedTokens != null)
             {
-                this.currentNode = default(BlendedNode);
+                _currentNode = default(BlendedNode);
             }
 
-            this.tokenOffset++;
+            _tokenOffset++;
+        }
+
+        protected void ForceEndOfFile()
+        {
+            _currentToken = SyntaxFactory.Token(SyntaxKind.EndOfFileToken);
         }
 
         //this method is called very frequently
@@ -634,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Otherwise the diagnostic offset and width is set
             // to the corresponding values of the current token
 
-            var trivia = this.prevTokenTrailingTrivia;
+            var trivia = _prevTokenTrailingTrivia;
             if (trivia != null)
             {
                 SyntaxList<CSharpSyntaxNode> triviaList = new SyntaxList<CSharpSyntaxNode>(trivia);
@@ -655,13 +656,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected virtual TNode WithAdditionalDiagnostics<TNode>(TNode node, params DiagnosticInfo[] diagnostics) where TNode : CSharpSyntaxNode
         {
             DiagnosticInfo[] existingDiags = node.GetDiagnostics();
-
-            //EDMAURER avoid the creation of a bunch of temporary objects that aggravate the memory situation
-            //when the parser gets profoundly confused and produces many missing token diagnostics.
-
             int existingLength = existingDiags.Length;
             if (existingLength == 0)
+            {
                 return node.WithDiagnosticsGreen(diagnostics);
+            }
             else
             {
                 DiagnosticInfo[] result = new DiagnosticInfo[existingDiags.Length + diagnostics.Length];
@@ -833,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
 
-            // the position of the error within the skipedSyntax node full tree
+            // the position of the error within the skippedSyntax node full tree
             int diagnosticOffset = 0;
 
             int currentOffset = 0;
@@ -1038,20 +1037,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var featureName = feature.Localize();
             var requiredVersion = feature.RequiredVersion();
 
-            if (forceWarning)
+            if (feature.RequiredFeature() != null)
             {
-                SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
-                return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
-            }
+                if (forceWarning)
+                {
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName);
+                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                }
 
-            return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName);
+            }
+            else
+            {
+                if (forceWarning)
+                {
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+                    return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
+                }
+
+                return this.AddError(node, availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
+            }
         }
 
         protected bool IsFeatureEnabled(MessageID feature)
         {
-            LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
-            return availableVersion >= requiredVersion;
+            return this.Options.IsFeatureEnabled(feature);
         }
     }
 }

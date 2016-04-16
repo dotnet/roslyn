@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Module MemberAccessExpressionSyntaxExtensions
+    Friend Module MemberAccessExpressionSyntaxExtensions
         <Extension()>
         Public Function IsConstructorInitializer(memberAccess As MemberAccessExpressionSyntax) As Boolean
             Return memberAccess.IsThisConstructorInitializer() OrElse memberAccess.IsBaseConstructorInitializer()
@@ -78,13 +78,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return memberAccessExpression.Expression
             End If
 
+            ' Maybe we're part of a ConditionalAccessExpression
+            Dim conditional = memberAccessExpression.GetCorrespondingConditionalAccessExpression()
+            If conditional IsNot Nothing Then
+                If conditional.Expression Is Nothing Then
+
+                    ' No expression, maybe we're in a with block
+                    Dim withBlock = conditional.GetAncestor(Of WithBlockSyntax)()
+                    If withBlock IsNot Nothing Then
+                        Return withBlock.WithStatement.Expression
+                    End If
+                End If
+
+                Return conditional.Expression
+            End If
+
             ' we have a member access expression with a null expression, this may be one of the
             ' following forms:
             '
             ' 1) new With { .a = 1, .b = .a     <-- .a refers to the anonymous type
             ' 2) With obj : .m                  <-- .m refers to the obj type
             ' 3) new T() With { .a = 1, .b = .a <-- 'a refers to the T type
-            ' 4) With obj : ?.m                 <-- .m refers to the obj type
 
             Dim current As SyntaxNode = memberAccessExpression
 
@@ -99,12 +113,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf TypeOf current Is ObjectMemberInitializerSyntax AndAlso
                        TypeOf current.Parent Is ObjectCreationExpressionSyntax Then
                     Return DirectCast(current.Parent, ExpressionSyntax)
-                ElseIf current.IsKind(SyntaxKind.ConditionalAccessExpression) Then
-                    Dim conditionalAccess = DirectCast(current, ConditionalAccessExpressionSyntax)
-
-                    If conditionalAccess.Expression IsNot Nothing Then
-                        Return conditionalAccess.Expression
-                    End If
                 End If
 
                 current = current.Parent

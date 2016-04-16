@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// A <see cref="LinePosition"/> that represents position 0 at line 0.
         /// </summary>
-        public static readonly LinePosition Zero = new LinePosition(0, 0);
+        public static LinePosition Zero => default(LinePosition);
 
-        private readonly int line;
-        private readonly int character;
+        private readonly int _line;
+        private readonly int _character;
 
         /// <summary>
         /// Initializes a new instance of a <see cref="LinePosition"/> with the given line and character.
@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (line < 0)
             {
-                throw new ArgumentOutOfRangeException("line");
+                throw new ArgumentOutOfRangeException(nameof(line));
             }
 
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
-            this.line = line;
-            this.character = character;
+            _line = line;
+            _character = character;
         }
 
         // internal constructor that supports a line number == -1.
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
-            this.line = -1;
-            this.character = character;
+            _line = -1;
+            _character = character;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Line
         {
-            get { return this.line; }
+            get { return _line; }
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Character
         {
-            get { return this.character; }
+            get { return _character; }
         }
 
         /// <summary>
@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Text
 
         public int CompareTo(LinePosition other)
         {
-            int result = this.line.CompareTo(other.line);
-            return (result != 0) ? result : this.character.CompareTo(other.Character);
+            int result = _line.CompareTo(other._line);
+            return (result != 0) ? result : _character.CompareTo(other.Character);
         }
 
         public static bool operator >(LinePosition left, LinePosition right)

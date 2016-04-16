@@ -5,7 +5,7 @@ using Xunit;
 
 // The way the specification describes, and the way the native compiler reports name
 // collision errors is inconsistent and confusing. In Roslyn we will implement
-// the following more rational behaviours:
+// the following more rational behaviors:
 //
 // ------------------
 //
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class NameCollisionTests : CompilingTestBase
     {
         [Fact]
-        private void TestNamesFromTypeAndExpressionContextsDontCollide()
+        public void TestNamesFromTypeAndExpressionContextsDontCollide()
         {
             var source = @"
 using name1 = System.Exception;
@@ -175,7 +175,7 @@ class name2
         }
 
         [Fact]
-        private void TestLocalAndLabelDontCollide()
+        public void TestLocalAndLabelDontCollide()
         {
             var source = @"
 using System;
@@ -201,7 +201,7 @@ class name2
         }
 
         [Fact]
-        private void TestCollisionOfLabelWithLabel()
+        public void TestCollisionOfLabelWithLabel()
         {
             var source = @"
 using System;
@@ -267,7 +267,7 @@ class name2
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithTypeOrMethodOrProperty_LegalCases()
+        public void TestCollisionOfLocalWithTypeOrMethodOrProperty_LegalCases()
         {
             var source = @"
 using System;
@@ -311,7 +311,7 @@ class name2
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithType()
+        public void TestCollisionOfLocalWithType()
         {
             var source = @"
 using name1 = System.Console;
@@ -343,9 +343,8 @@ class name2
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithMethodOrProperty()
+        public void TestCollisionOfLocalWithMethodOrProperty()
         {
-
             var source = @"
 using System;
 namespace name1
@@ -385,7 +384,7 @@ namespace name1
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void TestCollisionOfDelegateWithConst()
         {
@@ -414,7 +413,7 @@ namespace name1
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithTypeParameter()
+        public void TestCollisionOfLocalWithTypeParameter()
         {
             var source = @"
 class Class<name1, name2>
@@ -467,7 +466,7 @@ class Class<name1, name2>
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithField_LegalCases()
+        public void TestCollisionOfLocalWithField_LegalCases()
         {
             var source = @"
 partial class Derived : Base
@@ -508,7 +507,7 @@ partial class Derived
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithField1()
+        public void TestCollisionOfLocalWithField1()
         {
             var source = @"
 class Derived : Base
@@ -535,7 +534,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithField2()
+        public void TestCollisionOfLocalWithField2()
         {
             var source = @"
 class Class
@@ -586,7 +585,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideFieldDeclaration()
+        public void TestCollisionInsideFieldDeclaration()
         {
             // A close reading of the spec would indicate that this is not an error because the
             // offending simple name 'x' does not appear in any local variable declaration space.
@@ -604,7 +603,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithField_PartialType()
+        public void TestCollisionOfLocalWithField_PartialType()
         {
             var source = @"
 partial struct PartialStruct
@@ -629,7 +628,7 @@ partial struct PartialStruct
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithLocal_LegalCases1()
+        public void TestCollisionOfLocalWithLocal_LegalCases1()
         {
             var source = @"
 partial class Derived : Base
@@ -665,7 +664,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithLocal_LegalCases2()
+        public void TestCollisionOfLocalWithLocal_LegalCases2()
         {
             var source = @"
 using System;
@@ -691,7 +690,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithLocal_LegalCases3()
+        public void TestCollisionOfLocalWithLocal_LegalCases3()
         {
             var source = @"
 using System;
@@ -719,7 +718,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithLocal()
+        public void TestCollisionOfLocalWithLocal()
         {
             var source = @"
 class Class
@@ -792,7 +791,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionOfLocalWithParam()
+        public void TestCollisionOfLocalWithParam()
         {
             var source = @"
 using System;
@@ -857,7 +856,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionOfParamWithParam()
+        public void TestCollisionOfParamWithParam()
         {
             var source = @"
 using System;
@@ -889,9 +888,9 @@ class Class
     );
         }
 
-        [WorkItem(930252)]
+        [WorkItem(930252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930252")]
         [Fact]
-        private void TestCollisionOfParamWithParam1()
+        public void TestCollisionOfParamWithParam1()
         {
             var source = @"
 class Program
@@ -904,18 +903,18 @@ class Program
     }
 }";
 
-    CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (7,28): error CS0100: The parameter name 'x' is a duplicate
-    //         D d1 = (int x, int x) => { return 1; };
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
-    // (8,20): error CS0100: The parameter name 'x' is a duplicate
-    //         D d2 = (x, x) => { return 1; };
-    Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 20)
-    );
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            // (7,28): error CS0100: The parameter name 'x' is a duplicate
+            //         D d1 = (int x, int x) => { return 1; };
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(7, 28),
+            // (8,20): error CS0100: The parameter name 'x' is a duplicate
+            //         D d2 = (x, x) => { return 1; };
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "x").WithArguments("x").WithLocation(8, 20)
+            );
         }
 
         [Fact]
-        private void TestCollisionInsideLambda_LegalCases()
+        public void TestCollisionInsideLambda_LegalCases()
         {
             var source = @"
 using System;
@@ -952,7 +951,7 @@ partial class Class
         }
 
         [Fact]
-        private void TestCollisionInsideLambda1()
+        public void TestCollisionInsideLambda1()
         {
             var source = @"
 using System;
@@ -1016,7 +1015,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionInsideLambda2()
+        public void TestCollisionInsideLambda2()
         {
             var source = @"
 using System;
@@ -1097,7 +1096,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideOperator()
+        public void TestCollisionInsideOperator()
         {
             var source = @"
 using System;
@@ -1132,7 +1131,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideIndexer()
+        public void TestCollisionInsideIndexer()
         {
             var source = @"
 class Class
@@ -1164,7 +1163,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideFor1()
+        public void TestCollisionInsideFor1()
         {
             var source = @"
 class Class
@@ -1208,7 +1207,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideFor2()
+        public void TestCollisionInsideFor2()
         {
             var source = @"
 using System.Linq;
@@ -1238,9 +1237,9 @@ partial class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"));
         }
 
-        [WorkItem(792744, "DevDiv")]
+        [WorkItem(792744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792744")]
         [Fact]
-        private void TestCollisionInsideForeach()
+        public void TestCollisionInsideForeach()
         {
             var source = @"
 class Class
@@ -1257,7 +1256,7 @@ class Class
 
 
         [Fact]
-        private void TestCollisionInsideUsing()
+        public void TestCollisionInsideUsing()
         {
             var source = @"
 class Class : System.IDisposable
@@ -1310,7 +1309,7 @@ class Class : System.IDisposable
         }
 
         [Fact]
-        private void TestCollisionInsideLock()
+        public void TestCollisionInsideLock()
         {
             var source = @"
 using System;
@@ -1335,7 +1334,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideSwitch()
+        public void TestCollisionInsideSwitch()
         {
             var source = @"
 class Class
@@ -1401,7 +1400,7 @@ class Class
         }
 
         [Fact]
-        private void TestCollisionInsideTryCatch_LegalCases()
+        public void TestCollisionInsideTryCatch_LegalCases()
         {
             var source = @"
 using System;
@@ -1460,7 +1459,7 @@ class Base
         }
 
         [Fact]
-        private void TestCollisionInsideTryCatch()
+        public void TestCollisionInsideTryCatch()
         {
             var source = @"
 using System;
@@ -1524,7 +1523,7 @@ class Base
     //                     var name5 = string.Empty;   // 0136 on name5
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name5").WithArguments("name5").WithLocation(40, 25)
     );
-    }
+        }
 
         [Fact]
         public void DifferentArities()
@@ -1549,7 +1548,7 @@ public class C<T>
 
         [WorkItem(10556, "DevDiv_Projects/Roslyn")]
         [Fact]
-        private void TestCollisionInsideQuery_LegalCases()
+        public void TestCollisionInsideQuery_LegalCases()
         {
             var source = @"
 using System.Linq;
@@ -1601,9 +1600,9 @@ partial class Class
             CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
         }
 
-        [WorkItem(543045, "DevDiv")]
+        [WorkItem(543045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543045")]
         [Fact]
-        private void TestCollisionInsideQuery()
+        public void TestCollisionInsideQuery()
         {
             var source = @"
 using System;
@@ -1684,7 +1683,7 @@ public class Class
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, "U").WithArguments("U"));
         }
 
-        [WorkItem(542088, "DevDiv")]
+        [WorkItem(542088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542088")]
         [Fact]
         public void LocalCollidesWithGenericType()
         {
@@ -1704,7 +1703,7 @@ public class C
             CompileAndVerify(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions01()
         {
@@ -1752,7 +1751,7 @@ class A
                 );
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions02()
         {
@@ -1800,7 +1799,7 @@ class A
                 );
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void BindingOrderCollisions03()
         {
@@ -1846,9 +1845,9 @@ class Outer
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(835569, "DevDiv")]
+        [WorkItem(835569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835569")]
         [Fact]
-        private void CollisionWithSameWhenError()
+        public void CollisionWithSameWhenError()
         {
             var source = @"
 using System;
@@ -1868,7 +1867,7 @@ class Program
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/450")]
-        [WorkItem(879811, "DevDiv")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_1()
         {
             const string source = @"
@@ -1898,7 +1897,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(879811, "DevDiv")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_2()
         {
             const string source = @"
@@ -1930,7 +1929,7 @@ class D
         }
 
         [Fact]
-        [WorkItem(879811, "DevDiv")]
+        [WorkItem(879811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879811")]
         public void Bug879811_3()
         {
             const string source = @"

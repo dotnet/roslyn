@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Valid_BasicParsingWithDim()
+        Public Sub Valid_BasicParsingWithDim()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -42,7 +42,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Valid_BasicParsingWithoutDim()
+        Public Sub Valid_BasicParsingWithoutDim()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -69,7 +69,7 @@ End Module
 
         <Fact>
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        Sub Error_StaticLocal_DuplicationDeclarations_InSameScopes()
+        Public Sub Error_StaticLocal_DuplicationDeclarations_InSameScopes()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -106,7 +106,7 @@ BC31401: Static local variable 'x' is already declared.
 
         <Fact>
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal1()
+        Public Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal1()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -140,7 +140,7 @@ BC30288: Local variable 'x' is already declared in the current block.
 
         <Fact>
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
-        Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal2()
+        Public Sub Error_StaticLocal_DuplicationDeclarationsConflictWithLocal2()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -173,7 +173,7 @@ BC30288: Local variable 'x' is already declared in the current block.
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_tryCatch()
+        Public Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_tryCatch()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -205,7 +205,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopesSelectCase()
+        Public Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopesSelectCase()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -235,7 +235,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_If()
+        Public Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_If()
             Dim compilationDef =
     <compilation name="StaticLocaltest">
         <file name="a.vb">
@@ -262,7 +262,7 @@ End Module    </file>
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_For()
+        Public Sub Error_StaticLocal_DuplicationDeclarations_InDifferentScopes_For()
             'Show differences between static local and normal local
             Dim compilationDef =
     <compilation name="StaticLocaltest">
@@ -416,7 +416,7 @@ End Module
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_TryingToAccessStaticLocalFromOutsideMethod()
+        Public Sub Error_TryingToAccessStaticLocalFromOutsideMethod()
             'trying to access SL from oUtside method not possible
             Dim compilationDef =
     <compilation name="StaticLocaltest">
@@ -618,7 +618,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Error_StaticLocalInTryCatchBlockScope()
-            'The Use of Sttaic Locals within Try/Catch/Finally Blocks
+            'The Use of Static Locals within Try/Catch/Finally Blocks
 
             Dim compilationDef =
     <compilation name="StaticLocaltest">
@@ -653,7 +653,7 @@ End Module</file>
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_SpecialType_ArgIterator()
+        Public Sub Error_StaticLocal_SpecialType_ArgIterator()
             Dim compilationDef =
         <compilation name="StaticLocaltest">
             <file name="a.vb">
@@ -678,7 +678,7 @@ End Module</file>
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Sub Error_StaticLocal_SpecialType_TypedReference()
+        Public Sub Error_StaticLocal_SpecialType_TypedReference()
             Dim compilationDef =
         <compilation name="StaticLocaltest">
             <file name="a.vb">

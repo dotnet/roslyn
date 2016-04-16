@@ -26,57 +26,56 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
-        private readonly List<SyntaxToken> tokens;
-        private readonly Dictionary<SyntaxToken, int> tokenToIndexMap;
+        private readonly List<SyntaxToken> _tokens;
+        private readonly Dictionary<SyntaxToken, int> _tokenToIndexMap;
 
         // caches original trivia info to improve perf
-        private readonly TriviaData[] cachedOriginalTriviaInfo;
+        private readonly TriviaData[] _cachedOriginalTriviaInfo;
 
         // formatting engine can be used either with syntax tree or without
         // this will reconstruct information that reside in syntax tree from root node
         // if syntax tree is not given
-        private readonly TreeData treeData;
-        private readonly OptionSet optionSet;
+        private readonly TreeData _treeData;
+        private readonly OptionSet _optionSet;
 
         // hold onto information that are made to original trivia info
-        private readonly Changes changes;
+        private Changes _changes;
 
         // factory that will cache trivia info
-        private readonly AbstractTriviaDataFactory factory;
+        private readonly AbstractTriviaDataFactory _factory;
 
         // func caches
-        private readonly Func<TokenData, TokenData, TriviaData> getTriviaData;
-        private readonly Func<TokenData, TokenData, TriviaData> getOriginalTriviaData;
+        private readonly Func<TokenData, TokenData, TriviaData> _getTriviaData;
+        private readonly Func<TokenData, TokenData, TriviaData> _getOriginalTriviaData;
 
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
             {
                 // initialize basic info
-                this.factory = factory;
-                this.treeData = treeData;
-                this.optionSet = optionSet;
+                _factory = factory;
+                _treeData = treeData;
+                _optionSet = optionSet;
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 int sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                this.tokens = new List<SyntaxToken>(sizeOfList);
-                this.tokens.AddRange(this.treeData.GetApplicableTokens(spanToFormat));
+                _tokens = new List<SyntaxToken>(sizeOfList);
+                _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
                 Contract.Requires(this.TokenCount > 0);
 
                 // initialize trivia related info
-                this.changes = new Changes();
-                this.cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
+                _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
 
-                this.tokenToIndexMap = new Dictionary<SyntaxToken, int>(this.TokenCount);
+                _tokenToIndexMap = new Dictionary<SyntaxToken, int>(this.TokenCount);
                 for (int i = 0; i < this.TokenCount; i++)
                 {
-                    this.tokenToIndexMap.Add(this.tokens[i], i);
+                    _tokenToIndexMap.Add(_tokens[i], i);
                 }
 
                 // Func Cache
-                this.getTriviaData = this.GetTriviaData;
-                this.getOriginalTriviaData = this.GetOriginalTriviaData;
+                _getTriviaData = this.GetTriviaData;
+                _getOriginalTriviaData = this.GetOriginalTriviaData;
             }
 
             DebugCheckTokenOrder();
@@ -87,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // things should be already in sorted manner, but just to make sure
             // run sort
-            var previousToken = this.tokens[0];
-            for (int i = 1; i < this.tokens.Count; i++)
+            var previousToken = _tokens[0];
+            for (int i = 1; i < _tokens.Count; i++)
             {
-                var currentToken = this.tokens[i];
+                var currentToken = _tokens[i];
                 Contract.Requires(previousToken.FullSpan.End <= currentToken.FullSpan.Start);
 
                 previousToken = currentToken;
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return this.treeData.IsFirstToken(this.FirstTokenInStream.Token);
+                return _treeData.IsFirstToken(this.FirstTokenInStream.Token);
             }
         }
 
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             get
             {
                 // last token except end of file token
-                return this.treeData.IsLastToken(this.LastTokenInStream.Token);
+                return _treeData.IsLastToken(this.LastTokenInStream.Token);
             }
         }
 
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return new TokenData(this, 0, this.tokens[0]);
+                return new TokenData(this, 0, _tokens[0]);
             }
         }
 
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return new TokenData(this, this.TokenCount - 1, this.tokens[this.TokenCount - 1]);
+                return new TokenData(this, this.TokenCount - 1, _tokens[this.TokenCount - 1]);
             }
         }
 
@@ -142,14 +141,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return this.tokens.Count;
+                return _tokens.Count;
             }
         }
 
         public SyntaxToken GetToken(int index)
         {
             Contract.ThrowIfFalse(0 <= index && index < this.TokenCount);
-            return this.tokens[index];
+            return _tokens[index];
         }
 
         public TokenData GetTokenData(SyntaxToken token)
@@ -162,15 +161,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (tokenData.IndexInStream > 0 && tokenData.IndexInStream < this.TokenCount)
             {
-                return new TokenData(this, tokenData.IndexInStream - 1, this.tokens[tokenData.IndexInStream - 1]);
+                return new TokenData(this, tokenData.IndexInStream - 1, _tokens[tokenData.IndexInStream - 1]);
             }
 
             // get previous token and check whether it is the last token in the stream
             var previousToken = tokenData.Token.GetPreviousToken(includeZeroWidth: true);
             var lastIndex = this.TokenCount - 1;
-            if (this.tokens[lastIndex].Equals(previousToken))
+            if (_tokens[lastIndex].Equals(previousToken))
             {
-                return new TokenData(this, lastIndex, this.tokens[lastIndex]);
+                return new TokenData(this, lastIndex, _tokens[lastIndex]);
             }
 
             return new TokenData(this, -1, previousToken);
@@ -180,14 +179,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (tokenData.IndexInStream >= 0 && tokenData.IndexInStream < this.TokenCount - 1)
             {
-                return new TokenData(this, tokenData.IndexInStream + 1, this.tokens[tokenData.IndexInStream + 1]);
+                return new TokenData(this, tokenData.IndexInStream + 1, _tokens[tokenData.IndexInStream + 1]);
             }
 
             // get next token and check whether it is the first token in the stream
             var nextToken = tokenData.Token.GetNextToken(includeZeroWidth: true);
-            if (this.tokens[0].Equals(nextToken))
+            if (_tokens[0].Equals(nextToken))
             {
-                return new TokenData(this, 0, this.tokens[0]);
+                return new TokenData(this, 0, _tokens[0]);
             }
 
             return new TokenData(this, -1, nextToken);
@@ -208,12 +207,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
-            return TwoTokensOnSameLineWorker(token1, token2, getOriginalTriviaData);
+            return TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
         }
 
         public bool TwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
-            return TwoTokensOnSameLineWorker(token1, token2, getTriviaData);
+            return TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
         }
 
         private bool TwoTokensOnSameLineWorker(SyntaxToken token1, SyntaxToken token2, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
@@ -252,13 +251,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         public void ApplyBeginningOfTreeChange(TriviaData data)
         {
             Contract.ThrowIfNull(data);
-            this.changes.AddOrReplace(Changes.BeginningOfTreeKey, data);
+            _changes.AddOrReplace(Changes.BeginningOfTreeKey, data);
         }
 
         public void ApplyEndOfTreeChange(TriviaData data)
         {
             Contract.ThrowIfNull(data);
-            this.changes.AddOrReplace(Changes.EndOfTreeKey, data);
+            _changes.AddOrReplace(Changes.EndOfTreeKey, data);
         }
 
         public void ApplyChange(int pairIndex, TriviaData data)
@@ -268,28 +267,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // do reference equality check
             var sameAsOriginal = GetOriginalTriviaData(pairIndex) == data;
-
-            if (this.changes.Contains(pairIndex))
-            {
-                if (sameAsOriginal)
-                {
-                    this.changes.Remove(pairIndex);
-                    return;
-                }
-
-                // okay it already exist.
-                // replace existing one
-                this.changes.Replace(pairIndex, data);
-                return;
-            }
-
-            // triviaInfo is same as original, nothing to do here.
             if (sameAsOriginal)
             {
-                return;
+                _changes.TryRemove(pairIndex);
             }
-
-            this.changes.Add(pairIndex, data);
+            else
+            {
+                _changes.AddOrReplace(pairIndex, data);
+            }
         }
 
         public int GetCurrentColumn(SyntaxToken token)
@@ -301,14 +286,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public int GetCurrentColumn(TokenData tokenData)
         {
-            return GetColumn(tokenData, getTriviaData);
+            return GetColumn(tokenData, _getTriviaData);
         }
 
         public int GetOriginalColumn(SyntaxToken token)
         {
             var tokenWithIndex = this.GetTokenData(token);
-
-            return GetColumn(tokenWithIndex, getOriginalTriviaData);
+            return GetColumn(tokenWithIndex, _getOriginalTriviaData);
         }
 
         /// <summary>
@@ -362,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn: 0);
+                length = text.GetTextColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn: 0);
                 return;
             }
 
@@ -372,8 +356,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = this.treeData.GetOriginalColumn(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), token);
-                length = text.ConvertTabToSpace(this.optionSet.GetOption(FormattingOptions.TabSize, this.treeData.Root.Language), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), token);
+                length = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn, text.Length);
                 return;
             }
 
@@ -397,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var trivia = this.GetTriviaData(pairIndex);
-                yield return ValueTuple.Create(ValueTuple.Create(this.tokens[pairIndex], this.tokens[pairIndex + 1]), trivia);
+                yield return ValueTuple.Create(ValueTuple.Create(_tokens[pairIndex], _tokens[pairIndex + 1]), trivia);
             }
 
             // the very last trivia in the file case
@@ -413,12 +397,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         public TriviaData GetTriviaData(TokenData token1, TokenData token2)
         {
             // special cases (beginning of a file, end of a file)
-            if (this.treeData.IsFirstToken(token2.Token))
+            if (_treeData.IsFirstToken(token2.Token))
             {
                 return this.FormatBeginningOfTree ? GetTriviaDataAtBeginningOfTree() : GetOriginalTriviaData(token1, token2);
             }
 
-            if (this.treeData.IsLastToken(token1.Token))
+            if (_treeData.IsLastToken(token1.Token))
             {
                 return this.FormatEndOfTree ? GetTriviaDataAtEndOfTree() : GetOriginalTriviaData(token1, token2);
             }
@@ -440,13 +424,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         private TriviaData GetOriginalTriviaData(TokenData token1, TokenData token2)
         {
             // special cases (beginning of a file, end of a file)
-            if (this.treeData.IsFirstToken(token2.Token))
+            if (_treeData.IsFirstToken(token2.Token))
             {
-                return this.factory.CreateLeadingTrivia(token2.Token);
+                return _factory.CreateLeadingTrivia(token2.Token);
             }
-            else if (this.treeData.IsLastToken(token1.Token))
+            else if (_treeData.IsLastToken(token1.Token))
             {
-                return this.factory.CreateTrailingTrivia(token1.Token);
+                return _factory.CreateTrailingTrivia(token1.Token);
             }
 
             Contract.Requires(token1.Token.Span.End <= token2.Token.SpanStart);
@@ -455,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (token1.IndexInStream < 0 || token2.IndexInStream < 0)
             {
-                return this.factory.Create(token1.Token, token2.Token);
+                return _factory.Create(token1.Token, token2.Token);
             }
 
             return GetOriginalTriviaData(token1.IndexInStream);
@@ -465,12 +449,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(this.FormatBeginningOfTree);
 
-            if (this.changes.Contains(Changes.BeginningOfTreeKey))
+            TriviaData data;
+            if (_changes.TryGet(Changes.BeginningOfTreeKey, out data))
             {
-                return this.changes[Changes.BeginningOfTreeKey];
+                return data;
             }
 
-            Contract.Requires(this.treeData.IsFirstToken(this.FirstTokenInStream.Token));
+            Contract.Requires(_treeData.IsFirstToken(this.FirstTokenInStream.Token));
             return GetOriginalTriviaData(default(TokenData), this.FirstTokenInStream);
         }
 
@@ -478,12 +463,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(this.FormatEndOfTree);
 
-            if (this.changes.Contains(Changes.EndOfTreeKey))
+            TriviaData data;
+            if (_changes.TryGet(Changes.EndOfTreeKey, out data))
             {
-                return this.changes[Changes.EndOfTreeKey];
+                return data;
             }
 
-            Contract.Requires(this.treeData.IsLastToken(this.LastTokenInStream.Token));
+            Contract.Requires(_treeData.IsLastToken(this.LastTokenInStream.Token));
             return GetOriginalTriviaData(this.LastTokenInStream, default(TokenData));
         }
 
@@ -491,9 +477,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(0 <= pairIndex && pairIndex < this.TokenCount - 1);
 
-            if (this.changes.Contains(pairIndex))
+            TriviaData data;
+            if (_changes.TryGet(pairIndex, out data))
             {
-                return this.changes[pairIndex];
+                return data;
             }
 
             // no change between two tokens, return trivia info from original code
@@ -504,13 +491,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             Contract.ThrowIfFalse(0 <= pairIndex && pairIndex < this.TokenCount - 1);
 
-            if (this.cachedOriginalTriviaInfo[pairIndex] == null)
+            if (_cachedOriginalTriviaInfo[pairIndex] == null)
             {
-                var info = this.factory.Create(this.tokens[pairIndex], this.tokens[pairIndex + 1]);
-                this.cachedOriginalTriviaInfo[pairIndex] = info;
+                var info = _factory.Create(_tokens[pairIndex], _tokens[pairIndex + 1]);
+                _cachedOriginalTriviaInfo[pairIndex] = info;
             }
 
-            return this.cachedOriginalTriviaInfo[pairIndex];
+            return _cachedOriginalTriviaInfo[pairIndex];
         }
 
         public bool IsFirstTokenOnLine(SyntaxToken token)
@@ -541,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private int GetTokenIndexInStream(SyntaxToken token)
         {
             int value;
-            if (this.tokenToIndexMap.TryGetValue(token, out value))
+            if (_tokenToIndexMap.TryGetValue(token, out value))
             {
                 return value;
             }
@@ -553,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             get
             {
-                return new Iterator(this.tokens);
+                return new Iterator(_tokens);
             }
         }
     }

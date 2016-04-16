@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class ClsComplianceChecker : CSharpSymbolVisitor
     {
-        private readonly CSharpCompilation compilation;
-        private readonly SyntaxTree filterTree; //if not null, limit analysis to types residing in this tree
-        private readonly TextSpan? filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
-        private readonly ConcurrentQueue<Diagnostic> diagnostics;
-        private readonly CancellationToken cancellationToken;
+        private readonly CSharpCompilation _compilation;
+        private readonly SyntaxTree _filterTree; //if not null, limit analysis to types residing in this tree
+        private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
+        private readonly ConcurrentQueue<Diagnostic> _diagnostics;
+        private readonly CancellationToken _cancellationToken;
 
-        private readonly ConcurrentDictionary<Symbol, Compliance> declaredOrInheritedCompliance;
+        private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
 
         private ClsComplianceChecker(
             CSharpCompilation compilation,
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConcurrentQueue<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
-            this.compilation = compilation;
-            this.filterTree = filterTree;
-            this.filterSpanWithinTree = filterSpanWithinTree;
-            this.diagnostics = diagnostics;
-            this.cancellationToken = cancellationToken;
+            _compilation = compilation;
+            _filterTree = filterTree;
+            _filterSpanWithinTree = filterSpanWithinTree;
+            _diagnostics = diagnostics;
+            _cancellationToken = cancellationToken;
 
-            this.declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
+            _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAssembly(AssemblySymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             System.Diagnostics.Debug.Assert(symbol is SourceAssemblySymbol);
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? moduleDeclaredCompliance = GetDeclaredCompliance(module, out attributeLocation);
 
                 Location warningLocation = i == 0 ? attributeLocation : module.Locations[0];
-                System.Diagnostics.Debug.Assert(warningLocation != null || !moduleDeclaredCompliance.HasValue || (i == 0 && filterTree != null),
+                System.Diagnostics.Debug.Assert(warningLocation != null || !moduleDeclaredCompliance.HasValue || (i == 0 && _filterTree != null),
                     "Can only be null when the source location is filtered out.");
 
                 if (moduleDeclaredCompliance.HasValue)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitNamespace(NamespaceSymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckMemberDistinctness(symbol);
             }
 
-            if (compilation.Options.ConcurrentBuild)
+            if (_compilation.Options.ConcurrentBuild)
             {
-                var options = this.cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = this.cancellationToken }
+                var options = _cancellationToken.CanBeCanceled
+                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
             }
             else
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitNamedType(NamedTypeSymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CheckParameterCompliance(symbol.DelegateInvokeMethod.Parameters, symbol);
                     }
-                    else if (this.compilation.IsAttributeType(symbol) && !HasAcceptableAttributeConstructor(symbol))
+                    else if (_compilation.IsAttributeType(symbol) && !HasAcceptableAttributeConstructor(symbol))
                     {
                         this.AddDiagnostic(ErrorCode.WRN_CLS_BadAttributeType, symbol.Locations[0], symbol);
                     }
@@ -204,12 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // You may assume we could skip the members if this type is inaccessible,
             // but dev11 reports that they are inaccessible as well.
-            if (compilation.Options.ConcurrentBuild)
+            if (_compilation.Options.ConcurrentBuild)
             {
-                var options = this.cancellationToken.CanBeCanceled
-                    ? new ParallelOptions() { CancellationToken = this.cancellationToken }
+                var options = _cancellationToken.CanBeCanceled
+                    ? new ParallelOptions() { CancellationToken = _cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, Visit);
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
             }
             else
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (TypeSymbol paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
                     {
                         if (paramType.TypeKind == TypeKind.Array ||
-                            paramType.GetAttributeParameterTypedConstantKind(this.compilation) == TypedConstantKind.Error)
+                            paramType.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
                         {
                             hasUnacceptableParameterType = true;
                             break;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitMethod(MethodSymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitProperty(PropertySymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitEvent(EventSymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitField(FieldSymbol symbol)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (DoNotVisit(symbol)) return;
 
@@ -605,12 +605,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryGetAttributeWarningLocation(CSharpAttributeData attribute, out Location location)
         {
             SyntaxReference syntaxRef = attribute.ApplicationSyntaxReference;
-            if (syntaxRef == null && filterTree == null)
+            if (syntaxRef == null && _filterTree == null)
             {
                 location = NoLocation.Singleton;
                 return true;
             }
-            else if (filterTree == null || (syntaxRef != null && syntaxRef.SyntaxTree == filterTree))
+            else if (_filterTree == null || (syntaxRef != null && syntaxRef.SyntaxTree == _filterTree))
             {
                 System.Diagnostics.Debug.Assert(syntaxRef.SyntaxTree.HasCompilationUnitRoot);
                 location = new SourceLocation(syntaxRef);
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // with all the potential breaks.
                 // NOTE: It's not clear why dev11 is looking in interfaces at all. Maybe
                 // it was only supposed to happen for interface types?
-                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be handrolled in a standalone component.
+                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be hand-rolled in a standalone component.
                 {
                     if (!IsAccessibleOutsideAssembly(@interface)) continue;
 
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO: There's no public equivalent of Symbol.DeclaringCompilation.
-            return symbol.DeclaringCompilation != this.compilation ||
+            return symbol.DeclaringCompilation != _compilation ||
                 symbol.IsImplicitlyDeclared ||
                 IsSyntacticallyFilteredOut(symbol);
         }
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: it would be nice to be more precise than this: we only want to
             // warn about the base class if it is listed in the filter tree, not if
             // any part of the type is in the filter tree.
-            return this.filterTree != null && !symbol.IsDefinedInSourceTree(this.filterTree, this.filterSpanWithinTree);
+            return _filterTree != null && !symbol.IsDefinedInSourceTree(_filterTree, _filterSpanWithinTree);
         }
 
         private bool IsCompliantType(TypeSymbol type, NamedTypeSymbol context)
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// This check (the only one that uses the "context" parameter is based on CLS Rule 46,
         /// as implemented by LangCompiler::IsCLSAccessible.  The idea is that C&lt;int&gt; and C&lt;char&gt;
-        /// are separate types in CLS, so they can't touch eachother's protected members.
+        /// are separate types in CLS, so they can't touch each other's protected members.
         /// TODO: This should really have a separate error code - it's logically separate and requires explanation.
         /// </remarks>
         /// <param name="type">Check the accessibility of this type (probably a parameter or return type).</param>
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(symbol.Kind != SymbolKind.RangeVariable);
 
             Compliance compliance;
-            if (this.declaredOrInheritedCompliance.TryGetValue(symbol, out compliance))
+            if (_declaredOrInheritedCompliance.TryGetValue(symbol, out compliance))
             {
                 return compliance;
             }
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Don't bother caching methods, etc - they won't be reused.
             return (symbol.Kind == SymbolKind.Assembly || symbol.Kind == SymbolKind.NamedType)
-                ? this.declaredOrInheritedCompliance.GetOrAdd(symbol, compliance)
+                ? _declaredOrInheritedCompliance.GetOrAdd(symbol, compliance)
                 : compliance;
         }
 
@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (info != null)
                         {
                             Location location = symbol.Locations.IsEmpty ? NoLocation.Singleton : symbol.Locations[0];
-                            this.diagnostics.Enqueue(new CSDiagnostic(info, location));
+                            _diagnostics.Enqueue(new CSDiagnostic(info, location));
                             if (info.Severity >= DiagnosticSeverity.Error)
                             {
                                 continue;
@@ -1209,14 +1209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var info = new CSDiagnosticInfo(code);
             var diag = new CSDiagnostic(info, location);
-            this.diagnostics.Enqueue(diag);
+            _diagnostics.Enqueue(diag);
         }
 
         private void AddDiagnostic(ErrorCode code, Location location, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args);
             var diag = new CSDiagnostic(info, location);
-            this.diagnostics.Enqueue(diag);
+            _diagnostics.Enqueue(diag);
         }
 
         private static bool IsImplicitClass(Symbol symbol)

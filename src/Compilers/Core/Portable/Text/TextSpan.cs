@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
-        private readonly int start;
-        private readonly int length;
-
         /// <summary>
         /// Creates a TextSpan instance beginning with the position Start and having the Length
         /// specified with <paramref name="length" />.
@@ -22,61 +19,37 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (start < 0)
             {
-                throw new ArgumentOutOfRangeException("start");
+                throw new ArgumentOutOfRangeException(nameof(start));
             }
 
             if (start + length < start)
             {
-                throw new ArgumentOutOfRangeException("length");
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
-            this.start = start;
-            this.length = length;
+            Start = start;
+            Length = length;
         }
 
         /// <summary>
-        /// Start point of the Span.
+        /// Start point of the span.
         /// </summary>
-        public int Start
-        {
-            get
-            {
-                return start;
-            }
-        }
+        public int Start { get; }
 
         /// <summary>
         /// End of the span.
         /// </summary>
-        public int End
-        {
-            get
-            {
-                return start + length;
-            }
-        }
+        public int End => Start + Length;
 
         /// <summary>
         /// Length of the span.
         /// </summary>
-        public int Length
-        {
-            get
-            {
-                return length;
-            }
-        }
+        public int Length { get; }
 
         /// <summary>
         /// Determines whether or not the span is empty.
         /// </summary>
-        public bool IsEmpty
-        {
-            get
-            {
-                return this.Length == 0;
-            }
-        }
+        public bool IsEmpty => this.Length == 0;
 
         /// <summary>
         /// Determines whether the position lies within the span.
@@ -90,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public bool Contains(int position)
         {
-            return unchecked((uint)(position - start) < (uint)length);
+            return unchecked((uint)(position - Start) < (uint)Length);
         }
 
         /// <summary>
@@ -104,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public bool Contains(TextSpan span)
         {
-            return span.Start >= start && span.End <= this.End;
+            return span.Start >= Start && span.End <= this.End;
         }
 
         /// <summary>
@@ -120,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public bool OverlapsWith(TextSpan span)
         {
-            int overlapStart = Math.Max(start, span.Start);
+            int overlapStart = Math.Max(Start, span.Start);
             int overlapEnd = Math.Min(this.End, span.End);
 
             return overlapStart < overlapEnd;
@@ -137,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public TextSpan? Overlap(TextSpan span)
         {
-            int overlapStart = Math.Max(start, span.Start);
+            int overlapStart = Math.Max(Start, span.Start);
             int overlapEnd = Math.Min(this.End, span.End);
 
             return overlapStart < overlapEnd
@@ -158,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public bool IntersectsWith(TextSpan span)
         {
-            return span.Start <= this.End && span.End >= start;
+            return span.Start <= this.End && span.End >= Start;
         }
 
         /// <summary>
@@ -174,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public bool IntersectsWith(int position)
         {
-            return unchecked((uint)(position - start) <= (uint)length);
+            return unchecked((uint)(position - Start) <= (uint)Length);
         }
 
         /// <summary>
@@ -188,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </returns>
         public TextSpan? Intersection(TextSpan span)
         {
-            int intersectStart = Math.Max(start, span.Start);
+            int intersectStart = Math.Max(Start, span.Start);
             int intersectEnd = Math.Min(this.End, span.End);
 
             return intersectStart <= intersectEnd
@@ -199,17 +172,20 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Creates a new <see cref="TextSpan"/> from <paramref name="start" /> and <paramref
         /// name="end"/> positions as opposed to a position and length.
+        /// 
+        /// The returned TextSpan contains the range with <paramref name="start"/> inclusive, 
+        /// and <paramref name="end"/> exclusive.
         /// </summary>
         public static TextSpan FromBounds(int start, int end)
         {
             if (start < 0)
             {
-                throw new ArgumentOutOfRangeException("start", CodeAnalysisResources.StartMustNotBeNegative);
+                throw new ArgumentOutOfRangeException(nameof(start), CodeAnalysisResources.StartMustNotBeNegative);
             }
 
             if (end < start)
             {
-                throw new ArgumentException("end", CodeAnalysisResources.EndMustNotBeLessThanStart);
+                throw new ArgumentOutOfRangeException(nameof(end), CodeAnalysisResources.EndMustNotBeLessThanStart);
             }
 
             return new TextSpan(start, end - start);
@@ -236,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public bool Equals(TextSpan other)
         {
-            return start == other.start && length == other.length;
+            return Start == other.Start && Length == other.Length;
         }
 
         /// <summary>
@@ -252,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public override int GetHashCode()
         {
-            return Hash.Combine(start, length);
+            return Hash.Combine(Start, Length);
         }
 
         /// <summary>
@@ -260,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public override string ToString()
         {
-            return string.Format("[{0}..{1})", this.Start, this.End);
+            return $"[{Start}..{End})";
         }
 
         /// <summary>
@@ -268,13 +244,13 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int CompareTo(TextSpan other)
         {
-            var diff = this.start - other.start;
+            var diff = Start - other.Start;
             if (diff != 0)
             {
                 return diff;
             }
 
-            return this.length - other.length;
+            return Length - other.Length;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 ' See Compiler::LoadXmlSolutionExtension
-Namespace Global.My
+Namespace My
     <Global.Microsoft.VisualBasic.Embedded()>
     <Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(), _

@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
 
-            type.VisitType(CheckConstraintsSingleTypeFunc, diagnostics)
+            type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
             useSiteDiagnosticsBuilder = diagnostics.useSiteDiagnosticsBuilder
         End Sub
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
         End Class
 
-        Private ReadOnly CheckConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
+        Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' substitute the type parameter constraints from the original definition of the type parameters
             ' using the TypeSubstitution from the constructed type/method.
             For Each t In typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                Dim constraintType = t.InternalSubstituteTypeParameters(substitution)
+                Dim constraintType = t.InternalSubstituteTypeParameters(substitution).Type
 
                 If Not SatisfiesTypeConstraint(typeArgument, constraintType, useSiteDiagnostics) Then
                     If diagnosticsBuilder IsNot Nothing Then

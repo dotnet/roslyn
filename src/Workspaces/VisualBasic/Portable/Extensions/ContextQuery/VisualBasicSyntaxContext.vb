@@ -1,9 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
     ''' <summary>
@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsSingleLineStatementContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
 
+        Public ReadOnly IsGlobalStatementContext As Boolean
+
         Public ReadOnly IsTypeDeclarationKeywordContext As Boolean
         Public ReadOnly IsTypeMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
@@ -48,6 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly WithinAsyncMethod As Boolean
 
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
+        Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Private Sub New(
             workspace As Workspace,
@@ -55,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
+            touchingToken As SyntaxToken,
             isTypeContext As Boolean,
             isNamespaceContext As Boolean,
             isPreProcessorDirectiveContext As Boolean,
@@ -97,14 +101,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
             Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
 
+            Me.IsGlobalStatementContext = syntaxTree.IsGlobalStatementContext(position, cancellationToken)
+
             Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
             Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
-            Me.TouchingToken = syntaxTree.GetTouchingToken(position, cancellationToken)
+            Me.TouchingToken = touchingToken
             Me.IsInLambda = isInLambda
             Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
+            Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
             Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
@@ -116,13 +123,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Private Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
-            Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.Begin.Modifiers.Any(SyntaxKind.AsyncKeyword)
+            Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Function CreateContext(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
+        Public Shared Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
+            Dim touchingToken = Await syntaxTree.GetTouchingTokenAsync(position, cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSyntaxContext(
                 workspace,
@@ -130,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 position,
                 leftToken,
                 targetToken,
+                touchingToken,
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
@@ -146,24 +155,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 cancellationToken:=cancellationToken)
         End Function
 
-        Public Shared Function CreateContext_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
-            Return CreateContext(Nothing, semanticModel, position, cancellationToken)
+        Public Shared Function CreateContextAsync_Test(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+            Return CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
             If container Is Nothing Then
-                container = DirectCast(enclosingSymbol.ContainingType, INamedTypeSymbol)
+                container = enclosingSymbol.ContainingType
             End If
 
             Return container
         End Function
 
-        Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
+        Private Shared Function ComputeIsWithinPreprocessorContext(position As Integer, targetToken As SyntaxToken) As Boolean
             ' If we're touching it, then we can just look past it
             If targetToken.IsKind(SyntaxKind.HashToken) AndAlso targetToken.Span.End = position Then
                 targetToken = targetToken.GetPreviousToken()
+            End If
+
+            Return targetToken.Kind = SyntaxKind.None OrElse
+                targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+        End Function
+
+        Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
+            ' The triggering hash token must be part of a directive (not trivia within it)
+            If targetToken.Kind = SyntaxKind.HashToken Then
+                Return TypeOf targetToken.Parent Is DirectiveTriviaSyntax
             End If
 
             Return targetToken.Kind = SyntaxKind.None OrElse

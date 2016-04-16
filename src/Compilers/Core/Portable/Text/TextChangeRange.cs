@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// The span of text before the edit which is being changed
         /// </summary>
-        public TextSpan Span { get; private set; }
+        public TextSpan Span { get; }
 
         /// <summary>
         /// Width of the span after the edit.  A 0 here would represent a delete
         /// </summary>
-        public int NewLength { get; private set; }
+        public int NewLength { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="TextChangeRange"/>.
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (newLength < 0)
             {
-                throw new ArgumentOutOfRangeException("newLength");
+                throw new ArgumentOutOfRangeException(nameof(newLength));
             }
 
             this.Span = span;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides hash code for current instnce of <see cref="TextChangeRange"/>.
+        /// Provides hash code for current instance of <see cref="TextChangeRange"/>.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// An empty set of changes.
         /// </summary>
-        public static readonly IReadOnlyList<TextChangeRange> NoChanges = SpecializedCollections.EmptyReadOnlyList<TextChangeRange>();
+        public static IReadOnlyList<TextChangeRange> NoChanges => SpecializedCollections.EmptyReadOnlyList<TextChangeRange>();
 
         /// <summary>
         /// Collapse a set of <see cref="TextChangeRange"/>s into a single encompassing range.  If

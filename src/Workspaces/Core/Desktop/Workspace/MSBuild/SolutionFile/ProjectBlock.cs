@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal sealed partial class ProjectBlock
     {
-        private Guid projectTypeGuid;
-        private readonly string projectName;
-        private readonly string projectPath;
-        private Guid projectGuid;
-        private readonly IEnumerable<SectionBlock> projectSections;
+        private Guid _projectTypeGuid;
+        private readonly string _projectName;
+        private readonly string _projectPath;
+        private Guid _projectGuid;
+        private readonly IEnumerable<SectionBlock> _projectSections;
 
         public ProjectBlock(Guid projectTypeGuid, string projectName, string projectPath, Guid projectGuid, IEnumerable<SectionBlock> projectSections)
         {
@@ -28,36 +28,36 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "projectPath"));
             }
 
-            this.projectTypeGuid = projectTypeGuid;
-            this.projectName = projectName;
-            this.projectPath = projectPath;
-            this.projectGuid = projectGuid;
-            this.projectSections = projectSections.ToList().AsReadOnly();
+            _projectTypeGuid = projectTypeGuid;
+            _projectName = projectName;
+            _projectPath = projectPath;
+            _projectGuid = projectGuid;
+            _projectSections = projectSections.ToList().AsReadOnly();
         }
 
         public Guid ProjectTypeGuid
         {
-            get { return projectTypeGuid; }
+            get { return _projectTypeGuid; }
         }
 
         public string ProjectName
         {
-            get { return projectName; }
+            get { return _projectName; }
         }
 
         public string ProjectPath
         {
-            get { return projectPath; }
+            get { return _projectPath; }
         }
 
         public Guid ProjectGuid
         {
-            get { return projectGuid; }
+            get { return _projectGuid; }
         }
 
         public IEnumerable<SectionBlock> ProjectSections
         {
-            get { return projectSections; }
+            get { return _projectSections; }
         }
 
         internal string GetText()
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             builder.AppendFormat("Project(\"{0}\") = \"{1}\", \"{2}\", \"{3}\"", ProjectTypeGuid.ToString("B").ToUpper(), ProjectName, ProjectPath, ProjectGuid.ToString("B").ToUpper());
             builder.AppendLine();
 
-            foreach (var block in projectSections)
+            foreach (var block in _projectSections)
             {
                 builder.Append(block.GetText(indent: 1));
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectTypeGuid = Guid.Parse(scanner.ReadUpToAndEat("\")"));
 
-            // Read chars upto next quote, must contain "=" with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "=" with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != "=")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectName = scanner.ReadUpToAndEat("\"");
 
-            // Read chars upto next quote, must contain "," with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile2);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectPath = scanner.ReadUpToAndEat("\"");
 
-            // Read chars upto next quote, must contain "," with optional leading/trailing whitespaces.
+            // Read chars up to next quote, must contain "," with optional leading/trailing whitespaces.
             if (scanner.ReadUpToAndEat("\"").Trim() != ",")
             {
                 throw new Exception(WorkspacesResources.InvalidProjectBlockInSolutionFile3);

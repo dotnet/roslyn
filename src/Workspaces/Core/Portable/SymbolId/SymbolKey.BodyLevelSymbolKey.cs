@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis
     {
         private class NonDeclarationSymbolKey<TSymbol> : AbstractSymbolKey<NonDeclarationSymbolKey<TSymbol>> where TSymbol : class, ISymbol
         {
-            private readonly SymbolKey containingKey;
-            private readonly string localName;
-            private readonly int ordinal;
+            private readonly SymbolKey _containingKey;
+            private readonly string _localName;
+            private readonly int _ordinal;
 
             internal NonDeclarationSymbolKey(TSymbol symbol, Visitor visitor)
             {
@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis
                     containingSymbol = containingSymbol.ContainingSymbol;
                 }
 
-                this.containingKey = GetOrCreate(containingSymbol, visitor);
-                this.localName = symbol.Name;
+                _containingKey = GetOrCreate(containingSymbol, visitor);
+                _localName = symbol.Name;
 
-                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, localName, visitor.CancellationToken))
+                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, _localName, visitor.CancellationToken))
                 {
                     if (possibleSymbol.Item1.Equals(symbol))
                     {
-                        this.ordinal = possibleSymbol.Item2;
+                        _ordinal = possibleSymbol.Item2;
                         break;
                     }
                 }
@@ -42,16 +42,16 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
             {
-                var containingSymbol = containingKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken).Symbol;
+                var containingSymbol = _containingKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken).Symbol;
 
                 if (containingSymbol == null)
                 {
                     return new SymbolKeyResolution();
                 }
 
-                foreach (var symbol in EnumerateSymbols(compilation, containingSymbol, localName, cancellationToken))
+                foreach (var symbol in EnumerateSymbols(compilation, containingSymbol, _localName, cancellationToken))
                 {
-                    if (symbol.Item2 == ordinal)
+                    if (symbol.Item2 == _ordinal)
                     {
                         return new SymbolKeyResolution(symbol.Item1);
                     }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var token in node.DescendantNodes())
                     {
-                        var symbol = semanticModel.GetDeclaredSymbol(token) as TSymbol;
+                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken) as TSymbol;
 
                         if (symbol != null && Equals(compilation.IsCaseSensitive, symbol.Name, name))
                         {

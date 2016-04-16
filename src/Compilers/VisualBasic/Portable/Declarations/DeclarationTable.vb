@@ -31,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Partial Friend Class DeclarationTable
         Public Shared ReadOnly Empty As DeclarationTable = New DeclarationTable(
-                                                           ImmutableHashSet.Create(Of DeclarationTableEntry)(),
+                                                           ImmutableSetWithInsertionOrder(Of DeclarationTableEntry).Empty,
                                                            latestLazyRootDeclaration:=Nothing,
                                                            cache:=Nothing)
 
         ' All our root declarations.  We split these so we can separate out the unchanging 'older'
         ' declarations from the constantly changing 'latest' declaration.
-        Private ReadOnly _allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry)
+        Private ReadOnly _allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry)
         Private ReadOnly _latestLazyRootDeclaration As DeclarationTableEntry
 
         ' The cache of computed values for the old declarations.
@@ -50,12 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _namespaceNames As Lazy(Of ICollection(Of String))
         Private ReadOnly _referenceDirectives As Lazy(Of ICollection(Of ReferenceDirective))
 
-        ' Stores diagnostics related to #r directives
-        Private ReadOnly _referenceDirectiveDiagnostics As Lazy(Of ICollection(Of Diagnostic))
-
         Private _lazyAllRootDeclarations As ImmutableArray(Of RootSingleNamespaceDeclaration)
 
-        Private Sub New(allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry),
+        Private Sub New(allOlderRootDeclarations As ImmutableSetWithInsertionOrder(Of DeclarationTableEntry),
                         latestLazyRootDeclaration As DeclarationTableEntry,
                         cache As Cache)
             Me._allOlderRootDeclarations = allOlderRootDeclarations
@@ -65,7 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._typeNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedTypeNames)
             Me._namespaceNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedNamespaceNames)
             Me._referenceDirectives = New Lazy(Of ICollection(Of ReferenceDirective))(AddressOf GetMergedReferenceDirectives)
-            Me._referenceDirectiveDiagnostics = New Lazy(Of ICollection(Of Diagnostic))(AddressOf GetMergedDiagnostics)
         End Sub
 
         Public Function AddRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
@@ -111,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Sub GetOlderNamespaces(builder As ArrayBuilder(Of RootSingleNamespaceDeclaration))
-            For Each olderRootDeclaration In _allOlderRootDeclarations
+            For Each olderRootDeclaration In _allOlderRootDeclarations.InInsertionOrder
                 Dim declOpt = olderRootDeclaration.Root.Value
                 If declOpt IsNot Nothing Then
                     builder.Add(declOpt)
@@ -128,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function SelectManyFromOlderDeclarationsNoEmbedded(Of T)(selector As Func(Of RootSingleNamespaceDeclaration, ImmutableArray(Of T))) As ImmutableArray(Of T)
-            Return _allOlderRootDeclarations.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
+            Return _allOlderRootDeclarations.InInsertionOrder.Where(Function(d) Not d.IsEmbedded AndAlso d.Root.Value IsNot Nothing).SelectMany(Function(d) selector(d.Root.Value)).AsImmutable()
         End Function
 
         ' The merged-tree-reuse story goes like this. We have a "forest" of old declarations, and
@@ -186,31 +182,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private Function GetMergedDiagnostics() As ICollection(Of Diagnostic)
-            Dim cachedDiagnostics = _cache.ReferenceDirectiveDiagnostics.Value
-            Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=False)
-            If latestRoot Is Nothing Then
-                Return cachedDiagnostics
-            Else
-                Return UnionCollection(Of Diagnostic).Create(cachedDiagnostics, latestRoot.ReferenceDirectiveDiagnostics)
-            End If
-        End Function
-
         Private Function GetLatestRootDeclarationIfAny(includeEmbedded As Boolean) As RootSingleNamespaceDeclaration
             Return If((_latestLazyRootDeclaration IsNot Nothing) AndAlso (includeEmbedded OrElse Not _latestLazyRootDeclaration.IsEmbedded),
                       _latestLazyRootDeclaration.Root.Value,
                       Nothing)
         End Function
 
-        Private Shared ReadOnly IsNamespacePredicate As Predicate(Of Declaration) = Function(d) d.Kind = DeclarationKind.Namespace
-        Private Shared ReadOnly IsTypePredicate As Predicate(Of Declaration) = Function(d) d.Kind <> DeclarationKind.Namespace
+        Private Shared ReadOnly s_isNamespacePredicate As Predicate(Of Declaration) = Function(d) d.Kind = DeclarationKind.Namespace
+        Private Shared ReadOnly s_isTypePredicate As Predicate(Of Declaration) = Function(d) d.Kind <> DeclarationKind.Namespace
 
         Private Shared Function GetTypeNames(declaration As Declaration) As ICollection(Of String)
-            Return GetNames(declaration, IsTypePredicate)
+            Return GetNames(declaration, s_isTypePredicate)
         End Function
 
         Private Shared Function GetNamespaceNames(declaration As Declaration) As ICollection(Of String)
-            Return GetNames(declaration, IsNamespacePredicate)
+            Return GetNames(declaration, s_isNamespacePredicate)
         End Function
 
         Private Shared Function GetNames(declaration As Declaration, predicate As Predicate(Of Declaration)) As ICollection(Of String)
@@ -257,12 +243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Property ReferenceDirectives As ICollection(Of ReferenceDirective)
             Get
                 Return _referenceDirectives.Value
-            End Get
-        End Property
-
-        Public ReadOnly Property ReferenceDirectiveDiagnostics As ICollection(Of Diagnostic)
-            Get
-                Return _referenceDirectiveDiagnostics.Value
             End Get
         End Property
 

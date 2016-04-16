@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// The assembly qualified name of the service's type.
         /// </summary>
-        public string ServiceType { get; private set; }
+        public string ServiceType { get; }
 
         /// <summary>
         /// The language that the service is target for; LanguageNames.CSharp, etc.
         /// </summary>
-        public string Language { get; private set; }
+        public string Language { get; }
 
         /// <summary>
         /// The layer that the service is specified for; ServiceLayer.Default, etc.
         /// </summary>
-        public string Layer { get; private set; }
+        public string Layer { get; }
 
         /// <summary>
         /// Declares a <see cref="ILanguageService"/> implementation for inclusion in a MEF-based workspace.
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.ServiceType = type.AssemblyQualifiedName;

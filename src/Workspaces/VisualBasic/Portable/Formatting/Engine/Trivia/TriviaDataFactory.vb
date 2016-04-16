@@ -20,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Inherits AbstractTriviaDataFactory
 
-        Private Const LineBreakCacheSize = 5
-        Private Const IndentationLevelCacheSize = 20
-        Private Const LineContinuationCacheSize = 80
+        Private Const s_lineBreakCacheSize = 5
+        Private Const s_indentationLevelCacheSize = 20
+        Private Const s_lineContinuationCacheSize = 80
 
-        Private lineContinuations(LineContinuationCacheSize) As LineContinuationTrivia
+        Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
         Public Sub New(treeInfo As TreeData, optionSet As OptionSet)
             MyBase.New(treeInfo, optionSet)
@@ -109,24 +109,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Contract.ThrowIfFalse(lineBreaks = 1)
 
             Dim canUseCache = useTriviaAsItIs AndAlso
-                              indentation < LineContinuationCacheSize
+                              indentation < s_lineContinuationCacheSize
 
             If Not canUseCache Then
                 Return Nothing
             End If
 
             EnsureLineContinuationTriviaInfo(indentation, Me.TreeInfo.GetTextBetween(token1, token2))
-            Return Me.lineContinuations(indentation)
+            Return Me._lineContinuations(indentation)
         End Function
 
         Private Sub EnsureLineContinuationTriviaInfo(indentation As Integer, originalString As String)
-            Contract.ThrowIfFalse(indentation >= 0 AndAlso indentation < LineContinuationCacheSize)
+            Contract.ThrowIfFalse(indentation >= 0 AndAlso indentation < s_lineContinuationCacheSize)
             Debug.Assert(originalString.Substring(0, 4) = " _" & vbCrLf)
 
             ' set up caches
-            If Me.lineContinuations(indentation) Is Nothing Then
+            If Me._lineContinuations(indentation) Is Nothing Then
                 Dim triviaInfo = New LineContinuationTrivia(Me.OptionSet, originalString, indentation)
-                Interlocked.CompareExchange(Me.lineContinuations(indentation), triviaInfo, Nothing)
+                Interlocked.CompareExchange(Me._lineContinuations(indentation), triviaInfo, Nothing)
             End If
         End Sub
 

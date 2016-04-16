@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-
 namespace Microsoft.CodeAnalysis
 {
     // very simple cache with a specified size.

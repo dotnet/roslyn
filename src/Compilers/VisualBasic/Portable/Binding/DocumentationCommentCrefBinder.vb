@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim triviaList As SyntaxTriviaList = reference.GetTrailingTrivia()
             For Each trivia In triviaList
                 If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
-                    ' ignore those, represending VB intrinsic types
+                    ' ignore those, representing VB intrinsic types
                     Dim name As TypeSyntax = reference.Name
                     If name.Kind = SyntaxKind.IdentifierName Then
                         Dim identifier As SyntaxToken = DirectCast(name, IdentifierNameSyntax).Identifier
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ImmutableArray(Of Symbol).Empty
             End If
 
-            RemoveOverridenMethodsAndProperties(symbols)
+            RemoveOverriddenMethodsAndProperties(symbols)
 
             ' Bind signature and return type if present
             Dim signatureTypes As ArrayBuilder(Of SignatureElement) = Nothing
@@ -353,7 +353,7 @@ lAgain:
                         arity = generic.TypeArgumentList.Arguments.Count
                     End If
 
-                    ' Fall through
+                ' Fall through
 
                 Case SyntaxKind.CrefOperatorReference
                     If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.QualifiedCrefOperatorReference Then
@@ -361,7 +361,7 @@ lAgain:
                         parent = name.Parent
                         GoTo lAgain
                     End If
-                    ' Fall through
+                ' Fall through
 
                 Case SyntaxKind.QualifiedName,
                      SyntaxKind.QualifiedCrefOperatorReference
@@ -377,7 +377,7 @@ lAgain:
             Dim symbols = ArrayBuilder(Of Symbol).GetInstance
             CollectCrefNameSymbolsStrict(name, argCount, New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer), symbols, preserveAliases, useSiteDiagnostics)
 
-            RemoveOverridenMethodsAndProperties(symbols)
+            RemoveOverriddenMethodsAndProperties(symbols)
 
             If symbols.Count = 1 AndAlso checkForColorColor Then
                 Dim symbol As Symbol = symbols(0)
@@ -874,7 +874,7 @@ lAgain:
 
             If TypeOf di Is AmbiguousSymbolDiagnostic Then
                 ' Several ambiguous symbols wrapped in 'AmbiguousSymbolDiagnostic', return 
-                ' unwrapped symbols in 'ambiguousSymbols' and return Nothing as a rresult
+                ' unwrapped symbols in 'ambiguousSymbols' and return Nothing as a result
                 Debug.Assert(lookupResult.Kind = LookupResultKind.Ambiguous)
 
                 Dim ambiguousSymbols As ImmutableArray(Of Symbol) = DirectCast(di, AmbiguousSymbolDiagnostic).AmbiguousSymbols

@@ -3,45 +3,47 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
     public partial struct SyntaxTriviaList
     {
+        [StructLayout(LayoutKind.Auto)]
         public struct Enumerator
         {
-            private SyntaxToken token;
-            private GreenNode singleNodeOrList;
-            private int baseIndex;
-            private int count;
+            private SyntaxToken _token;
+            private GreenNode _singleNodeOrList;
+            private int _baseIndex;
+            private int _count;
 
-            private int index;
-            private GreenNode current;
-            private int position;
+            private int _index;
+            private GreenNode _current;
+            private int _position;
 
             internal Enumerator(ref SyntaxTriviaList list)
             {
-                this.token = list.token;
-                this.singleNodeOrList = list.node;
-                this.baseIndex = list.index;
-                this.count = list.Count;
+                _token = list.Token;
+                _singleNodeOrList = list.Node;
+                _baseIndex = list.Index;
+                _count = list.Count;
 
-                this.index = -1;
-                this.current = null;
-                this.position = list.position;
+                _index = -1;
+                _current = null;
+                _position = list.Position;
             }
 
             // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
             private void InitializeFrom(ref SyntaxToken token, GreenNode greenNode, int index, int position)
             {
-                this.token = token;
-                this.singleNodeOrList = greenNode;
-                this.baseIndex = index;
-                this.count = greenNode.IsList ? greenNode.SlotCount : 1;
+                _token = token;
+                _singleNodeOrList = greenNode;
+                _baseIndex = index;
+                _count = greenNode.IsList ? greenNode.SlotCount : 1;
 
-                this.index = -1;
-                this.current = null;
-                this.position = position;
+                _index = -1;
+                _current = null;
+                _position = position;
             }
 
             // PERF: Used to initialize an enumerator for leading trivia directly from a token.
@@ -76,22 +78,22 @@ namespace Microsoft.CodeAnalysis
 
             public bool MoveNext()
             {
-                int newIndex = this.index + 1;
-                if (newIndex >= this.count)
+                int newIndex = _index + 1;
+                if (newIndex >= _count)
                 {
                     // invalidate iterator
-                    this.current = null;
+                    _current = null;
                     return false;
                 }
 
-                this.index = newIndex;
+                _index = newIndex;
 
-                if (current != null)
+                if (_current != null)
                 {
-                    this.position += this.current.FullWidth;
+                    _position += _current.FullWidth;
                 }
 
-                this.current = GetGreenNodeAt(this.singleNodeOrList, newIndex);
+                _current = GetGreenNodeAt(_singleNodeOrList, newIndex);
                 return true;
             }
 
@@ -99,12 +101,12 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    if (this.current == null)
+                    if (_current == null)
                     {
                         throw new InvalidOperationException();
                     }
 
-                    return new SyntaxTrivia(this.token, this.current, this.position, this.baseIndex + this.index);
+                    return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
                 }
             }
 
@@ -115,34 +117,28 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                current = new SyntaxTrivia(this.token, this.current, this.position, this.baseIndex + this.index);
+                current = new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
                 return true;
             }
         }
 
         private class EnumeratorImpl : IEnumerator<SyntaxTrivia>
         {
-            private Enumerator enumerator;
+            private Enumerator _enumerator;
 
             // SyntaxTriviaList is a relatively big struct so is passed as ref
             internal EnumeratorImpl(ref SyntaxTriviaList list)
             {
-                this.enumerator = new Enumerator(ref list);
+                _enumerator = new Enumerator(ref list);
             }
 
-            public SyntaxTrivia Current
-            {
-                get { return enumerator.Current; }
-            }
+            public SyntaxTrivia Current => _enumerator.Current;
 
-            object IEnumerator.Current
-            {
-                get { return enumerator.Current; }
-            }
+            object IEnumerator.Current => _enumerator.Current;
 
             public bool MoveNext()
             {
-                return enumerator.MoveNext();
+                return _enumerator.MoveNext();
             }
 
             public void Reset()

@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend NotInheritable Class WithExpressionRewriter
-        Private ReadOnly withSyntax As WithStatementSyntax
+        Private ReadOnly _withSyntax As WithStatementSyntax
 
         Public Structure Result
             Public Sub New(expression As BoundExpression, locals As ImmutableArray(Of LocalSymbol), initializers As ImmutableArray(Of BoundExpression))
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Structure
 
         Friend Sub New(withSyntax As WithStatementSyntax)
-            Me.withSyntax = withSyntax
+            Me._withSyntax = withSyntax
         End Sub
 
 #Region "State"
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = value.Type
             Debug.Assert(type IsNot Nothing AndAlso Not type.IsVoidType())
 
-            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, withSyntax)
+            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, _withSyntax)
 
             Dim boundLocal = New BoundLocal(value.Syntax, local, isLValue:=True, type:=type).MakeCompilerGenerated()
 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type As TypeSymbol = value.Type
             Debug.Assert(type IsNot Nothing AndAlso Not type.IsVoidType())
 
-            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, withSyntax, isByRef:=True)
+            Dim local As New SynthesizedLocal(state.ContainingMember, type, SynthesizedLocalKind.With, _withSyntax, isByRef:=True)
 
             Dim boundLocal = New BoundLocal(value.Syntax, local, isLValue:=True, type:=type).MakeCompilerGenerated()
 
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' outer expression, because otherwise it will get to initializers of the nested 
                     ' With statement and will take part in flow analysis
                     '
-                    ' Try and get the sunstitute from the binder, or leave placeholder 'as-is' to 
+                    ' Try and get the substitute from the binder, or leave placeholder 'as-is' to 
                     ' be replaced with proper substitute by flow analysis code when needed
                     Dim substitute As BoundExpression =
                         state.Binder.GetWithStatementPlaceholderSubstitute(DirectCast(value, BoundValuePlaceholderBase))

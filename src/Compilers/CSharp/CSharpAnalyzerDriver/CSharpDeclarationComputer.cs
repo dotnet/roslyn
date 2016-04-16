@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,22 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpDeclarationComputer : DeclarationComputer
     {
-        public static ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, CancellationToken cancellationToken)
+        public static void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarations(model, model.SyntaxTree.GetRoot(),
+            ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
-            return builder.ToImmutable();
         }
 
-        public static ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
+        public static void ComputeDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
-            return builder.ToImmutable();
         }
-        
+
         private static bool InvalidLevel(int? level)
         {
             return level.HasValue && level.Value <= 0;
@@ -43,10 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             Func<SyntaxNode, int?, bool> shouldSkip,
             bool getSymbol,
-            ArrayBuilder<DeclarationInfo> builder,
+            List<DeclarationInfo> builder,
             int? levelsToCompute,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (shouldSkip(node, levelsToCompute))
             {
                 return;
@@ -60,14 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var ns = (NamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken));
+                        var declInfo = GetDeclarationInfo(model, node, getSymbol, cancellationToken);
+                        builder.Add(declInfo);
 
                         NameSyntax name = ns.Name;
+                        INamespaceSymbol nsSymbol = declInfo.DeclaredSymbol as INamespaceSymbol;
                         while (name.Kind() == SyntaxKind.QualifiedName)
                         {
                             name = ((QualifiedNameSyntax)name).Left;
-                            var declaredSymbol = getSymbol ? model.GetSymbolInfo(name, cancellationToken).Symbol : null;
+                            var declaredSymbol = getSymbol ? nsSymbol?.ContainingNamespace : null;
                             builder.Add(new DeclarationInfo(name, ImmutableArray<SyntaxNode>.Empty, declaredSymbol));
+                            nsSymbol = declaredSymbol;
                         }
 
                         return;
@@ -125,6 +127,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                case SyntaxKind.ArrowExpressionClause:
+                    {
+                        // Arrow expression clause declares getter symbol for properties and indexers.
+                        var parentProperty = node.Parent as BasePropertyDeclarationSyntax;
+                        if (parentProperty != null)
+                        {
+                            builder.Add(GetExpressionBodyDeclarationInfo(parentProperty, (ArrowExpressionClauseSyntax)node, model, getSymbol, cancellationToken));
+                        }
+
+                        return;
+                    }
+
                 case SyntaxKind.PropertyDeclaration:
                     {
                         var t = (PropertyDeclarationSyntax)node;
@@ -133,7 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var decl in t.AccessorList.Accessors) ComputeDeclarations(model, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
                         }
 
-                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken, t.Initializer, t.ExpressionBody));
+                        if (t.ExpressionBody != null)
+                        {
+                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
+                        }
+
+                        builder.Add(GetDeclarationInfo(model, node, getSymbol, cancellationToken, t.Initializer));
                         return;
                     }
 
@@ -148,11 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
                         if (t.ExpressionBody != null)
                         {
-                            codeBlocks = codeBlocks.Concat(t.ExpressionBody);
+                            ComputeDeclarations(model, t.ExpressionBody, shouldSkip, getSymbol, builder, levelsToCompute, cancellationToken);
                         }
+
+                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
 
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken));
                         return;
@@ -204,6 +224,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return;
             }
+        }
+
+        private static DeclarationInfo GetExpressionBodyDeclarationInfo(
+            BasePropertyDeclarationSyntax declarationWithExpressionBody,
+            ArrowExpressionClauseSyntax expressionBody,
+            SemanticModel model,
+            bool getSymbol,
+            CancellationToken cancellationToken)
+        {
+            // TODO: use 'model.GetDeclaredSymbol(expressionBody)' when compiler is fixed to return the getter symbol for it.
+            var declaredAccessor = getSymbol ? (model.GetDeclaredSymbol(declarationWithExpressionBody, cancellationToken) as IPropertySymbol)?.GetMethod : null;
+
+            return new DeclarationInfo(
+                declaredNode: expressionBody,
+                executableCodeBlocks: ImmutableArray.Create<SyntaxNode>(expressionBody),
+                declaredSymbol: declaredAccessor);
         }
 
         /// <summary>

@@ -3,7 +3,6 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
     Public Class WinRTCollectionTests
@@ -17,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
                     Dim listRefs = New List(Of MetadataReference)(WinRtRefs.Length + 2)
                     listRefs.AddRange(WinRtRefs)
                     listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display:="WinRTTest"))
-                    listRefs.Add(AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
+                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
                     _legacyRefs = listRefs.ToArray()
                 End If
                 Return _legacyRefs
             End Get
         End Property
 
-        <Fact, WorkItem(762316, "DevDiv")>
+        <Fact, WorkItem(762316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762316")>
         Public Sub InheritFromTypeWithProjections()
             Dim source =
             <compilation>
@@ -94,8 +93,7 @@ b
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput,
-                allReferences:=WinRtRefs,
-                emitOptions:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main", <![CDATA[
 {
@@ -199,8 +197,7 @@ End Class]]></file>
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput:=expectedOut,
-                allReferences:=WinRtRefs,
-                emitOptions:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main",
             <![CDATA[
@@ -260,25 +257,25 @@ End Class
   IL_0006:  ldstr      "include"
   IL_000b:  call       "Function Windows.Data.Json.JsonValue.CreateStringValue(String) As Windows.Data.Json.JsonValue"
   IL_0010:  callvirt   "Sub System.Collections.Generic.ICollection(Of Windows.Data.Json.IJsonValue).Add(Windows.Data.Json.IJsonValue)"
-  IL_0015:  ldsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_0015:  ldsfld     "A._Closure$__.$I1-0 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_001a:  brfalse.s  IL_0023
-  IL_001c:  ldsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_001c:  ldsfld     "A._Closure$__.$I1-0 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_0021:  br.s       IL_0039
   IL_0023:  ldsfld     "A._Closure$__.$I As A._Closure$__"
-  IL_0028:  ldftn      "Function A._Closure$__._Lambda$__1-1(Windows.Data.Json.IJsonValue) As Boolean"
+  IL_0028:  ldftn      "Function A._Closure$__._Lambda$__1-0(Windows.Data.Json.IJsonValue) As Boolean"
   IL_002e:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Boolean)..ctor(Object, System.IntPtr)"
   IL_0033:  dup
-  IL_0034:  stsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
+  IL_0034:  stsfld     "A._Closure$__.$I1-0 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_0039:  call       "Function System.Linq.Enumerable.Where(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Boolean)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
-  IL_003e:  ldsfld     "A._Closure$__.$I1-2 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_003e:  ldsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
   IL_0043:  brfalse.s  IL_004c
-  IL_0045:  ldsfld     "A._Closure$__.$I1-2 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_0045:  ldsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
   IL_004a:  br.s       IL_0062
   IL_004c:  ldsfld     "A._Closure$__.$I As A._Closure$__"
-  IL_0051:  ldftn      "Function A._Closure$__._Lambda$__1-2(Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
+  IL_0051:  ldftn      "Function A._Closure$__._Lambda$__1-1(Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
   IL_0057:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)..ctor(Object, System.IntPtr)"
   IL_005c:  dup
-  IL_005d:  stsfld     "A._Closure$__.$I1-2 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
+  IL_005d:  stsfld     "A._Closure$__.$I1-1 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
   IL_0062:  call       "Function System.Linq.Enumerable.Select(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue), System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)) As System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)"
   IL_0067:  call       "Function System.Linq.Enumerable.Count(Of Windows.Data.Json.IJsonValue)(System.Collections.Generic.IEnumerable(Of Windows.Data.Json.IJsonValue)) As Integer"
   IL_006c:  call       "Sub System.Console.WriteLine(Integer)"
@@ -329,8 +326,7 @@ testKey2testValue3]]>
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput:=expectedOut,
-                allReferences:=WinRtRefs,
-                emitOptions:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main", <![CDATA[
 {
@@ -515,7 +511,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIIterableMembers", <![CDATA[
@@ -1590,7 +1585,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             verifier.VerifyIL("AllMembers.TestIMapIntIntMembers", <![CDATA[
 {
@@ -2498,7 +2492,6 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                emitOptions:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -3707,7 +3700,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestISimpleInterfaceImplMembers", <![CDATA[
@@ -4045,7 +4037,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestCollectionInitializers", <![CDATA[
@@ -4216,7 +4207,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler", <![CDATA[
@@ -4387,7 +4377,7 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
+                options:=TestOptions.ReleaseExe.WithModuleName("MODULE"),
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestLINQ", <![CDATA[
@@ -4430,21 +4420,21 @@ End Class
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     "Integer"
   IL_0061:  dup
-  IL_0062:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087"
+  IL_0062:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.864782BF337E3DBC1A27023D5C0C065C80F17087"
   IL_0067:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_006c:  ldloc.0
-  IL_006d:  ldftn      "Function AllMembers._Closure$__5-0._Lambda$__1(Integer) As Boolean"
+  IL_006d:  ldftn      "Function AllMembers._Closure$__5-0._Lambda$__0(Integer) As Boolean"
   IL_0073:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0078:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_007d:  ldsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Integer)"
+  IL_007d:  ldsfld     "AllMembers._Closure$__.$I5-1 As System.Func(Of Integer, Integer)"
   IL_0082:  brfalse.s  IL_008b
-  IL_0084:  ldsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Integer)"
+  IL_0084:  ldsfld     "AllMembers._Closure$__.$I5-1 As System.Func(Of Integer, Integer)"
   IL_0089:  br.s       IL_00a1
   IL_008b:  ldsfld     "AllMembers._Closure$__.$I As AllMembers._Closure$__"
-  IL_0090:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-2(Integer) As Integer"
+  IL_0090:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-1(Integer) As Integer"
   IL_0096:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_009b:  dup
-  IL_009c:  stsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Integer)"
+  IL_009c:  stsfld     "AllMembers._Closure$__.$I5-1 As System.Func(Of Integer, Integer)"
   IL_00a1:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_00a6:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
   IL_00ab:  ldloc.0
@@ -4479,25 +4469,25 @@ End Class
   IL_0104:  pop
   IL_0105:  ldloc.0
   IL_0106:  ldfld      "AllMembers._Closure$__5-0.$VB$Local_v As Windows.Languages.WinRTTest.IVectorInt"
-  IL_010b:  ldsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Boolean)"
+  IL_010b:  ldsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Boolean)"
   IL_0110:  brfalse.s  IL_0119
-  IL_0112:  ldsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Boolean)"
+  IL_0112:  ldsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Boolean)"
   IL_0117:  br.s       IL_012f
   IL_0119:  ldsfld     "AllMembers._Closure$__.$I As AllMembers._Closure$__"
-  IL_011e:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-3(Integer) As Boolean"
+  IL_011e:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-2(Integer) As Boolean"
   IL_0124:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0129:  dup
-  IL_012a:  stsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Boolean)"
+  IL_012a:  stsfld     "AllMembers._Closure$__.$I5-2 As System.Func(Of Integer, Boolean)"
   IL_012f:  call       "Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)"
-  IL_0134:  ldsfld     "AllMembers._Closure$__.$I5-4 As System.Func(Of Integer, Integer)"
+  IL_0134:  ldsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Integer)"
   IL_0139:  brfalse.s  IL_0142
-  IL_013b:  ldsfld     "AllMembers._Closure$__.$I5-4 As System.Func(Of Integer, Integer)"
+  IL_013b:  ldsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Integer)"
   IL_0140:  br.s       IL_0158
   IL_0142:  ldsfld     "AllMembers._Closure$__.$I As AllMembers._Closure$__"
-  IL_0147:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-4(Integer) As Integer"
+  IL_0147:  ldftn      "Function AllMembers._Closure$__._Lambda$__5-3(Integer) As Integer"
   IL_014d:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0152:  dup
-  IL_0153:  stsfld     "AllMembers._Closure$__.$I5-4 As System.Func(Of Integer, Integer)"
+  IL_0153:  stsfld     "AllMembers._Closure$__.$I5-3 As System.Func(Of Integer, Integer)"
   IL_0158:  call       "Function System.Linq.Enumerable.Select(Of Integer, Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Integer)) As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_015d:  call       "Function System.Linq.Enumerable.ToList(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer)) As System.Collections.Generic.List(Of Integer)"
   IL_0162:  ldloc.0
@@ -4618,7 +4608,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNamedArguments", <![CDATA[
@@ -4740,7 +4729,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNullableArgs", <![CDATA[
@@ -4976,7 +4964,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorMembers", <![CDATA[
@@ -5197,7 +5184,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableMembers", <![CDATA[
@@ -5352,7 +5338,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorIVectorIntMembers", <![CDATA[
@@ -5704,7 +5689,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableIIterableMembers", <![CDATA[
@@ -5836,7 +5820,6 @@ End Class
             Dim verifier = CompileAndVerify(
                 source,
                 additionalRefs:=LegacyRefs,
-                emitOptions:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.INotifyCollectionAndBindableVectorMembers", <![CDATA[
@@ -6095,7 +6078,6 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                emitOptions:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -6198,7 +6180,6 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                emitOptions:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -6258,7 +6239,6 @@ End Class
 
             Dim comp = CompileAndVerify(src,
                                         additionalRefs:=LegacyRefs,
-                                        emitOptions:=TestEmitters.RefEmitBug,
                                         verify:=False,
                                         options:=TestOptions.ReleaseExe)
 
@@ -6306,7 +6286,6 @@ End Namespace
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
                 options:=TestOptions.ReleaseWinMD,
-                emitOptions:=TestEmitters.RefEmitBug,
                 additionalRefs:=WinRtRefs)
 
             AssertNoErrorsOrWarnings(verifier)
@@ -6345,7 +6324,6 @@ End Namespace
                 </compilation>
 
             verifier = CompileAndVerify(source,
-                emitOptions:=TestEmitters.RefEmitBug,
                 additionalRefs:=allRefs.ToArray())
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("Test2.D.Main", <![CDATA[
@@ -6364,7 +6342,7 @@ End Namespace
             verifier.Diagnostics.AsEnumerable().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
         End Sub
 
-        <Fact, WorkItem(1034461, "DevDiv")>
+        <Fact, WorkItem(1034461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034461")>
         Public Sub Bug1034461()
             Dim source =
             <compilation>

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
-        Sub HasNameQualifier()
+        Public Sub HasNameQualifier()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
@@ -74,17 +74,17 @@ End Namespace
                     "NA.NA.NB",
                     "NA.NB.NB"
                 }
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("C"), "")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.C"), "N")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.NA.C"), "N.NA")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.NA.NB.C"), "N.NA.NB")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.C"), "NA")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.NA.C"), "NA.NA")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.NB.C"), "NA.NB")
-            HasNameQualifier(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NB.C"), "NB")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("C"), "")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.C"), "N")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.NA.C"), "N.NA")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("N.NA.NB.C"), "N.NA.NB")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.C"), "NA")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.NA.C"), "NA.NA")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NA.NB.C"), "NA.NB")
+            HasNameQualifierCore(namespaceNames, compilation.GetMember(Of NamedTypeSymbol)("NB.C"), "NB")
         End Sub
 
-        Private Shared Sub HasNameQualifier(namespaceNames As String(), type As NamedTypeSymbol, expectedName As String)
+        Private Shared Sub HasNameQualifierCore(namespaceNames As String(), type As NamedTypeSymbol, expectedName As String)
             Assert.True(Array.IndexOf(namespaceNames, expectedName) >= 0)
             Assert.Null(type.GetEmittedNamespaceName())
             For Each namespaceName In namespaceNames

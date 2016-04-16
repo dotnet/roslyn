@@ -31,10 +31,11 @@
     <ValueType Name="OnErrorStatementKind"/>
     <ValueType Name="SourceMemberFlags"/>
     <ValueType Name="NoOpStatementFlavor"/>
+    <ValueType Name="BoundTypeOrValueData"/>
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
-        <Field Name="Type" Type="TypeSymbol" Null="allow"/>
-    </AbstractNode>
+    <Field Name="Type" Type="TypeSymbol" Null="allow"/>
+  </AbstractNode>
 
     <!-- 
   An expression is classified as one of the following:
@@ -152,7 +153,7 @@
     </Node>
 
     <!--
-    Represens an operation that is special in both IL and Expression trees -
+    Represents an operation that is special in both IL and Expression trees -
     getting length of a one-dimensional 0-based array (vector)
   
     This node should not be produced in initial binding since it is not a part of 
@@ -219,7 +220,7 @@
     name2 and see if it requires a receiver (then name1 is a value) 
     or if it does not (then name1 is a type).
     
-    The problem only arises when name2 is an overloaded method or property.
+    The problem only arises when name2 is an overloaded property.
     In such case we must defer type/value decision until overload resolution 
     selects one of the candidates.
     
@@ -235,6 +236,7 @@
     <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
       <!-- Type is required for this node type; may not be null -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="Data" Type="BoundTypeOrValueData"/>
     </Node>
   
     <Node Name="BoundNamespaceExpression" Base="BoundExpression" HasValidate="true">
@@ -503,7 +505,7 @@
       associated with next statement (which could be a fairly random statement in random scope).
       -->
         <Field Name="StatementOpt" Type="BoundStatement" Null="allow"/>
-        <Field Name="SequenceSpan" Type="TextSpan"/>
+        <Field Name="Span" Type="TextSpan"/>
     </Node>
 
     <Node Name="BoundNoOpStatement" Base="BoundStatement">
@@ -840,7 +842,7 @@
 
         <Field Name="AccessKind" Type="PropertyAccessKind"/>           
       
-        <!-- autoproperty could be writeable even when having no setter 
+        <!-- autoproperty could be writable even when having no setter 
              when in a corresponding constructor or initializer -->
         <Field Name="IsWriteable" Type="Boolean"/>
       
@@ -935,23 +937,42 @@
   Bound node that represents a field or property initialization.
   It's used to capture the relationship between a symbol and its initialization value.  
   -->
-    <Node Name="BoundFieldOrPropertyInitializer" Base="BoundInitializer">
-      <!-- List of symbols that get initialized by this initializer. Typically it's one symbol, but there might
-           be more for a AsNew declaration with multiple variable names, e.g.
-           Class C1
-              Public Field1, Field2 As New TypeName() = Expression
-           End Class
-      -->
-      <Field Name="InitializedSymbols" Type="ImmutableArray(Of Symbol)" Null="disallow" />
+  <AbstractNode Name="BoundFieldOrPropertyInitializer" Base="BoundInitializer">
+    <!-- In case the field or property initializer only initializes one symbol,
+         the MemberAccessExpressionOpt field is the left side of the assignment operator
+         to which the initializer will be rewritten.-->
+    <Field Name="MemberAccessExpressionOpt" Type="BoundExpression" Null="allow" />
+    <!-- The expression representing the initial value -->
+    <Field Name="InitialValue" Type="BoundExpression" Null="disallow"/>
+  </AbstractNode>
 
-      <!-- In case the field or property initializer only initializes one symbol,
-           the MemberAccessExpressionOpt field is the left side of the assignment operator
-           to which the initializer will be rewritten.-->
-      <Field Name="MemberAccessExpressionOpt" Type="BoundExpression" Null="allow" />
-      
-      <!-- the expression representing the initial value -->
-      <Field Name="InitialValue" Type="BoundExpression" Null="disallow"/>
-    </Node>
+  <!-- Bound node that represents a field initialization. --> 
+  <Node Name="BoundFieldInitializer" Base="BoundFieldOrPropertyInitializer">
+    <!-- List of fields that get initialized by this initializer. Typically it's one symbol, but there might
+         be more for an AsNew declaration with multiple variable names, e.g.
+         Class C1
+            Public Field1, Field2 As New TypeName() = Expression
+         End Class
+    -->
+    <Field Name="InitializedFields" Type="ImmutableArray(Of FieldSymbol)" Null="disallow" />
+  </Node>
+
+  <!-- Bound node that represents a property initialization. -->
+  <Node Name="BoundPropertyInitializer" Base="BoundFieldOrPropertyInitializer">
+    <!-- Properties that get initialized by this initializer. -->
+    <Field Name="InitializedProperties" Type="ImmutableArray(Of PropertySymbol)" Null="disallow" />
+  </Node>
+    
+  <!--
+  Bound node that represents the binding of an "= Value" construct in a parameter declaration.
+  Appears only in bound trees generated by a SemanticModel.
+  -->
+  <Node Name="BoundParameterEqualsValue" Base="BoundNode">
+    <!-- Parameter receiving the value. -->
+    <Field Name="Parameter" Type="ParameterSymbol" Null="disallow"/>
+    <!-- Expression representing the value. -->
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+  </Node>
 
   <!--
   Bound node that represents a global statement.
@@ -1125,7 +1146,7 @@
       <Field Name="TryBlock" Type="BoundBlock"/>
       <Field Name="CatchBlocks" Type="ImmutableArray(Of BoundCatchBlock)"/>
       <Field Name="FinallyBlockOpt" Type="BoundBlock" Null="allow"/>
-      <!-- Exit label is optional because synthetic trys (foreach and using) do not need it. -->
+      <!-- Exit label is optional because synthetic try's (foreach and using) do not need it. -->
       <Field Name="ExitLabelOpt" Type="LabelSymbol" Null="allow"/>
     </Node>
 
@@ -1142,7 +1163,7 @@
       <!-- 
       Refers to the location where the exception object is stored. Usually that's a bound local.
       But it might also be a BoundSequence, whose last expression refers to the location
-      and the sideeffects initialize the storage (e.g. if the catch identitifer is lifted 
+      and the sideeffects initialize the storage (e.g. if the catch identifier is lifted 
       into a closure the sideeffects initialize the closure).
       
       The type of this expression is the type that we are catching.
@@ -1155,6 +1176,7 @@
 
       <Field Name="ExceptionFilterOpt" Type="BoundExpression" Null="allow"/>
       <Field Name="Body" Type="BoundBlock"/>
+      <Field Name="IsSynthesizedAsyncCatchAll" Type="Boolean" />
     </Node>
   
     <Node Name="BoundLiteral" Base="BoundExpression" HasValidate="true">
@@ -1443,8 +1465,8 @@
            type of the target delegate, LambdaSymbol's ReturnType will be LambdaSymbol.ReturnTypePendingDelegate 
            and it should be replaced with the final type after successful overload resolution. 
            
-           Note, that this will mutate the symbol, but it shouln't be a problem because we will 
-           not reuse the same lambda symbol across different overload resolutions and no one should need 
+           Note, that this will mutate the symbol, but it shouldn't be a problem because we will 
+           not reuse the same lambda symbol across different overload resolutions and no-one should need 
            to examine the ReturnType before the resolution is complete. If we were to replace LambdaSymbol
            with a different symbol instead, we would have to update the Expression and symbols used by it 
            as they might have references to the original LambdaSymbol because it is the ContainingMember 
@@ -1648,7 +1670,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter and used as a filter expression 
-       for an "On Error" catch block. CodeGen hadles this node specially.
+       for an "On Error" catch block. CodeGen handles this node specially.
   -->
   <Node Name="BoundUnstructuredExceptionHandlingCatchFilter" Base="BoundExpression" HasValidate="true">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1657,7 +1679,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter to represent "On Error" switch, 
-       CodeGen hadles this node specially. 
+       CodeGen handles this node specially. 
   -->
   <Node Name="BoundUnstructuredExceptionOnErrorSwitch" Base="BoundStatement" HasValidate="true">
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
@@ -1665,7 +1687,7 @@
   </Node>
 
   <!-- A special synthetic node created in LocalRewriter to represent "Resume" switch, 
-       CodeGen hadles this node specially. 
+       CodeGen handles this node specially. 
   -->
   <Node Name="BoundUnstructuredExceptionResumeSwitch" Base="BoundStatement" HasValidate="true">
     <Field Name="ResumeTargetTemporary" Type="BoundLocal" Null="disallow"/>
@@ -1691,7 +1713,7 @@
   <!-- Normal sequence nodes can't be used for await expressions, because await
        expression side-effects include control flow.
        
-       These nodes are only temporarily created in asynch rewriting pass and never leave it. 
+       These nodes are only temporarily created in async rewriting pass and never leave it. 
        They should never be used by or visible to anything other than the async rewriter.
   -->
   <Node Name="BoundSpillSequence" Base="BoundExpression" HasValidate="true">
@@ -1748,6 +1770,17 @@
     <Field Name="WhenNullOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 
+  <!-- This node represents a complex receiver for a conditional access. 
+       At runtime, when its type is a value type, ValueTypeReceiver should be used as a receiver.
+       Otherwise, ReferenceTypeReceiver should be used. 
+       This kind of receiver is created only by Async rewriter.
+  -->
+  <Node Name="BoundComplexConditionalAccessReceiver" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValueTypeReceiver" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ReferenceTypeReceiver" Type="BoundExpression" Null="disallow"/>
+  </Node>
+  
   <Node Name="BoundNameOfOperator" Base="BoundExpression" HasValidate="true">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -1765,6 +1798,7 @@
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Contents" Type="ImmutableArray(Of BoundNode)"/>
+    <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
   
   <!-- There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose. -->

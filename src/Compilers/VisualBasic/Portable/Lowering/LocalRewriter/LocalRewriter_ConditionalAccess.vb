@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim needWhenNotNullPart As Boolean = True
             Dim needWhenNullPart As Boolean = True
 
-            Dim factory = New SyntheticBoundNodeFactory(topMethod, currentMethodOrLambda, node.Syntax, compilationState, diagnostics)
+            Dim factory = New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
 
             If receiverType.IsNullableType() Then
                 ' if( receiver.HasValue, receiver.GetValueOrDefault(). ... -> to Nullable, Nothing) 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim first As BoundExpression
 
                     If ShouldCaptureConditionalAccessReceiver(rewrittenReceiver) Then
-                        temp = New SynthesizedLocal(Me.currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
+                        temp = New SynthesizedLocal(Me._currentMethodOrLambda, receiverType, SynthesizedLocalKind.LoweringTemp)
 
                         assignment = factory.AssignmentExpression(factory.Local(temp, isLValue:=True), rewrittenReceiver.MakeRValue())
                         first = factory.Local(temp, isLValue:=True)
@@ -97,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' if( receiver IsNot Nothing, receiver. ... -> to Nullable, Nothing) 
                     receiverOrCondition = rewrittenReceiver
                     captureReceiver = ShouldCaptureConditionalAccessReceiver(rewrittenReceiver)
-                    Me.conditionalAccessReceiverPlaceholderId += 1
-                    newPlaceholderId = Me.conditionalAccessReceiverPlaceholderId
+                    Me._conditionalAccessReceiverPlaceholderId += 1
+                    newPlaceholderId = Me._conditionalAccessReceiverPlaceholderId
                     Debug.Assert(newPlaceholderId <> 0)
                     newPlaceHolder = New BoundConditionalAccessReceiverPlaceholder(node.Placeholder.Syntax, newPlaceholderId, node.Placeholder.Type)
                     placeholderReplacement = newPlaceHolder
@@ -162,6 +162,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return result
+        End Function
+
+        Private Shared Function IsConditionalAccess(operand As BoundExpression, <Out> ByRef whenNotNull As BoundExpression, <Out> ByRef whenNull As BoundExpression) As Boolean
+            If operand.Kind = BoundKind.Sequence Then
+                Dim sequence = DirectCast(operand, BoundSequence)
+
+                If sequence.ValueOpt Is Nothing Then
+                    whenNotNull = Nothing
+                    whenNull = Nothing
+                    Return False
+                End If
+
+                operand = sequence.ValueOpt
+            End If
+
+            If operand.Kind = BoundKind.LoweredConditionalAccess Then
+                Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
+                whenNotNull = conditional.WhenNotNull
+                whenNull = conditional.WhenNullOpt
+                Return True
+            End If
+
+            whenNotNull = Nothing
+            whenNull = Nothing
+            Return False
+        End Function
+
+        Private Shared Function UpdateConditionalAccess(operand As BoundExpression, whenNotNull As BoundExpression, whenNull As BoundExpression) As BoundExpression
+            Dim sequence As BoundSequence
+
+            If operand.Kind = BoundKind.Sequence Then
+                sequence = DirectCast(operand, BoundSequence)
+                operand = sequence.ValueOpt
+            Else
+                sequence = Nothing
+            End If
+
+            Dim conditional = DirectCast(operand, BoundLoweredConditionalAccess)
+
+            operand = conditional.Update(conditional.ReceiverOrCondition,
+                                         conditional.CaptureReceiver,
+                                         conditional.PlaceholderId,
+                                         whenNotNull,
+                                         whenNull,
+                                         whenNotNull.Type)
+
+            If sequence Is Nothing Then
+                Return operand
+            End If
+
+            Return sequence.Update(sequence.Locals, sequence.SideEffects, operand, operand.Type)
         End Function
 
     End Class

@@ -15,42 +15,42 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal struct OneOrMany<T>
     {
-        private readonly T one;
-        private readonly ImmutableArray<T> many;
+        private readonly T _one;
+        private readonly ImmutableArray<T> _many;
 
         public OneOrMany(T one)
         {
-            this.one = one;
-            this.many = default(ImmutableArray<T>);
+            _one = one;
+            _many = default(ImmutableArray<T>);
         }
 
         public OneOrMany(ImmutableArray<T> many)
         {
             if (many.IsDefault)
             {
-                throw new ArgumentNullException("many");
+                throw new ArgumentNullException(nameof(many));
             }
 
-            this.one = default(T);
-            this.many = many;
+            _one = default(T);
+            _many = many;
         }
 
         public T this[int index]
         {
             get
             {
-                if (this.many.IsDefault)
+                if (_many.IsDefault)
                 {
                     if (index != 0)
                     {
                         throw new IndexOutOfRangeException();
                     }
 
-                    return one;
+                    return _one;
                 }
                 else
                 {
-                    return many[index];
+                    return _many[index];
                 }
             }
         }
@@ -59,8 +59,13 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return this.many.IsDefault ? 1 : this.many.Length;
+                return _many.IsDefault ? 1 : _many.Length;
             }
+        }
+
+        public OneOrMany<T> Add(T item)
+        {
+            return new OneOrMany<T>(_many.IsDefault ? ImmutableArray.Create(_one, item) : _many.Add(item));
         }
     }
 

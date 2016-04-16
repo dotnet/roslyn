@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    public interface ICompilationFactoryService : ILanguageService
+    internal interface ICompilationFactoryService : ILanguageService
     {
         Compilation CreateCompilation(string assemblyName, CompilationOptions options);
         Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType);

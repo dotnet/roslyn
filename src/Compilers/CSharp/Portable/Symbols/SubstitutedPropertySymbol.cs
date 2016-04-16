@@ -11,28 +11,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SubstitutedPropertySymbol : PropertySymbol
     {
-        private readonly PropertySymbol originalDefinition;
-        private readonly SubstitutedNamedTypeSymbol containingType;
+        private readonly PropertySymbol _originalDefinition;
+        private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbol lazyType;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
+        private TypeSymbol _lazyType;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         internal SubstitutedPropertySymbol(SubstitutedNamedTypeSymbol containingType, PropertySymbol originalDefinition)
         {
-            this.containingType = containingType;
-            this.originalDefinition = originalDefinition;
+            _containingType = containingType;
+            _originalDefinition = originalDefinition;
         }
 
         public override TypeSymbol Type
         {
             get
             {
-                if ((object)this.lazyType == null)
+                if ((object)_lazyType == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyType, containingType.TypeSubstitution.SubstituteType(originalDefinition.Type), null);
+                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type).Type, null);
                 }
 
-                return this.lazyType;
+                return _lazyType;
             }
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.originalDefinition.Name;
+                return _originalDefinition.Name;
             }
         }
 
@@ -48,20 +48,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.HasSpecialName;
+                return _originalDefinition.HasSpecialName;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         public override Symbol ContainingSymbol
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.originalDefinition;
+                return _originalDefinition;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.originalDefinition.Locations;
+                return _originalDefinition.Locations;
             }
         }
 
@@ -93,78 +93,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.originalDefinition.DeclaringSyntaxReferences;
+                return _originalDefinition.DeclaringSyntaxReferences;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.originalDefinition.GetAttributes();
+            return _originalDefinition.GetAttributes();
         }
 
         public override bool IsStatic
         {
             get
             {
-                return this.originalDefinition.IsStatic;
+                return _originalDefinition.IsStatic;
             }
         }
 
         public override bool IsExtern
         {
-            get { return this.originalDefinition.IsExtern; }
+            get { return _originalDefinition.IsExtern; }
         }
 
         public override bool IsSealed
         {
-            get { return this.originalDefinition.IsSealed; }
+            get { return _originalDefinition.IsSealed; }
         }
 
         public override bool IsAbstract
         {
-            get { return this.originalDefinition.IsAbstract; }
+            get { return _originalDefinition.IsAbstract; }
         }
 
         public override bool IsVirtual
         {
-            get { return this.originalDefinition.IsVirtual; }
+            get { return _originalDefinition.IsVirtual; }
         }
 
         public override bool IsOverride
         {
-            get { return this.originalDefinition.IsOverride; }
+            get { return _originalDefinition.IsOverride; }
         }
 
         public override bool IsImplicitlyDeclared
         {
-            get { return this.originalDefinition.IsImplicitlyDeclared; }
+            get { return _originalDefinition.IsImplicitlyDeclared; }
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
-            get { return originalDefinition.ObsoleteAttributeData; }
+            get { return _originalDefinition.ObsoleteAttributeData; }
         }
 
         public override bool IsIndexer
         {
-            get { return this.originalDefinition.IsIndexer; }
+            get { return _originalDefinition.IsIndexer; }
         }
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
-            get { return this.originalDefinition.TypeCustomModifiers; }
+            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.TypeCustomModifiers); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get
             {
-                if (this.lazyParameters.IsDefault)
+                if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref this.lazyParameters, SubstituteParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, SubstituteParameters(), default(ImmutableArray<ParameterSymbol>));
                 }
 
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodSymbol originalGetMethod = this.originalDefinition.GetMethod;
-                return (object)originalGetMethod == null ? null : originalGetMethod.AsMember(this.containingType);
+                MethodSymbol originalGetMethod = _originalDefinition.GetMethod;
+                return (object)originalGetMethod == null ? null : originalGetMethod.AsMember(_containingType);
             }
         }
 
@@ -182,51 +182,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodSymbol originalSetMethod = this.originalDefinition.SetMethod;
-                return (object)originalSetMethod == null ? null : originalSetMethod.AsMember(this.containingType);
+                MethodSymbol originalSetMethod = _originalDefinition.SetMethod;
+                return (object)originalSetMethod == null ? null : originalSetMethod.AsMember(_containingType);
             }
         }
 
         internal override bool IsExplicitInterfaceImplementation
         {
-            get { return this.originalDefinition.IsExplicitInterfaceImplementation; }
+            get { return _originalDefinition.IsExplicitInterfaceImplementation; }
         }
 
         //we want to compute this lazily since it may be expensive for the underlying symbol
-        private ImmutableArray<PropertySymbol> lazyExplicitInterfaceImplementations;
+        private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
 
-        private OverriddenOrHiddenMembersResult lazyOverriddenOrHiddenMembers;
+        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
             get
             {
-                if (lazyExplicitInterfaceImplementations.IsDefault)
+                if (_lazyExplicitInterfaceImplementations.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(
-                        ref lazyExplicitInterfaceImplementations,
-                        ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementations(this.originalDefinition.ExplicitInterfaceImplementations, this.containingType.TypeSubstitution),
+                        ref _lazyExplicitInterfaceImplementations,
+                        ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementations(_originalDefinition.ExplicitInterfaceImplementations, _containingType.TypeSubstitution),
                         default(ImmutableArray<PropertySymbol>));
                 }
-                return lazyExplicitInterfaceImplementations;
+                return _lazyExplicitInterfaceImplementations;
             }
         }
 
         internal override Microsoft.Cci.CallingConvention CallingConvention
         {
-            get { return this.originalDefinition.CallingConvention; }
+            get { return _originalDefinition.CallingConvention; }
         }
 
         internal override bool MustCallMethodsDirectly
         {
-            get { return this.originalDefinition.MustCallMethodsDirectly; }
+            get { return _originalDefinition.MustCallMethodsDirectly; }
         }
 
         public override Accessibility DeclaredAccessibility
         {
             get
             {
-                return this.originalDefinition.DeclaredAccessibility;
+                return _originalDefinition.DeclaredAccessibility;
             }
         }
 
@@ -234,17 +234,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.lazyOverriddenOrHiddenMembers == null)
+                if (_lazyOverriddenOrHiddenMembers == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
+                    Interlocked.CompareExchange(ref _lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
                 }
-                return this.lazyOverriddenOrHiddenMembers;
+                return _lazyOverriddenOrHiddenMembers;
             }
         }
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
-            var unsubstitutedParameters = originalDefinition.Parameters;
+            var unsubstitutedParameters = _originalDefinition.Parameters;
 
             if (unsubstitutedParameters.IsEmpty)
             {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var substituted = new ParameterSymbol[count];
                 for (int i = 0; i < count; i++)
                 {
-                    substituted[i] = new SubstitutedParameterSymbol(this, this.containingType.TypeSubstitution, unsubstitutedParameters[i]);
+                    substituted[i] = new SubstitutedParameterSymbol(this, _containingType.TypeSubstitution, unsubstitutedParameters[i]);
                 }
                 return substituted.AsImmutableOrNull();
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             get
             {
-                return originalDefinition.MetadataName;
+                return _originalDefinition.MetadataName;
             }
         }
     }

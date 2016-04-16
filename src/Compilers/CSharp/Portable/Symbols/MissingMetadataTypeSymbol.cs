@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal class TopLevel : MissingMetadataTypeSymbol
         {
-            private readonly string namespaceName;
-            private readonly ModuleSymbol containingModule;
-            private NamespaceSymbol lazyContainingNamespace;
+            private readonly string _namespaceName;
+            private readonly ModuleSymbol _containingModule;
+            private NamespaceSymbol _lazyContainingNamespace;
 
             /// <summary>
             /// Either <see cref="SpecialType"/>, <see cref="WellKnownType"/>, or -1 if not initialized.
             /// </summary>
-            private int lazyTypeId = -1;
+            private int _lazyTypeId = -1;
 
             public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
                 : base(name, arity, mangleName)
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)module != null);
                 Debug.Assert(@namespace != null);
 
-                this.namespaceName = @namespace;
-                this.containingModule = module;
+                _namespaceName = @namespace;
+                _containingModule = module;
             }
 
             public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : this(module, ref fullName, fullName.ForcedArity == -1 || fullName.ForcedArity == fullName.InferredArity)
             {
                 Debug.Assert(typeId == -1 || typeId == (int)SpecialType.None || Arity == 0 || MangleName);
-                this.lazyTypeId = typeId;
+                _lazyTypeId = typeId;
             }
 
             private TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, bool mangleName)
@@ -177,14 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             public string NamespaceName
             {
-                get { return namespaceName; }
+                get { return _namespaceName; }
             }
 
             internal override ModuleSymbol ContainingModule
             {
                 get
                 {
-                    return containingModule;
+                    return _containingModule;
                 }
             }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return containingModule.ContainingAssembly;
+                    return _containingModule.ContainingAssembly;
                 }
             }
 
@@ -200,13 +200,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if ((object)lazyContainingNamespace == null)
+                    if ((object)_lazyContainingNamespace == null)
                     {
-                        NamespaceSymbol container = containingModule.GlobalNamespace;
+                        NamespaceSymbol container = _containingModule.GlobalNamespace;
 
-                        if (namespaceName.Length > 0)
+                        if (_namespaceName.Length > 0)
                         {
-                            var namespaces = MetadataHelpers.SplitQualifiedName(namespaceName);
+                            var namespaces = MetadataHelpers.SplitQualifiedName(_namespaceName);
                             int i;
 
                             for (i = 0; i < namespaces.Length; i++)
@@ -237,10 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        Interlocked.CompareExchange(ref lazyContainingNamespace, container, null);
+                        Interlocked.CompareExchange(ref _lazyContainingNamespace, container, null);
                     }
 
-                    return lazyContainingNamespace;
+                    return _lazyContainingNamespace;
                 }
             }
 
@@ -248,23 +248,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (lazyTypeId == -1)
+                    if (_lazyTypeId == -1)
                     {
                         SpecialType typeId = SpecialType.None;
 
-                        AssemblySymbol containingAssembly = containingModule.ContainingAssembly;
+                        AssemblySymbol containingAssembly = _containingModule.ContainingAssembly;
 
-                        if ((Arity == 0 || MangleName) && (object)containingAssembly != null && ReferenceEquals(containingAssembly, containingAssembly.CorLibrary) && containingModule.Ordinal == 0)
+                        if ((Arity == 0 || MangleName) && (object)containingAssembly != null && ReferenceEquals(containingAssembly, containingAssembly.CorLibrary) && _containingModule.Ordinal == 0)
                         {
                             // Check the name 
-                            string emittedName = MetadataHelpers.BuildQualifiedName(namespaceName, MetadataName);
+                            string emittedName = MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName);
                             typeId = SpecialTypes.GetTypeFromMetadataName(emittedName);
                         }
 
-                        Interlocked.CompareExchange(ref lazyTypeId, (int)typeId, -1);
+                        Interlocked.CompareExchange(ref _lazyTypeId, (int)typeId, -1);
                     }
 
-                    return lazyTypeId;
+                    return _lazyTypeId;
                 }
             }
 
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     int typeId = TypeId;
-                    return (typeId >= (int)WellKnownType.First) ? SpecialType.None : (SpecialType)lazyTypeId;
+                    return (typeId >= (int)WellKnownType.First) ? SpecialType.None : (SpecialType)_lazyTypeId;
                 }
             }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (this.TypeId != (int)SpecialType.None)
                     {
-                        return new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeNotFound, MetadataHelpers.BuildQualifiedName(namespaceName, MetadataName));
+                        return new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeNotFound, MetadataHelpers.BuildQualifiedName(_namespaceName, MetadataName));
                     }
 
                     return base.ErrorInfo;
@@ -298,10 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
                 }
 
-                return Hash.Combine(MetadataName, Hash.Combine(containingModule, Hash.Combine(namespaceName, arity)));
+                return Hash.Combine(MetadataName, Hash.Combine(_containingModule, Hash.Combine(_namespaceName, arity)));
             }
 
-            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -322,34 +322,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)other != null &&
                     string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
-                    string.Equals(namespaceName, other.NamespaceName, StringComparison.Ordinal) &&
-                    containingModule.Equals(other.containingModule);
+                    string.Equals(_namespaceName, other.NamespaceName, StringComparison.Ordinal) &&
+                    _containingModule.Equals(other._containingModule);
             }
         }
 
         internal class TopLevelWithCustomErrorInfo : TopLevel
         {
-            private readonly DiagnosticInfo errorInfo;
+            private readonly DiagnosticInfo _errorInfo;
 
             public TopLevelWithCustomErrorInfo(ModuleSymbol module, ref MetadataTypeName emittedName, DiagnosticInfo errorInfo)
                 : base(module, ref emittedName)
             {
                 Debug.Assert(errorInfo != null);
-                this.errorInfo = errorInfo;
+                _errorInfo = errorInfo;
             }
 
             public TopLevelWithCustomErrorInfo(ModuleSymbol module, ref MetadataTypeName emittedName, DiagnosticInfo errorInfo, SpecialType typeId)
                 : base(module, ref emittedName, typeId)
             {
                 Debug.Assert(errorInfo != null);
-                this.errorInfo = errorInfo;
+                _errorInfo = errorInfo;
             }
 
             internal override DiagnosticInfo ErrorInfo
             {
                 get
                 {
-                    return errorInfo;
+                    return _errorInfo;
                 }
             }
         }
@@ -359,14 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal class Nested : MissingMetadataTypeSymbol
         {
-            private readonly NamedTypeSymbol containingType;
+            private readonly NamedTypeSymbol _containingType;
 
             public Nested(NamedTypeSymbol containingType, string name, int arity, bool mangleName)
                 : base(name, arity, mangleName)
             {
                 Debug.Assert((object)containingType != null);
 
-                this.containingType = containingType;
+                _containingType = containingType;
             }
 
             public Nested(NamedTypeSymbol containingType, ref MetadataTypeName emittedName)
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return containingType;
+                    return _containingType;
                 }
             }
 
@@ -401,10 +401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode()
             {
-                return Hash.Combine(containingType, Hash.Combine(MetadataName, arity));
+                return Hash.Combine(_containingType, Hash.Combine(MetadataName, arity));
             }
 
-            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+            internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = t2 as Nested;
                 return (object)other != null && string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
-                    containingType.Equals(other.containingType, ignoreCustomModifiers, ignoreDynamic);
+                    _containingType.Equals(other._containingType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
             }
         }
     }

@@ -13,46 +13,37 @@ namespace Microsoft.CodeAnalysis
     {
         public struct ArityEnumerator : IEnumerator<int>
         {
-            private int current;
-            private int low32bits;
-            private int[] arities;
+            private int _current;
+            private readonly int _low32bits;
+            private int[] _arities;
 
             private const int resetValue = -1;
             private const int reachedEndValue = int.MaxValue;
 
             internal ArityEnumerator(int bitVector, HashSet<int> arities)
             {
-                this.current = resetValue;
-                this.low32bits = bitVector;
+                _current = resetValue;
+                _low32bits = bitVector;
                 if (arities == null)
                 {
-                    this.arities = null;
+                    _arities = null;
                 }
                 else
                 {
-                    this.arities = arities.ToArray();
-                    Array.Sort(this.arities);
+                    _arities = arities.ToArray();
+                    Array.Sort(_arities);
                 }
             }
 
-            public int Current
-            {
-                get { return this.current; }
-            }
+            public int Current => _current;
 
-            public void Dispose()
-            {
-                this.arities = null;
-            }
+            public void Dispose() => _arities = null;
 
-            object System.Collections.IEnumerator.Current
-            {
-                get { return this.current; }
-            }
+            object System.Collections.IEnumerator.Current => _current;
 
             public bool MoveNext()
             {
-                if (this.current == reachedEndValue)
+                if (_current == reachedEndValue)
                 {
                     // Already reached the end
                     return false;
@@ -62,39 +53,36 @@ namespace Microsoft.CodeAnalysis
                 int arity;
 
                 // Find the next set bit
-                for (arity = ++this.current; arity < 32; arity++)
+                for (arity = ++_current; arity < 32; arity++)
                 {
-                    if (((this.low32bits >> arity) & 1) != 0)
+                    if (((_low32bits >> arity) & 1) != 0)
                     {
-                        this.current = arity;
+                        _current = arity;
                         return true;
                     }
                 }
 
-                if (this.arities != null)
+                if (_arities != null)
                 {
                     // Binary search for the current value
-                    int index = this.arities.BinarySearch(arity);
+                    int index = _arities.BinarySearch(arity);
                     if (index < 0)
                     {
                         index = ~index;
                     }
 
-                    if (index < this.arities.Length)
+                    if (index < _arities.Length)
                     {
-                        this.current = this.arities[index];
+                        _current = _arities[index];
                         return true;
                     }
                 }
 
-                this.current = reachedEndValue;
+                _current = reachedEndValue;
                 return false;
             }
 
-            public void Reset()
-            {
-                this.current = resetValue;
-            }
+            public void Reset() => _current = resetValue;
         }
 
         // TODO: Is the cost of boxing every instance of UniqueSymbolOrArities that we
@@ -130,22 +118,22 @@ namespace Microsoft.CodeAnalysis
             //   Then arityBitVectorOrUniqueArity is interpreted as a bitvector
             //   of arities for arities from zero to 31 and the HashSet contains
             //   arities of 32 or more.
-            private object uniqueSymbolOrArities;
-            private int arityBitVectorOrUniqueArity;
+            private object _uniqueSymbolOrArities;
+            private int _arityBitVectorOrUniqueArity;
 
             public UniqueSymbolOrArities(int arity, TSymbol uniqueSymbol)
             {
-                this.uniqueSymbolOrArities = uniqueSymbol;
-                this.arityBitVectorOrUniqueArity = arity;
+                _uniqueSymbolOrArities = uniqueSymbol;
+                _arityBitVectorOrUniqueArity = arity;
                 //if there's no unique symbol, how can there be an arity?
                 Debug.Assert((uniqueSymbol != null) || (arity == 0));
             }
 
             public void AddSymbol(TSymbol symbol, int arity)
             {
-                if (symbol == this.uniqueSymbolOrArities)
+                if (symbol == _uniqueSymbolOrArities)
                 {
-                    Debug.Assert(arity == this.arityBitVectorOrUniqueArity);
+                    Debug.Assert(arity == _arityBitVectorOrUniqueArity);
                     return;
                 }
 
@@ -154,24 +142,18 @@ namespace Microsoft.CodeAnalysis
                     // The symbol is no longer unique. So clear the
                     // UniqueSymbol field and record the unique arity
                     // before adding the new arity value.
-                    Debug.Assert(this.uniqueSymbolOrArities is TSymbol);
-                    this.uniqueSymbolOrArities = null;
+                    Debug.Assert(_uniqueSymbolOrArities is TSymbol);
+                    _uniqueSymbolOrArities = null;
 
-                    int uniqueArity = this.arityBitVectorOrUniqueArity;
-                    this.arityBitVectorOrUniqueArity = 0;
+                    int uniqueArity = _arityBitVectorOrUniqueArity;
+                    _arityBitVectorOrUniqueArity = 0;
                     AddArity(uniqueArity);
                 }
 
                 AddArity(arity);
             }
 
-            private bool HasUniqueSymbol
-            {
-                get
-                {
-                    return this.uniqueSymbolOrArities != null && !(this.uniqueSymbolOrArities is HashSet<int>);
-                }
-            }
+            private bool HasUniqueSymbol => _uniqueSymbolOrArities != null && !(_uniqueSymbolOrArities is HashSet<int>);
 
             private void AddArity(int arity)
             {
@@ -183,17 +165,17 @@ namespace Microsoft.CodeAnalysis
                     unchecked
                     {
                         int bit = 1 << arity;
-                        this.arityBitVectorOrUniqueArity |= bit;
+                        _arityBitVectorOrUniqueArity |= bit;
                     }
                     return;
                 }
 
                 // Otherwise, use a HashSet
-                var hashSet = this.uniqueSymbolOrArities as HashSet<int>;
+                var hashSet = _uniqueSymbolOrArities as HashSet<int>;
                 if (hashSet == null)
                 {
                     hashSet = new HashSet<int>();
-                    this.uniqueSymbolOrArities = hashSet;
+                    _uniqueSymbolOrArities = hashSet;
                 }
 
                 hashSet.Add(arity);
@@ -204,11 +186,11 @@ namespace Microsoft.CodeAnalysis
                 if (this.HasUniqueSymbol)
                 {
                     arities = null;
-                    uniqueSymbol = (TSymbol)this.uniqueSymbolOrArities;
+                    uniqueSymbol = (TSymbol)_uniqueSymbolOrArities;
                 }
                 else
                 {
-                    arities = (this.uniqueSymbolOrArities == null && this.arityBitVectorOrUniqueArity == 0) ? null : (IArityEnumerable)this;
+                    arities = (_uniqueSymbolOrArities == null && _arityBitVectorOrUniqueArity == 0) ? null : (IArityEnumerable)this;
                     uniqueSymbol = null;
                 }
             }
@@ -216,7 +198,7 @@ namespace Microsoft.CodeAnalysis
             public ArityEnumerator GetEnumerator()
             {
                 Debug.Assert(!this.HasUniqueSymbol);
-                return new ArityEnumerator(this.arityBitVectorOrUniqueArity, (HashSet<int>)this.uniqueSymbolOrArities);
+                return new ArityEnumerator(_arityBitVectorOrUniqueArity, (HashSet<int>)_uniqueSymbolOrArities);
             }
 
             public int Count
@@ -224,8 +206,8 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     Debug.Assert(!this.HasUniqueSymbol);
-                    int count = BitArithmeticUtilities.CountBits(this.arityBitVectorOrUniqueArity);
-                    var set = (HashSet<int>)this.uniqueSymbolOrArities;
+                    int count = BitArithmeticUtilities.CountBits(_arityBitVectorOrUniqueArity);
+                    var set = (HashSet<int>)_uniqueSymbolOrArities;
                     if (set != null)
                     {
                         count += set.Count;
@@ -236,41 +218,34 @@ namespace Microsoft.CodeAnalysis
             }
 
 #if DEBUG
-            internal TSymbol UniqueSymbol
-            {
-                get
-                {
-                    return this.uniqueSymbolOrArities as TSymbol;
-                }
-            }
+            internal TSymbol UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
 #endif
-
         }
 
-        private readonly Dictionary<string, UniqueSymbolOrArities> nameMap;
+        private readonly Dictionary<string, UniqueSymbolOrArities> _nameMap;
 
         protected AbstractLookupSymbolsInfo(IEqualityComparer<string> comparer)
         {
-            nameMap = new Dictionary<string, UniqueSymbolOrArities>(comparer);
+            _nameMap = new Dictionary<string, UniqueSymbolOrArities>(comparer);
         }
 
         public void AddSymbol(TSymbol symbol, string name, int arity)
         {
             UniqueSymbolOrArities pair;
-            if (!nameMap.TryGetValue(name, out pair))
+            if (!_nameMap.TryGetValue(name, out pair))
             {
                 // First time seeing a symbol with this name.  Create a mapping for it from the name
                 // to the one arity we've seen, and also store around the symbol as it's currently
                 // unique.
                 pair = new UniqueSymbolOrArities(arity, symbol);
-                nameMap.Add(name, pair);
+                _nameMap.Add(name, pair);
             }
             else
             {
                 pair.AddSymbol(symbol, arity);
 
                 // Since 'pair' is a struct, the dictionary must be updated with the new value
-                nameMap[name] = pair;
+                _nameMap[name] = pair;
             }
 
 #if DEBUG
@@ -281,13 +256,9 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public ICollection<String> Names
-        {
-            get
-            {
-                return this.nameMap.Keys;
-            }
-        }
+        public ICollection<String> Names => _nameMap.Keys;
+
+        public int Count => _nameMap.Count;
 
         /// <summary>
         /// If <paramref name="uniqueSymbol"/> is set, then <paramref name="arities"/> will be null.
@@ -303,7 +274,7 @@ namespace Microsoft.CodeAnalysis
             out TSymbol uniqueSymbol)
         {
             UniqueSymbolOrArities pair;
-            if (!nameMap.TryGetValue(name, out pair))
+            if (!_nameMap.TryGetValue(name, out pair))
             {
                 arities = null;
                 uniqueSymbol = null;
@@ -316,9 +287,6 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public void Clear()
-        {
-            this.nameMap.Clear();
-        }
+        public void Clear() => _nameMap.Clear();
     }
 }

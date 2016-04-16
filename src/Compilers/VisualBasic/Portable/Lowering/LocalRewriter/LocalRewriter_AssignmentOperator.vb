@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim leftFieldAccess = DirectCast(leftNode, BoundFieldAccess)
                 If leftFieldAccess.IsConstant Then
 #If DEBUG Then
-                    Debug.Assert(Not rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+                    Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
                     Dim originalNode = node
 #End If
 
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If result Is originalNode Then
                         result = result.MemberwiseClone(Of BoundExpression)()
                     End If
-                    rewrittenNodes.Add(result)
+                    _rewrittenNodes.Add(result)
 #End If
                     Return result
                 End If
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim setMethod = [property].GetMostDerivedSetMethod()
 
             If (setMethod Is Nothing) Then
-                AssertIsWriteableFromMember(setNode, Me.currentMethodOrLambda)
+                AssertIsWriteableFromMember(setNode, Me._currentMethodOrLambda)
 
                 Dim backingField = setNode.PropertySymbol.AssociatedField
                 Debug.Assert(backingField IsNot Nothing, "autoproperty must have a backing field")
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assignmentTarget = assignmentTarget.SetLateBoundAccessKind(LateBoundAccessKind.Unknown)
 
                 Dim temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim useTwice As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
                 temps = temporaries.ToImmutableAndFree()
 
                 Dim leftOnTheRight As BoundExpression
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Apply GetObjectValue call if needed.
         ''' </summary>
         Private Function GenerateObjectCloneIfNeeded(expression As BoundExpression, rewrittenExpression As BoundExpression) As BoundExpression
-            If expression.HasErrors OrElse rewrittenExpression.HasErrors OrElse Me.inExpressionLambda Then
+            If expression.HasErrors OrElse rewrittenExpression.HasErrors OrElse Me._inExpressionLambda Then
                 Return rewrittenExpression
             End If
 
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Need to allocate a temp, store original string in it, pass it by ref to MidStmtStr and return its value after the call.
             ' We will achieve this by synthesizing and rewriting trivial Mid assignment with the temp as the target.
 
-            Dim temp = New SynthesizedLocal(Me.currentMethodOrLambda, node.Type, SynthesizedLocalKind.LoweringTemp)
+            Dim temp = New SynthesizedLocal(Me._currentMethodOrLambda, node.Type, SynthesizedLocalKind.LoweringTemp)
             Dim localRef = New BoundLocal(node.Syntax, temp, node.Type)
             Dim placeholder = New BoundCompoundAssignmentTargetPlaceholder(node.Syntax, node.Type)
 

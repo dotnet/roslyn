@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -9,13 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     // are also merged declarations.
     internal sealed class MergedNamespaceDeclaration : MergedNamespaceOrTypeDeclaration
     {
-        private readonly ImmutableArray<SingleNamespaceDeclaration> declarations;
-        private ImmutableArray<MergedNamespaceOrTypeDeclaration> lazyChildren;
+        private readonly ImmutableArray<SingleNamespaceDeclaration> _declarations;
+        private ImmutableArray<MergedNamespaceOrTypeDeclaration> _lazyChildren;
 
         private MergedNamespaceDeclaration(ImmutableArray<SingleNamespaceDeclaration> declarations)
             : base(declarations.IsEmpty ? string.Empty : declarations[0].Name)
         {
-            this.declarations = declarations;
+            _declarations = declarations;
         }
 
         public static MergedNamespaceDeclaration Create(ImmutableArray<SingleNamespaceDeclaration> declarations)
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MergedNamespaceDeclaration mergedDeclaration,
             SingleNamespaceDeclaration declaration)
         {
-            return new MergedNamespaceDeclaration(mergedDeclaration.declarations.Add(declaration));
+            return new MergedNamespaceDeclaration(mergedDeclaration._declarations.Add(declaration));
         }
 
         public override DeclarationKind Kind
@@ -45,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
         {
-            LexicalSortKey sortKey = new LexicalSortKey(declarations[0].NameLocation, compilation);
-            for (var i = 1; i < declarations.Length; i++)
+            LexicalSortKey sortKey = new LexicalSortKey(_declarations[0].NameLocation, compilation);
+            for (var i = 1; i < _declarations.Length; i++)
             {
-                sortKey = LexicalSortKey.First(sortKey, new LexicalSortKey(declarations[i].NameLocation, compilation));
+                sortKey = LexicalSortKey.First(sortKey, new LexicalSortKey(_declarations[i].NameLocation, compilation));
             }
 
             return sortKey;
@@ -58,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (declarations.Length == 1)
+                if (_declarations.Length == 1)
                 {
-                    return ImmutableArray.Create<Location>(declarations[0].NameLocation);
+                    return ImmutableArray.Create<Location>(_declarations[0].NameLocation);
                 }
                 else
                 {
                     var builder = ArrayBuilder<Location>.GetInstance();
-                    foreach (var decl in declarations)
+                    foreach (var decl in _declarations)
                     {
                         SourceLocation loc = decl.NameLocation;
                         if (loc != null)
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<SingleNamespaceDeclaration> Declarations
         {
-            get { return declarations; }
+            get { return _declarations; }
         }
 
         protected override ImmutableArray<Declaration> GetDeclarationChildren()
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allNamespacesHaveSameName = true;
             bool allTypesHaveSameIdentity = true;
 
-            foreach (var decl in declarations)
+            foreach (var decl in _declarations)
             {
                 foreach (var child in decl.Children)
                 {
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             types = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
                         }
-                        else if(allTypesHaveSameIdentity && !asType.Identity.Equals(types[0].Identity))
+                        else if (allTypesHaveSameIdentity && !asType.Identity.Equals(types[0].Identity))
                         {
                             allTypesHaveSameIdentity = false;
                         }
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             namespaces = ArrayBuilder<SingleNamespaceDeclaration>.GetInstance();
                         }
-                        else if(allNamespacesHaveSameName && !asNamespace.Name.Equals(namespaces[0].Name))
+                        else if (allNamespacesHaveSameName && !asNamespace.Name.Equals(namespaces[0].Name))
                         {
                             allNamespacesHaveSameName = false;
                         }
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var namespaceGroups = namespaces.ToDictionary(n => n.Name);
+                    var namespaceGroups = namespaces.ToDictionary(n => n.Name, StringOrdinalComparer.Instance);
                     namespaces.Free();
 
                     foreach (var namespaceGroup in namespaceGroups.Values)
@@ -183,12 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.lazyChildren.IsDefault)
+                if (_lazyChildren.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref this.lazyChildren, MakeChildren());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildren, MakeChildren());
                 }
 
-                return this.lazyChildren;
+                return _lazyChildren;
             }
         }
     }

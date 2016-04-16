@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LexerCache
     {
-        private static readonly ObjectPool<CachingIdentityFactory<string, SyntaxKind>> keywordKindPool =
+        private static readonly ObjectPool<CachingIdentityFactory<string, SyntaxKind>> s_keywordKindPool =
             CachingIdentityFactory<string, SyntaxKind>.CreatePool(
                             512,
                             (key) =>
@@ -27,23 +27,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return kind;
                             });
 
-        private readonly TextKeyedCache<SyntaxTrivia> triviaMap;
-        private readonly TextKeyedCache<SyntaxToken> tokenMap;
-        private readonly CachingIdentityFactory<string, SyntaxKind> keywordKindMap;
+        private readonly TextKeyedCache<SyntaxTrivia> _triviaMap;
+        private readonly TextKeyedCache<SyntaxToken> _tokenMap;
+        private readonly CachingIdentityFactory<string, SyntaxKind> _keywordKindMap;
         internal const int MaxKeywordLength = 10;
 
         internal LexerCache()
         {
-            triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
-            tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
-            keywordKindMap = keywordKindPool.Allocate();
+            _triviaMap = TextKeyedCache<SyntaxTrivia>.GetInstance();
+            _tokenMap = TextKeyedCache<SyntaxToken>.GetInstance();
+            _keywordKindMap = s_keywordKindPool.Allocate();
         }
 
         internal void Free()
         {
-            keywordKindMap.Free();
-            triviaMap.Free();
-            tokenMap.Free();
+            _keywordKindMap.Free();
+            _triviaMap.Free();
+            _tokenMap.Free();
         }
 
         internal bool TryGetKeywordKind(string key, out SyntaxKind kind)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            kind = keywordKindMap.GetOrMakeValue(key);
+            kind = _keywordKindMap.GetOrMakeValue(key);
             return kind != SyntaxKind.None;
         }
 
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode,
             Func<SyntaxTrivia> createTriviaFunction)
         {
-            var value = triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
                 value = createTriviaFunction();
-                triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                _triviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
 
             return value;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode,
             Func<SyntaxToken> createTokenFunction)
         {
-            var value = tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Miss();
 #endif
                 value = createTokenFunction();
-                tokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                _tokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
             else
             {

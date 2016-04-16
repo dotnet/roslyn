@@ -13,28 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Lowers a lock statement to a try-finally block that calls Monitor.Enter and Monitor.Exit
         /// before and after the body, respectively.
-        /// 
-        /// C# 4.0 version
-        /// 
-        /// L locked;
-        /// bool flag = false;
-        /// try {
-        ///     locked = `argument`;
-        ///     Monitor.Enter(locked, ref flag);
-        ///     `body`
-        /// } finally {
-        ///     if (flag) Monitor.Exit(locked);
-        /// }
-        ///
-        /// Pre-4.0 version
-        /// 
-        /// L locked = `argument`;
-        /// Monitor.Enter(locked, ref flag);
-        /// try {
-        ///     `body`
-        /// } finally {
-        ///     Monitor.Exit(locked);
-        /// }
         /// </summary>
         public override BoundNode VisitLockStatement(BoundLockStatement node)
         {
@@ -49,17 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This isn't particularly elegant, but hopefully locking on null is
                 // not very common.
                 Debug.Assert(rewrittenArgument.ConstantValue == ConstantValue.Null);
-                argumentType = this.compilation.GetSpecialType(SpecialType.System_Object);
+                argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
                 rewrittenArgument = MakeLiteral(
                     rewrittenArgument.Syntax,
                     rewrittenArgument.ConstantValue,
                     argumentType); //need to have a non-null type here for TempHelpers.StoreToTemp.
             }
+
             if (argumentType.Kind == SymbolKind.TypeParameter)
             {
                 // If the argument has a type parameter type, then we'll box it right away
                 // so that the same object is passed to both Monitor.Enter and Monitor.Exit.
-                argumentType = this.compilation.GetSpecialType(SpecialType.System_Object);
+                argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
 
                 rewrittenArgument = MakeConversion(
                     rewrittenArgument.Syntax,
@@ -71,17 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundAssignmentOperator assignmentToLockTemp;
-            BoundLocal boundLockTemp = this.factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, syntaxOpt: lockSyntax, kind: SynthesizedLocalKind.Lock);
+            BoundLocal boundLockTemp = _factory.StoreToTemp(rewrittenArgument, out assignmentToLockTemp, syntaxOpt: lockSyntax, kind: SynthesizedLocalKind.Lock);
 
             BoundStatement boundLockTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTemp);
-            if (this.GenerateDebugInfo)
-            {
-                boundLockTempInit = new BoundSequencePointWithSpan( // NOTE: the lock temp is uninitialized at this sequence point.
-                    lockSyntax,
-                    boundLockTempInit,
-                    TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End));
-            }
-
             BoundExpression exitCallExpr;
 
             MethodSymbol exitMethod;
@@ -106,32 +77,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                  TryGetWellKnownTypeMember(lockSyntax, WellKnownMember.System_Threading_Monitor__Enter, out enterMethod)) && // If we didn't find the overload introduced in .NET 4.0, then use the older one. 
                 enterMethod.ParameterCount == 2)
             {
-                // C# 4.0 version
-                // L locked;
-                // bool flag = false;
-                // try {
-                //     locked = `argument`;
-                //     Monitor.Enter(locked, ref flag);
-                //     `body`
-                // } finally {
-                //     if (flag) Monitor.Exit(locked);
+                // C# 4.0+ version
+                // L $lock = `argument`;                      // sequence point
+                // bool $lockTaken = false;                   
+                // try
+                // {
+                //     Monitor.Enter($lock, ref $lockTaken);
+                //     `body`                                 // sequence point  
+                // }
+                // finally
+                // {                                          // hidden sequence point   
+                //     if ($lockTaken) Monitor.Exit($lock);   
                 // }
 
-                TypeSymbol boolType = this.compilation.GetSpecialType(SpecialType.System_Boolean);
-                BoundAssignmentOperator assignmentToTemp;
+                TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+                BoundAssignmentOperator assignmentToLockTakenTemp;
 
-                BoundLocal boundFlagTemp = this.factory.StoreToTemp(
+                BoundLocal boundLockTakenTemp = _factory.StoreToTemp(
                     MakeLiteral(rewrittenArgument.Syntax, ConstantValue.False, boolType),
-                    store: out assignmentToTemp,
+                    store: out assignmentToLockTakenTemp,
                     syntaxOpt: lockSyntax,
                     kind: SynthesizedLocalKind.LockTaken);
 
-                BoundStatement boundFlagTempInit = new BoundExpressionStatement(lockSyntax, assignmentToTemp);
-                if (this.GenerateDebugInfo)
-                {
-                    // hide the preamble code, we should not stop until we get to " locked = `argument`; "
-                    boundFlagTempInit = new BoundSequencePoint(null, boundFlagTempInit);
-                }
+                BoundStatement boundLockTakenTempInit = new BoundExpressionStatement(lockSyntax, assignmentToLockTakenTemp);
 
                 BoundStatement enterCall = new BoundExpressionStatement(
                     lockSyntax,
@@ -140,41 +108,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                         null,
                         enterMethod,
                         boundLockTemp,
-                        boundFlagTemp));
+                        boundLockTakenTemp));
 
                 exitCall = RewriteIfStatement(
                     lockSyntax,
-                    boundFlagTemp,
+                    boundLockTakenTemp,
                     exitCall,
                     null,
                     node.HasErrors);
 
                 return new BoundBlock(
                     lockSyntax,
-                    ImmutableArray.Create<LocalSymbol>(boundLockTemp.LocalSymbol, boundFlagTemp.LocalSymbol),
-                    ImmutableArray.Create<BoundStatement>(
-                        boundFlagTempInit,
+                    ImmutableArray.Create(boundLockTemp.LocalSymbol, boundLockTakenTemp.LocalSymbol),
+                    ImmutableArray.Create(
+                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
+                        boundLockTakenTempInit,
                         new BoundTryStatement(
                             lockSyntax,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax, boundLockTempInit, enterCall, rewrittenBody),
+                            BoundBlock.SynthesizedNoLocals(lockSyntax, ImmutableArray.Create(
+                                enterCall,
+                                rewrittenBody)),
                             ImmutableArray<BoundCatchBlock>.Empty,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax, exitCall))));
+                            BoundBlock.SynthesizedNoLocals(lockSyntax,
+                                exitCall))));
             }
             else
             {
+                // Pre-4.0 version
+                // L $lock = `argument`;           // sequence point
+                // Monitor.Enter($lock);           // NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
+                // try 
+                // {
+                //     `body`                      // sequence point
+                // } 
+                // finally 
+                // {
+                //     Monitor.Exit($lock);        // hidden sequence point
+                // }
+
                 BoundExpression enterCallExpr;
 
                 if ((object)enterMethod != null)
                 {
                     Debug.Assert(enterMethod.ParameterCount == 1);
-                    // Pre-4.0 version
-                    // L locked = `argument`;
-                    // Monitor.Enter(locked, ref flag); //NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
-                    // try {
-                    //     `body`
-                    // } finally {
-                    //     Monitor.Exit(locked);
-                    // }
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
@@ -194,8 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol),
-                    ImmutableArray.Create<BoundStatement>(
-                        boundLockTempInit,
+                    ImmutableArray.Create(
+                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
                         enterCall,
                         new BoundTryStatement(
                             lockSyntax,
@@ -203,6 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ImmutableArray<BoundCatchBlock>.Empty,
                             BoundBlock.SynthesizedNoLocals(lockSyntax, exitCall))));
             }
+        }
+
+        private BoundStatement MakeInitialLockSequencePoint(BoundStatement statement, LockStatementSyntax lockSyntax)
+        {
+            return this.GenerateDebugInfo ?
+                new BoundSequencePointWithSpan(lockSyntax, statement, TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End)) :
+                statement;
         }
     }
 }

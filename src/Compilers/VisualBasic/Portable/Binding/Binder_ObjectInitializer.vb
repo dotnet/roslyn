@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Binder
+    Friend Partial Class Binder
         Private Function BindObjectCreationExpression(
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The temporary diagnostic bag is needed to collect diagnostics until it is known that the accessed symbol
             ' is a field or property, and if so, if it is shared or not.
             ' The temporary error messages should only be shown if binding the member access itself failed, or the bound
-            ' member access is usable for the initialization (non shared, writeable field or property).
+            ' member access is usable for the initialization (non shared, writable field or property).
             ' Otherwise more specific diagnostics will be shown .
             Dim memberBindingDiagnostics = DiagnosticBag.GetInstance
 
@@ -646,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not fieldName.HasErrors Then
 
                     ' no need to use the memberInitializerBinder here, because there is no MemberAccessExpression 
-                    target = BindMemberAccess(fieldName, variableOrTempPlaceholder, fieldName, False, False, memberBindingDiagnostics)
+                    target = BindMemberAccess(fieldName, variableOrTempPlaceholder, fieldName, False, memberBindingDiagnostics)
                     diagnostics.AddRange(memberBindingDiagnostics)
 
                     Dim identifierName As String = fieldName.Identifier.ValueText
@@ -922,12 +922,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ObjectInitializerBinder
         Inherits Binder
 
-        Private m_receiver As BoundExpression
+        Private ReadOnly _receiver As BoundExpression
 
         Public Sub New(containingBinder As Binder, receiver As BoundExpression)
             MyBase.New(containingBinder)
 
-            m_receiver = receiver
+            _receiver = receiver
         End Sub
 
         ''' <summary>
@@ -940,11 +940,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef wholeMemberAccessExpressionBound As Boolean
         ) As BoundExpression
 
-            Return m_receiver
+            Return _receiver
         End Function
 
         Protected Friend Overrides Function TryBindOmittedLeftForXmlMemberAccess(node As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag, accessingBinder As Binder) As BoundExpression
-            Return m_receiver
+            Return _receiver
         End Function
 
         ''' <summary>
@@ -956,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics As DiagnosticBag
                 ) As BoundExpression
 
-            Return m_receiver
+            Return _receiver
         End Function
 
         Protected Overrides Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax, accessingBinder As Binder, diagnostics As DiagnosticBag) As BoundExpression

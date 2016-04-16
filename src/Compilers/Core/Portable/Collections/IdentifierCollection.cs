@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         //
         // Note: we use a case insensitive comparer so that we can quickly lookup if we know a name
         // regardless of its case.
-        private readonly Dictionary<string, object> map = new Dictionary<string, object>(
+        private readonly Dictionary<string, object> _map = new Dictionary<string, object>(
             StringComparer.OrdinalIgnoreCase);
 
         public IdentifierCollection()
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(identifier != null);
 
             object value;
-            if (!map.TryGetValue(identifier, out value))
+            if (!_map.TryGetValue(identifier, out value))
             {
                 AddInitialSpelling(identifier);
             }
@@ -61,22 +61,20 @@ namespace Microsoft.CodeAnalysis
         {
             // Had a mapping for it.  It will either map to a single 
             // spelling, or to a set of spellings.
-            if (value is string)
+            var strValue = value as string;
+            if (strValue != null)
             {
-                if (!string.Equals(identifier, value as string, StringComparison.Ordinal))
+                if (!string.Equals(identifier, strValue, StringComparison.Ordinal))
                 {
                     // We now have two spellings.  Create a collection for
                     // that and map the name to it.
-                    var set = new HashSet<string>();
-                    set.Add(identifier);
-                    set.Add((string)value);
-                    map[identifier] = set;
+                    _map[identifier] = new HashSet<string> { identifier, strValue };
                 }
             }
             else
             {
                 // We have multiple spellings already.
-                var spellings = value as HashSet<string>;
+                var spellings = (HashSet<string>)value;
 
                 // Note: the set will prevent duplicates.
                 spellings.Add(identifier);
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         {
             // We didn't have any spellings for this word already.  Just
             // add the word as the single known spelling.
-            map.Add(identifier, identifier);
+            _map.Add(identifier, identifier);
         }
 
         public bool ContainsIdentifier(string identifier, bool caseSensitive)
@@ -109,23 +107,22 @@ namespace Microsoft.CodeAnalysis
             // Simple case.  Just check if we've mapped this word to 
             // anything.  The map will take care of the case insensitive
             // lookup for us.
-            return map.ContainsKey(identifier);
+            return _map.ContainsKey(identifier);
         }
 
         private bool CaseSensitiveContains(string identifier)
         {
             object spellings;
-            if (map.TryGetValue(identifier, out spellings))
+            if (_map.TryGetValue(identifier, out spellings))
             {
-                if (spellings is string)
+                var spelling = spellings as string;
+                if (spelling != null)
                 {
-                    return string.Equals(identifier, spellings as string, StringComparison.Ordinal);
+                    return string.Equals(identifier, spelling, StringComparison.Ordinal);
                 }
-                else
-                {
-                    var set = spellings as HashSet<string>;
-                    return set.Contains(identifier);
-                }
+
+                var set = (HashSet<string>)spellings;
+                return set.Contains(identifier);
             }
 
             return false;

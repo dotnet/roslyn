@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// by this module. Items at the same position from GetReferencedAssemblies and 
         /// from GetReferencedAssemblySymbols should correspond to each other. If reference is 
         /// not resolved by compiler, GetReferencedAssemblySymbols returns MissingAssemblySymbol in the
-        /// correspnding item.
+        /// corresponding item.
         /// 
         /// The array and its content is provided by ReferenceManager and must not be modified.
         /// </summary>
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (namespaceSymbol == null)
             {
-                throw new ArgumentNullException("namespaceSymbol");
+                throw new ArgumentNullException(nameof(namespaceSymbol));
             }
 
             var moduleNs = namespaceSymbol as NamespaceSymbol;
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<IAssemblySymbol, AssemblySymbol>(ReferencedAssemblySymbols);
+                return ImmutableArray<IAssemblySymbol>.CastUp(ReferencedAssemblySymbols);
             }
         }
 
@@ -376,6 +376,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return visitor.VisitModule(this);
         }
+
+        /// <summary>
+        /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.
+        /// 
+        /// Otherwise, this returns <code>null</code>.
+        /// </summary>
+        public abstract ModuleMetadata GetMetadata();
 
         #endregion
     }

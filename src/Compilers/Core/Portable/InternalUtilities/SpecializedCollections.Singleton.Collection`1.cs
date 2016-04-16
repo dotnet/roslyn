@@ -12,11 +12,11 @@ namespace Roslyn.Utilities
         {
             internal sealed class Collection<T> : ICollection<T>, IReadOnlyCollection<T>
             {
-                private T loneValue;
+                private readonly T _loneValue;
 
                 public Collection(T value)
                 {
-                    this.loneValue = value;
+                    _loneValue = value;
                 }
 
                 public void Add(T item)
@@ -31,12 +31,12 @@ namespace Roslyn.Utilities
 
                 public bool Contains(T item)
                 {
-                    return EqualityComparer<T>.Default.Equals(loneValue, item);
+                    return EqualityComparer<T>.Default.Equals(_loneValue, item);
                 }
 
                 public void CopyTo(T[] array, int arrayIndex)
                 {
-                    array[arrayIndex] = this.loneValue;
+                    array[arrayIndex] = _loneValue;
                 }
 
                 public int Count
@@ -56,7 +56,7 @@ namespace Roslyn.Utilities
 
                 public IEnumerator<T> GetEnumerator()
                 {
-                    return new Enumerator<T>(loneValue);
+                    return new Enumerator<T>(_loneValue);
                 }
 
                 IEnumerator IEnumerable.GetEnumerator()

@@ -3,7 +3,6 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend NotInheritable Class LocalRewriter
-        Inherits BoundTreeRewriter
 
         <Flags>
         Friend Enum RewritingFlags As Byte
@@ -14,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             AllowOmissionOfConditionalCalls = 8
         End Enum
 
-        Private ReadOnly Flags As RewritingFlags
+        Private ReadOnly _flags As RewritingFlags
 
     End Class
 End Namespace

@@ -10,7 +10,7 @@ Imports System.IO
 
 ' Class to write out the names in the tree as a CSV file for Excel.
 
-Class WriteCsvNames
+Friend Class WriteCsvNames
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
@@ -22,7 +22,7 @@ Class WriteCsvNames
 
     ' Write out the CSV with the names.
     Public Sub WriteCsv(filename As String)
-        _writer = New StreamWriter(filename)
+        _writer = New StreamWriter(New FileStream(filename, FileMode.Create, FileAccess.Write))
 
         Using _writer
             WriteEnums()
@@ -63,7 +63,7 @@ Class WriteCsvNames
     End Sub
 
     Private Sub WriteEnumeratorVariable(enumerator As ParseEnumerator, enumeration As ParseEnumeration)
-        WriteCsvLine("enumerator", EnumerationTypeName(enumeration), enumerator.Name)
+        WriteCsvLine(NameOf(enumerator), EnumerationTypeName(enumeration), enumerator.Name)
     End Sub
 
     Private Sub WriteNodeStructure(nodeStructure As ParseNodeStructure)
@@ -87,15 +87,15 @@ Class WriteCsvNames
     End Sub
 
     Private Sub WriteKind(kind As ParseNodeKind)
-        WriteCsvLine("kind", StructureTypeName(kind.NodeStructure), Ident(kind.Name))
+        WriteCsvLine(NameOf(kind), StructureTypeName(kind.NodeStructure), Ident(kind.Name))
     End Sub
 
     Private Sub WriteField(field As ParseNodeField)
-        WriteCsvLine("field", StructureTypeName(field.ContainingStructure), FieldPropertyName(field))
+        WriteCsvLine(NameOf(field), StructureTypeName(field.ContainingStructure), FieldPropertyName(field))
     End Sub
 
     Private Sub WriteChild(child As ParseNodeChild)
-        WriteCsvLine("child", StructureTypeName(child.ContainingStructure), ChildPropertyName(child))
+        WriteCsvLine(NameOf(child), StructureTypeName(child.ContainingStructure), ChildPropertyName(child))
     End Sub
 
     Private Sub WriteFactories()

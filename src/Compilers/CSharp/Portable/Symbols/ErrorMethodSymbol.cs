@@ -13,20 +13,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly ErrorMethodSymbol UnknownMethod = new ErrorMethodSymbol(ErrorTypeSymbol.UnknownResultType, ErrorTypeSymbol.UnknownResultType, string.Empty);
 
-        private readonly TypeSymbol containingType;
-        private readonly TypeSymbol returnType;
-        private readonly string name;
+        private readonly TypeSymbol _containingType;
+        private readonly TypeSymbol _returnType;
+        private readonly string _name;
 
         public ErrorMethodSymbol(TypeSymbol containingType, TypeSymbol returnType, string name)
         {
-            this.containingType = containingType;
-            this.returnType = returnType;
-            this.name = name;
+            _containingType = containingType;
+            _returnType = returnType;
+            _name = name;
         }
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         internal sealed override bool HasSpecialName
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return this.containingType; }
+            get { return _containingType; }
         }
 
         internal override Microsoft.Cci.CallingConvention CallingConvention
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbol ReturnType
         {
-            get { return this.returnType; }
+            get { return _returnType; }
         }
 
         public override bool ReturnsVoid
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                switch (name)
+                switch (_name)
                 {
                     case WellKnownMemberNames.InstanceConstructorName:
                         return MethodKind.Constructor;

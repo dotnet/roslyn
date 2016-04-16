@@ -36,15 +36,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.ParseSyntaxTree(text, options, fileName, cancellationToken)
             End Function
 
-            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, node As SyntaxNode, encoding As Encoding) As SyntaxTree
+            Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.SyntaxTree(node, options, fileName, encoding)
+                Return SyntaxFactory.SyntaxTree(root, options, fileName, encoding)
             End Function
 
-            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), root As SyntaxNode) As SyntaxTree
-                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, cacheKey, filePath, If(optionsOpt, GetDefaultParseOptions()), text, DirectCast(root, CompilationUnitSyntax))
+            Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean
+                Dim cu = TryCast(root, CompilationUnitSyntax)
+                Return MyBase.CanCreateRecoverableTree(root) AndAlso cu IsNot Nothing AndAlso cu.Attributes.Count = 0
+            End Function
+
+            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As SyntaxNode) As SyntaxTree
+                Debug.Assert(CanCreateRecoverableTree(root))
+                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, cacheKey, filePath, If(optionsOpt, GetDefaultParseOptions()), text, encoding, DirectCast(root, CompilationUnitSyntax))
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        private static SymbolDisplayFormat metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
-        private static readonly string MetadataNameSeparators = " .,:<`>()\r\n";
+        private static readonly string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
         /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically resolves them where possible.
@@ -38,13 +38,18 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
         /// <param name="optionSet">The option for rename</param>
+        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to 
+        /// indicate if the new symbols that the reference binds to should be considered to be ok or
+        /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
+        /// 'null' means that the default conflict check should be used.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         public static Task<ConflictResolution> ResolveConflictsAsync(
-            RenameLocationSet renameLocationSet,
+            RenameLocations renameLocationSet,
             string originalText,
             string replacementText,
             OptionSet optionSet,
+            Func<IEnumerable<ISymbol>, bool?> hasConflict,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -57,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 throw new ArgumentException(string.Format(WorkspacesResources.RenameSymbolIsNotFromSource, renameLocationSet.Symbol.Name));
             }
 
-            var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, cancellationToken);
+            var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, hasConflict, cancellationToken);
             return session.ResolveConflictsAsync();
         }
 
@@ -86,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return complexifiedTarget;
         }
 
-        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document)
+        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, IEnumerable<ISymbol> newReferencedSymbols)
         {
             var renameRewriterService = document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-            var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode);
+            var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode, newReferencedSymbols);
             return isConflict;
         }
 
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return conflictResolution.ReplacementTextValid && renamedSymbol != null && renamedSymbol.Locations.Any(loc => loc.IsInSource);
         }
 
-        private static void AddImplicitConflicts(
+        private static async Task AddImplicitConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol originalSymbol,
             IEnumerable<ReferenceLocation> implicitReferenceLocations,
@@ -145,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // the location of the implicit reference defines the language rules to check.
                 // E.g. foreach in C# using a MoveNext in VB that is renamed to MOVENEXT (within VB)
                 var renameRewriterService = implicitReferenceLocationsPerLanguage.First().Document.Project.LanguageServices.GetService<IRenameRewriterLanguageService>();
-                var implicitConflicts = renameRewriterService.ComputeImplicitReferenceConflicts(
+                var implicitConflicts = await renameRewriterService.ComputeImplicitReferenceConflictsAsync(
                     originalSymbol,
                     renamedSymbol,
                     implicitReferenceLocationsPerLanguage,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 foreach (var implicitConflict in implicitConflicts)
                 {
@@ -172,13 +177,40 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)
         {
-            if (renamedSymbol.ContainingSymbol is INamedTypeSymbol)
+            if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
             {
                 var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
-                                                       .Where(s => !s.Equals(renamedSymbol) && string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
-                                                              (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method)).ToList();
+                                                       .Where(s => !s.Equals(renamedSymbol) &&
+                                                                   string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
+                                                                   (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method));
 
                 AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+            }
+
+
+            if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
+            {
+                var otherThingsNamedTheSame = ((INamespaceSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
+                                                        .Where(s => !s.Equals(renamedSymbol) &&
+                                                                    !s.IsKind(SymbolKind.Namespace) &&
+                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+
+                AddConflictingSymbolLocations(otherThingsNamedTheSame, conflictResolution, reverseMappedLocations);
+            }
+
+            if (renamedSymbol.IsKind(SymbolKind.NamedType) && renamedSymbol.ContainingSymbol is INamespaceOrTypeSymbol)
+            {
+                var otherThingsNamedTheSame = ((INamespaceOrTypeSymbol)renamedSymbol.ContainingSymbol).GetMembers(renamedSymbol.Name)
+                                                        .Where(s => !s.Equals(renamedSymbol) &&
+                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
+
+                var conflictingSymbolLocations = otherThingsNamedTheSame.Where(s => !s.IsKind(SymbolKind.Namespace));
+                if (otherThingsNamedTheSame.Any(s => s.IsKind(SymbolKind.Namespace)))
+                {
+                    conflictingSymbolLocations = conflictingSymbolLocations.Concat(renamedSymbol);
+                }
+
+                AddConflictingSymbolLocations(conflictingSymbolLocations, conflictResolution, reverseMappedLocations);
             }
 
             // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies
@@ -284,13 +316,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (symbol.IsAnonymousType())
             {
-                return symbol.ToDisplayParts(metadataSymbolDisplayFormat)
+                return symbol.ToDisplayParts(s_metadataSymbolDisplayFormat)
                     .WhereAsArray(p => p.Kind != SymbolDisplayPartKind.PropertyName && p.Kind != SymbolDisplayPartKind.FieldName)
                     .ToDisplayString();
             }
             else
             {
-                return symbol.ToDisplayString(metadataSymbolDisplayFormat);
+                return symbol.ToDisplayString(s_metadataSymbolDisplayFormat);
             }
         }
 
@@ -410,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private static bool IsIdentifierSeparator(char element)
         {
-            return MetadataNameSeparators.IndexOf(element) != -1;
+            return s_metadataNameSeparators.IndexOf(element) != -1;
         }
     }
 }

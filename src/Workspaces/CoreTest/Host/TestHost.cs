@@ -4,23 +4,23 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host.UnitTests
+namespace Microsoft.CodeAnalysis.Host
 {
     internal static class TestHost
     {
-        private static HostServices testServices;
+        private static HostServices s_testServices;
 
         public static HostServices Services
         {
             get
             {
-                if (testServices == null)
+                if (s_testServices == null)
                 {
                     var tmp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(new[] { typeof(TestHost).Assembly }));
-                    System.Threading.Interlocked.CompareExchange(ref testServices, tmp, null);
+                    System.Threading.Interlocked.CompareExchange(ref s_testServices, tmp, null);
                 }
 
-                return testServices;
+                return s_testServices;
             }
         }
     }

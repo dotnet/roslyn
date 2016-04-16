@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class MarshalPseudoCustomAttributeData : Cci.IMarshallingInformation
     {
-        private UnmanagedType marshalType;
-        private int marshalArrayElementType;      // safe array: VarEnum; array: UnmanagedType
-        private int marshalArrayElementCount;     // number of elements in an array, length of a string, or Unspecified
-        private int marshalParameterIndex;        // index of parameter that specifies array size (short) or IID (int), or Unspecified
-        private object marshalTypeNameOrSymbol;   // custom marshaller: string or ITypeSymbol; safe array: element type symbol
-        private string marshalCookie;
+        private UnmanagedType _marshalType;
+        private int _marshalArrayElementType;      // safe array: VarEnum; array: UnmanagedType
+        private int _marshalArrayElementCount;     // number of elements in an array, length of a string, or Unspecified
+        private int _marshalParameterIndex;        // index of parameter that specifies array size (short) or IID (int), or Unspecified
+        private object _marshalTypeNameOrSymbol;   // custom marshaller: string or ITypeSymbol; safe array: element type symbol
+        private string _marshalCookie;
 
         internal const int Invalid = -1;
         private const UnmanagedType InvalidUnmanagedType = (UnmanagedType)Invalid;
@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis
 
         internal void SetMarshalAsCustom(object typeSymbolOrName, string cookie)
         {
-            this.marshalType = Cci.Constants.UnmanagedType_CustomMarshaler;
-            this.marshalTypeNameOrSymbol = typeSymbolOrName;
-            this.marshalCookie = cookie;
+            _marshalType = Cci.Constants.UnmanagedType_CustomMarshaler;
+            _marshalTypeNameOrSymbol = typeSymbolOrName;
+            _marshalCookie = cookie;
         }
 
         internal void SetMarshalAsComInterface(UnmanagedType unmanagedType, int? parameterIndex)
         {
             Debug.Assert(parameterIndex == null || parameterIndex >= 0 && parameterIndex <= MaxMarshalInteger);
 
-            this.marshalType = unmanagedType;
-            this.marshalParameterIndex = parameterIndex ?? Invalid;
+            _marshalType = unmanagedType;
+            _marshalParameterIndex = parameterIndex ?? Invalid;
         }
 
         internal void SetMarshalAsArray(UnmanagedType? elementType, int? elementCount, short? parameterIndex)
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(elementCount == null || elementCount >= 0 && elementCount <= MaxMarshalInteger);
             Debug.Assert(parameterIndex == null || parameterIndex >= 0);
 
-            this.marshalType = UnmanagedType.LPArray;
-            this.marshalArrayElementType = (int)(elementType ?? (UnmanagedType)0x50);
-            this.marshalArrayElementCount = elementCount ?? Invalid;
-            this.marshalParameterIndex = parameterIndex ?? Invalid;
+            _marshalType = UnmanagedType.LPArray;
+            _marshalArrayElementType = (int)(elementType ?? (UnmanagedType)0x50);
+            _marshalArrayElementCount = elementCount ?? Invalid;
+            _marshalParameterIndex = parameterIndex ?? Invalid;
         }
 
         internal void SetMarshalAsFixedArray(UnmanagedType? elementType, int? elementCount)
@@ -61,39 +61,39 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(elementCount == null || elementCount >= 0 && elementCount <= MaxMarshalInteger);
             Debug.Assert(elementType == null || elementType >= 0 && (int)elementType <= MaxMarshalInteger);
 
-            this.marshalType = UnmanagedType.ByValArray;
-            this.marshalArrayElementType = (int)(elementType ?? InvalidUnmanagedType);
-            this.marshalArrayElementCount = elementCount ?? Invalid;
+            _marshalType = UnmanagedType.ByValArray;
+            _marshalArrayElementType = (int)(elementType ?? InvalidUnmanagedType);
+            _marshalArrayElementCount = elementCount ?? Invalid;
         }
 
         internal void SetMarshalAsSafeArray(VarEnum? elementType, ITypeSymbol elementTypeSymbol)
         {
             Debug.Assert(elementType == null || elementType >= 0 && (int)elementType <= MaxMarshalInteger);
 
-            this.marshalType = UnmanagedType.SafeArray;
-            this.marshalArrayElementType = (int)(elementType ?? InvalidVariantType);
-            this.marshalTypeNameOrSymbol = elementTypeSymbol;
+            _marshalType = UnmanagedType.SafeArray;
+            _marshalArrayElementType = (int)(elementType ?? InvalidVariantType);
+            _marshalTypeNameOrSymbol = elementTypeSymbol;
         }
 
         internal void SetMarshalAsFixedString(int elementCount)
         {
             Debug.Assert(elementCount >= 0 && elementCount <= MaxMarshalInteger);
 
-            this.marshalType = UnmanagedType.ByValTStr;
-            this.marshalArrayElementCount = elementCount;
+            _marshalType = UnmanagedType.ByValTStr;
+            _marshalArrayElementCount = elementCount;
         }
 
         internal void SetMarshalAsSimpleType(UnmanagedType type)
         {
             Debug.Assert(type >= 0 && (int)type <= MaxMarshalInteger);
-            this.marshalType = type;
+            _marshalType = type;
         }
 
         #endregion
 
         public UnmanagedType UnmanagedType
         {
-            get { return marshalType; }
+            get { return _marshalType; }
         }
 
         int Cci.IMarshallingInformation.IidParameterIndex
@@ -101,26 +101,26 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 Debug.Assert(
-                    marshalType == UnmanagedType.Interface ||
-                    marshalType == UnmanagedType.IUnknown ||
-                    marshalType == UnmanagedType.IDispatch);
+                    _marshalType == UnmanagedType.Interface ||
+                    _marshalType == UnmanagedType.IUnknown ||
+                    _marshalType == UnmanagedType.IDispatch);
 
-                return marshalParameterIndex;
+                return _marshalParameterIndex;
             }
         }
 
         object Cci.IMarshallingInformation.GetCustomMarshaller(EmitContext context)
         {
-            Debug.Assert(marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
-            var typeSymbol = marshalTypeNameOrSymbol as ITypeSymbol;
+            Debug.Assert(_marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
+            var typeSymbol = _marshalTypeNameOrSymbol as ITypeSymbol;
             if (typeSymbol != null)
             {
                 return ((CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNodeOpt, context.Diagnostics);
             }
             else
             {
-                Debug.Assert(marshalTypeNameOrSymbol == null || marshalTypeNameOrSymbol is string);
-                return marshalTypeNameOrSymbol;
+                Debug.Assert(_marshalTypeNameOrSymbol == null || _marshalTypeNameOrSymbol is string);
+                return _marshalTypeNameOrSymbol;
             }
         }
 
@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
-                return marshalCookie;
+                Debug.Assert(_marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
+                return _marshalCookie;
             }
         }
 
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(marshalType == UnmanagedType.ByValTStr || marshalType == UnmanagedType.LPArray || marshalType == UnmanagedType.SafeArray || marshalType == UnmanagedType.ByValArray);
-                return marshalArrayElementCount;
+                Debug.Assert(_marshalType == UnmanagedType.ByValTStr || _marshalType == UnmanagedType.LPArray || _marshalType == UnmanagedType.SafeArray || _marshalType == UnmanagedType.ByValArray);
+                return _marshalArrayElementCount;
             }
         }
 
@@ -146,8 +146,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(marshalType == UnmanagedType.LPArray && marshalParameterIndex <= short.MaxValue);
-                return (short)marshalParameterIndex;
+                Debug.Assert(_marshalType == UnmanagedType.LPArray && _marshalParameterIndex <= short.MaxValue);
+                return (short)_marshalParameterIndex;
             }
         }
 
@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(marshalType == UnmanagedType.LPArray || marshalType == UnmanagedType.ByValArray);
-                return (UnmanagedType)marshalArrayElementType;
+                Debug.Assert(_marshalType == UnmanagedType.LPArray || _marshalType == UnmanagedType.ByValArray);
+                return (UnmanagedType)_marshalArrayElementType;
             }
         }
 
@@ -164,21 +164,21 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                Debug.Assert(marshalType == UnmanagedType.SafeArray);
-                return (VarEnum)marshalArrayElementType;
+                Debug.Assert(_marshalType == UnmanagedType.SafeArray);
+                return (VarEnum)_marshalArrayElementType;
             }
         }
 
         Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(EmitContext context)
         {
-            Debug.Assert(marshalType == UnmanagedType.SafeArray);
+            Debug.Assert(_marshalType == UnmanagedType.SafeArray);
 
-            if (marshalTypeNameOrSymbol == null)
+            if (_marshalTypeNameOrSymbol == null)
             {
                 return null;
             }
 
-            return ((CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
+            return ((CommonPEModuleBuilder)context.Module).Translate((ITypeSymbol)_marshalTypeNameOrSymbol, context.SyntaxNodeOpt, context.Diagnostics);
         }
 
         /// <summary>
@@ -189,26 +189,26 @@ namespace Microsoft.CodeAnalysis
             Func<TTypeSymbol, TArg, TTypeSymbol> translator, TArg arg)
             where TTypeSymbol : ITypeSymbol
         {
-            if (marshalType != UnmanagedType.SafeArray || marshalTypeNameOrSymbol == null)
+            if (_marshalType != UnmanagedType.SafeArray || _marshalTypeNameOrSymbol == null)
             {
                 return this;
             }
 
-            var translatedType = translator((TTypeSymbol)marshalTypeNameOrSymbol, arg);
-            if ((object)translatedType == (object)marshalTypeNameOrSymbol)
+            var translatedType = translator((TTypeSymbol)_marshalTypeNameOrSymbol, arg);
+            if ((object)translatedType == (object)_marshalTypeNameOrSymbol)
             {
                 return this;
             }
 
             var result = new MarshalPseudoCustomAttributeData();
-            result.SetMarshalAsSafeArray((VarEnum)marshalArrayElementType, translatedType);
+            result.SetMarshalAsSafeArray((VarEnum)_marshalArrayElementType, translatedType);
             return result;
         }
 
         // testing only
         internal ITypeSymbol TryGetSafeArrayElementUserDefinedSubtype()
         {
-            return marshalTypeNameOrSymbol as ITypeSymbol;
+            return _marshalTypeNameOrSymbol as ITypeSymbol;
         }
     }
 }

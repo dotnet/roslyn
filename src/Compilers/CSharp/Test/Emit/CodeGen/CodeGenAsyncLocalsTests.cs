@@ -15,17 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncLocalsTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] AsyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
 
         public CodeGenAsyncLocalsTests()
         {
-            SynchronizationContext.SetSynchronizationContext(null);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, TestEmitters emitOptions = TestEmitters.All, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            references = (references != null) ? references.Concat(AsyncRefs) : AsyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options, emitOptions: emitOptions);
+            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
         }
 
         private string GetFieldLoadsAndStores(CompilationVerifier c, string qualifiedMethodName)
@@ -158,7 +157,7 @@ class C
         y = 1;
     }
 }";
-            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -171,7 +170,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__1"));
             });
 
-            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -210,7 +209,7 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -228,7 +227,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, AsyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var vd = CompileAndVerify(source, s_asyncRefs, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -287,8 +286,6 @@ class C
           <slot kind=""2"" offset=""410"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencePoints />
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -504,8 +501,8 @@ class Test
             var reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>"));
-            IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap")).Cast<FieldSymbol>().GroupBy(x => x.Type);
+            var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>", StringComparison.Ordinal));
+            IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type);
 
             Assert.Equal(1, spillFieldsByType.Count());
             Assert.Equal(1, spillFieldsByType.Single(x => x.Key == comp.GetSpecialType(SpecialType.System_Int32)).Count());
@@ -787,7 +784,7 @@ public class C
         var b8 = await Task.FromResult(default(Tuple<long, long, long>));
     }
 }";
-            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {

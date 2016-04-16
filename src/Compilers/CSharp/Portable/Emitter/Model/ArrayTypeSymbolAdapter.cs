@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
@@ -8,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class ArrayTypeSymbol :
+    internal partial class ArrayTypeSymbol :
         Cci.IArrayTypeReference
     {
         Cci.ITypeReference Cci.IArrayTypeReference.GetElementType(EmitContext context)
@@ -27,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        bool Cci.IArrayTypeReference.IsVector
+        bool Cci.IArrayTypeReference.IsSZArray
         {
             get
             {
-                return this.Rank == 1;
+                return this.IsSZArray;
             }
         }
 
@@ -39,8 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                for (int i = 0; i < this.Rank; ++i)
-                    yield return 0;
+                var lowerBounds = this.LowerBounds;
+
+                if (lowerBounds.IsDefault)
+                {
+                    return Enumerable.Repeat(0, Rank);
+                }
+                else
+                {
+                    return lowerBounds;
+                }
             }
         }
 
@@ -56,78 +65,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SpecializedCollections.EmptyEnumerable<ulong>();
+                if (this.Sizes.IsEmpty)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ulong>();
+                }
+
+                return GetSizes();
             }
         }
 
-        bool Cci.ITypeReference.IsEnum
+        private IEnumerable<ulong> GetSizes()
         {
-            get { return false; }
-        }
-
-        bool Cci.ITypeReference.IsValueType
-        {
-            get { return false; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
-        {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
-        }
-
-        TypeDefinitionHandle Cci.ITypeReference.TypeDef
-        {
-            get { return default(TypeDefinitionHandle); }
-        }
-
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
-        {
-            get { return null; }
-        }
-
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
-        {
-            get { return null; }
-        }
-
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
-        {
-            get { return null; }
-        }
-
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
-        {
-            return null;
+            foreach (var size in this.Sizes)
+            {
+                yield return (ulong)size;
+            }
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -135,9 +87,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.Visit((Cci.IArrayTypeReference)this);
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return null;
-        }
+        bool Cci.ITypeReference.IsEnum => false;
+        bool Cci.ITypeReference.IsValueType => false;
+
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
+
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
+        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;
+        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference => null;
+        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference => null;
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
+        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference => null;
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
+        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference => null;
+        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context) => null;
     }
 }

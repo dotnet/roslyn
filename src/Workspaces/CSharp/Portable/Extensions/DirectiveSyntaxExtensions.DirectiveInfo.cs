@@ -14,21 +14,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private class DirectiveInfo
         {
             // Maps a directive to its pair
-            public IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> DirectiveMap { get; private set; }
+            public IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> DirectiveMap { get; }
 
             // Maps a #If/#elif/#else/#endIf directive to its list of matching #If/#elif/#else/#endIf directives
-            public IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> ConditionalMap { get; private set; }
+            public IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> ConditionalMap { get; }
 
             // A set of inactive regions spans.  The items in the tuple are the start and end line
-            // *both inclusive* of the inactive region. Actual PP lines are not contined within.
+            // *both inclusive* of the inactive region. Actual PP lines are not continued within.
             //
             // Note: an interval tree might be a better structure here if there are lots of inactive
             // regions.  Consider switching to that if necessary.
-            public ISet<Tuple<int, int>> InactiveRegionLines { get; private set; }
+            public ISet<Tuple<int, int>> InactiveRegionLines { get; }
 
             public DirectiveInfo(
                 IDictionary<DirectiveTriviaSyntax, DirectiveTriviaSyntax> directiveMap,
-                IDictionary<DirectiveTriviaSyntax, IEnumerable<DirectiveTriviaSyntax>> conditionalMap,
+                IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> conditionalMap,
                 ISet<Tuple<int, int>> inactiveRegionLines)
             {
                 this.DirectiveMap = directiveMap;

@@ -10,13 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState>
     {
-        private readonly PooledHashSet<LabelSymbol> labelsDefined = PooledHashSet<LabelSymbol>.GetInstance();
-        private readonly PooledHashSet<LabelSymbol> labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
+        private readonly PooledHashSet<LabelSymbol> _labelsDefined = PooledHashSet<LabelSymbol>.GetInstance();
+        private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
+        protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         protected override void Free()
         {
-            labelsDefined.Free();
-            labelsUsed.Free();
+            _labelsDefined.Free();
+            _labelsUsed.Free();
 
             base.Free();
         }
@@ -113,9 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Diagnostics.Clear();  // clear reported diagnostics
             var result = base.Scan(ref badRegion);
-            foreach (var label in labelsDefined)
+            foreach (var label in _labelsDefined)
             {
-                if (!labelsUsed.Contains(label))
+                if (!_labelsUsed.Contains(label))
                 {
                     Diagnostics.Add(ErrorCode.WRN_UnreferencedLabel, label.Locations[0]);
                 }
@@ -126,11 +127,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Perform control flow analysis, reporting all necessary diagnostics.  Returns true if the end of
-        /// the body might be reachable..
+        /// the body might be reachable...
         /// </summary>
-        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics)
+        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag diagnostics)
         {
-            var walker = new ControlFlowPass(compilation, member, node);
+            var walker = new ControlFlowPass(compilation, member, block);
+
+            if (diagnostics != null)
+            {
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+            }
+
             try
             {
                 bool badRegion = false;
@@ -138,10 +145,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!badRegion);
                 return result;
             }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+            {
+                ex.AddAnError(diagnostics);
+                return true;
+            }
             finally
             {
                 walker.Free();
             }
+        }
+
+        protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+        {
+            return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException;
         }
 
         /// <summary>
@@ -213,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        void CheckReachable(BoundStatement statement)
+        private void CheckReachable(BoundStatement statement)
         {
             if (!this.State.Alive && !this.State.Reported && !statement.WasCompilerGenerated && statement.Syntax.Span.Length != 0)
             {
@@ -271,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {
-            labelsDefined.Add(node.Label);
+            _labelsDefined.Add(node.Label);
             base.VisitLabel(node);
         }
 
@@ -285,17 +302,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
         {
-            labelsUsed.Add(node.Label);
+            _labelsUsed.Add(node.Label);
             return base.VisitGotoStatement(node);
         }
 
         protected override void VisitSwitchSectionLabel(LabelSymbol label, BoundSwitchSection node)
         {
-            labelsDefined.Add(label);
+            _labelsDefined.Add(label);
             base.VisitSwitchSectionLabel(label, node);
 
             // switch statement labels are always considered to be referenced
-            labelsUsed.Add(label);
+            _labelsUsed.Add(label);
         }
 
         public override BoundNode VisitSwitchSection(BoundSwitchSection node, bool lastSection)

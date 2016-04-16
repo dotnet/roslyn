@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [WorkItem(308077, "DevDiv")]
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact]
         public void TestSeparatedListInsert()
         {
@@ -212,8 +212,8 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(list.Count + 1, new[] { nodeD }));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => list.RemoveAt(list.Count + 1));
-            Assert.Throws<ArgumentException>(() => list.Replace(nodeD, nodeE));
-            Assert.Throws<ArgumentException>(() => list.ReplaceRange(nodeD, new[] { nodeE }));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Replace(nodeD, nodeE));
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.ReplaceRange(nodeD, new[] { nodeE }));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxNode>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNode>)null));
             Assert.Throws<ArgumentNullException>(() => list.ReplaceRange(elementA, (IEnumerable<SyntaxNode>)null));
@@ -284,6 +284,29 @@ c,b", insertAfterEOL.ToFullString());
 
             Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause));
             Assert.False(list.Any(SyntaxKind.WhereClause));
+        }
+
+        [Fact]
+        [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
+        public void ReplaceSeparator()
+        {
+            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.IdentifierName("A"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.IdentifierName("C"),
+                });
+
+            var newComma = SyntaxFactory.Token(
+                SyntaxFactory.TriviaList(SyntaxFactory.Space),
+                SyntaxKind.CommaToken,
+                SyntaxFactory.TriviaList());
+            var newList = list.ReplaceSeparator(
+                list.GetSeparator(1),
+                newComma);
+            Assert.Equal(3, newList.Count);
+            Assert.Equal(2, newList.SeparatorCount);
+            Assert.Equal(1, newList.GetSeparator(1).GetLeadingTrivia().Count);
         }
     }
 }

@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal struct NamespaceExtent : IEquatable<NamespaceExtent>
     {
-        private readonly NamespaceKind kind;
-        private readonly object symbolOrCompilation;
+        private readonly NamespaceKind _kind;
+        private readonly object _symbolOrCompilation;
 
         /// <summary>
         /// Returns what kind of extent: Module, Assembly, or Compilation.
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return kind;
+                return _kind;
             }
         }
 
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (kind == NamespaceKind.Module)
+                if (_kind == NamespaceKind.Module)
                 {
-                    return (ModuleSymbol)symbolOrCompilation;
+                    return (ModuleSymbol)_symbolOrCompilation;
                 }
 
                 throw new InvalidOperationException();
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (kind == NamespaceKind.Assembly)
+                if (_kind == NamespaceKind.Assembly)
                 {
-                    return (AssemblySymbol)symbolOrCompilation;
+                    return (AssemblySymbol)_symbolOrCompilation;
                 }
 
                 throw new InvalidOperationException();
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (kind == NamespaceKind.Compilation)
+                if (_kind == NamespaceKind.Compilation)
                 {
-                    return (CSharpCompilation)symbolOrCompilation;
+                    return (CSharpCompilation)_symbolOrCompilation;
                 }
 
                 throw new InvalidOperationException();
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string ToString()
         {
-            return $"{kind}: {symbolOrCompilation}";
+            return $"{_kind}: {_symbolOrCompilation}";
         }
 
         /// <summary>
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamespaceExtent(ModuleSymbol module)
         {
-            this.kind = NamespaceKind.Module;
-            this.symbolOrCompilation = module;
+            _kind = NamespaceKind.Module;
+            _symbolOrCompilation = module;
         }
 
         /// <summary>
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamespaceExtent(AssemblySymbol assembly)
         {
-            this.kind = NamespaceKind.Assembly;
-            this.symbolOrCompilation = assembly;
+            _kind = NamespaceKind.Assembly;
+            _symbolOrCompilation = assembly;
         }
 
         /// <summary>
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal NamespaceExtent(CSharpCompilation compilation)
         {
-            this.kind = NamespaceKind.Compilation;
-            this.symbolOrCompilation = compilation;
+            _kind = NamespaceKind.Compilation;
+            _symbolOrCompilation = compilation;
         }
 
         public override bool Equals(object obj)
@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool Equals(NamespaceExtent other)
         {
-            return object.Equals(this.symbolOrCompilation, other.symbolOrCompilation);
+            return object.Equals(_symbolOrCompilation, other._symbolOrCompilation);
         }
 
         public override int GetHashCode()
         {
-            return (this.symbolOrCompilation == null) ? 0 : symbolOrCompilation.GetHashCode();
+            return (_symbolOrCompilation == null) ? 0 : _symbolOrCompilation.GetHashCode();
         }
     }
 }

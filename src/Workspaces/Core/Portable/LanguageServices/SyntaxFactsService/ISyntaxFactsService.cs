@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
         bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type);
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
@@ -110,8 +112,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+
+        string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
+
         SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position);
-        SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position);
+        SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode node);
 
         SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
@@ -129,7 +135,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
         SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
+        TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, return the <see cref="TextSpan"/> representing the span of the member body
+        /// it is contained within. This <see cref="TextSpan"/> is used to determine whether speculative binding should be
+        /// used in performance-critical typing scenarios. Note: if this method fails to find a relevant span, it returns
+        /// an empty <see cref="TextSpan"/> at position 0.
+        /// </summary>
         TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node);
 
         /// <summary>
@@ -143,5 +156,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
 
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
+
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
+        /// that arguments name.
+        /// </summary>
+        string GetNameForArgument(SyntaxNode argument);
+    }
+
+    [Flags]
+    internal enum DisplayNameOptions
+    {
+        None = 0,
+        IncludeMemberKeyword = 1,
+        IncludeNamespaces = 1 << 1,
+        IncludeParameters = 1 << 2,
+        IncludeType = 1 << 3,
+        IncludeTypeParameters = 1 << 4
     }
 }

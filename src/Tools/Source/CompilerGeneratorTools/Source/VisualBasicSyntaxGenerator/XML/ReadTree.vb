@@ -7,22 +7,26 @@
 
 Imports System.IO
 Imports System.Reflection
+Imports System.Runtime.InteropServices
 Imports System.Xml
 Imports System.Xml.Schema
 Imports <xmlns="http://schemas.microsoft.com/VisualStudio/Roslyn/Compiler">
 
 Public Module ReadTree
-    Dim currentFile As String
+    Private s_currentFile As String
 
     ' Read an XML file and return the resulting ParseTree object.
-    Public Function ReadTheTree(fileName As String, Optional ByRef xDoc As XDocument = Nothing) As ParseTree
+    Public Function TryReadTheTree(fileName As String, <Out> ByRef tree As ParseTree) As Boolean
 
-        Console.WriteLine("Reading input file ""{0}""...", fileName)
+        tree = Nothing
 
-        xDoc = GetXDocument(fileName)
+        Dim validationError As Boolean = False
+        Dim xDoc = GetXDocument(fileName, validationError)
+        If validationError Then
+            Return False
+        End If
 
-        Dim tree As New ParseTree
-
+        tree = New ParseTree
         Dim x = xDoc.<define-parse-tree>
 
         tree.FileName = fileName
@@ -59,33 +63,28 @@ Public Module ReadTree
         Next
 
         tree.FinishedReading()
-        Return tree
+        Return True
     End Function
 
     ' Open the input XML file as an XDocument, using the reading options that we want.
     ' We use a schema to validate the input.
-    Private Function GetXDocument(fileName As String) As XDocument
-        currentFile = fileName
+    Private Function GetXDocument(fileName As String, <Out> ByRef validationError As Boolean) As XDocument
+        s_currentFile = fileName
 
-        Using schemaReader = XmlReader.Create(Assembly.GetExecutingAssembly().GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
+        Dim xDoc As XDocument
+        Using schemaReader = XmlReader.Create(GetType(ReadTree).GetTypeInfo().Assembly.GetManifestResourceStream("VBSyntaxModelSchema.xsd"))
 
             Dim readerSettings As New XmlReaderSettings()
             readerSettings.DtdProcessing = DtdProcessing.Prohibit
-            readerSettings.XmlResolver = Nothing
-            readerSettings.Schemas.Add(Nothing, schemaReader)
-            readerSettings.ValidationType = ValidationType.Schema
-            AddHandler readerSettings.ValidationEventHandler, AddressOf ValidationError
 
             Dim fileStream As New FileStream(fileName, FileMode.Open, FileAccess.Read)
             Using reader = XmlReader.Create(fileStream, readerSettings)
-                Return XDocument.Load(reader, LoadOptions.SetLineInfo Or LoadOptions.PreserveWhitespace)
+                xDoc = XDocument.Load(reader, LoadOptions.SetLineInfo Or LoadOptions.PreserveWhitespace)
             End Using
         End Using
-    End Function
 
-    ' A validation error occurred while reading the document. Tell the user.
-    Private Sub ValidationError(sender As Object, e As ValidationEventArgs)
-        Console.WriteLine("{0}({1},{2}): Invalid input: {3}", currentFile, e.Exception.LineNumber, e.Exception.LinePosition, e.Exception.Message)
-    End Sub
+        validationError = False
+        Return xDoc
+    End Function
 
 End Module

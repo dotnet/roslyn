@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    static class CSharpCompilationOptionsExtensions
+    internal static class CSharpCompilationOptionsExtensions
     {
         public static void VerifyErrors(this CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestProperty((old, value) => old.WithAllowUnsafe(value), opt => opt.AllowUnsafe, true);
             TestProperty((old, value) => old.WithCryptoKeyContainer(value), opt => opt.CryptoKeyContainer, "foo");
             TestProperty((old, value) => old.WithCryptoKeyFile(value), opt => opt.CryptoKeyFile, "foo");
+            TestProperty((old, value) => old.WithCryptoPublicKey(value), opt => opt.CryptoPublicKey, ImmutableArray.Create<byte>(0, 1, 2, 3));
             TestProperty((old, value) => old.WithDelaySign(value), opt => opt.DelaySign, true);
             TestProperty((old, value) => old.WithPlatform(value), opt => opt.Platform, Platform.Itanium);
             TestProperty((old, value) => old.WithGeneralDiagnosticOption(value), opt => opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress);
@@ -75,14 +76,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestProperty((old, value) => old.WithSpecificDiagnosticOptions(value), opt => opt.SpecificDiagnosticOptions,
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
+            TestProperty((old, value) => old.WithReportSuppressedDiagnostics(value), opt => opt.ReportSuppressedDiagnostics, true);
 
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
+            TestProperty((old, value) => old.WithCurrentLocalTime(value), opt => opt.CurrentLocalTime, new DateTime(2005,1,1));
             TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
+            TestProperty((old, value) => old.WithDebugPlusMode(value), opt => opt.DebugPlusMode, true);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
-            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), new MetadataFileReferenceProvider()));
+            TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new TestMetadataReferenceResolver());
             TestProperty((old, value) => old.WithAssemblyIdentityComparer(value), opt => opt.AssemblyIdentityComparer, new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy()));
             TestProperty((old, value) => old.WithStrongNameProvider(value), opt => opt.StrongNameProvider, new DesktopStrongNameProvider());
+
+            TestProperty((old, value) => old.WithTopLevelBinderFlags(value), opt => opt.TopLevelBinderFlags, BinderFlags.IgnoreCorLibraryDuplicatedTypes);
+            TestProperty((old, value) => old.WithMetadataImportOptions(value), opt => opt.MetadataImportOptions, MetadataImportOptions.Internal);
+            TestProperty((old, value) => old.WithReferencesSupersedeLowerVersions(value), opt => opt.ReferencesSupersedeLowerVersions, true);
         }
 
         [Fact]
@@ -316,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpCompilationOptions),
                 "AllowUnsafe",
-                "Usings");
+                "Usings",
+                "TopLevelBinderFlags");
         }
 
         [Fact]
@@ -336,55 +345,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool allowUnsafe = false;
             string cryptoKeyContainer = null;
             string cryptoKeyFile = null;
+            ImmutableArray<byte> cryptoPublicKey = default(ImmutableArray<byte>);
             bool? delaySign = null;
             Platform platform = 0;
             ReportDiagnostic generalDiagnosticOption = 0;
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
             bool concurrentBuild = false;
+            bool deterministic = false;
+            DateTime currentLocalTime = default(DateTime);
             bool extendedCustomDebugInformation = true;
+            bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
-            MetadataReferenceResolver metadataReferenceResolver = new AssemblyReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, null), MetadataFileReferenceProvider.Default);
+            MetadataReferenceResolver metadataReferenceResolver = new MetadataReferenceResolverWithEquality();
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
-            ImmutableArray<string> features = ImmutableArray<string>.Empty;
-            return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, 
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,  
-                concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
+            bool referencesSupersedeLowerVersions = false;
+            bool reportSuppressedDiagnostics = false;
+            var topLevelBinderFlags = BinderFlags.None;
+            var publicSign = false;
+
+            return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
+                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
+                concurrentBuild, deterministic, currentLocalTime, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
+        }
+
+        private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
+        {
+            public override bool Equals(object other) => true;
+            public override int GetHashCode() => 1;
+
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Fact]
-        public void Serializability1()
+        public void WithCryptoPublicKey()
         {
-            VerifySerializability(new CSharpSerializableCompilationOptions(new CSharpCompilationOptions(
-                outputKind: OutputKind.WindowsApplication,
-                usings: new[] { "F", "G" },
-                generalDiagnosticOption: ReportDiagnostic.Hidden,
-                specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) })));
-        }
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
 
-        [Fact]
-        public void Serializability2()
-        {
-            var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp3, DocumentationMode.Diagnose, SourceCodeKind.Interactive);
-            var compilationOptions = new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                moduleName: "M",
-                optimizationLevel: OptimizationLevel.Release);
-            compilationOptions = compilationOptions.
-                WithConcurrentBuild(!compilationOptions.ConcurrentBuild).
-                WithExtendedCustomDebugInformation(!compilationOptions.ExtendedCustomDebugInformation);
-            var deserializedCompilationOptions = VerifySerializability(new CSharpSerializableCompilationOptions(compilationOptions)).Options;
+            Assert.Equal(ImmutableArray<byte>.Empty, options.CryptoPublicKey);
+            Assert.Equal(ImmutableArray<byte>.Empty, options.WithCryptoPublicKey(default(ImmutableArray<byte>)).CryptoPublicKey);
 
-            Assert.Equal(compilationOptions.OutputKind, deserializedCompilationOptions.OutputKind);
-            Assert.Equal(compilationOptions.ModuleName, deserializedCompilationOptions.ModuleName);
-            Assert.Equal(compilationOptions.OptimizationLevel, deserializedCompilationOptions.OptimizationLevel);
-            Assert.Equal(compilationOptions.ConcurrentBuild, deserializedCompilationOptions.ConcurrentBuild);
-            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation, deserializedCompilationOptions.ExtendedCustomDebugInformation);
+            Assert.Same(options, options.WithCryptoPublicKey(default(ImmutableArray<byte>)));
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray<byte>.Empty));
         }
     }
 }

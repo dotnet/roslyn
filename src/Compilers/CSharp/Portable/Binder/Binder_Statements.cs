@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal virtual ImmutableHashSet<Symbol> LockedOrDisposedVariables
         {
-            get { return this.next.LockedOrDisposedVariables; }
+            get { return _next.LockedOrDisposedVariables; }
         }
 
         /// <remarks>
@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(result.WasCompilerGenerated == false, "Synthetic node would not get cached");
-            
-            Debug.Assert(result.Syntax is StatementSyntax, "BoundStatement should be associated with a statement syntax."); 
+
+            Debug.Assert(result.Syntax is StatementSyntax, "BoundStatement should be associated with a statement syntax.");
 
             Debug.Assert(System.Linq.Enumerable.Contains(result.Syntax.AncestorsAndSelf(), node), @"Bound statement (or one of its parents) 
                                                                             should have same syntax as the given syntax node. 
-                                                                            Otherwise it may be confusung to the binder cache that uses syntax node as keys.");
+                                                                            Otherwise it may be confusing to the binder cache that uses syntax node as keys.");
 
             return result;
         }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(fixedBinder != null);
 
             fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics);
-            
+
             return fixedBinder.BindFixedStatementParts(node, diagnostics);
         }
 
@@ -182,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(node), 
-                                           boundMultipleDeclarations, 
+                                           GetDeclaredLocalsForScope(node),
+                                           boundMultipleDeclarations,
                                            boundBody);
         }
 
@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
             }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
 
             return new BoundYieldReturnStatement(node, argument);
         }
@@ -222,6 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+            }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
             GetIteratorElementType(node, diagnostics);
@@ -342,11 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
-            var symbol = result.Symbols.Count != 0?
+            var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
                 (LabelSymbol)result.Symbols.First() :
                 new SourceLabelSymbol((MethodSymbol)ContainingMemberOrLambda, node.Identifier);
 
@@ -357,14 +365,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check to see if this label (illegally) hides a label from an enclosing scope
-            result.Clear();
-            this.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
-            if (result.IsMultiViable)
+            if (binder != null)
             {
-                // The label '{0}' shadows another label by the same name in a contained scope
-                Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
-                hasError = true;
+                result.Clear();
+                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+                if (result.IsMultiViable)
+                {
+                    // The label '{0}' shadows another label by the same name in a contained scope
+                    Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
+                    hasError = true;
+                }
             }
+
             diagnostics.Add(node, useSiteDiagnostics);
             result.Free();
 
@@ -430,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = new BoundExpressionStatement(node, expression);
             }
 
-            CheckForUnobservedAwaitable(expressionStatement, diagnostics);
+            CheckForUnobservedAwaitable(expression, diagnostics);
 
             return expressionStatement;
         }
@@ -441,46 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The checks here are equivalent to StatementBinder::CheckForUnobservedAwaitable() in the native compiler.
         /// </remarks>
-        private void CheckForUnobservedAwaitable(BoundExpressionStatement expressionStatement, DiagnosticBag diagnostics)
+        private void CheckForUnobservedAwaitable(BoundExpression expression, DiagnosticBag diagnostics)
         {
-            if (expressionStatement == null)
-            {
-                return;
-            }
-
-            BoundExpression expression = expressionStatement.Expression;
-
-            // If we don't have an expression or it doesn't have a type, just bail out
-            // now. Also, the dynamic type is always awaitable in an async method and
-            // could generate a lot of noise if we warned on it. Finally, we only want
-            // to warn on method calls, not other kinds of expressions.
-
-            if (expression == null
-                || expression.Kind != BoundKind.Call
-                || (object)expression.Type == null
-                || expression.Type.IsDynamic()
-                || expression.Type.SpecialType == SpecialType.System_Void)
-            {
-                return;
-            }
-
-            var call = (BoundCall)expression;
-
-            // First check if the target method is async.
-            if ((object)call.Method != null && call.Method.IsAsync)
-            {
-                Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
-                return;
-            }
-
-            // Then check if the method call returns a WinRT async type.
-            if (ImplementsWinRTAsyncInterface(call.Type))
-            {
-                Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
-                return;
-            }
-
-            // Finally, if we're in an async method, and the expression could be be awaited, report that it is instead discarded.
             if (CouldBeAwaited(expression))
             {
                 Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
@@ -594,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return declType;
-                }
+        }
 
 
         // The location where the error is reported might not be the initializer.
@@ -682,15 +656,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)declTypeOpt != null || isVar);
             Debug.Assert(typeSyntax != null);
 
+            var localDiagnostics = DiagnosticBag.GetInstance();
             // if we are not given desired syntax, we use declarator
             associatedSyntaxNode = associatedSyntaxNode ?? declarator;
 
             bool hasErrors = false;
-            
+
             BoundExpression initializerOpt;
 
             // Check for variable declaration errors.
-            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, localDiagnostics);
 
             EqualsValueClauseSyntax equalsValueClauseSyntax = declarator.Initializer;
             if (isVar)
@@ -698,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 aliasOpt = null;
 
                 var binder = new ImplicitlyTypedLocalBinder(this, localSymbol);
-                initializerOpt = binder.BindInferredVariableInitializer(diagnostics, equalsValueClauseSyntax, declarator);
+                initializerOpt = binder.BindInferredVariableInitializer(localDiagnostics, equalsValueClauseSyntax, declarator);
 
                 // If we got a good result then swap the inferred type for the "var" 
                 if ((object)initializerOpt?.Type != null)
@@ -707,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (declTypeOpt.SpecialType == SpecialType.System_Void)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt);
+                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt);
                         declTypeOpt = CreateErrorType("var");
                         hasErrors = true;
                     }
@@ -716,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (declTypeOpt.IsStatic)
                         {
-                            Error(diagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
+                            Error(localDiagnostics, ErrorCode.ERR_VarDeclIsStaticClass, typeSyntax, initializerOpt.Type);
                             hasErrors = true;
                         }
                     }
@@ -736,11 +711,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Basically inlined BindVariableInitializer, but with conversion optional.
-                    initializerOpt = BindPossibleArrayInitializer(equalsValueClauseSyntax.Value, declTypeOpt, diagnostics);
+                    initializerOpt = BindPossibleArrayInitializer(equalsValueClauseSyntax.Value, declTypeOpt, localDiagnostics);
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
-                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, diagnostics);
+                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics);
                     }
                 }
             }
@@ -754,30 +729,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!hasErrors)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, declarator);
+                        Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedLocalCannotBeFixed, declarator);
                         hasErrors = true;
                     }
                 }
-                
+
                 if (!declTypeOpt.IsPointerType())
                 {
                     if (!hasErrors)
                     {
-                        Error(diagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
+                        Error(localDiagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
                         hasErrors = true;
                     }
                 }
-                else if (!IsValidFixedVariableInitializer(declTypeOpt, localSymbol, ref initializerOpt, diagnostics))
+                else if (!IsValidFixedVariableInitializer(declTypeOpt, localSymbol, ref initializerOpt, localDiagnostics))
                 {
                     hasErrors = true;
                 }
             }
-         
+
             if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
                 && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
                 && declTypeOpt.IsRestrictedType())
             {
-                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
+                Error(localDiagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
                 hasErrors = true;
             }
 
@@ -788,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)localSymbol != null);
 
-            ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, diagnostics);
+            ImmutableArray<BoundExpression> arguments = BindDeclaratorArguments(declarator, localDiagnostics);
 
             if (kind == LocalDeclarationKind.FixedVariable || kind == LocalDeclarationKind.UsingVariable)
             {
@@ -799,19 +774,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerOpt == null)
                 {
-                    Error(diagnostics, ErrorCode.ERR_FixedMustInit, declarator);
+                    Error(localDiagnostics, ErrorCode.ERR_FixedMustInit, declarator);
                     hasErrors = true;
                 }
             }
-            else if (kind == LocalDeclarationKind.Constant && initializerOpt != null)
+            else if (kind == LocalDeclarationKind.Constant && initializerOpt != null && !localDiagnostics.HasAnyResolvedErrors())
             {
-                foreach (var diagnostic in localSymbol.GetConstantValueDiagnostics(initializerOpt))
+                var constantValueDiagnostics = localSymbol.GetConstantValueDiagnostics(initializerOpt);
+                foreach (var diagnostic in constantValueDiagnostics)
                 {
                     diagnostics.Add(diagnostic);
                     hasErrors = true;
                 }
             }
 
+            diagnostics.AddRangeAndFree(localDiagnostics);
             var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt);
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
         }
@@ -880,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
                 if (!initializerOpt.HasAnyErrors)
                 {
-                    Debug.Assert(initializerOpt.Kind == BoundKind.Conversion && ((BoundConversion)initializerOpt).Operand.IsLiteralNull(), 
+                    Debug.Assert(initializerOpt.Kind == BoundKind.Conversion && ((BoundConversion)initializerOpt).Operand.IsLiteralNull(),
                         "All other typeless expressions should have conversion errors");
                     // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
                     Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
@@ -889,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (initializerType.SpecialType == SpecialType.System_String)
             {
                 // See ExpressionBinder::bindPtrToString
-                
+
                 TypeSymbol elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
                 Debug.Assert(!elementType.IsManagedType);
 
@@ -1012,8 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignment:
                     return ErrorCode.ERR_AssgReadonlyLocal;
@@ -1039,8 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -1283,7 +1258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This error is reported for all values types. That is a breaking
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
-                    
+
                     Debug.Assert((object)propertySymbol.Type != null);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
@@ -1320,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-           
+
             if (expr is BoundArrayAccess  // Array accesses are always variables
                 || expr is BoundPointerIndirectionOperator // Pointer dereferences are always variables
                 || expr is BoundPointerElementAccess) // Pointer element access is just sugar for pointer dereference
@@ -1391,12 +1366,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldSymbol.IsReadOnly)
                 {
                     var canModifyReadonly = false;
-                    
+
                     Symbol containing = this.ContainingMemberOrLambda;
                     if ((object)containing != null &&
                         fieldIsStatic == containing.IsStatic &&
-                        (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) && 
-                        fieldSymbol.ContainingType == containing.ContainingType)
+                        (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
+                        (Compilation.FeatureStrictEnabled
+                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
+                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -1415,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportReadOnlyError(fieldSymbol, node, kind, checkingReceiver, diagnostics);
                     }
                 }
-                
+
                 if (fieldSymbol.IsFixed)
                 {
                     Error(diagnostics, GetStandardLvalueError(kind), node);
@@ -1498,11 +1476,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Build bound conversion. The node might not be used if this is a dynamic conversion 
                 // but diagnostics should be reported anyways.
                 var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics);
-                
+
                 // If the result is a dynamic assignment operation (SetMember or SetIndex), 
                 // don't generate the boxing conversion to the dynamic type.
                 // Leave the values as they are, and deal with the conversions at runtime.
-                if (op1.Kind != BoundKind.DynamicIndexerAccess && 
+                if (op1.Kind != BoundKind.DynamicIndexerAccess &&
                     op1.Kind != BoundKind.DynamicMemberAccess &&
                     op1.Kind != BoundKind.DynamicObjectInitializerMember)
                 {
@@ -1590,13 +1568,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerMemberAccessExpression:
                     eventSyntax = ((MemberAccessExpressionSyntax)syntax).Name;
                     break;
+                case SyntaxKind.QualifiedName:
+                    // This case is reachable only through SemanticModel
+                    eventSyntax = ((QualifiedNameSyntax)syntax).Right;
+                    break;
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
-                default:
-                    Debug.Assert(false, "Unexpected syntax: " + syntax.Kind());
-                    eventSyntax = syntax;
+                case SyntaxKind.MemberBindingExpression:
+                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
                     break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
 
             BoundEventAccess eventAccess = (BoundEventAccess)expr;
@@ -1663,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
                         receiver = otherSymbol.IsStatic
                             ? null // no receiver required
-                            : typeOrValue.ValueExpression;
+                            : typeOrValue.Data.ValueExpression;
                     }
                     return new BoundBadExpression(
                         expr.Syntax,
@@ -1733,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // accessibility, use site errors, and receiver variable-ness (for structs).
             // Other operations are allowed only for field-like events and only where the backing field is accessible
             // (i.e. in the declaring type) - subject to use site errors and receiver variable-ness.
-            
+
             BoundExpression receiver;
             CSharpSyntaxNode eventSyntax; //does not include receiver
             EventSymbol eventSymbol = GetEventSymbol(boundEvent, out receiver, out eventSyntax);
@@ -1741,58 +1724,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (valueKind)
             {
                 case BindValueKind.CompoundAssignment:
-                {
-                    // NOTE: accessibility has already been checked by lookup.
-                    // NOTE: availability of well-known members is checked in BindEventAssignment because
-                    // we don't have the context to determine whether addition or subtraction is being performed.
-
-                    if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                     {
-                        // NOTE: BindEventAssignment checks use site errors on the specific accessor 
-                        // (since we don't know which is being used).
-                        return false;
-                    }
+                        // NOTE: accessibility has already been checked by lookup.
+                        // NOTE: availability of well-known members is checked in BindEventAssignment because
+                        // we don't have the context to determine whether addition or subtraction is being performed.
 
-                    Debug.Assert(!RequiresVariableReceiver(receiver, eventSymbol));
-                    return true;
-                }
+                        if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
+                            return false;
+                        }
+                        else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                        {
+                            // NOTE: BindEventAssignment checks use site errors on the specific accessor 
+                            // (since we don't know which is being used).
+                            return false;
+                        }
+
+                        Debug.Assert(!RequiresVariableReceiver(receiver, eventSymbol));
+                        return true;
+                    }
                 case BindValueKind.Assignment:
                 case BindValueKind.RValue:
                 case BindValueKind.RValueOrMethodGroup:
                 case BindValueKind.OutParameter:
                 case BindValueKind.IncrementDecrement:
                 case BindValueKind.AddressOf:
-                {
-                    if (!boundEvent.IsUsableAsField)
                     {
-                        // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
-                        Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventSymbol), eventSyntax);
-                        return false;
-                    }
-                    else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
-                    {
-                        return false;
-                    }
-                    else if (RequiresSettingValue(valueKind))
-                    {
-                        if (eventSymbol.IsWindowsRuntimeEvent && valueKind != BindValueKind.Assignment)
+                        if (!boundEvent.IsUsableAsField)
                         {
-                            // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
-                            // Roslyn reports a new, more specific, error code.
-                            ErrorCode errorCode = valueKind == BindValueKind.OutParameter ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind);
-                            Error(diagnostics, errorCode, eventSyntax, eventSymbol);
-
+                            // Dev10 reports this in addition to ERR_BadAccess, but we won't even reach this point if the event isn't accessible (caught by lookup).
+                            Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventSymbol), eventSyntax);
                             return false;
                         }
-                        else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
-                            !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
+                        else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                         {
                             return false;
                         }
-                    }
+                        else if (RequiresSettingValue(valueKind))
+                        {
+                            if (eventSymbol.IsWindowsRuntimeEvent && valueKind != BindValueKind.Assignment)
+                            {
+                                // NOTE: Dev11 reports ERR_RefProperty, as if this were a property access (since that's how it will be lowered).
+                                // Roslyn reports a new, more specific, error code.
+                                ErrorCode errorCode = valueKind == BindValueKind.OutParameter ? ErrorCode.ERR_WinRtEventPassedByRef : GetStandardLvalueError(valueKind);
+                                Error(diagnostics, errorCode, eventSyntax, eventSymbol);
 
-                    return true;
-                }
+                                return false;
+                            }
+                            else if (RequiresVariableReceiver(receiver, eventSymbol.AssociatedField) && // NOTE: using field, not event
+                                !CheckIsValidReceiverForVariable(eventSyntax, receiver, BindValueKind.Assignment, diagnostics))
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(valueKind);
             }
@@ -1948,11 +1936,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoProperty &&
                     sourceProperty.ContainingType == fromMember.ContainingType &&
-                    ((MethodSymbol)fromMember).MethodKind == (propertyIsStatic ? MethodKind.StaticConstructor
-                                                                                : MethodKind.Constructor) &&
-                   (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
 
+        private static bool IsConstructorOrField(Symbol member, bool isStatic)
+        {
+            return (member as MethodSymbol)?.MethodKind == (isStatic ?
+                                                                MethodKind.StaticConstructor :
+                                                                MethodKind.Constructor) ||
+                    (member as FieldSymbol)?.IsStatic == isStatic;
+        }
 
         /// <summary>
         /// SPEC: When a property or indexer declared in a struct-type is the target of an 
@@ -1968,8 +1962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            return !symbol.IsStatic 
-                && symbol.Kind != SymbolKind.Event 
+            return !symbol.IsStatic
+                && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
 
@@ -2045,7 +2039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics, Binder blockBinder)
         {
             Debug.Assert(blockBinder != null);
-            
+
             var syntaxStatements = node.Statements;
             int nStatements = syntaxStatements.Count;
 
@@ -2068,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
                 }
-        }
+            }
 
             return new BoundBlock(node, blockBinder.GetDeclaredLocalsForScope(node), boundStatements.ToImmutableAndFree());
         }
@@ -2132,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the target type is an error then we've already reported a diagnostic. Don't bother
             // reporting the conversion error.
-            if (targetType.IsErrorType() || syntax.HasErrors)
+            if (targetType.IsErrorType())
             {
                 return;
             }
@@ -2185,7 +2179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = targetType.GetDelegateType();
 
-            // The target type is a vaid delegate or expression tree type. Is there something wrong with the 
+            // The target type is a valid delegate or expression tree type. Is there something wrong with the 
             // parameter list?
 
             // First off, is there a parameter list at all?
@@ -2288,7 +2282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 
@@ -2344,7 +2338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(diagnostics, ErrorCode.ERR_LiteralDoubleCast, syntax, (targetType.SpecialType == SpecialType.System_Single) ? "F" : "M", targetType);
                     }
-                    else if (conversion.Kind == ConversionKind.ExplicitNumeric && sourceConstantValueOpt != null && sourceConstantValueOpt != ConstantValue.Bad && 
+                    else if (conversion.Kind == ConversionKind.ExplicitNumeric && sourceConstantValueOpt != null && sourceConstantValueOpt != ConstantValue.Bad &&
                         ConversionsBase.HasImplicitConstantExpressionConversion(new BoundLiteral(syntax, ConstantValue.Bad, sourceType), targetType))
                     {
                         // CLEVERNESS: By passing ConstantValue.Bad, we tell HasImplicitConstantExpressionConversion to ignore the constant
@@ -2360,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, sourceType, targetType);
                         Error(diagnostics, ErrorCode.ERR_NoImplicitConvCast, syntax, distinguisher.First, distinguisher.Second);
                     }
-                } 
+                }
                 else if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
                 {
                     Debug.Assert(conversion.IsUserDefined);
@@ -2529,12 +2523,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr.HasDynamicType())
             {
                 return new BoundUnaryOperator(
-                    node, 
-                    UnaryOperatorKind.DynamicTrue, 
-                    expr, 
-                    ConstantValue.NotAvailable, 
-                    null, 
-                    LookupResultKind.Viable, 
+                    node,
+                    UnaryOperatorKind.DynamicTrue,
+                    expr,
+                    ConstantValue.NotAvailable,
+                    null,
+                    LookupResultKind.Viable,
                     boolean)
                 {
                     WasCompilerGenerated = true
@@ -2569,8 +2563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     return CreateConversion(
-                        syntax: expr.Syntax, 
-                        source: expr, 
+                        syntax: expr.Syntax,
+                        source: expr,
                         conversion: conversion,
                         isCast: false,
                         wasCompilerGenerated: true,
@@ -2596,19 +2590,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorSignature signature = best.Signature;
 
             BoundExpression resultOperand = CreateConversion(
-                node, 
-                expr, 
+                node,
+                expr,
                 best.Conversion,
-                isCast: false, 
+                isCast: false,
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
             // Consider op_true to be compiler-generated so that it doesn't appear in the semantic model.
             // UNDONE: If we decide to expose the operator in the semantic model, we'll have to remove the 
             // WasCompilerGenerated flag (and possibly suppress the symbol in specific APIs).
-            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, resultKind, originalUserDefinedOperators, signature.ReturnType) 
-            { 
-                WasCompilerGenerated = true 
+            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, resultKind, originalUserDefinedOperators, signature.ReturnType)
+            {
+                WasCompilerGenerated = true
             };
         }
 
@@ -2812,21 +2806,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arg = BindValue(expressionSyntax, diagnostics, BindValueKind.RValue);
             }
+            else
+            {
+                // If this is a void return statement in a script, return default(T).
+                var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
+                if (interactiveInitializerMethod != null)
+                {
+                    arg = new BoundDefaultOperator(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                }
+            }
 
             bool hasErrors;
-            if (BindingTopLevelScriptCode)
-            {
-                diagnostics.Add(ErrorCode.ERR_ReturnNotAllowedInScript, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (IsDirectlyInIterator)
+            if (IsDirectlyInIterator)
             {
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;
             }
             else if (arg != null)
             {
-                hasErrors = arg.HasAnyErrors;
+                hasErrors = arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
             else
             {
@@ -2897,15 +2895,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Check that the returned expression is not void. "return void" is not allowed anywhere outside
-                // expression-lambdas.
-                //
-                // Note: in the case of "return void" in non-async lambdas used in return-type-inference,
-                // simply return "void" as the inferred return type and give an error if that didn't work.
-                // We can't follow the same route in async methods, since empty-return-operands become a "Task"
-                // return type.
-
-                if ((object)arg?.Type != null && IsInAsyncMethod() && arg.Type.SpecialType == SpecialType.System_Void)
+                // Check that the returned expression is not void.
+                if ((object)arg?.Type != null && arg.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                 }
@@ -3094,7 +3085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.Type);
             }
-            
+
             var block = this.BindBlock(node.Block, diagnostics);
             Debug.Assert((object)local == null || local.DeclarationKind == LocalDeclarationKind.CatchVariable);
             Debug.Assert((object)local == null || local.Type.IsErrorType() || (local.Type == type));
@@ -3129,7 +3120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         lambda.MessageID.Localize(), lambda.ReturnType);
                 }
-                else 
+                else
                 {
                     // Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                     Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturns,
@@ -3164,13 +3155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Wrap a given expression e into a block as either { e; } or { return e; } 
         /// Shared between lambda and expression-bodied method binding.
         /// </summary>
-        internal BoundBlock CreateBlockFromExpression(ImmutableArray<LocalSymbol> locals,
-            BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal BoundBlock CreateBlockFromExpression(CSharpSyntaxNode node, ImmutableArray<LocalSymbol> locals, ExpressionSyntax expressionSyntax, BoundExpression expression, DiagnosticBag diagnostics)
         {
             var returnType = GetCurrentReturnType();
-            BoundStatement statement;
-            var syntax = expression.Syntax;
+            var syntax = expressionSyntax ?? expression.Syntax;
 
+            BoundStatement statement;
             if ((object)returnType != null)
             {
                 if (returnType.SpecialType == SpecialType.System_Void || IsTaskReturningAsyncMethod())
@@ -3178,22 +3168,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.
 
+                    Debug.Assert(expressionSyntax != null || !IsValidStatementExpression(expression.Syntax, expression));
+
                     bool errors = false;
-                    if (!IsValidStatementExpression(syntax, expression))
+                    if (expressionSyntax == null || !IsValidStatementExpression(expressionSyntax, expression))
                     {
-                        Error(diagnostics, ErrorCode.ERR_IllegalStatement, node);
+                        Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
 
                     // Don't mark compiler generated so that the rewriter generates sequence points
                     var expressionStatement = new BoundExpressionStatement(syntax, expression, errors);
 
-                    CheckForUnobservedAwaitable(expressionStatement, diagnostics);
+                    CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
                 }
                 else
                 {
-                    expression = CreateReturnConversion(node, diagnostics, expression, returnType);
+                    expression = CreateReturnConversion(syntax, diagnostics, expression, returnType);
                     statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                 }
             }
@@ -3217,7 +3209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     DiagnosticBag diagnostics)
         {
             BoundExpression expression = this.BindValue(expressionBody.Expression, diagnostics, BindValueKind.RValue);
-            return CreateBlockFromExpression(this.Locals, expression, expressionBody, diagnostics);
+            return CreateBlockFromExpression(expressionBody, this.Locals, expressionBody.Expression, expression, diagnostics);
         }
 
         /// <summary>
@@ -3226,7 +3218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
             BoundExpression expression = this.BindValue(body, diagnostics, BindValueKind.RValue);
-            return CreateBlockFromExpression(this.Locals, expression, body, diagnostics);
+            return CreateBlockFromExpression(body, this.Locals, body, expression, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals
@@ -3244,6 +3236,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Next.Labels;
             }
         }
-
     }
 }

@@ -15,12 +15,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     ''' <remarks></remarks>
     Partial Friend Class Optimizer
 
-        Public Shared Function Optimize(container As Symbol, src As BoundStatement, <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
+        Public Shared Function Optimize(
+                         container As Symbol,
+                         src As BoundStatement,
+                         debugFriendly As Boolean,
+                         <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
 
             ' TODO: run other optimizing passes here.
             '       stack scheduler must be the last one.
 
-            Return StackScheduler.OptimizeLocalsOut(container, src, stackLocals)
+            Return StackScheduler.OptimizeLocalsOut(container, src, debugFriendly, stackLocals)
         End Function
 
     End Class

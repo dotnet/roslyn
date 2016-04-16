@@ -10,31 +10,48 @@ Imports System.Runtime.InteropServices
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Utilities
 Imports Xunit
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Partial Public Class CommandLineTests
         Inherits BasicTestBase
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
-        Private Shared ReadOnly BasicCompilerExecutable As String = GetType(Vbc).Assembly.Location
+        Private Shared ReadOnly s_basicCompilerExecutable As String = GetType(Vbc).Assembly.Location
+        Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
+
+        Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
+            Return VisualBasicCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        End Function
+
+        Private Shared Function FullParse(commandLine As String, baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
+            Dim args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments:=True)
+            Return VisualBasicCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        End Function
+
+        Private Shared Function InteractiveParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
+            Return VisualBasicCommandLineParser.ScriptRunner.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+        End Function
 
         <Fact>
-        <WorkItem(946954)>
-        Sub CompilerBinariesAreAnyCPU()
-            Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(BasicCompilerExecutable).ProcessorArchitecture)
+        <WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
+        Public Sub CompilerBinariesAreAnyCPU()
+            Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_basicCompilerExecutable).ProcessorArchitecture)
         End Sub
 
-        <Fact, WorkItem(546322, "DevDiv")>
+        <Fact, WorkItem(546322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546322")>
         Public Sub NowarnWarnaserrorTest()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -62,10 +79,10 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()
-            ' Arguments with quoted rootnamespace and maintype are unquoted when
+            ' Arguments with quoted rootnamespace and main type are unquoted when
             ' the arguments are read in by the command line compiler.
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -87,36 +104,36 @@ End Module
         Public Sub ParseQuotedMainTypeAndRootnamespace()
             'These options are always unquoted when parsed in VisualBasicCommandLineParser.Parse.
 
-            Dim args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:Test", "a.vb"}, _baseDirectory)
+            Dim args = DefaultParse({"/rootnamespace:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test", args.CompilationOptions.RootNamespace)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/main:Test", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/main:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test", args.CompilationOptions.MainTypeName)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/main:""Test""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/main:""Test""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test", args.CompilationOptions.MainTypeName)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""Test""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/rootnamespace:""Test""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("Test", args.CompilationOptions.RootNamespace)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""test""", "/main:""test.Module1""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/rootnamespace:""test""", "/main:""test.Module1""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("test.Module1", args.CompilationOptions.MainTypeName)
             Assert.Equal("test", args.CompilationOptions.RootNamespace)
 
             ' Use of Cyrillic namespace
-            args = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""решения""", "/main:""решения.Module1""", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/rootnamespace:""решения""", "/main:""решения.Module1""", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal("решения.Module1", args.CompilationOptions.MainTypeName)
             Assert.Equal("решения", args.CompilationOptions.RootNamespace)
 
         End Sub
 
-        <WorkItem(722561, "DevDiv")>
+        <WorkItem(722561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722561")>
         <Fact>
         Public Sub Bug_722561()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
@@ -155,7 +172,7 @@ End Class
             Dim cmd = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en"})
             cmd.Run(output, Nothing)
 
-            Assert.True(output.ToString().StartsWith(LogoLine1), "vbc should print logo and help if no args specified")
+            Assert.True(output.ToString().StartsWith(s_logoLine1, StringComparison.Ordinal), "vbc should print logo and help if no args specified")
         End Sub
 
         <Fact>
@@ -252,7 +269,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
             Dim tempOut = Temp.CreateFile()
 
-            Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
             Assert.Equal(<text>
@@ -271,7 +288,7 @@ SRC.VB(1) : error BC30037: Character is not valid.
 
             Dim tempOut = Temp.CreateFile()
 
-            Dim output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /utf8output /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /utf8output /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
             Assert.Equal(<text>
@@ -310,7 +327,7 @@ a.vb
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(685392, "DevDiv")>
+        <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
         <Fact()>
         Public Sub ResponseFiles_RootNamespace()
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
@@ -334,29 +351,68 @@ a.vb
 
         <Fact>
         Public Sub ParseGlobalImports()
-            Dim args = VisualBasicCommandLineParser.Default.Parse({"/imports: System ,System.Xml ,System.Linq", "a.vb"}, _baseDirectory)
+            Dim args = DefaultParse({"/imports: System ,System.Xml ,System.Linq", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             AssertEx.Equal({"System", "System.Xml", "System.Linq"}, args.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/impORt: System,,,,,", "/IMPORTs:,,,Microsoft.VisualBasic,,System.IO", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/impORt: System,,,,,", "/IMPORTs:,,,Microsoft.VisualBasic,,System.IO", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             AssertEx.Equal({"System", "Microsoft.VisualBasic", "System.IO"}, args.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/impORt: System, ,, ,,", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/impORt: System, ,, ,,", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ExpectedIdentifier),
                                Diagnostic(ERRID.ERR_ExpectedIdentifier))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/impORt:", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/impORt:", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("import", ":<str>"))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/impORts:", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/impORts:", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("imports", ":<import_list>"))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/imports", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/imports", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("imports", ":<import_list>"))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/imports+", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/imports+", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/imports+")) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        <Fact>
+        Public Sub ParseInteractive()
+            Dim args As VisualBasicCommandLineArguments
+
+            args = DefaultParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = DefaultParse({"/i"}, _baseDirectory)
+            args.Errors.Verify({Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/i").WithLocation(1, 1),
+                               Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)})
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            args = InteractiveParse({"/i", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.True(args.InteractiveMode)
+
+            args = InteractiveParse({"/i+ /i-", "a.vb"}, _baseDirectory)
+            args.Errors.Verify()
+            Assert.False(args.InteractiveMode)
+
+            For Each flag In {"i", "i+", "i-"}
+                args = InteractiveParse({"/" + flag + ":arg"}, _baseDirectory)
+                args.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("i").WithLocation(1, 1))
+            Next
         End Sub
 
         <Fact>
@@ -388,10 +444,10 @@ a.vb
                            cmd.Arguments.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
         End Sub
 
-        <Fact, WorkItem(546028, "DevDiv")>
+        <Fact, WorkItem(546028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546028")>
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
@@ -399,32 +455,32 @@ a.vb
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:\bogus"}
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:\bogus"}
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
 
             args = {"/win32manifest:foo.win32data:bar.win32data2"}
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:foo.win32data:bar.win32data2"}
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:foo.win32data:bar.win32data2"}
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            parsedArgs = DefaultParse(args, _baseDirectory)
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
@@ -434,7 +490,7 @@ a.vb
         <Fact>
         Public Sub Win32IconContainsGarbage()
             Dim tmpFileName As String = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Path
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32icon:" + tmpFileName}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
@@ -538,37 +594,37 @@ a.vb
         <Fact>
         Public Sub Win32ResourceOptions_SimplyInvalid()
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32resource", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/win32resource", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32resource+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32resource+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32resource+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32resource-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32resource-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32resource-")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32icon", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32icon", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32icon+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32icon+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32icon+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32icon-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32icon-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32icon-")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32manifest", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32manifest", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32manifest+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32manifest+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32manifest+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32manifest-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/win32manifest-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32manifest-")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
         End Sub
 
         Private Sub CheckWin32ResourceOptions(args As String(), expectedResourceFile As String, expectedIcon As String, expectedManifest As String, expectedNoManifest As Boolean, ParamArray diags As DiagnosticDescription())
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args.Concat({"Test.vb"}), _baseDirectory)
+            Dim parsedArgs = DefaultParse(args.Concat({"Test.vb"}), _baseDirectory)
             parsedArgs.Errors.Verify(diags)
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(expectedResourceFile, parsedArgs.Win32ResourceFile)
@@ -629,7 +685,7 @@ a.vb
 
             ' ...as long as there's no whitespace between them
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.foo.bar,,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -650,7 +706,7 @@ a.vb
             Assert.False(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.foo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("publi", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", "publi"))
             diags.Clear()
             Assert.Null(desc)
 
@@ -675,12 +731,12 @@ a.vb
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -692,27 +748,27 @@ a.vb
             Assert.True(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, , ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -731,7 +787,7 @@ a.vb
             Assert.True(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
 
@@ -743,7 +799,7 @@ a.vb
             Assert.False(desc.IsPublic)
 
             desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, embedded:=False)
-            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(" ", "resource"))
+            diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
         End Sub
@@ -751,30 +807,30 @@ a.vb
         <Fact>
         Public Sub ManagedResourceOptions()
             Dim parsedArgs As VisualBasicCommandLineArguments
-            Dim resourceDescription As resourceDescription
+            Dim resourceDescription As ResourceDescription
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource:a", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/resource:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.DisplayHelp)
             resourceDescription = parsedArgs.ManifestResources.Single()
             Assert.Null(resourceDescription.FileName) ' since embedded
             Assert.Equal("a", resourceDescription.ResourceName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/res:b", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/res:b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.DisplayHelp)
             resourceDescription = parsedArgs.ManifestResources.Single()
             Assert.Null(resourceDescription.FileName) ' since embedded
             Assert.Equal("b", resourceDescription.ResourceName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkresource:c", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkresource:c", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.DisplayHelp)
             resourceDescription = parsedArgs.ManifestResources.Single()
             Assert.Equal("c", resourceDescription.FileName)
             Assert.Equal("c", resourceDescription.ResourceName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkres:d", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkres:d", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.DisplayHelp)
             resourceDescription = parsedArgs.ManifestResources.Single()
@@ -784,40 +840,40 @@ a.vb
 
         <Fact>
         Public Sub ManagedResourceOptions_SimpleErrors()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource:", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/resource:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/resource: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/resource", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/RES+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/RES+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/RES+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/res-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/res-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/res-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkresource:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkresource:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkresource: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkresource: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkresource", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkresource", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkRES+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkRES+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkRES+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/linkres-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/linkres-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkres-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         <Fact>
         Public Sub ModuleManifest()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/win32manifest:blah", "/target:module", "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/win32manifest:blah", "/target:module", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_IgnoreModuleManifest))
 
@@ -827,57 +883,41 @@ a.vb
 
         <Fact>
         Public Sub ArgumentParsing()
-            Dim parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"a + b"}, _baseDirectory)
+            Dim parsedArgs = InteractiveParse({"a + b"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"a + b; c"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"a + b; c"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/help"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/help"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/?"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/?"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c.vbx  /langversion:10"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c.vbx", "/langversion:-1"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(1, parsedArgs.SourceFiles.Length)
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c.vbx  /r:d /r:d.dll"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"@dd"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"@dd"}, _baseDirectory)
             Assert.Equal(True, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c /define:DEBUG"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"c /define:DEBUG"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"\\"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"\\"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c.vbx", "/r:d.dll", "/define:DEGUG"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"""/r d.dll"""}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"""/r d.dll"""}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/r: d.dll"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/r: d.dll"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
@@ -885,329 +925,361 @@ a.vb
 
         <Fact>
         Public Sub LangVersion()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langversion:9", "a.VB"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/langversion:9", "a.VB"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:9.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:9.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:10", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:10", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic10, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:10.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:10.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic10, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:11", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:11", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:11.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:11.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic11, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:12", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:12", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:12.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:12.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic12, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:14", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
+
+            parsedArgs = DefaultParse({"/langVERSION:14.0", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
             ' default: "current version"
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
             ' overriding
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:10", "/langVERSION:9.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic9, parsedArgs.ParseOptions.LanguageVersion)
 
             ' errors
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("langversion", ":<number>"))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/langVERSION+")) ' TODO: Dev11 reports ERR_ArgumentRequired
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/langVERSION:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("langversion", ":<number>"))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:8", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("8", "langversion"))
+            parsedArgs = DefaultParse({"/langVERSION:8", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", "8"))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/langVERSION:" & (LanguageVersion.VisualBasic12 + 1), "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(CStr(LanguageVersion.VisualBasic12 + 1), "langversion"))
+            parsedArgs = DefaultParse({"/langVERSION:" & (LanguageVersion.VisualBasic12 + 1), "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("langversion", CStr(LanguageVersion.VisualBasic12 + 1)))
             Assert.Equal(LanguageVersion.VisualBasic14, parsedArgs.ParseOptions.LanguageVersion)
         End Sub
 
         <Fact>
         Public Sub DelaySign()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/delaysign", "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/delaysign", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
             Assert.Equal(True, parsedArgs.CompilationOptions.DelaySign)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/delaysign+", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/delaysign+", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
             Assert.Equal(True, parsedArgs.CompilationOptions.DelaySign)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/DELAYsign-", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/DELAYsign-", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
             Assert.Equal(False, parsedArgs.CompilationOptions.DelaySign)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/delaysign:-", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/delaysign:-", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("delaysign"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Null(parsedArgs.CompilationOptions.DelaySign)
         End Sub
 
-        <WorkItem(546113, "DevDiv")>
+        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         <Fact>
         Public Sub OutputVerbose()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/verbose", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/VERBOSE:-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/VERBOSE:-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/VERBOSE:-"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("verbose"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose+:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("verbose"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbOSE:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbOSE:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/verbOSE:"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet", "/verbose", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet", "/verbose", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet", "/verbose-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet", "/verbose-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
         End Sub
 
-        <WorkItem(546113, "DevDiv")>
+        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         <Fact>
         Public Sub OutputQuiet()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/quiet", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/QUIET:-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/QUIET:-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/QUIET:-"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("quiet"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiet+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiet+:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("quiet"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/quiET:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/quiET:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/quiET:"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose", "/quiet", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose", "/quiet", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/verbose", "/quiet-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/verbose", "/quiet-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
         End Sub
 
         <Fact>
         Public Sub Optimize()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optimize", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/optimize", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel) ' default
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OPTIMIZE+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/OPTIMIZE+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optimize-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optimize-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optimize-", "/optimize+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optimize-", "/optimize+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OPTIMIZE:", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/OPTIMIZE:", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OPTIMIZE+:", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/OPTIMIZE+:", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optimize-:", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optimize-:", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
         End Sub
 
-        <WorkItem(546301, "DevDiv")>
+        <WorkItem(5417, "DevDiv")>
+        <Fact>
+        Public Sub Deterministic()
+            Dim ParsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/DETERMINISTIC+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic-", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
+        End Sub
+
+        <WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301")>
         <Fact>
         Public Sub Parallel()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/parallel", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/parallel", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/p", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/p", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild) ' default
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/PARALLEL+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/PARALLEL+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/PARALLEL-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/PARALLEL-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/PArallel-", "/PArallel+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/PArallel-", "/PArallel+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/parallel:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/parallel:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("parallel"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/parallel+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/parallel+:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("parallel"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/parallel-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/parallel-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("parallel"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/P+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/P+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/P-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/P-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/P-", "/P+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/P-", "/P+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.ConcurrentBuild)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/p:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/p:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("p"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/p+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/p+:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("p"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/p-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/p-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("p"))
         End Sub
 
         <Fact>
         Public Sub SubsystemVersionTests()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4.0", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/subsystemversion:4.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
             ' wrongly supported subsystem version. CompilationOptions data will be faithful to the user input.
             ' It is normalized at the time of emit.
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:0.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:0.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no error in Dev11
             Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no error in Dev11
             Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:3.99", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:3.99", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify() ' no warning in Dev11
             Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.EmitOptions.SubsystemVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.EmitOptions.SubsystemVersion)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/subsystemversion-")) ' TODO: Dev11 reports ERRID.ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion: 4.1", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion: 4.1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments(" 4.1"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4 .0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4 .0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4 .0"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4. 0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4. 0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4. 0"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:.", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:.", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("."))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4.", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4.", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4."))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments(".0"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4.2 ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4.2 ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:4.65536", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:4.65536", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4.65536"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:65536.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:65536.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("65536.0"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/subsystemversion:-4.0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/subsystemversion:-4.0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("-4.0"))
 
             ' TODO: incompatibilities: versions lower than '6.2' and 'arm', 'winmdobj', 'appcontainer'
@@ -1215,34 +1287,34 @@ a.vb
 
         <Fact>
         Public Sub Codepage()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/CodePage:1200", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/CodePage:1200", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode", parsedArgs.Encoding.EncodingName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/CodePage:1200", "/CodePage:65001", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/CodePage:1200", "/CodePage:65001", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
 
             ' errors 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage:0", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage:abc", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage:abc", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("abc"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage:-5", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage:-5", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("-5"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/codepage+")) ' Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/codepage", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/codepage", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
@@ -1250,151 +1322,151 @@ a.vb
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
 
             ' error
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("256"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha-1", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha-1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha-1"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:sha", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm: ", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm: ", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm:", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm:", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/checksumAlgorithm+", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/checksumAlgorithm+", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/checksumAlgorithm+"))
         End Sub
 
         <Fact>
         Public Sub MainTypeName()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/main:A.B.C", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/main:A.B.C", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("A.B.C", parsedArgs.CompilationOptions.MainTypeName)
 
             ' overriding the value
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/Main:A.B.C", "/M:X.Y.Z", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/Main:A.B.C", "/M:X.Y.Z", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("X.Y.Z", parsedArgs.CompilationOptions.MainTypeName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/MAIN: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/MAIN: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
             Assert.Null(parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
 
             ' errors 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/maiN:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/maiN:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/m", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/m", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("m", ":<class>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/m+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/m+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/m+")) ' Dev11 reports ERR_ArgumentRequired
 
             ' incompatibilities ignored by Dev11
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/MAIN:XYZ", "/t:library", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/MAIN:XYZ", "/t:library", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("XYZ", parsedArgs.CompilationOptions.MainTypeName)
             Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/MAIN:XYZ", "/t:module", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/MAIN:XYZ", "/t:module", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
         End Sub
 
         <Fact>
         Public Sub OptionCompare()
-            Dim parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optioncompare"}, _baseDirectory)
+            Dim parsedArgs = InteractiveParse({"/optioncompare"}, _baseDirectory)
             Assert.Equal(1, parsedArgs.Errors.Length)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optioncompare", ":binary|text"))
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optioncompare:text", "/optioncompare"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optioncompare:text", "/optioncompare"}, _baseDirectory)
             Assert.Equal(1, parsedArgs.Errors.Length)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optioncompare", ":binary|text"))
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionCompareText)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/opTioncompare:Text", "/optioncomparE:bINARY"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/opTioncompare:Text", "/optioncomparE:bINARY"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
         End Sub
 
         <Fact>
         Public Sub OptionExplicit()
-            Dim parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optiONexplicit"}, _baseDirectory)
+            Dim parsedArgs = InteractiveParse({"/optiONexplicit"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optiONexplicit:+"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optiONexplicit:+"}, _baseDirectory)
             Assert.Equal(1, parsedArgs.Errors.Length)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optiONexplicit-:"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optiONexplicit-:"}, _baseDirectory)
             Assert.Equal(1, parsedArgs.Errors.Length)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optionexplicit+", "/optiONexplicit-:"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optionexplicit+", "/optiONexplicit-:"}, _baseDirectory)
             Assert.Equal(1, parsedArgs.Errors.Length)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optionexplicit+", "/optiONexplicit-", "/optiONexpliCIT+"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optionexplicit+", "/optiONexplicit-", "/optiONexpliCIT+"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
         End Sub
 
         <Fact>
         Public Sub OptionInfer()
-            Dim parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optiONinfer"}, _baseDirectory)
+            Dim parsedArgs = InteractiveParse({"/optiONinfer"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionInfer)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/OptionInfer:+"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/OptionInfer:+"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/OPTIONinfer-:"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/OPTIONinfer-:"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optioninfer+", "/optioninFER-:"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optioninfer+", "/optioninFER-:"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/optioninfer+", "/optioninfeR-", "/OptionInfer+"}, _baseDirectory)
+            parsedArgs = InteractiveParse({"/optioninfer+", "/optioninfeR-", "/OptionInfer+"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionInfer)
 
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/d:a=1"}, _baseDirectory) ' test default value
+            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionInfer)
         End Sub
 
-        Const VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
+        Private Const s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
 
         <Fact>
         Public Sub TestDefine()
@@ -1402,24 +1474,24 @@ a.vb
                         {"a", True},
                         {"b", 1},
                         {"TARGET", "exe"},
-                        {"VBC_VER", VBC_VER})
+                        {"VBC_VER", s_VBC_VER})
 
             TestDefines({"/D:a=True,b=1", "/define:a=""123"",b=False", "a.vb"},
                         {"a", "123"},
                         {"b", False},
                         {"TARGET", "exe"},
-                        {"VBC_VER", VBC_VER})
+                        {"VBC_VER", s_VBC_VER})
 
             TestDefines({"/D:a=""\\\\a"",b=""\\\\\b""", "a.vb"},
                         {"a", "\\\\a"},
                         {"b", "\\\\\b"},
                         {"TARGET", "exe"},
-                        {"VBC_VER", VBC_VER})
+                        {"VBC_VER", s_VBC_VER})
 
             TestDefines({"/define:DEBUG", "a.vb"},
                         {"DEBUG", True},
                         {"TARGET", "exe"},
-                        {"VBC_VER", VBC_VER})
+                        {"VBC_VER", s_VBC_VER})
 
             TestDefines({"/D:TARGET=True,VBC_VER=1", "a.vb"},
                         {"TARGET", True},
@@ -1427,7 +1499,7 @@ a.vb
         End Sub
 
         Private Sub TestDefines(args As IEnumerable(Of String), ParamArray symbols As Object()())
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, _baseDirectory)
+            Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Assert.False(parsedArgs.Errors.Any)
             Assert.Equal(symbols.Length, parsedArgs.ParseOptions.PreprocessorSymbols.Length)
             Dim sortedDefines = parsedArgs.ParseOptions.
@@ -1442,148 +1514,148 @@ a.vb
 
         <Fact>
         Public Sub OptionStrict()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionStrict", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/optionStrict", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.On, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionStrict+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optionStrict+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.On, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionStrict-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optionStrict-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.Off, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.Custom, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OptionStrict:cusTom", "/optionstrict-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/OptionStrict:cusTom", "/optionstrict-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.Off, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionstrict-", "/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optionstrict-", "/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(VisualBasic.OptionStrict.Custom, parsedArgs.CompilationOptions.OptionStrict)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionstrict:", "/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optionstrict:", "/OptionStrict:cusTom", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optionstrict", ":custom"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/optionstrict:xxx", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/optionstrict:xxx", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optionstrict", ":custom"))
         End Sub
 
-        <WorkItem(546319, "DevDiv")>
-        <WorkItem(546318, "DevDiv")>
-        <WorkItem(685392, "DevDiv")>
+        <WorkItem(546319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
+        <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
+        <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
         <Fact>
         Public Sub RootNamespace()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:One Two Three", "/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:One Two Three", "/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:""One.Two.Three""", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:""One.Two.Three""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/rootnamespace+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/rootnamespace-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("+"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace: A.B.C", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace: A.B.C", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments(" A.B.C"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[abcdef", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[abcdef", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[abcdef"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:abcdef]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:abcdef]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("abcdef]"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[[abcdef]]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[[abcdef]]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[[abcdef]]"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[global]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[global]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("[global]", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:foo.[global].bar", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:foo.[global].bar", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("foo.[global].bar", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:foo.[bar]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:foo.[bar]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("foo.[bar]", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:foo$", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:foo$", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("foo$"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:I(", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:I(", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("I("))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:_", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:_", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("_"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[_]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[_]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[_]"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:__.___", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:__.___", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("__.___", parsedArgs.CompilationOptions.RootNamespace)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("["))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("]"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/rootnamespace:[]", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/rootnamespace:[]", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[]"))
         End Sub
 
         <Fact>
         Public Sub Link_SimpleTests()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/link:a", "/link:b,,,,c", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/link:a", "/link:b,,,,c", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({"a", "b", "c"},
                            parsedArgs.MetadataReferences.
                                       Where(Function(res) res.Properties.EmbedInteropTypes).
                                       Select(Function(res) res.Reference))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/Link: ,,, b ,,", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/Link: ,,, b ,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({" ", " b "},
                            parsedArgs.MetadataReferences.
                                       Where(Function(res) res.Properties.EmbedInteropTypes).
                                       Select(Function(res) res.Reference))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/l:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/l:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("l", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/L", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/L", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("l", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/l+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/l+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/l+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/link-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/link-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/link-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
@@ -1602,27 +1674,27 @@ a.vb
             file4.WriteAllText("")
             file5.WriteAllText("")
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/recurse:" & dir.ToString() & "\*.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/recurse:" & dir.ToString() & "\*.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({"{DIR}\a.vb", "{DIR}\b.vb", "{DIR}\d2\e.vb"}, parsedArgs.SourceFiles.Select(Function(file) file.Path.Replace(dir.ToString(), "{DIR}")))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"*.vb"}, dir.ToString())
+            parsedArgs = DefaultParse({"*.vb"}, dir.ToString())
             parsedArgs.Errors.Verify()
             AssertEx.Equal({"{DIR}\a.vb", "{DIR}\b.vb"}, parsedArgs.SourceFiles.Select(Function(file) file.Path.Replace(dir.ToString(), "{DIR}")))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/reCURSE:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/reCURSE:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("recurse", ":<wildcard>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/RECURSE: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/RECURSE: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("recurse", ":<wildcard>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/recurse", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/recurse", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("recurse", ":<wildcard>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/recurse+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/recurse+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/recurse+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/recurse-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/recurse-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/recurse-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
             CleanupAllGeneratedFiles(file1.Path)
@@ -1632,8 +1704,8 @@ a.vb
             CleanupAllGeneratedFiles(file5.Path)
         End Sub
 
-        <WorkItem(545991, "DevDiv")>
-        <WorkItem(546009, "DevDiv")>
+        <WorkItem(545991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545991")>
+        <WorkItem(546009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546009")>
         <Fact>
         Public Sub Recurse_SimpleTests2()
             Dim folder = Temp.CreateDirectory()
@@ -1664,27 +1736,27 @@ a.vb
             outWriter = New StringWriter()
             exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/recurse:   . ", "/out:abc.dll"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC2014: the value '   .' is invalid for option 'recurse'", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+            Assert.Equal("vbc : error BC2014: the value '   .' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
             outWriter = New StringWriter()
             exitCode = New MockVisualBasicCompiler(Nothing, folder.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/recurse:./.", "/out:abc.dll"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Equal("vbc : error BC2014: the value './.' is invalid for option 'recurse'", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
+            Assert.Equal("vbc : error BC2014: the value './.' is invalid for option 'recurse'|vbc : error BC2008: no input sources specified", outWriter.ToString().Trim().Replace(vbCrLf, "|"))
 
             Dim args As VisualBasicCommandLineArguments
             Dim resolvedSourceFiles As String()
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/recurse:*.cp*", "/recurse:b\*.v*", "/out:a.dll"}, folder.Path)
+            args = DefaultParse({"/recurse:*.cp*", "/recurse:b\*.v*", "/out:a.dll"}, folder.Path)
             args.Errors.Verify()
             resolvedSourceFiles = args.SourceFiles.Select(Function(f) f.Path).ToArray()
             AssertEx.Equal({folder.Path + "\c.cpp", folder.Path + "\b\B_e.vb"}, resolvedSourceFiles)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/recurse:.\\\\\\*.vb", "/out:a.dll"}, folder.Path)
+            args = DefaultParse({"/recurse:.\\\\\\*.vb", "/out:a.dll"}, folder.Path)
             args.Errors.Verify()
             resolvedSourceFiles = args.SourceFiles.Select(Function(f) f.Path).ToArray()
             Assert.Equal(2, resolvedSourceFiles.Length)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/recurse:.////*.vb", "/out:a.dll"}, folder.Path)
+            args = DefaultParse({"/recurse:.////*.vb", "/out:a.dll"}, folder.Path)
             args.Errors.Verify()
             resolvedSourceFiles = args.SourceFiles.Select(Function(f) f.Path).ToArray()
             Assert.Equal(2, resolvedSourceFiles.Length)
@@ -1697,7 +1769,7 @@ a.vb
             CleanupAllGeneratedFiles(file6.Path)
         End Sub
 
-        <WorkItem(948285, "DevDiv")>
+        <WorkItem(948285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/948285")>
         <Fact>
         Public Sub Recurse_SimpleTests3()
             Dim folder = Temp.CreateDirectory()
@@ -1709,60 +1781,60 @@ a.vb
 
         <Fact>
         Public Sub Reference_SimpleTests()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nostdlib", "/vbruntime-", "/r:a", "/REFERENCE:b,,,,c", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/nostdlib", "/vbruntime-", "/r:a", "/REFERENCE:b,,,,c", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({"a", "b", "c"},
                            parsedArgs.MetadataReferences.
-                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll")).
+                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal)).
                                       Select(Function(res) res.Reference))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/Reference: ,,, b ,,", "/nostdlib", "/vbruntime-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/Reference: ,,, b ,,", "/nostdlib", "/vbruntime-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertEx.Equal({" ", " b "},
                            parsedArgs.MetadataReferences.
-                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll")).
+                                      Where(Function(res) Not res.Properties.EmbedInteropTypes AndAlso Not res.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal)).
                                       Select(Function(res) res.Reference))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/r:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/r:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("r", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/R", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/R", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("r", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/reference+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/reference+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/reference-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/reference-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         <Fact>
         Public Sub ParseAnalyzers()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/a:foo.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
             Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:foo.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/analyzer:foo.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
             Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/analyzer:""foo.dll""", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/analyzer:""foo.dll""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(1, parsedArgs.AnalyzerReferences.Length)
             Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/a:foo.dll,bar.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(2, parsedArgs.AnalyzerReferences.Length)
             Assert.Equal("foo.dll", parsedArgs.AnalyzerReferences(0).FilePath)
             Assert.Equal("bar.dll", parsedArgs.AnalyzerReferences(1).FilePath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/a:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("a", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/a", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("a", ":<file_list>"))
         End Sub
 
@@ -1795,8 +1867,7 @@ a.vb
             Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/preferreduilang:en", "/t:library", "/a:" + GetType(Object).Assembly.Location, "a.vb"})
             Dim exitCode = vbc.Run(outWriter, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Equal("vbc : warning BC42377: The assembly " + GetType(Object).Assembly.Location + " does not contain any analyzers.", outWriter.ToString().Trim())
-
+            Assert.DoesNotContain("warning", outWriter.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -1884,8 +1955,8 @@ a.vb
             Assert.Equal(1, exitCode)
             ' Diagnostics thrown as error: command line always overrides ruleset.
             Dim output = outWriter.ToString()
-            Assert.Contains("error Warning01", output)
-            Assert.Contains("error Warning03", output)
+            Assert.Contains("error Warning01", output, StringComparison.Ordinal)
+            Assert.Contains("error Warning03", output, StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
@@ -1898,8 +1969,8 @@ a.vb
             Assert.Equal(1, exitCode)
             ' Diagnostics thrown as error: command line always overrides ruleset.
             output = outWriter.ToString()
-            Assert.Contains("error Warning01", output)
-            Assert.Contains("error Warning03", output)
+            Assert.Contains("error Warning01", output, StringComparison.Ordinal)
+            Assert.Contains("error Warning03", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -1934,9 +2005,9 @@ a.vb
             Assert.Equal(0, exitCode)
             ' Diagnostics suppressed: command line always overrides ruleset.
             Dim output = outWriter.ToString()
-            Assert.DoesNotContain("Warning01", output)
-            Assert.DoesNotContain("BC31072", output)
-            Assert.DoesNotContain("Warning03", output)
+            Assert.DoesNotContain("Warning01", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("BC31072", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("Warning03", output, StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
@@ -1949,9 +2020,9 @@ a.vb
             Assert.Equal(0, exitCode)
             ' Diagnostics suppressed: command line always overrides ruleset.
             output = outWriter.ToString()
-            Assert.DoesNotContain("Warning01", output)
-            Assert.DoesNotContain("BC31072", output)
-            Assert.DoesNotContain("Warning03", output)
+            Assert.DoesNotContain("Warning01", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("BC31072", output, StringComparison.Ordinal)
+            Assert.DoesNotContain("Warning03", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -2011,7 +2082,7 @@ a.vb
                          </RuleSet>
 
             Dim file = CreateRuleSetFile(source)
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions.ContainsKey("CA1012"))
             Assert.True(parsedArgs.CompilationOptions.SpecificDiagnosticOptions("CA1012") = ReportDiagnostic.Error)
@@ -2035,30 +2106,30 @@ a.vb
                          </RuleSet>
 
             Dim file = CreateRuleSetFile(source)
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse(New String() {"/ruleset:" + """" + file.Path + """", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
         End Sub
 
         <Fact>
         Public Sub RulesetSwitchParseErrors()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse(New String() {"/ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("ruleset", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:blah", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse(New String() {"/ruleset:blah", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah"), "File not found."))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:blah;blah.ruleset", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse(New String() {"/ruleset:blah;blah.ruleset", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(
             Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(Path.Combine(TempRoot.Root, "blah;blah.ruleset"), "File not found."))
 
             Dim file = CreateRuleSetFile(New XDocument())
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse(New String() {"/ruleset:" + file.Path, "a.cs"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
             '   Diagnostic(ERRID.ERR_CantReadRulesetFile).WithArguments(file.Path, "Root element is missing."))
             Dim err = parsedArgs.Errors.Single()
@@ -2066,182 +2137,268 @@ a.vb
             Assert.Equal(ERRID.ERR_CantReadRulesetFile, err.Code)
             Assert.Equal(2, err.Arguments.Count)
             Assert.Equal(file.Path, DirectCast(err.Arguments(0), String))
-            If Thread.CurrentThread.CurrentUICulture.Name.StartsWith("en") OrElse Thread.CurrentThread.CurrentUICulture.Name = "" Then
+            Dim currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name
+            If currentUICultureName.Length = 0 OrElse currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase) Then
                 Assert.Equal(err.Arguments(1), "Root element is missing.")
             End If
         End Sub
 
         <Fact>
         Public Sub Target_SimpleTests()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:exe", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/target:exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:module", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:module", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:library", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:library", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/TARGET:winexe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/TARGET:winexe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:winmdobj", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:winmdobj", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:appcontainerexe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:appcontainerexe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:winexe", "/T:exe", "/target:module", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:winexe", "/T:exe", "/target:module", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("t", ":exe|winexe|library|module|appcontainerexe|winmdobj"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("target", ":exe|winexe|library|module|appcontainerexe|winmdobj"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:xyz", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("xyz", "target"))
+            parsedArgs = DefaultParse({"/target:xyz", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("target", "xyz"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/T+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/T+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/T+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/TARGET-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/TARGET-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/TARGET-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         <Fact>
+        Public Sub Target_SimpleTestsNoSourceFile()
+            Dim parsedArgs = DefaultParse({"/target:exe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.ConsoleApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:library"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/TARGET:winexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winmdobj"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeMetadata, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:appcontainerexe"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.WindowsRuntimeApplication, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/target:winexe", "/T:exe", "/target:module"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+
+            parsedArgs = DefaultParse({"/t"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("t", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("target", ":exe|winexe|library|module|appcontainerexe|winmdobj"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/target:xyz"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("target", "xyz"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/T+"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/T+"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
+
+            parsedArgs = DefaultParse({"/TARGET-:"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/TARGET-:"),
+                Diagnostic(ERRID.ERR_NoSources).WithLocation(1, 1)) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        <Fact>
         Public Sub Utf8Output()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/utf8output", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/utf8output", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.Utf8Output)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/utf8output+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/utf8output+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(True, parsedArgs.Utf8Output)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/utf8output-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/utf8output-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.Utf8Output)
 
             ' default
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nologo", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nologo", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.Utf8Output)
 
             ' overriding
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/utf8output+", "/utf8output-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/utf8output+", "/utf8output-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(False, parsedArgs.Utf8Output)
 
             ' errors
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/utf8output:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/utf8output:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("utf8output"))
 
         End Sub
 
         <Fact>
         Public Sub Debug()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug+", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:FULL", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:FULL", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:portable", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:embedded", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:PDBONLY", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:full", "/debug:pdbonly", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Pdb)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("debug", ":pdbonly|full"))
+            parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("+", "debug"))
+            parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug:invalid", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("invalid", "debug"))
+            parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", ""))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug:+", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", "+"))
+
+            parsedArgs = DefaultParse({"/debug:invalid", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("debug", "invalid"))
+
+            parsedArgs = DefaultParse({"/debug-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("debug"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/pdb:something", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/pdb:something", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pdb:something"))
         End Sub
 
-        <WorkItem(540891, "DevDiv")>
+        <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()
             Const baseDirectory As String = "C:\abc\def\baz"
 
             ' Should preserve fully qualified paths
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:C:\MyFolder\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/out:C:\MyFolder\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\MyFolder", parsedArgs.OutputDirectory)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out:""C:\My Folder\MyBinary.dll""", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\My Folder", parsedArgs.OutputDirectory)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.dll").WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:Ignored.dll", "/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out:Ignored.dll", "/out:MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:..\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out:..\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("MyBinary", parsedArgs.CompilationName)
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
@@ -2249,7 +2406,7 @@ a.vb
             Assert.Equal("C:\abc\def", parsedArgs.OutputDirectory)
 
             ' not specified: exe
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationName)
             Assert.Equal("a.exe", parsedArgs.OutputFileName)
@@ -2257,7 +2414,7 @@ a.vb
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
             ' not specified: dll
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:library", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/target:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationName)
             Assert.Equal("a.dll", parsedArgs.OutputFileName)
@@ -2265,7 +2422,7 @@ a.vb
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
             ' not specified: module
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:module", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/target:module", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal("a.netmodule", parsedArgs.OutputFileName)
@@ -2273,7 +2430,7 @@ a.vb
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
             ' not specified: appcontainerexe
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:appcontainerexe", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/target:appcontainerexe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationName)
             Assert.Equal("a.exe", parsedArgs.OutputFileName)
@@ -2281,7 +2438,7 @@ a.vb
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
             ' not specified: winmdobj
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:winmdobj", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/target:winmdobj", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationName)
             Assert.Equal("a.winmdobj", parsedArgs.OutputFileName)
@@ -2290,7 +2447,7 @@ a.vb
 
             ' drive-relative path:
             Dim currentDrive As Char = Directory.GetCurrentDirectory()(0)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({currentDrive + ":a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({currentDrive + ":a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.vb"))
 
@@ -2300,7 +2457,7 @@ a.vb
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory)
 
             ' UNC
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:\\b", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:\\b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("\\b"))
 
@@ -2308,7 +2465,7 @@ a.vb
             Assert.Equal("a", parsedArgs.CompilationName)
             Assert.Equal("a.exe", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:\\server\share\file.exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:\\server\share\file.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal("\\server\share", parsedArgs.OutputDirectory)
@@ -2317,7 +2474,7 @@ a.vb
             Assert.Equal("file.exe", parsedArgs.CompilationOptions.ModuleName)
 
             ' invalid name
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:a.b" & vbNullChar & "b", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:a.b" & vbNullChar & "b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a.b" & vbNullChar & "b"))
 
@@ -2326,7 +2483,7 @@ a.vb
             Assert.Equal("a.exe", parsedArgs.CompilationOptions.ModuleName)
 
             ' Temp Skip: Unicode?
-            ' parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:a" & ChrW(&HD800) & "b.dll", "a.vb"}, _baseDirectory)
+            ' parsedArgs = DefaultParse({"/out:a" & ChrW(&HD800) & "b.dll", "a.vb"}, _baseDirectory)
             ' parsedArgs.Errors.Verify(
             '    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a" & ChrW(&HD800) & "b.dll"))
 
@@ -2335,7 +2492,7 @@ a.vb
             ' Assert.Equal("a.exe", parsedArgs.CompilationOptions.ModuleName)
 
             ' Temp Skip: error message changed (path)
-            'parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:"" a.dll""", "a.vb"}, _baseDirectory)
+            'parsedArgs = DefaultParse({"/out:"" a.dll""", "a.vb"}, _baseDirectory)
             'parsedArgs.Errors.Verify(
             '    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(" a.dll"))
 
@@ -2344,7 +2501,7 @@ a.vb
             'Assert.Equal("a.exe", parsedArgs.CompilationOptions.ModuleName)
 
             ' Dev11 reports BC2012: can't open 'a<>.z' for writing
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:""a<>.dll""", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:""a<>.dll""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("a<>.dll"))
 
@@ -2353,19 +2510,19 @@ a.vb
             Assert.Equal("a.exe", parsedArgs.CompilationOptions.ModuleName)
 
             ' bad value
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("out", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/OUT:", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/OUT:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("out", ":<file>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out+", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out+", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/out+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out-:", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/out-:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/out-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:.exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
@@ -2373,7 +2530,7 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:exe", "/out:.exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:exe", "/out:.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
@@ -2381,7 +2538,7 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", "/out:.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:library", "/out:.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
 
@@ -2389,14 +2546,14 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:module", "/out:.netmodule", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:module", "/out:.netmodule", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".netmodule", parsedArgs.OutputFileName)
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({".vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
@@ -2404,7 +2561,7 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:exe", ".vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:exe", ".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
@@ -2412,7 +2569,7 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", ".vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:library", ".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
 
@@ -2420,7 +2577,7 @@ a.vb
             Assert.Null(parsedArgs.CompilationName)
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:module", ".vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/t:module", ".vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".netmodule", parsedArgs.OutputFileName)
@@ -2431,21 +2588,21 @@ a.vb
         <Fact>
         Public Sub ParseOut2()
             ' exe
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:.x", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/out:.x", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".x", parsedArgs.CompilationName)
             Assert.Equal(".x.exe", parsedArgs.OutputFileName)
             Assert.Equal(".x.exe", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:winexe", "/out:.x.eXe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:winexe", "/out:.x.eXe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".x", parsedArgs.CompilationName)
             Assert.Equal(".x.eXe", parsedArgs.OutputFileName)
             Assert.Equal(".x.eXe", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:winexe", "/out:.exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:winexe", "/out:.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
             Assert.Null(parsedArgs.CompilationName)
@@ -2453,21 +2610,21 @@ a.vb
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
             ' dll
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:library", "/out:.x", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:library", "/out:.x", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".x", parsedArgs.CompilationName)
             Assert.Equal(".x.dll", parsedArgs.OutputFileName)
             Assert.Equal(".x.dll", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:library", "/out:.X.Dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:library", "/out:.X.Dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal(".X", parsedArgs.CompilationName)
             Assert.Equal(".X.Dll", parsedArgs.OutputFileName)
             Assert.Equal(".X.Dll", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:library", "/out:.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:library", "/out:.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
 
             Assert.Null(parsedArgs.CompilationName)
@@ -2475,28 +2632,28 @@ a.vb
             Assert.Null(parsedArgs.CompilationOptions.ModuleName)
 
             ' module
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:module", "/out:.x", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:module", "/out:.x", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal(".x", parsedArgs.OutputFileName)
             Assert.Equal(".x", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:module", "/out:x.dll", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:module", "/out:x.dll", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal("x.dll", parsedArgs.OutputFileName)
             Assert.Equal("x.dll", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:module", "/out:.x.netmodule", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:module", "/out:.x.netmodule", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Null(parsedArgs.CompilationName)
             Assert.Equal(".x.netmodule", parsedArgs.OutputFileName)
             Assert.Equal(".x.netmodule", parsedArgs.CompilationOptions.ModuleName)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/target:module", "/out:x", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/target:module", "/out:x", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Null(parsedArgs.CompilationName)
@@ -2504,19 +2661,19 @@ a.vb
             Assert.Equal("x.netmodule", parsedArgs.CompilationOptions.ModuleName)
         End Sub
 
-        <Fact, WorkItem(531020, "DevDiv")>
+        <Fact, WorkItem(531020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531020")>
         Public Sub ParseDocBreak1()
             Const baseDirectory As String = "C:\abc\def\baz"
 
             ' In dev11, this appears to be equivalent to /doc- (i.e. don't parse and don't output).
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:""""", "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/doc:""""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("doc", ":<file>"))
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
         End Sub
 
-        <Fact, WorkItem(705173, "DevDiv")>
+        <Fact, WorkItem(705173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705173")>
         Public Sub Ensure_UTF8_Explicit_Prefix_In_Documentation_Comment_File()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
@@ -2527,7 +2684,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable,
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable,
                                          String.Format("/nologo /doc:{1}\src.xml /t:library {0}",
                                                        src.ToString(),
                                                        dir.ToString()),
@@ -2543,7 +2700,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(733242, "DevDiv")>
+        <Fact, WorkItem(733242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/733242")>
         Public Sub Bug733242()
             Dim dir = Temp.CreateDirectory()
 
@@ -2560,7 +2717,7 @@ End Class
 
             Using xmlFileHandle As FileStream = File.Open(xml.ToString(), FileMode.Open, FileAccess.Read, FileShare.Delete Or FileShare.ReadWrite)
 
-                Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
+                Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
                 AssertOutput(<text></text>, output)
 
                 Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
@@ -2594,7 +2751,7 @@ a
             CleanupAllGeneratedFiles(xml.Path)
         End Sub
 
-        <Fact, WorkItem(768605, "DevDiv")>
+        <Fact, WorkItem(768605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768605")>
         Public Sub Bug768605()
             Dim dir = Temp.CreateDirectory()
 
@@ -2610,7 +2767,7 @@ Class E: End Class
             Dim xml = dir.CreateFile("a.xml")
             xml.WriteAllText("EMPTY")
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
             AssertOutput(<text></text>, output)
 
             Using reader As New StreamReader(xml.ToString())
@@ -2645,7 +2802,7 @@ a
 Class C: End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc+ {0}", src.ToString()), startFolder:=dir.ToString(), expectedRetCode:=0)
             AssertOutput(<text></text>, output)
 
             Using reader As New StreamReader(xml.ToString())
@@ -2675,7 +2832,7 @@ a
             CleanupAllGeneratedFiles(xml.Path)
         End Sub
 
-        <Fact, WorkItem(705148, "DevDiv")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148a()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2686,7 +2843,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc:abcdfg.xyz /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:abcdfg.xyz /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
@@ -2694,7 +2851,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(705148, "DevDiv")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148b()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2705,7 +2862,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc /out:MyXml.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc /out:MyXml.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "MyXml.xml")))
@@ -2713,7 +2870,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(705148, "DevDiv")>
+        <Fact, WorkItem(705148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705148")>
         Public Sub Bug705148c()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2724,7 +2881,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")))
@@ -2732,7 +2889,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(705202, "DevDiv")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202a()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2743,7 +2900,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")))
@@ -2751,7 +2908,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(705202, "DevDiv")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202b()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2762,7 +2919,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /doc /out:out.dll {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
@@ -2770,7 +2927,7 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(705202, "DevDiv")>
+        <Fact, WorkItem(705202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705202")>
         Public Sub Bug705202c()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -2781,7 +2938,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /t:library /doc:doc.xml /out:out.dll /doc+ {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "out.xml")))
@@ -2789,27 +2946,27 @@ End Class
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <Fact, WorkItem(531021, "DevDiv")>
+        <Fact, WorkItem(531021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531021")>
         Public Sub ParseDocBreak2()
 
             ' In dev11, if you give an invalid file name, the documentation comments
             ' are parsed but writing the XML file fails with (warning!) BC42311.
             Const baseDirectory As String = "C:\abc\def\baz"
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:"" """, "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/doc:"" """, "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments(" ", "The system cannot find the path specified"))
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:"" \ """, "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:"" \ """, "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments(" \ ", "The system cannot find the path specified"))
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' UNC
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:\\b", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:\\b", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("\\b", "The system cannot find the path specified"))
 
@@ -2817,21 +2974,21 @@ End Class
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode) ' Even though the format was incorrect
 
             ' invalid name:
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:a.b" + ChrW(0) + "b", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:a.b" + ChrW(0) + "b", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("a.b" + ChrW(0) + "b", "The system cannot find the path specified"))
 
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode) ' Even though the format was incorrect
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:a" + ChrW(55296) + "b.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:a" + ChrW(55296) + "b.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("a" + ChrW(55296) + "b.xml", "The system cannot find the path specified"))
 
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode) ' Even though the format was incorrect
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:""a<>.xml""", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:""a<>.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("a<>.xml", "The system cannot find the path specified"))
 
@@ -2843,65 +3000,65 @@ End Class
         Public Sub ParseDoc()
             Const baseDirectory As String = "C:\abc\def\baz"
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:", "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/doc:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("doc", ":<file>"))
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc+", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc+", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc-", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc-", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.None, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc+:abc.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc+:abc.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("doc"))
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc-:a.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc-:a.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("doc"))
             Assert.Null(parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.None, parsedArgs.ParseOptions.DocumentationMode)
 
             ' Should preserve fully qualified paths
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' Should handle quotes
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' Should expand partially qualified paths
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' Should expand partially qualified paths
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:..\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:..\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.DocumentationPath)
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
 
             ' drive-relative path:
             Dim currentDrive As Char = Directory.GetCurrentDirectory()(0)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:" + currentDrive + ":a.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:" + currentDrive + ":a.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments(currentDrive + ":a.xml", "The system cannot find the path specified"))
 
@@ -2909,7 +3066,7 @@ End Class
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode) ' Even though the format was incorrect
 
             ' UNC
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:\\server\share\file.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:\\server\share\file.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal("\\server\share\file.xml", parsedArgs.DocumentationPath)
@@ -2921,7 +3078,7 @@ End Class
             Const baseDirectory As String = "C:\abc\def\baz"
 
             ' Can specify separate directories for binary and XML output.
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/doc:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.DocumentationPath)
@@ -2930,7 +3087,7 @@ End Class
             Assert.Equal("d.exe", parsedArgs.OutputFileName)
 
             ' XML does not fall back on output directory.
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
             Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.DocumentationPath)
@@ -2943,255 +3100,327 @@ End Class
         Public Sub ParseDocMultiple()
             Const baseDirectory As String = "C:\abc\def\baz"
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc+", "/doc-", "/doc+", "a.vb"}, baseDirectory)
+            Dim parsedArgs = DefaultParse({"/doc+", "/doc-", "/doc+", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc-", "/doc+", "/doc-", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc-", "/doc+", "/doc-", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.None, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Null(parsedArgs.DocumentationPath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:a.xml", "/doc-", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:a.xml", "/doc-", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.None, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Null(parsedArgs.DocumentationPath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:abc.xml", "/doc+", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc:abc.xml", "/doc+", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc-", "/doc:a.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc-", "/doc:a.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc+", "/doc:a.xml", "a.vb"}, baseDirectory)
+            parsedArgs = DefaultParse({"/doc+", "/doc:a.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode)
             Assert.Equal(Path.Combine(baseDirectory, "a.xml"), parsedArgs.DocumentationPath)
         End Sub
 
         <Fact>
+        Public Sub ParseErrorLog()
+            Const baseDirectory As String = "C:\abc\def\baz"
+
+            Dim parsedArgs = DefaultParse({"/errorlog:", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
+            Assert.Null(parsedArgs.ErrorLogPath)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
+            Assert.Null(parsedArgs.ErrorLogPath)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Should preserve fully qualified paths
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Should handle quotes
+            parsedArgs = DefaultParse({"/errorlog:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Quote after a \ is treated as an escape
+            parsedArgs = DefaultParse({"/errorlog:C:\""My Folder""\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                    Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("C:""My Folder\MyBinary.xml").WithLocation(1, 1))
+
+            ' Should expand partially qualified paths
+            parsedArgs = DefaultParse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath)
+
+            ' Should expand partially qualified paths
+            parsedArgs = DefaultParse({"/errorlog:..\MyBinary.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' drive-relative path:
+            Dim currentDrive As Char = Directory.GetCurrentDirectory()(0)
+            Dim filePath = currentDrive + ":a.xml"
+            parsedArgs = DefaultParse({"/errorlog:" + filePath, "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(filePath))
+
+            Assert.Null(parsedArgs.ErrorLogPath)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' UNC
+            parsedArgs = DefaultParse({"/errorlog:\\server\share\file.xml", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogPath)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+        End Sub
+
+        <Fact>
+        Public Sub ParseErrorLogAndOut()
+            Const baseDirectory As String = "C:\abc\def\baz"
+
+            ' Can specify separate directories for binary and error log output.
+            Dim parsedArgs = DefaultParse({"/errorlog:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogPath)
+
+            Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
+            Assert.Equal("d.exe", parsedArgs.OutputFileName)
+
+            ' error log does not fall back on output directory.
+            parsedArgs = DefaultParse({"/errorlog:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogPath)
+
+            Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
+            Assert.Equal("d.exe", parsedArgs.OutputFileName)
+        End Sub
+
+        <Fact>
         Public Sub KeyContainerAndKeyFile()
             ' KEYCONTAINER
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/KeyContainer:key-cont-name", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/KeyContainer:key-cont-name", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("key-cont-name", parsedArgs.CompilationOptions.CryptoKeyContainer)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/KEYcontainer", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/KEYcontainer", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keycontainer", ":<string>"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keycontainer-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keycontainer-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/keycontainer-"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keycontainer:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keycontainer:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keycontainer", ":<string>"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keycontainer: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keycontainer: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keycontainer", ":<string>"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyContainer)
 
             ' KEYFILE
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keyfile:\somepath\s""ome Fil""e.foo.bar", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyfile:\somepath\s""ome Fil""e.foo.bar", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("\somepath\some File.foo.bar", parsedArgs.CompilationOptions.CryptoKeyFile)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keyFile", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyFile", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyFile)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keyfile-", "a.cs"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyfile-", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/keyfile-"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyFile)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keyfile: ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyfile: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>"))
             Assert.Null(parsedArgs.CompilationOptions.CryptoKeyFile)
 
             ' default value
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyFile)
 
             ' keyfile/keycontainer conflicts 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keycontainer:a", "/keyfile:b", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keycontainer:a", "/keyfile:b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal("b", parsedArgs.CompilationOptions.CryptoKeyFile)
 
             ' keyfile/keycontainer conflicts 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/keyfile:b", "/keycontainer:a", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/keyfile:b", "/keycontainer:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyFile)
 
         End Sub
 
-        <Fact>
-        Public Sub ReferencePaths()
-            Dim parsedArgs As VisualBasicCommandLineArguments
-            parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"/rp:a;b", "/referencePath:c", "a.vb"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(),
-                            Path.Combine(_baseDirectory, "a"),
-                            Path.Combine(_baseDirectory, "b"),
-                            Path.Combine(_baseDirectory, "c")},
-                           parsedArgs.ReferencePaths,
-                           StringComparer.OrdinalIgnoreCase)
-        End Sub
-
-        <Fact, WorkItem(530088, "DevDiv")>
+        <Fact, WorkItem(530088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530088")>
         Public Sub Platform()
             ' test recognizing all options
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:X86", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/platform:X86", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.X86, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:x64", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:x64", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.X64, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:itanium", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:itanium", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.Itanium, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:anycpu", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/t:exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:anycpu32bitpreferred", "/t:exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu32BitPreferred, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/t:appcontainerexe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:anycpu32bitpreferred", "/t:appcontainerexe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu32BitPreferred, parsedArgs.CompilationOptions.Platform)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:arm", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:arm", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.Arm, parsedArgs.CompilationOptions.Platform)
 
             ' test default (AnyCPU)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/debug-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu, parsedArgs.CompilationOptions.Platform)
 
             ' test missing 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("platform", ":<string>"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("platform", ":<string>"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform+", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/platform+")) ' TODO: Dev11 reports ERR_ArgumentRequired
 
             ' test illegal input
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:abcdef", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("abcdef", "platform"))
+            parsedArgs = DefaultParse({"/platform:abcdef", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("platform", "abcdef"))
 
             ' test overriding
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/platform:anycpu", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:anycpu32bitpreferred", "/platform:anycpu", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu, parsedArgs.CompilationOptions.Platform)
 
             ' test illegal
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu32bitpreferred", "/t:library", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("AnyCpu32BitPreferred", "Platform").WithLocation(1, 1))
+            parsedArgs = DefaultParse({"/platform:anycpu32bitpreferred", "/t:library", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("Platform", "AnyCpu32BitPreferred").WithLocation(1, 1))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:anycpu", "/platform:anycpu32bitpreferred", "/target:winmdobj", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("AnyCpu32BitPreferred", "Platform").WithLocation(1, 1))
+            parsedArgs = DefaultParse({"/platform:anycpu", "/platform:anycpu32bitpreferred", "/target:winmdobj", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_LibAnycpu32bitPreferredConflict).WithArguments("Platform", "AnyCpu32BitPreferred").WithLocation(1, 1))
         End Sub
 
         <Fact()>
         Public Sub FileAlignment()
             ' test recognizing all options
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:512", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/filealign:512", "a.vb"}, _baseDirectory)
             Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:1024", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:1024", "a.vb"}, _baseDirectory)
             Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:2048", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:2048", "a.vb"}, _baseDirectory)
             Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:4096", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:4096", "a.vb"}, _baseDirectory)
             Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:8192", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:8192", "a.vb"}, _baseDirectory)
             Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test oct values
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:01000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:01000", "a.vb"}, _baseDirectory)
             Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:02000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:02000", "a.vb"}, _baseDirectory)
             Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:04000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:04000", "a.vb"}, _baseDirectory)
             Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:010000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:010000", "a.vb"}, _baseDirectory)
             Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:020000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:020000", "a.vb"}, _baseDirectory)
             Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test hex values
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x200", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:0x200", "a.vb"}, _baseDirectory)
             Assert.Equal(512, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x400", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:0x400", "a.vb"}, _baseDirectory)
             Assert.Equal(1024, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x800", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:0x800", "a.vb"}, _baseDirectory)
             Assert.Equal(2048, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x1000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:0x1000", "a.vb"}, _baseDirectory)
             Assert.Equal(4096, parsedArgs.EmitOptions.FileAlignment)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x2000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:0x2000", "a.vb"}, _baseDirectory)
             Assert.Equal(8192, parsedArgs.EmitOptions.FileAlignment)
 
             ' test default (no value)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:x86", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:x86", "a.vb"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.EmitOptions.FileAlignment)
 
             ' test missing 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/filealign:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("filealign", ":<number>"))
 
             ' test illegal
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0", "filealign"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x", "filealign"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:0x0", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x0", "filealign"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:-1", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-1", "filealign"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/filealign:-0x100", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-0x100", "filealign"))
+            parsedArgs = DefaultParse({"/filealign:0", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0"))
+            parsedArgs = DefaultParse({"/filealign:0x", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0x"))
+            parsedArgs = DefaultParse({"/filealign:0x0", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "0x0"))
+            parsedArgs = DefaultParse({"/filealign:-1", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "-1"))
+            parsedArgs = DefaultParse({"/filealign:-0x100", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("filealign", "-0x100"))
         End Sub
 
         <Fact()>
         Public Sub RemoveIntChecks()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintcheckS", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/removeintcheckS", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.CompilationOptions.CheckOverflow)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintcheckS+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintcheckS+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.False(parsedArgs.CompilationOptions.CheckOverflow)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintcheckS-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintcheckS-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.CompilationOptions.CheckOverflow)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintchecks+", "/removeintchecks-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintchecks+", "/removeintchecks-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.True(parsedArgs.CompilationOptions.CheckOverflow)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintchecks:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintchecks:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("removeintchecks"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintchecks:+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintchecks:+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("removeintchecks"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/removeintchecks+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/removeintchecks+:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("removeintchecks"))
         End Sub
 
@@ -3201,63 +3430,63 @@ End Class
             ' as a valid base address later on (e.g. values >0x8000).
 
             ' test decimal values being treated as hex
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/baseaddress:0", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:1024", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:1024", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H1024, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:2048", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:2048", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H2048, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:4096", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:4096", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H4096, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:8192", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:8192", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H8192, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test hex values being treated as hex
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x200", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:0x200", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H200, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x400", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:0x400", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H400, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x800", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:0x800", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H800, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x1000", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:0x1000", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H1000, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0xFFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:0xFFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
             Assert.Equal(ULong.MaxValue, parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:FFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:FFFFFFFFFFFFFFFF", "a.vb"}, _baseDirectory)
             Assert.Equal(ULong.MaxValue, parsedArgs.EmitOptions.BaseAddress)
 
             ' test octal values being treated as hex
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:00", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:00", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:01024", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:01024", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H1024, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:02048", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:02048", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H2048, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:04096", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:04096", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H4096, ULong), parsedArgs.EmitOptions.BaseAddress)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:08192", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:08192", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(&H8192, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test default (no value)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/platform:x86", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/platform:x86", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
 
             ' test missing 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/baseaddress:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("baseaddress", ":<number>"))
 
             ' test illegal
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/baseaddress:0x10000000000000000", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("0x10000000000000000", "baseaddress"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/BASEADDRESS:-1", "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("-1", "baseaddress"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/BASEADDRESS:" + ULong.MaxValue.ToString, "a.vb"}, _baseDirectory)
-            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments(ULong.MaxValue.ToString, "baseaddress"))
+            parsedArgs = DefaultParse({"/baseaddress:0x10000000000000000", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", "0x10000000000000000"))
+            parsedArgs = DefaultParse({"/BASEADDRESS:-1", "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", "-1"))
+            parsedArgs = DefaultParse({"/BASEADDRESS:" + ULong.MaxValue.ToString, "a.vb"}, _baseDirectory)
+            Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("baseaddress", ULong.MaxValue.ToString))
         End Sub
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
@@ -3268,7 +3497,7 @@ End Class
 
         <Fact()>
         Public Sub AddModule()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nostdlib", "/vbruntime-", "/addMODULE:c:\;d:\x\y\z,abc;;", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/nostdlib", "/vbruntime-", "/addMODULE:c:\,d:\x\y\z,abc,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(3, parsedArgs.MetadataReferences.Length)
             Assert.Equal("c:\", parsedArgs.MetadataReferences(0).Reference)
@@ -3277,43 +3506,43 @@ End Class
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(1).Properties.Kind)
             Assert.Equal("abc", parsedArgs.MetadataReferences(2).Reference)
             Assert.Equal(MetadataImageKind.Module, parsedArgs.MetadataReferences(2).Properties.Kind)
-            Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll"))
-            Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll"))
-            Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll"))
-            Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll"))
+            Assert.False(parsedArgs.MetadataReferences(0).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.False(parsedArgs.MetadataReferences(1).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.False(parsedArgs.MetadataReferences(2).Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
+            Assert.True(parsedArgs.DefaultCoreLibraryReference.Value.Reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
             Assert.Equal(MetadataImageKind.Assembly, parsedArgs.DefaultCoreLibraryReference.Value.Properties.Kind)
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/ADDMODULE", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/ADDMODULE", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("addmodule", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/addmodule:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/addmodule:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("addmodule", ":<file_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/addmodule+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/addmodule+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/addmodule+")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         <Fact()>
         Public Sub LibPathsAndLibEnvVariable()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\;d:\x\y\z;abc;;", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:\,d:\x\y\z,abc,,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", Path.Combine(_baseDirectory, "abc"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\Windows", "/libpath:abc\def; ; ; ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/lib:c:\Windows", "/libpaths:abc\def, , , ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", Path.Combine(_baseDirectory, "abc\def"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/libpath", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("libpath", ":<path_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/libpath:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("libpath", ":<path_list>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/libpath+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/libpath+")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
-        <Fact(), WorkItem(546005, "DevDiv")>
+        <Fact(), WorkItem(546005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546005")>
         Public Sub LibPathsAndLibEnvVariable_Relative_vbc()
             Dim tempFolder = Temp.CreateDirectory()
             Dim baseDirectory = tempFolder.ToString()
@@ -3349,36 +3578,36 @@ End Class
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.True(outWriter.ToString().Trim().StartsWith("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
+            Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
         <Fact()>
         Public Sub SdkPathAndLibEnvVariable()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:lib2", "/sdkpath:<>;d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:lib2", "/sdkpath:<>,d:\sdk1", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
 
             ' invalid paths are ignored
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "d:\sdk1")
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath:c:\Windows", "/sdkpath:d:\Windows", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/sdkpath:c:\Windows", "/sdkpath:d:\Windows", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "d:\Windows")
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath:""c:\Windows;d:\blah""", "a.vb"}, _baseDirectory)   'Entire path string is wrapped in quotes
+            parsedArgs = DefaultParse({"/sdkpath:c:\Windows,d:\blah", "a.vb"}, _baseDirectory)
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "c:\Windows", "d:\blah")
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:""c:\Windows;d:\blah""", "/sdkpath:c:\lib2", "a.vb"}, _baseDirectory)   'Entire path string is wrapped in quotes
+            parsedArgs = DefaultParse({"/libpath:c:\Windows,d:\blah", "/sdkpath:c:\lib2", "a.vb"}, _baseDirectory)
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, "c:\lib2", "c:\Windows", "d:\blah")
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/sdkpath", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("sdkpath", ":<path>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/sdkpath:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("sdkpath", ":<path>"))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/sdkpath+", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/sdkpath+", "/vbruntime*", "/nostdlib", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/sdkpath+")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
@@ -3396,7 +3625,7 @@ Dim b = Loc
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime /t:library " & src.ToString(), expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime /t:library " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(5) : error BC30455: Argument not specified for parameter 'FileNumber' of 'Public Function Loc(FileNumber As Integer) As Long'.
@@ -3404,7 +3633,7 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /t:library " & src.ToString(), expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /t:library " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(5) : error BC30455: Argument not specified for parameter 'FileNumber' of 'Public Function Loc(FileNumber As Integer) As Long'.
@@ -3412,7 +3641,7 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime* /t:library /r:System.dll " & src.ToString(), expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime* /t:library /r:System.dll " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(5) : error BC30451: 'Loc' is not declared. It may be inaccessible due to its protection level.
@@ -3420,7 +3649,7 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /vbruntime:abc /vbruntime* /t:library /r:System.dll " & src.ToString(), expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /vbruntime:abc /vbruntime* /t:library /r:System.dll " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(5) : error BC30451: 'Loc' is not declared. It may be inaccessible due to its protection level.
@@ -3428,7 +3657,7 @@ Dim b = Loc
         ~~~
 </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /vbruntime:abc /t:library " & src.ToString(), expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime+ /vbruntime:abc /t:library " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 vbc : error BC2017: could not find library 'abc'
@@ -3437,7 +3666,7 @@ vbc : error BC2017: could not find library 'abc'
             Dim newVbCore = dir.CreateFile("Microsoft.VisualBasic.dll")
             newVbCore.WriteAllBytes(File.ReadAllBytes(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "Microsoft.VisualBasic.dll")))
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime:" & newVbCore.ToString() & " /t:library " & src.ToString(), expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /vbruntime:" & newVbCore.ToString() & " /t:library " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(5) : error BC30455: Argument not specified for parameter 'FileNumber' of 'Public Function Loc(FileNumber As Integer) As Long'.
@@ -3449,7 +3678,7 @@ Dim b = Loc
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <WorkItem(997208)>
+        <WorkItem(997208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997208")>
         <Fact>
         Public Sub VbRuntime02()
 
@@ -3464,7 +3693,7 @@ Dim b = Loc
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /r:mscorlib.dll /vbruntime- /t:library /d:_MyType=\""Empty\"" " & src.ToString(), expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /r:mscorlib.dll /vbruntime- /t:library /d:_MyType=\""Empty\"" " & src.ToString(), expectedRetCode:=1)
             AssertOutput(
     <text>
 src.vb(2) : warning BC40056: Namespace or type specified in the Imports 'Microsoft.VisualBasic' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -3507,19 +3736,19 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:l:\x /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:l:\x /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text>
         vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
         </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /r:mscorlib.dll /vbruntime- /sdkpath:c:folder /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /r:mscorlib.dll /vbruntime- /sdkpath:c:folder /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text> 
 vbc : error BC2017: could not find library 'mscorlib.dll'
 </text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text>
 vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
@@ -3529,7 +3758,7 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             Dim sysRuntime = dir.CreateFile("System.Runtime.dll")
             sysRuntime.WriteAllBytes(File.ReadAllBytes(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.Runtime.dll")))
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text>
 vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
@@ -3538,7 +3767,7 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             ' trash in 'System.Runtime.dll'
             sysRuntime.WriteAllBytes({0, 1, 2, 3, 4, 5})
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:" & dir.Path & " /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text>
 vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
@@ -3549,13 +3778,13 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             msCorLib.WriteAllBytes(File.ReadAllBytes(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "mscorlib.dll")))
 
             ' NOT: both libraries exist, but 'System.Runtime.dll' is invalid, so we need to pick up 'mscorlib.dll'
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library /vbruntime* /r:" & Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.dll") & " " & src.ToString(), startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library /vbruntime* /r:" & Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.dll") & " " & src.ToString(), startFolder:=dir.Path)
             AssertOutput(<text></text>, output.Replace(dir.Path, "{SDKPATH}")) ' SUCCESSFUL BUILD with 'mscorlib.dll' and embedded VbCore
 
             File.Delete(sysRuntime.Path)
 
             ' NOTE: only 'mscorlib.dll' exists
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library /vbruntime* /r:" & Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.dll") & " " & src.ToString(), startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /nostdlib /sdkpath:" & dir.Path & " /t:library /vbruntime* /r:" & Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "System.dll") & " " & src.ToString(), startFolder:=dir.Path)
             AssertOutput(<text></text>, output.Replace(dir.Path, "{SDKPATH}"))
 
             File.Delete(msCorLib.Path)
@@ -3563,7 +3792,7 @@ vbc : error BC2017: could not find library 'Microsoft.VisualBasic.dll'
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
-        <WorkItem(598158, "DevDiv")>
+        <WorkItem(598158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598158")>
         <Fact()>
         Public Sub MultiplePathsInSdkPath()
 
@@ -3587,7 +3816,7 @@ End Class
             Dim cmdNoStdLibNoRuntime As String = "/nostdlib /vbruntime* /r:mscorlib.dll /preferreduilang:en" & cmd
 
             ' NOTE: no 'mscorlib.dll' exists
-            output = RunAndGetOutput(BasicCompilerExecutable, cmdNoStdLibNoRuntime, startFolder:=dir.Path, expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, cmdNoStdLibNoRuntime, startFolder:=dir.Path, expectedRetCode:=1)
             AssertOutput(<text>vbc : error BC2017: could not find library 'mscorlib.dll'</text>, output.Replace(dir.Path, "{SDKPATH}"))
 
             ' Create '<dir>\fldr2\mscorlib.dll'
@@ -3595,10 +3824,10 @@ End Class
             msCorLib.WriteAllBytes(File.ReadAllBytes(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "mscorlib.dll")))
 
             ' NOTE: only 'mscorlib.dll' exists
-            output = RunAndGetOutput(BasicCompilerExecutable, cmdNoStdLibNoRuntime, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, cmdNoStdLibNoRuntime, startFolder:=dir.Path)
             AssertOutput(<text></text>, output.Replace(dir.Path, "{SDKPATH}"))
 
-            output = RunAndGetOutput(BasicCompilerExecutable, cmd, startFolder:=dir.Path, expectedRetCode:=1)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, cmd, startFolder:=dir.Path, expectedRetCode:=1)
             AssertOutput(
     <text>
 vbc : warning BC40049: Could not find standard library 'System.dll'.
@@ -3620,13 +3849,13 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /t:library " & src.ToString(), startFolder:=dir.Path, expectedRetCode:=1)
-            Assert.Contains("error BC30002: Type 'Global.System.ComponentModel.EditorBrowsable' is not defined.", output)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /t:library " & src.ToString(), startFolder:=dir.Path, expectedRetCode:=1)
+            Assert.Contains("error BC30002: Type 'Global.System.ComponentModel.EditorBrowsable' is not defined.", output, StringComparison.Ordinal)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /nostdlib /define:_MYTYPE=\""Empty\"" /t:library " & src.ToString(), startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /nostdlib /define:_MYTYPE=\""Empty\"" /t:library " & src.ToString(), startFolder:=dir.Path)
             AssertOutput(<text></text>, output)
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:x:\ /vbruntime- /define:_MYTYPE=\""Empty\"" /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /sdkpath:x:\ /vbruntime- /define:_MYTYPE=\""Empty\"" /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text>
 src.vb(2) : error BC30002: Type 'System.Void' is not defined.
@@ -3658,9 +3887,9 @@ Class C
             Dim file = Temp.CreateDirectory().CreateFile("vb.rsp")
             file.WriteAllText("")
 
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/libpath:c:\lib2;", "@" & file.ToString(), "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/libpath:c:\lib2,", "@" & file.ToString(), "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()) + "\", "c:\lib2")
+            AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, Path.GetDirectoryName(file.ToString()), "c:\lib2")
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -3675,19 +3904,19 @@ Class C
 
         <Fact()>
         Public Sub HighEntropyVirtualAddressSpace()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/highentropyva", "a.vb"}, _baseDirectory)
             Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/highentropyva+", "a.vb"}, _baseDirectory)
             Assert.True(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/highentropyva-", "a.vb"}, _baseDirectory)
             Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva:+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/highentropyva:+", "a.vb"}, _baseDirectory)
             Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/highentropyva:+"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/highentropyva:", "a.vb"}, _baseDirectory)
             Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/highentropyva:"))
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/highentropyva+ /highentropyva-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/highentropyva+ /highentropyva-", "a.vb"}, _baseDirectory)
             Assert.False(parsedArgs.EmitOptions.HighEntropyVirtualAddressSpace)
         End Sub
 
@@ -3697,29 +3926,29 @@ Class C
                 " /win32resource:d:\\""abc def""\a""b c""d\a.res"
             }
 
-            Dim args = VisualBasicCommandLineParser.Default.Parse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
+            Dim args = DefaultParse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
             Assert.Equal("d:\abc def\ab cd\a.res", args.Win32ResourceFile)
 
             responseFile = {
                 " /win32icon:d:\\""abc def""\a""b c""d\a.ico"
             }
 
-            args = VisualBasicCommandLineParser.Default.Parse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
+            args = DefaultParse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
             Assert.Equal("d:\abc def\ab cd\a.ico", args.Win32Icon)
 
             responseFile = {
                 " /win32manifest:d:\\""abc def""\a""b c""d\a.manifest"
             }
 
-            args = VisualBasicCommandLineParser.Default.Parse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
+            args = DefaultParse(VisualBasicCommandLineParser.ParseResponseLines(responseFile), "c:\")
             Assert.Equal("d:\abc def\ab cd\a.manifest", args.Win32Manifest)
         End Sub
 
         <Fact>
         Public Sub ResourceOnlyCompile()
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource:foo.vb,ed", "/out:e.dll"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/resource:foo.vb,ed", "/out:e.dll"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/resource:foo.vb,ed"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/resource:foo.vb,ed"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoSourcesOut))
         End Sub
 
@@ -3859,7 +4088,7 @@ End Class
                 expectedOutputName:="p.exe")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName7()
             Dim source1 = <![CDATA[
@@ -3882,7 +4111,7 @@ End Class
                 expectedOutputName:="foo.dll")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName8()
             Dim source1 = <![CDATA[
@@ -3905,7 +4134,7 @@ End Class
                 expectedOutputName:="foo.dll")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName9()
             Dim source1 = <![CDATA[
@@ -3928,7 +4157,7 @@ End Class
                 expectedOutputName:="foo.a.dll")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName10()
             Dim source1 = <![CDATA[
@@ -3951,7 +4180,7 @@ End Class
                 expectedOutputName:="foo.a")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName11()
             Dim source1 = <![CDATA[
@@ -3974,7 +4203,7 @@ End Class
                 expectedOutputName:="foo.a")
         End Sub
 
-        <WorkItem(545773, "DevDiv")>
+        <WorkItem(545773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545773")>
         <Fact>
         Public Sub OutputFileName12()
             Dim source1 = <![CDATA[
@@ -4083,58 +4312,58 @@ End Class
         <Fact>
         Public Sub WarningsOptions()
             ' Baseline
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Error, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors+
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror+", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror+", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Error, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors:
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror:", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors:42024,42025
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror:42024,42025", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror:42024,42025", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
             AssertSpecificDiagnostics({42024, 42025}, {ReportDiagnostic.Error, ReportDiagnostic.Error}, parsedArgs)
 
             ' Test for /warnaserrors+:
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror+:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror+:", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors+:42024,42025
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror+:42024,42025", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror+:42024,42025", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
             AssertSpecificDiagnostics({42024, 42025}, {ReportDiagnostic.Error, ReportDiagnostic.Error}, parsedArgs)
 
             ' Test for /warnaserrors-
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror-", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror-", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors-:
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror-:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror-:", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /warnaserrors-:42024,42025
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror-:42024,42025", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror-:42024,42025", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
             AssertSpecificDiagnostics({42024, 42025}, {ReportDiagnostic.Default, ReportDiagnostic.Default}, parsedArgs)
 
             ' Test for /nowarn
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nowarn", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nowarn", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Suppress, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /nowarn:
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nowarn:", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nowarn:", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
 
             ' Test for /nowarn:42024,42025
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nowarn:42024,42025", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nowarn:42024,42025", "a.vb"}, _baseDirectory)
             Assert.Equal(ReportDiagnostic.Default, parsedArgs.CompilationOptions.GeneralDiagnosticOption)
             AssertSpecificDiagnostics({42024, 42025}, {ReportDiagnostic.Suppress, ReportDiagnostic.Suppress}, parsedArgs)
         End Sub
@@ -4146,23 +4375,23 @@ End Class
             ' We no longer generate a warning in such cases.
 
             ' Test for /warnaserrors:1
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror:1", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/warnaserror:1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             ' Test for /warnaserrors:abc
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/warnaserror:abc", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/warnaserror:abc", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             ' Test for /nowarn:1
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nowarn:1", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nowarn:1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
             ' Test for /nowarn:abc
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/nowarn:abc", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/nowarn:abc", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
         End Sub
 
-        <WorkItem(545025, "DevDiv")>
+        <WorkItem(545025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545025")>
         <Fact()>
         Public Sub CompilationWithWarnAsError()
             Dim source = <![CDATA[
@@ -4196,7 +4425,7 @@ End Class
             Return vbc.Run(outWriter, Nothing)
         End Function
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_01()
             Dim source =
@@ -4256,7 +4485,7 @@ PATH(11) : warning BC42105: Function 'foo' doesn't return a value on all code pa
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_02()
             ' It verifies the case where diagnostic does not have the associated location in it.
@@ -4308,7 +4537,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_03()
             ' It verifies the case where the squiggles covers the error span with tabs in it.
@@ -4348,7 +4577,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_04()
             ' It verifies the case where the squiggles covers multiple lines.
@@ -4397,7 +4626,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_05()
             ' It verifies the case where the squiggles covers multiple lines.
@@ -4442,7 +4671,7 @@ Module _
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_06()
             ' It verifies the case where the squiggles covers the very long error span.
@@ -4491,7 +4720,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545214, "DevDiv")>
+        <WorkItem(545214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545214")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_07()
             ' It verifies the case where the error is on the last line.
@@ -4538,7 +4767,7 @@ End Class
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(531606, "DevDiv")>
+        <WorkItem(531606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531606")>
         <Fact()>
         Public Sub ErrorMessageWithSquiggles_08()
             Dim source =
@@ -4581,7 +4810,7 @@ PATH(6) : error BC30203: Identifier expected.
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithNonExistingOutPath()
             Dim source =
@@ -4608,12 +4837,12 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2012: can't open '" + dir.Path + "\sub\a.exe' for writing", output.ToString())
+            Assert.Contains("error BC2012: can't open '" + dir.Path + "\sub\a.exe' for writing", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_01()
             Dim source =
@@ -4641,13 +4870,13 @@ End Module
 
             Assert.Equal(1, exitCode)
             Dim message = output.ToString()
-            Assert.Contains("error BC2032: File name", message)
-            Assert.Contains("sub", message)
+            Assert.Contains("error BC2032: File name", message, StringComparison.Ordinal)
+            Assert.Contains("sub", message, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_02()
             Dim source =
@@ -4675,13 +4904,13 @@ End Module
 
             Assert.Equal(1, exitCode)
             Dim message = output.ToString()
-            Assert.Contains("error BC2032: File name", message)
-            Assert.Contains("sub", message)
+            Assert.Contains("error BC2032: File name", message, StringComparison.Ordinal)
+            Assert.Contains("sub", message, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_03()
             Dim source =
@@ -4708,12 +4937,12 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2032: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", output.ToString())
+            Assert.Contains("error BC2032: File name 'aaa:\a.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(545247, "DevDiv")>
+        <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CompilationWithWrongOutPath_04()
             Dim source =
@@ -4740,14 +4969,14 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
 
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2006: option 'out' requires ':<file>'", output.ToString())
+            Assert.Contains("error BC2006: option 'out' requires ':<file>'", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
         <Fact()>
         Public Sub SpecifyProperCodePage()
-            ' Class <UTF8 Cyryllic Character>
+            ' Class <UTF8 Cyrillic Character>
             ' End Class
             Dim source() As Byte = {
                                     &H43, &H6C, &H61, &H73, &H73, &H20, &HD0, &H96, &HD, &HA,
@@ -4759,10 +4988,10 @@ End Module
             Dim file = dir.CreateFile(fileName)
             file.WriteAllBytes(source)
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /t:library " & file.ToString(), startFolder:=dir.Path)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library " & file.ToString(), startFolder:=dir.Path)
             Assert.Equal("", output) ' Autodetected UTF8, NO ERROR
 
-            output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /preferreduilang:en /t:library /codepage:20127 " & file.ToString(), expectedRetCode:=1, startFolder:=dir.Path) ' 20127: US-ASCII
+            output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /t:library /codepage:20127 " & file.ToString(), expectedRetCode:=1, startFolder:=dir.Path) ' 20127: US-ASCII
             ' 0xd0, 0x96 ==> 'Ð–' ==> ERROR
             Dim expected = <result>
 a.vb(1) : error BC30203: Identifier expected.
@@ -5098,22 +5327,22 @@ End Module
             Dim outputFileName As String
             Dim target As String
             Select Case outputKind
-                Case outputKind.ConsoleApplication
+                Case OutputKind.ConsoleApplication
                     outputFileName = "Test.exe"
                     target = "exe"
-                Case outputKind.WindowsApplication
+                Case OutputKind.WindowsApplication
                     outputFileName = "Test.exe"
                     target = "winexe"
-                Case outputKind.DynamicallyLinkedLibrary
+                Case OutputKind.DynamicallyLinkedLibrary
                     outputFileName = "Test.dll"
                     target = "library"
-                Case outputKind.NetModule
+                Case OutputKind.NetModule
                     outputFileName = "Test.netmodule"
                     target = "module"
-                Case outputKind.WindowsRuntimeMetadata
+                Case OutputKind.WindowsRuntimeMetadata
                     outputFileName = "Test.winmdobj"
                     target = "winmdobj"
-                Case outputKind.WindowsRuntimeApplication
+                Case OutputKind.WindowsRuntimeApplication
                     outputFileName = "Test.exe"
                     target = "appcontainerexe"
                 Case Else
@@ -5142,12 +5371,12 @@ End Module
             Assert.Equal(0, vbc.Run(New StringWriter(), Nothing))
 
             Dim library As IntPtr = LoadLibraryEx(Path.Combine(dir.Path, outputFileName), IntPtr.Zero, 2)
-            If library.ToInt32() = 0 Then
+            If library = IntPtr.Zero Then
                 Throw New Win32Exception(Marshal.GetLastWin32Error())
             End If
 
             Const resourceType As String = "#24"
-            Dim resourceId As String = If(outputKind = outputKind.DynamicallyLinkedLibrary, "#2", "#1")
+            Dim resourceId As String = If(outputKind = OutputKind.DynamicallyLinkedLibrary, "#2", "#1")
 
             Dim manifestSize As UInteger = Nothing
             If expectedManifest Is Nothing Then
@@ -5163,25 +5392,26 @@ End Module
             CleanupAllGeneratedFiles(sourceFile.Path)
         End Sub
 
-        <WorkItem(530221, "DevDiv")>
-        <Fact()>
+        <WorkItem(530221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530221")>
+        <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path
             Dim ref As String = folder.CreateFile("ref.dll").WriteAllText("").Path
 
             Try
-                Dim output = RunAndGetOutput("cmd", "/C icacls " & ref & " /inheritance:r /Q")
+                Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " & ref & " /inheritance:r /Q")
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
 
-                output = RunAndGetOutput("cmd", "/C icacls " & ref & " /deny %USERDOMAIN%\%USERNAME%:(r,WDAC) /Q")
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " & ref & " /deny %USERDOMAIN%\%USERNAME%:(r,WDAC) /Q")
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
 
-                output = RunAndGetOutput("cmd", "/C """ & BasicCompilerExecutable & """ /nologo /preferreduilang:en /r:" & ref & " /t:library " & source, expectedRetCode:=1)
-                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied."))
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /r:" & ref & " /t:library " & source, expectedRetCode:=1)
+                Assert.True(output.StartsWith("vbc : error BC31011: Unable to load referenced library '" & ref & "': Access to the path '" & ref & "' is denied.", StringComparison.Ordinal))
 
             Finally
-                Dim output = RunAndGetOutput("cmd", "/C icacls " & ref & " /reset /Q")
+                Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " & ref & " /reset /Q")
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim())
                 File.Delete(ref)
             End Try
@@ -5189,7 +5419,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem(544926, "DevDiv")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_01()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5211,34 +5441,34 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("error BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with /noconfig (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/noconfig"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with /NOCONFIG (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/NOCONFIG"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the base case with -noconfig (expect to see warning, instead of error)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "-noconfig"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString())
+            Assert.Contains("warning BC42024: Unused local variable: 'x'.", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(544926, "DevDiv")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_02()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5259,20 +5489,20 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with /noconfig inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(544926, "DevDiv")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_03()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5293,20 +5523,20 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with /NOCONFIG inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(544926, "DevDiv")>
+        <WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")>
         <Fact()>
         Public Sub ResponseFilesWithNoconfig_04()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5327,20 +5557,20 @@ End Module
             Dim output As New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             ' Checks the case with -noconfig inside the response file as along with /nowarn (expect to see warning)
             vbc = New MockVisualBasicCompiler(rsp, _baseDirectory, {source, "/preferreduilang:en", "/nowarn"})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
-            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString())
+            Assert.Contains("warning BC2025: ignoring /noconfig option because it was specified in a response file", output.ToString(), StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(source)
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(545832, "DevDiv")>
+        <WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")>
         <Fact()>
         Public Sub ResponseFilesWithEmptyAliasReference()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5362,9 +5592,9 @@ Imports System
             CleanupAllGeneratedFiles(rsp)
         End Sub
 
-        <WorkItem(546031, "DevDiv")>
-        <WorkItem(546032, "DevDiv")>
-        <WorkItem(546033, "DevDiv")>
+        <WorkItem(546031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546031")>
+        <WorkItem(546032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546032")>
+        <WorkItem(546033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546033")>
         <Fact()>
         Public Sub InvalidDefineSwitch()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5438,7 +5668,7 @@ Imports System
             Return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.vbc_rsp).Path
         End Function
 
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFile()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5504,21 +5734,7 @@ Imports System
             Assert.True(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
 
-        <Fact()>
-        Public Sub TestTempFileCreationFail()
-            Dim comp = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/out:foo", "/t:library", "/res:foo"})
-            comp.PathGetTempFileName = Function()
-                                           Throw New IOException("Ronnie James Dio")
-                                           Return Nothing
-                                       End Function
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim result = comp.Run(outWriter, Nothing)
-            Assert.Contains("BC30138", outWriter.ToString())
-            Assert.Contains("Ronnie James Dio", outWriter.ToString())
-        End Sub
-
-
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFileNoConfig()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5541,7 +5757,7 @@ Imports System
             Assert.False(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
 
-        <Fact(), WorkItem(546114, "DevDiv")>
+        <Fact(), WorkItem(546114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546114")>
         Public Sub TestFilterCommandLineDiagnostics()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -5564,7 +5780,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem(546305, "DevDiv")>
+        <WorkItem(546305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546305")>
         <Fact()>
         Public Sub Bug15539()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
@@ -5681,7 +5897,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <WorkItem(531263, "DevDiv")>
+        <WorkItem(531263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531263")>
         <Fact>
         Public Sub EmptyFileName()
             Dim outWriter As New StringWriter()
@@ -5689,60 +5905,61 @@ End Module
             Assert.NotEqual(0, exitCode)
 
             ' error BC2032: File name '' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            Assert.Contains("BC2032", outWriter.ToString())
+            Assert.Contains("BC2032", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
+        <WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")>
         <Fact>
         Public Sub PreferredUILang()
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2006", outWriter.ToString())
+            Assert.Contains("BC2006", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2006", outWriter.ToString())
+            Assert.Contains("BC2006", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:zz"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2038", outWriter.ToString())
+            Assert.Contains("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en-zz"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("BC2038", outWriter.ToString())
+            Assert.Contains("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:en-US"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:de"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
 
             outWriter = New StringWriter(CultureInfo.InvariantCulture)
             exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang:de-AT"}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.DoesNotContain("BC2038", outWriter.ToString())
+            Assert.DoesNotContain("BC2038", outWriter.ToString(), StringComparison.Ordinal)
         End Sub
 
-        <Fact, WorkItem(650083, "DevDiv")>
+        <Fact, WorkItem(650083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650083")>
         Public Sub ReservedDeviceNameAsFileName()
             ' Source file name
-            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", "con.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/t:library", "con.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:com1.exe", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/out:com1.exe", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("\\.\com1").WithLocation(1, 1))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/doc:..\lpt2.xml", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/doc:..\lpt2.xml", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_XMLCannotWriteToXMLDocFile2).WithArguments("..\lpt2.xml", "The system cannot find the path specified").WithLocation(1, 1))
 
-            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/SdkPath:..\aux", "com.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/SdkPath:..\aux", "com.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_CannotFindStandardLibrary1).WithArguments("System.dll").WithLocation(1, 1),
                                      Diagnostic(ERRID.ERR_LibNotFound).WithArguments("Microsoft.VisualBasic.dll").WithLocation(1, 1))
 
@@ -5756,34 +5973,34 @@ Module Module1
     End Sub
 End Module
 </text>.Value).Path
-            ' Make sure these reversed device names don't affect compiler
+            ' Make sure these reserved device names don't affect compiler
             Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/r:.\com3.dll", "/preferreduilang:en", source})
             Dim output = New StringWriter()
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library '.\com3.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library '.\com3.dll'", output.ToString(), StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/link:prn.dll", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library 'prn.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library 'prn.dll'", output.ToString(), StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"@aux.rsp", "/preferreduilang:en", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
             Dim errMessage = output.ToString().Trim()
-            Assert.Contains("error BC2011: unable to open response file", errMessage)
-            Assert.Contains("aux.rsp", errMessage)
+            Assert.Contains("error BC2011: unable to open response file", errMessage, StringComparison.Ordinal)
+            Assert.Contains("aux.rsp", errMessage, StringComparison.Ordinal)
 
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", "/vbruntime:..\con.dll", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
             Assert.Equal(1, exitCode)
-            Assert.Contains("error BC2017: could not find library '..\con.dll'", output.ToString().Trim())
+            Assert.Contains("error BC2017: could not find library '..\con.dll'", output.ToString(), StringComparison.Ordinal)
 
-            ' Native VB compiler also ignore invalid lib pathes
+            ' Native VB compiler also ignore invalid lib paths
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/LibPath:lpt1,Lpt2,LPT9", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
@@ -5792,7 +6009,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <Fact(Skip:="574361"), WorkItem(574361, "DevDiv")>
+        <Fact, WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
         Public Sub LangVersionForOldBC36716()
 
             Dim dir = Temp.CreateDirectory()
@@ -5820,33 +6037,36 @@ End Module
 ]]>
     </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, "/nologo /t:library /langversion:9 " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 /preferreduilang:en " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text><![CDATA[
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
-        Public Property Prop() As Integer
-                        ~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+src.vb(8) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
+            Public Property Prop() As Integer
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CompilerGenerated()>
-                            ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen1() As <CompilerGenerated()> Func(Of String)
-                        ~~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CompilerGenerated()>
+        ~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen1() As <CompilerGenerated()> Func(Of String)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CLSCompliant(False), Obsolete("obsolete message!")>
-                                                           ~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
-        <AttrInThisAsmAttribute()>
-                                 ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen2() As String
-                        ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CLSCompliant(False), Obsolete("obsolete message!")>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen2() As String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
     </text>, output)
 
@@ -5953,54 +6173,50 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
         <Fact>
         Public Sub ParseFeatures()
-            Dim args = VisualBasicCommandLineParser.Default.Parse({"/features:Test", "a.vb"}, _baseDirectory)
+            Dim args = DefaultParse({"/features:Test", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.Features.Single())
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
+            args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(2, args.CompilationOptions.Features.Length)
-            Assert.Equal("Test", args.CompilationOptions.Features(0))
-            Assert.Equal("Experiment", args.CompilationOptions.Features(1))
+            Assert.Equal(2, args.ParseOptions.Features.Count)
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/features:Test:false,Key:value", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "false"}, {"Key", "value"}}))
 
             ' We don't do any rigorous validation of /features arguments...
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/features", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/features", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Empty(args.CompilationOptions.Features)
+            Assert.Empty(args.ParseOptions.Features)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/features:,", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.Equal(",", args.CompilationOptions.Features.Single())
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/features:Test,", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test,", args.CompilationOptions.Features.Single())
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}}))
         End Sub
 
         <Fact>
         Public Sub ParseAdditionalFile()
-            Dim args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb"}, _baseDirectory)
+            Dim args = DefaultParse({"/additionalfile:web.config", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles.Single().Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb", "/additionalfile:app.manifest"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:web.config", "a.vb", "/additionalfile:app.manifest"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config", "a.vb", "/additionalfile:web.config"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:web.config", "a.vb", "/additionalfile:web.config"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(1).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:..\web.config", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:..\web.config", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(Path.Combine(_baseDirectory, "..\web.config"), args.AdditionalFiles.Single().Path)
 
@@ -6009,35 +6225,35 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             baseDir.CreateFile("web2.config")
             baseDir.CreateFile("web3.config")
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web*.config", "a.vb"}, baseDir.Path)
+            args = DefaultParse({"/additionalfile:web*.config", "a.vb"}, baseDir.Path)
             args.Errors.Verify()
             Assert.Equal(3, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalFiles(1).Path)
             Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalFiles(2).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config;app.manifest", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:web.config;app.manifest", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config,app.manifest", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:web.config,app.manifest", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config"), args.AdditionalFiles(0).Path)
             Assert.Equal(Path.Combine(_baseDirectory, "app.manifest"), args.AdditionalFiles(1).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:web.config:app.manifest", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:web.config:app.manifest", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(1, args.AdditionalFiles.Length)
             Assert.Equal(Path.Combine(_baseDirectory, "web.config:app.manifest"), args.AdditionalFiles(0).Path)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("additionalfile", ":<file_list>"))
             Assert.Equal(0, args.AdditionalFiles.Length)
 
-            args = VisualBasicCommandLineParser.Default.Parse({"/additionalfile:", "a.vb"}, _baseDirectory)
+            args = DefaultParse({"/additionalfile:", "a.vb"}, _baseDirectory)
             args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("additionalfile", ":<file_list>"))
             Assert.Equal(0, args.AdditionalFiles.Length)
         End Sub
@@ -6046,21 +6262,21 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             actual.Verify(expected)
         End Sub
 
-        Const LogoLine1 As String = "Microsoft (R) Visual Basic Compiler version"
-        Const LogoLine2 As String = "Copyright (C) Microsoft Corporation. All rights reserved."
+        Private Const s_logoLine1 As String = "Microsoft (R) Visual Basic Compiler version"
+        Private Const s_logoLine2 As String = "Copyright (C) Microsoft Corporation. All rights reserved."
 
         Private Shared Function OccurrenceCount(source As String, word As String) As Integer
             Dim n = 0
-            Dim index = source.IndexOf(word)
+            Dim index = source.IndexOf(word, StringComparison.Ordinal)
             While (index >= 0)
                 n += 1
-                index = source.IndexOf(word, index + word.Length)
+                index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal)
             End While
             Return n
         End Function
 
         Private Shared Function VerifyOutput(sourceDir As TempDirectory, sourceFile As TempFile,
-                                             Optional includeCurrentAssemblyAsAnalyzerReferecne As Boolean = True,
+                                             Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
                                              Optional additionalFlags As String() = Nothing,
                                              Optional expectedInfoCount As Integer = 0,
                                              Optional expectedWarningCount As Integer = 0,
@@ -6069,7 +6285,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
                             "/nologo", "/preferreduilang:en", "/t:library",
                             sourceFile.Path
                        }
-            If includeCurrentAssemblyAsAnalyzerReferecne Then
+            If includeCurrentAssemblyAsAnalyzerReference Then
                 args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location)
             End If
             If additionalFlags IsNot Nothing Then
@@ -6085,22 +6301,22 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Assert.True(expectedExitCode = exitCode,
                         String.Format("Expected exit code to be '{0}' was '{1}'.{2}Output:{3}{4}", expectedExitCode, exitCode, Environment.NewLine, Environment.NewLine, output))
 
-            Assert.DoesNotContain(" : hidden", output)
+            Assert.DoesNotContain(" : hidden", output, StringComparison.Ordinal)
 
             If expectedInfoCount = 0 Then
-                Assert.DoesNotContain(" : info", output)
+                Assert.DoesNotContain(" : info", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedInfoCount, OccurrenceCount(output, " : info"))
             End If
 
             If expectedWarningCount = 0 Then
-                Assert.DoesNotContain(" : warning", output)
+                Assert.DoesNotContain(" : warning", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedWarningCount, OccurrenceCount(output, " : warning"))
             End If
 
             If expectedErrorCount = 0 Then
-                Assert.DoesNotContain(" : error", output)
+                Assert.DoesNotContain(" : error", output, StringComparison.Ordinal)
             Else
                 Assert.Equal(expectedErrorCount, OccurrenceCount(output, " : error"))
             End If
@@ -6108,7 +6324,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Return output
         End Function
 
-        <WorkItem(899050)>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_AnalyzerDriverWarnings()
             ' This assembly has an abstract MockAbstractDiagnosticAnalyzer type which should cause
@@ -6119,7 +6335,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42376 can be suppressed via /nowarn.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"})
@@ -6129,21 +6345,21 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
 
             ' TEST: Verify that compiler warning BC42376 can be promoted to an error via /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42376 can be individually promoted to an error via /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:42376"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(899050)>
-        <WorkItem(981677)>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_HiddenDiagnostic()
             ' This assembly has a HiddenDiagnosticAnalyzer type which should produce custom hidden
-            ' diagnostics for #ExternalSouce directives present in the compilations created in this test.
+            ' diagnostics for #ExternalSource directives present in the compilations created in this test.
             Dim source = "Imports System
 #ExternalSource (""file"", 123)
 #End ExternalSource"
@@ -6152,60 +6368,60 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"})
 
             ' TEST: Verify that /nowarn: has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror+ has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:42376"})
 
             ' TEST: Verify that /warnaserror- has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror: promotes custom hidden diagnostic Hidden01 to an error.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror-: has no impact on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Hidden01", "/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:hidden01", "/warnaserror:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/nowarn:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:hidden01", "/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
-            ' Although the compiler normally supresses printing of hidden diagnostics in the compiler output, they are never really suppressed
+            ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror:Hidden01"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn doesn't override /warnaserror: in the case of custom hidden diagnostics.
-            ' Although the compiler normally supresses printing of hidden diagnostics in the compiler output, they are never really suppressed
+            ' Although the compiler normally suppresses printing of hidden diagnostics in the compiler output, they are never really suppressed
             ' because in the IDE features that rely on hidden diagnostics to display light bulb need to continue to work even when users have global
             ' suppression (/nowarn) specified in their project. In other words, /nowarn flag is a no-op for hidden diagnostics.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:HIDDen01", "/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn and /warnaserror-: have no impact  on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/nowarn"})
@@ -6213,59 +6429,59 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             ' TEST: Verify /nowarn and /warnaserror-: have no impact  on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-:Hidden01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/nowarn:Hidden01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Hidden01", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:Hidden01", "/warnaserror-:hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/warnaserror+:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:hidden01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:hiddEn01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:HiDden01", "/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-:Hidden01", "/nowarn:42376"})
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror-:Hidden01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Hidden01", "/warnaserror-"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:HiDden01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror+:HiDden01", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output)
+            Assert.Contains("a.vb(2) : error Hidden01: Throwing a diagnostic for #ExternalSource", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(899050)>
-        <WorkItem(981677)>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_InfoDiagnostic()
             ' This assembly has an InfoDiagnosticAnalyzer type which should produce custom info
@@ -6275,50 +6491,50 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim name = "a.vb"
 
             Dim output = GetOutput(name, source, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can be suppressed via /nowarn.
             output = GetOutput(name, source, additionalFlags:={"/nowarn"})
 
             ' TEST: Verify that custom info diagnostic Info01 can be individually suppressed via /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can never be promoted to an error via /warnaserror+.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/nowarn:42376"}, expectedInfoCount:=1)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 is still reported as an info when /warnaserror- is used.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 can be individually promoted to an error via /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror:info01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom info diagnostic Info01 is still reported as an info when passed to /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:info01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror:Info01", "/nowarn:info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:INFO01", "/warnaserror:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/nowarn:info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn: overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:INFO01", "/warnaserror-:Info01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify /nowarn overrides /warnaserror:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn", "/warnaserror:Info01"})
@@ -6332,62 +6548,62 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             ' TEST: Verify /nowarn overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/nowarn"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn", "/nowarn:Info01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:Info01", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:Info01", "/warnaserror-:info01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/warnaserror+:INfo01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-", "/warnaserror+:info01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InFo01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InfO01", "/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/warnaserror-:INfo01", "/nowarn:42376"}, expectedInfoCount:=1)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-", "/warnaserror-:INfo01"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/warnaserror-"}, expectedWarningCount:=1, expectedInfoCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : info Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+", "/warnaserror+:Info01", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = GetOutput(name, source, additionalFlags:={"/warnaserror+:InFO01", "/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output)
+            Assert.Contains("a.vb(2) : error Info01: Throwing a diagnostic for #Enable", output, StringComparison.Ordinal)
         End Sub
 
         Private Function GetOutput(name As String,
                                    source As String,
-                          Optional includeCurrentAssemblyAsAnalyzerReferecne As Boolean = True,
+                          Optional includeCurrentAssemblyAsAnalyzerReference As Boolean = True,
                           Optional additionalFlags As String() = Nothing,
                           Optional expectedInfoCount As Integer = 0,
                           Optional expectedWarningCount As Integer = 0,
@@ -6395,15 +6611,15 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Dim dir = Temp.CreateDirectory()
             Dim file = dir.CreateFile(name)
             file.WriteAllText(source)
-            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount)
+            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount)
             CleanupAllGeneratedFiles(file.Path)
             Return output
         End Function
 
-        <WorkItem(899050)>
-        <WorkItem(981677)>
-        <WorkItem(998069)>
-        <WorkItem(998724)>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
+        <WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")>
+        <WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_WarningDiagnostic()
             ' This assembly has a WarningDiagnosticAnalyzer type which should produce custom warning
@@ -6419,10 +6635,10 @@ End Module"
             file.WriteAllText(source)
 
             Dim output = VerifyOutput(dir, file, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be suppressed via /nowarn.
             ' This doesn't work for BC42376 currently (Bug 899050).
@@ -6430,50 +6646,50 @@ End Module"
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be individually suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror.
             ' Promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 can be promoted to errors via /warnaserror+.
             ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /warnaserror- keeps compiler warning BC42024 as well as custom warning diagnostics Warning01 and Warning03 as warnings.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom warning diagnostics Warning01 and Warning03 can be individually promoted to errors via /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Something,warning03"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler warning BC42024 can be individually promoted to an error via /warnaserror+:.
             ' This doesn't work correctly currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:bc42024"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom warning diagnostics Warning01 and Warning03 as well as compiler warning BC42024 can be individually promoted to errors via /warnaserror:.
             ' This doesn't work currently - promoting compiler warning BC42024 to an error causes us to no longer report any custom warning diagnostics as errors (Bug 998069).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last flag on command line wins between /nowarn and /warnaserror.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror", "/nowarn"})
 
             ' TEST: Verify that last flag on command line wins between /nowarn and /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn overrides /warnaserror-.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-"})
@@ -6483,19 +6699,19 @@ End Module"
 
             ' TEST: Verify that /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Something,042024,Warning01,Warning03", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror:Something,042024,Warning01,Warning03"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Something,042024,Warning01,Warning03", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror-:Something,042024,Warning01,Warning03"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:warning01,Warning03,bc42024,58000,42376"})
@@ -6511,11 +6727,11 @@ End Module"
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000", "/nowarn:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:warning01,Warning03,bc42024,58000", "/warnaserror-:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn overrides /warnaserror:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror:Something,042024,Warning01,Warning03,42376"})
@@ -6529,18 +6745,18 @@ End Module"
             ' TEST: Verify that /nowarn overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-:Something,042024,Warning01,Warning03,42376"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/nowarn:Something,042024,Warning01,Warning03,42376"})
 
-            ' TEST: Santiy test for /nowarn: and /nowarn.
+            ' TEST: Sanity test for /nowarn: and /nowarn.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Something,042024,Warning01,Warning03,42376", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-] flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' Note: Old native compiler behaved strangely for the below case.
-            ' When /warnaserror+ and /warnaserror- appeared on the same command line, natvie compiler would allow /warnaserror+ to win always
+            ' When /warnaserror+ and /warnaserror- appeared on the same command line, native compiler would allow /warnaserror+ to win always
             ' regardless of order. However when /warnaserror+:xyz and /warnaserror-:xyz appeared on the same command line, native compiler
             ' would allow the flag that appeared last on the command line to win. Roslyn compiler allows the last flag that appears on the
             ' command line to win in both cases. This is not a breaking change since at worst this only makes a case that used to be an error
@@ -6548,78 +6764,78 @@ End Module"
 
             ' TEST: Verify that last /warnaserror[+/-] flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03", "/warnaserror+:Warning01,Warning03"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:Warning01,Warning03", "/warnaserror-:warning01,Warning03"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000,42376", "/warnaserror+"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,58000", "/warnaserror-"}, expectedWarningCount:=2, expectedErrorCount:=2)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror+:warning01,Warning03,bc42024,58000"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : error BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror-:warning01,Warning03,bc42024,58000,42376"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/warnaserror+:warning01,Warning03,bc42024,58000,42376"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:warning01,Warning03,bc42024,58000,42376", "/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("error BC42376", output)
+            Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-", "/warnaserror-:warning01,Warning03,bc42024,58000,42376"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that specific promotions and suppressions (via /warnaserror[+/-]:) override general ones (i.e. /warnaserror[+/-]).
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:warning01,Warning03,bc42024,58000,42376", "/warnaserror-"}, expectedWarningCount:=4)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output)
-            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning01: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : warning Warning03: Throwing a diagnostic for types declared", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(4) : warning BC42024: Unused local variable: 'x'.", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(899050)>
-        <WorkItem(981677)>
+        <WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_ErrorDiagnostic()
             ' This assembly has an ErrorDiagnosticAnalyzer type which should produce custom error
@@ -6634,15 +6850,15 @@ End Module"
 
             ' TEST: Verify that custom error diagnostic Error01 can't be suppressed via /nowarn.
             Dim output = VerifyOutput(dir, file, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom error diagnostic Error01 can be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Error01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that custom error diagnostic Error01 can be suppressed via /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:ERROR01"}, expectedWarningCount:=1)
-            Assert.Contains("warning BC42376", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
 
             ' TEST: Verify that /nowarn: overrides /warnaserror+.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:ERROR01,42376"})
@@ -6670,32 +6886,32 @@ End Module"
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when custom error diagnostic Error01 is present.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+", "/nowarn:42376"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens if someone passes custom error diagnostic Error01 to /warnaserror[+/-]:.
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror:Error01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror+:ERROR01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             output = VerifyOutput(dir, file, additionalFlags:={"/warnaserror-:Error01"}, expectedWarningCount:=1, expectedErrorCount:=1)
-            Assert.Contains("warning BC42376", output)
-            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output)
+            Assert.Contains("warning BC42376", output, StringComparison.Ordinal)
+            Assert.Contains("a.vb(2) : error Error01: Throwing a diagnostic for #Disable", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <WorkItem(981677)>
+        <WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")>
         <Fact>
         Public Sub NoWarnAndWarnAsError_CompilerErrorDiagnostic()
             Dim source = "Imports System
@@ -6708,56 +6924,56 @@ End Module"
             Dim file = dir.CreateFile("a.vb")
             file.WriteAllText(source)
 
-            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            Dim output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that compiler error BC30311 can't be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:BC30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:bc30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error BC30311 is present.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             ' TEST: Verify that nothing bad happens if someone passes BC30311 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror:30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+:BC30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror+:bc30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:BC30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
-            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output)
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/warnaserror-:bc30311"}, expectedErrorCount:=1)
+            Assert.Contains("a.vb(4) : error BC30311: Value of type 'Exception' cannot be converted to 'Integer'.", output, StringComparison.Ordinal)
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        <Fact, WorkItem(1091972, "DevDiv"), WorkItem(444, "CodePlex")>
+        <Fact, WorkItem(1091972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091972"), WorkItem(444, "CodePlex")>
         Public Sub Bug1091972()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("a.vb")
@@ -6772,7 +6988,7 @@ Class C
 End Class
 </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToString()), startFolder:=dir.ToString())
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToString()), startFolder:=dir.ToString())
             AssertOutput(<text></text>, output)
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")))
@@ -6800,29 +7016,575 @@ out
                 AssertOutput(expected, content)
             End Using
 
-            output = RunAndGetOutput(Path.Combine(dir.ToString(), "out.exe"), startFolder:=dir.ToString())
+            output = ProcessUtilities.RunAndGetOutput(Path.Combine(dir.ToString(), "out.exe"), startFolder:=dir.ToString())
             AssertOutput(expected, output)
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <IncludeAll Action=""Warning"" />
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=0, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Info, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralWarnAsErrorMinusResetsRules()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/WarnAsError-", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorMinusResetsRules()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/WarnAsError-:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+:Test002", "/WarnAsError-:Test002", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=2, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Default, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test002"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_LastGeneralWarnAsErrorTrumpsNoWarn()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/NoWarn", "/WarnAsError+", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralNoWarnTrumpsGeneralWarnAsErrorMinus()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/WarnAsError+", "/NoWarn", "/WarnAsError-", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_GeneralNoWarnTurnsOffAllButErrors()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Error"" />
+    <Rule Id=""Test002"" Action=""Warning"" />
+    <Rule Id=""Test003"" Action=""Info"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/NoWarn", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=3, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test002"))
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test003"))
+        End Sub
+
+        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        Public Sub RuleSet_SpecificNoWarnAlwaysWins()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"">
+  <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
+    <Rule Id=""Test001"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+            Dim ruleSetFile = dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+
+            Dim arguments = DefaultParse({"/ruleset:Rules.RuleSet", "/NoWarn:Test001", "/WarnAsError+", "/WarnAsError-:Test001", "A.vb"}, dir.Path)
+
+            Assert.Empty(arguments.Errors)
+            Assert.Equal(expected:=ReportDiagnostic.Error, actual:=arguments.CompilationOptions.GeneralDiagnosticOption)
+            Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
+            Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzer()
+            Dim args1 = DefaultParse({"/reportanalyzer", "a.vb"}, _baseDirectory)
+            Assert.True(args1.ReportAnalyzer)
+
+            Dim args2 = DefaultParse({"", "a.vb"}, _baseDirectory)
+            Assert.False(args2.ReportAnalyzer)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, source})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        <WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")>
+        Public Sub AnalyzerDiagnosticThrowsInGetMessage()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", source},
+                                                  analyzer:=New AnalyzerThatThrowsInGetMessage)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            ' Verify that the diagnostic reported by AnalyzerThatThrowsInGetMessage is reported, though it doesn't have the message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal)
+
+            ' Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal)
+            Assert.Contains(NameOf(NotImplementedException), output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        <WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")>
+        Public Sub AnalyzerExceptionDiagnosticCanBeConfigured()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", source},
+                                                  analyzer:=New AnalyzerThatThrowsInGetMessage)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.NotEqual(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            ' Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal)
+            Assert.Contains(NameOf(NotImplementedException), output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        <WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")>
+        Public Sub AnalyzerReportsMisformattedDiagnostic()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", source},
+                                                  analyzer:=New AnalyzerReportingMisformattedDiagnostic)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            ' Verify that the diagnostic reported by AnalyzerReportingMisformattedDiagnostic is reported with the message format string, instead of the formatted message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal)
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.MessageFormat.ToString(CultureInfo.InvariantCulture), output, StringComparison.Ordinal)
+
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        Public Sub AdditionalFileDiagnostics()
+            Dim dir = Temp.CreateDirectory()
+            Dim source = dir.CreateFile("a.vb").WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim additionalFile = dir.CreateFile("AdditionalFile.txt").WriteAllText(<text>
+Additional File Line 1!
+Additional File Line 2!
+</text>.Value).Path
+
+            Dim nonCompilerInputFile = dir.CreateFile("DummyFile.txt").WriteAllText(<text>
+Dummy File Line 1!
+</text>.Value).Path
+
+            Dim analyzer = New AdditionalFileDiagnosticAnalyzer(nonCompilerInputFile)
+            Dim arguments = {"/nologo", "/preferreduilang:en", "/vbruntime", "/t:library",
+                "/additionalfile:" & additionalFile, ' Valid additional text file
+                "/additionalfile:" & Assembly.GetExecutingAssembly.Location, ' Non-text file specified as an additional text file
+                source}
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, arguments, analyzer)
+
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(1, exitCode)
+            Dim output = outWriter.ToString()
+
+            AssertOutput(
+    String.Format(<text>
+AdditionalFile.txt(1) : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+Additional File Line 1!
+~~~~~~~~~~             
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: {0}
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: DummyFile
+vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: NonExistentPath
+vbc : error BC2015: the file '{1}' is not a text file
+</text>.Value.ToString(),
+        IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly.Location),
+        Assembly.GetExecutingAssembly.Location),
+    output, fileName:="AdditionalFile.txt")
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(additionalFile)
+            CleanupAllGeneratedFiles(nonCompilerInputFile)
+        End Sub
+
+        <Fact, WorkItem(1093063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1093063")>
+        Public Sub VerifyDiagnosticSeverityNotLocalized()
+            Dim source = <![CDATA[
+Class A
+End Class
+]]>
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source.Value)
+
+            Dim output As New StringWriter()
+            Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/target:exe", fileName})
+            vbc.Run(output, Nothing)
+
+            ' If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! BC30420:"
+            Assert.Contains("error BC30420:", output.ToString())
+
+            CleanupAllGeneratedFiles(file.Path)
+        End Sub
+
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub SourceFile_BadPath()
+            Dim args = DefaultParse({"e:c:\test\test.cs", "/t:library"}, _baseDirectory)
+            args.Errors.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("e:c:\test\test.cs").WithLocation(1, 1))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub FilePaths()
+            Dim args = FullParse("\\unc\path\a.vb b.vb c:\path\c.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"\\unc\path\a.vb", "e:\temp\b.vb", "c:\path\c.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = FullParse("\\unc\path\a.vb ""b.vb"" c:\path\c.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"\\unc\path\a.vb", "e:\temp\b.vb", "c:\path\c.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = FullParse("""b"".vb""", "e:\temp")
+            Assert.Equal(
+                New String() {"e:\temp\b.vb"},
+                args.SourceFiles.Select(Function(x) x.Path))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub ReferencePathsEx()
+            Dim args = FullParse("/nostdlib /vbruntime- /noconfig /r:a.dll,b.dll test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""a.dll,b.dll"" test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"a.dll,b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""lib, ex\a.dll"",b.dll test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"lib, ex\a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = FullParse("/nostdlib /vbruntime- /noconfig /r:""lib, ex\a.dll"" test.vb", "e:\temp")
+            Assert.Equal(
+                New String() {"lib, ex\a.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub ParseAssemblyReferences()
+
+            Dim parseCore =
+                Sub(value As String, paths As String())
+                    Dim list As New List(Of Diagnostic)
+                    Dim references = VisualBasicCommandLineParser.ParseAssemblyReferences("", value, list, embedInteropTypes:=False)
+                    Assert.Equal(0, list.Count)
+                    Assert.Equal(paths, references.Select(Function(r) r.Reference))
+                End Sub
+
+            parseCore("""a.dll""", New String() {"a.dll"})
+            parseCore("a,b", New String() {"a", "b"})
+            parseCore("""a,b""", New String() {"a,b"})
+
+            ' This is an intentional deviation from the native compiler.  BCL docs on MSDN, MSBuild and the C# compiler 
+            ' treat a semicolon as a separator.  VB compiler was the lone holdout here.  Rather than deviate we decided
+            ' to unify the behavior.
+            parseCore("a;b", New String() {"a", "b"})
+
+            parseCore("""a;b""", New String() {"a;b"})
+
+            ' Note this case can only happen when it is the last option on the command line.  When done
+            ' in another position the command line splitting routine would continue parsing all the text
+            ' after /r:"a as it resides in an unterminated quote.
+            parseCore("""a", New String() {"a"})
+
+            parseCore("a""mid""b", New String() {"amidb"})
+        End Sub
+
+        <Fact>
+        Public Sub PublicSign()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/publicsign a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign+ a.exe")
+            Assert.True(args.CompilationOptions.PublicSign)
+
+            args = parse("/publicsign- a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+
+            args = parse("a.exe")
+            Assert.False(args.CompilationOptions.PublicSign)
+        End Sub
+
+
+        <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <Fact>
+        Public Sub PublicSign_KeyFileRelativePath()
+            Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
+            Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile)
+            parsedArgs.Errors.Verify()
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub CommandLineMisc()
+            Dim args As VisualBasicCommandLineArguments
+            Dim baseDir = "c:\test"
+            Dim parse = Function(x As String) FullParse(x, baseDir)
+
+            args = parse("/out:""a.exe""")
+            Assert.Equal("a.exe", args.OutputFileName)
+
+            args = parse("/out:""a-b.exe""")
+            Assert.Equal("a-b.exe", args.OutputFileName)
+
+            args = parse("/out:""a,b.exe""")
+            Assert.Equal("a,b.exe", args.OutputFileName)
+
+            ' The \ here causes " to be treated as a quote, not as an escaping construct
+            args = parse("a\""b c""\d.cs")
+            Assert.Equal(
+                New String() {"c:\test\a""b", "c:\test\c\d.cs"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = parse("a\\""b c""\d.cs")
+            Assert.Equal(
+                New String() {"c:\test\a\b c\d.cs"},
+                args.SourceFiles.Select(Function(x) x.Path))
+
+            args = parse("/nostdlib /vbruntime- /r:""a.dll"",""b.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a.dll", "b.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = parse("/nostdlib /vbruntime- /r:""a-s.dll"",""b-s.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a-s.dll", "b-s.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+
+            args = parse("/nostdlib /vbruntime- /r:""a,s.dll"",""b,s.dll"" c.cs")
+            Assert.Equal(
+                New String() {"a,s.dll", "b,s.dll"},
+                args.MetadataReferences.Select(Function(x) x.Reference))
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    MustInherit Class MockAbstractDiagnosticAnalyzer
+    Friend MustInherit Class MockAbstractDiagnosticAnalyzer
         Inherits DiagnosticAnalyzer
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterCompilationStartAction(AddressOf CreateAnalyzerWithinCompilation)
-            context.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+            context.RegisterCompilationStartAction(
+                Sub(startContext As CompilationStartAnalysisContext)
+                    startContext.RegisterCompilationEndAction(AddressOf AnalyzeCompilation)
+                    CreateAnalyzerWithinCompilation(startContext)
+                End Sub)
         End Sub
 
         Public MustOverride Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
-        Public MustOverride Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public MustOverride Sub AnalyzeCompilation(context As CompilationAnalysisContext)
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Class HiddenDiagnosticAnalyzer
+    Friend Class HiddenDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
 
         Friend Shared ReadOnly Hidden01 As DiagnosticDescriptor = New DiagnosticDescriptor("Hidden01", "", "Throwing a diagnostic for #ExternalSource", "", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
@@ -6831,7 +7593,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.ExternalSourceDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6846,7 +7608,7 @@ out
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Class InfoDiagnosticAnalyzer
+    Friend Class InfoDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
 
         Friend Shared ReadOnly Info01 As DiagnosticDescriptor = New DiagnosticDescriptor("Info01", "", "Throwing a diagnostic for #Enable", "", DiagnosticSeverity.Info, isEnabledByDefault:=True)
@@ -6856,7 +7618,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.EnableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6871,7 +7633,7 @@ out
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Class WarningDiagnosticAnalyzer
+    Friend Class WarningDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
 
         Friend Shared ReadOnly Warning01 As DiagnosticDescriptor = New DiagnosticDescriptor("Warning01", "", "Throwing a diagnostic for types declared", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -6882,7 +7644,7 @@ out
             context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.NamedType)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6898,7 +7660,7 @@ out
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Class ErrorDiagnosticAnalyzer
+    Friend Class ErrorDiagnosticAnalyzer
         Inherits MockAbstractDiagnosticAnalyzer
 
         Friend Shared ReadOnly Error01 As DiagnosticDescriptor = New DiagnosticDescriptor("Error01", "", "Throwing a diagnostic for #Disable", "", DiagnosticSeverity.Error, isEnabledByDefault:=True)
@@ -6907,7 +7669,7 @@ out
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.DisableWarningDirectiveTrivia)
         End Sub
 
-        Public Overrides Sub AnalyzeCompilation(context As CompilationEndAnalysisContext)
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
         End Sub
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
@@ -6918,6 +7680,57 @@ out
 
         Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             context.ReportDiagnostic(Diagnostic.Create(Error01, context.Node.GetLocation()))
+        End Sub
+    End Class
+
+    Friend Class AdditionalFileDiagnosticAnalyzer
+        Inherits MockAbstractDiagnosticAnalyzer
+
+        Friend Shared ReadOnly Rule As DiagnosticDescriptor = New DiagnosticDescriptor("AdditionalFileDiagnostic", "", "Additional File Diagnostic: {0}", "", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+        Private ReadOnly _nonCompilerInputFile As String
+
+        Public Sub New(nonCompilerInputFile As String)
+            _nonCompilerInputFile = nonCompilerInputFile
+        End Sub
+
+        Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+            Get
+                Return ImmutableArray.Create(Rule)
+            End Get
+        End Property
+
+        Public Overrides Sub AnalyzeCompilation(context As CompilationAnalysisContext)
+        End Sub
+
+        Public Overrides Sub CreateAnalyzerWithinCompilation(context As CompilationStartAnalysisContext)
+            context.RegisterCompilationEndAction(AddressOf CompilationEndAction)
+        End Sub
+
+        Private Sub CompilationEndAction(context As CompilationAnalysisContext)
+            ' Diagnostic reported on additionals file, with valid span.
+            For Each additionalFile In context.Options.AdditionalFiles
+                ReportDiagnostic(additionalFile.Path, context)
+            Next
+
+            ' Diagnostic reported on an additional file, but with an invalid span.
+            ReportDiagnostic(context.Options.AdditionalFiles.First().Path, context, New TextSpan(0, 1000000)) ' Overflow span
+
+            ' Diagnostic reported on a file which is not an input for the compiler.
+            ReportDiagnostic(_nonCompilerInputFile, context)
+
+            ' Diagnostic reported on a non-existent file.
+            ReportDiagnostic("NonExistentPath", context)
+        End Sub
+
+        Private Sub ReportDiagnostic(path As String, context As CompilationAnalysisContext, Optional span As TextSpan = Nothing)
+            If span = Nothing Then
+                span = New TextSpan(0, 11)
+            End If
+
+            Dim linePosSpan = New LinePositionSpan(New LinePosition(0, 0), New LinePosition(0, span.End))
+            Dim diagLocation = Location.Create(path, span, linePosSpan)
+            Dim diag = Diagnostic.Create(Rule, diagLocation, IO.Path.GetFileNameWithoutExtension(path))
+            context.ReportDiagnostic(diag)
         End Sub
     End Class
 End Namespace

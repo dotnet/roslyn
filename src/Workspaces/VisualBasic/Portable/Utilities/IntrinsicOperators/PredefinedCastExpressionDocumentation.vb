@@ -11,17 +11,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
     Friend NotInheritable Class PredefinedCastExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
-        Private ReadOnly resultingType As ITypeSymbol
-        Private ReadOnly keywordText As String
+        Private ReadOnly _resultingType As ITypeSymbol
+        Private ReadOnly _keywordText As String
 
         Public Sub New(keywordKind As SyntaxKind, compilation As Compilation)
-            resultingType = compilation.GetTypeFromPredefinedCastKeyword(keywordKind)
-            keywordText = SyntaxFacts.GetText(keywordKind)
+            _resultingType = compilation.GetTypeFromPredefinedCastKeyword(keywordKind)
+            _keywordText = SyntaxFacts.GetText(keywordKind)
         End Sub
 
         Public Overrides ReadOnly Property DocumentationText As String
             Get
-                Return String.Format(VBWorkspaceResources.ConvertsToDataType, resultingType.ToDisplayString())
+                Return String.Format(VBWorkspaceResources.ConvertsToDataType, _resultingType.ToDisplayString())
             End Get
         End Property
 
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.ExpressionToConvert
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.Expression1
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -57,14 +57,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
         Public Overrides ReadOnly Property PrefixParts As IEnumerable(Of SymbolDisplayPart)
             Get
-                Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, keywordText),
+                Return {New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, _keywordText),
                         New SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, Nothing, "(")}
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeMetadataName As String
             Get
-                Return resultingType.ContainingNamespace.Name + "." + resultingType.MetadataName
+                Return _resultingType.ContainingNamespace.Name + "." + _resultingType.MetadataName
             End Get
         End Property
     End Class

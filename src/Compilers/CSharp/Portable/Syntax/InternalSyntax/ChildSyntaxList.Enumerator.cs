@@ -6,49 +6,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal struct Enumerator
         {
-            private readonly GreenNode node;
-            private int childIndex;
-            private GreenNode list;
-            private int listIndex;
-            private GreenNode currentChild;
+            private readonly GreenNode _node;
+            private int _childIndex;
+            private GreenNode _list;
+            private int _listIndex;
+            private GreenNode _currentChild;
 
             internal Enumerator(GreenNode node)
             {
-                this.node = node;
-                this.childIndex = -1;
-                this.listIndex = -1;
-                this.list = null;
-                this.currentChild = null;
+                _node = node;
+                _childIndex = -1;
+                _listIndex = -1;
+                _list = null;
+                _currentChild = null;
             }
 
             public bool MoveNext()
             {
-                if (node != null)
+                if (_node != null)
                 {
-                    if (this.list != null)
+                    if (_list != null)
                     {
-                        this.listIndex++;
+                        _listIndex++;
 
-                        if (this.listIndex < list.SlotCount)
+                        if (_listIndex < _list.SlotCount)
                         {
-                            this.currentChild = this.list.GetSlot(this.listIndex);
+                            _currentChild = _list.GetSlot(_listIndex);
                             return true;
                         }
 
-                        this.list = null;
-                        this.listIndex = -1;
+                        _list = null;
+                        _listIndex = -1;
                     }
 
                     while (true)
                     {
-                        this.childIndex++;
+                        _childIndex++;
 
-                        if (this.childIndex == node.SlotCount)
+                        if (_childIndex == _node.SlotCount)
                         {
                             break;
                         }
 
-                        var child = this.node.GetSlot(this.childIndex);
+                        var child = _node.GetSlot(_childIndex);
                         if (child == null)
                         {
                             continue;
@@ -56,37 +56,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         if ((SyntaxKind)child.RawKind == SyntaxKind.List)
                         {
-                            this.list = child;
-                            this.listIndex++;
+                            _list = child;
+                            _listIndex++;
 
-                            if (this.listIndex < this.list.SlotCount)
+                            if (_listIndex < _list.SlotCount)
                             {
-                                this.currentChild = this.list.GetSlot(this.listIndex);
+                                _currentChild = _list.GetSlot(_listIndex);
                                 return true;
                             }
                             else
                             {
-                                this.list = null;
-                                this.listIndex = -1;
+                                _list = null;
+                                _listIndex = -1;
                                 continue;
                             }
                         }
                         else
                         {
-                            this.currentChild = child;
+                            _currentChild = child;
                         }
 
                         return true;
                     }
                 }
 
-                this.currentChild = null;
+                _currentChild = null;
                 return false;
             }
 
             public GreenNode Current
             {
-                get { return this.currentChild; }
+                get { return _currentChild; }
             }
         }
     }

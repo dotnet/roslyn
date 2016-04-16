@@ -22,32 +22,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private struct ParameterMap
         {
-            private readonly int[] parameters;
-            private readonly int length;
+            private readonly int[] _parameters;
+            private readonly int _length;
 
             public ParameterMap(int[] parameters, int length)
             {
                 Debug.Assert(parameters == null || parameters.Length == length);
-                this.parameters = parameters;
-                this.length = length;
+                _parameters = parameters;
+                _length = length;
             }
 
-            public bool IsTrivial { get { return this.parameters == null; } }
+            public bool IsTrivial { get { return _parameters == null; } }
 
-            public int Length { get { return this.length; } }
+            public int Length { get { return _length; } }
 
             public int this[int argument]
             {
                 get
                 {
-                    Debug.Assert(0 <= argument && argument < length);
-                    return parameters == null ? argument : parameters[argument];
+                    Debug.Assert(0 <= argument && argument < _length);
+                    return _parameters == null ? argument : _parameters[argument];
                 }
             }
 
             public ImmutableArray<int> ToImmutableArray()
             {
-                return parameters.AsImmutableOrNull();
+                return _parameters.AsImmutableOrNull();
             }
         }
 
@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // them in the given order.
 
             // (1) Is there any argument without a corresponding parameter?
-            //
 
             if (unmatchedArgumentIndex != null)
             {
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (2) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
 
-
             int? nameUsedForPositional = NameUsedForPositional(arguments, argsToParameters);
             if (nameUsedForPositional != null)
             {
@@ -148,10 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (3) Is there any non-optional parameter without a corresponding argument?
 
             int? requiredParameterMissing = CheckForMissingRequiredParameter(argsToParameters, parameters, isMethodGroupConversion, expanded);
-
             if (requiredParameterMissing != null)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(requiredParameterMissing.Value);
+            }
+
+            // __arglist cannot be used with named arguments (as it doesn't have a name)
+            if (arguments.Names.Count != 0 && symbol.GetIsVararg())
+            {
+                return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }
 
             // We're good; this one might be applicable in the given form.
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   a parameter list with inaccessible names and no optional parameters is constructed, so that invocations cannot use 
             //   named parameters or omit optional arguments.
             // - For partial methods, the parameter list of the defining partial method declaration is used.
-            // - For all other other function members and delegates there is only a single parameter list, which is the one used.
+            // - For all other function members and delegates there is only a single parameter list, which is the one used.
             //
             // The position of an argument or parameter is defined as the number of arguments or
             // parameters preceding it in the argument list or parameter list.
@@ -291,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     are ignored if they are applicable only in their expanded form, or if one or more of their
             //     optional parameters do not have a corresponding parameter in the targeted delegate type.
             //   
-            // Therefore, no parameters are optional when performining method group conversion.  Alternatively,
+            // Therefore, no parameters are optional when performing method group conversion.  Alternatively,
             // we could eliminate methods based on the number of arguments, but then we wouldn't be able to
             // fall back on them if no other candidates were available.
 

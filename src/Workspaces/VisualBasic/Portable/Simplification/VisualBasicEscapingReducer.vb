@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' Same behavior for Multi Line Lambda
             If SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.AwaitKeyword Then
                 Dim enclosingSingleLineLambda = parent.GetAncestor(Of LambdaExpressionSyntax)()
-                If enclosingSingleLineLambda IsNot Nothing AndAlso enclosingSingleLineLambda.Begin.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
+                If enclosingSingleLineLambda IsNot Nothing AndAlso enclosingSingleLineLambda.SubOrFunctionHeader.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
                     Return identifier
                 End If
 
                 Dim enclosingMethodBlock = parent.GetAncestor(Of MethodBlockBaseSyntax)()
-                If enclosingMethodBlock IsNot Nothing AndAlso enclosingMethodBlock.Begin.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
+                If enclosingMethodBlock IsNot Nothing AndAlso enclosingMethodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
                     Return identifier
                 End If
             End If

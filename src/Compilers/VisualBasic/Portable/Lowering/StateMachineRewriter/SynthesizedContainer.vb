@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol)
         Private ReadOnly _typeMap As TypeSubstitution
 
-        Private Shared ReadOnly TypeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
+        Private Shared ReadOnly s_typeSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
             Function(container) DirectCast(container, SynthesizedContainer).TypeSubstitution
 
-        Private Shared ReadOnly CreateTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
+        Private Shared ReadOnly s_createTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
             Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(
                                                             typeParameter, container,
                                                             StringConstants.StateMachineTypeParameterPrefix & typeParameter.Name,
-                                                            TypeSubstitutionFactory)
+                                                            s_typeSubstitutionFactory)
 
         Protected Friend Sub New(topLevelMethod As MethodSymbol,
                                  typeName As String,
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Me._typeParameters =
                     SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(
-                        topLevelMethod.OriginalDefinition.TypeParameters, Me, CreateTypeParameter)
+                        topLevelMethod.OriginalDefinition.TypeParameters, Me, s_createTypeParameter)
 
                 Dim typeArgs(Me._typeParameters.Length - 1) As TypeSymbol
                 For ind = 0 To Me._typeParameters.Length - 1
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      newConstructedWrappedMethod.OriginalDefinition.TypeParameters,
                                                      typeArgs.AsImmutableOrNull())
 
-                Me._interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(Me._typeMap), NamedTypeSymbol))
+                Me._interfaces = originalInterfaces.SelectAsArray(Function(i) DirectCast(i.InternalSubstituteTypeParameters(Me._typeMap).AsTypeSymbolOnly(), NamedTypeSymbol))
             End If
         End Sub
 

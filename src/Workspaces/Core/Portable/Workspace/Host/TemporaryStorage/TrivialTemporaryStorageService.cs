@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
@@ -26,63 +28,65 @@ namespace Microsoft.CodeAnalysis
             return new TextStorage();
         }
 
-        private class StreamStorage : ITemporaryStreamStorage
+        private sealed class StreamStorage : ITemporaryStreamStorage
         {
-            private MemoryStream stream;
+            private MemoryStream _stream;
 
             public void Dispose()
             {
+                _stream?.Dispose();
+                _stream = null;
             }
 
             public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
             {
-                if (stream == null)
+                if (_stream == null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                stream.Position = 0;
-                return stream;
+                _stream.Position = 0;
+                return _stream;
             }
 
             public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
             {
-                if (stream == null)
+                if (_stream == null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                stream.Position = 0;
-                return Task.FromResult((Stream)stream);
+                _stream.Position = 0;
+                return Task.FromResult((Stream)_stream);
             }
 
             public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                this.stream = newStream;
+                _stream = newStream;
             }
 
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var newStream = new MemoryStream();
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
-                this.stream = newStream;
+                _stream = newStream;
             }
         }
 
-        private class TextStorage : ITemporaryTextStorage
+        private sealed class TextStorage : ITemporaryTextStorage
         {
-            private string text;
-            private Encoding encoding;
+            private SourceText _sourceText;
 
             public void Dispose()
             {
+                _sourceText = null;
             }
 
             public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
             {
-                return SourceText.From(text, encoding);
+                return _sourceText;
             }
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -92,10 +96,10 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
             {
-                // Decompose the SourceText into it's underlying parts, since we use it as a key
-                // into many other caches that don't expect it to be held
-                this.text = text.ToString();
-                this.encoding = text.Encoding;
+                // This is a trivial implementation, indeed. Note, however, that we retain a strong
+                // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
+                // is appropriate for this trivial implementation.
+                _sourceText = text;
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))

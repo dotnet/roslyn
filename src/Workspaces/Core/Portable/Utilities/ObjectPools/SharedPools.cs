@@ -57,7 +57,7 @@ namespace Roslyn.Utilities
         /// other I/O requests
         /// </summary>
         public static readonly ObjectPool<byte[]> ByteArray = new ObjectPool<byte[]>(() => new byte[ByteBufferSize], ByteBufferCount);
-        
+
         /// pooled memory : 4K * 512 = 4MB
         public const int ByteBufferSize = 4 * 1024;
         private const int ByteBufferCount = 512;

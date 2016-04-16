@@ -18,22 +18,22 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     public class MefV1HostServices : HostServices, IMefHostExportProvider
     {
         // the export provider for the MEF composition
-        private readonly ExportProvider exportProvider;
+        private readonly ExportProvider _exportProvider;
 
         // accumulated cache for exports
-        private ImmutableDictionary<ExportKey, IEnumerable> exportsMap
+        private ImmutableDictionary<ExportKey, IEnumerable> _exportsMap
             = ImmutableDictionary<ExportKey, IEnumerable>.Empty;
 
         private MefV1HostServices(ExportProvider exportProvider)
         {
-            this.exportProvider = exportProvider;
+            _exportProvider = exportProvider;
         }
 
         public static MefV1HostServices Create(ExportProvider exportProvider)
         {
             if (exportProvider == null)
             {
-                throw new ArgumentNullException("exportProvider");
+                throw new ArgumentNullException(nameof(exportProvider));
             }
 
             return new MefV1HostServices(exportProvider);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             if (assemblies == null)
             {
-                throw new ArgumentNullException("assemblies");
+                throw new ArgumentNullException(nameof(assemblies));
             }
 
             var catalog = new AggregateCatalog(assemblies.Select(a => new AssemblyCatalog(a)));
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             IEnumerable exports;
             var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
-            if (!this.exportsMap.TryGetValue(key, out exports))
+            if (!_exportsMap.TryGetValue(key, out exports))
             {
-                exports = ImmutableInterlocked.GetOrAdd(ref this.exportsMap, key, _ =>
+                exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
                 {
-                    return this.exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray();
+                    return _exportProvider.GetExports<TExtension, TMetadata>().ToImmutableArray();
                 });
             }
 
@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             IEnumerable exports;
             var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, "");
-            if (!this.exportsMap.TryGetValue(key, out exports))
+            if (!_exportsMap.TryGetValue(key, out exports))
             {
-                exports = ImmutableInterlocked.GetOrAdd(ref this.exportsMap, key, _ =>
-                    this.exportProvider.GetExports<TExtension>().ToImmutableArray());
+                exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
+                    _exportProvider.GetExports<TExtension>().ToImmutableArray());
             }
 
             return (IEnumerable<Lazy<TExtension>>)exports;
@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             internal readonly string ExtensionTypeName;
             internal readonly string MetadataTypeName;
-            private readonly int hash;
+            private readonly int _hash;
 
             public ExportKey(string extensionTypeName, string metadataTypeName)
             {
                 this.ExtensionTypeName = extensionTypeName;
                 this.MetadataTypeName = metadataTypeName;
-                this.hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
+                _hash = Hash.Combine(metadataTypeName.GetHashCode(), extensionTypeName.GetHashCode());
             }
 
             public bool Equals(ExportKey other)

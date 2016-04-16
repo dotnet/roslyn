@@ -46,7 +46,7 @@ Public Class ParseXml
 
     End Sub
 
-    <Fact(), WorkItem(545537, "DevDiv")>
+    <Fact(), WorkItem(545537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545537")>
     Public Sub ParseNameWhitespace()
         ' Basic xml literal test
 
@@ -65,7 +65,7 @@ End Module
 
     End Sub
 
-    <Fact(), WorkItem(529879, "DevDiv")>
+    <Fact(), WorkItem(529879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529879")>
     Public Sub ParseFWPercent()
         ' Basic xml literal test
 
@@ -100,7 +100,7 @@ End Module
 
     End Sub
 
-    <Fact(), WorkItem(546401, "DevDiv")>
+    <Fact(), WorkItem(546401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546401")>
     Public Sub ParseAccessorSpaceDisallowed01()
         ' Basic xml literal test
 
@@ -121,7 +121,7 @@ VB
 
     End Sub
 
-    <WorkItem(531396, "DevDiv")>
+    <WorkItem(531396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531396")>
     <Fact()>
     Public Sub ParseEmbeddedExpressionAttributeNoSpace()
         ParseAndVerify(<![CDATA[
@@ -198,7 +198,7 @@ End Module
 
     End Sub
 
-    <WorkItem(641680, "DevDiv")>
+    <WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
     <Fact>
     Public Sub ParseDocumentationComment()
         ParseAndVerify(<![CDATA[
@@ -221,7 +221,7 @@ End Class
             </errors>)
     End Sub
 
-    <WorkItem(641680, "DevDiv")>
+    <WorkItem(641680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641680")>
     <Fact>
     Public Sub ParseDocumentationComment2()
         ParseAndVerify(<![CDATA[
@@ -231,7 +231,7 @@ End Class
             ]]>)
     End Sub
 
-    <WorkItem(551848, "DevDiv")>
+    <WorkItem(551848, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551848")>
     <Fact()>
     Public Sub KeywordAndColonInXmlAttributeAccess()
         ParseAndVerify(<![CDATA[
@@ -451,7 +451,7 @@ end module
 
     End Sub
 
-    <WorkItem(539502, "DevDiv")>
+    <WorkItem(539502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539502")>
     <Fact>
     Public Sub ParseAttributeWithLeftDoubleQuotationMark()
         ParseAndVerify(<![CDATA[
@@ -461,7 +461,7 @@ End Module
         ]]>)
     End Sub
 
-    <WorkItem(539502, "DevDiv")>
+    <WorkItem(539502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539502")>
     <Fact>
     Public Sub ParseAttributeWithRegularDoubleQuotationMark()
         ParseAndVerify(<![CDATA[
@@ -1620,8 +1620,8 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(527094, "DevDiv")>
-    <WorkItem(586871, "DevDiv")>
+    <WorkItem(527094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527094")>
+    <WorkItem(586871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586871")>
     <Fact>
     Public Sub BC31197ERR_FullWidthAsXmlDelimiter_ParseXmlStart()
         ParseAndVerify(<![CDATA[
@@ -1726,7 +1726,7 @@ End Module]]>,
     <error id="31165"/>
 </errors>)
         'Note that the characters after "<?xml " upto and including "</>" above
-        'are are full-width unicode characters (not ascii).
+        'are full-width unicode characters (not ascii).
     End Sub
 
     <WorkItem(927834, "DevDiv/Personal")>
@@ -1780,9 +1780,9 @@ End Module]]>)
 Dim x = <?xml version="1.0" standalone=''?><doc/>
 End Module
  ]]>,
- <erors>
+ <errors>
      <error id="31182"/>
- </erors>)
+ </errors>)
     End Sub
 
     <WorkItem(930757, "DevDiv/Personal")>
@@ -1799,7 +1799,7 @@ End Module]]>, <errors>
                </errors>)
     End Sub
 
-    <WorkItem(537183, "DevDiv")>
+    <WorkItem(537183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537183")>
     <WorkItem(930327, "DevDiv/Personal")>
     <Fact>
     Public Sub BC31146ERR_ExpectedXmlName_ParseBadEncodingAttributeInPrologue()
@@ -1835,8 +1835,8 @@ vbCrLf &
               </errors>)
     End Sub
 
-    <WorkItem(538550, "DevDiv")>
-    <WorkItem(538551, "DevDiv")>
+    <WorkItem(538550, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538550")>
+    <WorkItem(538551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538551")>
     <Fact>
     Public Sub ParseXmlStringIncludingSmartQuotes()
         ParseAndVerify(
@@ -1870,7 +1870,7 @@ vbCrLf &
 "End Module")
     End Sub
 
-    <WorkItem(544979, "DevDiv")>
+    <WorkItem(544979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544979")>
     <Fact()>
     Public Sub ParseEmbeddedLambda()
         ParseAndVerify(<![CDATA[
@@ -1880,7 +1880,7 @@ End Module
  ]]>.Value)
     End Sub
 
-    <WorkItem(538241, "DevDiv")>
+    <WorkItem(538241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538241")>
     <Fact>
     Public Sub ParseXmlMemberFollowedByWSColon()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1908,7 +1908,7 @@ End Module
         Assert.Equal(memAccess.Name.ToString, "WriteLine")
     End Sub
 
-    <WorkItem(541291, "DevDiv")>
+    <WorkItem(541291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541291")>
     <Fact()>
     Public Sub Bug7954()
         '                   0123456789ABC
@@ -1918,7 +1918,7 @@ End Module
         Assert.Equal(code, tree.GetRoot().ToString())
     End Sub
 
-    <WorkItem(545076, "DevDiv")>
+    <WorkItem(545076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545076")>
     <Fact()>
     Public Sub WhitespaceInClosingTag()
         ParseAndVerify(<![CDATA[
@@ -1932,7 +1932,7 @@ End Module
             Diagnostic(ERRID.ERR_ExpectedLT, ""))
     End Sub
 
-    <WorkItem(529395, "DevDiv")>
+    <WorkItem(529395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529395")>
     <Fact()>
     Public Sub Bug12644()
         ParseAndVerify(<![CDATA[
@@ -1942,7 +1942,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(544399, "DevDiv")>
+    <WorkItem(544399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544399")>
     <Fact()>
     Public Sub BrokenEndElementStartInXmlDoc()
         ParseAndVerify(<![CDATA[
@@ -1957,8 +1957,8 @@ End Module
             Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected."))
     End Sub
 
-    <WorkItem(547320, "DevDiv")>
-    <WorkItem(548952, "DevDiv")>
+    <WorkItem(547320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547320")>
+    <WorkItem(548952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/548952")>
     <Fact()>
     Public Sub Bug18598()
         ParseAndVerify(<![CDATA[
@@ -1988,7 +1988,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(548996, "DevDiv")>
+    <WorkItem(548996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/548996")>
     <Fact()>
     Public Sub Bug548996()
         ParseAndVerify(<![CDATA[
@@ -2025,7 +2025,7 @@ Return : %>]]>.Value),
             Diagnostic(ERRID.ERR_ExpectedGreater, ""))
     End Sub
 
-    <WorkItem(575763, "DevDiv")>
+    <WorkItem(575763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575763")>
     <Fact()>
     Public Sub Bug575763()
         ParseAndVerify(<![CDATA[
@@ -2069,7 +2069,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(575780, "DevDiv")>
+    <WorkItem(575780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575780")>
     <Fact()>
     Public Sub Bug575780()
         ParseAndVerify(<![CDATA[
@@ -2196,7 +2196,7 @@ End Module
     ''' <summary>
     ''' As above but with lambda inside embedded expression.
     ''' </summary>
-    <WorkItem(575780, "DevDiv")>
+    <WorkItem(575780, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575780")>
     <Fact()>
     Public Sub Bug575780_EmbeddedExpression()
         ParseAndVerify(<![CDATA[
@@ -2346,7 +2346,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(577617, "DevDiv")>
+    <WorkItem(577617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577617")>
     <Fact()>
     Public Sub Bug577617()
         ParseAndVerify(String.Format(<source>
@@ -2357,7 +2357,7 @@ End Module
             Diagnostic(ERRID.ERR_FullWidthAsXmlDelimiter, "＜"))
     End Sub
 
-    <WorkItem(611206, "DevDiv")>
+    <WorkItem(611206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611206")>
     <Fact()>
     Public Sub Bug611206()
         ParseAndVerify(<![CDATA[
@@ -2370,7 +2370,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(602208, "DevDiv")>
+    <WorkItem(602208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/602208")>
     <Fact()>
     Public Sub Bug602208()
         ParseAndVerify(<![CDATA[
@@ -2381,16 +2381,7 @@ Module M
             
         %>/>
 End Module
-]]>,
-            <errors>
-                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
-                <error id="31151" message="Element is missing an end tag." start="22" end="112"/>
-                <error id="31159" message="Expected closing '%>' for embedded expression." start="88" end="88"/>
-                <error id="31169" message="Character '%' (&amp;H25) is not allowed at the beginning of an XML name." start="110" end="111"/>
-                <error id="30249" message="'=' expected." start="111" end="111"/>
-                <error id="31165" message="Expected beginning '&lt;' for an XML tag." start="126" end="126"/>
-                <error id="30636" message="'>' expected." start="126" end="126"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2399,11 +2390,7 @@ Module M
 
         )
 End Module
-]]>,
-            <errors>
-                <error id="30198" message="')' expected." start="58" end="58"/>
-                <error id="30035" message="Syntax error." start="68" end="69"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2414,17 +2401,7 @@ Module M
 
         ) %>/>
 End Module
-]]>,
-            <errors>
-                <error id="30625" message="'Module' statement must end with a matching 'End Module'." start="1" end="9"/>
-                <error id="31151" message="Element is missing an end tag." start="22" end="85"/>
-                <error id="30198" message="')' expected." start="69" end="69"/>
-                <error id="31159" message="Expected closing '%>' for embedded expression." start="69" end="69"/>
-                <error id="30636" message="'>' expected." start="81" end="82"/>
-                <error id="31169" message="Character '%' (&amp;H25) is not allowed at the beginning of an XML name." start="83" end="84"/>
-                <error id="31165" message="Expected beginning '&lt;' for an XML tag." start="99" end="99"/>
-                <error id="30636" message="'>' expected." start="99" end="99"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2436,10 +2413,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="147" end="155"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2452,10 +2426,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="178" end="186"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2467,10 +2438,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="149" end="157"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2482,10 +2450,7 @@ Module M
                 Select x
     End Sub
 End Module
-]]>,
-            <errors>
-                <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="154" end="162"/>
-            </errors>)
+]]>)
 
         ParseAndVerify(<![CDATA[
 Module M
@@ -2495,13 +2460,10 @@ Module M
  
         Distinct
 End Module
-]]>,
-            <errors>
-                <error id="30188" message="Declaration expected." start="99" end="107"/>
-            </errors>)
+]]>)
     End Sub
 
-    <WorkItem(598156, "DevDiv")>
+    <WorkItem(598156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598156")>
     <Fact()>
     Public Sub Bug598156()
         ParseAndVerify(<![CDATA[
@@ -2584,7 +2546,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(598799, "DevDiv")>
+    <WorkItem(598799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598799")>
     <Fact()>
     Public Sub Bug598799()
         ParseAndVerify(<![CDATA[
@@ -2628,7 +2590,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(601050, "DevDiv")>
+    <WorkItem(601050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601050")>
     <Fact()>
     Public Sub Bug601050()
         ParseAndVerify(<![CDATA[
@@ -2644,7 +2606,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(601899, "DevDiv")>
+    <WorkItem(601899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601899")>
     <Fact()>
     Public Sub Bug601899()
         ParseAndVerify(<![CDATA[
@@ -2756,7 +2718,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(607253, "DevDiv")>
+    <WorkItem(607253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607253")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors()
         ParseAndVerify(<![CDATA[
@@ -2824,7 +2786,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(607352, "DevDiv")>
+    <WorkItem(607352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607352")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors_2()
         ParseAndVerify(<![CDATA[
@@ -2840,7 +2802,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(607560, "DevDiv")>
+    <WorkItem(607560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607560")>
     <Fact()>
     Public Sub GetXmlNamespaceErrors_3()
         ParseAndVerify(<![CDATA[
@@ -2860,7 +2822,7 @@ End Module
 ]]>)
     End Sub
 
-    <WorkItem(610345, "DevDiv")>
+    <WorkItem(610345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610345")>
     <Fact()>
     Public Sub Bug610345()
         ParseAndVerify(<![CDATA[
@@ -3237,7 +3199,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(671111, "DevDiv")>
+    <WorkItem(671111, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/671111")>
     <Fact()>
     Public Sub Bug671111()
         ParseAndVerify(<![CDATA[
@@ -3267,7 +3229,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(673558, "DevDiv")>
+    <WorkItem(673558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673558")>
     <Fact()>
     Public Sub Bug673558()
         ParseAndVerify(<![CDATA[
@@ -3307,7 +3269,7 @@ REM]]>,
             </errors>)
     End Sub
 
-    <WorkItem(673638, "DevDiv")>
+    <WorkItem(673638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673638")>
     <Fact()>
     Public Sub NotLessThan_Imports()
         ParseAndVerify(<![CDATA[
@@ -3515,7 +3477,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(674567, "DevDiv")>
+    <WorkItem(674567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674567")>
     <Fact()>
     Public Sub Bug674567()
         ParseAndVerify(<![CDATA[
@@ -3548,6 +3510,46 @@ End Module
                 <error id="30636"/>
                 <error id="31159"/>
             </errors>)
+    End Sub
+
+    <Fact()>
+    Public Sub XmlNameTokenPossibleKeywordKind()
+        Const sourceTemplate = "
+Module M
+    Dim x = <{0}:
+y a=""/>
+End Module
+"
+
+        Const squiggleTemplate = "<{0}:
+y a=""/>
+End Module
+"
+        Dim commonExpectedErrors =
+        {
+            Diagnostic(ERRID.ERR_ExpectedEndModule, "Module M"),
+            Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "
+"),
+            Diagnostic(ERRID.ERR_ExpectedXmlName, "y"),
+            Diagnostic(ERRID.ERR_ExpectedQuote, ""),
+            Diagnostic(ERRID.ERR_ExpectedLT, ""),
+            Diagnostic(ERRID.ERR_ExpectedGreater, "")
+        }
+
+        Dim tree1 = Parse(String.Format(sourceTemplate, "e"))
+        tree1.GetDiagnostics().Verify(commonExpectedErrors.Concat({Diagnostic(ERRID.ERR_MissingXmlEndTag, String.Format(squiggleTemplate, "e"))}).ToArray())
+
+        Dim tree2 = Parse(String.Format(sourceTemplate, "ee"))
+        tree2.GetDiagnostics().Verify(commonExpectedErrors.Concat({Diagnostic(ERRID.ERR_MissingXmlEndTag, String.Format(squiggleTemplate, "ee"))}).ToArray())
+
+        Dim getPossibleKeywordKind = Function(x As XmlNameSyntax) DirectCast(x.Green, InternalSyntax.XmlNameSyntax).LocalName.PossibleKeywordKind
+
+        Dim kinds1 = tree1.GetRoot().DescendantNodes().OfType(Of XmlNameSyntax).Select(getPossibleKeywordKind)
+        Assert.NotEmpty(kinds1)
+        AssertEx.All(kinds1, Function(k) k = SyntaxKind.XmlNameToken)
+
+        Dim kinds2 = tree2.GetRoot().DescendantNodes().OfType(Of XmlNameSyntax).Select(getPossibleKeywordKind)
+        Assert.Equal(kinds1, kinds2)
     End Sub
 
     <Fact()>
@@ -3628,7 +3630,7 @@ Dim x = F(<?xml version="1.0" encoding=<%=F(
             </errors>)
     End Sub
 
-    <WorkItem(682381, "DevDiv")>
+    <WorkItem(682381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682381")>
     <Fact()>
     Public Sub Bug682381()
         ParseAndVerify(<![CDATA[
@@ -3646,7 +3648,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(682391, "DevDiv")>
+    <WorkItem(682391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682391")>
     <Fact()>
     Public Sub Bug682391()
         ParseAndVerify(<![CDATA[
@@ -3678,7 +3680,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(682394, "DevDiv")>
+    <WorkItem(682394, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682394")>
     <Fact()>
     Public Sub Bug682394()
         ParseAndVerify(<![CDATA[
@@ -3763,7 +3765,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(684872, "DevDiv")>
+    <WorkItem(684872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684872")>
     <Fact()>
     Public Sub Bug684872()
         ParseAndVerify(<![CDATA[
@@ -3854,7 +3856,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(693901, "DevDiv")>
+    <WorkItem(693901, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/693901")>
     <Fact()>
     Public Sub Bug693901()
         ParseAndVerify(<![CDATA[
@@ -3920,7 +3922,7 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(716121, "DevDiv")>
+    <WorkItem(716121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716121")>
     <Fact()>
     Public Sub Bug716121()
         ParseAndVerify(<![CDATA[
@@ -3964,7 +3966,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(697114, "DevDiv")>
+    <WorkItem(697114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697114")>
     <Fact()>
     Public Sub Bug697114()
         ' No attributes.
@@ -4393,7 +4395,7 @@ End Module
     ''' Also, the second colon should never be parsed as a qualified XML name separator.
     ''' </summary>
     <Fact>
-    <WorkItem(529880)>
+    <WorkItem(529880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529880")>
     Public Sub NoRemInXmlNames()
 
         ParseAndVerify(<![CDATA[
@@ -4459,24 +4461,54 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
 
     End Sub
 
-    <WorkItem(969980)>
-    <Fact(Skip:="969980")>
+    <WorkItem(969980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969980")>
+    <WorkItem(123533, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=123533")>
+    <Fact>
     Public Sub UnaliasedXmlImport_Local()
         Dim source = "
 Imports <xmlns = ""http://xml"">
 "
-        CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll).VerifyDiagnostics(
-            Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
+        Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll)
+
+        Const bug123533IsFixed = False
+
+        If bug123533IsFixed Then
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC50001: Unused import statement.
+Imports <xmlns = "http://xml">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               ]]></expected>, False)
+        Else
+            compilation.AssertTheseDiagnostics(<expected><![CDATA[
+BC50001: Unused import statement.
+Imports <xmlns = "http://xml">
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31187: Namespace declaration must start with 'xmlns'.
+Imports <xmlns = "http://xml">
+         ~
+BC30636: '>' expected.
+Imports <xmlns = "http://xml">
+         ~~~~~
+                                               ]]></expected>, False)
+        End If
     End Sub
 
-    <WorkItem(969980)>
-    <Fact(Skip:="969980")>
+    <WorkItem(969980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969980")>
+    <WorkItem(123533, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=123533")>
+    <Fact>
     Public Sub UnaliasedXmlImport_Project()
-        CreateCompilationWithMscorlib({""}, compOptions:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
+        Dim import = "<xmlns = ""http://xml"">"
+        Const bug123533IsFixed = False
+
+        If bug123533IsFixed Then
+            CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse(import))).VerifyDiagnostics()
+        Else
+            Assert.Throws(Of ArgumentException)(Sub() GlobalImport.Parse(import))
+        End If
     End Sub
 
-    <WorkItem(1042696)>
-    <Fact(Skip:="1042696")>
+    <WorkItem(1042696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1042696")>
+    <Fact>
     Public Sub ParseXmlTrailingNewLinesBeforeDistinct()
         ParseAndVerify(<![CDATA[
 Module M

@@ -31,16 +31,16 @@ namespace Roslyn.Utilities
     internal sealed class NonReentrantLock
     {
         /// <summary>
-        /// A synchronization object to protect access to the <see cref="owningThreadId"/> field and to be pulsed
+        /// A synchronization object to protect access to the <see cref="_owningThreadId"/> field and to be pulsed
         /// when <see cref="Release"/> is called and during cancellation.
         /// </summary>
-        private readonly object syncLock;
+        private readonly object _syncLock;
 
         /// <summary>
         /// The <see cref="Environment.CurrentManagedThreadId" /> of the thread that holds the lock. Zero if no thread is holding
         /// the lock.
         /// </summary>
-        private volatile int owningThreadId;
+        private volatile int _owningThreadId;
 
         /// <summary>
         /// Constructor.
@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
         /// </param>
         public NonReentrantLock(bool useThisInstanceForSynchronization = false)
         {
-            this.syncLock = useThisInstanceForSynchronization ? this : new object();
+            _syncLock = useThisInstanceForSynchronization ? this : new object();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Roslyn.Utilities
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Fast path to try and avoid allocations in callback registration.
-                lock (this.syncLock)
+                lock (_syncLock)
                 {
                     if (!this.IsLocked)
                     {
@@ -97,7 +97,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                cancellationTokenRegistration = cancellationToken.Register(cancellationTokenCanceledEventHandler, this.syncLock, useSynchronizationContext: false);
+                cancellationTokenRegistration = cancellationToken.Register(s_cancellationTokenCanceledEventHandler, _syncLock, useSynchronizationContext: false);
             }
 
             using (cancellationTokenRegistration)
@@ -111,7 +111,7 @@ namespace Roslyn.Utilities
                     spin.SpinOnce();
                 }
 
-                lock (this.syncLock)
+                lock (_syncLock)
                 {
                     while (this.IsLocked)
                     {
@@ -122,7 +122,7 @@ namespace Roslyn.Utilities
                         {
                             // Another thread holds the lock. Wait until we get awoken either
                             // by some code calling "Release" or by cancellation.
-                            Monitor.Wait(this.syncLock);
+                            Monitor.Wait(_syncLock);
                         }
                     }
 
@@ -138,17 +138,17 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// The calling thread must currently hold the lock.
         /// </remarks>
-        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="InvalidOperationException">The lock is not currently held by the calling thread.</exception>
         public void Release()
         {
             AssertHasLock();
 
-            lock (this.syncLock)
+            lock (_syncLock)
             {
                 this.ReleaseOwnership();
 
                 // Release one waiter
-                Monitor.Pulse(this.syncLock);
+                Monitor.Pulse(_syncLock);
             }
         }
 
@@ -164,7 +164,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Throw an exception if the lock is not held by the calling thread.
         /// </summary>
-        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="InvalidOperationException">The lock is not currently held by the calling thread.</exception>
         public void AssertHasLock()
         {
             Contract.ThrowIfFalse(LockHeldByMe());
@@ -177,7 +177,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return this.owningThreadId != 0;
+                return _owningThreadId != 0;
             }
         }
 
@@ -188,7 +188,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                return this.owningThreadId == Environment.CurrentManagedThreadId;
+                return _owningThreadId == Environment.CurrentManagedThreadId;
             }
         }
 
@@ -199,7 +199,7 @@ namespace Roslyn.Utilities
         private void TakeOwnership()
         {
             Contract.Assert(!this.IsLocked);
-            this.owningThreadId = Environment.CurrentManagedThreadId;
+            _owningThreadId = Environment.CurrentManagedThreadId;
         }
 
         /// <summary>
@@ -208,13 +208,13 @@ namespace Roslyn.Utilities
         private void ReleaseOwnership()
         {
             Contract.Assert(this.IsOwnedByMe);
-            this.owningThreadId = 0;
+            _owningThreadId = 0;
         }
 
         /// <summary>
         /// Action object passed to a cancellation token registration.
         /// </summary>
-        private static readonly Action<object> cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
+        private static readonly Action<object> s_cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
 
         /// <summary>
         /// Callback executed when a cancellation token is canceled during a Wait.
@@ -240,16 +240,16 @@ namespace Roslyn.Utilities
         /// </summary>
         public struct SemaphoreDisposer : IDisposable
         {
-            private readonly NonReentrantLock semaphore;
+            private readonly NonReentrantLock _semaphore;
 
             public SemaphoreDisposer(NonReentrantLock semaphore)
             {
-                this.semaphore = semaphore;
+                _semaphore = semaphore;
             }
 
             public void Dispose()
             {
-                semaphore.Release();
+                _semaphore.Release();
             }
         }
     }

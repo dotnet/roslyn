@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     ///                      non-viable results.
     ///    a non-viable result - a result that means that the search continues into further scopes of lower priority for
     ///                          a viable or non-accessible result. An error is attached with the error that indicates
-    ///                          why the result is non-viable.  A typical readon would be that it is the wrong kind of symbol.
+    ///                          why the result is non-viable.  A typical reason would be that it is the wrong kind of symbol.
     /// 
-    /// Note that the class is poolable so its instances can be obtained from a pool vai GetInstance.
+    /// Note that the class is poolable so its instances can be obtained from a pool via GetInstance.
     /// Also it is a good idea to call Free on instances after they no longer needed.
     /// 
     /// The typical pattern is "caller allocates / caller frees" -
@@ -57,44 +57,44 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class LookupResult
     {
         // the kind of result.
-        private LookupResultKind kind;
+        private LookupResultKind _kind;
 
         // If there is more than one symbol, they are stored in this list.
-        private readonly ArrayBuilder<Symbol> symbolList;
+        private readonly ArrayBuilder<Symbol> _symbolList;
 
         // the error of the result, if it is NonViable or Inaccessible
-        private DiagnosticInfo error;
+        private DiagnosticInfo _error;
 
-        private readonly ObjectPool<LookupResult> pool;
+        private readonly ObjectPool<LookupResult> _pool;
 
         private LookupResult(ObjectPool<LookupResult> pool)
         {
-            this.pool = pool;
-            this.kind = LookupResultKind.Empty;
-            this.symbolList = new ArrayBuilder<Symbol>();
-            this.error = null;
+            _pool = pool;
+            _kind = LookupResultKind.Empty;
+            _symbolList = new ArrayBuilder<Symbol>();
+            _error = null;
         }
 
         internal bool IsClear
         {
             get
             {
-                return kind == LookupResultKind.Empty && error == null && symbolList.Count == 0;
+                return _kind == LookupResultKind.Empty && _error == null && _symbolList.Count == 0;
             }
         }
 
         internal void Clear()
         {
-            this.kind = LookupResultKind.Empty;
-            this.symbolList.Clear();
-            this.error = null;
+            _kind = LookupResultKind.Empty;
+            _symbolList.Clear();
+            _error = null;
         }
 
         internal LookupResultKind Kind
         {
             get
             {
-                return kind;
+                return _kind;
             }
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (this.symbolList.Count == 1) ? this.symbolList[0] : null;
+                return (_symbolList.Count == 1) ? _symbolList[0] : null;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return symbolList;
+                return _symbolList;
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return error;
+                return _error;
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == LookupResultKind.Viable && symbolList.Count == 1;
+                return Kind == LookupResultKind.Viable && _symbolList.Count == 1;
             }
         }
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static SingleLookupResult NotTypeOrNamespace(Symbol unwrappedSymbol, Symbol symbol, bool diagnose)
         {
             // TODO: determine correct diagnosis 
-            var diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadSKknown, unwrappedSymbol, unwrappedSymbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize()) : null;
+            var diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadSKknown, unwrappedSymbol.Name, unwrappedSymbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize()) : null;
             return new SingleLookupResult(LookupResultKind.NotATypeOrNamespace, symbol, diagInfo);
         }
 
@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void SetFrom(SingleLookupResult other)
         {
-            this.kind = other.Kind;
-            this.symbolList.Clear();
-            this.symbolList.Add(other.Symbol);
-            this.error = other.Error;
+            _kind = other.Kind;
+            _symbolList.Clear();
+            _symbolList.Add(other.Symbol);
+            _error = other.Error;
         }
 
         /// <summary>
@@ -216,16 +216,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void SetFrom(LookupResult other)
         {
-            this.kind = other.kind;
-            this.symbolList.Clear();
-            this.symbolList.AddRange(other.symbolList);
-            this.error = other.error;
+            _kind = other._kind;
+            _symbolList.Clear();
+            _symbolList.AddRange(other._symbolList);
+            _error = other._error;
         }
 
         internal void SetFrom(DiagnosticInfo error)
         {
             this.Clear();
-            this.error = error;
+            _error = error;
         }
 
         // Merge another result with this one, with the current result being prioritized
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Merging two viable results together. We will always end up with at least two symbols.
-                this.symbolList.AddRange(other.symbolList);
+                _symbolList.AddRange(other._symbolList);
             }
         }
 
@@ -279,13 +279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((object)result.Symbol != null)
             {
                 // Same goodness. Include all symbols
-                this.symbolList.Add(result.Symbol);
+                _symbolList.Add(result.Symbol);
             }
         }
 
         // global pool
         //TODO: consider if global pool is ok.
-        private static readonly ObjectPool<LookupResult> PoolInstance = CreatePool();
+        private static readonly ObjectPool<LookupResult> s_poolInstance = CreatePool();
 
         // if someone needs to create a pool
         internal static ObjectPool<LookupResult> CreatePool()
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static LookupResult GetInstance()
         {
-            var instance = PoolInstance.Allocate();
+            var instance = s_poolInstance.Allocate();
             Debug.Assert(instance.IsClear);
             return instance;
         }
@@ -305,9 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void Free()
         {
             this.Clear();
-            if (pool != null)
+            if (_pool != null)
             {
-                pool.Free(this);
+                _pool.Free(this);
             }
         }
     }

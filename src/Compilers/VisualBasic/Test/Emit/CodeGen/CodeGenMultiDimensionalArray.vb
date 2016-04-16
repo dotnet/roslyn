@@ -4,11 +4,11 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
-    Public Class CodeGenMulti_dimentional
+    Public Class CodeGenMultiDimensionalArray
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer()
+        Public Sub MultiDimensionalArrayCreateWithInitializer()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -19,7 +19,7 @@ public Module A
     End Sub
 End Module
     </file>
-            </compilation>,
+            </compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"),
             expectedOutput:="2").
                         VerifyIL("A.Main",
             <![CDATA[
@@ -30,7 +30,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-D64E555B758C5B66DFAC42F18587BB1B3C9BCFA8"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.D64E555B758C5B66DFAC42F18587BB1B3C9BCFA8"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  ldc.i4.1
   IL_0013:  ldc.i4.1
@@ -42,7 +42,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer001()
+        Public Sub MultiDimensionalArrayCreateWithInitializer001()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -53,7 +53,7 @@ public Module A
     End Sub
 End Module
     </file>
-            </compilation>,
+            </compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"),
             expectedOutput:="42").
                         VerifyIL("A.Main",
             <![CDATA[
@@ -64,7 +64,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.$$method0x6000001-A4B74E064E285570B3499538C5B205C3D0972FDF"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A4B74E064E285570B3499538C5B205C3D0972FDF"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  dup
   IL_0013:  ldc.i4.1
@@ -82,7 +82,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer002()
+        Public Sub MultiDimensionalArrayCreateWithInitializer002()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -149,7 +149,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer003()
+        Public Sub MultiDimensionalArrayCreateWithInitializer003()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -178,7 +178,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateWithInitializer004()
+        Public Sub MultiDimensionalArrayCreateWithInitializer004()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -207,7 +207,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreate()
+        Public Sub MultiDimensionalArrayCreate()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -236,7 +236,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayCreateGeneric()
+        Public Sub MultiDimensionalArrayCreateGeneric()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -277,7 +277,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub MultidimendionalArrayGetSetAddress()
+        Public Sub MultiDimensionalArrayGetSetAddress()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">
@@ -347,7 +347,7 @@ End Module
 ]]>)
         End Sub
 
-        <WorkItem(542259, "DevDiv")>
+        <WorkItem(542259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542259")>
         <Fact>
         Public Sub MixMultiAndJaggedArray()
             CompileAndVerify(
@@ -780,7 +780,7 @@ End Module
         End Sub
 
         ' Accessing an array's 0th element should work fine
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessZero()
             CompileAndVerify(
@@ -817,7 +817,7 @@ End Module
         End Sub
 
         ' Accessing an array's maxlength element should work fine
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessMaxLength()
             CompileAndVerify(
@@ -854,7 +854,7 @@ End Module
         End Sub
 
         ' Accessing an array's -1 element should throw an exception
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessLessThanMin()
             CompileAndVerify(
@@ -916,7 +916,7 @@ End Module
         End Sub
 
         ' Accessing an array's maxlength+1 element should throw an exception
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessGreaterThanMax()
             CompileAndVerify(
@@ -975,7 +975,7 @@ End Module
         End Sub
 
         ' Accessing an array's index with a variable of type int, short, byte should work
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessWithDifferentType()
             CompileAndVerify(
@@ -1055,7 +1055,7 @@ End Module
         End Sub
 
         ' Passing an element to a function as a byVal or byRef parameter should work
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub ArrayAsArgument()
             CompileAndVerify(
@@ -1124,7 +1124,7 @@ End Module
         End Sub
 
         ' Passing an element to a function as a byVal or byRef parameter should work
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub ArrayAsArgument_1()
             CompileAndVerify(
@@ -1176,7 +1176,7 @@ End Module
         End Sub
 
         ' Assigning nothing to an array variable
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AssignNothingToArray()
             CompileAndVerify(
@@ -1264,7 +1264,7 @@ End Module
         End Sub
 
         ' Access index by enum
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AccessIndexByEnum()
             CompileAndVerify(
@@ -1305,7 +1305,7 @@ End Enum
         End Sub
 
         ' Assigning a struct variable to an element should work
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
         Public Sub AssigningStructToElement()
             CompileAndVerify(
@@ -1350,9 +1350,9 @@ End Structure
         End Sub
 
         ' Using foreach on a multi-dimensional array
-        <WorkItem(528752, "DevDiv")>
+        <WorkItem(528752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528752")>
         <Fact>
-        Public Sub TravallingMultiDemensionalArray()
+        Public Sub ForEachMultiDimensionalArray()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

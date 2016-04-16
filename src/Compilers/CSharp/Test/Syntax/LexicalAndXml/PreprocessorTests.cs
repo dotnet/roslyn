@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-//test
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     #region Local types for verification
@@ -66,21 +66,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Helpers
 
-        private CSharpParseOptions GetOptions(string[] defines)
+        private CSharpParseOptions GetOptions(SourceCodeKind kind, string[] defines)
         {
-            return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, preprocessorSymbols: defines);
+            return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, kind: kind, preprocessorSymbols: defines);
         }
 
         private CompilationUnitSyntax Parse(string text, params string[] defines)
         {
-            var options = this.GetOptions(defines);
+            return Parse(text, SourceCodeKind.Regular, defines);
+        }
+
+        private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
+        {
+            var options = this.GetOptions(kind, defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
 
         private SyntaxTree ParseTree(string text, params string[] defines)
         {
-            var options = this.GetOptions(defines);
+            var options = this.GetOptions(SourceCodeKind.Regular, defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
@@ -1351,7 +1356,7 @@ class A
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541898, "DevDiv")]
+        [WorkItem(541898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541898")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestIfNoEmptyTrivia()
@@ -1575,7 +1580,7 @@ class A
             VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
         }
 
-        [WorkItem(542198, "DevDiv")]
+        [WorkItem(542198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542198")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegElifWithoutIfWithSkipped()
@@ -2025,7 +2030,7 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A//B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A//B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A//B", regionText.ToFullString());
@@ -2047,7 +2052,7 @@ return (i);
                 new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-            Assert.Equal("#region A/\\B\r\n", regionDirective.ToFullString());
+            Assert.Equal($"#region A/\\B{Environment.NewLine}", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A/\\B", regionText.ToFullString());
@@ -2075,7 +2080,7 @@ class Test
         [WorkItem(906835, "DevDiv/Personal")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressNegRegionWithInvalidExcapeString()
+        public void TestRegressNegRegionWithInvalidEscapeString()
         {
             // Dev10 compiler gives errors CS1009
             var text = @"
@@ -2105,10 +2110,10 @@ class Test
             VerifyMembers(node);
         }
 
-        [WorkItem(527079, "DevDiv")]
+        [WorkItem(527079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527079")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressRegionWithExcapeUnicodePrefixOnly()
+        public void TestRegressRegionWithEscapeUnicodePrefixOnly()
         {
             // [Breaking Change] Dev10 compiler gives errors CS1009
             var text = @"#region \u
@@ -2347,7 +2352,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_01()
         {
@@ -2371,7 +2376,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_02()
         {
@@ -2404,7 +2409,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_03()
         {
@@ -2434,7 +2439,7 @@ class A { }
                 new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [Fact, WorkItem(869243, "DevDiv")]
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
         [Trait("Feature", "Directives")]
         public void Bug869243_04()
         {
@@ -2916,7 +2921,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541954, "DevDiv")]
+        [WorkItem(541954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541954")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestErrorWithNonLatinChars()
@@ -2929,7 +2934,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
-        [WorkItem(541953, "DevDiv")]
+        [WorkItem(541953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541953")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestDiagnosticStringFileName()
@@ -2953,7 +2958,7 @@ class A { }
             var error = tree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
             string errorString = error.ToString();
-            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf("("));
+            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf('('));
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 
@@ -3159,7 +3164,7 @@ class A { }
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 12345, Text = "bogus.cs" });
         }
 
-        [WorkItem(536699, "DevDiv")]
+        [WorkItem(536699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536699")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestRegressNegLineWithErrorMessage()
@@ -3177,7 +3182,7 @@ x = 1;
             VerifyDirectivesSpecial(tree.GetCompilationUnitRoot(), new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 100, Text = "test.cs" });
 
             var diagnostics = tree.GetDiagnostics();
-            Assert.Contains("100", diagnostics.First().ToString()); // one-based line number
+            Assert.Contains("100", diagnostics.First().ToString(), StringComparison.Ordinal); // one-based line number
 
             var lineSpan = diagnostics.First().Location.GetMappedLineSpan();
             Assert.Equal(99, lineSpan.StartLinePosition.Line); // zero-based line number
@@ -3215,7 +3220,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981, "DevDiv")]
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithoutSpaceBeforeFile()
@@ -3232,7 +3237,7 @@ public class Test
             VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
         }
 
-        [WorkItem(537981, "DevDiv")]
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
         [Fact]
         [Trait("Feature", "Directives")]
         public void TestNegLineWithZeroWidthSpaceBeforeFile()
@@ -3317,7 +3322,7 @@ public class Test
             });
         }
 
-        [Fact, WorkItem(536701, "DevDiv"), WorkItem(530051, "DevDiv")]
+        [Fact, WorkItem(536701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536701"), WorkItem(530051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530051")]
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {
@@ -3708,7 +3713,7 @@ static void Main() { }
         public void TestReference()
         {
             var text = @"#r ""bogus""";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
             {
@@ -3723,7 +3728,7 @@ static void Main() { }
         public void TestReferenceWithComment()
         {
             var text = @"#r ""bogus"" // FOO";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
             {
@@ -3796,11 +3801,73 @@ static void Main() { }
 #r ""C:\Documents and Settings\someuser\Local Settings\Temp\{f0a37341-d692-11d4-a984-009027ec0a9c}\test.cs"" // comment
 #r ""mailto://someuser@microsoft.com""
 ";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectives(node, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
                 SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
                 SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia);
+        }
+
+        #endregion
+
+        #region #load
+
+        [Fact]
+        public void TestLoad()
+        {
+            var text = "#load \"bogus\"";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
+
+        [Fact]
+        public void TestLoadWithoutFile()
+        {
+            var text = "#load";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+            });
+            Assert.True(node.GetLoadDirectives().Single().File.IsMissing);
+        }
+
+        [Fact]
+        public void TestLoadWithSemicolon()
+        {
+            var text = "#load \"\";";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = ""
+            });
+        }
+
+        [Fact]
+        public void TestLoadWithComment()
+        {
+            var text = "#load \"bogus\" // comment";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
         }
 
         #endregion

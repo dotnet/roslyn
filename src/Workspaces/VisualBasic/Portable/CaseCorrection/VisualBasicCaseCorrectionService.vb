@@ -13,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
     Partial Friend Class VisualBasicCaseCorrectionService
         Inherits AbstractCaseCorrectionService
 
-        Private Const Threshold As Integer = 50
-        Private Const AttributeSuffix = "Attribute"
+        Private Const s_threshold As Integer = 50
+        Private Const s_attributeSuffix = "Attribute"
 
-        Private ReadOnly syntaxFactsService As ISyntaxFactsService
+        Private ReadOnly _syntaxFactsService As ISyntaxFactsService
 
         Public Sub New(provider As HostLanguageServices)
-            syntaxFactsService = provider.GetService(Of ISyntaxFactsService)()
+            _syntaxFactsService = provider.GetService(Of ISyntaxFactsService)()
         End Sub
 
         Protected Overrides Sub AddReplacements(semanticModel As SemanticModel,
@@ -43,9 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return
             End If
 
-            Dim rewriter = New Rewriter(syntaxFactsService, TryCast(semanticModel, SemanticModel), cancellationToken)
+            Dim rewriter = New Rewriter(_syntaxFactsService, semanticModel, cancellationToken)
 
-            If span.Length <= Threshold Then
+            If span.Length <= s_threshold Then
                 candidates.Do(Sub(t) Rewrite(t, rewriter, replacements))
             Else
                 ' checkIdentifier is expensive. make sure we run this in parallel.

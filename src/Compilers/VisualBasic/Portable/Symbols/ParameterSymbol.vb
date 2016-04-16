@@ -261,13 +261,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
         ''' Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        ''' interop scenarios, we need to support such signatures.  When this flag Is set, we need to reverse the
-        ''' emit order.
+        ''' interop scenarios, we need to support such signatures. 
+        ''' Should be 0 for non-ref parameters.
         ''' </summary>
-        ''' <remarks>
-        ''' We support before (correct) And after (incorrect, but works), but Not in between.
-        ''' </remarks>
-        Friend MustOverride ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend MustOverride ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
 
         Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
             Get

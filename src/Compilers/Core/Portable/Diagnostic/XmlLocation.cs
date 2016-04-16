@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class XmlLocation : Location, IEquatable<XmlLocation>
     {
-        private readonly FileLinePositionSpan positionSpan;
+        private readonly FileLinePositionSpan _positionSpan;
 
         private XmlLocation(string path, int lineNumber, int columnNumber)
         {
             LinePosition start = new LinePosition(lineNumber, columnNumber);
             LinePosition end = new LinePosition(lineNumber, columnNumber + 1);
-            this.positionSpan = new FileLinePositionSpan(path, start, end);
+            _positionSpan = new FileLinePositionSpan(path, start, end);
         }
 
         public static XmlLocation Create(XmlException exception, string path)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
         public override FileLinePositionSpan GetLineSpan()
         {
-            return this.positionSpan;
+            return _positionSpan;
         }
 
         public bool Equals(XmlLocation other)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return other != null && other.positionSpan.Equals(this.positionSpan);
+            return other != null && other._positionSpan.Equals(_positionSpan);
         }
 
         public override bool Equals(object obj)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.positionSpan.GetHashCode();
+            return _positionSpan.GetHashCode();
         }
     }
 }

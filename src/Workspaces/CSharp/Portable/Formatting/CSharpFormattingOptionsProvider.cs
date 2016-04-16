@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportOptionProvider, Shared]
     internal class CSharpFormattingOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
             {
                 CSharpFormattingOptions.SpacingAfterMethodDeclarationName,
                 CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis,
@@ -46,10 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine,
                 CSharpFormattingOptions.NewLinesForBracesInTypes,
                 CSharpFormattingOptions.NewLinesForBracesInMethods,
+                CSharpFormattingOptions.NewLinesForBracesInProperties,
+                CSharpFormattingOptions.NewLinesForBracesInAccessors,
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods,
                 CSharpFormattingOptions.NewLinesForBracesInControlBlocks,
                 CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes,
-                CSharpFormattingOptions.NewLinesForBracesInObjectInitializers,
+                CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers,
                 CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody,
                 CSharpFormattingOptions.NewLineForElse,
                 CSharpFormattingOptions.NewLineForCatch,
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public IEnumerable<IOption> GetOptions()
         {
-            return options;
+            return _options;
         }
     }
 }

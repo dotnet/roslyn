@@ -121,9 +121,7 @@ abstract class Golf : Echo
 
 
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
-            var diagnostics = compilation.GetDiagnostics();
-            Assert.Empty(diagnostics);
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -170,10 +168,13 @@ class C : Middle
         c.Foo(optArg1: 3333, 11111);
     }
 }";
-
-            TestAllErrors(source,
-                "'optParam3' error CS1739: The best overload for 'Foo' does not have a parameter named 'optParam3'",
-                "'11111' error CS1738: Named argument specifications must appear after all fixed arguments have been specified");
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (37,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optParam3'
+                //         c.Foo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Foo", "optParam3").WithLocation(37, 15),
+                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                //         c.Foo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30));
         }
 
         [Fact]
@@ -185,9 +186,10 @@ class C
     //error CS1736 
     public void M(string s = new string('c',5)) {}
 }";
-
-            TestAllErrors(source,
-                "'new string('c',5)' error CS1736: Default parameter value for 's' must be a compile-time constant");
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (5,30): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     public void M(string s = new string('c',5)) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new string('c',5)").WithArguments("s").WithLocation(5, 30));
         }
 
         [Fact]
@@ -195,7 +197,7 @@ class C
         {
             // Here we cannot report that "no overload of M takes two arguments" because of course
             // M(1, 2) is legal. We cannot report that any argument does not correspond to a formal;
-            // all of them do. We cannot report that named arguments preceed positional arguments.
+            // all of them do. We cannot report that named arguments precede positional arguments.
             // We cannot report that any argument is not convertible to its corresponding formal;
             // all of them are convertible. The only error we can report here is that a formal 
             // parameter has no corresponding argument.
@@ -214,11 +216,16 @@ class C
         new C(0, cz : 456);
     }
 }";
-
-            TestAllErrors(source,
-"'f' error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'",
-"'M' error CS7036: There is no argument given that corresponds to the required formal parameter 'my' of 'C.M(int, int, int)'",
-"'C' error CS7036: There is no argument given that corresponds to the required formal parameter 'cy' of 'C.C(int, int, int)'");
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'fg' of 'C.F'
+                //         f(0, fz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
+                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'my' of 'C.M(int, int, int)'
+                //         M(0, mz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
+                // (12,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'cy' of 'C.C(int, int, int)'
+                //         new C(0, cz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
         }
 
         [Fact]
@@ -226,7 +233,7 @@ class C
         {
             // This was never supposed to work and the spec does not require it, but
             // nevertheless, the native compiler allows this:
-            const string test = @"
+            const string source = @"
 class C
 {
   static void C(int q = 10, params int[] x) {}
@@ -239,14 +246,17 @@ class C
 }";
             // and so Roslyn does too. It seems likely that someone has taken a dependency
             // on the bad pattern.
-            TestErrors(test);
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //   static void C(int q = 10, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15));
         }
 
         [Fact]
         public void TestNamedAndOptionalParamsCrazyError()
         {
             // Fortunately, however, this is still illegal:
-            const string test = @"
+            const string source = @"
 class C
 {
   static void C(int q = 10, params int[] x) {}
@@ -255,8 +265,13 @@ class C
     C(1, 2, 3, x:4);
   }
 }";
-            TestErrors(test,
-                "'x' error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given");
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //   static void C(int q = 10, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15),
+                // (7,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+                //     C(1, 2, 3, x:4);
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(7, 16));
         }
 
         [Fact]
@@ -569,7 +584,7 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-            CompileAndVerify(source, expectedOutput: expected, emitOptions: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -618,12 +633,12 @@ class C
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "123012704256" );
+            CompileAndVerify(source, expectedOutput: "123012704256");
         }
 
         [Fact]
         public void TestNamedAndOptionalParamsOnIndexers()
-        {           
+        {
             string source = @"
 using System; 
 class D
@@ -672,7 +687,6 @@ D.this[str: 'bar', i: 13].set
 D.this[str: 'baz', i: 2].set
 D.this[str: 'bah', i: 3].set";
             CompileAndVerify(source, expectedOutput: expected);
-
         }
 
         [Fact]
@@ -764,7 +778,7 @@ unsafe class C
 }");
         }
 
-        [WorkItem(528783, "DevDiv")]
+        [WorkItem(528783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528783")]
         [Fact]
         public void TestNamedAndOptionalParametersArgumentName()
         {
@@ -796,7 +810,7 @@ namespace NS
             Assert.Equal("ss", symInfo.Symbol.Name);
         }
 
-        [WorkItem(542418, "DevDiv")]
+        [WorkItem(542418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542418")]
         [Fact]
         public void OptionalValueInvokesInstanceMethod()
         {
@@ -831,8 +845,8 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
         }
 
-        [WorkItem(542411, "DevDiv")]
-        [WorkItem(542365, "DevDiv")]
+        [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
+        [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
         [Fact]
         public void GenericOptionalParameters()
         {
@@ -845,7 +859,7 @@ namespace NS
         }
 
 
-        [WorkItem(542458, "DevDiv")]
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
         [Fact]
         public void OptionalValueTypeFromReferencedAssembly()
         {
@@ -890,10 +904,10 @@ public class D
     }
 }";
 
-            CompileWithCustomILSource(source, ilSource );
+            CompileWithCustomILSource(source, ilSource);
         }
 
-        [WorkItem(542867, "DevDiv")]
+        [WorkItem(542867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542867")]
         [Fact]
         public void OptionalParameterDeclaredWithAttributes()
         {
@@ -941,7 +955,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(543871, "DevDiv")]
+        [WorkItem(543871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
         [Fact]
         public void RefParameterDeclaredWithOptionalAttribute()
         {
@@ -961,12 +975,12 @@ public class Parent
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemRef });
             comp.VerifyDiagnostics(
-// (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Foo(ref int)'
-//          Foo();
+ // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Foo(ref int)'
+ //          Foo();
  Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Foo").WithArguments("x", "Parent.Foo(ref int)"));
         }
 
-        [Fact, WorkItem(544491, "DevDiv")]
+        [Fact, WorkItem(544491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
         public void EnumAsDefaultParameterValue()
         {
             string source = @"
@@ -980,7 +994,7 @@ public interface IOptionalRef
 ";
             CompileAndVerify(source, new[] { SystemRef }).VerifyDiagnostics();
         }
-       
+
         [Fact]
         public void DefaultParameterValueErrors()
         {
@@ -1162,7 +1176,8 @@ public static class ErrorCases
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
         }
 
-        [Fact, WorkItem(544440, "DevDiv")]
+        [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
+        [ClrOnlyFact]
         public void TestBug12768()
         {
             string sourceDefinitions = @"
@@ -1296,11 +1311,11 @@ System.Runtime.InteropServices.UnknownWrapper
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected );
+                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected);
             }
         }
 
-        [WorkItem(545329, "DevDiv")]
+        [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
         [Fact()]
         public void ComOptionalRefParameter()
         {
@@ -1338,8 +1353,8 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
         }
 
-        [WorkItem(545337, "DevDiv")]
-        [Fact]
+        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
+        [ClrOnlyFact]
         public void TestVbDecimalAndDateTimeDefaultParameters()
         {
             var vb = @"
@@ -1474,15 +1489,15 @@ True";
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vbCompilation.VerifyDiagnostics();
 
-            var csharpCompilation = CreateCSharpCompilation("CS", csharp, 
+            var csharpCompilation = CreateCSharpCompilation("CS", csharp,
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new[] { vbCompilation });
 
-            var verifier = CompileAndVerify(csharpCompilation , expectedOutput: expected);
+            var verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
             verifier.VerifyIL("D.Main", il);
         }
 
-        [WorkItem(545337, "DevDiv")]
+        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
         [Fact]
         public void TestCSharpDecimalAndDateTimeDefaultParameters()
         {
@@ -1586,7 +1601,7 @@ public class D
 
             var exeComp = CreateCompilationWithMscorlib(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
-            var verifier = CompileAndVerify(exeComp , expectedOutput: @"DatesMatch
+            var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
 12345678901234567890
 0
 null
@@ -1850,7 +1865,7 @@ class B
         Console.WriteLine(""{0}, {1}"", i1[0], i2[0]);
     }
 }";
-            var verifier = CompileAndVerify(source , expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"F2()
 F1()
 2, 3
@@ -1873,9 +1888,9 @@ F1()
   IL_001e:  ret
 }");
         }
-  
+
         [Fact]
-        [WorkItem(546713, "DevDiv")]
+        [WorkItem(546713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546713")]
         public void Test16631()
         {
             var source =
@@ -1931,7 +1946,7 @@ public class D : B
         }
 
         [Fact]
-        [WorkItem(529775, "DevDiv")]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_PrimitiveStruct()
         {
             var source = @"
@@ -1985,13 +2000,15 @@ public class C
                 Assert.False(parameters[4].IsOptional);
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-                Assert.Equal(isFromSource ? ConstantValue.Create(0) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.True(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create(0), parameters[4].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
 
                 Assert.False(parameters[5].IsOptional);
                 Assert.False(parameters[5].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
-                Assert.Equal(isFromSource ? ConstantValue.Create(1) : null, parameters[5].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.True(parameters[5].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create(1), parameters[5].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[5].GetAttributes().Length);
 
                 Assert.True(parameters[6].IsOptional);
@@ -2011,7 +2028,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "DevDiv")]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_UserDefinedStruct()
         {
             var source = @"
@@ -2058,11 +2075,11 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
-        [WorkItem(529775, "DevDiv")]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_String()
         {
             var source = @"
@@ -2116,19 +2133,21 @@ public class C
                 Assert.False(parameters[4].IsOptional);
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-                Assert.Equal(isFromSource ? ConstantValue.Null : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.True(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Null, parameters[4].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
 
                 Assert.True(parameters[5].IsOptional);
                 Assert.True(parameters[5].HasExplicitDefaultValue);
                 Assert.Null(parameters[5].ExplicitDefaultValue);
-                Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length);
 
                 Assert.False(parameters[6].IsOptional);
                 Assert.False(parameters[6].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[6].ExplicitDefaultValue);
-                Assert.Equal(isFromSource ? ConstantValue.Create("A") : null, parameters[6].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.True(parameters[6].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create("A"), parameters[6].ExplicitDefaultConstantValue);
                 Assert.Equal(isFromSource ? 1 : 0, parameters[6].GetAttributes().Length);
 
                 Assert.True(parameters[7].IsOptional);
@@ -2142,7 +2161,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "DevDiv")]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_Decimal()
         {
             var source = @"
@@ -2180,13 +2199,13 @@ public class C
                 Assert.True(parameters[1].HasExplicitDefaultValue);
                 Assert.Equal(0M, parameters[1].ExplicitDefaultValue);
                 Assert.Equal(ConstantValue.Create(0M), parameters[1].ExplicitDefaultConstantValue);
-                Assert.Equal(0, parameters[1].GetAttributes().Length); 
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
 
                 Assert.True(parameters[2].IsOptional);
                 Assert.True(parameters[2].HasExplicitDefaultValue);
                 Assert.Equal(1M, parameters[2].ExplicitDefaultValue);
                 Assert.Equal(ConstantValue.Create(1M), parameters[2].ExplicitDefaultConstantValue);
-                Assert.Equal(0, parameters[2].GetAttributes().Length); 
+                Assert.Equal(0, parameters[2].GetAttributes().Length);
 
                 Assert.True(parameters[3].IsOptional);
                 Assert.False(parameters[3].HasExplicitDefaultValue);
@@ -2197,12 +2216,14 @@ public class C
                 Assert.False(parameters[4].IsOptional);
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.False(parameters[4].HasMetadataConstantValue);
                 Assert.Equal(isFromSource ? ConstantValue.Create(0M) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
                 Assert.Equal(1, parameters[4].GetAttributes().Length); // DecimalConstantAttribute
 
                 Assert.False(parameters[5].IsOptional);
                 Assert.False(parameters[5].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
+                Assert.False(parameters[5].HasMetadataConstantValue);
                 Assert.Equal(isFromSource ? ConstantValue.Create(1M) : null, parameters[5].ExplicitDefaultConstantValue); // not imported for non-optional parameter
                 Assert.Equal(1, parameters[5].GetAttributes().Length); // DecimalConstantAttribute
 
@@ -2223,7 +2244,7 @@ public class C
         }
 
         [Fact]
-        [WorkItem(529775, "DevDiv")]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
         public void IsOptionalVsHasDefaultValue_DateTime()
         {
             var source = @"
@@ -2271,12 +2292,14 @@ public class C
                 Assert.False(parameters[3].IsOptional);
                 Assert.False(parameters[3].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
+                Assert.False(parameters[3].HasMetadataConstantValue);
                 Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(0)) : null, parameters[3].ExplicitDefaultConstantValue); // not imported for non-optional parameter
                 Assert.Equal(1, parameters[3].GetAttributes().Length); // DateTimeConstant
 
                 Assert.False(parameters[4].IsOptional);
                 Assert.False(parameters[4].HasExplicitDefaultValue);
                 Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.False(parameters[4].HasMetadataConstantValue);
                 Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(1)) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
                 Assert.Equal(1, parameters[4].GetAttributes().Length); // DateTimeConstant
 
@@ -2294,7 +2317,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
     }
 }

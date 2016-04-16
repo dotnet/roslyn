@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         private void ClassifyPreprocessorDirective(DirectiveTriviaSyntax node)
         {
-            if (!textSpan.OverlapsWith(node.Span))
+            if (!_textSpan.OverlapsWith(node.Span))
             {
                 return;
             }
@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
                 case SyntaxKind.ReferenceDirectiveTrivia:
                     ClassifyReferenceDirective((ReferenceDirectiveTriviaSyntax)node);
+                    break;
+                case SyntaxKind.LoadDirectiveTrivia:
+                    ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
                     break;
             }
         }
@@ -273,6 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.ReferenceKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyLoadDirective(LoadDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.File, ClassificationTypeNames.StringLiteral);
             ClassifyDirectiveTrivia(node);
         }

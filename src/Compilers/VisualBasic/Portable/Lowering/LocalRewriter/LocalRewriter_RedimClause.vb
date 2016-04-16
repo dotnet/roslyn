@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 '  use the operand twice
                 temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim result As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me.currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim result As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
 
                 '  the first to be used as an assignment target
                 assignmentTarget = result.First
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             valueBeingAssigned = New BoundDirectCast(node.Syntax, valueBeingAssigned,
                                                      Conversions.ClassifyDirectCastConversion(valueBeingAssigned.Type, assignmentTarget.Type, useSiteDiagnostics),
                                                      assignmentTarget.Type, Nothing)
-            diagnostics.Add(node, useSiteDiagnostics)
+            _diagnostics.Add(node, useSiteDiagnostics)
 
             '  adjust assignment target
             If assignmentTarget.Kind = BoundKind.PropertyAccess Then

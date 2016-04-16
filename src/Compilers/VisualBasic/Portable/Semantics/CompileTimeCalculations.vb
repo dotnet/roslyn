@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case ConstantValueTypeDiscriminator.Char
                     resultValue = UncheckedCUShort(sourceValue)
-                    ' // ?? overflow?
+                ' // ?? overflow?
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(resultType)
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function NarrowIntegralResult(
                         sourceValue As Long,
                         sourceType As TypeSymbol,
-                        sesultType As TypeSymbol,
+                        resultType As TypeSymbol,
                         ByRef overflow As Boolean) As Long
 
             Debug.Assert(sourceType.IsIntegralType() OrElse sourceType.IsBooleanType() OrElse sourceType.IsCharType(),
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return NarrowIntegralResult(sourceValue,
                                         sourceType.GetConstantValueTypeDiscriminator(),
-                                        sesultType.GetConstantValueTypeDiscriminator(),
+                                        resultType.GetConstantValueTypeDiscriminator(),
                                         overflow)
         End Function
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' // We need to return the even one.
                     floor = Math.Floor(temporary)
 
-                    '[AlekseyT]: Using Math.IEEERemainder as areplacement for fmod.
+                    '[AlekseyT]: Using Math.IEEERemainder as a replacement for fmod.
                     If floor <> temporary OrElse Math.IEEERemainder(temporary, 2.0) = 0 Then
                         integralValue = If(IsUnsignedLongType(targetType), ConvertFloatingToUI64(floor), UncheckedCLng(floor))
                     Else
@@ -447,37 +447,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable()
         End Function
 
-        Public Structure DecimalData
-            Public scale As Byte
-            Public sign As Boolean
-            Public Hi32 As UInteger
-            Public Mid32 As UInteger
-            Public Lo32 As UInteger
-        End Structure
-
-        'Decimal::GetBits Method 
-        'The binary representation of a Decimal number consists of a 1-bit sign, a 96-bit integer number, and a scaling factor used to divide the integer number and specify what portion of it is a decimal fraction. The scaling factor is implicitly the number 10, raised to an exponent ranging from 0 to 28.
-        'The return value is a four-element array of 32-bit signed integers.
-        'The first, second, and third elements of the returned array contain the low, middle, and high 32 bits of the 96-bit integer number.
-        'The fourth element of the returned array contains the scale factor and sign. It consists of the following parts: 
-        'Bits 0 to 15, the lower word, are unused and must be zero.
-        'Bits 16 to 23 must contain an exponent between 0 and 28, which indicates the power of 10 to divide the integer number.
-        'Bits 24 to 30 are unused and must be zero.
-        'Bit 31 contains the sign; 0 meaning positive, and 1 meaning negative.
-        'Note that the bit representation differentiates between negative and positive zero. These values are treated as being equal in all operations.
-        <Extension()>
-        Friend Function GetBits(ByRef this As Decimal) As DecimalData
-            Dim ret As New DecimalData()
-            Dim bits As Integer() = Decimal.GetBits(this)
-
-            ret.scale = CType((bits(3) And &HFF0000) >> 16, Byte)
-            ret.sign = (bits(3) And &H80000000) <> 0
-            ret.Lo32 = UncheckedCUInt(bits(0))
-            ret.Mid32 = UncheckedCUInt(bits(1))
-            ret.Hi32 = UncheckedCUInt(bits(2))
-            Return ret
-        End Function
-
         Friend Function ConvertDecimalValue(
             sourceValue As Decimal,
             targetType As ConstantValueTypeDiscriminator,
@@ -487,26 +456,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim overflow As Boolean = False
 
             If ConstantValue.IsIntegralType(targetType) OrElse ConstantValue.IsCharType(targetType) Then
-                Dim decimalBits As DecimalData = sourceValue.GetBits()
-
-                Dim scale As Integer = decimalBits.scale
+                Dim isNegative As Boolean
+                Dim scale As Byte
+                Dim low, mid, high As UInteger
+                sourceValue.GetBits(isNegative, scale, low, mid, high)
 
                 If scale = 0 Then
                     Dim resultValue As Long
 
-                    ' // Easy case: no scale factor.
-                    overflow = (decimalBits.Hi32 <> 0)
+                    ' Easy case: no scale factor.
+                    overflow = high <> 0
 
                     If Not overflow Then
-                        resultValue = ((CType(decimalBits.Mid32, Long)) << 32) Or decimalBits.Lo32
+                        resultValue = (CLng(mid) << 32) Or low
 
                         Dim sourceIntegralType As ConstantValueTypeDiscriminator = Nothing
 
-                        Dim sign As Boolean = decimalBits.sign
-                        If sign Then
-                            ' // The source value is negative, so we need to negate the result value.
-                            ' // If the result type is unsigned, or the result value is already
-                            ' // large enough that it consumes the sign bit, then we have overflowed.
+                        If isNegative Then
+                            ' The source value is negative, so we need to negate the result value.
+                            ' If the result type is unsigned, or the result value is already
+                            ' large enough that it consumes the sign bit, then we have overflowed.
                             If ConstantValue.IsUnsignedIntegralType(targetType) OrElse
                                UncheckedCULng(resultValue) > &H8000000000000000UL Then
                                 overflow = True
@@ -664,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' // Conversion from double to uint64 is annoyingly implemented by the
             ' // VC++ compiler as (uint64)(int64)(double)val, so we have to do it by hand.
 
-            Dim result As Long = UncheckedCLng(UncheckedCULng(sourceValue))
+            Dim result As Long
 
             ' // code below stolen from jit...
             Dim two63 As Double = 2147483648.0 * 4294967296.0

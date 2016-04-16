@@ -18,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Inherits VisualBasicSyntaxWalker
 
         Private ReadOnly _startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)
-        Private ReadOnly _conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))
+        Private ReadOnly _conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax))
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private ReadOnly _regionStack As New Stack(Of DirectiveTriviaSyntax)()
         Private ReadOnly _ifStack As New Stack(Of DirectiveTriviaSyntax)()
 
         Public Sub New(startEndMap As Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax),
-                       conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax)),
+                       conditionalMap As Dictionary(Of DirectiveTriviaSyntax, IReadOnlyList(Of DirectiveTriviaSyntax)),
                        cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
@@ -68,35 +68,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Sub
 
         Public Overrides Sub VisitEndIfDirectiveTrivia(directive As EndIfDirectiveTriviaSyntax)
-            If Not _ifStack.IsEmpty() Then
-                Dim condDirectives As New List(Of DirectiveTriviaSyntax)
-                condDirectives.Add(directive)
+            FinishIf(directive)
 
-                Do
-                    Dim poppedDirective = _ifStack.Pop()
-                    condDirectives.Add(poppedDirective)
-                    If poppedDirective.Kind = SyntaxKind.IfDirectiveTrivia Then
-                        Exit Do
-                    End If
-                Loop Until _ifStack.IsEmpty()
+            MyBase.VisitEndIfDirectiveTrivia(directive)
+        End Sub
 
-                condDirectives.Sort(Function(n1, n2) n1.SpanStart.CompareTo(n2.SpanStart))
+        Private Sub FinishIf(directiveOpt As EndIfDirectiveTriviaSyntax)
+            If _ifStack.IsEmpty() Then
+                Return
+            End If
 
-                For Each cond In condDirectives
-                    _conditionalMap.Add(cond, condDirectives)
-                Next
+            Dim condDirectives As New List(Of DirectiveTriviaSyntax)
+            If directiveOpt IsNot Nothing Then
+                condDirectives.Add(directiveOpt)
+            End If
 
-                ' #If should be the first one in sorted order
-                Dim ifDirective = condDirectives.First()
-                Contract.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
+            Do
+                Dim poppedDirective = _ifStack.Pop()
+                condDirectives.Add(poppedDirective)
+                If poppedDirective.Kind = SyntaxKind.IfDirectiveTrivia Then
+                    Exit Do
+                End If
+            Loop Until _ifStack.IsEmpty()
+
+            condDirectives.Sort(Function(n1, n2) n1.SpanStart.CompareTo(n2.SpanStart))
+
+            For Each cond In condDirectives
+                _conditionalMap.Add(cond, condDirectives)
+            Next
+
+            ' #If should be the first one in sorted order
+            Dim ifDirective = condDirectives.First()
+            Contract.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
                             ifDirective.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse
                             ifDirective.Kind = SyntaxKind.ElseDirectiveTrivia)
 
-                _startEndMap.Add(directive, ifDirective)
-                _startEndMap.Add(ifDirective, directive)
+            If directiveOpt IsNot Nothing Then
+                _startEndMap.Add(directiveOpt, ifDirective)
+                _startEndMap.Add(ifDirective, directiveOpt)
             End If
-
-            MyBase.VisitEndIfDirectiveTrivia(directive)
         End Sub
 
         Public Overrides Sub VisitEndRegionDirectiveTrivia(directive As EndRegionDirectiveTriviaSyntax)
@@ -113,6 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Friend Sub Finish()
             While _regionStack.Count > 0
                 _startEndMap.Add(_regionStack.Pop(), Nothing)
+            End While
+
+            While _ifStack.Count > 0
+                FinishIf(directiveOpt:=Nothing)
             End While
         End Sub
     End Class

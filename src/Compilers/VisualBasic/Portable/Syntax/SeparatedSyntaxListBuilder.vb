@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     Friend Structure SeparatedSyntaxListBuilder(Of TNode As SyntaxNode)
-        Private builder As SyntaxListBuilder
-        Private expectSeparator As Boolean
+        Private ReadOnly _builder As SyntaxListBuilder
+        Private _expectSeparator As Boolean
 
         Public Shared Function Create() As SeparatedSyntaxListBuilder(Of TNode)
             Return New SeparatedSyntaxListBuilder(Of TNode)(8)
@@ -19,39 +19,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me.builder = builder
+            Me._builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me.builder Is Nothing)
+                Return (Me._builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me.builder.Count
+                Return Me._builder.Count
             End Get
         End Property
 
         Public Sub Clear()
-            Me.builder.Clear()
+            Me._builder.Clear()
         End Sub
 
         Public Sub Add(node As TNode)
-            If expectSeparator Then
+            If _expectSeparator Then
                 Throw New InvalidOperationException("separator is expected")
             End If
-            expectSeparator = True
-            Me.builder.Add(DirectCast(DirectCast(node, SyntaxNode), VisualBasicSyntaxNode))
+            _expectSeparator = True
+            Me._builder.Add(DirectCast(DirectCast(node, SyntaxNode), VisualBasicSyntaxNode))
         End Sub
 
         Friend Sub AddSeparator(separatorToken As InternalSyntax.SyntaxToken)
-            If Not expectSeparator Then
+            If Not _expectSeparator Then
                 Throw New InvalidOperationException("element is expected")
             End If
-            expectSeparator = False
-            Me.builder.AddInternal(separatorToken)
+            _expectSeparator = False
+            Me._builder.AddInternal(separatorToken)
         End Sub
 
         Public Sub AddSeparator(separatorToken As SyntaxToken)
@@ -59,43 +59,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Sub
 
         Public Sub AddRange(nodes As SeparatedSyntaxList(Of TNode))
-            If expectSeparator Then
+            If _expectSeparator Then
                 Throw New InvalidOperationException("separator is expected")
             End If
             Dim list = nodes.GetWithSeparators
-            Me.builder.AddRange(list)
-            expectSeparator = ((Me.builder.Count And 1) <> 0)
+            Me._builder.AddRange(list)
+            _expectSeparator = ((Me._builder.Count And 1) <> 0)
         End Sub
 
         Friend Sub AddRange(nodes As SeparatedSyntaxList(Of TNode), count As Integer)
-            If expectSeparator Then
+            If _expectSeparator Then
                 Throw New InvalidOperationException("separator is expected")
             End If
             Dim list = nodes.GetWithSeparators
-            Me.builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
-            expectSeparator = ((Me.builder.Count And 1) <> 0)
+            Me._builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
+            _expectSeparator = ((Me._builder.Count And 1) <> 0)
         End Sub
 
         Friend Sub RemoveLast()
-            Me.builder.RemoveLast()
+            Me._builder.RemoveLast()
         End Sub
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me.builder.Any(kind)
+            Return Me._builder.Any(kind)
         End Function
 
         Public Function ToList() As SeparatedSyntaxList(Of TNode)
-            If builder Is Nothing Then
+            If _builder Is Nothing Then
                 Return New SeparatedSyntaxList(Of TNode)()
             End If
-            Return builder.ToSeparatedList(Of TNode)()
+            Return _builder.ToSeparatedList(Of TNode)()
         End Function
 
         Public Function ToList(Of TDerived As TNode)() As SeparatedSyntaxList(Of TDerived)
-            If builder Is Nothing Then
+            If _builder Is Nothing Then
                 Return New SeparatedSyntaxList(Of TDerived)()
             End If
-            Return builder.ToSeparatedList(Of TDerived)()
+            Return _builder.ToSeparatedList(Of TDerived)()
         End Function
 
         Public Shared Widening Operator CType(builder As SeparatedSyntaxListBuilder(Of TNode)) As SeparatedSyntaxList(Of TNode)

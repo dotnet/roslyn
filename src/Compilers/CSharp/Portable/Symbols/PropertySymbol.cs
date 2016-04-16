@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
         /// </summary>
-        private ParameterSignature lazyParameterSignature;
+        private ParameterSignature _lazyParameterSignature;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ParameterSignature.PopulateParameterSignature(this.Parameters, ref this.lazyParameterSignature);
-                return this.lazyParameterSignature.parameterTypes;
+                ParameterSignature.PopulateParameterSignature(this.Parameters, ref _lazyParameterSignature);
+                return _lazyParameterSignature.parameterTypes;
             }
         }
 
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ParameterSignature.PopulateParameterSignature(this.Parameters, ref this.lazyParameterSignature);
-                return this.lazyParameterSignature.parameterRefKinds;
+                ParameterSignature.PopulateParameterSignature(this.Parameters, ref _lazyParameterSignature);
+                return _lazyParameterSignature.parameterRefKinds;
             }
         }
 
@@ -177,7 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride)
                 {
-                    return (PropertySymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (PropertySymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (PropertySymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenProperty);
                 }
                 return null;
             }

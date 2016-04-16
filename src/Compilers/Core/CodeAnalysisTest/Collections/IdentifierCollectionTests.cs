@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             TestReadOnly(new IdentifierCollection(strs).AsCaseInsensitiveCollection());
         }
 
-        void TestReadOnly(ICollection<string> collection)
+        private void TestReadOnly(ICollection<string> collection)
         {
             Assert.Equal(true, collection.IsReadOnly);
             Assert.Throws<NotSupportedException>(() => collection.Add("x"));

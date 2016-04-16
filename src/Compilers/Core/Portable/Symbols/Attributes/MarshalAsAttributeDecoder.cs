@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -188,7 +187,6 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -219,7 +217,7 @@ namespace Microsoft.CodeAnalysis
                     case "ArraySubType":
                         elementType = namedArg.Value.DecodeValue<UnmanagedType>(SpecialType.System_Enum);
 
-                        // for some reson, Dev10 metadata writer disallows CustomMarshaler type as an element type of non-fixed arrays
+                        // for some reason, Dev10 metadata writer disallows CustomMarshaler type as an element type of non-fixed arrays
                         if (!isFixed && elementType == Cci.Constants.UnmanagedType_CustomMarshaler ||
                             (int)elementType < 0 ||
                             (int)elementType > MarshalPseudoCustomAttributeData.MaxMarshalInteger)
@@ -259,7 +257,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -315,7 +312,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 
@@ -378,7 +374,6 @@ namespace Microsoft.CodeAnalysis
                         messageProvider.ReportParameterNotValidForType(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position);
                         hasErrors = true;
                         break;
-
                         // other parameters ignored with no error
                 }
 

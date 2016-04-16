@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="CSharpFormatterId" Value="1C4DBBE7-7699-49FA-868A-7377BF50ADD8"/>
+  <ManagedComponent
+    ComponentId="CSharpFormatterId"
+    ComponentLevel="63000"
+    AssemblyName="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider">
+    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpResultProvider">
+      <Implements>
+        <InterfaceGroup Priority="Low">
+          <NoFilter/>
+          <Interface Name="IDkmClrResultProvider"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFormatter">
+      <Implements>
+        <InterfaceGroup Priority="Low">
+          <NoFilter/>
+          <Interface Name="IDkmClrFormatter"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

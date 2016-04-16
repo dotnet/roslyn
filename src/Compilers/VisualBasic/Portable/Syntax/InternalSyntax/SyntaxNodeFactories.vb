@@ -12,7 +12,7 @@ Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSynta
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class SyntaxFactory
+    Friend Partial Class SyntaxFactory
         Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As VisualBasicSyntaxNode, trailingTrivia As VisualBasicSyntaxNode) As IntegerLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case Else
-                    Throw New ArgumentException("typeSuffix")
+                    Throw New ArgumentException(NameOf(typeSuffix))
             End Select
         End Function
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case TypeCharacter.SingleLiteral, TypeCharacter.Single
                     Return New FloatingLiteralTokenSyntax(Of Single)(SyntaxKind.FloatingLiteralToken, text, leadingTrivia, trailingTrivia, typeSuffix, CSng(value))
                 Case Else
-                    Throw New ArgumentException("typeSuffix")
+                    Throw New ArgumentException(NameOf(typeSuffix))
             End Select
         End Function
 
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' Create a missing punctutation mark.
+        ''' Create a missing punctuation mark.
         ''' </summary>
         Friend Shared Function MissingPunctuation(kind As SyntaxKind) As PunctuationSyntax
             Return New PunctuationSyntax(kind, "", Nothing, Nothing)
@@ -342,6 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 SyntaxKind.OrderKeyword,
                 SyntaxKind.PreserveKeyword,
                 SyntaxKind.RegionKeyword,
+                SyntaxKind.ReferenceKeyword,
                 SyntaxKind.SkipKeyword,
                 SyntaxKind.StrictKeyword,
                 SyntaxKind.TextKeyword,
@@ -464,77 +465,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return New ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, precedingTrivia, followingTrivia, SyntaxKind.IdentifierToken, isBracketed, baseText, typeCharacter)
         End Function
 
-        Private Shared _notMissingEmptyToken As PunctuationSyntax = Nothing
+        Private Shared s_notMissingEmptyToken As PunctuationSyntax = Nothing
         Friend Shared ReadOnly Property NotMissingEmptyToken() As PunctuationSyntax
             Get
-                If _notMissingEmptyToken Is Nothing Then
-                    _notMissingEmptyToken = New PunctuationSyntax(SyntaxKind.EmptyToken, "", Nothing, Nothing)
+                If s_notMissingEmptyToken Is Nothing Then
+                    s_notMissingEmptyToken = New PunctuationSyntax(SyntaxKind.EmptyToken, "", Nothing, Nothing)
                 End If
-                Return _notMissingEmptyToken
+                Return s_notMissingEmptyToken
             End Get
         End Property
 
-        Private Shared _missingEmptyToken As PunctuationSyntax = Nothing
+        Private Shared s_missingEmptyToken As PunctuationSyntax = Nothing
         Friend Shared ReadOnly Property MissingEmptyToken() As PunctuationSyntax
             Get
-                If _missingEmptyToken Is Nothing Then
-                    _missingEmptyToken = New PunctuationSyntax(SyntaxKind.EmptyToken, "", Nothing, Nothing)
-                    _missingEmptyToken.ClearFlags(GreenNode.NodeFlags.IsNotMissing)
+                If s_missingEmptyToken Is Nothing Then
+                    s_missingEmptyToken = New PunctuationSyntax(SyntaxKind.EmptyToken, "", Nothing, Nothing)
+                    s_missingEmptyToken.ClearFlags(GreenNode.NodeFlags.IsNotMissing)
                 End If
-                Return _missingEmptyToken
+                Return s_missingEmptyToken
             End Get
         End Property
 
-        Private Shared _statementTerminatorToken As PunctuationSyntax = Nothing
+        Private Shared s_statementTerminatorToken As PunctuationSyntax = Nothing
         Friend Shared ReadOnly Property StatementTerminatorToken() As PunctuationSyntax
             Get
-                If _statementTerminatorToken Is Nothing Then
-                    _statementTerminatorToken = New PunctuationSyntax(SyntaxKind.StatementTerminatorToken, "", Nothing, Nothing)
-                    _statementTerminatorToken.SetFlags(GreenNode.NodeFlags.IsNotMissing)
+                If s_statementTerminatorToken Is Nothing Then
+                    s_statementTerminatorToken = New PunctuationSyntax(SyntaxKind.StatementTerminatorToken, "", Nothing, Nothing)
+                    s_statementTerminatorToken.SetFlags(GreenNode.NodeFlags.IsNotMissing)
                 End If
-                Return _statementTerminatorToken
+                Return s_statementTerminatorToken
             End Get
         End Property
 
-        Private Shared _colonToken As PunctuationSyntax = Nothing
+        Private Shared s_colonToken As PunctuationSyntax = Nothing
         Friend Shared ReadOnly Property ColonToken() As PunctuationSyntax
             Get
-                If _colonToken Is Nothing Then
-                    _colonToken = New PunctuationSyntax(SyntaxKind.ColonToken, "", Nothing, Nothing)
-                    _colonToken.SetFlags(GreenNode.NodeFlags.IsNotMissing)
+                If s_colonToken Is Nothing Then
+                    s_colonToken = New PunctuationSyntax(SyntaxKind.ColonToken, "", Nothing, Nothing)
+                    s_colonToken.SetFlags(GreenNode.NodeFlags.IsNotMissing)
                 End If
-                Return _colonToken
+                Return s_colonToken
             End Get
         End Property
 
-        Private Shared _missingExpr As ExpressionSyntax = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("", Nothing, Nothing))
+        Private Shared ReadOnly s_missingExpr As ExpressionSyntax = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("", Nothing, Nothing))
         Friend Shared Function MissingExpression() As ExpressionSyntax
-            Return _missingExpr
+            Return s_missingExpr
         End Function
 
-        Private Shared ReadOnly _emptyStatement As EmptyStatementSyntax = SyntaxFactory.EmptyStatement(NotMissingEmptyToken)
+        Private Shared ReadOnly s_emptyStatement As EmptyStatementSyntax = SyntaxFactory.EmptyStatement(NotMissingEmptyToken)
         Friend Shared Function EmptyStatement() As EmptyStatementSyntax
-            Return _emptyStatement
+            Return s_emptyStatement
         End Function
 
-        Private Shared ReadOnly _omittedArgument As OmittedArgumentSyntax = SyntaxFactory.OmittedArgument(NotMissingEmptyToken)
+        Private Shared ReadOnly s_omittedArgument As OmittedArgumentSyntax = SyntaxFactory.OmittedArgument(NotMissingEmptyToken)
         Friend Shared Function OmittedArgument() As OmittedArgumentSyntax
-            Return _omittedArgument
+            Return s_omittedArgument
         End Function
 
         Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As SyntaxList(Of InheritsStatementSyntax), ByVal [implements] As SyntaxList(Of ImplementsStatementSyntax), ByVal members As SyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
             Select Case blockKind
                 Case SyntaxKind.ModuleBlock
-                    Return SyntaxFactory.ModuleBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.ClassBlock
-                    Return SyntaxFactory.ClassBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.ClassBlock(DirectCast(begin, ClassStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.StructureBlock
-                    Return SyntaxFactory.StructureBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.StructureBlock(DirectCast(begin, StructureStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.InterfaceBlock
-                    Return SyntaxFactory.InterfaceBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.InterfaceBlock(DirectCast(begin, InterfaceStatementSyntax), [inherits], [implements], members, [end])
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(blockKind)

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Private ReadOnly _targetToken As SyntaxToken
 
-        Sub New(targetToken As SyntaxToken)
+        Public Sub New(targetToken As SyntaxToken)
             _targetToken = targetToken
         End Sub
 

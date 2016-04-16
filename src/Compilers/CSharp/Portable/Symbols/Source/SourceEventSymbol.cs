@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
     {
-        private readonly Location location;
-        private readonly SyntaxReference syntaxRef;
-        private readonly DeclarationModifiers modifiers;
+        private readonly Location _location;
+        private readonly SyntaxReference _syntaxRef;
+        private readonly DeclarationModifiers _modifiers;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
         protected SymbolCompletionState state;
-        private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
-        private string lazyDocComment;
-        private OverriddenOrHiddenMembersResult lazyOverriddenOrHiddenMembers;
-        private ThreeState lazyIsWindowsRuntimeEvent = ThreeState.Unknown;
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private string _lazyDocComment;
+        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+        private ThreeState _lazyIsWindowsRuntimeEvent = ThreeState.Unknown;
 
         // TODO: CLSCompliantAttribute
 
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken nameTokenSyntax,
             DiagnosticBag diagnostics)
         {
-            this.location = nameTokenSyntax.GetLocation();
+            _location = nameTokenSyntax.GetLocation();
 
             this.containingType = containingType;
 
-            this.syntaxRef = syntax.GetReference();
+            _syntaxRef = syntax.GetReference();
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
             bool modifierErrors;
-            this.modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, location, diagnostics, out modifierErrors);
-            this.CheckAccessibility(location, diagnostics);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, _location, diagnostics, out modifierErrors);
+            this.CheckAccessibility(_location, diagnostics);
         }
 
         internal sealed override bool RequiresCompletion
@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            return new LexicalSortKey(location, this.DeclaringCompilation);
+            return new LexicalSortKey(_location, this.DeclaringCompilation);
         }
 
         public sealed override ImmutableArray<Location> Locations
         {
             get
             {
-                return ImmutableArray.Create(location);
+                return ImmutableArray.Create(_location);
             }
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>(syntaxRef);
+                return ImmutableArray.Create<SyntaxReference>(_syntaxRef);
             }
         }
 
@@ -134,8 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             case SyntaxKind.VariableDeclarator:
                                 return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
                             default:
-                                Debug.Assert(false, "Unknown event syntax kind " + syntax.Kind());
-                                break;
+                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                         }
                     }
                 }
@@ -175,15 +174,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            if ((lazyCustomAttributesBag == null || !lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref lazyCustomAttributesBag))
+            if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
+                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
             {
                 var completed = state.NotePartComplete(CompletionPart.Attributes);
                 Debug.Assert(completed);
                 DeclaringCompilation.SymbolDeclaredEvent(this);
             }
 
-            return lazyCustomAttributesBag;
+            return _lazyCustomAttributesBag;
         }
 
         /// <summary>
@@ -207,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonEventWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonEventEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
 
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
@@ -265,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var lazyCustomAttributesBag = this.lazyCustomAttributesBag;
+                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonEventEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
@@ -288,6 +287,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(compilationState, ref attributes);
+
+            if (this.Type.ContainsDynamic())
+            {
+                var compilation = this.DeclaringCompilation;
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, customModifiersCount: 0));
+            }
+        }
+
         internal sealed override bool HasSpecialName
         {
             get
@@ -299,37 +309,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsAbstract
         {
-            get { return (this.modifiers & DeclarationModifiers.Abstract) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
         }
 
         public sealed override bool IsExtern
         {
-            get { return (this.modifiers & DeclarationModifiers.Extern) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Extern) != 0; }
         }
 
         public sealed override bool IsStatic
         {
-            get { return (this.modifiers & DeclarationModifiers.Static) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Static) != 0; }
         }
 
         public sealed override bool IsOverride
         {
-            get { return (this.modifiers & DeclarationModifiers.Override) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Override) != 0; }
         }
 
         public sealed override bool IsSealed
         {
-            get { return (this.modifiers & DeclarationModifiers.Sealed) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Sealed) != 0; }
         }
 
         public sealed override bool IsVirtual
         {
-            get { return (this.modifiers & DeclarationModifiers.Virtual) != 0; }
+            get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
         public sealed override Accessibility DeclaredAccessibility
         {
-            get { return ModifierUtils.EffectiveAccessibility(this.modifiers); }
+            get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
         }
 
         internal sealed override bool MustCallMethodsDirectly
@@ -339,32 +349,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SyntaxReference SyntaxReference
         {
-            get { return this.syntaxRef; }
+            get { return _syntaxRef; }
         }
 
         internal CSharpSyntaxNode CSharpSyntaxNode
         {
-            get { return (CSharpSyntaxNode)this.syntaxRef.GetSyntax(); }
+            get { return (CSharpSyntaxNode)_syntaxRef.GetSyntax(); }
         }
 
         internal SyntaxTree SyntaxTree
         {
-            get { return this.syntaxRef.SyntaxTree; }
+            get { return _syntaxRef.SyntaxTree; }
         }
 
         internal bool IsNew
         {
-            get { return (this.modifiers & DeclarationModifiers.New) != 0; }
+            get { return (_modifiers & DeclarationModifiers.New) != 0; }
         }
 
         internal DeclarationModifiers Modifiers
         {
-            get { return this.modifiers; }
+            get { return _modifiers; }
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(this.modifiers);
+            var info = ModifierUtils.CheckAccessibility(_modifiers);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
@@ -437,6 +447,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
+            else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.AbstractKeyword));
+            }
+            else if (IsVirtual && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
+            }
             else if (IsAbstract && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
@@ -473,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
             }
-            else if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);
@@ -489,10 +509,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbol type)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbol type, AssemblySymbol containingAssembly)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
@@ -501,9 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.Equals(overriddenEventType, ignoreCustomModifiers: true, ignoreDynamic: false))
+            if (type.Equals(overriddenEventType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
             {
-                type = overriddenEventType;
+                type = CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type, RefKind.None, containingAssembly);
             }
         }
 
@@ -511,11 +531,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.lazyOverriddenOrHiddenMembers == null)
+                if (_lazyOverriddenOrHiddenMembers == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
+                    Interlocked.CompareExchange(ref _lazyOverriddenOrHiddenMembers, this.MakeOverriddenOrHiddenMembers(), null);
                 }
-                return this.lazyOverriddenOrHiddenMembers;
+                return _lazyOverriddenOrHiddenMembers;
             }
         }
 
@@ -523,13 +543,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!this.lazyIsWindowsRuntimeEvent.HasValue())
+                if (!_lazyIsWindowsRuntimeEvent.HasValue())
                 {
                     // This would be a CompareExchange if there was an overload for ThreeState.
-                    this.lazyIsWindowsRuntimeEvent = ComputeIsWindowsRuntimeEvent().ToThreeState();
+                    _lazyIsWindowsRuntimeEvent = ComputeIsWindowsRuntimeEvent().ToThreeState();
                 }
-                Debug.Assert(this.lazyIsWindowsRuntimeEvent.HasValue());
-                return this.lazyIsWindowsRuntimeEvent.Value();
+                Debug.Assert(_lazyIsWindowsRuntimeEvent.HasValue());
+                return _lazyIsWindowsRuntimeEvent.Value();
             }
         }
 

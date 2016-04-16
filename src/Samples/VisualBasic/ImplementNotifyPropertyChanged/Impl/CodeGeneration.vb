@@ -4,7 +4,7 @@ Imports System.ComponentModel
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editting
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -206,7 +206,7 @@ Friend Module CodeGeneration
             Dim baseTypeName = SyntaxFactory.ParseTypeName(InterfaceName) _
                 .WithAdditionalAnnotations(Simplifier.Annotation)
 
-            ' Add an annoatation to format properly.
+            ' Add an annotation to format properly.
             Dim implementsStatement = SyntaxFactory.ImplementsStatement(baseTypeName).
                 WithAdditionalAnnotations(Formatter.Annotation)
 

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -13,9 +14,9 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class ObjectReader : ObjectReaderWriterBase, IDisposable
     {
-        private readonly BinaryReader reader;
-        private readonly ObjectReaderData dataMap;
-        private readonly ObjectBinder binder;
+        private readonly BinaryReader _reader;
+        private readonly ObjectReaderData _dataMap;
+        private readonly ObjectBinder _binder;
 
         internal ObjectReader(
             Stream stream,
@@ -26,14 +27,14 @@ namespace Roslyn.Utilities
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            this.reader = new BinaryReader(stream, Encoding.UTF8);
-            this.dataMap = new ObjectReaderData(defaultData);
-            this.binder = binder;
+            _reader = new BinaryReader(stream, Encoding.UTF8);
+            _dataMap = new ObjectReaderData(defaultData);
+            _binder = binder;
         }
 
         public void Dispose()
         {
-            this.dataMap.Dispose();
+            _dataMap.Dispose();
         }
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public bool ReadBoolean()
         {
-            return this.reader.ReadBoolean();
+            return _reader.ReadBoolean();
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public byte ReadByte()
         {
-            return this.reader.ReadByte();
+            return _reader.ReadByte();
         }
 
         /// <summary>
@@ -58,7 +59,7 @@ namespace Roslyn.Utilities
         public char ReadChar()
         {
             // char was written as UInt16 because BinaryWriter fails on characters that are unicode surrogates.
-            return (char)this.reader.ReadUInt16();
+            return (char)_reader.ReadUInt16();
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public decimal ReadDecimal()
         {
-            return this.reader.ReadDecimal();
+            return _reader.ReadDecimal();
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public double ReadDouble()
         {
-            return this.reader.ReadDouble();
+            return _reader.ReadDouble();
         }
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public float ReadSingle()
         {
-            return this.reader.ReadSingle();
+            return _reader.ReadSingle();
         }
 
         /// <summary>
@@ -90,7 +91,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public int ReadInt32()
         {
-            return this.reader.ReadInt32();
+            return _reader.ReadInt32();
         }
 
         /// <summary>
@@ -98,7 +99,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public long ReadInt64()
         {
-            return this.reader.ReadInt64();
+            return _reader.ReadInt64();
         }
 
         /// <summary>
@@ -106,7 +107,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public sbyte ReadSByte()
         {
-            return this.reader.ReadSByte();
+            return _reader.ReadSByte();
         }
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public short ReadInt16()
         {
-            return this.reader.ReadInt16();
+            return _reader.ReadInt16();
         }
 
         /// <summary>
@@ -122,7 +123,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public uint ReadUInt32()
         {
-            return this.reader.ReadUInt32();
+            return _reader.ReadUInt32();
         }
 
         /// <summary>
@@ -130,7 +131,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public ulong ReadUInt64()
         {
-            return this.reader.ReadUInt64();
+            return _reader.ReadUInt64();
         }
 
         /// <summary>
@@ -138,7 +139,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public ushort ReadUInt16()
         {
-            return this.reader.ReadUInt16();
+            return _reader.ReadUInt16();
         }
 
         /// <summary>
@@ -154,7 +155,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public uint ReadCompressedUInt()
         {
-            var info = reader.ReadByte();
+            var info = _reader.ReadByte();
             byte marker = (byte)(info & ByteMarkerMask);
             byte byte0 = (byte)(info & ~ByteMarkerMask);
 
@@ -162,71 +163,67 @@ namespace Roslyn.Utilities
             {
                 return byte0;
             }
-            else if (marker == Byte2Marker)
+
+            if (marker == Byte2Marker)
             {
-                var byte1 = reader.ReadByte();
+                var byte1 = _reader.ReadByte();
                 return (((uint)byte0) << 8) | byte1;
             }
-            else if (marker == Byte4Marker)
+
+            if (marker == Byte4Marker)
             {
-                var byte1 = reader.ReadByte();
-                var byte2 = reader.ReadByte();
-                var byte3 = reader.ReadByte();
+                var byte1 = _reader.ReadByte();
+                var byte2 = _reader.ReadByte();
+                var byte3 = _reader.ReadByte();
 
                 return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
             }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(marker);
-            }
-        }
 
-        private static readonly object Int32Zero = 0;
-        private static readonly object BooleanTrue = true;
-        private static readonly object BooleanFalse = false;
+            throw ExceptionUtilities.UnexpectedValue(marker);
+        }
 
         /// <summary>
         /// Read a value from the stream. The value must have been written using ObjectWriter.WriteValue.
         /// </summary>
         public object ReadValue()
         {
-            DataKind kind = (DataKind)reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             switch (kind)
             {
                 case DataKind.Null:
                     return null;
                 case DataKind.Boolean_T:
-                    return BooleanTrue;
+                    return Boxes.BoxedTrue;
                 case DataKind.Boolean_F:
-                    return BooleanFalse;
+                    return Boxes.BoxedFalse;
                 case DataKind.Int8:
-                    return reader.ReadSByte();
+                    return _reader.ReadSByte();
                 case DataKind.UInt8:
-                    return reader.ReadByte();
+                    return _reader.ReadByte();
                 case DataKind.Int16:
-                    return reader.ReadInt16();
+                    return _reader.ReadInt16();
                 case DataKind.UInt16:
-                    return reader.ReadUInt16();
+                    return _reader.ReadUInt16();
                 case DataKind.Int32:
-                    return reader.ReadInt32();
+                    return _reader.ReadInt32();
                 case DataKind.Int32_B:
-                    return (int)reader.ReadByte();
+                    return (int)_reader.ReadByte();
                 case DataKind.Int32_S:
-                    return (int)reader.ReadUInt16();
+                    return (int)_reader.ReadUInt16();
                 case DataKind.Int32_Z:
-                    return Int32Zero;
+                    return Boxes.BoxedInt32Zero;
                 case DataKind.UInt32:
-                    return reader.ReadUInt32();
+                    return _reader.ReadUInt32();
                 case DataKind.Int64:
-                    return reader.ReadInt64();
+                    return _reader.ReadInt64();
                 case DataKind.UInt64:
-                    return reader.ReadUInt64();
+                    return _reader.ReadUInt64();
                 case DataKind.Float4:
-                    return reader.ReadSingle();
+                    return _reader.ReadSingle();
                 case DataKind.Float8:
-                    return reader.ReadDouble();
+                    return _reader.ReadDouble();
                 case DataKind.Decimal:
-                    return reader.ReadDecimal();
+                    return _reader.ReadDecimal();
                 case DataKind.DateTime:
                     return this.ReadDateTime();
                 case DataKind.Char:
@@ -265,15 +262,8 @@ namespace Roslyn.Utilities
         /// </summary>
         public string ReadString()
         {
-            DataKind kind = (DataKind)reader.ReadByte();
-            if (kind == DataKind.Null)
-            {
-                return null;
-            }
-            else
-            {
-                return ReadString(kind);
-            }
+            var kind = (DataKind)_reader.ReadByte();
+            return kind == DataKind.Null ? null : ReadString(kind);
         }
 
         private string ReadString(DataKind kind)
@@ -281,13 +271,13 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case DataKind.StringRef_B:
-                    return (string)this.dataMap.GetValue(reader.ReadByte());
+                    return (string)_dataMap.GetValue(_reader.ReadByte());
 
                 case DataKind.StringRef_S:
-                    return (string)this.dataMap.GetValue(reader.ReadUInt16());
+                    return (string)_dataMap.GetValue(_reader.ReadUInt16());
 
                 case DataKind.StringRef:
-                    return (string)this.dataMap.GetValue(reader.ReadInt32());
+                    return (string)_dataMap.GetValue(_reader.ReadInt32());
 
                 case DataKind.StringUtf16:
                 case DataKind.StringUtf8:
@@ -300,25 +290,25 @@ namespace Roslyn.Utilities
 
         private unsafe string ReadStringLiteral(DataKind kind)
         {
-            int id = this.dataMap.GetNextId();
+            int id = _dataMap.GetNextId();
             string value;
             if (kind == DataKind.StringUtf8)
             {
-                value = reader.ReadString();
+                value = _reader.ReadString();
             }
             else
             {
                 // This is rare, just allocate UTF16 bytes for simplicity.
 
                 int characterCount = (int)ReadCompressedUInt();
-                byte[] bytes = reader.ReadBytes(characterCount * sizeof(char));
+                byte[] bytes = _reader.ReadBytes(characterCount * sizeof(char));
                 fixed (byte* bytesPtr = bytes)
                 {
                     value = new string((char*)bytesPtr, 0, characterCount);
                 }
             }
 
-            this.dataMap.AddValue(id, value);
+            _dataMap.AddValue(id, value);
             return value;
         }
 
@@ -339,7 +329,6 @@ namespace Roslyn.Utilities
                 case DataKind.Array_3:
                     length = 3;
                     break;
-                case DataKind.Array:
                 default:
                     length = (int)this.ReadCompressedUInt();
                     break;
@@ -358,7 +347,7 @@ namespace Roslyn.Utilities
 
         private Type ReadType()
         {
-            DataKind kind = (DataKind)reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             return ReadType(kind);
         }
 
@@ -367,26 +356,26 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case DataKind.TypeRef_B:
-                    return (Type)dataMap.GetValue(reader.ReadByte());
+                    return (Type)_dataMap.GetValue(_reader.ReadByte());
 
                 case DataKind.TypeRef_S:
-                    return (Type)dataMap.GetValue(reader.ReadUInt16());
+                    return (Type)_dataMap.GetValue(_reader.ReadUInt16());
 
                 case DataKind.TypeRef:
-                    return (Type)dataMap.GetValue(reader.ReadInt32());
+                    return (Type)_dataMap.GetValue(_reader.ReadInt32());
 
                 case DataKind.Type:
-                    int id = dataMap.GetNextId();
+                    int id = _dataMap.GetNextId();
                     var assemblyName = this.ReadString();
                     var typeName = this.ReadString();
 
-                    if (this.binder == null)
+                    if (_binder == null)
                     {
                         throw NoBinderException(typeName);
                     }
 
-                    var type = this.binder.GetType(assemblyName, typeName);
-                    dataMap.AddValue(id, type);
+                    var type = _binder.GetType(assemblyName, typeName);
+                    _dataMap.AddValue(id, type);
                     return type;
 
                 default:
@@ -401,42 +390,42 @@ namespace Roslyn.Utilities
 
             if (type == typeof(int))
             {
-                return Enum.ToObject(enumType, reader.ReadInt32());
+                return Enum.ToObject(enumType, _reader.ReadInt32());
             }
 
             if (type == typeof(short))
             {
-                return Enum.ToObject(enumType, reader.ReadInt16());
+                return Enum.ToObject(enumType, _reader.ReadInt16());
             }
 
             if (type == typeof(byte))
             {
-                return Enum.ToObject(enumType, reader.ReadByte());
+                return Enum.ToObject(enumType, _reader.ReadByte());
             }
 
             if (type == typeof(long))
             {
-                return Enum.ToObject(enumType, reader.ReadInt64());
+                return Enum.ToObject(enumType, _reader.ReadInt64());
             }
 
             if (type == typeof(sbyte))
             {
-                return Enum.ToObject(enumType, reader.ReadSByte());
+                return Enum.ToObject(enumType, _reader.ReadSByte());
             }
 
             if (type == typeof(ushort))
             {
-                return Enum.ToObject(enumType, reader.ReadUInt16());
+                return Enum.ToObject(enumType, _reader.ReadUInt16());
             }
 
             if (type == typeof(uint))
             {
-                return Enum.ToObject(enumType, reader.ReadUInt32());
+                return Enum.ToObject(enumType, _reader.ReadUInt32());
             }
 
             if (type == typeof(ulong))
             {
-                return Enum.ToObject(enumType, reader.ReadUInt64());
+                return Enum.ToObject(enumType, _reader.ReadUInt64());
             }
 
             throw ExceptionUtilities.UnexpectedValue(enumType);
@@ -447,13 +436,13 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case DataKind.ObjectRef_B:
-                    return dataMap.GetValue(reader.ReadByte());
+                    return _dataMap.GetValue(_reader.ReadByte());
 
                 case DataKind.ObjectRef_S:
-                    return dataMap.GetValue(reader.ReadUInt16());
+                    return _dataMap.GetValue(_reader.ReadUInt16());
 
                 case DataKind.ObjectRef:
-                    return dataMap.GetValue(reader.ReadInt32());
+                    return _dataMap.GetValue(_reader.ReadInt32());
 
                 case DataKind.Object_W:
                     return this.ReadReadableObject();
@@ -468,23 +457,23 @@ namespace Roslyn.Utilities
 
         private object ReadReadableObject()
         {
-            int id = dataMap.GetNextId();
+            int id = _dataMap.GetNextId();
 
             Type type = this.ReadType();
             var instance = CreateInstance(type);
 
-            dataMap.AddValue(id, instance);
+            _dataMap.AddValue(id, instance);
             return instance;
         }
 
         private object CreateInstance(Type type)
         {
-            if (this.binder == null)
+            if (_binder == null)
             {
                 return NoBinderException(type.FullName);
             }
 
-            var reader = this.binder.GetReader(type);
+            var reader = _binder.GetReader(type);
             if (reader == null)
             {
                 return NoReaderException(type.FullName);
@@ -493,19 +482,19 @@ namespace Roslyn.Utilities
             return reader(this);
         }
 
-        private Exception NoBinderException(string typeName)
+        private static Exception NoBinderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
 #endif
         }
 
-        private Exception NoReaderException(string typeName)
+        private static Exception NoReaderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
 #endif

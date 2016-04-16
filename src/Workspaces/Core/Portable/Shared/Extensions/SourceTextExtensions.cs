@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static int IndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
         {
             var length = text.Length - value.Length;
-            var normalized = caseSensitive ? value : value.ToLowerInvariant();
+            var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
 
             for (var i = startIndex; i <= length; i++)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int LastIndexOf(this SourceText text, string value, int startIndex, bool caseSensitive)
         {
-            var normalized = caseSensitive ? value : value.ToLowerInvariant();
+            var normalized = caseSensitive ? value : CaseInsensitiveComparison.ToLower(value);
             startIndex = startIndex + normalized.Length > text.Length
                 ? text.Length - normalized.Length
                 : startIndex;
@@ -181,11 +181,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return -1;
         }
 
-        private static readonly TextInfo invariantTextInfo = CultureInfo.InvariantCulture.TextInfo;
-
-        private static bool Match(char nomalizedLeft, char right, bool caseSensitive)
+        private static bool Match(char normalizedLeft, char right, bool caseSensitive)
         {
-            return caseSensitive ? nomalizedLeft == right : nomalizedLeft == invariantTextInfo.ToLower(right);
+            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+        }
+
+        public static bool AreOnSameLine(this SourceText text, SyntaxToken token1, SyntaxToken token2)
+        {
+            return token1.RawKind != 0 &&
+                token2.RawKind != 0 &&
+                text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
         }
     }
 }

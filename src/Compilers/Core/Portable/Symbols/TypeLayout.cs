@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,20 +12,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal struct TypeLayout : IEquatable<TypeLayout>
     {
-        private readonly byte kind;
-        private readonly short alignment;
-        private readonly int size;
+        private readonly byte _kind;
+        private readonly short _alignment;
+        private readonly int _size;
 
         public TypeLayout(LayoutKind kind, int size, byte alignment)
         {
-            Debug.Assert(size >= 0 && alignment >= 0 && (int)kind >= 0 && (int)kind <= 3);
+            Debug.Assert(size >= 0 && (int)kind >= 0 && (int)kind <= 3);
 
             // we want LayoutKind.Auto to be the default layout for default(TypeLayout):
             Debug.Assert(LayoutKind.Sequential == 0);
-            this.kind = (byte)(kind + 1);
+            _kind = (byte)(kind + 1);
 
-            this.size = size;
-            this.alignment = alignment;
+            _size = size;
+            _alignment = alignment;
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 // for convenience default(TypeLayout) should be auto-layout
-                return kind == 0 ? LayoutKind.Auto : (LayoutKind)(kind - 1);
+                return _kind == 0 ? LayoutKind.Auto : (LayoutKind)(_kind - 1);
             }
         }
 
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public short Alignment
         {
-            get { return alignment; }
+            get { return _alignment; }
         }
 
         /// <summary>
@@ -54,14 +53,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int Size
         {
-            get { return size; }
+            get { return _size; }
         }
 
         public bool Equals(TypeLayout other)
         {
-            return this.size == other.size
-                && this.alignment == other.alignment
-                && this.kind == other.kind;
+            return _size == other._size
+                && _alignment == other._alignment
+                && _kind == other._kind;
         }
 
         public override bool Equals(object obj)
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.Combine(this.Size, this.Alignment), this.kind);
+            return Hash.Combine(Hash.Combine(this.Size, this.Alignment), _kind);
         }
     }
 }

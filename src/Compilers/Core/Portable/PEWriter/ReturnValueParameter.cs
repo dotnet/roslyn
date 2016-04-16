@@ -10,20 +10,20 @@ namespace Microsoft.Cci
     {
         internal ReturnValueParameter(IMethodDefinition containingMethod)
         {
-            this.containingMethod = containingMethod;
+            _containingMethod = containingMethod;
         }
 
         public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return this.containingMethod.ReturnValueAttributes;
+            return _containingMethod.ReturnValueAttributes;
         }
 
         public ISignature ContainingSignature
         {
-            get { return this.containingMethod; }
+            get { return _containingMethod; }
         }
 
-        private IMethodDefinition containingMethod;
+        private readonly IMethodDefinition _containingMethod;
 
         public IMetadataConstant Constant
         {
@@ -32,7 +32,7 @@ namespace Microsoft.Cci
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
-            get { return this.containingMethod.ReturnValueCustomModifiers; }
+            get { return _containingMethod.ReturnValueCustomModifiers; }
         }
 
         public IMetadataConstant GetDefaultValue(EmitContext context)
@@ -61,17 +61,17 @@ namespace Microsoft.Cci
 
         public bool IsByReference
         {
-            get { return this.containingMethod.ReturnValueIsByRef; }
+            get { return _containingMethod.ReturnValueIsByRef; }
         }
 
-        public bool HasByRefBeforeCustomModifiers
+        public ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         public bool IsMarshalledExplicitly
         {
-            get { return this.containingMethod.ReturnValueIsMarshalledExplicitly; }
+            get { return _containingMethod.ReturnValueIsMarshalledExplicitly; }
         }
 
         public bool IsOptional
@@ -86,12 +86,12 @@ namespace Microsoft.Cci
 
         public IMarshallingInformation MarshallingInformation
         {
-            get { return this.containingMethod.ReturnValueMarshallingInformation; }
+            get { return _containingMethod.ReturnValueMarshallingInformation; }
         }
 
         public ImmutableArray<byte> MarshallingDescriptor
         {
-            get { return this.containingMethod.ReturnValueMarshallingDescriptor; }
+            get { return _containingMethod.ReturnValueMarshallingDescriptor; }
         }
 
         public string Name
@@ -101,7 +101,7 @@ namespace Microsoft.Cci
 
         public ITypeReference GetType(EmitContext context)
         {
-            return this.containingMethod.GetType(context);
+            return _containingMethod.GetType(context);
         }
 
         public IDefinition AsDefinition(EmitContext context)

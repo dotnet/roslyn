@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class CSharpCustomModifier : Cci.ICustomModifier
+    internal partial class CSharpCustomModifier : Cci.ICustomModifier
     {
         bool Cci.ICustomModifier.IsOptional
         {
@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
         {
-            Debug.Assert(this.Modifier.IsDefinition);
             return ((PEModuleBuilder)context.Module).Translate(this.Modifier, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
         }
     }

@@ -13,20 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' invoked by a superclass when the two endpoints of a jump have been identified.
     ''' </summary>
     ''' <remarks></remarks>
-    Class EntryPointsWalker
+    Friend Class EntryPointsWalker
         Inherits AbstractRegionControlFlowPass
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo, ByRef succeeded As Boolean?) As IEnumerable(Of LabelStatementSyntax)
             Dim walker = New EntryPointsWalker(info, region)
             Try
                 succeeded = walker.Analyze()
-                Return If(succeeded, walker.entryPoints, SpecializedCollections.EmptyEnumerable(Of LabelStatementSyntax)())
+                Return If(succeeded, walker._entryPoints, SpecializedCollections.EmptyEnumerable(Of LabelStatementSyntax)())
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Dim entryPoints As HashSet(Of LabelStatementSyntax) = New HashSet(Of LabelStatementSyntax)()
+        Private ReadOnly _entryPoints As HashSet(Of LabelStatementSyntax) = New HashSet(Of LabelStatementSyntax)()
 
         Private Overloads Function Analyze() As Boolean
             '  We only need to scan in a single pass.
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If stmt.Syntax IsNot Nothing AndAlso labelStmt.Syntax IsNot Nothing AndAlso IsInsideRegion(labelStmt.Syntax.Span) AndAlso Not IsInsideRegion(stmt.Syntax.Span) Then
                 Select Case stmt.Kind
                     Case BoundKind.GotoStatement
-                        entryPoints.Add(DirectCast(labelStmt.Syntax, LabelStatementSyntax))
+                        _entryPoints.Add(DirectCast(labelStmt.Syntax, LabelStatementSyntax))
 
                     Case BoundKind.ReturnStatement
                         ' Do nothing

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundLocalDeclaration
+    Friend Partial Class BoundLocalDeclaration
 
         Public Sub New(syntax As VisualBasicSyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
             MyClass.New(syntax, localSymbol, initializerOpt, False, False)

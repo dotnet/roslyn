@@ -10,10 +10,10 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
 
         ' The strategy of this rewrite is to do rewrite "locally".
-        ' We analyze arguments of the concat in a shallow fasion assuming that 
+        ' We analyze arguments of the concat in a shallow fashion assuming that 
         ' lowering and optimizations (including this one) is already done for the arguments.
         ' Based on the arguments we select the most appropriate pattern for the current node.
         ' 
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim syntax = node.Syntax
             Dim loweredLeft = node.Left
             Dim loweredRight = node.Right
-            Dim factory = New SyntheticBoundNodeFactory(Me.topMethod, Me.currentMethodOrLambda, syntax, Me.compilationState, Me.diagnostics)
+            Dim factory = New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, syntax, Me._compilationState, Me._diagnostics)
 
             ' try fold two args without flattening.
             Dim folded As BoundExpression = TryFoldTwoConcatOperands(factory, loweredLeft, loweredRight)
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' otherwise returns the expression as-is
         ''' 
         ''' Generally we only need to recognize same node patterns that we create as a result of concatenation rewrite.
-        ''' We could recognise some other nodes and unwrap to arguments 
+        ''' We could recognize some other nodes and unwrap to arguments 
         ''' </summary>
         Private Sub FlattenConcatArg(lowered As BoundExpression, flattened As ArrayBuilder(Of BoundExpression))
             Select Case lowered.Kind
@@ -178,10 +178,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsNullOrEmptyStringConstant(loweredLeft) Then
                 If IsNullOrEmptyStringConstant(loweredRight) Then
                     Return factory.Literal("")
-                ElseIf Not inExpressionLambda Then
+                ElseIf Not _inExpressionLambda Then
                     Return Me.RewriteStringConcatenationOneExpr(factory, loweredRight)
                 End If
-            ElseIf Not inExpressionLambda AndAlso IsNullOrEmptyStringConstant(loweredRight) Then
+            ElseIf Not _inExpressionLambda AndAlso IsNullOrEmptyStringConstant(loweredRight) Then
                 Return Me.RewriteStringConcatenationOneExpr(factory, loweredLeft)
             End If
 

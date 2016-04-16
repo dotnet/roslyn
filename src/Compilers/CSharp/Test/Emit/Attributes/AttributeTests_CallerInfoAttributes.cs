@@ -51,7 +51,7 @@ class Test {
                 //     static void LogCallerFilePath([CallerFilePath] string filePath) { }
                 Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, @"CallerFilePath").WithLocation(7, 36),
 
-                 // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+                // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
                 //     static void LogCallerMemberName([CallerMemberName] string memberName) { }
                 Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, @"CallerMemberName").WithLocation(9, 38));
         }
@@ -174,7 +174,7 @@ line: 78
 line: 79
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected, emitOptions: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(compilation, expectedOutput: expected);
         }
 
         [Fact]
@@ -652,7 +652,7 @@ partial class D
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
 
-        [Fact, WorkItem(531044, "DevDiv")]
+        [Fact, WorkItem(531044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531044")]
         public void TestUnconsumedCallerInfoAttributes()
         {
             string source = @"
@@ -682,7 +682,7 @@ partial class D
                 // (13,10): warning CS4026: The CallerMemberNameAttribute applied to parameter 'member' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerMemberName] string member,
                 Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("member"),
-                // (14,10): warning CS4025: The CalleFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerFilePath] string path) { }
                 Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
         }
@@ -792,7 +792,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(30, 47).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(31, 31).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(31, 49).WithArguments("string", "int"),
-    
+
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(33, 49).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(34, 31).WithArguments("string", "int"),
 
@@ -825,8 +825,8 @@ C:\file.cs
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { Parse(source, @"C:\file.cs")}, 
-                new[] { SystemRef }, 
+                new[] { Parse(source, @"C:\file.cs") },
+                new[] { SystemRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -897,7 +897,7 @@ partial class D
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
 
-        [WorkItem(689618, "DevDiv")]
+        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
         [Fact]
         public void TestCallerMemberNameUnconsumedBadType()
         {
@@ -933,7 +933,7 @@ partial class D
             CompileAndVerify(compilation, expectedOutput: "");
         }
 
-        [WorkItem(689618, "DevDiv")]
+        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
         [Fact]
         public void TestCallerMemberNameUnconsumedBadType02()
         {
@@ -1091,7 +1091,7 @@ name: IsTrue
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-    
+
         [Fact]
         public void TestCallerMemberName_CustomAttribute()
         {
@@ -1164,8 +1164,8 @@ name: Compare
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                source, 
-                new[] { SystemRef }, 
+                source,
+                new[] { SystemRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
@@ -1821,14 +1821,14 @@ name: C:\file.cs
             MetadataReference libReference = CompileIL(iLSource);
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { Parse(source, @"C:\file.cs") }, 
+                new[] { Parse(source, @"C:\file.cs") },
                 new[] { libReference },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(546977, "DevDiv")]
+        [Fact, WorkItem(546977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546977")]
         public void Bug_17433()
         {
             var source = @"using System.Reflection;
@@ -1859,7 +1859,7 @@ class Driver
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531036, "DevDiv")]
+        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
         public void Repro_17443()
         {
             var source = @"
@@ -1910,7 +1910,7 @@ CallerInfoAttributed: (, 22, Property1)
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531036, "DevDiv")]
+        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
         public void CallerMemberNameAttributedAttributeOnNonMethodMembers()
         {
             var source = @"
@@ -1979,8 +1979,8 @@ MyMethod
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
-        [Fact, WorkItem(531040, "DevDiv")]
+
+        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void Repro_17449()
         {
             var source = @"
@@ -2014,7 +2014,7 @@ class Program
         }
 
 
-        [Fact, WorkItem(531040, "DevDiv")]
+        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
         public void TestBadAttributeParameterTypeWithCallerLineNumber()
         {
             var source = @"
@@ -2057,8 +2057,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
         }
 
-        
-        [Fact, WorkItem(531043, "DevDiv")]
+
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void Repro_17457()
         {
             var source = @"
@@ -2099,7 +2099,7 @@ class Test
         }
 
 
-        [Fact, WorkItem(531043, "DevDiv")]
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()
         {
             var source = @"
@@ -2130,7 +2130,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2DecimalAttribute").WithArguments("lineNumber", "decimal"));
         }
 
-        [Fact, WorkItem(531043, "DevDiv")]
+        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
         public void AllLegalConversionForCallerLineNumber()
         {
             var source = @"
@@ -2216,8 +2216,8 @@ class Test
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
-        [Fact, WorkItem(531046, "DevDiv")]
+
+        [Fact, WorkItem(531046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531046")]
         public void TestUserDefinedImplicitConversion()
         {
             var source = @"
@@ -2260,8 +2260,8 @@ class Test
                 //     public bool M2(string expected, [CallerMemberName] Test line = null)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "Test"));
         }
-		
-        [Fact, WorkItem(546980, "DevDiv")]
+
+        [Fact, WorkItem(546980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546980")]
         public void TestBaseCtorInvocation()
         {
             var source = @"
@@ -2360,14 +2360,14 @@ query path : C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
-                new[] { SystemCoreRef }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+                new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: expected);
         }
-		
-        [Fact, WorkItem(531034, "DevDiv")]
+
+        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
         public void WarnOnCallerInfoCollision()
         {
             var source = @"
@@ -2411,9 +2411,9 @@ C:\filename
 ";
 
             var compilation = CreateCompilationWithMscorlib45(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) }, 
+                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
                 options: TestOptions.ReleaseExe);
-            
+
             compilation.VerifyDiagnostics(
                 // C:\filename(7,21): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
                 //     static void M1([CallerMemberName,CallerFilePath] string s = null) { Console.WriteLine(s); }
@@ -2461,7 +2461,7 @@ C:\filename
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(531034, "DevDiv")]
+        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
         public void WarnOnCallerInfoCollisionWithBadType()
         {
             var source = @"
@@ -2499,7 +2499,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"));
         }
 
-        [WorkItem(604367, "DevDiv")]
+        [WorkItem(604367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604367")]
         [Fact]
         public void TestCallerInfoInQuery()
         {
@@ -2574,7 +2574,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_1()
@@ -2610,7 +2610,7 @@ F2";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_2()
@@ -2646,7 +2646,7 @@ F2";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(949118, "DevDiv")]
+        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
         [WorkItem(152, "CodePlex")]
         [Fact]
         public void Bug949118_3()
@@ -2690,7 +2690,7 @@ public class Foo : I1
         /// We also provide caller information to an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer
         /// to match the native compiler behavior and user requests. 
         /// </summary>
-        [WorkItem(991476, "DevDiv")]
+        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
         [WorkItem(171, "CodePlex")]
         [Fact]
         public void Bug991476_1()
@@ -2747,7 +2747,7 @@ C:\filename";
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(991476, "DevDiv")]
+        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
         [WorkItem(171, "CodePlex")]
         [Fact]
         public void Bug991476_2()
@@ -2807,7 +2807,7 @@ Main
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_1()
         {
@@ -2868,7 +2868,7 @@ Get X(""C:\filename"")
 ");
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_2()
         {
@@ -2901,7 +2901,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [WorkItem(1006447, "DevDiv")]
+        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
         [Fact]
         public void Bug1006447_3()
         {

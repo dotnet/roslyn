@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,11 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class SymbolDistinguisher
     {
-        private readonly Compilation compilation;
-        private readonly Symbol symbol0;
-        private readonly Symbol symbol1;
+        private readonly Compilation _compilation;
+        private readonly Symbol _symbol0;
+        private readonly Symbol _symbol1;
 
-        private ImmutableArray<string> lazyDescriptions;
+        private ImmutableArray<string> _lazyDescriptions;
 
         public SymbolDistinguisher(Compilation compilation, Symbol symbol0, Symbol symbol1)
         {
@@ -32,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSymbolKind(symbol0);
             CheckSymbolKind(symbol1);
 
-            this.compilation = compilation;
-            this.symbol0 = symbol0;
-            this.symbol1 = symbol1;
+            _compilation = compilation;
+            _symbol0 = symbol0;
+            _symbol1 = symbol1;
         }
 
         public IMessageSerializable First
@@ -74,8 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                 case SymbolKind.RangeVariable:
                 case SymbolKind.Preprocessing:
-                    Debug.Assert(false, "Unsupported symbol kind " + symbol.Kind);
-                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -83,18 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeDescriptions()
         {
-            if (!this.lazyDescriptions.IsDefault) return;
+            if (!_lazyDescriptions.IsDefault) return;
 
-            string description0 = symbol0.ToDisplayString();
-            string description1 = symbol1.ToDisplayString();
+            string description0 = _symbol0.ToDisplayString();
+            string description1 = _symbol1.ToDisplayString();
 
             if (description0 == description1)
             {
-                Symbol unwrappedSymbol0 = UnwrapSymbol(symbol0);
-                Symbol unwrappedSymbol1 = UnwrapSymbol(symbol1);
+                Symbol unwrappedSymbol0 = UnwrapSymbol(_symbol0);
+                Symbol unwrappedSymbol1 = UnwrapSymbol(_symbol1);
 
-                string location0 = GetLocationString(compilation, unwrappedSymbol0);
-                string location1 = GetLocationString(compilation, unwrappedSymbol1);
+                string location0 = GetLocationString(_compilation, unwrappedSymbol0);
+                string location1 = GetLocationString(_compilation, unwrappedSymbol1);
 
                 // The locations should not be equal, but they might be if the same
                 // SyntaxTree is referenced by two different compilations.
@@ -106,31 +103,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // May not be the case if there are error types.
                     if ((object)containingAssembly0 != null && (object)containingAssembly1 != null)
                     {
+                        // Use the assembly identities rather than locations. Note that the
+                        // assembly identities may be identical as well. (For instance, the
+                        // symbols are type arguments to the same generic type, and the type
+                        // arguments have the same string representation. The assembly
+                        // identities will refer to the generic types, not the type arguments.)
                         location0 = containingAssembly0.Identity.ToString();
                         location1 = containingAssembly1.Identity.ToString();
-
-                        // Even if the friendly locations produced by GetLocationString aren't
-                        // distinct, the containing assembly identities should be.
-                        Debug.Assert(location0 != location1);
                     }
                 }
 
-                if (location0 != null)
+                if (location0 != location1)
                 {
-                    description0 = $"{description0} [{location0}]";
-                }
-
-                if (location1 != null)
-                {
-                    description1 = $"{description1} [{location1}]";
+                    if (location0 != null)
+                    {
+                        description0 = $"{description0} [{location0}]";
+                    }
+                    if (location1 != null)
+                    {
+                        description1 = $"{description1} [{location1}]";
+                    }
                 }
             }
 
-            Debug.Assert(description0 != description1);
+            if (!_lazyDescriptions.IsDefault) return;
 
-            if (!this.lazyDescriptions.IsDefault) return;
-
-            ImmutableInterlocked.InterlockedInitialize(ref this.lazyDescriptions, ImmutableArray.Create(description0, description1));
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyDescriptions, ImmutableArray.Create(description0, description1));
         }
 
         private static Symbol UnwrapSymbol(Symbol symbol)
@@ -153,7 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
 
         private static string GetLocationString(Compilation compilation, Symbol unwrappedSymbol)
         {
@@ -197,23 +194,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetDescription(int index)
         {
             MakeDescriptions();
-            return lazyDescriptions[index];
+            return _lazyDescriptions[index];
         }
 
-        private class Description : IMessageSerializable
+        private sealed class Description : IMessageSerializable
         {
-            private readonly SymbolDistinguisher distinguisher;
-            private readonly int index;
+            private readonly SymbolDistinguisher _distinguisher;
+            private readonly int _index;
 
             public Description(SymbolDistinguisher distinguisher, int index)
             {
-                this.distinguisher = distinguisher;
-                this.index = index;
+                _distinguisher = distinguisher;
+                _index = index;
+            }
+
+            private Symbol GetSymbol()
+            {
+                return (_index == 0) ? _distinguisher._symbol0 : _distinguisher._symbol1;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as Description;
+                return other != null &&
+                    _distinguisher._compilation == other._distinguisher._compilation &&
+                    GetSymbol() == other.GetSymbol();
+            }
+
+            public override int GetHashCode()
+            {
+                int result = GetSymbol().GetHashCode();
+                var compilation = _distinguisher._compilation;
+                if (compilation != null)
+                {
+                    result = Hash.Combine(result, compilation.GetHashCode());
+                }
+                return result;
             }
 
             public override string ToString()
             {
-                return distinguisher.GetDescription(index);
+                return _distinguisher.GetDescription(_index);
             }
         }
     }

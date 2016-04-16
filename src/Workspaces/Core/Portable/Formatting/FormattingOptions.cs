@@ -10,21 +10,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal const string InternalTabFeatureName = "InternalTab";
         internal const string FormattingFeatureName = "Formatting";
 
-        public static readonly PerLanguageOption<bool> UseTabs = new PerLanguageOption<bool>(TabFeatureName, "UseTab", defaultValue: false);
+        public static PerLanguageOption<bool> UseTabs { get; } = new PerLanguageOption<bool>(TabFeatureName, "UseTab", defaultValue: false);
 
-        public static readonly PerLanguageOption<int> TabSize = new PerLanguageOption<int>(TabFeatureName, "TabSize", defaultValue: 4);
+        public static PerLanguageOption<int> TabSize { get; } = new PerLanguageOption<int>(TabFeatureName, "TabSize", defaultValue: 4);
 
-        public static readonly PerLanguageOption<int> IndentationSize = new PerLanguageOption<int>(TabFeatureName, "IndentationSize", defaultValue: 4);
+        public static PerLanguageOption<int> IndentationSize { get; } = new PerLanguageOption<int>(TabFeatureName, "IndentationSize", defaultValue: 4);
 
-        public static readonly PerLanguageOption<IndentStyle> SmartIndent = new PerLanguageOption<IndentStyle>(FormattingFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
+        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = new PerLanguageOption<IndentStyle>(TabFeatureName, "SmartIndent", defaultValue: IndentStyle.Smart);
 
-        public static readonly PerLanguageOption<bool> UseTabOnlyForIndentation = new PerLanguageOption<bool>(InternalTabFeatureName, "UseTabOnlyForIndentation", defaultValue: false);
+        public static PerLanguageOption<string> NewLine { get; } = new PerLanguageOption<string>(FormattingFeatureName, "NewLine", defaultValue: "\r\n");
 
-        public static readonly PerLanguageOption<string> NewLine = new PerLanguageOption<string>(FormattingFeatureName, "NewLine", defaultValue: "\r\n");
+        internal static PerLanguageOption<bool> DebugMode { get; } = new PerLanguageOption<bool>(FormattingFeatureName, "DebugMode", defaultValue: false);
 
-        internal static readonly PerLanguageOption<bool> DebugMode = new PerLanguageOption<bool>(FormattingFeatureName, "DebugMode", defaultValue: false);
-
-        internal static readonly Option<bool> AllowDisjointSpanMerging = new Option<bool>(FormattingFeatureName, "ShouldUseFormattingSpanCollapse", defaultValue: false);
+        internal static Option<bool> AllowDisjointSpanMerging { get; } = new Option<bool>(FormattingFeatureName, "ShouldUseFormattingSpanCollapse", defaultValue: false);
 
         public enum IndentStyle
         {

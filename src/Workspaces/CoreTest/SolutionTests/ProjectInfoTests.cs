@@ -16,5 +16,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: null, language: "C#"));
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: "Bar", language: null));
         }
+
+        [Fact]
+        public void DebuggerDisplayHasProjectNameAndFilePath()
+        {
+            var projectInfo = ProjectInfo.Create(name: "Foo", filePath: @"C:\", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
+            Assert.Equal(@"ProjectInfo Foo C:\", projectInfo.GetDebuggerDisplay());
+        }
+
+        [Fact]
+        public void DebuggerDisplayHasOnlyProjectNameWhenFilePathNotSpecified()
+        {
+            var projectInfo = ProjectInfo.Create(name: "Foo", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "Bar", language: "C#");
+            Assert.Equal(@"ProjectInfo Foo", projectInfo.GetDebuggerDisplay());
+        }
     }
 }

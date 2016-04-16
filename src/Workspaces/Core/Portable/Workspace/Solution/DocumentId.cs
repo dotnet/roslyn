@@ -14,25 +14,25 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public class DocumentId : IEquatable<DocumentId>
+    public sealed class DocumentId : IEquatable<DocumentId>
     {
-        public ProjectId ProjectId { get; private set; }
-        public Guid Id { get; private set; }
+        public ProjectId ProjectId { get; }
+        public Guid Id { get; }
 
-        private string debugName;
+        private readonly string _debugName;
 
         private DocumentId(ProjectId projectId, string debugName)
         {
             this.ProjectId = projectId;
             this.Id = Guid.NewGuid();
-            this.debugName = debugName;
+            _debugName = debugName;
         }
 
         internal DocumentId(ProjectId projectId, Guid guid, string debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
-            this.debugName = debugName;
+            _debugName = debugName;
         }
 
         /// <summary>
@@ -44,18 +44,33 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             return new DocumentId(projectId, debugName);
         }
 
-        internal string GetDebuggerDisplay()
+        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
         {
-            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, this.debugName);
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (id == Guid.Empty)
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            return new DocumentId(projectId, id, debugName);
         }
 
-        internal string DebugName { get { return debugName; } }
+        internal string GetDebuggerDisplay()
+        {
+            return string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        }
+
+        internal string DebugName { get { return _debugName; } }
 
         public override string ToString()
         {

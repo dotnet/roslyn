@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal static partial class Logger
     {
-        private static ILogger currentLogger = null;
+        private static ILogger s_currentLogger;
 
         /// <summary>
         /// next unique block id that will be given to each LogBlock
         /// </summary>
-        private static int lastUniqueBlockId = 0;
+        private static int s_lastUniqueBlockId;
 
         /// <summary>
         /// give a way to explicitly set/replace the logger
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static ILogger SetLogger(ILogger logger)
         {
             // we don't care what was there already, just replace it explicitly
-            return Interlocked.Exchange(ref Logger.currentLogger, logger);
+            return Interlocked.Exchange(ref Logger.s_currentLogger, logger);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         public static ILogger GetLogger()
         {
-            return Logger.currentLogger;
+            return Logger.s_currentLogger;
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         private static int GetNextUniqueBlockId()
         {
-            return Interlocked.Increment(ref lastUniqueBlockId);
+            return Interlocked.Increment(ref s_lastUniqueBlockId);
         }
 
         /// <summary>

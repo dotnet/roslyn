@@ -2,15 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedSubmissionConstructor : SynthesizedInstanceConstructor
     {
-        private readonly ImmutableArray<ParameterSymbol> parameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
         internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, DiagnosticBag diagnostics)
             : base(containingType)
@@ -27,18 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(useSiteError, NoLocation.Singleton);
             }
 
-            // resolve return type:
-            TypeSymbol returnType = compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics);
-
-            this.parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"),
-                new SynthesizedParameterSymbol(this, returnType, 1, RefKind.Ref, "submissionResult")
-            );
+            _parameters = ImmutableArray.Create<ParameterSymbol>(
+                new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
-            get { return parameters; }
+            get { return _parameters; }
         }
     }
 }

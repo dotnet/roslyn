@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class PENamedTypeSymbolWithEmittedNamespaceName
         Inherits PENamedTypeSymbol
 
-        Private ReadOnly m_EmittedNamespaceName As String
+        Private ReadOnly _emittedNamespaceName As String
 
-        Private ReadOnly m_CorTypeId As SpecialType
+        Private ReadOnly _corTypeId As SpecialType
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -28,25 +28,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(emittedNamespaceName IsNot Nothing)
             Debug.Assert(emittedNamespaceName.Length > 0)
-            m_EmittedNamespaceName = emittedNamespaceName
+            _emittedNamespaceName = emittedNamespaceName
 
             ' check if this is one of the COR library types
             If (Arity = 0 OrElse MangleName) AndAlso (moduleSymbol.ContainingAssembly.KeepLookingForDeclaredSpecialTypes) AndAlso Me.DeclaredAccessibility = Accessibility.Public Then
                 Debug.Assert(emittedNamespaceName.Length > 0)
-                m_CorTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, MetadataName))
+                _corTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, MetadataName))
             Else
-                m_CorTypeId = SpecialType.None
+                _corTypeId = SpecialType.None
             End If
         End Sub
 
         Public Overrides ReadOnly Property SpecialType As SpecialType
             Get
-                Return m_CorTypeId
+                Return _corTypeId
             End Get
         End Property
 
         Friend Overrides Function GetEmittedNamespaceName() As String
-            Return m_EmittedNamespaceName
+            Return _emittedNamespaceName
         End Function
 
     End Class

@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class GetHashCodeVisitor
         {
-            private readonly SymbolEquivalenceComparer symbolEquivalenceComparer;
-            private readonly bool compareMethodTypeParametersByIndex;
-            private readonly bool objectAndDynamicCompareEqually;
-            private readonly Func<int, IParameterSymbol, int> parameterAggregator;
-            private readonly Func<int, ISymbol, int> symbolAggregator;
+            private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
+            private readonly bool _compareMethodTypeParametersByIndex;
+            private readonly bool _objectAndDynamicCompareEqually;
+            private readonly Func<int, IParameterSymbol, int> _parameterAggregator;
+            private readonly Func<int, ISymbol, int> _symbolAggregator;
 
             public GetHashCodeVisitor(
                 SymbolEquivalenceComparer symbolEquivalenceComparer,
                 bool compareMethodTypeParametersByIndex,
                 bool objectAndDynamicCompareEqually)
             {
-                this.symbolEquivalenceComparer = symbolEquivalenceComparer;
-                this.compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
-                this.objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
-                this.parameterAggregator = (acc, sym) => Hash.Combine(symbolEquivalenceComparer.ParameterEquivalenceComparer.GetHashCode(sym), acc);
-                this.symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
+                _symbolEquivalenceComparer = symbolEquivalenceComparer;
+                _compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
+                _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
+                _parameterAggregator = (acc, sym) => Hash.Combine(symbolEquivalenceComparer.ParameterEquivalenceComparer.GetHashCode(sym), acc);
+                _symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
             }
 
             public int GetHashCode(ISymbol x, int currentHash)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // want to bail out using the above check.
 
                 if (x.Kind == SymbolKind.DynamicType ||
-                    (objectAndDynamicCompareEqually && IsObjectType(x)))
+                    (_objectAndDynamicCompareEqually && IsObjectType(x)))
                 {
                     return Hash.Combine(typeof(IDynamicTypeSymbol), currentHash);
                 }
@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
             {
-                return symbolEquivalenceComparer.assembliesCanDiffer
-                    ? Hash.Combine(typeof(IAssemblySymbol), currentHash)
-                    : Hash.Combine(x.Name, currentHash);
+                return Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
             }
 
             private int CombineHashCodes(IFieldSymbol x, int currentHash)
@@ -157,19 +155,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 currentHash =
-                    CombineHashCodes(x.Parameters, currentHash, parameterAggregator);
+                    CombineHashCodes(x.Parameters, currentHash, _parameterAggregator);
 
                 return IsConstructedFromSelf(x)
                     ? currentHash
-                    : CombineHashCodes(x.TypeArguments, currentHash, symbolAggregator);
+                    : CombineHashCodes(x.TypeArguments, currentHash, _symbolAggregator);
             }
 
             private int CombineHashCodes(IModuleSymbol x, int currentHash)
             {
-                // TODO(cyrusn): what's the right thing to do here?
-                return symbolEquivalenceComparer.assembliesCanDiffer
-                    ? Hash.Combine(typeof(IModuleSymbol), currentHash)
-                    : Hash.Combine(x.Name, currentHash);
+                return CombineHashCodes(x.ContainingAssembly, Hash.Combine(x.Name, currentHash));
             }
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
@@ -198,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return IsConstructedFromSelf(x) || x.IsUnboundGenericType
                     ? currentHash
-                    : CombineHashCodes(x.TypeArguments, currentHash, symbolAggregator);
+                    : CombineHashCodes(x.TypeArguments, currentHash, _symbolAggregator);
             }
 
             private int CombineAnonymousTypeHashCode(INamedTypeSymbol x, int currentHash)
@@ -222,6 +217,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private int CombineHashCodes(INamespaceSymbol x, int currentHash)
             {
+                if (x.IsGlobalNamespace && _symbolEquivalenceComparer._assemblyComparerOpt == null)
+                {
+                    // Exclude global namespace's container's hash when assemblies can differ.
+                    return Hash.Combine(x.Name, currentHash);
+                }
+
                 return
                     Hash.Combine(x.IsGlobalNamespace,
                     Hash.Combine(x.Name,
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     Hash.Combine(x.Parameters.Length,
                     GetHashCode(x.ContainingSymbol, currentHash))));
 
-                return CombineHashCodes(x.Parameters, currentHash, parameterAggregator);
+                return CombineHashCodes(x.Parameters, currentHash, _parameterAggregator);
             }
 
             private int CombineHashCodes(IEventSymbol x, int currentHash)
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     Hash.Combine(x.Ordinal,
                     Hash.Combine((int)x.TypeParameterKind, currentHash));
 
-                if (x.TypeParameterKind == TypeParameterKind.Method && compareMethodTypeParametersByIndex)
+                if (x.TypeParameterKind == TypeParameterKind.Method && _compareMethodTypeParametersByIndex)
                 {
                     return currentHash;
                 }

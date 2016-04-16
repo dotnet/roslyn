@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class LineDirectiveMap<TDirective>
+    internal partial class LineDirectiveMap<TDirective>
     {
         /// <summary>
         /// Enum that describes the state related to the #line or #externalsource directives at a position in source.

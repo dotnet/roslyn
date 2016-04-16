@@ -13,32 +13,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AsyncStateMachine : StateMachineTypeSymbol
     {
-        private readonly TypeKind typeKind;
-        private readonly MethodSymbol constructor;
-        private readonly ImmutableArray<NamedTypeSymbol> interfaces;
+        private readonly TypeKind _typeKind;
+        private readonly MethodSymbol _constructor;
+        private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
 
         public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, TypeCompilationState compilationState, MethodSymbol asyncMethod, int asyncMethodOrdinal, TypeKind typeKind)
             : base(variableAllocatorOpt, compilationState, asyncMethod, asyncMethodOrdinal)
         {
             // TODO: report use-site errors on these types
-            this.typeKind = typeKind;
-            this.interfaces = ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine));
-            this.constructor = new AsyncConstructor(this);
+            _typeKind = typeKind;
+            _interfaces = ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine));
+            _constructor = new AsyncConstructor(this);
         }
 
         public override TypeKind TypeKind
         {
-            get { return typeKind; }
+            get { return _typeKind; }
         }
 
         internal override MethodSymbol Constructor
         {
-            get { return constructor; }
+            get { return _constructor; }
         }
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            return interfaces;
+            return _interfaces;
         }
     }
 }

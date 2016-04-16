@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 Dim constantTuple = MakeConstantTuple(inProgress, diagnostics)
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-
                 sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
                 diagnostics.Free()
             End If
@@ -100,22 +99,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
                 Dim underlyingType = ContainingType.EnumUnderlyingType
-                Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType, Nothing)
+                Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType)
             End Function
         End Class
 
         Private NotInheritable Class ExplicitValuedEnumConstantSymbol
             Inherits SourceEnumConstantSymbol
 
-            Private ReadOnly equalsValueNodeRef As SyntaxReference
+            Private ReadOnly _equalsValueNodeRef As SyntaxReference
 
             Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, initializer As EqualsValueSyntax, diagnostics As DiagnosticBag)
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
-                Me.equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
+                Me._equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
             End Sub
 
             Protected Overrides Function MakeConstantTuple(inProgress As SymbolsInProgress(Of FieldSymbol), diagnostics As DiagnosticBag) As EvaluatedConstant
-                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me.equalsValueNodeRef, inProgress, diagnostics)
+                Return ConstantValueUtils.EvaluateFieldConstant(Me, Me._equalsValueNodeRef, inProgress, diagnostics)
             End Function
         End Class
 
@@ -154,8 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                ' Note: EvaluatedConstant.Diagnostics is not used.
-                Return New EvaluatedConstant(value, symbol.Type, Nothing)
+                Return New EvaluatedConstant(value, symbol.Type)
             End Function
         End Class
 

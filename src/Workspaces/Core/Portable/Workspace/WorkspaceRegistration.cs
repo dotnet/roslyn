@@ -6,24 +6,29 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed class WorkspaceRegistration
     {
-        private Workspace registeredWorkspace;
+        private Workspace _registeredWorkspace;
 
         internal WorkspaceRegistration()
         {
         }
 
-        public Workspace Workspace { get { return registeredWorkspace; } }
+        public Workspace Workspace { get { return _registeredWorkspace; } }
         public event EventHandler WorkspaceChanged;
 
         internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
         {
-            registeredWorkspace = workspace;
+            SetWorkspace(workspace);
+            RaiseEvents();
+        }
 
-            var workspaceChanged = WorkspaceChanged;
-            if (workspaceChanged != null)
-            {
-                workspaceChanged(this, EventArgs.Empty);
-            }
+        internal void SetWorkspace(Workspace workspace)
+        {
+            _registeredWorkspace = workspace;
+        }
+
+        internal void RaiseEvents()
+        {
+            WorkspaceChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

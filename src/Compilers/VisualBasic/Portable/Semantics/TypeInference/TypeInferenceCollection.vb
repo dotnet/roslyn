@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
     Friend Class TypeInferenceCollection(Of TDominantTypeData As DominantTypeData)
-        Private ReadOnly m_dominantTypeDataList As ArrayBuilder(Of TDominantTypeData)
+        Private ReadOnly _dominantTypeDataList As ArrayBuilder(Of TDominantTypeData)
 
         Public Sub New()
-            m_dominantTypeDataList = New ArrayBuilder(Of TDominantTypeData)()
+            _dominantTypeDataList = New ArrayBuilder(Of TDominantTypeData)()
         End Sub
 
         Public Function GetTypeDataList() As ArrayBuilder(Of TDominantTypeData)
-            Return m_dominantTypeDataList
+            Return _dominantTypeDataList
         End Function
 
         Public Enum HintSatisfaction
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' candidate:D    A <= D   B <= D   D <= C   D <= D
             '
             ' 1. If there is a unique "strict" candidate for which every check is ID/Widening, then return it.
-            ' 2. If there are multiple "strict" candidates for which each each check is ID/Widening, but these
+            ' 2. If there are multiple "strict" candidates for which each check is ID/Widening, but these
             '    candidates have a unique widest ("dominant") type, then pick it.
             ' 3. If there are no "strict" candidates for which each check is ID/Widening, but there is
             '    one "unstrict" candidate for which each check is ID/Widening/Narrowing, then pick it.
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' e.g. T:{Tiger+, Mammal-, Animal-},
             ' candidate "Tiger":  ID, Widening, Widening  <-- a strict candidate
             ' candidate "Mammal": Widening, ID, Widening  <-- a strict candidate; also the unique widest one
-            ' candidate "Animal": Widening, Narowing, ID  <-- an unstrict candidate
+            ' candidate "Animal": Widening, Narrowing, ID  <-- an unstrict candidate
             ' 
             resultList.Clear()
 
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim numberSatisfied = ArrayBuilder(Of Integer).GetInstance(HintSatisfaction.Count, fillWithValue:=0)
 
             ' Now check each candidate against all its hints.
-            For Each candidateTypeData As TDominantTypeData In m_dominantTypeDataList
+            For Each candidateTypeData As TDominantTypeData In _dominantTypeDataList
 
                 ' expression-only nodes aren't real candidates for dominant type; they're here solely as hints:
                 If candidateTypeData.ResultType Is Nothing Then
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' set all elements of array to 0
                 numberSatisfied.ZeroInit(HintSatisfaction.Count)
 
-                For Each hintTypeData As TDominantTypeData In m_dominantTypeDataList
+                For Each hintTypeData As TDominantTypeData In _dominantTypeDataList
 
                     Dim hintSatisfaction As HintSatisfaction = CheckHintSatisfaction(
                                                                     candidateTypeData,
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If numberOfStrictCandidates = 0 Then
                 Debug.Assert(numberOfUnstrictCandidates > 1, "code logic error: we should already have covered this case")
 
-                For Each iCurrent In m_dominantTypeDataList
+                For Each iCurrent In _dominantTypeDataList
                     If iCurrent.IsUnstrictCandidate Then
                         resultList.Add(iCurrent)
                     End If
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The only possibility remaining is that there were several widening candidates.
             Debug.Assert(numberOfStrictCandidates > 1, "code logic error: we should have >1 widening candidates; all other possibilities have already been covered")
 
-            ' Rule 2. "If there are multiple candidates for which each each check is ID/Widening, but these
+            ' Rule 2. "If there are multiple candidates for which each check is ID/Widening, but these
             ' candidates have a unique dominant type, then pick it."
             '
             ' Note that we're only now looking for a unique dominant type amongst the IsStrictCandidates;
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' are strict candidates. But we won't bother with this optimization, since it would break the modularity
             ' of the "CheckHintSatisfaction" routine, and is a rare case anyway.
 
-            For Each outer As TDominantTypeData In m_dominantTypeDataList
+            For Each outer As TDominantTypeData In _dominantTypeDataList
                 ' We're only now looking for widest candidates amongst the strict candidates;
                 ' so we're not concerned about conversions to candidates that weren't strict.
                 If Not outer.IsStrictCandidate Then
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' we'll assume it is a (possibly-joint-)widest candidate, and only put "false" if it turns out not to be.
                 Dim isOuterAWidestCandidate As Boolean = True
 
-                For Each inner As TDominantTypeData In m_dominantTypeDataList
+                For Each inner As TDominantTypeData In _dominantTypeDataList
 
                     ' We're only now looking for widest candidates amongst the strict candidates;
                     ' so we're not concerned about conversions from candidates that weren't strict.
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If lastNonArrayLiteral > -1 Then
                     resultList.Clip(lastNonArrayLiteral + 1)
                 Else
-                    ' All candidates are array literals convertable to each other,
+                    ' All candidates are array literals convertible to each other,
                     ' Let's infer element type across all of them.
 
                     ' Trivial case - all types are the same
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' // Rule 2. "If there are multiple candidates for which each each check is ID/Widening, but these
+            ' // Rule 2. "If there are multiple candidates for which each check is ID/Widening, but these
             ' // candidates have a unique dominant type, then pick it."
 
             If resultList.Count = 1 Then
@@ -383,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' So I'll leave the code in for now.
             Debug.Assert(False, "unexpected: how can there be multiple strict candidates and no widest ones??? please tell lwischik if you find such a case.")
 
-            For Each returnAllStrictCandidatesIterCurrent In m_dominantTypeDataList
+            For Each returnAllStrictCandidatesIterCurrent In _dominantTypeDataList
                 If returnAllStrictCandidatesIterCurrent.IsStrictCandidate Then
                     resultList.Add(returnAllStrictCandidatesIterCurrent)
                 End If
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     conversion = Conversions.ClassifyConversion(arrayLiteral, candidate, arrayLiteral.Binder, useSiteDiagnostics).Key
                     If Conversions.IsWideningConversion(conversion) Then
                         If IsSameTypeIgnoringCustomModifiers(arrayLiteralType, candidate) Then
-                            ' ClassifyConversion returns widening for identity.  For hint satisafaction it should be promoted to Identity
+                            ' ClassifyConversion returns widening for identity.  For hint satisfaction it should be promoted to Identity
                             conversion = ConversionKind.Identity
                         ElseIf (conversion And ConversionKind.InvolvesNarrowingFromNumericConstant) <> 0 Then
                             ' ClassifyConversion returns Widening with InvolvesNarrowingFromNumericConstant for {1L, 2L} and {1, 2}.

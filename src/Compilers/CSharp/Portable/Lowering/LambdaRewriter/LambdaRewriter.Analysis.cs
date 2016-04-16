@@ -10,28 +10,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class LambdaRewriter
+    internal partial class LambdaRewriter
     {
         /// <summary>
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         /// The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         /// </summary>
-        internal sealed class Analysis : BoundTreeWalker
+        internal sealed class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            private readonly MethodSymbol topLevelMethod;
+            private readonly MethodSymbol _topLevelMethod;
 
-            private MethodSymbol currentParent;
-            private BoundNode currentScope;
+            private MethodSymbol _currentParent;
+            private BoundNode _currentScope;
 
             // Some syntactic forms have an "implicit" receiver.  When we encounter them, we set this to the
             // syntax.  That way, in case we need to report an error about the receiver, we can use this
             // syntax for the location when the receiver was implicit.
-            private CSharpSyntaxNode syntaxWithReceiver;
+            private CSharpSyntaxNode _syntaxWithReceiver;
 
             /// <summary>
             /// Set to true while we are analyzing the interior of an expression lambda.
             /// </summary>
-            private bool inExpressionLambda;
+            private bool _inExpressionLambda;
 
             /// <summary>
             /// Set to true of any lambda expressions were seen in the analyzed method body.
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// to a frame class within the body of the method.
             /// </summary>
             public readonly Dictionary<Symbol, BoundNode> variableScope = new Dictionary<Symbol, BoundNode>();
-            
+
             /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
             public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
-            
+
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)method != null);
 
-                this.currentParent = this.topLevelMethod = method;
+                _currentParent = _topLevelMethod = method;
             }
 
             public static Analysis Analyze(BoundNode node, MethodSymbol method)
@@ -101,15 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Analyze(BoundNode node)
             {
-                currentScope = FindNodeToAnalyze(node);
+                _currentScope = FindNodeToAnalyze(node);
 
-                Debug.Assert(!inExpressionLambda);
-                Debug.Assert((object)topLevelMethod != null);
+                Debug.Assert(!_inExpressionLambda);
+                Debug.Assert((object)_topLevelMethod != null);
 
-                foreach (ParameterSymbol parameter in topLevelMethod.Parameters)
+                foreach (ParameterSymbol parameter in _topLevelMethod.Parameters)
                 {
                     // parameters are counted as if they are inside the block
-                    variableScope[parameter] = currentScope;
+                    variableScope[parameter] = _currentScope;
                 }
 
                 Visit(node);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   and outermost scope is -1
                     //   Such lambda will be placed in a closure frame that corresponds to the method//s outer block
                     //   and this frame will also lift original Me as a field when created by its parent.
-                    //   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
+                    //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermostScope != null)
                     {
                         lambdaScopes.Add(kvp.Key, innermostScope);
@@ -252,19 +252,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             private BoundNode PushBlock(BoundNode node, ImmutableArray<LocalSymbol> locals)
             {
                 // blocks are not allowed in expression lambda
-                Debug.Assert(!inExpressionLambda);
+                Debug.Assert(!_inExpressionLambda);
 
-                var previousBlock = currentScope;
-                currentScope = node;
-                if (currentScope != previousBlock) // not top-level node of the method
+                var previousBlock = _currentScope;
+                _currentScope = node;
+                if (_currentScope != previousBlock) // not top-level node of the method
                 {
                     // (Except for the top-level block) record the parent-child block structure
-                    scopeParent[currentScope] = previousBlock;
+                    scopeParent[_currentScope] = previousBlock;
                 }
 
                 foreach (var local in locals)
                 {
-                    variableScope[local] = currentScope;
+                    variableScope[local] = _currentScope;
                 }
 
                 return previousBlock;
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void PopBlock(BoundNode previousBlock)
             {
-                currentScope = previousBlock;
+                _currentScope = previousBlock;
             }
 
             public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -327,32 +327,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)node.Symbol != null);
                 SeenLambda = true;
-                var oldParent = currentParent;
-                var oldBlock = currentScope;
-                currentParent = node.Symbol;
-                currentScope = node.Body;
-                scopeParent[currentScope] = oldBlock;
-                var wasInExpressionLambda = inExpressionLambda;
-                inExpressionLambda = inExpressionLambda || node.Type.IsExpressionTree();
+                var oldParent = _currentParent;
+                var oldBlock = _currentScope;
+                _currentParent = node.Symbol;
+                _currentScope = node.Body;
+                scopeParent[_currentScope] = oldBlock;
+                var wasInExpressionLambda = _inExpressionLambda;
+                _inExpressionLambda = _inExpressionLambda || node.Type.IsExpressionTree();
 
-                if (!inExpressionLambda)
+                if (!_inExpressionLambda)
                 {
                     // for the purpose of constructing frames parameters are scoped as if they are inside the lambda block
                     foreach (var parameter in node.Symbol.Parameters)
                     {
-                        variableScope[parameter] = currentScope;
+                        variableScope[parameter] = _currentScope;
                     }
 
                     foreach (var local in node.Body.Locals)
                     {
-                        variableScope[local] = currentScope;
+                        variableScope[local] = _currentScope;
                     }
                 }
 
                 var result = base.VisitBlock(node.Body);
-                inExpressionLambda = wasInExpressionLambda;
-                currentParent = oldParent;
-                currentScope = oldBlock;
+                _inExpressionLambda = wasInExpressionLambda;
+                _currentParent = oldParent;
+                _currentScope = oldBlock;
                 return result;
             }
 
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                LambdaSymbol lambda = currentParent as LambdaSymbol;
+                LambdaSymbol lambda = _currentParent as LambdaSymbol;
                 if ((object)lambda != null && symbol.ContainingSymbol != lambda)
                 {
                     capturedVariables.Add(symbol, syntax);
@@ -380,10 +380,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundNode VisitSyntaxWithReceiver(CSharpSyntaxNode syntax, BoundNode receiver)
             {
-                var previousSyntax = syntaxWithReceiver;
-                syntaxWithReceiver = syntax;
+                var previousSyntax = _syntaxWithReceiver;
+                _syntaxWithReceiver = syntax;
                 var result = Visit(receiver);
-                syntaxWithReceiver = previousSyntax;
+                _syntaxWithReceiver = previousSyntax;
                 return result;
             }
 
@@ -418,25 +418,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
             {
-                syntaxWithReceiver = node.Syntax;
+                _syntaxWithReceiver = node.Syntax;
                 return base.VisitPropertyAccess(node);
             }
 
             public override BoundNode VisitFieldAccess(BoundFieldAccess node)
             {
-                syntaxWithReceiver = node.Syntax;
+                _syntaxWithReceiver = node.Syntax;
                 return base.VisitFieldAccess(node);
             }
 
             public override BoundNode VisitEventAccess(BoundEventAccess node)
             {
-                syntaxWithReceiver = node.Syntax;
+                _syntaxWithReceiver = node.Syntax;
                 return base.VisitEventAccess(node);
             }
 
             public override BoundNode VisitThisReference(BoundThisReference node)
             {
-                var thisParam = this.topLevelMethod.ThisParameter;
+                var thisParam = _topLevelMethod.ThisParameter;
                 if (thisParam != null)
                 {
                     ReferenceVariable(node.Syntax, thisParam);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitBaseReference(BoundBaseReference node)
             {
-                ReferenceVariable(node.Syntax, this.topLevelMethod.ThisParameter);
+                ReferenceVariable(node.Syntax, _topLevelMethod.ThisParameter);
                 return base.VisitBaseReference(node);
             }
 

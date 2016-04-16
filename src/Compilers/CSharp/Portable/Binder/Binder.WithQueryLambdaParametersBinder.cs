@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // to the appropriate rewriting involving lambda parameters when transparent identifiers are involved.
         private sealed class WithQueryLambdaParametersBinder : WithLambdaParametersBinder
         {
-            readonly RangeVariableMap rangeVariableMap;
-            new readonly MultiDictionary<string, RangeVariableSymbol> parameterMap;
+            private readonly RangeVariableMap _rangeVariableMap;
+            private readonly MultiDictionary<string, RangeVariableSymbol> _parameterMap;
 
             public WithQueryLambdaParametersBinder(LambdaSymbol lambdaSymbol, RangeVariableMap rangeVariableMap, Binder next)
                 : base(lambdaSymbol, next)
             {
-                this.rangeVariableMap = rangeVariableMap;
-                parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
+                _rangeVariableMap = rangeVariableMap;
+                _parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
                 foreach (var qv in rangeVariableMap.Keys)
                 {
-                    parameterMap.Add(qv.Name, qv);
+                    _parameterMap.Add(qv.Name, qv);
                 }
             }
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression translation;
                 ImmutableArray<string> path;
-                if (rangeVariableMap.TryGetValue(qv, out path))
+                if (_rangeVariableMap.TryGetValue(qv, out path))
                 {
                     if (path.IsEmpty)
                     {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // if the query variable map for this variable is non empty, we always start with the current
                         // lambda's first parameter, which is a transparent identifier.
-                        Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix));
+                        Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix, StringComparison.Ordinal));
                         translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                         for (int i = path.Length - 1; i >= 0; i--)
                         {
@@ -70,11 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)receiverType == null || !receiverType.IsAnonymousType)
                 {
                     // We only construct transparent query variables using anonymous types, so if we're trying to navigate through
-                    // some other type, we must have some hinky query API where the types don't match up as expected.
-                    // We should report this as an error of some sort.
-                    // TODO: DevDiv #737822 - reword error message and add test.
+                    // some other type, we must have some query API where the types don't match up as expected.
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, name, receiver.ExpressionSymbol ?? receiverType);
-                    Error(diagnostics, info, node);
+                    if (receiver.Type?.IsErrorType() != true)
+                    {
+                        Error(diagnostics, info, node);
+                    }
+
                     return new BoundBadExpression(
                         node,
                         LookupResultKind.Empty,
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                foreach (var rangeVariable in parameterMap[name])
+                foreach (var rangeVariable in _parameterMap[name])
                 {
                     result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (options.CanConsiderMembers())
                 {
-                    foreach (var kvp in parameterMap)
+                    foreach (var kvp in _parameterMap)
                     {
                         result.AddSymbol(null, kvp.Key, 0);
                     }

@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class TriviaRewriter : CSharpSyntaxRewriter
     {
-        private readonly SyntaxNode node;
-        private readonly SimpleIntervalTree<TextSpan> spans;
-        private readonly CancellationToken cancellationToken;
+        private readonly SyntaxNode _node;
+        private readonly SimpleIntervalTree<TextSpan> _spans;
+        private readonly CancellationToken _cancellationToken;
 
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> trailingTriviaMap;
-        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> leadingTriviaMap;
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _trailingTriviaMap;
+        private readonly Dictionary<SyntaxToken, SyntaxTriviaList> _leadingTriviaMap;
 
         public TriviaRewriter(
             SyntaxNode node,
@@ -34,19 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             Contract.ThrowIfNull(node);
             Contract.ThrowIfNull(map);
 
-            this.node = node;
-            this.spans = spanToFormat;
-            this.cancellationToken = cancellationToken;
+            _node = node;
+            _spans = spanToFormat;
+            _cancellationToken = cancellationToken;
 
-            this.trailingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
-            this.leadingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
+            _trailingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
+            _leadingTriviaMap = new Dictionary<SyntaxToken, SyntaxTriviaList>();
 
             PreprocessTriviaListMap(map, cancellationToken);
         }
 
         public SyntaxNode Transform()
         {
-            return Visit(this.node);
+            return Visit(_node);
         }
 
         private void PreprocessTriviaListMap(
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (pair.Key.Item1.RawKind != 0)
                 {
-                    this.trailingTriviaMap.Add(pair.Key.Item1, tuple.Item1);
+                    _trailingTriviaMap.Add(pair.Key.Item1, tuple.Item1);
                 }
 
                 if (pair.Key.Item2.RawKind != 0)
                 {
-                    this.leadingTriviaMap.Add(pair.Key.Item2, tuple.Item2);
+                    _leadingTriviaMap.Add(pair.Key.Item2, tuple.Item2);
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
             }
 
-            var csharpTriviaData = pair.Value as TriviaDataWithList<SyntaxTrivia>;
+            var csharpTriviaData = pair.Value as TriviaDataWithList;
             if (csharpTriviaData != null)
             {
                 var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)));
             }
 
-            // whitespace trivia case such as spaces/tabes/new lines
+            // whitespace trivia case such as spaces/tabs/new lines
             // these will always have a single text change
             var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             if (pair.Item1.RawKind == 0)
             {
-                return TextSpan.FromBounds(this.node.FullSpan.Start, pair.Item2.SpanStart);
+                return TextSpan.FromBounds(_node.FullSpan.Start, pair.Item2.SpanStart);
             }
 
             if (pair.Item2.RawKind == 0)
             {
-                return TextSpan.FromBounds(pair.Item1.Span.End, this.node.FullSpan.End);
+                return TextSpan.FromBounds(pair.Item1.Span.End, _node.FullSpan.End);
             }
 
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TriviaData triviaData,
             CancellationToken cancellationToken)
         {
-            var csharpTriviaData = triviaData as TriviaDataWithList<SyntaxTrivia>;
+            var csharpTriviaData = triviaData as TriviaDataWithList;
             if (csharpTriviaData != null)
             {
                 return SyntaxFactory.TriviaList(csharpTriviaData.GetTriviaList(cancellationToken));
             }
 
-            // whitespace trivia case such as spaces/tabes/new lines
+            // whitespace trivia case such as spaces/tabs/new lines
             // these will always have single text changes
             var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText;
             return SyntaxFactory.ParseLeadingTrivia(text);
@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public override SyntaxNode Visit(SyntaxNode node)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
-            if (node == null || !this.spans.IntersectsWith(node.FullSpan))
+            if (node == null || !_spans.IntersectsWith(node.FullSpan))
             {
                 return node;
             }
@@ -182,9 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public override SyntaxToken VisitToken(SyntaxToken token)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
-            if (!this.spans.IntersectsWith(token.FullSpan))
+            if (!_spans.IntersectsWith(token.FullSpan))
             {
                 return token;
             }
@@ -197,19 +197,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var leadingTrivia = token.LeadingTrivia;
             var trailingTrivia = token.TrailingTrivia;
 
-            if (trailingTriviaMap.ContainsKey(token))
+            if (_trailingTriviaMap.ContainsKey(token))
             {
                 // okay, we have this situation
                 // token|trivia
-                trailingTrivia = this.trailingTriviaMap[token];
+                trailingTrivia = _trailingTriviaMap[token];
                 hasChanges = true;
             }
 
-            if (leadingTriviaMap.ContainsKey(token))
+            if (_leadingTriviaMap.ContainsKey(token))
             {
                 // okay, we have this situation
                 // trivia|token
-                leadingTrivia = this.leadingTriviaMap[token];
+                leadingTrivia = _leadingTriviaMap[token];
                 hasChanges = true;
             }
 

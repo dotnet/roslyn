@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -57,6 +58,96 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return list;
+        }
+    }
+
+    internal abstract class BoundTreeRewriterWithStackGuard : BoundTreeRewriter
+    {
+        private int _recursionDepth;
+
+        protected BoundTreeRewriterWithStackGuard()
+        { }
+
+        protected BoundTreeRewriterWithStackGuard(int recursionDepth)
+        {
+            _recursionDepth = recursionDepth;
+        }
+
+        protected int RecursionDepth => _recursionDepth;
+
+        public override BoundNode Visit(BoundNode node)
+        {
+            var expression = node as BoundExpression;
+            if (expression != null)
+            {
+                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+            }
+
+            return base.Visit(node);
+        }
+
+        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        {
+            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+        }
+
+        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        {
+            return (BoundExpression)base.Visit(node);
+        }
+    }
+
+    internal abstract class BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeRewriterWithStackGuard
+    {
+        protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
+        { }
+
+        protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
+            : base(recursionDepth)
+        { }
+
+        public sealed override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            BoundExpression child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator)
+            {
+                return base.VisitBinaryOperator(node);
+            }
+
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+            }
+
+            var left = (BoundExpression)this.Visit(child);
+
+            do
+            {
+                binary = stack.Pop();
+                var right = (BoundExpression)this.Visit(binary.Right);
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
     }
 }

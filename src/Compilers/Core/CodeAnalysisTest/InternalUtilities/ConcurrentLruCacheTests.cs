@@ -18,16 +18,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         private class OrderedTestDictionary<K, V>
             : IEnumerable<KeyValuePair<K, V>>
         {
-            private readonly KeyValuePair<K, V>[] store;
-            private int index = 0;
+            private readonly KeyValuePair<K, V>[] _store;
+            private int _index;
             public OrderedTestDictionary(int capacity)
             {
-                store = new KeyValuePair<K, V>[capacity];
+                _store = new KeyValuePair<K, V>[capacity];
             }
 
             public IEnumerator<KeyValuePair<K, V>> GetEnumerator()
             {
-                return ((IEnumerable<KeyValuePair<K, V>>)store).GetEnumerator();
+                return ((IEnumerable<KeyValuePair<K, V>>)_store).GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 
             public ConcurrentLruCache<K, V> MakeCache()
             {
-                return new ConcurrentLruCache<K, V>(store);
+                return new ConcurrentLruCache<K, V>(_store);
             }
 
             public void Add(K key, V value)
             {
-                store[index++] = new KeyValuePair<K, V>(key, value);
+                _store[_index++] = new KeyValuePair<K, V>(key, value);
             }
         }
 

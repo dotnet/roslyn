@@ -191,10 +191,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
             if (!names.IsDefault)
             {
-               var binder = new LocalScopeBinder(this);
+                var binder = new LocalScopeBinder(this);
                 var pNames = PooledHashSet<string>.GetInstance();
 
-                for (int i = 0; i < lambda.ParameterCount; i ++)
+                for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     var name = lambda.ParameterName(i);
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly TypeKind typeKind;
-        private readonly IList<ITypeParameterSymbol> typeParameters;
-        private readonly INamedTypeSymbol baseType;
-        private readonly IList<INamedTypeSymbol> interfaces;
-        private readonly IList<ISymbol> members;
-        private readonly INamedTypeSymbol enumUnderlyingType;
+        private readonly TypeKind _typeKind;
+        private readonly IList<ITypeParameterSymbol> _typeParameters;
+        private readonly INamedTypeSymbol _baseType;
+        private readonly IList<INamedTypeSymbol> _interfaces;
+        private readonly IList<ISymbol> _members;
+        private readonly INamedTypeSymbol _enumUnderlyingType;
 
         public CodeGenerationNamedTypeSymbol(
             INamedTypeSymbol containingType,
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol enumUnderlyingType)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, typeMembers)
         {
-            this.typeKind = typeKind;
-            this.typeParameters = typeParameters ?? SpecializedCollections.EmptyList<ITypeParameterSymbol>();
-            this.baseType = baseType;
-            this.interfaces = interfaces ?? SpecializedCollections.EmptyList<INamedTypeSymbol>();
-            this.members = members ?? SpecializedCollections.EmptyList<ISymbol>();
-            this.enumUnderlyingType = enumUnderlyingType;
+            _typeKind = typeKind;
+            _typeParameters = typeParameters ?? SpecializedCollections.EmptyList<ITypeParameterSymbol>();
+            _baseType = baseType;
+            _interfaces = interfaces ?? SpecializedCollections.EmptyList<INamedTypeSymbol>();
+            _members = members ?? SpecializedCollections.EmptyList<ISymbol>();
+            _enumUnderlyingType = enumUnderlyingType;
 
             this.OriginalDefinition = this;
         }
@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return new CodeGenerationNamedTypeSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.TypeKind, this.Name, this.typeParameters, this.baseType,
-                this.interfaces, this.SpecialType, this.members, this.TypeMembers,
+                this.Modifiers, this.TypeKind, this.Name, _typeParameters, _baseType,
+                _interfaces, this.SpecialType, _members, this.TypeMembers,
                 this.EnumUnderlyingType);
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.typeKind;
+                return _typeKind;
             }
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return enumUnderlyingType;
+                return _enumUnderlyingType;
             }
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.CreateRange(this.typeParameters);
+                return ImmutableArray.CreateRange(_typeParameters);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.baseType;
+                return _baseType;
             }
         }
 
@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.CreateRange(this.interfaces);
+                return ImmutableArray.CreateRange(_interfaces);
             }
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
         {
-            return ImmutableArray.CreateRange(this.members.Concat(this.TypeMembers));
+            return ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
         }
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()

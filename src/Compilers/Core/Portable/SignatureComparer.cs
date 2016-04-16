@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                     return MatchTypeToTypeId(type, signature[position++]);
 
                 case SignatureTypeCode.Array:
-                    if (!MatchType(GetArrayElementType(type), signature, ref position))
+                    if (!MatchType(GetMDArrayElementType(type), signature, ref position))
                     {
                         return false;
                     }
@@ -236,15 +236,15 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         protected abstract TypeSymbol GetSZArrayElementType(TypeSymbol type);
 
         /// <summary>
-        /// Should only accept multi-dimansional arrays.
+        /// Should only accept multi-dimensional arrays.
         /// </summary>
         protected abstract bool MatchArrayRank(TypeSymbol type, int countOfDimensions);
 
         /// <summary>
-        /// Should only accept multi-dimansional arrays.
+        /// Should only accept multi-dimensional arrays.
         /// Should return null in case of error.
         /// </summary>
-        protected abstract TypeSymbol GetArrayElementType(TypeSymbol type);
+        protected abstract TypeSymbol GetMDArrayElementType(TypeSymbol type);
 
         protected abstract bool MatchTypeToTypeId(TypeSymbol type, int typeId);
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationNamespaceSymbol : CodeGenerationNamespaceOrTypeSymbol, INamespaceSymbol
     {
-        private readonly IList<INamespaceOrTypeSymbol> members;
+        private readonly IList<INamespaceOrTypeSymbol> _members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
             : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), name)
         {
-            this.members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
+            _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
 
         public override bool IsNamespace
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         protected override CodeGenerationSymbol Clone()
         {
-            return new CodeGenerationNamespaceSymbol(this.Name, this.members);
+            return new CodeGenerationNamespaceSymbol(this.Name, _members);
         }
 
         public override SymbolKind Kind
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
         {
-            return members;
+            return _members;
         }
 
         IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)

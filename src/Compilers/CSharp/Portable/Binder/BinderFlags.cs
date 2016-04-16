@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // InCatchBlock are also set.
         InNestedFinallyBlock = 1 << 21,
 
-        SuppressAccessChecks = 1 << 22,
+        IgnoreAccessibility = 1 << 22,
 
         ParameterDefaultValue = 1 << 23,
 
@@ -81,6 +81,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In the debugger, the context is always unsafe, but one can still await.
         /// </summary>
         AllowAwaitInUnsafeContext = 1 << 25,
+
+        /// <summary>
+        /// Ignore duplicate types from the cor library.
+        /// </summary>
+        IgnoreCorLibraryDuplicatedTypes = 1 << 26,
+
+        /// <summary>
+        /// When binding imports in scripts/submissions, using aliases (other than from the current submission)
+        /// are considered but other imports are not.
+        /// </summary>
+        InScriptUsing = 1 << 27,
+
+        /// <summary>
+        /// In a file that has been included in the compilation via #load.
+        /// </summary>
+        InLoadedSyntaxTree = 1 << 28,
 
         // Groups
 

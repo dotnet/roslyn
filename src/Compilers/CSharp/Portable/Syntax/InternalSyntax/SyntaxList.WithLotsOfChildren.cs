@@ -2,6 +2,7 @@
 
 using System;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -9,18 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal sealed class WithLotsOfChildren : WithManyChildrenBase
         {
-            private readonly int[] childOffsets;
+            private readonly int[] _childOffsets;
 
             internal WithLotsOfChildren(ArrayElement<CSharpSyntaxNode>[] children)
                 : base(children)
             {
-                this.childOffsets = CalculateOffsets(children);
+                _childOffsets = CalculateOffsets(children);
             }
 
             internal WithLotsOfChildren(ObjectReader reader)
                 : base(reader)
             {
-                this.childOffsets = CalculateOffsets(this.children);
+                _childOffsets = CalculateOffsets(this.children);
             }
 
             internal override void WriteTo(ObjectWriter writer)
@@ -36,7 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             public override int GetSlotOffset(int index)
             {
-                return this.childOffsets[index];
+                return _childOffsets[index];
+            }
+
+            /// <summary>
+            /// Find the slot that contains the given offset.
+            /// </summary>
+            /// <param name="offset">The target offset. Must be between 0 and <see cref="GreenNode.FullWidth"/>.</param>
+            /// <returns>The slot index of the slot containing the given offset.</returns>
+            /// <remarks>
+            /// This implementation uses a binary search to find the first slot that contains
+            /// the given offset.
+            /// </remarks>
+            public override int FindSlotIndexContainingOffset(int offset)
+            {
+                Debug.Assert(offset >= 0 && offset < FullWidth);
+                return _childOffsets.BinarySearchUpperBound(offset) - 1;
             }
 
             private static int[] CalculateOffsets(ArrayElement<CSharpSyntaxNode>[] children)

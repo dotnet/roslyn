@@ -1,0 +1,5 @@
+<xunit>
+    <assemblies>
+       <assembly filename="..\..\..\..\Binaries\Debug\Roslyn.Services.Editor.UnitTests.dll" shadow-copy="false"/>
+    </assemblies>
+</xunit>

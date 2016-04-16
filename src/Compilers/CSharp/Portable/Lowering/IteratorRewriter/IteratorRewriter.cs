@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -8,16 +9,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class IteratorRewriter : StateMachineRewriter
+    internal partial class IteratorRewriter : StateMachineRewriter
     {
-        private readonly TypeSymbol elementType;
+        private readonly TypeSymbol _elementType;
 
         // true if the iterator implements IEnumerable and IEnumerable<T>,
         // false if it implements IEnumerator and IEnumerator<T>
-        private readonly bool isEnumerable;
+        private readonly bool _isEnumerable;
 
-        private FieldSymbol currentField;
-        private FieldSymbol initialThreadIdField;
+        private FieldSymbol _currentField;
+        private FieldSymbol _initialThreadIdField;
 
         private IteratorRewriter(
             BoundStatement body,
@@ -30,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
         {
             // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-            this.elementType = stateMachineType.ElementType;
+            _elementType = stateMachineType.ElementType;
 
-            this.isEnumerable = isEnumerable;
+            _isEnumerable = isEnumerable;
         }
 
         /// <summary>
@@ -74,12 +75,93 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable, elementType);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            return new IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics).Rewrite();
+            var rewriter = new IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+            if (!rewriter.VerifyPresenceOfRequiredAPIs())
+            {
+                return body;
+            }
+
+            return rewriter.Rewrite();
+        }
+
+        /// <returns>
+        /// Returns true if all types and members we need are present and good
+        /// </returns>
+        protected bool VerifyPresenceOfRequiredAPIs()
+        {
+            DiagnosticBag bag = DiagnosticBag.GetInstance();
+
+            EnsureSpecialType(SpecialType.System_Int32, bag);
+            EnsureSpecialType(SpecialType.System_IDisposable, bag);
+            EnsureSpecialMember(SpecialMember.System_IDisposable__Dispose, bag);
+
+            // IEnumerator
+            EnsureSpecialType(SpecialType.System_Collections_IEnumerator, bag);
+            EnsureSpecialPropertyGetter(SpecialMember.System_Collections_IEnumerator__Current, bag);
+            EnsureSpecialMember(SpecialMember.System_Collections_IEnumerator__MoveNext, bag);
+            EnsureSpecialMember(SpecialMember.System_Collections_IEnumerator__Reset, bag);
+
+            // IEnumerator<T>
+            EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T, bag);
+            EnsureSpecialPropertyGetter(SpecialMember.System_Collections_Generic_IEnumerator_T__Current, bag);
+
+            if (_isEnumerable)
+            {
+                // IEnumerable and IEnumerable<T>
+                EnsureSpecialType(SpecialType.System_Collections_IEnumerable, bag);
+                EnsureSpecialMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, bag);
+                EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, bag);
+                EnsureSpecialMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator, bag);
+            }
+
+            bool hasErrors = bag.HasAnyErrors();
+            if (hasErrors)
+            {
+                diagnostics.AddRange(bag);
+            }
+
+            bag.Free();
+            return !hasErrors;
+        }
+
+        private Symbol EnsureSpecialMember(SpecialMember member, DiagnosticBag bag)
+        {
+            Symbol symbol;
+            Binder.TryGetSpecialTypeMember(F.Compilation, member, body.Syntax, bag, out symbol);
+            return symbol;
+        }
+
+        private void EnsureSpecialType(SpecialType type, DiagnosticBag bag)
+        {
+            Binder.GetSpecialType(F.Compilation, type, body.Syntax, bag);
+        }
+
+        /// <summary>
+        /// Check that the property and its getter exist and collect any use-site errors.
+        /// </summary>
+        private void EnsureSpecialPropertyGetter(SpecialMember member, DiagnosticBag bag)
+        {
+            PropertySymbol symbol = (PropertySymbol)EnsureSpecialMember(member, bag);
+            if ((object)symbol != null)
+            {
+                var getter = symbol.GetMethod;
+                if ((object)getter == null)
+                {
+                    Binder.Error(bag, ErrorCode.ERR_PropertyLacksGet, body.Syntax, symbol);
+                    return;
+                }
+
+                var info = getter.GetUseSiteDiagnostic();
+                if ((object)info != null)
+                {
+                    bag.Add(new CSDiagnostic(info, body.Syntax.Location));
+                }
+            }
         }
 
         protected override bool PreserveInitialParameterValues
         {
-            get { return isEnumerable; }
+            get { return _isEnumerable; }
         }
 
         protected override void GenerateControlFields()
@@ -87,16 +169,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
 
             // Add a field: T current
-            currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentFieldName());
+            _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
 
             // if it is an enumerable, and either Environment.CurrentManagedThreadId or System.Thread are available
             // add a field: int initialThreadId
             bool addInitialThreadId =
-                   isEnumerable &&
+                   _isEnumerable &&
                    ((object)F.WellKnownMember(WellKnownMember.System_Threading_Thread__ManagedThreadId, isOptional: true) != null ||
                     (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null);
 
-            initialThreadIdField = addInitialThreadId
+            _initialThreadIdField = addInitialThreadId
                 ? F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdFieldName())
                 : null;
         }
@@ -109,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 GenerateEnumeratorImplementation();
 
-                if (isEnumerable)
+                if (_isEnumerable)
                 {
                     GenerateEnumerableImplementation(ref managedThreadId);
                 }
@@ -130,42 +212,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
             var IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
 
-            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType);
+            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
             var IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             {
                 var disposeMethod = OpenMethodImplementation(
-                    IDisposable_Dispose, 
-                    debuggerHidden: true, 
-                    generateDebugInfo: false, 
+                    IDisposable_Dispose,
                     hasMethodBodyDependency: true);
 
-                var moveNextMethod = OpenMethodImplementation(
-                    IEnumerator_MoveNext, 
-                    methodName: WellKnownMemberNames.MoveNextMethodName, 
-                    debuggerHidden: IsDebuggerHidden(this.method),
-                    hasMethodBodyDependency: true);
+                var moveNextMethod = OpenMoveNextMethodImplementation(IEnumerator_MoveNext);
 
                 GenerateMoveNextAndDispose(moveNextMethod, disposeMethod);
             }
 
             // Add T IEnumerator<T>.Current
             {
-                OpenPropertyImplementation(IEnumeratorOfElementType_get_Current, debuggerHidden: true, hasMethodBodyDependency: false);
-                F.CloseMethod(F.Return(F.Field(F.This(), currentField)));
+                OpenPropertyImplementation(IEnumeratorOfElementType_get_Current);
+                F.CloseMethod(F.Return(F.Field(F.This(), _currentField)));
             }
 
             // Add void IEnumerator.Reset()
             {
-                OpenMethodImplementation(IEnumerator_Reset, debuggerHidden: true, generateDebugInfo: false, hasMethodBodyDependency: false);
+                OpenMethodImplementation(IEnumerator_Reset, hasMethodBodyDependency: false);
                 F.CloseMethod(F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
             }
 
             // Add object IEnumerator.Current
             {
-                OpenPropertyImplementation(IEnumerator_get_Current, debuggerHidden: true, hasMethodBodyDependency: false);
-                F.CloseMethod(F.Return(F.Field(F.This(), currentField)));
+                OpenPropertyImplementation(IEnumerator_get_Current);
+                F.CloseMethod(F.Return(F.Field(F.This(), _currentField)));
             }
         }
 
@@ -173,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(elementType);
+            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate the code for GetEnumerator()
@@ -192,13 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    result.parameter = this.parameterProxy; // copy all of the parameter proxies
 
             // Add IEnumerator<elementType> IEnumerable<elementType>.GetEnumerator()
-             
+
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on it's parameters and staticness.
             var getEnumeratorGeneric = OpenMethodImplementation(
-                IEnumerableOfElementType_GetEnumerator, 
-                debuggerHidden: true, 
-                generateDebugInfo: false,
+                IEnumerableOfElementType_GetEnumerator,
                 hasMethodBodyDependency: false);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -207,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var thisInitialized = F.GenerateLabel("thisInitialized");
 
-            if ((object)initialThreadIdField != null)
+            if ((object)_initialThreadIdField != null)
             {
                 MethodSymbol currentManagedThreadIdMethod = null;
 
@@ -230,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     condition: F.LogicalAnd(                                   // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                             F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
-                        F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
+                        F.IntEqual(F.Field(F.This(), _initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(                                       // then
                             F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FirstUnusedState)),  // this.state = 0;
                             F.Assignment(F.Local(resultVariable), F.This()),       // result = this;
@@ -278,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
 
             // Generate IEnumerable.GetEnumerator
-            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator, debuggerHidden: true, generateDebugInfo: false);
+            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
             F.CloseMethod(F.Return(F.Call(F.This(), getEnumeratorGeneric)));
         }
 
@@ -292,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (managedThreadId != null)
             {
                 // this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                bodyBuilder.Add(F.Assignment(F.Field(F.This(), initialThreadIdField), managedThreadId));
+                bodyBuilder.Add(F.Assignment(F.Field(F.This(), _initialThreadIdField), managedThreadId));
             }
 
             bodyBuilder.Add(F.Return());
@@ -304,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // var stateMachineLocal = new IteratorImplementationClass(N)
             // where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            int initialState = isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.FirstUnusedState;
+            int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.FirstUnusedState;
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),
@@ -324,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F,
                 method,
                 stateField,
-                currentField,
+                _currentField,
                 hoistedVariables,
                 nonReusableLocalProxies,
                 synthesizedLocalOrdinals,

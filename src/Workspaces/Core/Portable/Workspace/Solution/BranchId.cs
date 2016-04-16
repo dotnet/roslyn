@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class BranchId
     {
-        private static int nextId = 0;
+        private static int s_nextId;
 
-        private readonly int id;
+        private readonly int _id;
 
         private BranchId(int id)
         {
-            this.id = id;
+            _id = id;
         }
 
         internal static BranchId GetNextId()
         {
-            return new BranchId(Interlocked.Increment(ref nextId));
+            return new BranchId(Interlocked.Increment(ref s_nextId));
         }
     }
 }

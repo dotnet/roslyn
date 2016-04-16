@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the suppress flag.</returns>
         private bool ReportUnsafeIfNotAllowed(CSharpSyntaxNode node, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
         {
-            Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == !ReferenceEquals(sizeOfTypeOpt, null), "Should have a type for (only) sizeof expressions.");
+            Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
             return ReportUnsafeIfNotAllowed(node.Location, sizeOfTypeOpt, diagnostics);
         }
 
@@ -45,30 +45,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the suppress flag.</returns>
         private bool ReportUnsafeIfNotAllowed(Location location, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
         {
-            Diagnostic diagnostic = GetUnsafeDiagnostic(location, sizeOfTypeOpt);
-
-            if (diagnostic == null || this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
+            if (diagnosticInfo == null || this.Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics))
             {
                 return false;
             }
 
-            diagnostics.Add(diagnostic);
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
             return true;
         }
 
-        private Diagnostic GetUnsafeDiagnostic(Location location, TypeSymbol sizeOfTypeOpt)
+        private CSDiagnosticInfo GetUnsafeDiagnosticInfo(TypeSymbol sizeOfTypeOpt)
         {
             if (this.IsIndirectlyInIterator)
             {
                 // Spec 8.2: "An iterator block always defines a safe context, even when its declaration
                 // is nested in an unsafe context."
-                return new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_IllegalInnerUnsafe), location);
+                return new CSDiagnosticInfo(ErrorCode.ERR_IllegalInnerUnsafe);
             }
             else if (!this.InUnsafeRegion)
             {
-                return ReferenceEquals(sizeOfTypeOpt, null)
-                    ? new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded), location)
-                    : new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt), location);
+                return ((object)sizeOfTypeOpt == null)
+                    ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
+                    : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
             }
             else
             {

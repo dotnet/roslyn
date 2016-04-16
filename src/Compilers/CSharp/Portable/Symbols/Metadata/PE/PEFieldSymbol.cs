@@ -21,23 +21,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEFieldSymbol : FieldSymbol
     {
-        private readonly FieldDefinitionHandle handle;
-        private readonly string name;
-        private readonly FieldAttributes flags;
-        private readonly PENamedTypeSymbol containingType;
-        private bool lazyIsVolatile;
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
-        private ImmutableArray<CustomModifier> lazyCustomModifiers;
-        private ConstantValue lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
-        private Tuple<CultureInfo, string> lazyDocComment;
-        private DiagnosticInfo lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private readonly FieldDefinitionHandle _handle;
+        private readonly string _name;
+        private readonly FieldAttributes _flags;
+        private readonly PENamedTypeSymbol _containingType;
+        private bool _lazyIsVolatile;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
+        private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
+        private Tuple<CultureInfo, string> _lazyDocComment;
+        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbol lazyType;
-        private int lazyFixedSize;
-        private NamedTypeSymbol lazyFixedImplementationType;
-        private PEEventSymbol associatedEventOpt;
+        private TypeSymbol _lazyType;
+        private int _lazyFixedSize;
+        private NamedTypeSymbol _lazyFixedImplementationType;
+        private PEEventSymbol _associatedEventOpt;
 
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
@@ -48,21 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)containingType != null);
             Debug.Assert(!fieldDef.IsNil);
 
-            this.handle = fieldDef;
-            this.containingType = containingType;
+            _handle = fieldDef;
+            _containingType = containingType;
 
             try
             {
-                moduleSymbol.Module.GetFieldDefPropsOrThrow(fieldDef, out this.name, out this.flags);
+                moduleSymbol.Module.GetFieldDefPropsOrThrow(fieldDef, out _name, out _flags);
             }
             catch (BadImageFormatException)
             {
-                if ((object)this.name == null)
+                if ((object)_name == null)
                 {
-                    this.name = String.Empty;
+                    _name = String.Empty;
                 }
 
-                lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return containingType;
+                return _containingType;
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return flags;
+                return _flags;
             }
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.SpecialName) != 0;
+                return (_flags & FieldAttributes.SpecialName) != 0;
             }
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.RTSpecialName) != 0;
+                return (_flags & FieldAttributes.RTSpecialName) != 0;
             }
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.NotSerialized) != 0;
+                return (_flags & FieldAttributes.NotSerialized) != 0;
             }
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return ((flags & FieldAttributes.HasFieldMarshal) != 0);
+                return ((_flags & FieldAttributes.HasFieldMarshal) != 0);
             }
         }
 
@@ -143,12 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((flags & FieldAttributes.HasFieldMarshal) == 0)
+                if ((_flags & FieldAttributes.HasFieldMarshal) == 0)
                 {
                     return 0;
                 }
 
-                return this.containingType.ContainingPEModule.Module.GetMarshallingType(this.handle);
+                return _containingType.ContainingPEModule.Module.GetMarshallingType(_handle);
             }
         }
 
@@ -156,12 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((flags & FieldAttributes.HasFieldMarshal) == 0)
+                if ((_flags & FieldAttributes.HasFieldMarshal) == 0)
                 {
                     return default(ImmutableArray<byte>);
                 }
 
-                return this.containingType.ContainingPEModule.Module.GetMarshallingDescriptor(this.handle);
+                return _containingType.ContainingPEModule.Module.GetMarshallingDescriptor(_handle);
             }
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.containingType.ContainingPEModule.Module.GetFieldOffset(this.handle);
+                return _containingType.ContainingPEModule.Module.GetFieldOffset(_handle);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.handle;
+                return _handle;
             }
         }
 
@@ -189,42 +189,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
             Debug.Assert((object)eventSymbol != null);
-            Debug.Assert(eventSymbol.ContainingType == this.containingType);
+            Debug.Assert(eventSymbol.ContainingType == _containingType);
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.
-            if ((object)this.associatedEventOpt == null)
+            if ((object)_associatedEventOpt == null)
             {
                 // No locking required since this method will only be called by the thread that created
                 // the field symbol (and will be called before the field symbol is added to the containing 
                 // type members and available to other threads).
-                this.associatedEventOpt = eventSymbol;
+                _associatedEventOpt = eventSymbol;
             }
         }
 
         private void EnsureSignatureIsLoaded()
         {
-            if ((object)lazyType == null)
+            if ((object)_lazyType == null)
             {
-                var moduleSymbol = this.containingType.ContainingPEModule;
+                var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol type = (new MetadataDecoder(moduleSymbol, this.containingType)).DecodeFieldSignature(this.handle, out isVolatile, out customModifiers);
+                TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
-                type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, this.handle, moduleSymbol);
-                this.lazyIsVolatile = isVolatile;
+                type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
+                _lazyIsVolatile = isVolatile;
 
                 TypeSymbol fixedElementType;
                 int fixedSize;
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
-                    this.lazyFixedSize = fixedSize;
-                    this.lazyFixedImplementationType = type as NamedTypeSymbol;
+                    _lazyFixedSize = fixedSize;
+                    _lazyFixedImplementationType = type as NamedTypeSymbol;
                     type = new PointerTypeSymbol(fixedElementType);
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref lazyCustomModifiers, customModifiersArray, default(ImmutableArray<CustomModifier>));
-                Interlocked.CompareExchange(ref lazyType, type, null);
+                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, customModifiersArray, default(ImmutableArray<CustomModifier>));
+                Interlocked.CompareExchange(ref _lazyType, type, null);
             }
         }
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             string elementTypeName;
             int bufferSize;
             PEModuleSymbol containingPEModule = this.ContainingPEModule;
-            if (containingPEModule.Module.HasFixedBufferAttribute(this.handle, out elementTypeName, out bufferSize))
+            if (containingPEModule.Module.HasFixedBufferAttribute(_handle, out elementTypeName, out bufferSize))
             {
                 var decoder = new MetadataDecoder(containingPEModule);
                 var elementType = decoder.GetTypeSymbolForSerializedType(elementTypeName);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return lazyType;
+            return _lazyType;
         }
 
         public override bool IsFixed
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return (object)lazyFixedImplementationType != null;
+                return (object)_lazyFixedImplementationType != null;
             }
         }
 
@@ -279,14 +279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return lazyFixedSize;
+                return _lazyFixedSize;
             }
         }
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
             EnsureSignatureIsLoaded();
-            return lazyFixedImplementationType;
+            return _lazyFixedImplementationType;
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return lazyCustomModifiers;
+                return _lazyCustomModifiers;
             }
         }
 
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.associatedEventOpt;
+                return _associatedEventOpt;
             }
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.InitOnly) != 0;
+                return (_flags & FieldAttributes.InitOnly) != 0;
             }
         }
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return lazyIsVolatile;
+                return _lazyIsVolatile;
             }
         }
 
@@ -327,19 +327,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.Literal) != 0 || GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false) != null;
+                return (_flags & FieldAttributes.Literal) != 0 || GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false) != null;
             }
         }
 
         internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
-            if (lazyConstantValue == Microsoft.CodeAnalysis.ConstantValue.Unset)
+            if (_lazyConstantValue == Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
                 ConstantValue value = null;
 
-                if ((flags & FieldAttributes.Literal) != 0)
+                if ((_flags & FieldAttributes.Literal) != 0)
                 {
-                    value = this.containingType.ContainingPEModule.Module.GetConstantFieldValue(this.handle);
+                    value = _containingType.ContainingPEModule.Module.GetConstantFieldValue(_handle);
                 }
 
                 // If this is a Decimal, the constant value may come from DecimalConstantAttribute
@@ -348,26 +348,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     ConstantValue defaultValue;
 
-                    if (this.containingType.ContainingPEModule.Module.HasDecimalConstantAttribute(Handle, out defaultValue))
+                    if (_containingType.ContainingPEModule.Module.HasDecimalConstantAttribute(Handle, out defaultValue))
                     {
                         value = defaultValue;
                     }
                 }
 
                 Interlocked.CompareExchange(
-                    ref lazyConstantValue,
+                    ref _lazyConstantValue,
                     value,
                     Microsoft.CodeAnalysis.ConstantValue.Unset);
             }
 
-            return lazyConstantValue;
+            return _lazyConstantValue;
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
+                return _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
             }
         }
 
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var access = Accessibility.Private;
 
-                switch (this.flags & FieldAttributes.FieldAccessMask)
+                switch (_flags & FieldAttributes.FieldAccessMask)
                 {
                     case FieldAttributes.Assembly:
                         access = Accessibility.Internal;
@@ -413,8 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        Debug.Assert(false, "Unexpected!!!");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(_flags & FieldAttributes.FieldAccessMask);
                 }
 
                 return access;
@@ -425,13 +424,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (flags & FieldAttributes.Static) != 0;
+                return (_flags & FieldAttributes.Static) != 0;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (this.lazyCustomAttributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
@@ -441,20 +440,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     CustomAttributeHandle ignore1;
                     CustomAttributeHandle ignore2;
                     var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                        this.handle,
+                        _handle,
                         out ignore1,
                         AttributeDescription.DecimalConstantAttribute,
                         out ignore2,
                         default(AttributeDescription));
 
-                    ImmutableInterlocked.InterlockedInitialize(ref this.lazyCustomAttributes, attributes);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
                 }
                 else
                 {
-                    containingPEModuleSymbol.LoadCustomAttributes(this.handle, ref this.lazyCustomAttributes);
+                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
                 }
             }
-            return this.lazyCustomAttributes;
+            return _lazyCustomAttributes;
         }
 
         private bool FilterOutDecimalConstantAttribute()
@@ -475,35 +474,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Yield hidden attributes last, order might be important.
             if (FilterOutDecimalConstantAttribute())
             {
-                var containingPEModuleSymbol = this.containingType.ContainingPEModule;
+                var containingPEModuleSymbol = _containingType.ContainingPEModule;
                 yield return new PEAttributeData(containingPEModuleSymbol,
-                                          containingPEModuleSymbol.Module.FindLastTargetAttribute(this.handle, AttributeDescription.DecimalConstantAttribute).Handle);
+                                          containingPEModuleSymbol.Module.FindLastTargetAttribute(_handle, AttributeDescription.DecimalConstantAttribute).Handle);
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return PEDocumentationCommentUtils.GetDocumentationComment(this, containingType.ContainingPEModule, preferredCulture, cancellationToken, ref lazyDocComment);
+            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            if (ReferenceEquals(lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
-                lazyUseSiteDiagnostic = result;
+                _lazyUseSiteDiagnostic = result;
             }
 
-            return lazyUseSiteDiagnostic;
+            return _lazyUseSiteDiagnostic;
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref lazyObsoleteAttributeData, this.handle, (PEModuleSymbol)(this.ContainingModule));
-                return lazyObsoleteAttributeData;
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule));
+                return _lazyObsoleteAttributeData;
             }
         }
 

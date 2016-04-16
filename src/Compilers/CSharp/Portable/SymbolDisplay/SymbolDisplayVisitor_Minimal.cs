@@ -291,14 +291,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var map = lazyAliasMap;
+                var map = _lazyAliasMap;
                 if (map != null)
                 {
                     return map;
                 }
 
                 map = CreateAliasMap();
-                return Interlocked.CompareExchange(ref lazyAliasMap, map, null) ?? map;
+                return Interlocked.CompareExchange(ref _lazyAliasMap, map, null) ?? map;
             }
         }
 

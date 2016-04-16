@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.Fields.CSFields.dll,
                 TestReferences.SymbolsTests.Fields.VBFields.dll,
                 TestReferences.NetFx.v4_0_21006.mscorlib
-            }, 
+            },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var module1 = assemblies[0].Modules[0];
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var f5 = (FieldSymbol)vbFields.GetMembers("F5").Single();
             var f6 = (FieldSymbol)csFields.GetMembers("F6").Single();
 
-            Assert.Equal("F1", f1.Name); 
+            Assert.Equal("F1", f1.Name);
             Assert.Same(vbFields.TypeParameters[0], f1.Type);
             Assert.False(f1.IsAbstract);
             Assert.False(f1.IsConst);

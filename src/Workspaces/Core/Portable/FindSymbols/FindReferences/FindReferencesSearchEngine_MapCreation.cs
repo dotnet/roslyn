@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>>> CreateDocumentMapAsync(
             ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> projectMap)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
             {
                 Func<Document, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> createQueue = d => new ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>();
 
@@ -58,15 +58,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var symbolAndFinder in projectQueue)
                     {
-                        this.cancellationToken.ThrowIfCancellationRequested();
+                        _cancellationToken.ThrowIfCancellationRequested();
 
                         var symbol = symbolAndFinder.Item1;
                         var finder = symbolAndFinder.Item2;
 
-                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, this.documents, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Document>();
+                        var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Document>();
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
-                            if (this.documents == null || this.documents.Contains(document))
+                            if (_documents == null || _documents.Contains(document))
                             {
                                 documentMap.GetOrAdd(document, createQueue).Enqueue(symbolAndFinder);
                             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>>> CreateProjectMapAsync(
             ConcurrentSet<ISymbol> symbols)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, _cancellationToken))
             {
                 Func<Project, ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>> createQueue = p => new ConcurrentQueue<ValueTuple<ISymbol, IReferenceFinder>>();
 
@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 });
 #else
 
-                var scope = this.documents != null ? this.documents.Select(d => d.Project).ToImmutableHashSet() : null;
+                var scope = _documents != null ? _documents.Select(d => d.Project).ToImmutableHashSet() : null;
                 foreach (var s in symbols)
                 {
-                    foreach (var f in finders)
+                    foreach (var f in _finders)
                     {
-                        this.cancellationToken.ThrowIfCancellationRequested();
+                        _cancellationToken.ThrowIfCancellationRequested();
 
-                        var projects = await f.DetermineProjectsToSearchAsync(s, solution, scope, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Project>();
+                        var projects = await f.DetermineProjectsToSearchAsync(s, _solution, scope, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<Project>();
                         foreach (var project in projects.Distinct().WhereNotNull())
                         {
                             if (scope == null || scope.Contains(project))
@@ -132,67 +132,84 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task<ConcurrentSet<ISymbol>> DetermineAllSymbolsAsync(ISymbol symbol)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, _cancellationToken))
             {
-                var result = new ConcurrentSet<ISymbol>(SymbolEquivalenceComparer.Instance);
+                var result = new ConcurrentSet<ISymbol>(MetadataUnifyingEquivalenceComparer.Instance);
                 await DetermineAllSymbolsCoreAsync(symbol, result).ConfigureAwait(false);
                 return result;
             }
         }
 
-        [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
         private async Task DetermineAllSymbolsCoreAsync(ISymbol symbol, ConcurrentSet<ISymbol> result)
         {
-            this.cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             var searchSymbol = MapToAppropriateSymbol(symbol);
 
             // 2) Try to map this back to source symbol if this was a metadata symbol.
-            searchSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, solution, cancellationToken).ConfigureAwait(false) ?? searchSymbol;
+            searchSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, _cancellationToken).ConfigureAwait(false) ?? searchSymbol;
 
             if (searchSymbol != null && result.Add(searchSymbol))
             {
-                this.progress.OnDefinitionFound(searchSymbol);
+                _progress.OnDefinitionFound(searchSymbol);
 
-                this.foundReferences.GetOrAdd(searchSymbol, createSymbolLocations);
+                _foundReferences.GetOrAdd(searchSymbol, s_createSymbolLocations);
 
                 // get project to search
                 var projects = GetProjectScope();
 
-                this.cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 List<Task> finderTasks = new List<Task>();
-                foreach (var f in finders)
+                foreach (var f in _finders)
                 {
                     finderTasks.Add(Task.Run(async () =>
                     {
-                        var symbols = await f.DetermineCascadedSymbolsAsync(searchSymbol, solution, projects, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<ISymbol>();
+                        var symbolTasks = new List<Task>();
 
-                        this.cancellationToken.ThrowIfCancellationRequested();
+                        var symbols = await f.DetermineCascadedSymbolsAsync(searchSymbol, _solution, projects, _cancellationToken).ConfigureAwait(false);
+                        AddSymbolTasks(result, symbols, symbolTasks);
 
-                        List<Task> symbolTasks = new List<Task>();
-                        foreach (var child in symbols)
+                        // Defer to the language to see if it wants to cascade here in some special way.
+                        var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
+                        var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
+                        if (service != null)
                         {
-                            symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), this.cancellationToken));
+                            symbols = await service.DetermineCascadedSymbolsAsync(searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
+                            AddSymbolTasks(result, symbols, symbolTasks);
                         }
 
+                        _cancellationToken.ThrowIfCancellationRequested();
+
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);
-                    }, this.cancellationToken));
+                    }, _cancellationToken));
                 }
 
                 await Task.WhenAll(finderTasks).ConfigureAwait(false);
             }
         }
 
+        private void AddSymbolTasks(ConcurrentSet<ISymbol> result, IEnumerable<ISymbol> symbols, List<Task> symbolTasks)
+        {
+            if (symbols != null)
+            {
+                foreach (var child in symbols)
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    symbolTasks.Add(Task.Run(async () => await DetermineAllSymbolsCoreAsync(child, result).ConfigureAwait(false), _cancellationToken));
+                }
+            }
+        }
+
         private ImmutableHashSet<Project> GetProjectScope()
         {
-            if (this.documents == null)
+            if (_documents == null)
             {
                 return null;
             }
 
             var builder = ImmutableHashSet.CreateBuilder<Project>();
-            foreach (var document in this.documents)
+            foreach (var document in _documents)
             {
                 builder.Add(document.Project);
 

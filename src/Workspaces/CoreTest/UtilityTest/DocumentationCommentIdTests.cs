@@ -28,12 +28,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(symbol, sym);
         }
 
-        private void CheckDeclarationId<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
+        private TSymbol CheckDeclarationId<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
             where TSymbol : ISymbol
         {
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(expectedId, compilation);
             Assert.Equal(true, symbol is TSymbol);
             Assert.Equal(true, test((TSymbol)symbol));
+
+            return (TSymbol)symbol;
+        }
+
+        private void CheckDeclarationIdExact<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
+            where TSymbol : ISymbol
+        {
+            var symbol = CheckDeclarationId(expectedId, compilation, test);
+
+            var id = DocumentationCommentId.CreateDeclarationId(symbol);
+            Assert.Equal(expectedId, id);
         }
 
         private void CheckReferenceId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)
@@ -232,9 +243,9 @@ namespace Acme
 }
 ");
 
-            CheckDeclarationId<IPropertySymbol>("P:Acme.Widget.Width", compilation, p => p.Name == "Width");
-            CheckDeclarationId<IPropertySymbol>("P:Acme.Widget.Item(System.Int32)", compilation, p => p.Parameters.Length == 1);
-            CheckDeclarationId<IPropertySymbol>("P:Acme.Widget.Item(System.String,System.Int32)", compilation, p => p.Parameters.Length == 2);
+            CheckDeclarationIdExact<IPropertySymbol>("P:Acme.Widget.Width", compilation, p => p.Name == "Width");
+            CheckDeclarationIdExact<IPropertySymbol>("P:Acme.Widget.Item(System.Int32)", compilation, p => p.Parameters.Length == 1);
+            CheckDeclarationIdExact<IPropertySymbol>("P:Acme.Widget.Item(System.String,System.Int32)", compilation, p => p.Parameters.Length == 2);
         }
 
         [Fact]

@@ -260,6 +260,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             VerifyEquivalent(tree1, tree2, topLevel:=True)
         End Sub
 
+        <Fact>
+        Public Sub TestUpdateInterpolatedString()
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(NewLines("namespace N \n class C \n sub Foo() \n Console.Write($""Hello{123:N1}"") \n end sub \n end class \n end namespace"))
+            Dim tree2 = tree1.WithReplaceFirst("N1", "N2")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+
+            tree2 = tree1.WithReplaceFirst("Hello", "World")
+            VerifyEquivalent(tree1, tree2, topLevel:=True)
+            VerifyNotEquivalent(tree1, tree2, topLevel:=False)
+        End Sub
+
 #Region "Field"
 
         <Fact>

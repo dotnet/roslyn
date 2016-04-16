@@ -21,41 +21,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class AnonymousTypePropertySymbol : PropertySymbol
         {
-            private readonly NamedTypeSymbol containingType;
-            private readonly TypeSymbol type;
-            private readonly string name;
-            private readonly ImmutableArray<Location> locations;
-            private readonly AnonymousTypePropertyGetAccessorSymbol getMethod;
-            private readonly FieldSymbol backingField;
+            private readonly NamedTypeSymbol _containingType;
+            private readonly TypeSymbol _type;
+            private readonly string _name;
+            private readonly ImmutableArray<Location> _locations;
+            private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
+            private readonly FieldSymbol _backingField;
 
             internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbol fieldTypeSymbol)
             {
-                this.containingType = container;
-                this.type = fieldTypeSymbol;
-                this.name = field.Name;
-                this.locations = ImmutableArray<Location>.Empty;
-                this.getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
-                this.backingField = new AnonymousTypeFieldSymbol(this);
+                _containingType = container;
+                _type = fieldTypeSymbol;
+                _name = field.Name;
+                _locations = ImmutableArray<Location>.Empty;
+                _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
+                _backingField = new AnonymousTypeFieldSymbol(this);
             }
 
             internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field)
             {
-                this.containingType = container;
-                this.type = field.Type;
-                this.name = field.Name;
-                this.locations = ImmutableArray.Create<Location>(field.Location);
-                this.getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
-                this.backingField = null;
+                _containingType = container;
+                _type = field.Type;
+                _name = field.Name;
+                _locations = ImmutableArray.Create<Location>(field.Location);
+                _getMethod = new AnonymousTypePropertyGetAccessorSymbol(this);
+                _backingField = null;
             }
 
             public override TypeSymbol Type
             {
-                get { return this.type; }
+                get { return _type; }
             }
 
             public override string Name
             {
-                get { return this.name; }
+                get { return _name; }
             }
 
             internal override bool HasSpecialName
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Location> Locations
             {
-                get { return this.locations; }
+                get { return _locations; }
             }
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol ContainingSymbol
             {
-                get { return this.containingType; }
+                get { return _containingType; }
             }
 
             public override NamedTypeSymbol ContainingType
             {
                 get
                 {
-                    return this.containingType;
+                    return _containingType;
                 }
             }
 
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override MethodSymbol GetMethod
             {
-                get { return this.getMethod; }
+                get { return _getMethod; }
             }
 
             public FieldSymbol BackingField
             {
-                get { return this.backingField; }
+                get { return _backingField; }
             }
 
             public override bool Equals(object obj)

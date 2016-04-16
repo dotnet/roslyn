@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Namespace OverloadResolutionTestHelpers
 
-        Module Extensions
+        Friend Module Extensions
 
             Public Function ResolveMethodOverloading(
                 instanceMethods As ImmutableArray(Of MethodSymbol),
@@ -1956,7 +1956,7 @@ End Class
             Assert.Same(ext_M13_1_Candidate.OriginalDefinition, result.Candidates(0).Candidate.UnderlyingSymbol.OriginalDefinition)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
-            ' Extension method presedence
+            ' Extension method precedence
             Dim derived_M11_Candidate_0 = (derived_M11.ReduceExtensionMethod(derived, 0))
             Dim derived_M11_Candidate_1 = (derived_M11.ReduceExtensionMethod(derived, 1))
 
@@ -3185,7 +3185,7 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186a()
 
@@ -3214,7 +3214,7 @@ End Module
             CompileAndVerify(compilationDef, expectedOutput:="A;")
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186b()
 
@@ -3249,7 +3249,7 @@ BC30518: Overload resolution failed because no accessible 'Equal' can be called 
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186c()
 
@@ -3290,7 +3290,7 @@ BC30521: Overload resolution failed because no accessible 'Equal' is most specif
 </expected>)
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186d()
 
@@ -3326,7 +3326,7 @@ End Module
             CompileAndVerify(compilationDef, expectedOutput:="B;A;")
         End Sub
 
-        <WorkItem(545633, "DevDiv")>
+        <WorkItem(545633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545633")>
         <Fact>
         Public Sub Bug14186e()
 
@@ -3893,7 +3893,7 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
 
 
 
-        <Fact(), WorkItem(527622, "DevDiv")>
+        <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
 
             Dim compilationDef =
@@ -4115,7 +4115,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Strin
 </expected>)
         End Sub
 
-        <WorkItem(539850, "DevDiv")>
+        <WorkItem(539850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539850")>
         <Fact>
         Public Sub TestConversionFromZeroLiteralToEnum()
 
@@ -4147,7 +4147,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(528006, "DevDiv")>
+        <WorkItem(528006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528006")>
         <Fact()>
         Public Sub TestConversionFromZeroLiteralToNullableEnum()
 
@@ -4174,7 +4174,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(528011, "DevDiv")>
+        <WorkItem(528011, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528011")>
         <Fact()>
         Public Sub TestInvocationWithNamedArgumentInLambda()
 
@@ -4260,7 +4260,7 @@ BC30521: Overload resolution failed because no accessible 'Bar' is most specific
                       ~~~]]>)
         End Sub
 
-        <WorkItem(539994, "DevDiv")>
+        <WorkItem(539994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539994")>
         <Fact>
         Public Sub MethodTypeParameterInferenceBadArg()
             ' Method type parameter inference should complete in the case where
@@ -4475,8 +4475,8 @@ BC30389: 'Module2.P2(x As Integer)' is not accessible in this context because it
 
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember1()
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
+        Public Sub OverloadWithIntermediateDifferentMember1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4511,8 +4511,8 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember2()
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
+        Public Sub OverloadWithIntermediateDifferentMember2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4550,8 +4550,8 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base class 'B' and 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545574, "DevDiv")>
-        Sub OverloadWithIntermediateDifferentMember3()
+        <Fact, WorkItem(545574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545574")>
+        Public Sub OverloadWithIntermediateDifferentMember3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4587,8 +4587,8 @@ BC40004: function 'Foo' conflicts with property 'Foo' in the base interface 'B' 
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub()
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
+        Public Sub OverloadSameSigBetweenFunctionAndSub()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4617,8 +4617,8 @@ BC32016: 'Public Shared Overloads Sub Foo()' has no parameters and its return ty
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub2()
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
+        Public Sub OverloadSameSigBetweenFunctionAndSub2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4650,8 +4650,8 @@ BC30491: Expression does not produce a value.
                                                             </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub3()
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
+        Public Sub OverloadSameSigBetweenFunctionAndSub3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4677,8 +4677,8 @@ End Class    ]]></file>
                                                                  </expected>)
         End Sub
 
-        <Fact, WorkItem(545520, "DevDiv")>
-        Sub OverloadSameSigBetweenFunctionAndSub4()
+        <Fact, WorkItem(545520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545520")>
+        Public Sub OverloadSameSigBetweenFunctionAndSub4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4713,8 +4713,8 @@ BC30516: Overload resolution failed because no accessible 'Foo' accepts this num
         End Sub
 
 
-        <Fact, WorkItem(546129, "DevDiv")>
-        Sub SameMethodNameDifferentCase()
+        <Fact, WorkItem(546129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546129")>
+        Public Sub SameMethodNameDifferentCase()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4740,7 +4740,7 @@ End Module
 
         End Sub
 
-        <WorkItem(544657, "DevDiv")>
+        <WorkItem(544657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544657")>
         <Fact()>
         Public Sub Regress14728()
 
@@ -4773,8 +4773,8 @@ End Module
             CompileAndVerify(Compilation, expectedOutput:="1qq")
         End Sub
 
-        <Fact(), WorkItem(544657, "DevDiv")>
-        Sub Regress14728Err()
+        <Fact(), WorkItem(544657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544657")>
+        Public Sub Regress14728Err()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4809,8 +4809,8 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="1qq")
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_1()
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
+        Public Sub Bug16716_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4849,8 +4849,8 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
             Assert.Equal("Sub ProvideMenuResourceAttribute..ctor(x As System.Int16, y As System.Int32)", TNuggetPackage.GetAttributes()(0).AttributeConstructor.ToTestDisplayString())
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_2()
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
+        Public Sub Bug16716_2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4882,8 +4882,8 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(546747, "DevDiv")>
-        Sub Bug16716_3()
+        <Fact, WorkItem(546747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546747")>
+        Public Sub Bug16716_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4908,8 +4908,8 @@ BC30934: Conversion from 'Integer' to 'String' cannot occur in a constant expres
 ]]></expected>)
         End Sub
 
-        <Fact, WorkItem(546875, "DevDiv"), WorkItem(530930, "DevDiv")>
-        Sub BigVisitor()
+        <Fact, WorkItem(546875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546875"), WorkItem(530930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530930")>
+        Public Sub BigVisitor()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -4931,7 +4931,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub CompareSymbolsOriginalDefinition()
+        Public Sub CompareSymbolsOriginalDefinition()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -4975,8 +4975,8 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
                                                </expected>)
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688_1()
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
+        Public Sub Regress738688_1()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5027,8 +5027,8 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="CType2CType4")
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688_2()
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
+        Public Sub Regress738688_2()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5062,8 +5062,8 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688Err()
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
+        Public Sub Regress738688Err()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5125,8 +5125,8 @@ BC30521: Overload resolution failed because no accessible 'Foo' is most specific
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(738688, "DevDiv")>
-        Sub Regress738688Err01()
+        <Fact(), WorkItem(738688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/738688")>
+        Public Sub Regress738688Err01()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5171,8 +5171,8 @@ BC30521: Overload resolution failed because no accessible 'foo' is most specific
 ]]></expected>)
         End Sub
 
-        <Fact(), WorkItem(32)>
-        Sub BugCodePlex_32()
+        <Fact(), WorkItem(32, "https://roslyn.codeplex.com/workitem/31")>
+        Public Sub BugCodePlex_32()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5207,8 +5207,8 @@ End Class
         End Sub
 
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_01()
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
+        Public Sub Bug918579_01()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5267,8 +5267,8 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="IDerived_X")
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_02()
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
+        Public Sub Bug918579_02()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5332,8 +5332,8 @@ IBase2_X
 IDerived_X")
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
-        Sub Bug918579_03()
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
+        Public Sub Bug918579_03()
             Dim compilationDef =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -5375,8 +5375,8 @@ End Interface
             CompileAndVerify(compilation)
         End Sub
 
-        <Fact, WorkItem(1034429, "DevDiv")>
-        Sub Bug1034429()
+        <Fact, WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")>
+        Public Sub Bug1034429()
 
             Dim compilationDef =
 <compilation>
@@ -5472,6 +5472,291 @@ BC30661: Field or property 'p2' is not found.
 BC30661: Field or property 'p1' is not found.
     <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
                                                ~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(2604, "https://github.com/dotnet/roslyn/issues/2604")>
+        Public Sub FailureDueToAnErrorInALambda_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+
+    Sub Main()
+        M0(0, Function() doesntexist)
+        M1(0, Function() doesntexist)
+        M2(0, Function() doesntexist)
+    End Sub
+
+    Sub M0(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M1(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M1(x As Long, y As System.Func(Of Long))
+    End Sub
+
+    Sub M2(x As Integer, y As System.Func(Of Integer))
+    End Sub
+
+    Sub M2(x As c1, y As System.Func(Of Long))
+    End Sub
+End Module
+
+Class c1
+End Class
+]]>
+
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M0(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M1(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+BC30451: 'doesntexist' is not declared. It may be inaccessible due to its protection level.
+        M2(0, Function() doesntexist)
+                         ~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(4587, "https://github.com/dotnet/roslyn/issues/4587")>
+        Public Sub FailureDueToAnErrorInALambda_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+Imports System.Linq
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+
+
+    Private Async Function GetDataAsync(cs As Characters, imax As Integer) As Task
+        Dim Roles = Await cs.GetRoleAsync()
+
+        Dim RoleTasks = Roles.Select(
+            Async Function(role As Role) As Task
+                Dim Lines = Await role.GetLines()
+                If imax <= LinesKey Then Return
+
+                Dim SentenceTasks = Lines.Select(
+                    Async Function(Sentence) As Task
+                        Dim Words = Await Sentence.GetWordsAsync()
+                        If imax <= WordsKey Then Return
+
+                        Dim WordTasks = Words.Select(
+                            Async Function(Word) As Task
+                                Dim Letters = Await Word.GetLettersAsync()
+                                If imax <= LettersKey Then Return
+
+                                Dim StrokeTasks = Letters.Select(
+                                    Async Function(Stroke) As Task
+                                        Dim endpoints = Await Stroke.GetEndpointsAsync()
+
+                                        Await Task.WhenAll(endpoints.ToArray())
+                                    End Function)
+                                Await Task.WhenAll(StrokeTasks.ToArray())
+                            End Function)
+                        Await Task.WhenAll(WordTasks.ToArray())
+                    End Function)
+                Await Task.WhenAll(SentenceTasks.ToArray())
+            End Function)
+    End Function
+
+
+
+    Function RetryAsync(Of T)(f As Func(Of Task(Of T))) As Task(Of T)
+        Return f()
+    End Function
+
+End Module
+
+
+Friend Class Characters
+    Function GetRoleAsync() As Task(Of List(Of Role))
+        Return Nothing
+    End Function
+End Class
+
+Class Role
+    Function GetLines() As Task(Of List(Of Line))
+        Return Nothing
+    End Function
+End Class
+
+Public Class Line
+End Class
+]]>
+
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'LinesKey' is not declared. It may be inaccessible due to its protection level.
+                If imax <= LinesKey Then Return
+                           ~~~~~~~~
+BC30456: 'GetWordsAsync' is not a member of 'Line'.
+                        Dim Words = Await Sentence.GetWordsAsync()
+                                          ~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'WordsKey' is not declared. It may be inaccessible due to its protection level.
+                        If imax <= WordsKey Then Return
+                                   ~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                        Await Task.WhenAll(WordTasks.ToArray())
+                                   ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                Await Task.WhenAll(SentenceTasks.ToArray())
+                           ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(4587, "https://github.com/dotnet/roslyn/issues/4587")>
+        Public Sub FailureDueToAnErrorInALambda_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+Imports System.Linq
+
+Module Module1
+ 
+    Sub Main()
+    End Sub
+
+ 
+    Private Async Function GetDataAsync(DeliveryWindow As DeliveryWindow,
+                                        MaxDepth As Integer) As Task
+ 
+        Dim Vendors = Await RetryAsync(Function() DeliveryWindow.GetVendorsAsync())
+ 
+        Dim VendorTasks = Vendors.Select(Async Function(vendor As DeliveryWindowVendor) As Task
+                                             Dim Departments = Await RetryAsync(Async Function() Await vendor.GetDeliveryWindowDepartmentsAsync())
+ 
+                                             If MaxDepth <= DepartmentsKey Then
+                                                 Return
+                                             End If
+ 
+                                             Dim DepartmentTasks = Departments.Select(Async Function(Department) As Task
+                                                                                          Dim Vendor9s = Await RetryAsync(Async Function() Await Department.GetDeliveryWindowVendor9Async())
+ 
+                                                                                          If MaxDepth <= Vendor9Key Then
+                                                                                              Return
+                                                                                          End If
+ 
+                                                                                          Dim Vendor9Tasks = Vendor9s.Select(Async Function(Vendor9) As Task
+                                                                                                                                 Dim poTypes = Await RetryAsync(Async Function() Await Vendor9.GetDeliveryWindowPOTypesAsync())
+ 
+                                                                                                                                 If MaxDepth <= POTypesKey Then
+                                                                                                                                     Return
+                                                                                                                                 End If
+ 
+                                                                                                                                 Dim POTypeTasks = poTypes.Select(Async Function(poType) As Task
+                                                                                                                                                                      Dim pos = Await RetryAsync(Async Function() Await poType.GetDeliveryWindowPOAsync())
+ 
+                                                                                                                                                                      If MaxDepth <= POsKey Then
+                                                                                                                                                                          Return
+                                                                                                                                                                      End If
+ 
+                                                                                                                                                                      Dim POTasks = pos.ToList() _
+                                                                                                                                                                                       .Select(Async Function(po) As Task
+                                                                                                                                                                                                   Await RetryAsync(Async Function() Await po.GetDeliveryWindowPOLineAsync())
+                                                                                                                                                                                               End Function) _
+                                                                                                                                                                                       .ToArray()
+ 
+ 
+                                                                                                                                                                      Await Task.WhenAll(POTasks.ToArray())
+                                                                                                                                                                  End Function)
+ 
+ 
+                                                                                                                                 Await Task.WhenAll(POTypeTasks.ToArray())
+                                                                                                                             End Function)
+ 
+ 
+                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
+                                                                                      End Function)
+ 
+                                             Await Task.WhenAll(DepartmentTasks.ToArray())
+                                         End Function)
+ 
+        Await Task.WhenAll(VendorTasks.ToArray())
+    End Function
+ 
+    Function RetryAsync(Of T)(f As Func(Of Task(Of T))) As Task(Of T)
+        Return f()
+    End Function
+End Module
+ 
+Friend Class DeliveryWindow
+    Function GetVendorsAsync() As Task(Of List(Of DeliveryWindowVendor))
+        Return Nothing
+    End Function
+End Class
+ 
+Class DeliveryWindowVendor
+    Function GetDeliveryWindowDepartmentsAsync() As Task(Of List(Of DeliveryWindowDepartments))
+        Return Nothing
+    End Function
+End Class
+ 
+Public Class DeliveryWindowDepartments
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30451: 'DepartmentsKey' is not declared. It may be inaccessible due to its protection level.
+                                             If MaxDepth <= DepartmentsKey Then
+                                                            ~~~~~~~~~~~~~~
+BC30456: 'GetDeliveryWindowVendor9Async' is not a member of 'DeliveryWindowDepartments'.
+                                                                                          Dim Vendor9s = Await RetryAsync(Async Function() Await Department.GetDeliveryWindowVendor9Async())
+                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'Vendor9Key' is not declared. It may be inaccessible due to its protection level.
+                                                                                          If MaxDepth <= Vendor9Key Then
+                                                                                                         ~~~~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
+                                                                                                     ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+                                             Await Task.WhenAll(DepartmentTasks.ToArray())
+                                                        ~~~~~~~
+BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
+    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
+        Await Task.WhenAll(VendorTasks.ToArray())
+                   ~~~~~~~
 ]]></expected>)
         End Sub
 

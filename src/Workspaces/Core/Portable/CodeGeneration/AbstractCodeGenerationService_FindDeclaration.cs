@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
         {
-            var declarations = symbolDeclarationService.GetDeclarations(destination);
-            return declarations.Any(r => CanAddTo(r.GetSyntax(), solution, cancellationToken));
+            var declarations = _symbolDeclarationService.GetDeclarations(destination);
+            return declarations.Any(r => CanAddTo(r.GetSyntax(cancellationToken), solution, cancellationToken));
         }
 
         protected static SyntaxToken GetEndToken(SyntaxNode node)
@@ -57,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return CanAddTo(destination, solution, cancellationToken, out availableIndices);
         }
 
-        private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken, out IList<bool> availableIndices)
+        private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
+            out IList<bool> availableIndices, Func<Document, bool> isGeneratedDocument = null)
         {
             availableIndices = null;
             if (destination == null)
@@ -65,9 +67,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
-            // Anything completely hidden is something you can't add to. Anything completely visible
-            // is something you can add to.  Anything that is partially hidden will have to defer to
-            // the underlying language to make a determination.
             var syntaxTree = destination.SyntaxTree;
             var document = solution.GetDocument(syntaxTree);
 
@@ -76,6 +75,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
+            // check for generated files if needed.
+            if (isGeneratedDocument != null && isGeneratedDocument(document))
+            {
+                return false;
+            }
+
+            // Anything completely hidden is something you can't add to. Anything completely visible
+            // is something you can add to.  Anything that is partially hidden will have to defer to
+            // the underlying language to make a determination.
             var span = GetSpan(destination);
             if (syntaxTree.IsEntirelyHidden(span, cancellationToken))
             {
@@ -115,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var symbol = namespaceOrType;
             var locationOpt = options.BestLocation;
 
-            var declarations = symbolDeclarationService.GetDeclarations(symbol);
+            var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
             var fallbackDeclaration = default(SyntaxNode);
             if (locationOpt != null && locationOpt.IsInSource)
@@ -164,16 +172,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
             }
 
-            // Generate into any decl we can find.
+            // If there is a declaration in a non auto-generated file, prefer it.
+            Func<Document, bool> isGeneratedDocument =
+                solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode;
+
             foreach (var decl in declarations)
             {
                 declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
+                if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, isGeneratedDocument))
                 {
                     return Tuple.Create(declaration, availableIndices);
                 }
             }
 
+            // Generate into any declaration we can find.
             availableIndices = null;
             declaration = fallbackDeclaration ?? await SelectFirstOrDefaultAsync(declarations, node => true, cancellationToken).ConfigureAwait(false);
 

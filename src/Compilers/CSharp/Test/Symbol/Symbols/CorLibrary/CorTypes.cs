@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 {
     public class CorTypes : CSharpTestBase
     {
-        private static readonly SymbolDisplayFormat LanguageNameFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_languageNameFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] {TestReferences.NetFx.v4_0_21006.mscorlib});
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs:new[] { MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
@@ -167,7 +166,7 @@ namespace System
             Assert.Throws<ArgumentOutOfRangeException>(() => c1.GetSpecialType(SpecialType.Count + 1));
         }
 
-        [WorkItem(697521, "DevDiv")]
+        [WorkItem(697521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697521")]
         [Fact]
         public void SubclassSystemArray()
         {

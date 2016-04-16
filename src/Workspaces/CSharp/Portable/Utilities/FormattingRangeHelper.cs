@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // with a auto brace completion which will do auto formatting when a user types "{", it is quite common that we will automatically put a space
             // between "{" and "}". but user might blindly type without knowing that " " has automatically inserted for him. and ends up have two spaces.
-            // for those cases, whenever we see previous token of the range is "{", we expand the range to include preceeding "{"
+            // for those cases, whenever we see previous token of the range is "{", we expand the range to include preceding "{"
             var currentToken = tokenRange.Value.Item1;
             var previousToken = currentToken.GetPreviousToken();
 
@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is DelegateDeclarationSyntax) ||
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
-                (parent is MethodDeclarationSyntax))
+                (parent is MethodDeclarationSyntax) ||
+                (parent is PropertyDeclarationSyntax))
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }
@@ -287,16 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return previousToken.Kind() == SyntaxKind.None ? token : previousToken;
         }
 
-        private static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
+        public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
             var text = default(SourceText);
             if (tree != null && tree.TryGetText(out text))
             {
-                var line1 = text.Lines.IndexOf(token1.Span.End);
-                var line2 = text.Lines.IndexOf(token2.SpanStart);
-
-                return line1 == line2;
+                return text.AreOnSameLine(token1, token2);
             }
 
             return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
@@ -360,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.TryStatement ||
                 node.Kind() == SyntaxKind.CatchClause ||
                 node.Kind() == SyntaxKind.FinallyClause ||
-                node.Kind() == SyntaxKind.LabeledStatement;
+                node.Kind() == SyntaxKind.LabeledStatement ||
+                node.Kind() == SyntaxKind.LockStatement;
         }
 
         private static SyntaxNode GetTopContainingNode(SyntaxNode node)

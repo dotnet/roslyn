@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal class ProgressTracker
     {
-        private int completedItems = 0;
-        private int totalItems = 0;
+        private int _completedItems;
+        private int _totalItems;
 
-        private readonly Action<int, int> updateActionOpt;
+        private readonly Action<int, int> _updateActionOpt;
 
         public ProgressTracker()
             : this(null)
@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public ProgressTracker(Action<int, int> updateActionOpt)
         {
-            this.updateActionOpt = updateActionOpt;
+            _updateActionOpt = updateActionOpt;
         }
 
         public int CompletedItems
         {
             get
             {
-                return completedItems;
+                return _completedItems;
             }
         }
 
@@ -38,28 +38,25 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             get
             {
-                return totalItems;
+                return _totalItems;
             }
         }
 
         public void AddItems(int count)
         {
-            Interlocked.Add(ref totalItems, count);
+            Interlocked.Add(ref _totalItems, count);
             Update();
         }
 
         public void ItemCompleted()
         {
-            Interlocked.Increment(ref completedItems);
+            Interlocked.Increment(ref _completedItems);
             Update();
         }
 
         private void Update()
         {
-            if (updateActionOpt != null)
-            {
-                updateActionOpt(completedItems, totalItems);
-            }
+            _updateActionOpt?.Invoke(_completedItems, _totalItems);
         }
     }
 }

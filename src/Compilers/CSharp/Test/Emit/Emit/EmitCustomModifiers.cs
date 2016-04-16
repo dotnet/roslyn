@@ -35,11 +35,11 @@ public class A
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(source, 
+            var c = CreateCompilationWithMscorlib(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(c, expectedOutput: 
+            CompileAndVerify(c, expectedOutput:
 @"F1
 F2
 F3
@@ -48,7 +48,7 @@ F8
 F9
 F10
 M4
-", emitOptions: TestEmitters.RefEmitBug);
+");
         }
 
         /// <summary>
@@ -505,8 +505,7 @@ Derived2.Method(Int64[], Int16[], Single[])
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput, 
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                expectedOutput: expectedOutput);
         }
 
         /// <summary>
@@ -549,12 +548,11 @@ System.Int32[]
             CompileAndVerify(
                 source: text,
                 additionalRefs: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput, 
-                emitOptions: TestEmitters.RefEmitUnsupported_646023);
+                expectedOutput: expectedOutput);
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void ByRefBeforeCustomModifiers()
         {
             var il = @"
@@ -602,13 +600,13 @@ class Test
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
             Assert.False(parameter.CustomModifiers.IsEmpty);
-            Assert.True(parameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, expectedOutput: "2");
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void ByRefBeforeCustomModifiersOnSourceParameter()
         {
             var il = @"
@@ -658,7 +656,7 @@ class Test
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
             Assert.False(baseParameter.CustomModifiers.IsEmpty);
-            Assert.True(baseParameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, baseParameter.CountOfCustomModifiersPrecedingByRef);
 
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
@@ -666,9 +664,9 @@ class Test
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
             Assert.False(derivedParameter.CustomModifiers.IsEmpty);
-            Assert.True(derivedParameter.HasByRefBeforeCustomModifiers);
+            Assert.Equal(0, derivedParameter.CountOfCustomModifiersPrecedingByRef);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "2");
+            CompileAndVerify(comp, expectedOutput: "2");
         }
     }
 }

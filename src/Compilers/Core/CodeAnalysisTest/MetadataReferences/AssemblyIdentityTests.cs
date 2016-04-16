@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void Equality_InvariantCulture()
+        {
+            var neutral1 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "NEUtral", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
+            var neutral2 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), null, RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
+            var neutral3 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "neutral", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
+            var invariant = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
+
+            Assert.True(neutral1.Equals(invariant));
+            Assert.True(neutral2.Equals(invariant));
+            Assert.True(neutral3.Equals(invariant));
+        }
+
+        [Fact]
         public void FromAssemblyDefinitionInvalidParameters()
         {
             Assembly asm = null;
@@ -101,6 +114,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             id = AssemblyIdentity.FromAssemblyDefinition(name);
             Assert.Equal("foo", id.Name);
             Assert.Equal(AssemblyContentType.WindowsRuntime, id.ContentType);
+        }
+
+        [Fact]
+        public void FromAssemblyDefinition_InvariantCulture()
+        {
+            var name = new AssemblyName("foo");
+            name.Flags = AssemblyNameFlags.None;
+            name.CultureInfo = CultureInfo.InvariantCulture;
+            name.ContentType = AssemblyContentType.Default;
+            name.Version = new Version(1, 2, 3, 4);
+            name.ProcessorArchitecture = ProcessorArchitecture.X86;
+
+            var id = AssemblyIdentity.FromAssemblyDefinition(name);
+            Assert.Equal("", id.CultureName);
         }
 
         [Fact]
@@ -171,12 +198,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var id2 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
             Assert.True(id2.IsStrongName);
 
-            var id3 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false);
+            var id3 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false);
             Assert.False(id3.IsStrongName);
 
             // for WinRT references "strong name" doesn't make sense:
 
-            var id4 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.WindowsRuntime);
+            var id4 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.WindowsRuntime);
             Assert.False(id4.IsStrongName);
 
             var id5 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.WindowsRuntime);
@@ -191,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => new AssemblyIdentity(null));
 
             Assert.Throws<ArgumentException>(
-                () => new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray.Create<byte>(), hasPublicKey: true, isRetargetable: false));
+                () => new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", ImmutableArray<byte>.Empty, hasPublicKey: true, isRetargetable: false));
 
             Assert.Throws<ArgumentException>(
                 () => new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", new byte[] { 1, 2, 3 }.AsImmutableOrNull(), hasPublicKey: false, isRetargetable: false));
@@ -201,17 +228,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new Version(),
                 new Version(0, 0),
                 new Version(0, 0, 0),
-                new Version(Int32.MaxValue, 0, 0, 0),
-                new Version(0, Int32.MaxValue, 0, 0),
-                new Version(0, 0, Int32.MaxValue, 0),
-                new Version(0, 0, 0, Int32.MaxValue),
+                new Version(int.MaxValue, 0, 0, 0),
+                new Version(0, int.MaxValue, 0, 0),
+                new Version(0, 0, int.MaxValue, 0),
+                new Version(0, 0, 0, int.MaxValue),
             })
             {
                 Assert.Throws<ArgumentOutOfRangeException>(() => new AssemblyIdentity("Foo", v));
             }
 
             Assert.Throws<ArgumentOutOfRangeException>(() => new AssemblyIdentity("Foo", contentType: (AssemblyContentType)(-1)));
-            Assert.Throws<ArgumentOutOfRangeException>(() => new AssemblyIdentity("Foo", contentType: (AssemblyContentType)Int32.MaxValue));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new AssemblyIdentity("Foo", contentType: (AssemblyContentType)int.MaxValue));
 
             Assert.Throws<ArgumentException>(() =>
                 new AssemblyIdentity("Foo", publicKeyOrToken: RoPublicKey1, hasPublicKey: true, isRetargetable: true, contentType: AssemblyContentType.WindowsRuntime));
@@ -232,7 +259,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // invalid content type:
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: (AssemblyContentType)2, noThrow: true);
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false, contentType: (AssemblyContentType)2, noThrow: true);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
             Assert.Equal("", id.CultureName);
             Assert.Equal(false, id.HasPublicKey);
@@ -241,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
             // default Retargetable=No if content type is WinRT
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: true, contentType: AssemblyContentType.WindowsRuntime, noThrow: true);
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: true, contentType: AssemblyContentType.WindowsRuntime, noThrow: true);
             Assert.Equal("Foo", id.Name);
             Assert.Equal(new Version(1, 2, 3, 4), id.Version);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
@@ -251,12 +278,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AssemblyContentType.WindowsRuntime, id.ContentType);
 
             // invalid culture:
-            //EDMAURER the compiler doesn't enforce that the culture be anything in particular. AssemblyIdentity should preserve user input even if it
-            //is of dubious utility.
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "blah,", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
+            // The native compiler doesn't enforce that the culture be anything in particular. 
+            // AssemblyIdentity should preserve user input even if it is of dubious utility.
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "blah,", ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
             Assert.Equal("blah,", id.CultureName);
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "*", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
+
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "*", ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
             Assert.Equal("*", id.CultureName);
+
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "neutral", ImmutableArray<byte>.Empty, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
+            Assert.Equal("", id.CultureName);
         }
 
         [Fact]
@@ -299,6 +330,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(AssemblyNameFlags.None, an.Flags);
                 AssertEx.Equal(null, an.CodeBase);
             }
+        }
+
+        [Fact]
+        public void ToAssemblyName_Errors()
+        {
+            var ai = new AssemblyIdentity("foo", cultureName: "*");
+            Assert.Throws<CultureNotFoundException>(() => ai.ToAssemblyName());
         }
 
         [Fact]

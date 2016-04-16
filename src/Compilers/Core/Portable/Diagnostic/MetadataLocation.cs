@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation>
     {
-        private readonly IModuleSymbol module;
+        private readonly IModuleSymbol _module;
 
         internal MetadataLocation(IModuleSymbol module)
         {
             Debug.Assert(module != null);
-            this.module = module;
+            _module = module;
         }
 
         public override LocationKind Kind
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis
 
         public override IModuleSymbol MetadataModule
         {
-            get { return module; }
+            get { return _module; }
         }
 
         public override int GetHashCode()
         {
-            return module.GetHashCode();
+            return _module.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(MetadataLocation other)
         {
-            return other != null && other.module == this.module;
+            return other != null && other._module == _module;
         }
     }
 }

@@ -26,25 +26,27 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
-        private readonly string workspaceKind;
-        private readonly HostWorkspaceServices services;
-        private readonly BranchId primaryBranchId;
+        private readonly string _workspaceKind;
+        private readonly HostWorkspaceServices _services;
+        private readonly BranchId _primaryBranchId;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
-        private readonly NonReentrantLock serializationLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
 
         // this lock guards all the mutable fields (do not share lock with derived classes)
-        private readonly NonReentrantLock stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
+        private readonly NonReentrantLock _stateLock = new NonReentrantLock(useThisInstanceForSynchronization: true);
 
         // Current solution.
-        private Solution latestSolution;
+        private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler taskQueue;
+        private readonly IWorkspaceTaskScheduler _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
+
+        private Action<string> _testMessageLogger;
 
         /// <summary>
         /// Constructs a new workspace instance.
@@ -53,17 +55,31 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string workspaceKind)
         {
-            this.primaryBranchId = BranchId.GetNextId();
-            this.workspaceKind = workspaceKind;
+            _primaryBranchId = BranchId.GetNextId();
+            _workspaceKind = workspaceKind;
 
-            this.services = host.CreateWorkspaceServices(this);
+            _services = host.CreateWorkspaceServices(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = this.services.GetService<IWorkspaceTaskSchedulerFactory>();
-            this.taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
+            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
+            _taskQueue = workspaceTaskSchedulerFactory.CreateTaskQueue();
 
             // initialize with empty solution
-            this.latestSolution = CreateSolution(SolutionId.CreateNewId());
+            _latestSolution = CreateSolution(SolutionId.CreateNewId());
+        }
+
+        internal void LogTestMessage(string message)
+        {
+            _testMessageLogger?.Invoke(message);
+        }
+
+        /// <summary>
+        /// Sets an internal logger that will receive some messages.
+        /// </summary>
+        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
+        internal void SetTestLogger(Action<string> writeLineMessageLogger)
+        {
+            _testMessageLogger = writeLineMessageLogger;
         }
 
         /// <summary>
@@ -71,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public HostWorkspaceServices Services
         {
-            get { return this.services; }
+            get { return _services; }
         }
 
         /// <summary>
@@ -79,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal BranchId PrimaryBranchId
         {
-            get { return this.primaryBranchId; }
+            get { return _primaryBranchId; }
         }
 
         /// <summary>
@@ -97,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string Kind
         {
-            get { return this.workspaceKind; }
+            get { return _workspaceKind; }
         }
 
         /// <summary>
@@ -129,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return Volatile.Read(ref this.latestSolution);
+                return Volatile.Read(ref _latestSolution);
             }
         }
 
@@ -138,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected Solution SetCurrentSolution(Solution solution)
         {
-            var currentSolution = Volatile.Read(ref this.latestSolution);
+            var currentSolution = Volatile.Read(ref _latestSolution);
             if (solution == currentSolution)
             {
                 // No change
@@ -148,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             while (true)
             {
                 var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
-                var replacedSolution = Interlocked.CompareExchange(ref this.latestSolution, newSolution, currentSolution);
+                var replacedSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                 if (replacedSolution == currentSolution)
                 {
                     return newSolution;
@@ -165,12 +181,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.services.GetService<IOptionService>().GetOptions();
+                return _services.GetService<IOptionService>().GetOptions();
             }
 
             set
             {
-                this.services.GetService<IOptionService>().SetOptions(value);
+                _services.GetService<IOptionService>().SetOptions(value);
             }
         }
 
@@ -179,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
         {
-            return taskQueue.ScheduleTask(action, taskName);
+            return _taskQueue.ScheduleTask(action, taskName);
         }
 
         /// <summary>
@@ -187,7 +203,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
         {
-            return taskQueue.ScheduleTask(func, taskName);
+            return _taskQueue.ScheduleTask(func, taskName);
         }
 
         /// <summary>
@@ -281,7 +297,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var solutionId = solutionInfo.Id;
@@ -301,7 +317,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
@@ -324,7 +340,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
 
@@ -347,7 +363,7 @@ namespace Microsoft.CodeAnalysis
 
         private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 this.OnProjectAdded_NoLock(projectInfo, silent);
             }
@@ -373,7 +389,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var projectId = reloadedProjectInfo.Id;
 
@@ -394,7 +410,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 this.CheckProjectCanBeRemoved(projectId);
@@ -418,7 +434,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -434,7 +450,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnOutputFilePathChanged(ProjectId projectId, string outputFilePath)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -450,7 +466,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -466,7 +482,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -482,7 +498,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
 
@@ -498,7 +514,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
@@ -519,7 +535,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
@@ -537,7 +553,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveMetadataReference(projectId, metadataReference);
@@ -554,7 +570,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasMetadataReference(projectId, metadataReference);
@@ -571,7 +587,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
@@ -588,7 +604,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
@@ -605,7 +621,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var documentId = documentInfo.Id;
 
@@ -624,7 +640,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var documentId = newDocumentInfo.Id;
 
@@ -643,7 +659,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentRemoved(DocumentId documentId)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -669,7 +685,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -690,7 +706,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -704,11 +720,30 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when status of project has changed to incomplete.
+        /// See <see cref="ProjectInfo.HasAllInformation"/> for more information.
+        /// </summary>
+        // TODO: make it public
+        internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                // if state is different than what we have
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithHasAllInformation(projectId, hasAllInformation));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when the text of a document is updated in the host environment.
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -727,7 +762,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -745,7 +780,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
 
@@ -764,7 +799,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 var documentId = documentInfo.Id;
 
@@ -783,7 +818,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
-            using (this.serializationLock.DisposableWait())
+            using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
 
@@ -799,6 +834,73 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Updates all projects to properly reference other projects as project references instead of metadata references.
+        /// </summary>
+        protected void UpdateReferencesAfterAdd()
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.UpdateReferencesAfterAdd(oldSolution);
+
+                if (newSolution != oldSolution)
+                {
+                    newSolution = this.SetCurrentSolution(newSolution);
+                    var ignore = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                }
+            }
+        }
+
+        private Solution UpdateReferencesAfterAdd(Solution solution)
+        {
+            // Build map from output assembly path to ProjectId
+            // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
+            var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
+            foreach (var p in solution.Projects)
+            {
+                if (!string.IsNullOrEmpty(p.OutputFilePath))
+                {
+                    outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
+                }
+            }
+
+            // now fix each project if necessary
+            foreach (var pid in solution.ProjectIds)
+            {
+                var project = solution.GetProject(pid);
+
+                // convert metadata references to project references if the metadata reference matches some project's output assembly.
+                foreach (var meta in project.MetadataReferences)
+                {
+                    var pemeta = meta as PortableExecutableReference;
+                    if (pemeta != null)
+                    {
+                        ProjectId matchingProjectId;
+
+                        // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 
+                        // the metadata reference is shadow copied.
+                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out matchingProjectId)) ||
+                            (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                        {
+                            var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+
+                            if (!project.ProjectReferences.Contains(newProjRef))
+                            {
+                                project = project.WithProjectReferences(project.ProjectReferences.Concat(newProjRef));
+                            }
+
+                            project = project.WithMetadataReferences(project.MetadataReferences.Where(mr => mr != meta));
+                        }
+                    }
+                }
+
+                solution = project.Solution;
+            }
+
+            return solution;
+        }
+
         #endregion
 
         #region Apply Changes
@@ -807,6 +909,15 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns <code>true</code> if a reference to referencedProject can be added to 
+        /// referencingProject.  <code>false</code> otherwise.
+        /// </summary>
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             return false;
         }
@@ -897,7 +1008,7 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
-            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions 
+            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
                 && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
             {
                 throw new NotSupportedException(WorkspacesResources.ChangingCompilationOptionsNotSupported);
@@ -1031,7 +1142,7 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyDocumentRemoved(documentId);
             }
 
-            // removed documents
+            // removed additional documents
             foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
             {
                 this.ApplyAdditionalDocumentRemoved(documentId);
@@ -1066,7 +1177,7 @@ namespace Microsoft.CodeAnalysis
                 if (!oldDoc.TryGetText(out oldText))
                 {
                     // we can't get old text, there is not much we can do except replacing whole text.
-                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                     this.ApplyDocumentTextChanged(documentId, currentText);
                     continue;
                 }
@@ -1076,7 +1187,7 @@ namespace Microsoft.CodeAnalysis
                 if (!newDoc.TryGetText(out newText))
                 {
                     // okay, we have old text, but no new text. let document determine text changes
-                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                     this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
                     continue;
                 }
@@ -1092,7 +1203,7 @@ namespace Microsoft.CodeAnalysis
                 var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
-                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
+                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
         }
@@ -1127,7 +1238,7 @@ namespace Microsoft.CodeAnalysis
 
         private SourceText GetTextForced(TextDocument doc)
         {
-            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait (called during TryApplyChanges)
+            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)

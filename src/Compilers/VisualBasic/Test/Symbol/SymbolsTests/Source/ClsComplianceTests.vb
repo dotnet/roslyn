@@ -1,14 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1548,7 +1541,7 @@ End Class
             comp.AssertNoDiagnostics()
 
             Dim accessor = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").GetMethod
-            Assert.True(accessor.MetadataName.StartsWith("_"))
+            Assert.True(accessor.MetadataName.StartsWith("_", StringComparison.Ordinal))
         End Sub
 
         <Fact>
@@ -2023,7 +2016,7 @@ Imports System
 
 <Assembly: CLSCompliant(True)>
                         ]]>
-                                                                                                                                               </file>
+                    </file>
                 </compilation>
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("_A.B.C")).AssertTheseDiagnostics(<errors><![CDATA[
@@ -2095,7 +2088,7 @@ BC40042: Type of optional value for optional parameter 'x07' is not CLS-complian
         End Sub
 
         <Fact>
-        Public Sub WRN_OptionalValueNotCLSCompliant1_ParamterTypeNonCompliant()
+        Public Sub WRN_OptionalValueNotCLSCompliant1_ParameterTypeNonCompliant()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -2586,7 +2579,7 @@ End Class
             Next
         End Sub
 
-        <WorkItem(697178, "DevDiv")>
+        <WorkItem(697178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697178")>
         <Fact>
         Public Sub ConstructedSpecialTypes()
             Dim source =
@@ -2638,7 +2631,7 @@ BC30002: Type 'Missing' is not defined.
 ]]></errors>)
         End Sub
 
-        <WorkItem(709317, "DevDiv")>
+        <WorkItem(709317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709317")>
         <Fact>
         Public Sub Repro709317()
             Dim libSource =
@@ -2675,10 +2668,10 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlibAndReferences(source, {libRef})
             Dim tree = comp.SyntaxTrees.Single()
-            comp.GetDiagnosticsForTree(CompilationStage.Declare, tree, filterSpanWithinTree:=Nothing, includeEarlierStages:=True)
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree)
         End Sub
 
-        <WorkItem(709317, "DevDiv")>
+        <WorkItem(709317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709317")>
         <Fact>
         Public Sub FilterTree()
             Dim sourceTemplate = <![CDATA[
@@ -2713,7 +2706,7 @@ End Namespace
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=TestOptions.ReleaseDll)
 
             ' Two copies of each diagnostic - one from each file.
             comp.AssertTheseDiagnostics(<errors><![CDATA[
@@ -2749,7 +2742,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
                         ~
 ]]></errors>)
 
-            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
+            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
                                                <errors><![CDATA[
 BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant
@@ -2769,7 +2762,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
 ]]></errors>)
         End Sub
 
-        <WorkItem(718503, "DevDiv")>
+        <WorkItem(718503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718503")>
         <Fact>
         Public Sub ErrorTypeAccessibility()
             Dim source =
@@ -3029,7 +3022,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ApplyAttributeWithNonCompliantyArgument()
+        Public Sub ApplyAttributeWithNonCompliantArgument()
 
             Dim source =
                 <compilation>
@@ -3586,7 +3579,7 @@ BC40027: Return type of function 'F' is not CLS-compliant.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749432, "DevDiv")>
+        <WorkItem(749432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749432")>
         <Fact>
         Public Sub InvalidAttributeArgument()
             Dim source =
@@ -3618,7 +3611,7 @@ BC30059: Constant expression is required.
             ]]></errors>)
         End Sub
 
-        <WorkItem(749352, "DevDiv")>
+        <WorkItem(749352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/749352")>
         <Fact>
         Public Sub Repro749352()
             Dim source =
@@ -3649,7 +3642,7 @@ BC40030: event 'Public Event Scen6(x As Integer)' cannot be marked CLS-compliant
             ]]></errors>)
         End Sub
 
-        <Fact, WorkItem(1026453, "DevDiv")>
+        <Fact, WorkItem(1026453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1026453")>
         Public Sub Bug1026453()
             Dim source1 =
                 <compilation>

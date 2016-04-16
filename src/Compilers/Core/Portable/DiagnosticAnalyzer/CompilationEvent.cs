@@ -2,14 +2,14 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public abstract class CompilationEvent
+    internal abstract class CompilationEvent
     {
         internal CompilationEvent(Compilation compilation)
         {
             this.Compilation = compilation;
         }
 
-        public Compilation Compilation { get; private set; }
+        public Compilation Compilation { get; }
 
         /// <summary>
         /// Flush any cached data in this <see cref="CompilationEvent"/> to minimize space usage (at the possible expense of time later).

@@ -11,22 +11,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// current identifier tokens that are declaring variables. This should only ever be updated
         /// via the AddIdentifier and RemoveIdentifier helpers.
         /// </summary>
-        private readonly Dictionary<string, List<SyntaxToken>> currentIdentifiersInScope;
-        private readonly HashSet<SyntaxToken> conflictingTokensToReport;
-        private readonly SyntaxToken tokenBeingRenamed;
+        private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope;
+        private readonly HashSet<SyntaxToken> _conflictingTokensToReport;
+        private readonly SyntaxToken _tokenBeingRenamed;
 
         public ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed, IEqualityComparer<string> identifierComparer)
         {
-            this.currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
-            this.conflictingTokensToReport = new HashSet<SyntaxToken>();
-            this.tokenBeingRenamed = tokenBeingRenamed;
+            _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
+            _conflictingTokensToReport = new HashSet<SyntaxToken>();
+            _tokenBeingRenamed = tokenBeingRenamed;
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens
         {
             get
             {
-                return conflictingTokensToReport;
+                return _conflictingTokensToReport;
             }
         }
 
@@ -39,22 +39,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             string name = token.ValueText;
 
-            if (currentIdentifiersInScope.ContainsKey(name))
+            if (_currentIdentifiersInScope.ContainsKey(name))
             {
-                var conflictingTokens = currentIdentifiersInScope[name];
+                var conflictingTokens = _currentIdentifiersInScope[name];
                 conflictingTokens.Add(token);
 
                 // If at least one of the identifiers is the one we're renaming,
                 // track it. This means that conflicts unrelated to our rename (that
                 // were there when we started) we won't flag.
-                if (conflictingTokens.Contains(tokenBeingRenamed))
+                if (conflictingTokens.Contains(_tokenBeingRenamed))
                 {
                     foreach (var conflictingToken in conflictingTokens)
                     {
-                        if (conflictingToken != tokenBeingRenamed)
+                        if (conflictingToken != _tokenBeingRenamed)
                         {
                             // conflictingTokensToReport is a set, so we won't get duplicates
-                            conflictingTokensToReport.Add(conflictingToken);
+                            _conflictingTokensToReport.Add(conflictingToken);
                         }
                     }
                 }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             else
             {
                 // No identifiers yet, so record the first one
-                currentIdentifiersInScope.Add(name, new List<SyntaxToken> { token });
+                _currentIdentifiersInScope.Add(name, new List<SyntaxToken> { token });
             }
         }
 
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             string name = token.ValueText;
 
-            var currentIdentifiers = currentIdentifiersInScope[name];
+            var currentIdentifiers = _currentIdentifiersInScope[name];
             currentIdentifiers.Remove(token);
 
             if (currentIdentifiers.Count == 0)
             {
-                currentIdentifiersInScope.Remove(name);
+                _currentIdentifiersInScope.Remove(name);
             }
         }
 

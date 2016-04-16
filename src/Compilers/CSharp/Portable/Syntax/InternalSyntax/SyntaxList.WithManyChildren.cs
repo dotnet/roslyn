@@ -39,14 +39,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal WithManyChildrenBase(ObjectReader reader)
                 : base(reader)
             {
-                this.children = ArrayElement<CSharpSyntaxNode>.MakeElementArray((CSharpSyntaxNode[])reader.ReadValue());
+                var length = reader.ReadInt32();
+
+                this.children = new ArrayElement<CSharpSyntaxNode>[length];
+                for (var i = 0; i < length; i++)
+                {
+                    this.children[i].Value = (CSharpSyntaxNode)reader.ReadValue();
+                }
+
                 this.InitializeChildren();
             }
 
             internal override void WriteTo(ObjectWriter writer)
             {
                 base.WriteTo(writer);
-                writer.WriteValue(ArrayElement<CSharpSyntaxNode>.MakeArray(this.children));
+
+                // PERF: Write the array out manually.Profiling shows that this is cheaper than converting to 
+                // an array in order to use writer.WriteValue.
+                writer.WriteInt32(this.children.Length);
+
+                for (var i = 0; i < this.children.Length; i++)
+                {
+                    writer.WriteValue(this.children[i].Value);
+                }
             }
 
             protected override int GetSlotCount()

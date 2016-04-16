@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                ' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We will maintain comptability.
+                ' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We will maintain compatibility.
                 Return True
             Else
                 Return False
@@ -378,8 +378,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namedArguments As ImmutableArray(Of BoundExpression)
 
             If (argumentListOpt Is Nothing) Then
-                boundArguments = NoArguments
-                namedArguments = NoArguments
+                boundArguments = s_noArguments
+                namedArguments = s_noArguments
             Else
 
                 Dim arguments As SeparatedSyntaxList(Of ArgumentSyntax) = argumentListOpt.Arguments
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 Finally
                     boundArguments = boundArgumentsBuilder.ToImmutableAndFree
-                    namedArguments = If(namedArgumentsBuilder Is Nothing, NoArguments, namedArgumentsBuilder.ToImmutableAndFree)
+                    namedArguments = If(namedArgumentsBuilder Is Nothing, s_noArguments, namedArgumentsBuilder.ToImmutableAndFree)
                 End Try
             End If
 
@@ -781,6 +781,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     End If
                                     Return CreateErrorTypedConstant(node.Type)
                                 Else
+                                    If node.Syntax.Kind = SyntaxKind.PredefinedCastExpression Then
+                                        Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
+
+                                        If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
+                                            InternalSyntax.Parser.CheckFeatureAvailability(diagBag,
+                                                                                           cast.Keyword.GetLocation(),
+                                                                                           DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                                                                           InternalSyntax.Feature.CObjInAttributeArguments)
+                                        End If
+                                    End If
                                     node = conv.Operand
                                 End If
 
@@ -824,9 +834,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim type = DirectCast(node.Type, ArrayTypeSymbol)
 
                 Dim values As ImmutableArray(Of TypedConstant) = Nothing
-                Dim initalizerOpt = node.InitializerOpt
+                Dim initializerOpt = node.InitializerOpt
 
-                If initalizerOpt Is Nothing OrElse initalizerOpt.Initializers.Length = 0 Then
+                If initializerOpt Is Nothing OrElse initializerOpt.Initializers.Length = 0 Then
                     If node.Bounds.Length = 1 Then
                         Dim lastIndex = node.Bounds(0)
                         If lastIndex.IsConstant AndAlso Not lastIndex.ConstantValueOpt.IsDefaultValue Then
@@ -836,14 +846,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' For all other array arguments, a more general error is given during
                             ' normal array initializer binding.
 
-                            ReportDiagnostic(diag, initalizerOpt.Syntax, ERRID.ERR_MissingValuesForArraysInApplAttrs)
+                            ReportDiagnostic(diag, initializerOpt.Syntax, ERRID.ERR_MissingValuesForArraysInApplAttrs)
                             _hasErrors = True
                         End If
                     End If
                 End If
 
-                If initalizerOpt IsNot Nothing Then
-                    values = VisitArguments(initalizerOpt.Initializers, diag)
+                If initializerOpt IsNot Nothing Then
+                    values = VisitArguments(initializerOpt.Initializers, diag)
                 End If
                 Return CreateTypedConstant(type, values)
             End Function

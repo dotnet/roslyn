@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class CSharpControlFlowAnalysis : ControlFlowAnalysis
     {
-        private readonly RegionAnalysisContext context;
+        private readonly RegionAnalysisContext _context;
 
-        private ImmutableArray<SyntaxNode> entryPoints;
-        private ImmutableArray<SyntaxNode> exitPoints;
-        private object regionStartPointIsReachable;
-        private object regionEndPointIsReachable;
-        private bool? succeeded = null;
+        private ImmutableArray<SyntaxNode> _entryPoints;
+        private ImmutableArray<SyntaxNode> _exitPoints;
+        private object _regionStartPointIsReachable;
+        private object _regionEndPointIsReachable;
+        private bool? _succeeded;
 
         internal CSharpControlFlowAnalysis(RegionAnalysisContext context)
         {
-            this.context = context;
+            _context = context;
         }
 
         /// <summary>
@@ -35,15 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (entryPoints == null)
+                if (_entryPoints == null)
                 {
-                    this.succeeded = !context.Failed;
-                    var result = context.Failed ? ImmutableArray<SyntaxNode>.Empty :
-                            ((IEnumerable<SyntaxNode>)EntryPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, out this.succeeded)).ToImmutableArray();
-                    ImmutableInterlocked.InterlockedInitialize(ref entryPoints, result);
+                    _succeeded = !_context.Failed;
+                    var result = _context.Failed ? ImmutableArray<SyntaxNode>.Empty :
+                            ((IEnumerable<SyntaxNode>)EntryPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, out _succeeded)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref _entryPoints, result);
                 }
 
-                return entryPoints;
+                return _entryPoints;
             }
         }
 
@@ -54,15 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (exitPoints == null)
+                if (_exitPoints == null)
                 {
                     var result = Succeeded
-                        ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion)).ToImmutableArray()
+                        ? ((IEnumerable<SyntaxNode>)ExitPointsWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion)).ToImmutableArray()
                         : ImmutableArray<SyntaxNode>.Empty;
-                    ImmutableInterlocked.InterlockedInitialize(ref exitPoints, result);
+                    ImmutableInterlocked.InterlockedInitialize(ref _exitPoints, result);
                 }
 
-                return exitPoints;
+                return _exitPoints;
             }
         }
 
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // its last statement completes normally.
             get
             {
-                if (regionEndPointIsReachable == null)
+                if (_regionEndPointIsReachable == null)
                 {
                     ComputeReachability();
                 }
 
-                return (bool)regionEndPointIsReachable;
+                return (bool)_regionEndPointIsReachable;
             }
         }
 
@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // its last statement completes normally.
             get
             {
-                if (regionStartPointIsReachable == null)
+                if (_regionStartPointIsReachable == null)
                 {
                     ComputeReachability();
                 }
 
-                return (bool)regionStartPointIsReachable;
+                return (bool)_regionStartPointIsReachable;
             }
         }
 
@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool startIsReachable, endIsReachable;
             if (Succeeded)
             {
-                RegionReachableWalker.Analyze(context.Compilation, context.Member, context.BoundNode, context.FirstInRegion, context.LastInRegion, out startIsReachable, out endIsReachable);
+                RegionReachableWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, out startIsReachable, out endIsReachable);
             }
             else
             {
                 startIsReachable = endIsReachable = true;
             }
-            Interlocked.CompareExchange(ref regionEndPointIsReachable, endIsReachable, null);
-            Interlocked.CompareExchange(ref regionStartPointIsReachable, startIsReachable, null);
+            Interlocked.CompareExchange(ref _regionEndPointIsReachable, endIsReachable, null);
+            Interlocked.CompareExchange(ref _regionStartPointIsReachable, startIsReachable, null);
         }
 
         /// <summary>
@@ -136,12 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (succeeded == null)
+                if (_succeeded == null)
                 {
                     var discarded = EntryPoints;
                 }
 
-                return succeeded.Value;
+                return _succeeded.Value;
             }
         }
     }

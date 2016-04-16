@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis
     {
         private class ParameterSymbolKey : AbstractSymbolKey<ParameterSymbolKey>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string metadataName;
+            private readonly SymbolKey _containerKey;
+            private readonly string _metadataName;
 
             internal ParameterSymbolKey(IParameterSymbol symbol, Visitor visitor)
             {
-                this.containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                this.metadataName = symbol.MetadataName;
+                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
+                _metadataName = symbol.MetadataName;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var container = containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
                 var parameters = GetAllSymbols(container).SelectMany(s => Resolve(compilation, s));
                 return CreateSymbolInfo(parameters);
             }
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis
             {
                 if (container is IMethodSymbol)
                 {
-                    return ((IMethodSymbol)container).Parameters.Where(p => Equals(compilation, p.MetadataName, this.metadataName));
+                    return ((IMethodSymbol)container).Parameters.Where(p => Equals(compilation, p.MetadataName, _metadataName));
                 }
                 else if (container is IPropertySymbol)
                 {
-                    return ((IPropertySymbol)container).Parameters.Where(p => Equals(compilation, p.MetadataName, this.metadataName));
+                    return ((IPropertySymbol)container).Parameters.Where(p => Equals(compilation, p.MetadataName, _metadataName));
                 }
                 else
                 {
@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis
             internal override bool Equals(ParameterSymbolKey other, ComparisonOptions options)
             {
                 return
-                    Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    other.containerKey.Equals(this.containerKey, options);
+                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    other._containerKey.Equals(_containerKey, options);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 return Hash.Combine(
-                    GetHashCode(options.IgnoreCase, this.metadataName),
-                    this.containerKey.GetHashCode(options));
+                    GetHashCode(options.IgnoreCase, _metadataName),
+                    _containerKey.GetHashCode(options));
             }
         }
     }

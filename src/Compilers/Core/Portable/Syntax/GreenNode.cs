@@ -19,50 +19,50 @@ namespace Microsoft.CodeAnalysis
 
         internal const int ListKind = 1;
 
-        private readonly ushort kind;
+        private readonly ushort _kind;
         protected NodeFlags flags;
-        private byte slotCount;
-        private int fullWidth;
+        private byte _slotCount;
+        private int _fullWidth;
 
-        private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> diagnosticsTable =
+        private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
-        private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> annotationsTable =
+        private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
             new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
 
-        private static readonly DiagnosticInfo[] NoDiagnostics = SpecializedCollections.EmptyArray<DiagnosticInfo>();
-        private static readonly SyntaxAnnotation[] NoAnnotations = SpecializedCollections.EmptyArray<SyntaxAnnotation>();
-        private static readonly IEnumerable<SyntaxAnnotation> NoAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
+        private static readonly DiagnosticInfo[] s_noDiagnostics = SpecializedCollections.EmptyArray<DiagnosticInfo>();
+        private static readonly SyntaxAnnotation[] s_noAnnotations = SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+        private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
 
         protected GreenNode(ushort kind)
         {
-            this.kind = kind;
+            _kind = kind;
         }
 
         protected GreenNode(ushort kind, int fullWidth)
         {
-            this.kind = kind;
-            this.fullWidth = fullWidth;
+            _kind = kind;
+            _fullWidth = fullWidth;
         }
 
         protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics, int fullWidth)
         {
-            this.kind = kind;
-            this.fullWidth = fullWidth;
+            _kind = kind;
+            _fullWidth = fullWidth;
             if (diagnostics?.Length > 0)
             {
                 this.flags |= NodeFlags.ContainsDiagnostics;
-                diagnosticsTable.Add(this, diagnostics);
+                s_diagnosticsTable.Add(this, diagnostics);
             }
         }
 
         protected GreenNode(ushort kind, DiagnosticInfo[] diagnostics)
         {
-            this.kind = kind;
+            _kind = kind;
             if (diagnostics?.Length > 0)
             {
                 this.flags |= NodeFlags.ContainsDiagnostics;
-                diagnosticsTable.Add(this, diagnostics);
+                s_diagnosticsTable.Add(this, diagnostics);
             }
         }
 
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: "annotations", message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
-                annotationsTable.Add(this, annotations);
+                s_annotationsTable.Add(this, annotations);
             }
         }
 
@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var annotation in annotations)
                 {
-                    if (annotation == null) throw new ArgumentException(paramName: "annotations", message: "" /*CSharpResources.ElementsCannotBeNull*/);
+                    if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
-                annotationsTable.Add(this, annotations);
+                s_annotationsTable.Add(this, annotations);
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
             this.flags |= (node.flags & NodeFlags.InheritMask);
-            this.fullWidth += node.fullWidth;
+            _fullWidth += node._fullWidth;
         }
 
         public abstract string Language { get; }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
         #region Kind 
         public int RawKind
         {
-            get { return this.kind; }
+            get { return _kind; }
         }
 
         public bool IsList
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                int count = this.slotCount;
+                int count = _slotCount;
                 if (count == byte.MaxValue)
                 {
                     count = GetSlotCount();
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
 
             protected set
             {
-                this.slotCount = (byte)value;
+                _slotCount = (byte)value;
             }
         }
 
@@ -151,10 +151,43 @@ namespace Microsoft.CodeAnalysis
         // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
         {
-            return this.slotCount;
+            return _slotCount;
         }
 
         public abstract int GetSlotOffset(int index);
+
+        /// <summary>
+        /// Find the slot that contains the given offset.
+        /// </summary>
+        /// <param name="offset">The target offset. Must be between 0 and <see cref="FullWidth"/>.</param>
+        /// <returns>The slot index of the slot containing the given offset.</returns>
+        /// <remarks>
+        /// The base implementation is a linear search. This should be overridden
+        /// if a derived class can implement it more efficiently.
+        /// </remarks>
+        public virtual int FindSlotIndexContainingOffset(int offset)
+        {
+            Debug.Assert(0 <= offset && offset < FullWidth);
+
+            int i;
+            int accumulatedWidth = 0;
+            for (i = 0; ; i++)
+            {
+                Debug.Assert(i < SlotCount);
+                var child = GetSlot(i);
+                if (child != null)
+                {
+                    accumulatedWidth += child.FullWidth;
+                    if (offset < accumulatedWidth)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return i;
+        }
+
         #endregion
 
         #region Flags 
@@ -271,12 +304,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.fullWidth;
+                return _fullWidth;
             }
 
             protected set
             {
-                this.fullWidth = value;
+                _fullWidth = value;
             }
         }
 
@@ -284,20 +317,20 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.fullWidth - this.GetLeadingTriviaWidth() - this.GetTrailingTriviaWidth();
+                return _fullWidth - this.GetLeadingTriviaWidth() - this.GetTrailingTriviaWidth();
             }
         }
 
         public virtual int GetLeadingTriviaWidth()
         {
-            return this.FullWidth != 0? 
+            return this.FullWidth != 0 ?
                 this.GetFirstTerminal().GetLeadingTriviaWidth() :
                 0;
         }
 
         public virtual int GetTrailingTriviaWidth()
         {
-            return this.FullWidth != 0?
+            return this.FullWidth != 0 ?
                 this.GetLastTerminal().GetTrailingTriviaWidth() :
                 0;
         }
@@ -326,7 +359,7 @@ namespace Microsoft.CodeAnalysis
         internal GreenNode(ObjectReader reader)
         {
             var kindBits = reader.ReadUInt16();
-            this.kind = (ushort)(kindBits & ~ExtendedSerializationInfoMask);
+            _kind = (ushort)(kindBits & ~ExtendedSerializationInfoMask);
 
             if ((kindBits & ExtendedSerializationInfoMask) != 0)
             {
@@ -334,14 +367,14 @@ namespace Microsoft.CodeAnalysis
                 if (diagnostics != null && diagnostics.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsDiagnostics;
-                    diagnosticsTable.Add(this, diagnostics);
+                    s_diagnosticsTable.Add(this, diagnostics);
                 }
 
                 var annotations = (SyntaxAnnotation[])reader.ReadValue();
                 if (annotations != null && annotations.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsAnnotations;
-                    annotationsTable.Add(this, annotations);
+                    s_annotationsTable.Add(this, annotations);
                 }
             }
         }
@@ -353,7 +386,7 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual void WriteTo(ObjectWriter writer)
         {
-            var kindBits = (UInt16)this.kind;
+            var kindBits = (UInt16)_kind;
             var hasDiagnostics = this.GetDiagnostics().Length > 0;
             var hasAnnotations = this.GetAnnotations().Length > 0;
 
@@ -383,7 +416,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasAnnotations(string annotationKind)
         {
             var annotations = this.GetAnnotations();
-            if (annotations == NoAnnotations)
+            if (annotations == s_noAnnotations)
             {
                 return false;
             }
@@ -402,7 +435,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasAnnotations(IEnumerable<string> annotationKinds)
         {
             var annotations = this.GetAnnotations();
-            if (annotations == NoAnnotations)
+            if (annotations == s_noAnnotations)
             {
                 return false;
             }
@@ -421,7 +454,7 @@ namespace Microsoft.CodeAnalysis
         public bool HasAnnotation(SyntaxAnnotation annotation)
         {
             var annotations = this.GetAnnotations();
-            if (annotations == NoAnnotations)
+            if (annotations == s_noAnnotations)
             {
                 return false;
             }
@@ -441,14 +474,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrWhiteSpace(annotationKind))
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             var annotations = this.GetAnnotations();
 
-            if (annotations == NoAnnotations)
+            if (annotations == s_noAnnotations)
             {
-                return NoAnnotationsEnumerable;
+                return s_noAnnotationsEnumerable;
             }
 
             return GetAnnotationsSlow(annotations, annotationKind);
@@ -469,14 +502,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKinds == null)
             {
-                throw new ArgumentNullException("annotationKinds");
+                throw new ArgumentNullException(nameof(annotationKinds));
             }
 
             var annotations = this.GetAnnotations();
 
-            if (annotations == NoAnnotations)
+            if (annotations == s_noAnnotations)
             {
-                return NoAnnotationsEnumerable;
+                return s_noAnnotationsEnumerable;
             }
 
             return GetAnnotationsSlow(annotations, annotationKinds);
@@ -498,14 +531,14 @@ namespace Microsoft.CodeAnalysis
             if (this.ContainsAnnotations)
             {
                 SyntaxAnnotation[] annotations;
-                if (annotationsTable.TryGetValue(this, out annotations))
+                if (s_annotationsTable.TryGetValue(this, out annotations))
                 {
                     System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
                     return annotations;
                 }
             }
 
-            return NoAnnotations;
+            return s_noAnnotations;
         }
 
         internal abstract GreenNode SetAnnotations(SyntaxAnnotation[] annotations);
@@ -518,13 +551,13 @@ namespace Microsoft.CodeAnalysis
             if (this.ContainsDiagnostics)
             {
                 DiagnosticInfo[] diags;
-                if (diagnosticsTable.TryGetValue(this, out diags))
+                if (s_diagnosticsTable.TryGetValue(this, out diags))
                 {
                     return diags;
                 }
             }
 
-            return NoDiagnostics;
+            return s_noDiagnostics;
         }
 
         internal abstract GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics);
@@ -600,7 +633,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = firstChild;
-            } while (node?.slotCount > 0);
+            } while (node?._slotCount > 0);
 
             return node;
         }
@@ -622,7 +655,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = lastChild;
-            } while (node?.slotCount > 0);
+            } while (node?._slotCount > 0);
 
             return node;
         }
@@ -645,7 +678,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 node = nonmissingChild;
             }
-            while (node?.slotCount > 0);
+            while (node?._slotCount > 0);
 
             return node;
         }
@@ -690,7 +723,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (node1.fullWidth != node2.fullWidth)
+            if (node1._fullWidth != node2._fullWidth)
             {
                 return false;
             }
@@ -793,7 +826,6 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(1) == child2 &&
                 this.GetSlot(2) == child3;
         }
-
         #endregion //Caching
     }
 }

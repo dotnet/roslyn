@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis
 {
     internal struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable, IMessageSerializable
     {
-        private readonly string targetResourceId;
+        private readonly string _targetResourceId;
 
         internal CodeAnalysisResourcesLocalizableErrorArgument(string targetResourceId)
         {
             Debug.Assert(targetResourceId != null);
-            this.targetResourceId = targetResourceId;
+            _targetResourceId = targetResourceId;
         }
 
         public override string ToString()
@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis
 
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            if (targetResourceId != null)
+            if (_targetResourceId != null)
             {
-                return CodeAnalysisResources.ResourceManager.GetString(targetResourceId, formatProvider as System.Globalization.CultureInfo);
+                return CodeAnalysisResources.ResourceManager.GetString(_targetResourceId, formatProvider as System.Globalization.CultureInfo);
             }
 
             return string.Empty;

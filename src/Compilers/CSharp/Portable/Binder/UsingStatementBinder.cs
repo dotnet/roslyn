@@ -12,22 +12,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class UsingStatementBinder : LockOrUsingBinder
     {
-        private readonly UsingStatementSyntax syntax;
+        private readonly UsingStatementSyntax _syntax;
 
         public UsingStatementBinder(Binder enclosing, UsingStatementSyntax syntax)
             : base(enclosing)
         {
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (syntax.Declaration != null)
+            if (_syntax.Declaration != null)
             {
-                var locals = new ArrayBuilder<LocalSymbol>(syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in syntax.Declaration.Variables)
+                var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
-                    locals.Add(MakeLocal(syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
                 }
 
                 return locals.ToImmutable();
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return syntax.Expression;
+                return _syntax.Expression;
             }
         }
 
         internal override BoundStatement BindUsingStatementParts(DiagnosticBag diagnostics, Binder originalBinder)
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
-            VariableDeclarationSyntax declarationSyntax = syntax.Declaration;
+            VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
@@ -109,10 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(syntax.Statement, diagnostics);
+            BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
             return new BoundUsingStatement(
-                syntax,
+                _syntax,
                 this.Locals,
                 declarationsOpt,
                 expressionOpt,

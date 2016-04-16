@@ -14,16 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     //This used to implement IEnumerable and have more functionality, but it was not tested or used.
     internal struct SyntaxDiagnosticInfoList
     {
-        private readonly GreenNode node;
+        private readonly GreenNode _node;
 
         internal SyntaxDiagnosticInfoList(GreenNode node)
         {
-            this.node = node;
+            _node = node;
         }
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(node);
+            return new Enumerator(_node);
         }
 
         internal bool Any(Func<DiagnosticInfo, bool> predicate)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             private struct NodeIteration
             {
-                internal GreenNode Node;
+                internal readonly GreenNode Node;
                 internal int DiagnosticIndex;
                 internal int SlotIndex;
 
@@ -54,38 +54,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            private NodeIteration[] stack;
-            private int count;
-            private DiagnosticInfo current;
+            private NodeIteration[] _stack;
+            private int _count;
+            private DiagnosticInfo _current;
 
             internal Enumerator(GreenNode node)
             {
-                this.current = null;
-                this.stack = null;
-                this.count = 0;
+                _current = null;
+                _stack = null;
+                _count = 0;
                 if (node != null && node.ContainsDiagnostics)
                 {
-                    this.stack = new NodeIteration[8];
+                    _stack = new NodeIteration[8];
                     this.PushNodeOrToken(node);
                 }
             }
 
             public bool MoveNext()
             {
-                while (count > 0)
+                while (_count > 0)
                 {
-                    var diagIndex = this.stack[count - 1].DiagnosticIndex;
-                    var node = this.stack[count - 1].Node;
+                    var diagIndex = _stack[_count - 1].DiagnosticIndex;
+                    var node = _stack[_count - 1].Node;
                     var diags = node.GetDiagnostics();
                     if (diagIndex < diags.Length - 1)
                     {
                         diagIndex++;
-                        current = diags[diagIndex];
-                        stack[count - 1].DiagnosticIndex = diagIndex;
+                        _current = diags[diagIndex];
+                        _stack[_count - 1].DiagnosticIndex = diagIndex;
                         return true;
                     }
 
-                    var slotIndex = stack[count - 1].SlotIndex;
+                    var slotIndex = _stack[_count - 1].SlotIndex;
                 tryAgain:
                     if (slotIndex < node.SlotCount - 1)
                     {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             goto tryAgain;
                         }
 
-                        stack[count - 1].SlotIndex = slotIndex;
+                        _stack[_count - 1].SlotIndex = slotIndex;
                         this.PushNodeOrToken(child);
                     }
                     else
@@ -139,25 +139,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void Push(GreenNode node)
             {
-                if (count >= this.stack.Length)
+                if (_count >= _stack.Length)
                 {
-                    var tmp = new NodeIteration[this.stack.Length * 2];
-                    Array.Copy(this.stack, tmp, this.stack.Length);
-                    this.stack = tmp;
+                    var tmp = new NodeIteration[_stack.Length * 2];
+                    Array.Copy(_stack, tmp, _stack.Length);
+                    _stack = tmp;
                 }
 
-                this.stack[count] = new NodeIteration(node);
-                count++;
+                _stack[_count] = new NodeIteration(node);
+                _count++;
             }
 
             private void Pop()
             {
-                count--;
+                _count--;
             }
 
             public DiagnosticInfo Current
             {
-                get { return this.current; }
+                get { return _current; }
             }
         }
     }

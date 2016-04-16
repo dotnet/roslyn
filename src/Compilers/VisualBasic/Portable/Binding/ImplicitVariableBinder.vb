@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
         ' All declarations for a ImplicitVariableBinder should occur on the same thread.
-        ' Is is OK for lookup to occur on a different thread, if the binder has
+        ' It is OK for lookup to occur on a different thread, if the binder has
         ' been frozen. -1 when not yet initialized.
         Private _threadIdForDeclaration As Integer = -1
 #End If
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Disallow additonal local variable declaration (make binder frozen)
+        ''' Disallow additional local variable declaration (make binder frozen)
         ''' and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>

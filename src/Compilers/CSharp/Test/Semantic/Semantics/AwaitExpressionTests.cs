@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AwaitExpressionTests : CompilingTestBase
     {
         [Fact]
-        [WorkItem(711413, "DevDiv")]
+        [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
         public void TestAwaitInfo()
         {
             var text =
@@ -27,6 +27,24 @@ class C
     async void Foo(Task<int> t)
     {
         int c = 1 + await t;
+    }
+}";
+            var info = GetAwaitExpressionInfo(text);
+            Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
+        public void TestAwaitInfo2()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+public class C {
+    public C(Task<int> t) {
+        Func<Task> f = async() => await t;
     }
 }";
             var info = GetAwaitExpressionInfo(text);
@@ -46,7 +64,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(748533, "DevDiv")]
+        [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
         public void Bug748533()
         {
             var text =
@@ -105,7 +123,7 @@ class Driver
         }
 
         [Fact]
-        [WorkItem(576316, "DevDiv")]
+        [WorkItem(576316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576316")]
         public void Bug576316()
         {
             var text =

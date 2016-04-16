@@ -1,72 +1,79 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
-with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
-that are used by Visual Studio.
+[//]: # (Begin current test results)
 
-### Try new language and IDE features
+### Windows - Unit Tests
+||Debug x86|Debug x64|Release x86|Release x64|Determinism|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_determinism/)|
+|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_determinism/)|
+|**hotfix**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_dbg_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit64/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_win_rel_unit64/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_determinism/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_determinism/)|
 
-Just want to provide feedback on new [language features](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14) 
-and [IDE features](http://blogs.msdn.com/b/visualstudio/archive/2014/11/12/the-c-and-visual-basic-code-focused-ide-experience.aspx)? 
+### Linux/Mac - Unit Tests
+||Linux|Mac OSX|
+|:--:|:--:|:--:|
+|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/)|
+|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/)|
+|**hotfix**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/)|
 
-* Try out [Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
-which has the latest features built-in.
+[//]: # (End current test results)
 
-    Want to keep your box clean? You can use 
-[prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) 
-with VS 2015 Preview already installed.
+[![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-* You can also try April's [End User Preview](http://go.microsoft.com/fwlink/?LinkId=394641), 
-which installs on top of Visual Studio 2013. *(Note: The VS 2013 preview is quite out of date, and is no longer being updated.)*
 
-### Build tools that understand C# and Visual Basic
+Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
-Get started building diagnostics, code fixes, refactorings, and other code-aware tools!
+### Download C# and Visual Basic
 
-1. Set up a box with Visual Studio 2015 Preview. Either 
-[install  Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
-or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
-2. Install the [Visual Studio 2015 Preview SDK](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs). 
-You'll need to do this even if you're using the Azure VM image. 
-3. Install the [SDK Templates VSIX package](http://visualstudiogallery.msdn.microsoft.com/849f3ab1-05cf-4682-b4af-ef995e2aa1a5) 
-to get the Visual Studio project templates. 
-4. Install the [Syntax Visualizer VSIX package](http://visualstudiogallery.msdn.microsoft.com/70e184da-9b3a-402f-b210-d62a898e2887) 
-to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
-to help explore the syntax trees you'll be analyzing.
+Want to start developing in C# and Visual Basic? Download [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
+which has the latest features built-in. There are also [prebuilt Azure VM images](https://azure.microsoft.com/en-us/marketplace/virtual-machines/all/?term=Visual+Studio+2015) available with VS 2015 already installed.
 
-Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
-From the NuGet package manager console:
+To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
 
-    Install-Package Microsoft.CodeAnalysis -Pre
+```
+nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
+nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
+```
+
+To get the latest "preview" drop, published about once per month, add the `-pre` switch to the nuget commands.
 
 ### Source code
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://source.roslyn.codeplex.com/), powered by Roslyn 
+* [Enhanced source view](http://source.roslyn.io/), powered by Roslyn 
 * [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started
 
+* Tutorial articles by Alex Turner in MSDN Magazine
+  - [Use Roslyn to Write a Live Code Analyzer for Your API](https://msdn.microsoft.com/en-us/magazine/dn879356)
+  - [Adding a Code Fix to your Roslyn Analyzer](https://msdn.microsoft.com/en-us/magazine/dn904670.aspx)
 * [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
+* [API Changes between CTP 6 and RC](https://github.com/dotnet/roslyn/wiki/VS-2015-RC-API-Changes)
 * [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
+* [Documentation](https://github.com/dotnet/roslyn/tree/master/docs)
+* [Analyzer documentation](https://github.com/dotnet/roslyn/tree/master/docs/analyzers)
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
+* [Syntax Quoter Tool](http://roslynquoter.azurewebsites.net)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
-* [Language Design Notes](https://roslyn.codeplex.com/documentation?referringTitle=Home&ANCHOR#langdesignlinks)
+* [Language Design Notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
+* Also take a look at our [Wiki](https://github.com/dotnet/roslyn/wiki) for more information on how to contribute, what the labels on issue mean, etc.
 
 ### Contribute!
 
 Some of the best ways to contribute are to try things out, file bugs, and join in design conversations. 
 
-* [Questions, Comments, and Feedback](https://roslyn.codeplex.com/wikipage?title=Questions%2c%20Comments%2c%20and%20Feedback&referringTitle=Home)
-
-Looking for something to work on? The list of [up-for-grabs issues](https://roslyn.codeplex.com/workitem/list/advanced?keyword=grabs&status=Open%2b%28not%2bclosed%29&type=All&priority=All&release=All&assignedTo=All&component=All&reasonClosed=All&sortField=LastUpdatedDate&sortDirection=Descending&page=0) is a great place to start.
-
-* [How to Contribute](https://roslyn.codeplex.com/wikipage?title=How%20to%20Contribute&referringTitle=Home) 
+* [How to Contribute](https://github.com/dotnet/roslyn/wiki/Contributing-Code)
 * [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
+
+Looking for something to work on? The list of [up for grabs issues](https://github.com/dotnet/roslyn/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+Grabs%22) is a great place to start.
+
+This project has adopted a code of conduct adapted from the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community. This code of conduct has been [adopted by many other projects](http://contributor-covenant.org/adopters/). For more information see the [Code of conduct](http://www.dotnetfoundation.org/code-of-conduct).
+
 
 ### .NET Foundation
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
-projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/).
+projects like [the class libraries for .NET Core](https://github.com/dotnet/corefx/). 

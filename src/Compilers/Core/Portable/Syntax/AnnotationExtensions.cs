@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new node identical to this node with the annotions of the specified kind removed.
+        /// Creates a new node identical to this node with the annotations of the specified kind removed.
         /// </summary>
         /// <param name="node">Original node.</param>
         /// <param name="annotationKind">The kind of annotation to remove.</param>

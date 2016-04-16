@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Constructor()
         {
             var m = new MetadataReferenceProperties();
-            Assert.True(m.Aliases.IsDefault);
+            Assert.True(m.Aliases.IsEmpty);
             Assert.False(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(MetadataImageKind.Assembly, m.Kind);
 
             m = new MetadataReferenceProperties(MetadataImageKind.Module);
-            Assert.True(m.Aliases.IsDefault);
+            Assert.True(m.Aliases.IsEmpty);
             Assert.False(m.EmbedInteropTypes);
             Assert.Equal(MetadataImageKind.Module, m.Kind);
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void Constructor_Errors()
-        { 
+        {
             Assert.Throws<ArgumentOutOfRangeException>(() => new MetadataReferenceProperties((MetadataImageKind)byte.MaxValue));
             Assert.Throws<ArgumentException>(() => new MetadataReferenceProperties(MetadataImageKind.Module, ImmutableArray.Create("blah")));
             Assert.Throws<ArgumentException>(() => new MetadataReferenceProperties(MetadataImageKind.Module, embedInteropTypes: true));
@@ -45,18 +45,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => MetadataReferenceProperties.Module.WithAliases(new[] { "blah" }));
             Assert.Throws<ArgumentException>(() => MetadataReferenceProperties.Module.WithEmbedInteropTypes(true));
         }
-        
+
         [Fact]
         public void WithXxx()
         {
-            var p = new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: false);
+            var a = new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: true);
 
-            Assert.Equal(p.WithAliases(null), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray<string>.Empty, embedInteropTypes: false));
-            Assert.Equal(p.WithAliases(default(ImmutableArray<string>)), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray<string>.Empty, embedInteropTypes: false));
-            Assert.Equal(p.WithAliases(ImmutableArray<string>.Empty), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: false));
-            Assert.Equal(p.WithAliases(new string[0]), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: false));
-            Assert.Equal(p.WithAliases(new[] { "foo", "aaa" }), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("foo", "aaa"), embedInteropTypes: false));
-            Assert.Equal(p.WithEmbedInteropTypes(true), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(null), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray<string>.Empty, embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(default(ImmutableArray<string>)), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray<string>.Empty, embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(ImmutableArray<string>.Empty), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(new string[0]), new MetadataReferenceProperties(MetadataImageKind.Assembly, default(ImmutableArray<string>), embedInteropTypes: true));
+            Assert.Equal(a.WithAliases(new[] { "foo", "aaa" }), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("foo", "aaa"), embedInteropTypes: true));
+            Assert.Equal(a.WithEmbedInteropTypes(false), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: false));
+            Assert.Equal(a.WithRecursiveAliases(true), new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a"), embedInteropTypes: true, hasRecursiveAliases: true));
 
             var m = new MetadataReferenceProperties(MetadataImageKind.Module);
             Assert.Equal(m.WithAliases(default(ImmutableArray<string>)), new MetadataReferenceProperties(MetadataImageKind.Module, default(ImmutableArray<string>), embedInteropTypes: false));

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class MetadataMemberTests
         Inherits BasicTestBase
 
-        Private VTableGapClassIL As String = <![CDATA[
+        Private ReadOnly _VTableGapClassIL As String = <![CDATA[
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Class
 ]]>.Value
 
-        Private VTableGapInterfaceIL As String = <![CDATA[
+        Private ReadOnly _VTableGapInterfaceIL As String = <![CDATA[
 .class interface public abstract auto ansi Interface
 {
   .method public hidebysig newslot specialname rtspecialname abstract virtual 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 } // end of class Interface
 ]]>.Value
 
-        <WorkItem(527152, "DevDiv")>
+        <WorkItem(527152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527152")>
         <Fact>
         Public Sub MetadataMethodSymbolCtor01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -181,7 +181,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537334, "DevDiv")>
+        <WorkItem(537334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537334")>
         <Fact>
         Public Sub MetadataMethodSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -236,8 +236,8 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(527150, "DevDiv")>
-        <WorkItem(537337, "DevDiv")>
+        <WorkItem(527150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527150")>
+        <WorkItem(537337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537337")>
         <Fact>
         Public Sub MetadataParameterSymbol01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -353,7 +353,7 @@ End Class
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537335, "DevDiv")>
+        <WorkItem(537335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537335")>
         <Fact>
         Public Sub MetadataParameterSymbolGen02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -738,17 +738,17 @@ End Class
         End Sub
 
         ' TODO: Update this test if we decide to include gaps in the symbol table for NoPIA (DevDiv #17472).
-        <Fact, WorkItem(546951, "DevDiv")>
+        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub VTableGapsNotInSymbolTable()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
                          </file>
                      </compilation>
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapClassIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapClassIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics()
 
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Class")
-            AssertEx.None(type.GetMembersUnordered().AsEnumerable(), Function(symbol) symbol.Name.StartsWith("_VtblGap"))
+            AssertEx.None(type.GetMembersUnordered().AsEnumerable(), Function(symbol) symbol.Name.StartsWith("_VtblGap", StringComparison.Ordinal))
 
             ' Dropped entirely.
             Assert.Equal(0, type.GetMembers("_VtblGap1_1").Length)
@@ -767,7 +767,7 @@ End Class
             Assert.Null(propWithoutSetter.SetMethod)
         End Sub
 
-        <Fact, WorkItem(546951, "DevDiv")>
+        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub CallVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -793,7 +793,7 @@ End Module
                      </compilation>
 
             ' BREAK: Dev11 produces no diagnostics, but the emitted code does not peverify.
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapClassIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapClassIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_NameNotMember2, "c._VtblGap1_1").WithArguments("_VtblGap1_1", "[Class]"),
                 Diagnostic(ERRID.ERR_NameNotMember2, "c.BothAccessorsAreGaps").WithArguments("BothAccessorsAreGaps", "[Class]"),
@@ -802,7 +802,7 @@ End Module
                 Diagnostic(ERRID.ERR_NoSetProperty1, "c.SetterIsGap = x").WithArguments("SetterIsGap"))
         End Sub
 
-        <Fact, WorkItem(546951, "DevDiv")>
+        <Fact, WorkItem(546951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546951")>
         Public Sub ImplementVTableGap()
             Dim vb = <compilation name="MT">
                          <file name="a.vb">
@@ -846,7 +846,7 @@ End Class
 
             ' BREAK: Dev11 produces errors for the vtable gaps that Empty does not implement and not for the 
             ' vtable gaps that Full does implement.
-            Dim comp = CreateCompilationWithCustomILSource(vb, VTableGapInterfaceIL, includeVbRuntime:=True)
+            Dim comp = CreateCompilationWithCustomILSource(vb, _VTableGapInterfaceIL, includeVbRuntime:=True)
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_UnimplementedMember3, "[Interface]").WithArguments("Class", "Empty", "WriteOnly Property GetterIsGap As Integer", "[Interface]"),
                 Diagnostic(ERRID.ERR_UnimplementedMember3, "[Interface]").WithArguments("Class", "Empty", "ReadOnly Property SetterIsGap As Integer", "[Interface]"),
@@ -854,7 +854,7 @@ End Class
                 Diagnostic(ERRID.ERR_IdentNotMemberOfInterface4, "[Interface].BothAccessorsAreGaps").WithArguments("BothAccessorsAreGaps", "BothAccessorsAreGaps", "property", "[Interface]"))
         End Sub
 
-        <Fact, WorkItem(1094411, "DevDiv")>
+        <Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
         Public Sub Bug1094411_01()
             Dim source1 =
 <compilation>
@@ -890,7 +890,7 @@ End Class
             Next
         End Sub
 
-        <Fact, WorkItem(1094411, "DevDiv")>
+        <Fact, WorkItem(1094411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094411")>
         Public Sub Bug1094411_02()
             Dim source1 =
 <compilation>

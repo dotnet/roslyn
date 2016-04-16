@@ -15,25 +15,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class RangeVariableSymbol : Symbol, IRangeVariableSymbol
     {
-        private readonly string name;
-        private readonly ImmutableArray<Location> locations;
-        private readonly Symbol containingSymbol;
+        private readonly string _name;
+        private readonly ImmutableArray<Location> _locations;
+        private readonly Symbol _containingSymbol;
 
         internal RangeVariableSymbol(string Name, Symbol containingSymbol, Location location, bool isTransparent = false)
         {
-            this.name = Name;
-            this.containingSymbol = containingSymbol;
-            this.locations = ImmutableArray.Create<Location>(location);
+            _name = Name;
+            _containingSymbol = containingSymbol;
+            _locations = ImmutableArray.Create<Location>(location);
             this.IsTransparent = isTransparent;
         }
 
-        internal bool IsTransparent { get; private set; }
+        internal bool IsTransparent { get; }
 
         public override string Name
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return locations;
+                return _locations;
             }
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                SyntaxToken token = (SyntaxToken)locations[0].SourceTree.GetRoot().FindToken(locations[0].SourceSpan.Start);
+                SyntaxToken token = (SyntaxToken)_locations[0].SourceTree.GetRoot().FindToken(_locations[0].SourceSpan.Start);
                 Debug.Assert(token.Kind() == SyntaxKind.IdentifierToken);
                 CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
                 Debug.Assert(node is QueryClauseSyntax || node is QueryContinuationSyntax || node is JoinIntoClauseSyntax);
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingSymbol;
+                return _containingSymbol;
             }
         }
 
@@ -172,13 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var symbol = obj as RangeVariableSymbol;
             return (object)symbol != null
-                && symbol.locations[0].Equals(this.locations[0])
-                && Equals(containingSymbol, symbol.ContainingSymbol);
+                && symbol._locations[0].Equals(_locations[0])
+                && Equals(_containingSymbol, symbol.ContainingSymbol);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(locations[0].GetHashCode(), containingSymbol.GetHashCode());
+            return Hash.Combine(_locations[0].GetHashCode(), _containingSymbol.GetHashCode());
         }
     }
 }

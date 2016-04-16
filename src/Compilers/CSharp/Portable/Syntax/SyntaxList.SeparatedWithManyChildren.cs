@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         internal class SeparatedWithManyChildren : SyntaxList
         {
-            private readonly ArrayElement<SyntaxNode>[] children;
+            private readonly ArrayElement<SyntaxNode>[] _children;
 
             internal SeparatedWithManyChildren(Syntax.InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
                 : base(green, parent, position)
             {
-                this.children = new ArrayElement<SyntaxNode>[(green.SlotCount + 1) >> 1];
+                _children = new ArrayElement<SyntaxNode>[(green.SlotCount + 1) >> 1];
             }
 
             internal override SyntaxNode GetNodeSlot(int i)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return null;
                 }
 
-                return this.GetRedElement(ref this.children[i >> 1].Value, i);
+                return this.GetRedElement(ref _children[i >> 1].Value, i);
             }
 
             internal override SyntaxNode GetCachedSlot(int i)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return null;
                 }
 
-                return this.children[i >> 1].Value;
+                return _children[i >> 1].Value;
             }
 
             public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        private readonly int currentRecursionDepth;
+        private readonly int _currentRecursionDepth;
 
         protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth)
         {
             Debug.Assert((object)corLibrary != null);
             this.corLibrary = corLibrary;
-            this.currentRecursionDepth = currentRecursionDepth;
+            _currentRecursionDepth = currentRecursionDepth;
         }
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
@@ -281,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Conversion.PointerToPointer;
 
                     default:
-                        Debug.Assert(false, "Unexpected conversion kind returned by ClassifyStandardImplicitConversion");
-                        return Conversion.NoConversion;
+                        throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                 }
             }
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitDynamic;
             }
 
-            return Conversion.NoConversion; 
+            return Conversion.NoConversion;
         }
 
         private Conversion GetExplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, ignoreCustomModifiers: true, ignoreDynamic: true);
+            return type1.Equals(type2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -587,40 +587,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Notice that there is no implicit numeric conversion from a type to itself. That's an
         // identity conversion.
-        private static readonly bool[,] implicitNumericConversions = 
+        private static readonly bool[,] s_implicitNumericConversions =
         {
-// to     sb  b  s  us i ui  l ul  c  f  d  m
-// from
-/* sb */ { F, F, T, F, T, F, T, F, F, T, T, T },
-/*  b */ { F, F, T, T, T, T, T, T, F, T, T, T },
-/*  s */ { F, F, F, F, T, F, T, F, F, T, T, T },
-/* us */ { F, F, F, F, T, T, T, T, F, T, T, T },
-/*  i */ { F, F, F, F, F, F, T, F, F, T, T, T },
-/* ui */ { F, F, F, F, F, F, T, T, F, T, T, T },
-/*  l */ { F, F, F, F, F, F, F, F, F, T, T, T },
-/* ul */ { F, F, F, F, F, F, F, F, F, T, T, T },
-/*  c */ { F, F, F, T, T, T, T, T, F, T, T, T },
-/*  f */ { F, F, F, F, F, F, F, F, F, F, T, F },
-/*  d */ { F, F, F, F, F, F, F, F, F, F, F, F },
-/*  m */ { F, F, F, F, F, F, F, F, F, F, F, F }
+            // to     sb  b  s  us i ui  l ul  c  f  d  m
+            // from
+            /* sb */
+         { F, F, T, F, T, F, T, F, F, T, T, T },
+            /*  b */
+         { F, F, T, T, T, T, T, T, F, T, T, T },
+            /*  s */
+         { F, F, F, F, T, F, T, F, F, T, T, T },
+            /* us */
+         { F, F, F, F, T, T, T, T, F, T, T, T },
+            /*  i */
+         { F, F, F, F, F, F, T, F, F, T, T, T },
+            /* ui */
+         { F, F, F, F, F, F, T, T, F, T, T, T },
+            /*  l */
+         { F, F, F, F, F, F, F, F, F, T, T, T },
+            /* ul */
+         { F, F, F, F, F, F, F, F, F, T, T, T },
+            /*  c */
+         { F, F, F, T, T, T, T, T, F, T, T, T },
+            /*  f */
+         { F, F, F, F, F, F, F, F, F, F, T, F },
+            /*  d */
+         { F, F, F, F, F, F, F, F, F, F, F, F },
+            /*  m */
+         { F, F, F, F, F, F, F, F, F, F, F, F }
         };
 
-        private static readonly bool[,] explicitNumericConversions = 
+        private static readonly bool[,] s_explicitNumericConversions =
         {
-// to     sb  b  s us  i ui  l ul  c  f  d  m
-// from
-/* sb */ { F, T, F, T, F, T, F, T, T, F, F, F },
-/*  b */ { T, F, F, F, F, F, F, F, T, F, F, F },
-/*  s */ { T, T, F, T, F, T, F, T, T, F, F, F },
-/* us */ { T, T, T, F, F, F, F, F, T, F, F, F },
-/*  i */ { T, T, T, T, F, T, F, T, T, F, F, F },
-/* ui */ { T, T, T, T, T, F, F, F, T, F, F, F },
-/*  l */ { T, T, T, T, T, T, F, T, T, F, F, F },
-/* ul */ { T, T, T, T, T, T, T, F, T, F, F, F },
-/*  c */ { T, T, T, F, F, F, F, F, F, F, F, F },
-/*  f */ { T, T, T, T, T, T, T, T, T, F, F, T },
-/*  d */ { T, T, T, T, T, T, T, T, T, T, F, T },
-/*  m */ { T, T, T, T, T, T, T, T, T, T, T, F }
+            // to     sb  b  s us  i ui  l ul  c  f  d  m
+            // from
+            /* sb */
+         { F, T, F, T, F, T, F, T, T, F, F, F },
+            /*  b */
+         { T, F, F, F, F, F, F, F, T, F, F, F },
+            /*  s */
+         { T, T, F, T, F, T, F, T, T, F, F, F },
+            /* us */
+         { T, T, T, F, F, F, F, F, T, F, F, F },
+            /*  i */
+         { T, T, T, T, F, T, F, T, T, F, F, F },
+            /* ui */
+         { T, T, T, T, T, F, F, F, T, F, F, F },
+            /*  l */
+         { T, T, T, T, T, T, F, T, T, F, F, F },
+            /* ul */
+         { T, T, T, T, T, T, T, F, T, F, F, F },
+            /*  c */
+         { T, T, T, F, F, F, F, F, F, F, F, F },
+            /*  f */
+         { T, T, T, T, T, T, T, T, T, F, F, T },
+            /*  d */
+         { T, T, T, T, T, T, T, T, T, T, F, T },
+            /*  m */
+         { T, T, T, T, T, T, T, T, T, T, T, F }
         };
 
         private static int GetNumericTypeIndex(SpecialType specialType)
@@ -660,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return implicitNumericConversions[sourceIndex, destinationIndex];
+            return s_implicitNumericConversions[sourceIndex, destinationIndex];
         }
 
         private static bool HasExplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
@@ -682,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return explicitNumericConversions[sourceIndex, destinationIndex];
+            return s_explicitNumericConversions[sourceIndex, destinationIndex];
         }
 
         public static bool IsConstantNumericZero(ConstantValue value)
@@ -852,8 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: nullable forms of those types. For each of the predefined implicit identity and numeric conversions
             // SPEC: that convert from a non-nullable value type S to a non-nullable value type T, the following implicit 
             // SPEC: nullable conversions exist:
-            // SPEC: â€¢ An implicit conversion from S? to T?.
-            // SPEC: â€¢ An implicit conversion from S to T?.
+            // SPEC: * An implicit conversion from S? to T?.
+            // SPEC: * An implicit conversion from S to T?.
             if (!destination.IsNullableType())
             {
                 return false;
@@ -944,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * Both SE and TE are reference types.
             // * An implicit reference conversion exists from SE to TE.
             return
-                (s.Rank == d.Rank) &&
+                s.HasSameShapeAs(d) &&
                 HasImplicitReferenceConversion(s.ElementType, d.ElementType, ref useSiteDiagnostics);
         }
 
@@ -985,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (source.Rank != 1)
+            if (!source.IsSZArray)
             {
                 return false;
             }
@@ -1418,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A more rigorous solution would mimic the CLI approach, which uses
             // a combination of requiring finite instantiation closures (see section 9.2 of
             // the CLI spec) and records previous conversion steps to check for cycles.
-            if (this.currentRecursionDepth >= MaximumRecursionDepth)
+            if (_currentRecursionDepth >= MaximumRecursionDepth)
             {
                 // NOTE: The spec doesn't really address what happens if there's an overflow
                 // in our conversion check.  It's sort of implied that the conversion "proof"
@@ -1434,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(this.currentRecursionDepth + 1).
+            return this.CreateInstance(_currentRecursionDepth + 1).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 
@@ -1593,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // System.ValueType, and to any interface type variance-compatible with one implemented
             // by the non-nullable value type.  
 
-            // Futhermore, an enum type can be converted to the type System.Enum.
+            // Furthermore, an enum type can be converted to the type System.Enum.
 
             // We set the base class of the structs to System.ValueType, System.Enum, etc, so we can
             // just check here.
@@ -1936,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // considered a reference type implicitly in the case of "where TE : class, SE" even
                 // though SE.IsReferenceType may be false. Again, HasExplicitReferenceConversion
                 // already handles these cases.
-                return sourceArray.Rank == destinationArray.Rank &&
+                return sourceArray.HasSameShapeAs(destinationArray) &&
                     HasExplicitReferenceConversion(sourceArray.ElementType, destinationArray.ElementType, ref useSiteDiagnostics);
             }
 
@@ -1963,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The framework now also allows arrays to be converted to IReadOnlyList<T> and IReadOnlyCollection<T>; we 
             // honor that as well.
 
-            if ((object)sourceArray != null && sourceArray.Rank == 1 && destination.IsPossibleArrayGenericInterface())
+            if ((object)sourceArray != null && sourceArray.IsSZArray && destination.IsPossibleArrayGenericInterface())
             {
                 if (HasExplicitReferenceConversion(sourceArray.ElementType, ((NamedTypeSymbol)destination).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics), ref useSiteDiagnostics))
                 {
@@ -1975,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // provided that there is an explicit identity or reference conversion from S to T.
 
             // Similarly, we honor IReadOnlyList<S> and IReadOnlyCollection<S> in the same way.
-            if ((object)destinationArray != null && destinationArray.Rank == 1)
+            if ((object)destinationArray != null && destinationArray.IsSZArray)
             {
                 var specialDefinition = ((TypeSymbol)source.OriginalDefinition).SpecialType;
 
@@ -2092,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // The spec should state that any pointer type is convertible to
             // sbyte, byte, ... etc, or any corresponding nullable type.
-            
+
             switch (destination.StrippedType().SpecialType)
             {
                 case SpecialType.System_SByte:

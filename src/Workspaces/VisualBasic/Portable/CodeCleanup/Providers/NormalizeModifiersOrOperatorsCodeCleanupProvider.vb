@@ -22,16 +22,16 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
         Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = Cleanup(root, spans, document.Project.Solution.Workspace, cancellationToken)
+            Dim newRoot = Await CleanupAsync(root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
+        Public Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter = New Rewriter(spans, cancellationToken)
-            Dim newRoot = Rewriter.Visit(root)
+            Dim newRoot = rewriter.Visit(root)
 
-            Return If(root Is newRoot, root, newRoot)
+            Return Task.FromResult(If(root Is newRoot, root, newRoot))
         End Function
 
         Private Class Rewriter
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' list of modifier syntax kinds in order
             ' this order will be used when the rewriter re-order modifiers
             ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
-            Private Shared ReadOnly ModifierKindsInOrder As SyntaxKind() = DirectCast(New UShort() {
+            Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() = DirectCast(New UShort() {
                 SyntaxKind.PartialKeyword, SyntaxKind.DefaultKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword,
                 SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword, SyntaxKind.NotOverridableKeyword, SyntaxKind.OverridableKeyword,
                 SyntaxKind.MustOverrideKeyword, SyntaxKind.OverloadsKeyword, SyntaxKind.OverridesKeyword, SyntaxKind.MustInheritKeyword,
@@ -50,11 +50,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword},
                 SyntaxKind())
 
-            Private Shared ReadOnly RemoveDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
+            Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
                 SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword, SyntaxKind.ReadOnlyKeyword}
 
-            Private Shared ReadOnly NormalizeOperatorsSet As Dictionary(Of SyntaxKind, List(Of SyntaxKind)) = New Dictionary(Of SyntaxKind, List(Of SyntaxKind))(SyntaxFacts.EqualityComparer) From {
+            Private Shared ReadOnly s_normalizeOperatorsSet As Dictionary(Of SyntaxKind, List(Of SyntaxKind)) = New Dictionary(Of SyntaxKind, List(Of SyntaxKind))(SyntaxFacts.EqualityComparer) From {
                     {SyntaxKind.LessThanGreaterThanToken, New List(Of SyntaxKind) From {SyntaxKind.GreaterThanToken, SyntaxKind.LessThanToken}},
                     {SyntaxKind.GreaterThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.GreaterThanToken}},
                     {SyntaxKind.LessThanEqualsToken, New List(Of SyntaxKind) From {SyntaxKind.EqualsToken, SyntaxKind.LessThanToken}}
@@ -232,9 +232,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' and the operator must be one of kinds that we are interested in
                 Dim [operator] = NormalizeOperator(
                                     binaryOperator.OperatorToken,
-                                    Function(t) NormalizeOperatorsSet.ContainsKey(t.Kind),
+                                    Function(t) s_normalizeOperatorsSet.ContainsKey(t.Kind),
                                     Function(t) t.LeadingTrivia,
-                                    Function(t) NormalizeOperatorsSet(t.Kind),
+                                    Function(t) s_normalizeOperatorsSet(t.Kind),
                                     Function(t, i)
                                         Return t.CopyAnnotationsTo(
                                             SyntaxFactory.Token(
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return newToken
                 End If
 
-                If token.IsMissing OrElse Not SyntaxFacts.IsOperator(token.Kind) Then
+                If token.IsMissing OrElse Not (SyntaxFacts.IsOperator(token.Kind) OrElse token.IsKind(SyntaxKind.ColonEqualsToken)) Then
                     Return newToken
                 End If
 
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim result = New List(Of SyntaxToken)(modifiers.Count)
 
                 Dim modifierList = modifiers.ToList()
-                For Each k In ModifierKindsInOrder
+                For Each k In s_modifierKindsInOrder
                     ' we found all modifiers
                     If currentModifierIndex = modifierList.Count Then
                         Exit For
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newModifiers = modifiersGetter(newNode)
 
                 ' check whether we need to remove "Dim" keyword or not
-                If newModifiers.Any(Function(m) RemoveDimKeywordSet.Contains(m.Kind)) Then
+                If newModifiers.Any(Function(m) s_removeDimKeywordSet.Contains(m.Kind)) Then
                     newNode = RemoveDimKeyword(newNode, modifiersGetter)
                 End If
 
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
                 Dim startIndex = 0
                 For Each modifier In modifiers
-                    Dim newIndex = ModifierKindsInOrder.IndexOf(modifier.Kind, startIndex)
+                    Dim newIndex = s_modifierKindsInOrder.IndexOf(modifier.Kind, startIndex)
                     If newIndex = 0 AndAlso startIndex = 0 Then
                         ' very first search with matching the very first modifier in the modifier orders
                         startIndex = newIndex + 1

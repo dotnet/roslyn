@@ -16,23 +16,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     {
         protected abstract class AbstractExpressionRewriter : CSharpSyntaxRewriter, IExpressionRewriter
         {
-            private readonly OptionSet optionSet;
-            private readonly CancellationToken cancellationToken;
-            private readonly HashSet<SyntaxNode> processedParentNodes;
-            private SemanticModel semanticModel;
+            private readonly OptionSet _optionSet;
+            private readonly CancellationToken _cancellationToken;
+            private readonly HashSet<SyntaxNode> _processedParentNodes;
+            private SemanticModel _semanticModel;
 
             protected AbstractExpressionRewriter(OptionSet optionSet, CancellationToken cancellationToken)
             {
-                this.optionSet = optionSet;
-                this.cancellationToken = cancellationToken;
-                this.processedParentNodes = new HashSet<SyntaxNode>();
+                _optionSet = optionSet;
+                _cancellationToken = cancellationToken;
+                _processedParentNodes = new HashSet<SyntaxNode>();
             }
 
             public bool HasMoreWork { get; private set; }
 
             // can be used to simplify whole subtrees while just annotating one syntax node.
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
-            protected bool alwaysSimplify = false;
+            protected bool alwaysSimplify;
 
             private static SyntaxNode GetParentNode(SyntaxNode node)
             {
@@ -86,14 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 Debug.Assert(parentNode != null);
 
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 if (!this.alwaysSimplify && !node.HasAnnotation(Simplifier.Annotation))
                 {
                     return newNode;
                 }
 
-                if (node != newNode || this.processedParentNodes.Contains(parentNode))
+                if (node != newNode || _processedParentNodes.Contains(parentNode))
                 {
                     this.HasMoreWork = true;
                     return newNode;
@@ -101,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (!node.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
                 {
-                    var simplifiedNode = simplifier(node, semanticModel, optionSet, cancellationToken);
+                    var simplifiedNode = simplifier(node, _semanticModel, _optionSet, _cancellationToken);
                     if (simplifiedNode != node)
                     {
-                        processedParentNodes.Add(parentNode);
+                        _processedParentNodes.Add(parentNode);
                         this.HasMoreWork = true;
                         return simplifiedNode;
                     }
@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> simplifier)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 return token.HasAnnotation(Simplifier.Annotation)
-                    ? simplifier(token, semanticModel, optionSet, cancellationToken)
+                    ? simplifier(token, _semanticModel, _optionSet, _cancellationToken)
                     : token;
             }
 
@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrToken, SemanticModel semanticModel, bool simplifyAllDescendants)
             {
-                this.semanticModel = (SemanticModel)semanticModel;
+                _semanticModel = semanticModel;
                 this.alwaysSimplify = simplifyAllDescendants;
                 this.HasMoreWork = false;
-                this.processedParentNodes.Clear();
+                _processedParentNodes.Clear();
 
                 if (nodeOrToken.IsNode)
                 {

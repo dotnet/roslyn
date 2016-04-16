@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "BasicUndo": "0.9.3",
+    "Microsoft.VisualStudio.Composition": "14.0.50715-pre",
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": { },
+    "win7-anycpu": { }
+  }
+}

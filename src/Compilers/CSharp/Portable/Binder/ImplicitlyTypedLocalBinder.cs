@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -38,21 +39,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         // local whose type we are attempting to infer. (This might be necessary for
         // "script class" scenarios where local vars are actually fields.)
 
-        private readonly ConsList<LocalSymbol> symbols;
+        private readonly ConsList<LocalSymbol> _symbols;
         public ImplicitlyTypedLocalBinder(Binder next, LocalSymbol symbol)
             : base(next)
         {
-            this.symbols = new ConsList<LocalSymbol>(symbol, next.ImplicitlyTypedLocalsBeingBound);
+            _symbols = new ConsList<LocalSymbol>(symbol, next.ImplicitlyTypedLocalsBeingBound);
         }
 
         public override ConsList<LocalSymbol> ImplicitlyTypedLocalsBeingBound
         {
             get
             {
-                return this.symbols;
+                return _symbols;
+            }
+        }
+
+        internal override LocalSymbol LocalInProgress
+        {
+            get
+            {
+                return _symbols.Head;
             }
         }
     }
-
-
 }

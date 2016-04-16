@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // IDS_VersionExperimental = MessageBase + 12694,
         IDS_FeatureNameof = MessageBase + 12695,
         IDS_FeatureDictionaryInitializer = MessageBase + 12696,
-        IDS_FeatureStructParameterlessConstructors = MessageBase + 12697,
 
+        IDS_ToolName = MessageBase + 12697,
         IDS_LogoLine1 = MessageBase + 12698,
         IDS_LogoLine2 = MessageBase + 12699,
         IDS_CSCHelp = MessageBase + 12700,
@@ -110,17 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingStatic = MessageBase + 12701,
         IDS_FeatureInterpolatedStrings = MessageBase + 12702,
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
+        IDS_AwaitInCatchAndFinally = MessageBase + 12704,
+        IDS_FeatureReadonlyAutoImplementedProperties = MessageBase + 12705,
     }
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
     internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
     {
-        private readonly MessageID id;
+        private readonly MessageID _id;
 
         internal LocalizableErrorArgument(MessageID id)
         {
-            this.id = id;
+            _id = id;
         }
 
         public override string ToString()
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            return ErrorFacts.GetMessage(id, formatProvider as System.Globalization.CultureInfo);
+            return ErrorFacts.GetMessage(_id, formatProvider as System.Globalization.CultureInfo);
         }
     }
 
@@ -141,6 +143,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LocalizableErrorArgument Localize(this MessageID id)
         {
             return new LocalizableErrorArgument(id);
+        }
+
+        internal static string RequiredFeature(this MessageID feature)
+        {
+            switch (feature)
+            {
+                default:
+                    return null;
+            }
         }
 
         internal static LanguageVersion RequiredVersion(this MessageID feature)
@@ -158,9 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExpressionBodiedIndexer:
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
-                case MessageID.IDS_FeatureStructParameterlessConstructors:
                 case MessageID.IDS_FeatureUsingStatic:
                 case MessageID.IDS_FeatureInterpolatedStrings:
+                case MessageID.IDS_AwaitInCatchAndFinally:
+                case MessageID.IDS_FeatureReadonlyAutoImplementedProperties:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

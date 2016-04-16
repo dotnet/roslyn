@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundLambda
+    Friend Partial Class BoundLambda
 
         ''' <summary>
         ''' Should this lambda be treated as a single line lambda?
@@ -33,6 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert((DelegateRelaxation And (Not ConversionKind.DelegateRelaxationLevelMask)) = 0)
+
+            Debug.Assert(
+                TypeOf Syntax Is LambdaExpressionSyntax OrElse
+                LambdaUtilities.IsLambdaBody(Syntax) OrElse
+                Syntax.IsKind(SyntaxKind.AddressOfExpression) OrElse
+                LambdaUtilities.IsNonUserCodeQueryLambda(Syntax) OrElse
+                (DelegateRelaxation And ConversionKind.DelegateRelaxationLevelMask) <> ConversionKind.DelegateRelaxationLevelNone)
         End Sub
 #End If
     End Class

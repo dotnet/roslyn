@@ -102,7 +102,7 @@ Public Class SyntaxFactsTests
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetContextualKeywordKind(String.Empty))
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetBaseTypeStatementKind(SyntaxKind.ForKeyword))
 
-        Dim expected = New String() {"aggregate", "all", "ansi", "ascending", "assembly", "async", "auto", "await", "binary", "by", "compare", "custom", "descending", "distinct", "equals", "explicit", "externalsource", "externalchecksum", "from", "group", "infer", "into", "isfalse", "istrue", "iterator", "join", "key", "mid", "off", "order", "out", "preserve", "region", "skip", "strict", "take", "text", "unicode", "until", "where", "type", "xml", "yield", "enable", "disable", "warning"}
+        Dim expected = New String() {"aggregate", "all", "ansi", "ascending", "assembly", "async", "auto", "await", "binary", "by", "compare", "custom", "descending", "distinct", "equals", "explicit", "externalsource", "externalchecksum", "from", "group", "infer", "into", "isfalse", "istrue", "iterator", "join", "key", "mid", "off", "order", "out", "preserve", "r", "region", "skip", "strict", "take", "text", "unicode", "until", "where", "type", "xml", "yield", "enable", "disable", "warning"}
         For Each item In expected
             Assert.NotEqual(SyntaxKind.None, SyntaxFacts.GetContextualKeywordKind(item))
         Next
@@ -121,7 +121,7 @@ Public Class SyntaxFactsTests
     End Sub
 
     <Fact>
-    Public Sub GetInstanceExpresssion()
+    Public Sub GetInstanceExpression()
         Assert.Equal(SyntaxKind.None, SyntaxFacts.GetInstanceExpression(SyntaxKind.DeclareKeyword))
         Assert.Equal(SyntaxKind.MeExpression, SyntaxFacts.GetInstanceExpression(SyntaxKind.MeKeyword))
         Assert.Equal(SyntaxKind.MyBaseExpression, SyntaxFacts.GetInstanceExpression(SyntaxKind.MyBaseKeyword))
@@ -184,10 +184,10 @@ Public Class SyntaxFactsTests
     <Fact>
     Public Sub IsAccessorStatementKeyword()
         For Each item As SyntaxKind In {SyntaxKind.GetKeyword, SyntaxKind.SetKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword}
-            Assert.True(SyntaxFacts.IsAccessorStatementKeyword(item))
+            Assert.True(SyntaxFacts.IsAccessorStatementAccessorKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsAccessorStatementKeyword(SyntaxKind.SubKeyword))
-        Assert.False(SyntaxFacts.IsAccessorStatementKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsAccessorStatementAccessorKeyword(SyntaxKind.SubKeyword))
+        Assert.False(SyntaxFacts.IsAccessorStatementAccessorKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>
@@ -394,10 +394,10 @@ End Namespace
     <Fact>
     Public Sub IsDeclareStatementKeyword()
         For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
-            Assert.True(SyntaxFacts.IsDeclareStatementKeyword(item))
+            Assert.True(SyntaxFacts.IsDeclareStatementSubOrFunctionKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsDeclareStatementKeyword(SyntaxKind.NamespaceBlock))
-        Assert.False(SyntaxFacts.IsDeclareStatementKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsDeclareStatementSubOrFunctionKeyword(SyntaxKind.NamespaceBlock))
+        Assert.False(SyntaxFacts.IsDeclareStatementSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>
@@ -412,10 +412,10 @@ End Namespace
     <Fact>
     Public Sub IsDelegateStatementKeyword()
         For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
-            Assert.True(SyntaxFacts.IsDelegateStatementKeyword(item))
+            Assert.True(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsDelegateStatementKeyword(SyntaxKind.NamespaceBlock))
-        Assert.False(SyntaxFacts.IsDelegateStatementKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.NamespaceBlock))
+        Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
 
 
@@ -529,10 +529,10 @@ End Namespace
     <Fact>
     Public Sub IsLambdaHeaderKeyword()
         For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
-            Assert.True(SyntaxFacts.IsLambdaHeaderKeyword(item))
+            Assert.True(SyntaxFacts.IsLambdaHeaderSubOrFunctionKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsLambdaHeaderKeyword(SyntaxKind.ExitKeyword))
-        Assert.False(SyntaxFacts.IsLambdaHeaderKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsLambdaHeaderSubOrFunctionKeyword(SyntaxKind.ExitKeyword))
+        Assert.False(SyntaxFacts.IsLambdaHeaderSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>
@@ -603,10 +603,10 @@ End Namespace
     <Fact>
     Public Sub IsMethodStatementKeyword()
         For Each item As SyntaxKind In {SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword}
-            Assert.True(SyntaxFacts.IsMethodStatementKeyword(item))
+            Assert.True(SyntaxFacts.IsMethodStatementSubOrFunctionKeyword(item))
         Next
-        Assert.False(SyntaxFacts.IsMethodStatementKeyword(SyntaxKind.NamespaceBlock))
-        Assert.False(SyntaxFacts.IsMethodStatementKeyword(SyntaxKind.None))
+        Assert.False(SyntaxFacts.IsMethodStatementSubOrFunctionKeyword(SyntaxKind.NamespaceBlock))
+        Assert.False(SyntaxFacts.IsMethodStatementSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
 
     <Fact>
@@ -1001,7 +1001,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Sub AllowsLeadingOrTrailingImplicitLineContinuation()
+    Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
 
@@ -1099,7 +1099,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
+    Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
         Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
 
@@ -1158,7 +1158,7 @@ End Namespace
 
     End Sub
 
-    <WorkItem(531480, "DevDiv")>
+    <WorkItem(531480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531480")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterQuery()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1186,7 +1186,7 @@ End Module
         Next
     End Sub
 
-    <WorkItem(530665, "DevDiv")>
+    <WorkItem(530665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530665")>
     <Fact>
     Public Sub ImplicitLineContinuationAfterDictionaryAccessOperator()
         Dim tree = ParseAndVerify(<![CDATA[
@@ -1208,7 +1208,7 @@ End Module
 
     End Sub
 
-    <WorkItem(990618, "DevDiv")>
+    <WorkItem(990618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/990618")>
     <Fact>
     Public Sub Bug990618()
         Dim text = SyntaxFacts.GetText(SyntaxKind.BeginCDataToken)

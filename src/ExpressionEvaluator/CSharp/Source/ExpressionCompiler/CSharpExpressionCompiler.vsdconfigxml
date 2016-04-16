@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="CSharpExpressionCompilerId" Value="CFC88282-E29A-47A1-9FAD-E46391CBD26D"/>
+  <ManagedComponent
+    ComponentId="CSharpExpressionCompilerId"
+    ComponentLevel="9991500"
+    Synchronized="true"
+    AssemblyName="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler">
+    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpExpressionCompiler">
+      <Implements>
+        <InterfaceGroup Priority="Low">
+          <NoFilter/>
+          <Interface Name="IDkmClrExpressionCompiler"/>
+          <Interface Name="IDkmClrExpressionCompilerCallback"/>
+        </InterfaceGroup>
+        <InterfaceGroup
+          CallOnlyWhenLoaded="true">
+          <NoFilter/>
+          <Interface Name="IDkmModuleModifiedNotification"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFrameDecoder">
+      <Implements>
+        <InterfaceGroup Priority="Low">
+          <Filter>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+          </Filter>
+          <Interface Name="IDkmLanguageFrameDecoder"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpLanguageInstructionDecoder">
+      <Implements>
+        <InterfaceGroup Priority="Low">
+          <Filter>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+          </Filter>
+          <Interface Name="IDkmLanguageInstructionDecoder"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

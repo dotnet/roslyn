@@ -72,7 +72,7 @@ End Module
 
         End Sub
 
-        ' Can’t declare variable in argument
+        ' Can't declare variable in argument
         <Fact>
         Public Sub DeclVarInArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -193,7 +193,7 @@ End Module
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="a0, a1, a2", DataFlowsOutSymbol:="", index:=2)
         End Sub
 
-        ' ‘Goto‘ is Invalid in expression
+        ' 'Goto' is Invalid in expression
         <Fact>
         Public Sub GotoInConditionalOperator()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -240,9 +240,9 @@ End Module
 
         ' Function call in return expression
         <Fact>
-        Public Sub FuntionCallAsArgument()
+        Public Sub FunctionCallAsArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
-<compilation name="FuntionCallAsArgument">
+<compilation>
     <file name="a.vb">
 imports System
 Module Program
@@ -367,7 +367,7 @@ End Module
         End Sub
 
         ' Lambda works  in return argument 
-        <WorkItem(528700, "DevDiv")>
+        <WorkItem(528700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528700")>
         <Fact>
         Public Sub LambdaAsArgument()
 
@@ -397,7 +397,7 @@ End Module
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
             SemanticInfoTypeTest(semanticInfos, "Boolean", "System.Func(Of Integer, Integer)", "Integer")
-            'SemanticInfoConvetedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
+            'SemanticInfoConvertedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
             Assert.Equal(ConversionKind.Identity, semanticInfos(0).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, semanticInfos(1).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfos(2).ImplicitConversion.Kind)
@@ -455,7 +455,7 @@ End Module
         End Sub
 
         ' Conflict variable name declare in IF 
-        <WorkItem(528700, "DevDiv")>
+        <WorkItem(528700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528700")>
         <Fact>
         Public Sub VariableNameConflict_2()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -658,7 +658,7 @@ End Module
         End Sub
 
         ' Implicit conversion between Enum and null
-        <WorkItem(542116, "DevDiv")>
+        <WorkItem(542116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542116")>
         <Fact()>
         Public Sub ImplicitConversion()
             Dim compilationDef =

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Label  ' Resume Label
     End Enum
 
-    Partial Class BoundResumeStatement
+    Friend Partial Class BoundResumeStatement
 
         Public Sub New(syntax As VisualBasicSyntaxNode, Optional isNext As Boolean = False)
             Me.New(syntax, If(isNext, ResumeStatementKind.Next, ResumeStatementKind.Plain), Nothing, Nothing)

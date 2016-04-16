@@ -10,18 +10,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class MemberSemanticModel
+    internal partial class MemberSemanticModel
     {
-        protected sealed class NodeMapBuilder : BoundTreeWalker
+        protected sealed class NodeMapBuilder : BoundTreeWalkerWithStackGuard
         {
             private NodeMapBuilder(OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> map, CSharpSyntaxNode thisSyntaxNodeOnly)
             {
-                this.map = map;
-                this.thisSyntaxNodeOnly = thisSyntaxNodeOnly;
+                _map = map;
+                _thisSyntaxNodeOnly = thisSyntaxNodeOnly;
             }
 
-            private readonly OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> map;
-            private readonly CSharpSyntaxNode thisSyntaxNodeOnly;
+            private readonly OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> _map;
+            private readonly CSharpSyntaxNode _thisSyntaxNodeOnly;
 
             /// <summary>
             /// Walks the bound tree and adds all non compiler generated bound nodes whose syntax matches the given one
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var existing = map[key];
                         var added = additionMap[key];
-                        FailFast.Assert(existing.Length == added.Length, "existing.Length == added.Length");
+                        Debug.Assert(existing.Length == added.Length, "existing.Length == added.Length");
                         for (int i = 0; i < existing.Length; i++)
                         {
                             // TODO: it would be great if we could check !ReferenceEquals(existing[i], added[i]) (DevDiv #11584).
@@ -76,20 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //      since nothing is cached for the statement syntax.
                             if (existing[i].Kind != added[i].Kind)
                             {
-                                FailFast.Assert(!(key is StatementSyntax), "!(key is StatementSyntax)");
+                                Debug.Assert(!(key is StatementSyntax), "!(key is StatementSyntax)");
 
                                 // This also seems to be happening when we get equivalent BoundTypeExpression and BoundTypeOrValueExpression nodes.
                                 if (existing[i].Kind == BoundKind.TypeExpression && added[i].Kind == BoundKind.TypeOrValueExpression)
                                 {
-                                    FailFast.Assert(
-                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type, 
+                                    Debug.Assert(
+                                        ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type,
                                         string.Format(
                                             CultureInfo.InvariantCulture,
                                             "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
                                 }
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
                                 {
-                                    FailFast.Assert(
+                                    Debug.Assert(
                                         ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
                                         string.Format(
                                             CultureInfo.InvariantCulture,
@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    FailFast.Assert(false, "New bound node does not match existing bound node");
+                                    Debug.Assert(false, "New bound node does not match existing bound node");
                                 }
                             }
                             else
                             {
-                                FailFast.Assert(
+                                Debug.Assert(
                                     (object)existing[i] == added[i] || !(key is StatementSyntax),
                                     string.Format(
                                         CultureInfo.InvariantCulture,
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // bound node, then we dive deeper into the bound tree.
                 if (ShouldAddNode(current))
                 {
-                    map.Add(current.Syntax, current);
+                    _map.Add(current.Syntax, current);
                 }
 
                 // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (ShouldAddNode(binOp))
                         {
-                            map.Add(binOp.Syntax, binOp);
+                            _map.Add(binOp.Syntax, binOp);
                         }
 
                         stack.Push(binOp.Right);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Do not add if only a specific syntax node should be added.
-                if (this.thisSyntaxNodeOnly != null && currentBoundNode.Syntax != this.thisSyntaxNodeOnly)
+                if (_thisSyntaxNodeOnly != null && currentBoundNode.Syntax != _thisSyntaxNodeOnly)
                 {
                     return false;
                 }
@@ -248,6 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
     }

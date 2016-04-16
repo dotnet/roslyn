@@ -7,14 +7,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
         Public Overrides Function VisitHostObjectMemberReference(node As BoundHostObjectMemberReference) As BoundNode
-            Debug.Assert(previousSubmissionFields IsNot Nothing)
-            Debug.Assert(Not topMethod.IsShared)
+            Debug.Assert(_previousSubmissionFields IsNot Nothing)
+            Debug.Assert(Not _topMethod.IsShared)
 
             Dim syntax = node.Syntax
-            Dim hostObjectReference = previousSubmissionFields.GetHostObjectField()
-            Dim meReference = New BoundMeReference(syntax, topMethod.ContainingType)
+            Dim hostObjectReference = _previousSubmissionFields.GetHostObjectField()
+            Dim meReference = New BoundMeReference(syntax, _topMethod.ContainingType)
             Return New BoundFieldAccess(syntax, receiverOpt:=meReference, FieldSymbol:=hostObjectReference, isLValue:=False, Type:=hostObjectReference.Type)
         End Function
     End Class

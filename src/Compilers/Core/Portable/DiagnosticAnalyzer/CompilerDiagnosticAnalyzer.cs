@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal abstract CommonMessageProvider MessageProvider { get; }
         internal abstract ImmutableArray<int> GetSupportedErrorCodes();
-        
+
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -31,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     builder.Add(descriptor);
                 }
 
+                builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
                 return builder.ToImmutable();
             }
         }
@@ -41,10 +39,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var analyzer = new CompilationAnalyzer(c.Compilation);
                 c.RegisterSyntaxTreeAction(analyzer.AnalyzeSyntaxTree);
-                c.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
+                c.RegisterSemanticModelAction(CompilationAnalyzer.AnalyzeSemanticModel);
             });
-
-            context.RegisterCompilationEndAction(CompilationAnalyzer.AnalyzeCompilation);
         }
     }
 }

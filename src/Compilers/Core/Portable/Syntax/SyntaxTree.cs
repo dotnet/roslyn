@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class SyntaxTree
     {
-        private ImmutableArray<byte> lazyChecksum;
-        private SourceHashAlgorithm lazyHashAlgorithm;
+        private ImmutableArray<byte> _lazyChecksum;
+        private SourceHashAlgorithm _lazyHashAlgorithm;
 
         /// <summary>
         /// The path of the source document file.
@@ -78,23 +78,25 @@ namespace Microsoft.CodeAnalysis
         /// Gets the text of the source document.
         /// </summary>
         public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
-        
+
+        /// <summary>
+        /// The text encoding of the source document.
+        /// </summary>
+        public abstract Encoding Encoding { get; }
+
         /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
+        /// <remarks>
+        /// By default, the work associated with this method will be executed immediately on the current thread.
+        /// Implementations that wish to schedule this work differently should override <see cref="GetTextAsync(CancellationToken)"/>.
+        /// </remarks>
         public virtual Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             SourceText text;
-            if (this.TryGetText(out text))
-            {
-                return Task.FromResult(text);
-            }
-            else
-            {
-                return Task.Factory.StartNew(() => this.GetText(cancellationToken), cancellationToken);
-            }
+            return Task.FromResult(this.TryGetText(out text) ? text : this.GetText(cancellationToken));
         }
-       
+
         /// <summary>
         /// Gets the root of the syntax tree if it is available.
         /// </summary>
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// The values are not affected by line mapping directives (<code>#line</code>).
@@ -195,14 +197,14 @@ namespace Microsoft.CodeAnalysis
         /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
         /// </summary>
         /// <param name="span">Span within the tree.</param>
-        /// <param name="cancellationToken">Cancallation token.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
         /// If the location path is mapped the resulting path is the path specified in the corresponding <code>#line</code>,
         /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <code>#line</code> directive that preceeds it and that 
+        /// A location path is considered mapped if the first <code>#line</code> directive that precedes it and that 
         /// either specifies an explicit file path or is <code>#line default</code> exists and specifies an explicit path.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken));
@@ -313,21 +315,21 @@ namespace Microsoft.CodeAnalysis
 
         internal ValueTuple<ImmutableArray<byte>, Guid> GetChecksumAndAlgorithm()
         {
-            if (lazyChecksum.IsDefault)
+            if (_lazyChecksum.IsDefault)
             {
                 var text = this.GetText();
-                this.lazyChecksum = text.GetChecksum();
-                this.lazyHashAlgorithm = text.ChecksumAlgorithm;
+                _lazyChecksum = text.GetChecksum();
+                _lazyHashAlgorithm = text.ChecksumAlgorithm;
             }
 
-            Debug.Assert(!lazyChecksum.IsDefault);
+            Debug.Assert(!_lazyChecksum.IsDefault);
             Guid guid;
-            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(lazyHashAlgorithm, out guid))
+            if (!Cci.DebugSourceDocument.TryGetAlgorithmGuid(_lazyHashAlgorithm, out guid))
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            return ValueTuple.Create(lazyChecksum, guid);
+            return ValueTuple.Create(_lazyChecksum, guid);
         }
 
         /// <summary>
@@ -339,5 +341,13 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new tree whose <see cref="FilePath"/> is the specified node and other properties are copied from the current tree.
         /// </summary>
         public abstract SyntaxTree WithFilePath(string path);
+
+        /// <summary>
+        /// Returns a <see cref="String" /> that represents the entire source text of this <see cref="SyntaxTree"/>.
+        /// </summary>
+        public override string ToString()
+        {
+            return this.GetText(CancellationToken.None).ToString();
+        }
     }
 }

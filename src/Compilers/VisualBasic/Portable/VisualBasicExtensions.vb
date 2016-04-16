@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' </summary>
         ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if nodeoOrToken is of specified kind; otherwise false.</returns>
+        ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
             Return nodeOrToken.RawKind = kind
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns the Type character for a given syntax token.  This returns type character for Indentifiers or Integer, Floating Point or Decimal Literals.
+        ''' Returns the Type character for a given syntax token.  This returns type character for Identifiers or Integer, Floating Point or Decimal Literals.
         ''' Examples: Dim a$   or Dim l1 = 1L
         ''' </summary>
         ''' <param name="token">The source SyntaxToken.</param>
@@ -386,11 +386,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function Insert(list As SyntaxTokenList, index As Integer, ParamArray items As SyntaxToken()) As SyntaxTokenList
             If index < 0 OrElse index > list.Count Then
-                Throw New ArgumentOutOfRangeException("index")
+                Throw New ArgumentOutOfRangeException(NameOf(index))
             End If
 
             If items Is Nothing Then
-                Throw New ArgumentNullException("items")
+                Throw New ArgumentNullException(NameOf(items))
             End If
 
             If list.Count = 0 Then
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets the DirectiveTriviaSyntax items for a specified SytaxNode with optional filtering.
+        ''' Gets the DirectiveTriviaSyntax items for a specified SyntaxNode with optional filtering.
         ''' </summary>
         ''' <param name="node">The source SyntaxNode.</param>
         ''' <param name="filter">The optional DirectiveTrivia Syntax filter predicate.</param>
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Gets the root CompilationUnitSytax for a specified SyntaxTree.
+        ''' Gets the root CompilationUnitSyntax for a specified SyntaxTree.
         ''' </summary>
         ''' <param name="tree">The source SyntaxTree.</param>
         ''' <returns>A CompilationUnitSyntax.</returns>
@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionStrict property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>The OptionStrict object for the semantic model instance OptionStrict property, otherise Null if semantic model is Null. </returns>
+        ''' <returns>The OptionStrict object for the semantic model instance OptionStrict property, otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionStrict(semanticModel As SemanticModel) As OptionStrict
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionInfer property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionInfer property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionInfer property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionInfer(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionExplicit property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionExplicit property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionExplicit property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionExplicit(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the Semantic Model OptionCompareText property.
         ''' </summary>
         ''' <param name="semanticModel">A source Semantic model object.</param>
-        ''' <returns>A boolean values, for the semantic model instance OptionCompareText property. otherise Null if semantic model is Null. </returns>
+        ''' <returns>A boolean values, for the semantic model instance OptionCompareText property. otherwise Null if semantic model is Null. </returns>
         <Extension>
         Public Function OptionCompareText(semanticModel As SemanticModel) As Boolean
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding symbol for a specified identifier.
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>
-        ''' <param name="identifierSyntax">A IdentiferSyntax object.</param>
+        ''' <param name="identifierSyntax">A IdentifierSyntax object.</param>
         ''' <param name="cancellationToken">A cancellation token.</param>
         ''' <returns>A symbol, for the specified identifier; otherwise Null if semantic model is Null. </returns>
         <Extension>
@@ -840,7 +840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the corresponding PropertySymbol for a specified FieldInitializerSyntax.
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>
-        ''' <param name="fieldInitializerSyntax">A fieldInitizerSyntax object.</param>
+        ''' <param name="fieldInitializerSyntax">A FieldInitializerSyntax object.</param>
         ''' <param name="cancellationToken">A cancellation token.</param>
         ''' <returns>A PropertySymbol. Null if semantic model is null.</returns>
         <Extension>
@@ -1496,32 +1496,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' DistinctClauseSyntax -       Returns Distinct method associated with DistinctClauseSyntax.
-        ''' 
-        ''' WhereClauseSyntax -          Returns Where method associated with WhereClauseSyntax.
-        ''' 
-        ''' PartitionWhileClauseSyntax - Returns TakeWhile/SkipWhile method associated with PartitionWhileClauseSyntax.
-        ''' 
-        ''' PartitionClauseSyntax -      Returns Take/Skip method associated with PartitionClauseSyntax.
-        ''' 
-        ''' GroupByClauseSyntax -        Returns GroupBy method associated with GroupByClauseSyntax.
-        ''' 
-        ''' JoinClauseSyntax -           Returns Join/GroupJoin method associated with JoinClauseSyntax/GroupJoinClauseSyntax.
-        ''' 
-        ''' SelectClauseSyntax -         Returns Select method associated with SelectClauseSyntax, if needed.
-        ''' 
-        ''' FromClauseSyntax -           Returns Select method associated with FromClauseSyntax, which has only one 
-        '''                              CollectionRangeVariableSyntax and is the only query clause within 
-        '''                              QueryExpressionSyntax. NotNeeded SymbolInfo otherwise. 
-        '''                              The method call is injected by the compiler to make sure that query is translated to at 
-        '''                              least one method call. 
-        ''' 
-        ''' LetClauseSyntax -            NotNeeded SymbolInfo.
-        ''' 
-        ''' OrderByClauseSyntax -        NotNeeded SymbolInfo.
-        ''' 
-        ''' AggregateClauseSyntax -      Empty SymbolInfo. GetAggregateClauseInfo should be used instead.
+        ''' Returns symbol information for a query clause.
         ''' </summary>
+        ''' <remarks>
+        ''' <list type="table">
+        ''' <listheader>
+        '''     <term>Syntax node type</term>
+        '''     <description>Symbol information returned</description>
+        ''' </listheader>
+        ''' <item>
+        '''     <term><see cref="DistinctClauseSyntax"/></term>
+        '''     <description>Returns Distinct method associated with <see cref="DistinctClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="WhereClauseSyntax"/></term>
+        '''     <description>Returns Where method associated with <see cref="WhereClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="PartitionWhileClauseSyntax"/></term>
+        '''     <description>Returns TakeWhile/SkipWhile method associated with <see cref="PartitionWhileClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="PartitionClauseSyntax"/></term>
+        '''     <description>Returns Take/Skip method associated with <see cref="PartitionClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="GroupByClauseSyntax"/></term>
+        '''     <description>Returns GroupBy method associated with <see cref="GroupByClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="JoinClauseSyntax"/></term>
+        '''     <description>Returns Join/GroupJoin method associated with <see cref="JoinClauseSyntax"/>.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="SelectClauseSyntax"/></term>
+        '''     <description>Returns Select method associated with <see cref="SelectClauseSyntax"/>, or <see cref="SymbolInfo.None"/> if none is.</description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="FromClauseSyntax"/></term>
+        '''     <description>
+        '''         Returns Select method associated with <see cref="FromClauseSyntax"/>, which has only one 
+        '''         <see cref="CollectionRangeVariableSyntax"/> and is the only query clause within 
+        '''         <see cref="QueryExpressionSyntax"/>. <see cref="SymbolInfo.None"/> otherwise. 
+        '''         The method call is injected by the compiler to make sure that query is translated to at 
+        '''         least one method call. 
+        '''     </description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="LetClauseSyntax"/></term>
+        '''     <description><see cref="SymbolInfo.None"/></description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="OrderByClauseSyntax"/></term>
+        '''     <description><see cref="SymbolInfo.None"/></description>
+        ''' </item>
+        ''' <item>
+        '''     <term><see cref="AggregateClauseSyntax"/></term>
+        '''     <description>
+        '''         <see cref="SymbolInfo.None"/>.
+        '''         Use <see cref="GetAggregateClauseSymbolInfo(SemanticModel, AggregateClauseSyntax, CancellationToken)"/> instead.
+        '''     </description>
+        ''' </item>
+        ''' </list>
+        ''' </remarks>
         <Extension>
         Public Function GetSymbolInfo(
             semanticModel As SemanticModel,
@@ -1537,8 +1574,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns Select method associated with ExpressionRangeVariableSyntax within a LetClauseSyntax, if needed.
-        ''' NotNeeded SymbolInfo otherwise.
+        ''' Returns Select method associated with <see cref="ExpressionRangeVariableSyntax"/> within a <see cref="LetClauseSyntax"/>, 
+        ''' or <see cref="SymbolInfo.None"/> otherwise if none is.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(
@@ -1555,7 +1592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns aggregate function associated with FunctionAggregationSyntax.
+        ''' Returns aggregate function associated with <see cref="FunctionAggregationSyntax"/>.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(
@@ -1572,7 +1609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns OrdrBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
+        ''' Returns OrderBy/OrderByDescending/ThenBy/ThenByDescending method associated with <see cref="OrderingSyntax"/>.
         ''' </summary>
         <Extension>
         Public Function GetSymbolInfo(

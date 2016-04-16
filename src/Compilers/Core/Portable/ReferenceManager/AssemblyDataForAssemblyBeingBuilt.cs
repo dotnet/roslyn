@@ -3,26 +3,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis
 {
-    partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         protected sealed class AssemblyDataForAssemblyBeingBuilt : AssemblyData
         {
-            private readonly AssemblyIdentity assemblyIdentity;
+            private readonly AssemblyIdentity _assemblyIdentity;
 
             // assemblies referenced directly by the assembly:
-            private readonly ImmutableArray<AssemblyData> referencedAssemblyData;
+            private readonly ImmutableArray<AssemblyData> _referencedAssemblyData;
 
             // all referenced assembly names including assemblies referenced by modules:
-            private readonly ImmutableArray<AssemblyIdentity> referencedAssemblies;
-
-            // [0] is the number of assembly names in referencedAssemblies that are direct references specified in referencedAssemblyData.
-            // [i] is the number of references coming from module moduleInfo[i-1]. These names are also added to referencedAssemblies.
-            private readonly int[] moduleReferenceCounts;
+            private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
 
             public AssemblyDataForAssemblyBeingBuilt(
                 AssemblyIdentity identity,
@@ -32,46 +28,30 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(identity != null);
                 Debug.Assert(!referencedAssemblyData.IsDefault);
 
-                assemblyIdentity = identity;
+                _assemblyIdentity = identity;
 
-                this.referencedAssemblyData = referencedAssemblyData;
+                _referencedAssemblyData = referencedAssemblyData;
 
-                int count = modules.Length;
-
-                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(referencedAssemblyData.Length + count); //approximate size
+                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(referencedAssemblyData.Length + modules.Length); //approximate size
                 foreach (AssemblyData data in referencedAssemblyData)
                 {
                     refs.Add(data.Identity);
                 }
 
-                moduleReferenceCounts = new int[count + 1]; // Plus one for the source module.
-                moduleReferenceCounts[0] = refs.Count;
-
                 // add assembly names from modules:
-                for (int i = 1; i <= count; i++)
+                for (int i = 1; i <= modules.Length; i++)
                 {
-                    var module = modules[i - 1];
-
-                    moduleReferenceCounts[i] = module.ReferencedAssemblies.Length;
-                    refs.AddRange(module.ReferencedAssemblies);
+                    refs.AddRange(modules[i - 1].ReferencedAssemblies);
                 }
 
-                referencedAssemblies = refs.ToImmutableAndFree();
-            }
-
-            public int[] ReferencesCountForModule
-            {
-                get
-                {
-                    return moduleReferenceCounts;
-                }
+                _referencedAssemblies = refs.ToImmutableAndFree();
             }
 
             public override AssemblyIdentity Identity
             {
                 get
                 {
-                    return assemblyIdentity;
+                    return _assemblyIdentity;
                 }
             }
 
@@ -79,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return referencedAssemblies;
+                    return _referencedAssemblies;
                 }
             }
 
@@ -95,22 +75,25 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<AssemblyData> assemblies,
                 AssemblyIdentityComparer assemblyIdentityComparer)
             {
-                var boundReferences = new AssemblyReferenceBinding[referencedAssemblies.Length];
+                var boundReferences = new AssemblyReferenceBinding[_referencedAssemblies.Length];
 
-                for (int i = 0; i < referencedAssemblyData.Length; i++)
+                for (int i = 0; i < _referencedAssemblyData.Length; i++)
                 {
-                    Debug.Assert(ReferenceEquals(referencedAssemblyData[i], assemblies[i + 1]));
+                    Debug.Assert(ReferenceEquals(_referencedAssemblyData[i], assemblies[i + 1]));
                     boundReferences[i] = new AssemblyReferenceBinding(assemblies[i + 1].Identity, i + 1);
                 }
 
+                // references from added modules shouldn't resolve against the assembly being built (definition #0)
+                const int definitionStartIndex = 1;
+
                 // resolve references coming from linked modules:
-                for (int i = referencedAssemblyData.Length; i < referencedAssemblies.Length; i++)
+                for (int i = _referencedAssemblyData.Length; i < _referencedAssemblies.Length; i++)
                 {
                     boundReferences[i] = ResolveReferencedAssembly(
-                        referencedAssemblies[i],
+                        _referencedAssemblies[i],
                         assemblies,
-                        assemblyIdentityComparer,
-                        okToResolveAgainstCompilationBeingCreated: false); // references from added modules shouldn't resolve against the assembly we are building.
+                        definitionStartIndex,
+                        assemblyIdentityComparer);
                 }
 
                 return boundReferences;
@@ -144,6 +127,8 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
             }
+
+            public override Compilation SourceCompilation => null;
         }
     }
 }

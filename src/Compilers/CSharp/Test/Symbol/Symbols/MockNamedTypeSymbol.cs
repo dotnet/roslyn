@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     internal class MockNamedTypeSymbol : NamedTypeSymbol, IMockSymbol
     {
-        private Symbol container;
-        private readonly string name;
-        private readonly TypeKind typeKind;
-        private readonly IEnumerable<Symbol> children;
+        private Symbol _container;
+        private readonly string _name;
+        private readonly TypeKind _typeKind;
+        private readonly IEnumerable<Symbol> _children;
 
         public void SetContainer(Symbol container)
         {
-            this.container = container;
+            _container = container;
         }
 
         public override int Arity
@@ -53,6 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+            }
+        }
+
         public override NamedTypeSymbol ConstructedFrom
         {
             get
@@ -65,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -84,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return children.AsImmutable();
+            return _children.AsImmutable();
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
@@ -94,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return (from sym in children
+            return (from sym in _children
                     where sym.Name == name
                     select sym).ToArray().AsImmutableOrNull();
         }
@@ -111,33 +127,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return (from sym in children
+            return (from sym in _children
                     where sym is NamedTypeSymbol
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return (from sym in children
+            return (from sym in _children
                     where sym is NamedTypeSymbol && sym.Name == name && ((NamedTypeSymbol)sym).Arity == arity
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
-            return (from sym in children
+            return (from sym in _children
                     where sym is NamedTypeSymbol && sym.Name == name
                     select (NamedTypeSymbol)sym).ToArray().AsImmutableOrNull();
         }
 
         public override TypeKind TypeKind
         {
-            get { return typeKind; }
+            get { return _typeKind; }
         }
 
         internal override bool IsInterface
         {
-            get { return typeKind == TypeKind.Interface; }
+            get { return _typeKind == TypeKind.Interface; }
         }
 
         public override Symbol ContainingSymbol
@@ -160,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public MockNamedTypeSymbol(string name, IEnumerable<Symbol> children, TypeKind kind = TypeKind.Class)
         {
-            this.name = name;
-            this.children = children;
-            this.typeKind = kind;
+            _name = name;
+            _children = children;
+            _typeKind = kind;
         }
 
         public override Accessibility DeclaredAccessibility

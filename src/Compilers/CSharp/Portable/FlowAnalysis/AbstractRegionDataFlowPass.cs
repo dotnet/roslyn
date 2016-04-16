@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
     // Any fix to one should be applied to the other.
-    class AbstractRegionDataFlowPass : DataFlowPass
+    internal class AbstractRegionDataFlowPass : DataFlowPass
     {
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
-        void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
+        private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters
             foreach (var parameter in parameters)

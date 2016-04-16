@@ -19,22 +19,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCompilationEndedAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CompilationEnded";
-            private static DiagnosticDescriptor rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
 
             public override void Initialize(AnalysisContext analysisContext)
             {
-                analysisContext.RegisterCompilationEndAction(
+                analysisContext.RegisterCompilationAction(
                     (context) =>
                         {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, Location.None, messageArgs: Id));
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, Location.None, messageArgs: Id));
                         }
                     );
             }
@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnNamePrefixDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Declaration";
-            private static DiagnosticDescriptor rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
-            private string errorSymbolPrefix;
+            private readonly string _errorSymbolPrefix;
 
             public WarningOnNamePrefixDeclarationAnalyzer(string errorSymbolPrefix)
             {
-                this.errorSymbolPrefix = errorSymbolPrefix;
+                _errorSymbolPrefix = errorSymbolPrefix;
             }
 
             public override void Initialize(AnalysisContext analysisContext)
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                         {
-                            if (context.Symbol.Name.StartsWith(this.errorSymbolPrefix))
+                            if (context.Symbol.Name.StartsWith(_errorSymbolPrefix, StringComparison.Ordinal))
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
                             }
                         },
                     SymbolKind.Event,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
         }
@@ -84,14 +84,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnTypeDeclarationAnalyzer : DiagnosticAnalyzer
         {
             public const string TypeId = "TypeDeclaration";
-            private static DiagnosticDescriptor rule = GetRule(TypeId);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(TypeId);
 
             public override void Initialize(AnalysisContext analysisContext)
             {
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                         {
-                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
+                            context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Symbol.Locations.First(), messageArgs: context.Symbol.Name));
                         },
                     SymbolKind.NamedType);
             }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
         }
@@ -109,26 +109,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCodeBodyAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "CodeBody";
-            private static DiagnosticDescriptor rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
-            private string language;
+            private readonly string _language;
 
             public WarningOnCodeBodyAnalyzer(string language)
             {
-                this.language = language;
+                _language = language;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
 
             public override void Initialize(AnalysisContext analysisContext)
             {
-                if (this.language == LanguageNames.CSharp)
+                if (_language == LanguageNames.CSharp)
                 {
                     analysisContext.RegisterCodeBlockStartAction<CSharp.SyntaxKind>(new CSharpCodeBodyAnalyzer().Initialize);
                 }
@@ -145,13 +145,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
                             },
                         CSharp.SyntaxKind.InvocationExpression);
                 }
@@ -164,13 +164,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     analysisContext.RegisterCodeBlockEndAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.OwningSymbol.Locations.First(), messageArgs: context.OwningSymbol.Name + ":end"));
                             });
 
                     analysisContext.RegisterSyntaxNodeAction(
                         (context) =>
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, context.Node.GetLocation(), messageArgs: context.Node.ToFullString()));
                             },
                         VisualBasic.SyntaxKind.InvocationExpression);
                 }
@@ -181,13 +181,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnCommentAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Comment";
-            private static DiagnosticDescriptor rule = GetRule(Id);
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
 
@@ -196,15 +196,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 analysisContext.RegisterSyntaxTreeAction(
                     (context) =>
                         {
-                             var comments = context.Tree.GetRoot().DescendantTrivia()
-                                .Where(t =>
-                                    t.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
-                                    t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
-                                    t.IsKind(VisualBasic.SyntaxKind.CommentTrivia));
+                            var comments = context.Tree.GetRoot().DescendantTrivia()
+                               .Where(t =>
+                                   t.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
+                                   t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
+                                   t.IsKind(VisualBasic.SyntaxKind.CommentTrivia));
 
                             foreach (var comment in comments)
                             {
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, comment.GetLocation(), messageArgs: comment.ToFullString()));
+                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, comment.GetLocation(), messageArgs: comment.ToFullString()));
                             }
                         });
             }
@@ -214,19 +214,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class WarningOnTokenAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "Token";
-            private static DiagnosticDescriptor rule = GetRule(Id);
-            private IList<TextSpan> spans;
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
+            private readonly IList<TextSpan> _spans;
 
             public WarningOnTokenAnalyzer(IList<TextSpan> spans)
             {
-                this.spans = spans;
+                _spans = spans;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
 
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             foreach (var nodeOrToken in context.Tree.GetRoot().DescendantNodesAndTokens())
                             {
-                                if (nodeOrToken.IsToken && this.spans.Any(s => s.OverlapsWith(nodeOrToken.FullSpan)))
+                                if (nodeOrToken.IsToken && _spans.Any(s => s.OverlapsWith(nodeOrToken.FullSpan)))
                                 {
-                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(rule, nodeOrToken.GetLocation(), messageArgs: nodeOrToken.ToString()));
+                                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_rule, nodeOrToken.GetLocation(), messageArgs: nodeOrToken.ToString()));
                                 }
                             }
                         });
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         protected class ThrowExceptionForEachNamedTypeAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "ThrowException";
-            private static DiagnosticDescriptor rule = GetRule(Id);
-            
+            private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
+
             public ThrowExceptionForEachNamedTypeAnalyzer()
             {
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(rule);
+                    return ImmutableArray.Create(s_rule);
                 }
             }
 

@@ -13,20 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SubstitutedEventSymbol
         Inherits EventSymbol
 
-        Private ReadOnly m_originalDefinition As EventSymbol
-        Private ReadOnly m_containingType As SubstitutedNamedType
+        Private ReadOnly _originalDefinition As EventSymbol
+        Private ReadOnly _containingType As SubstitutedNamedType
 
-        Private ReadOnly m_addMethod As SubstitutedMethodSymbol
-        Private ReadOnly m_removeMethod As SubstitutedMethodSymbol
-        Private ReadOnly m_raiseMethod As SubstitutedMethodSymbol
+        Private ReadOnly _addMethod As SubstitutedMethodSymbol
+        Private ReadOnly _removeMethod As SubstitutedMethodSymbol
+        Private ReadOnly _raiseMethod As SubstitutedMethodSymbol
 
-        Private ReadOnly m_associatedField As SubstitutedFieldSymbol
+        Private ReadOnly _associatedField As SubstitutedFieldSymbol
 
-        Private lazyType As TypeSymbol
+        Private _lazyType As TypeSymbol
 
         'we want to compute this lazily since it may be expensive for the underlying symbol
-        Private lazyExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
-        Private lazyOverriddenOrHiddenMembers As OverriddenMembersResult(Of EventSymbol)
+        Private _lazyExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
+        Private _lazyOverriddenOrHiddenMembers As OverriddenMembersResult(Of EventSymbol)
 
 
         Friend Sub New(containingType As SubstitutedNamedType,
@@ -36,41 +36,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        raiseMethod As SubstitutedMethodSymbol,
                        associatedField As SubstitutedFieldSymbol)
 
-            Me.m_containingType = containingType
-            Me.m_originalDefinition = originalDefinition
-            Me.m_associatedField = associatedField
+            Me._containingType = containingType
+            Me._originalDefinition = originalDefinition
+            Me._associatedField = associatedField
 
             If addMethod IsNot Nothing Then
                 addMethod.SetAssociatedPropertyOrEvent(Me)
-                m_addMethod = addMethod
+                _addMethod = addMethod
             End If
 
             If removeMethod IsNot Nothing Then
                 removeMethod.SetAssociatedPropertyOrEvent(Me)
-                m_removeMethod = removeMethod
+                _removeMethod = removeMethod
             End If
 
             If raiseMethod IsNot Nothing Then
                 raiseMethod.SetAssociatedPropertyOrEvent(Me)
-                m_raiseMethod = raiseMethod
+                _raiseMethod = raiseMethod
             End If
         End Sub
 
         Friend ReadOnly Property TypeSubstitution As TypeSubstitution
             Get
-                Return m_containingType.TypeSubstitution
+                Return _containingType.TypeSubstitution
             End Get
         End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                If Me.lazyType Is Nothing Then
-                    Interlocked.CompareExchange(Me.lazyType,
-                                                m_originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution),
+                If Me._lazyType Is Nothing Then
+                    Interlocked.CompareExchange(Me._lazyType,
+                                                _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution).AsTypeSymbolOnly(),
                                                 Nothing)
                 End If
 
-                Return Me.lazyType
+                Return Me._lazyType
             End Get
 
         End Property
@@ -83,65 +83,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get
-                Return Me.m_originalDefinition.HasSpecialName
+                Return Me._originalDefinition.HasSpecialName
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return Me.m_containingType
+                Return Me._containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return Me.m_containingType
+                Return Me._containingType
             End Get
         End Property
 
         Public Overrides ReadOnly Property OriginalDefinition As EventSymbol
             Get
-                Return Me.m_originalDefinition
+                Return Me._originalDefinition
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me.m_originalDefinition.Locations
+                Return Me._originalDefinition.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Me.m_originalDefinition.DeclaringSyntaxReferences
+                Return Me._originalDefinition.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return Me.m_originalDefinition.GetAttributes()
+            Return Me._originalDefinition.GetAttributes()
         End Function
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
-                Return Me.m_originalDefinition.IsShared
+                Return Me._originalDefinition.IsShared
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
-                Return Me.m_originalDefinition.IsNotOverridable
+                Return Me._originalDefinition.IsNotOverridable
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
-                Return Me.m_originalDefinition.IsMustOverride
+                Return Me._originalDefinition.IsMustOverride
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Return Me.m_originalDefinition.IsOverridable
+                Return Me._originalDefinition.IsOverridable
             End Get
         End Property
 
@@ -159,45 +159,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property AddMethod As MethodSymbol
             Get
-                Return m_addMethod
+                Return _addMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RemoveMethod As MethodSymbol
             Get
-                Return m_removeMethod
+                Return _removeMethod
             End Get
         End Property
 
         Public Overrides ReadOnly Property RaiseMethod As MethodSymbol
             Get
-                Return m_raiseMethod
+                Return _raiseMethod
             End Get
         End Property
 
         Friend Overrides ReadOnly Property AssociatedField As FieldSymbol
             Get
-                Return m_associatedField
+                Return _associatedField
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsExplicitInterfaceImplementation As Boolean
             Get
-                Return Me.m_originalDefinition.IsExplicitInterfaceImplementation
+                Return Me._originalDefinition.IsExplicitInterfaceImplementation
             End Get
         End Property
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of EventSymbol)
             Get
-                If lazyExplicitInterfaceImplementations.IsDefault Then
-                    ImmutableInterlocked.InterlockedCompareExchange(lazyExplicitInterfaceImplementations,
+                If _lazyExplicitInterfaceImplementations.IsDefault Then
+                    ImmutableInterlocked.InterlockedCompareExchange(_lazyExplicitInterfaceImplementations,
                                                         ImplementsHelper.SubstituteExplicitInterfaceImplementations(
-                                                                                m_originalDefinition.ExplicitInterfaceImplementations,
+                                                                                _originalDefinition.ExplicitInterfaceImplementations,
                                                                                 TypeSubstitution),
                                                         Nothing)
                 End If
 
-                Return lazyExplicitInterfaceImplementations
+                Return _lazyExplicitInterfaceImplementations
             End Get
         End Property
 
@@ -211,13 +211,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property OverriddenOrHiddenMembers As OverriddenMembersResult(Of EventSymbol)
 
             Get
-                If Me.lazyOverriddenOrHiddenMembers Is Nothing Then
-                    Interlocked.CompareExchange(Me.lazyOverriddenOrHiddenMembers,
+                If Me._lazyOverriddenOrHiddenMembers Is Nothing Then
+                    Interlocked.CompareExchange(Me._lazyOverriddenOrHiddenMembers,
                                                 OverrideHidingHelper(Of EventSymbol).MakeOverriddenMembers(Me),
                                                 Nothing)
                 End If
 
-                Return Me.lazyOverriddenOrHiddenMembers
+                Return Me._lazyOverriddenOrHiddenMembers
             End Get
         End Property
 
@@ -229,12 +229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsWindowsRuntimeEvent As Boolean
             Get
-                Return m_originalDefinition.IsWindowsRuntimeEvent
+                Return _originalDefinition.IsWindowsRuntimeEvent
             End Get
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace

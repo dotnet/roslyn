@@ -1,11 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         Private Sub EmitUnaryOperatorExpression(expression As BoundUnaryOperator, used As Boolean)
             Debug.Assert((expression.OperatorKind And Not UnaryOperatorKind.IntrinsicOpMask) = 0 AndAlso expression.OperatorKind <> 0)
@@ -100,17 +101,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return
             End If
 
-            Select Case (operationKind And BinaryOperatorKind.OpMask)
-                Case BinaryOperatorKind.Add,
-                     BinaryOperatorKind.Subtract,
-                     BinaryOperatorKind.Multiply,
-                     BinaryOperatorKind.Modulo,
-                     BinaryOperatorKind.Divide,
-                     BinaryOperatorKind.IntegerDivide,
-                     BinaryOperatorKind.LeftShift,
-                     BinaryOperatorKind.RightShift
-                    EmitBinaryArithOperator(expression)
+            If IsCondOperator(operationKind) Then
+                EmitBinaryCondOperator(expression, True)
+            Else
+                EmitBinaryOperator(expression)
+            End If
 
+            EmitPopIfUnused(used)
+        End Sub
+
+        Private Function IsCondOperator(operationKind As BinaryOperatorKind) As Boolean
+            Select Case (operationKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.OrElse,
                      BinaryOperatorKind.AndAlso,
                      BinaryOperatorKind.Equals,
@@ -122,8 +123,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                      BinaryOperatorKind.Is,
                      BinaryOperatorKind.IsNot
 
-                    EmitBinaryCondOperator(expression, True)
+                    Return True
 
+                Case Else
+                    Return False
+            End Select
+        End Function
+
+        Private Sub EmitBinaryOperator(expression As BoundBinaryOperator)
+            ' Do not blow the stack due to a deep recursion on the left. 
+
+            Dim child As BoundExpression = expression.Left
+
+            If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                EmitBinaryOperatorSimple(expression)
+                Return
+            End If
+
+            Dim binary As BoundBinaryOperator = DirectCast(child, BoundBinaryOperator)
+
+            If IsCondOperator(binary.OperatorKind) Then
+                EmitBinaryOperatorSimple(expression)
+                Return
+            End If
+
+            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
+            stack.Push(expression)
+
+            Do
+                stack.Push(binary)
+                child = binary.Left
+
+                If child.Kind <> BoundKind.BinaryOperator OrElse child.ConstantValueOpt IsNot Nothing Then
+                    Exit Do
+                End If
+
+                binary = DirectCast(child, BoundBinaryOperator)
+
+                If IsCondOperator(binary.OperatorKind) Then
+                    Exit Do
+                End If
+            Loop
+
+            EmitExpression(child, True)
+
+            Do
+                binary = stack.Pop()
+
+                EmitExpression(binary.Right, True)
+
+                Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                    Case BinaryOperatorKind.And
+                        _builder.EmitOpCode(ILOpCode.And)
+
+                    Case BinaryOperatorKind.Xor
+                        _builder.EmitOpCode(ILOpCode.Xor)
+
+                    Case BinaryOperatorKind.Or
+                        _builder.EmitOpCode(ILOpCode.Or)
+
+                    Case Else
+                        EmitBinaryArithOperatorInstructionAndDowncast(binary)
+                End Select
+            Loop While binary IsNot expression
+
+            Debug.Assert(stack.Count = 0)
+            stack.Free()
+        End Sub
+
+        Private Sub EmitBinaryOperatorSimple(expression As BoundBinaryOperator)
+
+            Select Case (expression.OperatorKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.And
                     EmitExpression(expression.Left, True)
                     EmitExpression(expression.Right, True)
@@ -140,11 +210,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitOpCode(ILOpCode.Or)
 
                 Case Else
-                    ' BinaryOperatorKind.Power, BinaryOperatorKind.Like and BinaryOperatorKind.Concatenate should go here.
-                    Throw ExceptionUtilities.UnexpectedValue(operationKind)
+                    EmitBinaryArithOperator(expression)
             End Select
-
-            EmitPopIfUnused(used)
         End Sub
 
         Private Function OperatorHasSideEffects(expression As BoundBinaryOperator) As Boolean
@@ -171,6 +238,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitExpression(expression.Left, True)
             EmitExpression(expression.Right, True)
 
+            EmitBinaryArithOperatorInstructionAndDowncast(expression)
+        End Sub
+
+        Private Sub EmitBinaryArithOperatorInstructionAndDowncast(expression As BoundBinaryOperator)
             Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
             Dim opKind = expression.OperatorKind And BinaryOperatorKind.OpMask
 
@@ -262,6 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     End If
 
                 Case Else
+                    ' BinaryOperatorKind.Power, BinaryOperatorKind.Like and BinaryOperatorKind.Concatenate should go here.
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
@@ -313,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitCondBranch(condition.Left, fallThrough, stopSense)
             EmitCondExpr(condition.Right, sense)
 
-            ' if fallthrough was not initialized, no one is going to take that branch
+            ' if fall-through was not initialized, no-one is going to take that branch
             ' and we are done with Right on the stack
             If fallThrough Is Nothing Then
                 Return
@@ -331,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         'NOTE: odd positions assume inverted sense
-        Private Shared ReadOnly CompOpCodes As ILOpCode() = New ILOpCode() {ILOpCode.Clt, ILOpCode.Cgt, ILOpCode.Cgt, ILOpCode.Clt, ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un, ILOpCode.Clt, ILOpCode.Cgt_un, ILOpCode.Cgt, ILOpCode.Clt_un}
+        Private Shared ReadOnly s_compOpCodes As ILOpCode() = New ILOpCode() {ILOpCode.Clt, ILOpCode.Cgt, ILOpCode.Cgt, ILOpCode.Clt, ILOpCode.Clt_un, ILOpCode.Cgt_un, ILOpCode.Cgt_un, ILOpCode.Clt_un, ILOpCode.Clt, ILOpCode.Cgt_un, ILOpCode.Cgt, ILOpCode.Clt_un}
 
         'NOTE: The result of this should be a boolean on the stack.
         Private Sub EmitBinaryCondOperator(binOp As BoundBinaryOperator, sense As Boolean)
@@ -476,7 +548,7 @@ BinaryOperatorKindEqual:
                 End If
             End If
 
-            EmitBinaryCondOperatorHelper(CompOpCodes(opIdx), binOp.Left, binOp.Right, sense)
+            EmitBinaryCondOperatorHelper(s_compOpCodes(opIdx), binOp.Left, binOp.Right, sense)
 
             Return
         End Sub
@@ -527,7 +599,7 @@ BinaryOperatorKindEqual:
 
             Debug.Assert(condition.Type.SpecialType = SpecialType.System_Boolean)
 
-            If _optimizations = OptimizationLevel.Release AndAlso condition.IsConstant Then
+            If _ilEmitStyle = ILEmitStyle.Release AndAlso condition.IsConstant Then
                 Dim constValue = condition.ConstantValueOpt
                 Debug.Assert(constValue.IsBoolean)
                 Dim constant = constValue.BooleanValue

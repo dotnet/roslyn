@@ -32,7 +32,7 @@ public class Program
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
-            
+
             comp.VerifyEmitDiagnostics(
     // (10,5): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerable`1.GetEnumerator'
     //     {
@@ -127,7 +127,7 @@ public static class Program
                 );
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicSpecialType()
         {
@@ -163,7 +163,7 @@ namespace System
             ValidateSourceAndMetadata(source, validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicSpecialTypeMember()
         {
@@ -205,7 +205,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnSpecialType()
         {
@@ -241,7 +241,7 @@ namespace System
 
         // No special type members have type parameters that could (incorrectly) be constrained.
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownType()
         {
@@ -272,7 +272,7 @@ namespace System
             Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownType_Nested()
         {
@@ -309,7 +309,7 @@ namespace System
             ValidateSourceAndMetadata(string.Format(sourceTemplate, "public", "private"), validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void NonPublicWellKnownTypeMember()
         {
@@ -348,7 +348,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnWellKnownType()
         {
@@ -384,7 +384,7 @@ namespace System
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void GenericConstraintsOnWellKnownTypeMember()
         {
@@ -421,7 +421,7 @@ namespace System
             ValidateSourceAndMetadata(string.Format(sourceTemplate, " where T : new()"), validate);
         }
 
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         [Fact]
         public void PublicVersusInternalWellKnownType()
         {
@@ -500,9 +500,9 @@ namespace System
             var comp2 = CreateCompilation("", new[] { reference });
             validate(comp2);
         }
-        
+
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
             var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
@@ -516,7 +516,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
             var comp = CreateCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
@@ -531,10 +531,10 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypes()
-{
-            var refs = new []
+        {
+            var refs = new[]
             {
                 MscorlibRef_v4_0_30316_17626,
                 SystemRef_v4_0_30319_17929,
@@ -551,7 +551,6 @@ namespace System
             {
                 switch (wkt)
                 {
-                    case WellKnownType.My_InternalXmlHelper:
                     case WellKnownType.Microsoft_VisualBasic_Embedded:
                     case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators:
                         // Not applicable in C#.
@@ -569,7 +568,7 @@ namespace System
         }
 
         [Fact]
-        [WorkItem(530436, "DevDiv")]
+        [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypeMembers()
         {
             var refs = new[]
@@ -587,12 +586,11 @@ namespace System
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))
             {
-                switch(wkm)
+                switch (wkm)
                 {
-                    case WellKnownMember.Count: 
+                    case WellKnownMember.Count:
                         // Not a real value;
                         continue;
-                    case WellKnownMember.My_InternalXmlHelper__Value:
                     case WellKnownMember.Microsoft_VisualBasic_Embedded__ctor:
                     case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean:
                         // C# can't embed VB core.

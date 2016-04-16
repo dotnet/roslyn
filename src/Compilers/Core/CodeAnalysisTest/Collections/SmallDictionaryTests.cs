@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class SmallDictionaryTests
     {
-
         [Fact]
         public void SmallDictionaryAlwaysBalanced()
         {
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void TestSmallDict()
         {
             var ht = new SmallDictionary<int, int>();
-            const int elements = 150; 
+            const int elements = 150;
 
             for (int i = 0; i < elements; i += 10)
             {
@@ -105,6 +104,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Equal(keys[i], values[i]);
             }
         }
-
     }
 }

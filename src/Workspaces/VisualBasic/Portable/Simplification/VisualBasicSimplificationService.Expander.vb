@@ -3,10 +3,9 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Rename
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
@@ -203,12 +202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         .WithAdditionalAnnotations(Simplifier.Annotation)
                 End If
 
-                If (node.Expression.Kind = SyntaxKind.SimpleMemberAccessExpression) Then
+                If node.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = DirectCast(node.Expression, MemberAccessExpressionSyntax)
                     Dim targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name)
 
-                    If (Not targetSymbol Is Nothing And targetSymbol.IsReducedExtension()) Then
-                        newInvocationExpression = RewriteExtensionMethodInvocation(node, newInvocationExpression, DirectCast(node.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(newInvocationExpression.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(targetSymbol, IMethodSymbol))
+                    If Not targetSymbol Is Nothing And targetSymbol.IsReducedExtension() AndAlso memberAccess.Expression IsNot Nothing Then
+                        newInvocationExpression = RewriteExtensionMethodInvocation(node, newInvocationExpression, memberAccess.Expression, DirectCast(newInvocationExpression.Expression, MemberAccessExpressionSyntax).Expression, DirectCast(targetSymbol, IMethodSymbol))
                     End If
                 End If
 
@@ -216,11 +215,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Private Function RewriteExtensionMethodInvocation(
-            originalNode As InvocationExpressionSyntax,
-            rewrittenNode As InvocationExpressionSyntax,
-            oldThisExpression As ExpressionSyntax,
-            thisExpression As ExpressionSyntax,
-            reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
+                originalNode As InvocationExpressionSyntax,
+                rewrittenNode As InvocationExpressionSyntax,
+                oldThisExpression As ExpressionSyntax,
+                thisExpression As ExpressionSyntax,
+                reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
+
+                Dim originalMemberAccess = DirectCast(originalNode.Expression, MemberAccessExpressionSyntax)
+                If originalMemberAccess.GetCorrespondingConditionalAccessExpression IsNot Nothing Then
+                    ' Bail out on extension method invocations in conditional access expression.
+                    ' Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
+                    ' Issue https//github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
+                    Return rewrittenNode
+                End If
+
                 Dim expression = RewriteExtensionMethodInvocation(rewrittenNode, oldThisExpression, thisExpression, reducedExtensionMethod, typeNameFormatWithoutGenerics)
 
                 Dim binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
@@ -377,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim symbolForMemberAccess = _semanticModel.GetSymbolInfo(node).Symbol
 
-                If symbolForMemberAccess.IsModuleMember Then
+                If node.Expression IsNot Nothing AndAlso symbolForMemberAccess.IsModuleMember Then
                     Dim symbolForLeftPart = _semanticModel.GetSymbolInfo(node.Expression).Symbol
 
                     If Not symbolForMemberAccess.ContainingType.Equals(symbolForLeftPart) Then
@@ -467,6 +475,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             Return replacement
                         End If
 
+                        If replacement.IsKind(SyntaxKind.IdentifierName) Then
+                            Dim identifierReplacement = DirectCast(replacement, IdentifierNameSyntax)
+
+                            Dim newIdentifier = identifier.CopyAnnotationsTo(identifierReplacement.Identifier)
+
+                            If Me._annotationForReplacedAliasIdentifier IsNot Nothing Then
+                                newIdentifier = newIdentifier.WithAdditionalAnnotations(Me._annotationForReplacedAliasIdentifier)
+                            End If
+
+                            Dim aliasAnnotationInfo = AliasAnnotation.Create(aliasInfo.Name)
+                            newIdentifier = newIdentifier.WithAdditionalAnnotations(aliasAnnotationInfo)
+
+                            replacement = replacement.ReplaceToken(identifier, newIdentifier)
+
+                            replacement = newNode.CopyAnnotationsTo(replacement)
+
+                            Return replacement
+                        End If
+
                         Throw New NotImplementedException()
                     End If
                 End If
@@ -480,10 +507,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' 2. If it's an attribute, make sure the identifier matches the attribute's class name without the attribute suffix.
                 '
                 If originalSimpleName.GetAncestor(Of AttributeSyntax)() IsNot Nothing Then
-                    If symbol.IsConstructor() AndAlso symbol.ContainingType.IsAttribute() Then
+                    If symbol.IsConstructor() AndAlso symbol.ContainingType?.IsAttribute() Then
                         symbol = symbol.ContainingType
                         Dim name = symbol.Name
-                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText))
+                        Debug.Assert(name.StartsWith(originalSimpleName.Identifier.ValueText, StringComparison.Ordinal))
 
                         ' Note, VB can't escape attribute names like C#, so we actually need to expand to the symbol name
                         ' without a suffix, see http://msdn.microsoft.com/en-us/library/aa711866(v=vs.71).aspx
@@ -554,7 +581,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    symbol.Kind = SymbolKind.Field OrElse
                    symbol.Kind = SymbolKind.Property Then
 
-                    If symbol.IsStatic OrElse (TypeOf (parent) Is CrefReferenceSyntax) Then
+                    If symbol.IsStatic OrElse
+                       (TypeOf (parent) Is CrefReferenceSyntax) OrElse
+                       _semanticModel.SyntaxTree.IsNameOfContext(originalSimpleName.SpanStart, _cancellationToken) Then
+
                         newNode = FullyQualifyIdentifierName(
                             symbol,
                             newNode,
@@ -592,14 +622,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If DirectCast(symbol, IMethodSymbol).TypeArguments.Length <> 0 Then
                         Dim typeArguments = DirectCast(symbol, IMethodSymbol).TypeArguments
 
-                        newNode = SyntaxFactory.GenericName(
+                        Dim genericName = SyntaxFactory.GenericName(
                                         DirectCast(newNode, IdentifierNameSyntax).Identifier,
                                         SyntaxFactory.TypeArgumentList(
                                             SyntaxFactory.SeparatedList(typeArguments.Select(Function(p) SyntaxFactory.ParseTypeName(p.ToDisplayParts(typeNameFormatWithGenerics).ToDisplayString()))))) _
                             .WithLeadingTrivia(newNode.GetLeadingTrivia()) _
                             .WithTrailingTrivia(newNode.GetTrailingTrivia()) _
                             .WithAdditionalAnnotations(Simplifier.Annotation)
-
+                        genericName = newNode.CopyAnnotationsTo(genericName)
+                        Return genericName
                     End If
                 End If
 

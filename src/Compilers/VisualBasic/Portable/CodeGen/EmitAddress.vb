@@ -1,11 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         ' VB has additional, stronger than CLR requirements on whether a reference to an item
         ' can be taken. 
@@ -69,6 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' do nothing receiver ref must be already pushed
                     Debug.Assert(Not expression.Type.IsReferenceType)
                     Debug.Assert(Not expression.Type.IsValueType)
+
+                Case BoundKind.ComplexConditionalAccessReceiver
+                    EmitComplexConditionalAccessReceiverAddress(DirectCast(expression, BoundComplexConditionalAccessReceiver))
 
                 Case BoundKind.Parameter
                     EmitParameterAddress(DirectCast(expression, BoundParameter))
@@ -228,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return Not IsStackLocal(local) OrElse local.IsByRef
 
                 Case BoundKind.Dup
-                    ' For a dupped locals we assume that if the dup 
+                    ' For a dupped local we assume that if the dup 
                     ' is created for byref local it does have home
                     Return DirectCast(expression, BoundDup).IsReference
 
@@ -241,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Special HasHome for fields. Fields have homes when they are writeable.
+        ''' Special HasHome for fields. Fields have homes when they are writable.
         ''' </summary>
         Private Function HasHome(fieldAccess As BoundFieldAccess) As Boolean
             Dim field = fieldAccess.FieldSymbol
@@ -269,11 +273,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Checks if it is allowed to take a writeable reference to expression according to VB rules.
+        ''' Checks if it is allowed to take a writable reference to expression according to VB rules.
         ''' </summary>
         Private Function AllowedToTakeRef(expression As BoundExpression, addressKind As AddressKind) As Boolean
 
-            If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder Then
+            If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder OrElse
+               expression.Kind = BoundKind.ComplexConditionalAccessReceiver Then
                 Return addressKind = AddressKind.ReadOnly OrElse addressKind = AddressKind.Immutable
             End If
 
@@ -316,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         ''' <summary>
-        ''' Checks if it is allowed to take a writeable reference to expression according to VB rules.
+        ''' Checks if it is allowed to take a writable reference to expression according to VB rules.
         ''' </summary>
         Private Function AllowedToTakeRef(boundLocal As BoundLocal, addressKind As AddressKind) As Boolean
             Debug.Assert(addressKind <> CodeGenerator.AddressKind.Immutable, "immutable address is always ok")
@@ -375,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' can mutate field since its parent has no home and we will be dealing with a copy
                             Return True
                         Else
-                            ' this field access is readonly due to languge reasons -
+                            ' this field access is readonly due to language reasons -
                             ' most likely topmost receiver is a readonly local or a runtime const
                             Return False
                         End If
@@ -398,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Readonly)
             End If
 
-            If (arrayAccess.Indices.Length = 1) Then
+            If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 _builder.EmitOpCode(ILOpCode.Ldelema)
                 EmitSymbolToken(elementType, arrayAccess.Syntax)
             Else
@@ -437,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' receiver with readonly intent. For the value types it is an address of the receiver.
         ''' 
         ''' isAccessConstrained indicates that receiver is a target of a constrained callvirt
-        ''' in such case it is unnecessary to box a receier that is typed to a type parameter
+        ''' in such case it is unnecessary to box a receiver that is typed to a type parameter
         ''' 
         ''' May introduce a temp which it will return. (otherwise returns null)
         ''' </summary>

@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Lazily filled by GetSpecialType method.
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_LazySpecialTypes() As NamedTypeSymbol
+        Private _lazySpecialTypes() As NamedTypeSymbol
 
         ''' <summary>
         ''' How many Cor types have we cached so far.
         ''' </summary>
-        Private m_CachedSpecialTypes As Integer
+        Private _cachedSpecialTypes As Integer
 
         ''' <summary>
         ''' Lookup declaration for predefined CorLib type in this Assembly. Only should be
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 #End If
 
-            If m_LazySpecialTypes Is Nothing OrElse m_LazySpecialTypes(type) Is Nothing Then
+            If _lazySpecialTypes Is Nothing OrElse _lazySpecialTypes(type) Is Nothing Then
 
                 Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
 
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 RegisterDeclaredSpecialType(result)
             End If
 
-            Return m_LazySpecialTypes(type)
+            Return _lazySpecialTypes(type)
 
         End Function
 
@@ -69,18 +69,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(corType.ContainingModule.Ordinal = 0)
             Debug.Assert(Me.CorLibrary Is Me)
 
-            If (m_LazySpecialTypes Is Nothing) Then
-                Interlocked.CompareExchange(m_LazySpecialTypes,
+            If (_lazySpecialTypes Is Nothing) Then
+                Interlocked.CompareExchange(_lazySpecialTypes,
                     New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
             End If
 
-            If (Interlocked.CompareExchange(m_LazySpecialTypes(typeId), corType, Nothing) IsNot Nothing) Then
-                Debug.Assert(corType Is m_LazySpecialTypes(typeId) OrElse
+            If (Interlocked.CompareExchange(_lazySpecialTypes(typeId), corType, Nothing) IsNot Nothing) Then
+                Debug.Assert(corType Is _lazySpecialTypes(typeId) OrElse
                                         (corType.Kind = SymbolKind.ErrorType AndAlso
-                                        m_LazySpecialTypes(typeId).Kind = SymbolKind.ErrorType))
+                                        _lazySpecialTypes(typeId).Kind = SymbolKind.ErrorType))
             Else
-                Interlocked.Increment(m_CachedSpecialTypes)
-                Debug.Assert(m_CachedSpecialTypes > 0 AndAlso m_CachedSpecialTypes <= SpecialType.Count)
+                Interlocked.Increment(_cachedSpecialTypes)
+                Debug.Assert(_cachedSpecialTypes > 0 AndAlso _cachedSpecialTypes <= SpecialType.Count)
             End If
         End Sub
 
@@ -90,29 +90,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property KeepLookingForDeclaredSpecialTypes As Boolean
             Get
-                Return Me.CorLibrary Is Me AndAlso m_CachedSpecialTypes < SpecialType.Count
+                Return Me.CorLibrary Is Me AndAlso _cachedSpecialTypes < SpecialType.Count
             End Get
         End Property
 
-        Private m_lazyTypeNames As ICollection(Of String)
-        Private m_lazyNamespaceNames As ICollection(Of String)
+        Private _lazyTypeNames As ICollection(Of String)
+        Private _lazyNamespaceNames As ICollection(Of String)
 
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
-                If m_lazyTypeNames Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyTypeNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.TypeNames), Nothing)
+                If _lazyTypeNames Is Nothing Then
+                    Interlocked.CompareExchange(_lazyTypeNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.TypeNames), Nothing)
                 End If
 
-                Return m_lazyTypeNames
+                Return _lazyTypeNames
             End Get
         End Property
 
         Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
             Get
-                If m_lazyNamespaceNames Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyNamespaceNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.NamespaceNames), Nothing)
+                If _lazyNamespaceNames Is Nothing Then
+                    Interlocked.CompareExchange(_lazyNamespaceNames, UnionCollection(Of String).Create(Me.Modules, Function(m) m.NamespaceNames), Nothing)
                 End If
-                Return m_lazyNamespaceNames
+                Return _lazyNamespaceNames
             End Get
         End Property
 
@@ -148,14 +148,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         'EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
         'internals access to us to the conclusion reached.
-        Private m_AssembliesToWhichInternalAccessHasBeenAnalyzed As ConcurrentDictionary(Of AssemblySymbol, IVTConclusion)
+        Private _assembliesToWhichInternalAccessHasBeenAnalyzed As ConcurrentDictionary(Of AssemblySymbol, IVTConclusion)
 
         Private ReadOnly Property AssembliesToWhichInternalAccessHasBeenDetermined As ConcurrentDictionary(Of AssemblySymbol, IVTConclusion)
             Get
-                If m_AssembliesToWhichInternalAccessHasBeenAnalyzed Is Nothing Then
-                    Interlocked.CompareExchange(m_AssembliesToWhichInternalAccessHasBeenAnalyzed, New ConcurrentDictionary(Of AssemblySymbol, IVTConclusion), Nothing)
+                If _assembliesToWhichInternalAccessHasBeenAnalyzed Is Nothing Then
+                    Interlocked.CompareExchange(_assembliesToWhichInternalAccessHasBeenAnalyzed, New ConcurrentDictionary(Of AssemblySymbol, IVTConclusion), Nothing)
                 End If
-                Return m_AssembliesToWhichInternalAccessHasBeenAnalyzed
+                Return _assembliesToWhichInternalAccessHasBeenAnalyzed
             End Get
         End Property
 

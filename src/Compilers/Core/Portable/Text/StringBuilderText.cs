@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Underlying string on which this SourceText instance is based
         /// </summary>
-        private readonly StringBuilder builder;
+        private readonly StringBuilder _builder;
 
-        private readonly Encoding encodingOpt;
+        private readonly Encoding _encodingOpt;
 
         public StringBuilderText(StringBuilder builder, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
              : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(builder != null);
 
-            this.builder = builder;
-            this.encodingOpt = encodingOpt;
+            _builder = builder;
+            _encodingOpt = encodingOpt;
         }
 
         public override Encoding Encoding
         {
-            get { return encodingOpt; }
+            get { return _encodingOpt; }
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal StringBuilder Builder
         {
-            get { return this.builder; }
+            get { return _builder; }
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public override int Length
         {
-            get { return this.builder.Length; }
+            get { return _builder.Length; }
         }
 
         /// <summary>
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (position < 0 || position >= this.builder.Length)
+                if (position < 0 || position >= _builder.Length)
                 {
-                    throw new ArgumentOutOfRangeException("position");
+                    throw new ArgumentOutOfRangeException(nameof(position));
                 }
 
-                return this.builder[position];
+                return _builder[position];
             }
         }
 
@@ -74,17 +74,17 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
-            if (span.End > this.builder.Length)
+            if (span.End > _builder.Length)
             {
-                throw new ArgumentOutOfRangeException("span");
+                throw new ArgumentOutOfRangeException(nameof(span));
             }
 
-            return this.builder.ToString(span.Start, span.Length);
+            return _builder.ToString(span.Start, span.Length);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            this.builder.CopyTo(sourceIndex, destination, destinationIndex, count);
+            _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
     }
 }

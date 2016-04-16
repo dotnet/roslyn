@@ -10,6 +10,36 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
 {
     public class FusionAssemblyIdentityTests
     {
+        /// <summary>
+        /// Converts <see cref="IAssemblyName"/> to <see cref="AssemblyName"/> with possibly missing name components.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="AssemblyName"/> whose fields are be null if not present in <paramref name="nameObject"/>.
+        /// </returns>
+        internal static AssemblyName ToAssemblyName(FusionAssemblyIdentity.IAssemblyName nameObject)
+        {
+            var result = new AssemblyName();
+            result.Name = FusionAssemblyIdentity.GetName(nameObject);
+            result.Version = FusionAssemblyIdentity.GetVersion(nameObject);
+
+            var cultureName = FusionAssemblyIdentity.GetCulture(nameObject);
+            result.CultureInfo = (cultureName != null) ? new CultureInfo(cultureName) : null;
+
+            byte[] publicKey = FusionAssemblyIdentity.GetPublicKey(nameObject);
+            if (publicKey != null && publicKey.Length != 0)
+            {
+                result.SetPublicKey(publicKey);
+            }
+            else
+            {
+                result.SetPublicKeyToken(FusionAssemblyIdentity.GetPublicKeyToken(nameObject));
+            }
+
+            result.Flags = FusionAssemblyIdentity.GetFlags(nameObject);
+            result.ContentType = FusionAssemblyIdentity.GetContentType(nameObject);
+            return result;
+        }
+
         private void RoundTrip(AssemblyName name, bool testFullName = true)
         {
             AssemblyName rtName;
@@ -20,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
                 string fullName = name.FullName;
 
                 obj = FusionAssemblyIdentity.ToAssemblyNameObject(fullName);
-                rtName = FusionAssemblyIdentity.ToAssemblyName(obj);
+                rtName = ToAssemblyName(obj);
                 Assert.Equal(name.Name, rtName.Name);
                 Assert.Equal(name.Version, rtName.Version);
                 Assert.Equal(name.CultureInfo, rtName.CultureInfo);
@@ -33,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             }
 
             obj = FusionAssemblyIdentity.ToAssemblyNameObject(name);
-            rtName = FusionAssemblyIdentity.ToAssemblyName(obj);
+            rtName = ToAssemblyName(obj);
             Assert.Equal(name.Name, rtName.Name);
             Assert.Equal(name.Version, rtName.Version);
             Assert.Equal(name.CultureInfo, rtName.CultureInfo);
@@ -120,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
         public void FusionToAssemblyName()
         {
             var nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib");
-            var name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+            var name = ToAssemblyName(nameObject);
 
             Assert.Equal("mscorlib", name.Name);
             Assert.Null(name.Version);
@@ -130,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(AssemblyContentType.Default, name.ContentType);
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib, Version=2.0.0.0");
-            name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+            name = ToAssemblyName(nameObject);
             Assert.Equal("mscorlib", name.Name);
             Assert.Equal(new Version(2, 0, 0, 0), name.Version);
             Assert.Null(name.CultureInfo);
@@ -139,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(AssemblyContentType.Default, name.ContentType);
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib, Version=2.0.0.0, Culture=neutral");
-            name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+            name = ToAssemblyName(nameObject);
             Assert.Equal("mscorlib", name.Name);
             Assert.Equal(new Version(2, 0, 0, 0), name.Version);
             Assert.Equal(name.CultureInfo, CultureInfo.InvariantCulture);
@@ -148,7 +178,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(AssemblyContentType.Default, name.ContentType);
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib, Version=2.0.0.0, Culture=en-US");
-            name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+            name = ToAssemblyName(nameObject);
             Assert.Equal("mscorlib", name.Name);
             Assert.Equal(new Version(2, 0, 0, 0), name.Version);
             Assert.NotNull(name.CultureInfo);
@@ -158,7 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             Assert.Equal(AssemblyContentType.Default, name.ContentType);
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("Windows, Version=255.255.255.255, ContentType=WindowsRuntime");
-            name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+            name = ToAssemblyName(nameObject);
             Assert.Equal("Windows", name.Name);
             Assert.Equal(new Version(255, 255, 255, 255), name.Version);
             Assert.Null(name.CultureInfo);
@@ -168,11 +198,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib, Version=2.0.0.0, Culture=nonsense");
             Assert.NotNull(nameObject);
-            Assert.Throws<CultureNotFoundException>(() => FusionAssemblyIdentity.ToAssemblyName(nameObject));
+            Assert.Throws<CultureNotFoundException>(() => ToAssemblyName(nameObject));
 
             nameObject = FusionAssemblyIdentity.ToAssemblyNameObject("mscorlib, Version=2.0.0.0, Culture=null");
             Assert.NotNull(nameObject);
-            Assert.Throws<CultureNotFoundException>(() => FusionAssemblyIdentity.ToAssemblyName(nameObject));
+            Assert.Throws<CultureNotFoundException>(() => ToAssemblyName(nameObject));
 
             Assert.Throws<CultureNotFoundException>(() => new AssemblyName("mscorlib, Version=2.0.0.0, Culture=nonsense"));
             Assert.Throws<CultureNotFoundException>(() => new AssemblyName("mscorlib, Version=2.0.0.0, Culture=null"));
@@ -183,7 +213,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
             foreach (char c in AssemblyIdentityTests.ClrInvalidCharacters)
             {
                 nameObject = FusionAssemblyIdentity.ToAssemblyNameObject(new AssemblyName { Name = c.ToString() });
-                name = FusionAssemblyIdentity.ToAssemblyName(nameObject);
+                name = ToAssemblyName(nameObject);
                 Assert.Equal(c.ToString(), name.Name);
                 Assert.Throws<FileLoadException>(() => name.FullName);
             }

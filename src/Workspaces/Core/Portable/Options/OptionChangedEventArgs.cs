@@ -6,17 +6,17 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed class OptionChangedEventArgs : EventArgs
     {
-        private readonly OptionKey optionKey;
-        private readonly object value;
+        private readonly OptionKey _optionKey;
+        private readonly object _value;
 
         internal OptionChangedEventArgs(OptionKey optionKey, object value)
         {
-            this.optionKey = optionKey;
-            this.value = value;
+            _optionKey = optionKey;
+            _value = value;
         }
 
-        public IOption Option { get { return optionKey.Option; } }
-        public string Language { get { return optionKey.Language; } }
-        public object Value { get { return value; } }
+        public IOption Option { get { return _optionKey.Option; } }
+        public string Language { get { return _optionKey.Language; } }
+        public object Value { get { return _value; } }
     }
 }

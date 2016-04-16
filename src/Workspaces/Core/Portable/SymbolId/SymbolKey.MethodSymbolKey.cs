@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis
     {
         private class MethodSymbolKey : AbstractSymbolKey<MethodSymbolKey>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string metadataName;
-            private readonly int arity;
-            private readonly SymbolKey[] typeArgumentKeysOpt;
-            private readonly RefKind[] refKinds;
-            private readonly SymbolKey[] originalParameterTypeKeys;
-            private readonly bool isPartialMethodImplementationPart;
-            private readonly SymbolKey returnType;
+            private readonly SymbolKey _containerKey;
+            private readonly string _metadataName;
+            private readonly int _arity;
+            private readonly SymbolKey[] _typeArgumentKeysOpt;
+            private readonly RefKind[] _refKinds;
+            private readonly SymbolKey[] _originalParameterTypeKeys;
+            private readonly bool _isPartialMethodImplementationPart;
+            private readonly SymbolKey _returnType;
 
             internal MethodSymbolKey(IMethodSymbol symbol, Visitor visitor)
             {
@@ -32,30 +32,30 @@ namespace Microsoft.CodeAnalysis
                     visitor.SymbolCache.Add(typeParameter, symbolId);
                 }
 
-                this.isPartialMethodImplementationPart = symbol.PartialDefinitionPart != null;
+                _isPartialMethodImplementationPart = symbol.PartialDefinitionPart != null;
 
-                this.containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                this.metadataName = symbol.MetadataName;
-                this.arity = symbol.Arity;
-                this.refKinds = symbol.Parameters.Select(p => p.RefKind).ToArray();
-                this.originalParameterTypeKeys = symbol.OriginalDefinition.Parameters.Select(p => GetOrCreate(p.Type, visitor)).ToArray();
+                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
+                _metadataName = symbol.MetadataName;
+                _arity = symbol.Arity;
+                _refKinds = symbol.Parameters.Select(p => p.RefKind).ToArray();
+                _originalParameterTypeKeys = symbol.OriginalDefinition.Parameters.Select(p => GetOrCreate(p.Type, visitor)).ToArray();
 
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
-                    this.typeArgumentKeysOpt = symbol.TypeArguments.Select(t => GetOrCreate(t, visitor)).ToArray();
+                    _typeArgumentKeysOpt = symbol.TypeArguments.Select(t => GetOrCreate(t, visitor)).ToArray();
                 }
 
                 // If this is conversion operator, we must also compare the return type. Otherwise, we'll return
                 // an ambiguous result in the case that there are multiple conversions from the same type to different
                 // types.
-                this.returnType = symbol.MethodKind == MethodKind.Conversion
+                _returnType = symbol.MethodKind == MethodKind.Conversion
                     ? GetOrCreate(symbol.ReturnType, visitor)
                     : null;
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var container = containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
 
                 var methods = GetAllSymbols<INamedTypeSymbol>(container).SelectMany(t => Resolve(compilation, t, ignoreAssemblyKey, cancellationToken));
                 return CreateSymbolInfo(methods);
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis
                 var comparisonOptions = new ComparisonOptions(compilation.IsCaseSensitive, ignoreAssemblyKey, compareMethodTypeParametersByName: true);
                 ITypeSymbol[] typeArguments = null;
 
-                if (typeArgumentKeysOpt != null)
+                if (_typeArgumentKeysOpt != null)
                 {
-                    typeArguments = typeArgumentKeysOpt.Select(a => a.Resolve(compilation).Symbol as ITypeSymbol).ToArray();
+                    typeArguments = _typeArgumentKeysOpt.Select(a => a.Resolve(compilation, cancellationToken: cancellationToken).Symbol as ITypeSymbol).ToArray();
 
                     if (typeArguments.Any(a => a == null))
                     {
@@ -79,21 +79,21 @@ namespace Microsoft.CodeAnalysis
                 foreach (var method in container.GetMembers().OfType<IMethodSymbol>())
                 {
                     // Quick checks first
-                    if (method.MetadataName != this.metadataName || method.Arity != this.arity || method.Parameters.Length != this.originalParameterTypeKeys.Length)
+                    if (method.MetadataName != _metadataName || method.Arity != _arity || method.Parameters.Length != _originalParameterTypeKeys.Length)
                     {
                         continue;
                     }
 
                     // Is this a conversion operator? If so, we must also compare the return type.
-                    if (this.returnType != null)
+                    if (_returnType != null)
                     {
-                        if (!this.returnType.Equals(SymbolKey.Create(method.ReturnType, compilation, cancellationToken), comparisonOptions))
+                        if (!_returnType.Equals(SymbolKey.Create(method.ReturnType, compilation, cancellationToken), comparisonOptions))
                         {
                             continue;
                         }
                     }
 
-                    if (!ParametersMatch(comparisonOptions, compilation, method.OriginalDefinition.Parameters, refKinds, originalParameterTypeKeys, cancellationToken))
+                    if (!ParametersMatch(comparisonOptions, compilation, method.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken))
                     {
                         continue;
                     }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
                     // It matches, so let's return it, but we might have to do some construction first
                     var methodToReturn = method;
 
-                    if (isPartialMethodImplementationPart)
+                    if (_isPartialMethodImplementationPart)
                     {
                         methodToReturn = methodToReturn.PartialImplementationPart ?? methodToReturn;
                     }
@@ -119,25 +119,25 @@ namespace Microsoft.CodeAnalysis
             {
                 var comparer = SymbolKeyComparer.GetComparer(options.IgnoreCase, options.IgnoreAssemblyKey, compareMethodTypeParametersByName: true);
                 return
-                    other.arity == this.arity &&
-                    other.refKinds.Length == this.refKinds.Length &&
-                    other.isPartialMethodImplementationPart == this.isPartialMethodImplementationPart &&
-                    Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    other.containerKey.Equals(this.containerKey, options) &&
-                    other.refKinds.SequenceEqual(this.refKinds) &&
-                    other.originalParameterTypeKeys.SequenceEqual(this.originalParameterTypeKeys, comparer) &&
-                    SequenceEquals(other.typeArgumentKeysOpt, this.typeArgumentKeysOpt, comparer);
+                    other._arity == _arity &&
+                    other._refKinds.Length == _refKinds.Length &&
+                    other._isPartialMethodImplementationPart == _isPartialMethodImplementationPart &&
+                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    other._containerKey.Equals(_containerKey, options) &&
+                    other._refKinds.SequenceEqual(_refKinds) &&
+                    other._originalParameterTypeKeys.SequenceEqual(_originalParameterTypeKeys, comparer) &&
+                    SequenceEquals(other._typeArgumentKeysOpt, _typeArgumentKeysOpt, comparer);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 // TODO: Consider hashing the parameters as well
                 return
-                    Hash.Combine(this.arity,
-                    Hash.Combine(this.refKinds.Length,
-                    Hash.Combine(this.isPartialMethodImplementationPart,
-                    Hash.Combine(GetHashCode(options.IgnoreCase, this.metadataName),
-                                 this.containerKey.GetHashCode(options)))));
+                    Hash.Combine(_arity,
+                    Hash.Combine(_refKinds.Length,
+                    Hash.Combine(_isPartialMethodImplementationPart,
+                    Hash.Combine(GetHashCode(options.IgnoreCase, _metadataName),
+                                 _containerKey.GetHashCode(options)))));
             }
         }
     }

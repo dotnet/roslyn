@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (!SyntaxFacts.IsAnyToken(kind))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), "kind");
+                    throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
                 }
 
                 return CreateMissing(kind, null, null);
             }
 
-            return TokensWithNoTrivia[(int)kind].Value;
+            return s_tokensWithNoTrivia[(int)kind].Value;
         }
 
         internal static SyntaxToken Create(SyntaxKind kind, CSharpSyntaxNode leading, CSharpSyntaxNode trailing)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (!SyntaxFacts.IsAnyToken(kind))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), "kind");
+                    throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
                 }
 
                 return CreateMissing(kind, leading, trailing);
@@ -120,21 +120,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (trailing == null)
                 {
-                    return TokensWithNoTrivia[(int)kind].Value;
+                    return s_tokensWithNoTrivia[(int)kind].Value;
                 }
                 else if (trailing == SyntaxFactory.Space)
                 {
-                    return TokensWithSingleTrailingSpace[(int)kind].Value;
+                    return s_tokensWithSingleTrailingSpace[(int)kind].Value;
                 }
                 else if (trailing == SyntaxFactory.CarriageReturnLineFeed)
                 {
-                    return TokensWithSingleTrailingCRLF[(int)kind].Value;
+                    return s_tokensWithSingleTrailingCRLF[(int)kind].Value;
                 }
             }
 
             if (leading == SyntaxFactory.ElasticZeroSpace && trailing == SyntaxFactory.ElasticZeroSpace)
             {
-                return TokensWithElasticTrivia[(int)kind].Value;
+                return s_tokensWithElasticTrivia[(int)kind].Value;
             }
 
             return new SyntaxTokenWithTrivia(kind, leading, trailing);
@@ -149,25 +149,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal static readonly SyntaxKind LastTokenWithWellKnownText = SyntaxKind.EndOfFileToken;
 
         // TODO: eliminate the blank space before the first interesting element?
-        private static readonly ArrayElement<SyntaxToken>[] TokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
-        private static readonly ArrayElement<SyntaxToken>[] TokensWithElasticTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
-        private static readonly ArrayElement<SyntaxToken>[] TokensWithSingleTrailingSpace = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
-        private static readonly ArrayElement<SyntaxToken>[] TokensWithSingleTrailingCRLF = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_tokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_tokensWithElasticTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingSpace = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingCRLF = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
 
         static SyntaxToken()
         {
             for (var kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
             {
-                TokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
-                TokensWithElasticTrivia[(int)kind].Value = new SyntaxTokenWithTrivia(kind, SyntaxFactory.ElasticZeroSpace, SyntaxFactory.ElasticZeroSpace);
-                TokensWithSingleTrailingSpace[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.Space);
-                TokensWithSingleTrailingCRLF[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.CarriageReturnLineFeed);
+                s_tokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
+                s_tokensWithElasticTrivia[(int)kind].Value = new SyntaxTokenWithTrivia(kind, SyntaxFactory.ElasticZeroSpace, SyntaxFactory.ElasticZeroSpace);
+                s_tokensWithSingleTrailingSpace[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.Space);
+                s_tokensWithSingleTrailingCRLF[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.CarriageReturnLineFeed);
             }
         }
 
         internal static IEnumerable<SyntaxToken> GetWellKnownTokens()
         {
-            foreach (var element in TokensWithNoTrivia)
+            foreach (var element in s_tokensWithNoTrivia)
             {
                 if (element.Value != null)
                 {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in TokensWithElasticTrivia)
+            foreach (var element in s_tokensWithElasticTrivia)
             {
                 if (element.Value != null)
                 {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in TokensWithSingleTrailingSpace)
+            foreach (var element in s_tokensWithSingleTrailingSpace)
             {
                 if (element.Value != null)
                 {
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in TokensWithSingleTrailingCRLF)
+            foreach (var element in s_tokensWithSingleTrailingCRLF)
             {
                 if (element.Value != null)
                 {

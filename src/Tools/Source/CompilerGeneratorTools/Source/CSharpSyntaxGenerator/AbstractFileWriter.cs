@@ -9,56 +9,56 @@ namespace CSharpSyntaxGenerator
 {
     internal abstract class AbstractFileWriter
     {
-        private readonly TextWriter writer;
-        private readonly Tree tree;
-        private readonly IDictionary<string, string> parentMap;
-        private readonly ILookup<string, string> childMap;
-        private readonly IDictionary<string, Node> nodeMap;
+        private readonly TextWriter _writer;
+        private readonly Tree _tree;
+        private readonly IDictionary<string, string> _parentMap;
+        private readonly ILookup<string, string> _childMap;
+        private readonly IDictionary<string, Node> _nodeMap;
 
         private const int INDENT_SIZE = 4;
-        private int indentLevel = 0;
-        private bool needIndent = true;
+        private int _indentLevel;
+        private bool _needIndent = true;
 
         protected AbstractFileWriter(TextWriter writer, Tree tree)
         {
-            this.writer = writer;
-            this.tree = tree;
-            this.nodeMap = tree.Types.OfType<Node>().ToDictionary(n => n.Name);
-            this.parentMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
-            this.parentMap.Add(tree.Root, null);
-            this.childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
+            _writer = writer;
+            _tree = tree;
+            _nodeMap = tree.Types.OfType<Node>().ToDictionary(n => n.Name);
+            _parentMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
+            _parentMap.Add(tree.Root, null);
+            _childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
         }
 
-        protected IDictionary<string, string> ParentMap { get { return parentMap; } }
-        protected ILookup<string, string> ChildMap { get { return childMap; } }
-        protected Tree Tree { get { return tree; } }
+        protected IDictionary<string, string> ParentMap { get { return _parentMap; } }
+        protected ILookup<string, string> ChildMap { get { return _childMap; } }
+        protected Tree Tree { get { return _tree; } }
 
         #region Output helpers
 
         protected void Indent()
         {
-            indentLevel++;
+            _indentLevel++;
         }
 
         protected void Unindent()
         {
-            if (indentLevel <= 0)
+            if (_indentLevel <= 0)
             {
                 throw new InvalidOperationException("Cannot unindent from base level");
             }
-            indentLevel--;
+            _indentLevel--;
         }
 
         protected void Write(string msg)
         {
             WriteIndentIfNeeded();
-            writer.Write(msg);
+            _writer.Write(msg);
         }
 
         protected void Write(string msg, params object[] args)
         {
             WriteIndentIfNeeded();
-            writer.Write(msg, args);
+            _writer.Write(msg, args);
         }
 
         protected void WriteLine()
@@ -69,23 +69,23 @@ namespace CSharpSyntaxGenerator
         protected void WriteLine(string msg)
         {
             WriteIndentIfNeeded();
-            writer.WriteLine(msg);
-            needIndent = true; //need an indent after each line break
+            _writer.WriteLine(msg);
+            _needIndent = true; //need an indent after each line break
         }
 
         protected void WriteLine(string msg, params object[] args)
         {
             WriteIndentIfNeeded();
-            writer.WriteLine(msg, args);
-            needIndent = true; //need an indent after each line break
+            _writer.WriteLine(msg, args);
+            _needIndent = true; //need an indent after each line break
         }
 
         private void WriteIndentIfNeeded()
         {
-            if (needIndent)
+            if (_needIndent)
             {
-                writer.Write(new string(' ', indentLevel * INDENT_SIZE));
-                needIndent = false;
+                _writer.Write(new string(' ', _indentLevel * INDENT_SIZE));
+                _needIndent = false;
             }
         }
 
@@ -131,12 +131,12 @@ namespace CSharpSyntaxGenerator
 
         protected static bool IsSeparatedNodeList(string typeName)
         {
-            return typeName.StartsWith("SeparatedSyntaxList<");
+            return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsNodeList(string typeName)
         {
-            return typeName.StartsWith("SyntaxList<");
+            return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsAnyNodeList(string typeName)
@@ -171,7 +171,7 @@ namespace CSharpSyntaxGenerator
             if (typeName == derivedTypeName)
                 return true;
             string baseType;
-            if (derivedTypeName != null && this.parentMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }
@@ -185,13 +185,13 @@ namespace CSharpSyntaxGenerator
 
         protected bool IsNode(string typeName)
         {
-            return this.parentMap.ContainsKey(typeName);
+            return _parentMap.ContainsKey(typeName);
         }
 
         protected Node GetNode(string typeName)
         {
             Node node;
-            return this.nodeMap.TryGetValue(typeName, out node) ? node : null;
+            return _nodeMap.TryGetValue(typeName, out node) ? node : null;
         }
 
         protected static bool IsOptional(Field f)
@@ -234,13 +234,13 @@ namespace CSharpSyntaxGenerator
 
         protected string StripNode(string name)
         {
-            return (tree.Root.EndsWith("Node")) ? tree.Root.Substring(0, tree.Root.Length - 4) : tree.Root;
+            return (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
         }
 
         protected string StripRoot(string name)
         {
-            var root = StripNode(tree.Root);
-            if (name.EndsWith(root))
+            var root = StripNode(_tree.Root);
+            if (name.EndsWith(root, StringComparison.Ordinal))
             {
                 return name.Substring(0, name.Length - root.Length);
             }
@@ -249,7 +249,7 @@ namespace CSharpSyntaxGenerator
 
         protected static string StripPost(string name, string post)
         {
-            return name.EndsWith(post)
+            return name.EndsWith(post, StringComparison.Ordinal)
                 ? name.Substring(0, name.Length - post.Length)
                 : name;
         }

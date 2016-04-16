@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal void ValidateParameterNameConflicts(
-            ImmutableArray<TypeParameterSymbol> typeParameters, 
-            ImmutableArray<ParameterSymbol> parameters, 
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ImmutableArray<ParameterSymbol> parameters,
             DiagnosticBag diagnostics)
         {
             PooledHashSet<string> tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
-                foreach(var tp in typeParameters)
+                foreach (var tp in typeParameters)
                 {
                     var name = tp.Name;
                     if (string.IsNullOrEmpty(name))
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // no local scopes enclose members
                 if (binder is InContainerBinder || error)
                 {
-                    break; 
+                    break;
                 }
 
                 var scope = binder as LocalScopeBinder;

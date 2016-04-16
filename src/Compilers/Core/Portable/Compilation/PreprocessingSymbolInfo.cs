@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The symbol that was referred to by the identifier, if any. 
         /// </summary>
-        public IPreprocessingSymbol Symbol { get; private set; }
+        public IPreprocessingSymbol Symbol { get; }
 
         /// <summary>
         /// Returns true if this preprocessing symbol is defined at the identifier position.
         /// </summary>
-        public bool IsDefined { get; private set; }
+        public bool IsDefined { get; }
 
         internal PreprocessingSymbolInfo(IPreprocessingSymbol symbol, bool isDefined)
             : this()

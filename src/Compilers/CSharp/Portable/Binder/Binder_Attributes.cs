@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol parameter = parameters[i];
                 TypedConstant reorderedArgument;
 
-                if (parameter.IsParams && parameter.Type.IsArray() && i + 1 == parameterCount)
+                if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
                     reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, argumentsCount, argsConsumedCount, this.Conversions);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (index < argumentsCount)
             {
-                // found a matching named argumed
+                // found a matching named argument
                 Debug.Assert(index >= startIndex);
 
                 // increment argsConsumedCount
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, DiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
-            ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
+            ConstantValue defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
 
             TypedConstantKind kind;
             object defaultValue = null;
@@ -837,11 +837,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private struct AttributeExpressionVisitor
         {
-            private readonly Binder binder;
+            private readonly Binder _binder;
 
             public AttributeExpressionVisitor(Binder binder)
             {
-                this.binder = binder;
+                _binder = binder;
             }
 
             public ImmutableArray<TypedConstant> VisitArguments(ImmutableArray<BoundExpression> arguments, DiagnosticBag diagnostics, ref bool attrHasErrors, bool parentHasErrors = false)
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Validate Statement 1) of the spec comment above.
 
-                var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 return VisitExpression(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors || typedConstantKind == TypedConstantKind.Error);
             }
@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandType.IsArray() && type.IsArray() &&
                         ((ArrayTypeSymbol)type).ElementType.SpecialType == SpecialType.System_Object)
                     {
-                        var typedConstantKind = operandType.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                        var typedConstantKind = operandType.GetAttributeParameterTypedConstantKind(_binder.Compilation);
                         return VisitExpression(operand, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors);
                     }
                 }
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var type = (ArrayTypeSymbol)node.Type;
-                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(binder.Compilation);
+                var typedConstantKind = type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 ImmutableArray<TypedConstant> initializer;
                 if (node.InitializerOpt == null)
@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typedConstantKind != TypedConstantKind.Error && type.ContainsTypeParameter())
                 {
-                    // Devdig Bug #12636: Constant values of open types should not be allowed in attributes
+                    // Devdiv Bug #12636: Constant values of open types should not be allowed in attributes
 
                     // SPEC ERROR:  C# language specification does not explicitly disallow constant values of open types. For e.g.
 

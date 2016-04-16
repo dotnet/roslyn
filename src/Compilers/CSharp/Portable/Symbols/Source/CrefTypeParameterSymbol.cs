@@ -58,15 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// an IdentifierNameSyntax in the type argument list of a QualifiedNameSyntax.
     internal sealed class CrefTypeParameterSymbol : TypeParameterSymbol
     {
-        private readonly string name;
-        private readonly int ordinal;
-        private readonly SyntaxReference declaringSyntax;
+        private readonly string _name;
+        private readonly int _ordinal;
+        private readonly SyntaxReference _declaringSyntax;
 
         public CrefTypeParameterSymbol(string name, int ordinal, IdentifierNameSyntax declaringSyntax)
         {
-            this.name = name;
-            this.ordinal = ordinal;
-            this.declaringSyntax = declaringSyntax.GetReference();
+            _name = name;
+            _ordinal = ordinal;
+            _declaringSyntax = declaringSyntax.GetReference();
         }
 
         public override TypeParameterKind TypeParameterKind
@@ -79,15 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public override int Ordinal
         {
-            get { return this.ordinal; }
+            get { return _ordinal; }
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CrefTypeParameterSymbol other = t2 as CrefTypeParameterSymbol;
             return (object)other != null &&
-                other.name == this.name &&
-                other.ordinal == this.ordinal &&
-                other.declaringSyntax.GetSyntax() == this.declaringSyntax.GetSyntax();
+                other._name == _name &&
+                other._ordinal == _ordinal &&
+                other._declaringSyntax.GetSyntax() == _declaringSyntax.GetSyntax();
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.name, this.ordinal);
+            return Hash.Combine(_name, _ordinal);
         }
 
         public override VarianceKind Variance
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<Location>(this.declaringSyntax.GetLocation());
+                return ImmutableArray.Create<Location>(_declaringSyntax.GetLocation());
             }
         }
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray.Create<SyntaxReference>(this.declaringSyntax);
+                return ImmutableArray.Create<SyntaxReference>(_declaringSyntax);
             }
         }
 

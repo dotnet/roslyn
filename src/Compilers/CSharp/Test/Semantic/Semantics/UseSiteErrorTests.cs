@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1076,7 +1074,7 @@ class C : ILErrors.InterfaceEvents
                 );
         }
 
-        [Fact, WorkItem(531090, "DevDiv")]
+        [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
         public void Constructor()
         {
             string srcLib1 = @"
@@ -1090,7 +1088,7 @@ public sealed class A
 ";
 
             var lib1 = CreateCompilation(
-                new[] { Parse(srcLib1) }, 
+                new[] { Parse(srcLib1) },
                 new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -1107,14 +1105,14 @@ class Program
                 new[] { Parse(srcLib2) },
                 new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
-            
+
             lib2.VerifyDiagnostics(
                 // (6,13): error CS0012: The type 'System.Func<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
                 //         new A(x => x);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1147,7 +1145,7 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "B").WithArguments("X"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation()
         {
             var xSource = @"
@@ -1176,7 +1174,7 @@ class B : C, I { }
             main.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_Indexer()
         {
             var xSource = @"
@@ -1211,21 +1209,21 @@ class B : C, I { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("X", "X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
             var ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            
+
             var mainSource = @"
 class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(main);
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation_ModOpt()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1236,10 +1234,10 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(main);
         }
 
-        [Fact, WorkItem(530974, "DevDiv")]
+        [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModReq()
         {
             var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
@@ -1288,7 +1286,7 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
 
             foreach (var diag in compilation.GetDiagnostics())
             {
-                Assert.DoesNotContain("System.Runtime.CompilerServices.CompilerGeneratedAttribute", diag.GetMessage());
+                Assert.DoesNotContain("System.Runtime.CompilerServices.CompilerGeneratedAttribute", diag.GetMessage(), StringComparison.Ordinal);
             }
         }
 
@@ -1615,7 +1613,7 @@ namespace System.Security
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "SecurityAction").WithArguments("System.Int32"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors()
         {
@@ -1688,21 +1686,21 @@ class C
                 // (9,22): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c2 = new Constructor2(2);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Constructor2").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                
+
                 // (9,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Methods.M1(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Methods.M1").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (10,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Methods.M2(2);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Methods.M2").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                
+
                 // (14,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Action<int> a1 = Methods.M1;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Methods.M1").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (15,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         Action<int> a2 = Methods.M2;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Methods.M2").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                
+
                 // (17,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var i1 = new Indexer1()[1];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new Indexer1()[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1711,7 +1709,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new Indexer2()[2]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_LessDerived()
         {
@@ -1764,7 +1762,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NoCorrespondingParameter()
         {
@@ -1821,7 +1819,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_NameUsedForPositional()
         {
@@ -1878,7 +1876,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[""A"", null]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
         [Fact]
         public void OverloadResolutionWithUseSiteErrors_RequiredParameterMissing()
         {
@@ -1935,8 +1933,53 @@ class Test
                 Diagnostic(ErrorCode.ERR_NoTypeDef, @"c[null, ""A""]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [WorkItem(708169, "DevDiv")]
         [Fact]
+        public void OverloadResolutionWithUseSiteErrors_WithParamsArguments_ReturnsUseSiteErrors()
+        {
+            var missingSource = @"
+public class Missing { }
+";
+
+            var libSource = @"
+public class C
+{
+    public static Missing GetMissing(params int[] args) { return null; }
+    public static void SetMissing(params Missing[] args) { }
+    public static Missing GetMissing(string firstArgument, params int[] args) { return null; }
+    public static void SetMissing(string firstArgument, params Missing[] args) { }
+}
+";
+
+            var testSource = @"
+class Test
+{
+    static void Main()
+    {
+        C.GetMissing();
+        C.GetMissing(1, 1);
+        C.SetMissing();
+        C.GetMissing(string.Empty);
+        C.GetMissing(string.Empty, 1, 1);
+        C.SetMissing(string.Empty);
+    }
+}
+";
+            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic,
+                getMissingDiagnostic,
+                getMissingDiagnostic,
+                setMissingDiagnostic);
+        }
+
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
             var il = @"
@@ -2058,8 +2101,8 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int"));
         }
 
-        [WorkItem(708169, "DevDiv")]
-        [Fact]
+        [WorkItem(708169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/708169")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {
             var il = @"
@@ -2153,12 +2196,11 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[?]", "Indexers.get_Item(?)"));
         }
 
-        [WorkItem(939928, "DevDiv")]
+        [WorkItem(939928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939928")]
         [WorkItem(132, "CodePlex")]
         [Fact]
         public void MissingBaseTypeForCatch()
         {
-
             var source1 = @"
 using System;
 public class GeneralException : Exception {}";
@@ -2169,7 +2211,7 @@ public class GeneralException : Exception {}";
 public class SpecificException : GeneralException
 {}";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1)});
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
 
             var source3 = @"
 class Test

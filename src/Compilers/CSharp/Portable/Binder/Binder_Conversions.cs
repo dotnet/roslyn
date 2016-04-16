@@ -3,12 +3,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-
         protected BoundExpression CreateConversion(
             BoundExpression source,
             TypeSymbol destination,
@@ -416,9 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// Spec 7.5.4: Compile-time checking of dynamic overload resolution 
         ///   If F is a static method, the method group must have resulted from a simple-name, a member-access through a type, 
-        ///   or a member-access whose receiver can’t be classified as a type or value until after overload resolution (see §7.6.4.1). 
+        ///   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1). 
         ///   If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value,
-        ///   or a member-access whose receiver can’t be classified as a type or value until after overload resolution (see §7.6.4.1).
+        ///   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
         /// </summary>
         /// <returns>
         /// True if there is any error.
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression)
             {
                 // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
-                // None of the checks below apply if the receiver can’t be classified as a type or value. 
+                // None of the checks below apply if the receiver can't be classified as a type or value. 
                 Debug.Assert(!invokedAsExtensionMethod);
             }
             else if (memberSymbol.IsStatic)
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // If we could access the member thru implicit "this" the receiver would be a BoundThisReference.
+                // If we could access the member through implicit "this" the receiver would be a BoundThisReference.
                 // If it is null it means that the instance member is inaccessible.
                 if (receiverOpt == null || ContainingMember().IsStatic)
                 {
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        private bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
@@ -613,22 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(errorLocation, useSiteDiagnostics);
-
-            if (method.IsConditional)
-            {
-                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
-                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, errorLocation, method);
-                return false;
-            }
-
-            var sourceMethod = method as SourceMemberMethodSymbol;
-            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
-            {
-                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
-                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, errorLocation, method);
-                return false;
-            }
-
             return true;
         }
 
@@ -657,6 +641,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
                 !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
             {
+                return true;
+            }
+
+            if (selectedMethod.IsConditional)
+            {
+                // CS1618: Cannot create delegate with '{0}' because it has a Conditional attribute
+                Error(diagnostics, ErrorCode.ERR_DelegateOnConditional, syntax.Location, selectedMethod);
+                return true;
+            }
+
+            var sourceMethod = selectedMethod as SourceMemberMethodSymbol;
+            if ((object)sourceMethod != null && sourceMethod.IsPartialWithoutImplementation)
+            {
+                // CS0762: Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration
+                Error(diagnostics, ErrorCode.ERR_PartialMethodToDelegate, syntax.Location, selectedMethod);
                 return true;
             }
 
@@ -756,6 +755,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.Identity:
+                    // An identity conversion to a floating-point type (for example from a cast in
+                    // source code) changes the internal representation of the constant value
+                    // to precisely the required precision.
+                    switch (destination.SpecialType)
+                    {
+                        case SpecialType.System_Single:
+                            return ConstantValue.Create(sourceConstantValue.SingleValue);
+                        case SpecialType.System_Double:
+                            return ConstantValue.Create(sourceConstantValue.DoubleValue);
+                        default:
+                            return sourceConstantValue;
+                    }
+
                 case ConversionKind.NullLiteral:
                     return sourceConstantValue;
 
@@ -891,8 +903,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)byteValue;
                             case SpecialType.System_Decimal: return (decimal)byteValue;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Char:
                         char charValue = value.CharValue;
                         switch (destinationType)
@@ -909,8 +921,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)charValue;
                             case SpecialType.System_Decimal: return (decimal)charValue;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.UInt16:
                         ushort uint16Value = value.UInt16Value;
                         switch (destinationType)
@@ -927,8 +939,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)uint16Value;
                             case SpecialType.System_Decimal: return (decimal)uint16Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.UInt32:
                         uint uint32Value = value.UInt32Value;
                         switch (destinationType)
@@ -945,8 +957,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)uint32Value;
                             case SpecialType.System_Double: return (double)uint32Value;
                             case SpecialType.System_Decimal: return (decimal)uint32Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.UInt64:
                         ulong uint64Value = value.UInt64Value;
                         switch (destinationType)
@@ -963,8 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)uint64Value;
                             case SpecialType.System_Double: return (double)uint64Value;
                             case SpecialType.System_Decimal: return (decimal)uint64Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.SByte:
                         sbyte sbyteValue = value.SByteValue;
                         switch (destinationType)
@@ -981,8 +993,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)sbyteValue;
                             case SpecialType.System_Decimal: return (decimal)sbyteValue;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Int16:
                         short int16Value = value.Int16Value;
                         switch (destinationType)
@@ -999,8 +1011,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)int16Value;
                             case SpecialType.System_Decimal: return (decimal)int16Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Int32:
                         int int32Value = value.Int32Value;
                         switch (destinationType)
@@ -1017,8 +1029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)int32Value;
                             case SpecialType.System_Double: return (double)int32Value;
                             case SpecialType.System_Decimal: return (decimal)int32Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Int64:
                         long int64Value = value.Int64Value;
                         switch (destinationType)
@@ -1035,8 +1047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)int64Value;
                             case SpecialType.System_Double: return (double)int64Value;
                             case SpecialType.System_Decimal: return (decimal)int64Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Single:
                     case ConstantValueTypeDiscriminator.Double:
                         // This code used to invoke CheckConstantBounds and return constant zero if the value is not within the target type.
@@ -1061,8 +1073,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)doubleValue;
                             case SpecialType.System_Double: return (double)doubleValue;
                             case SpecialType.System_Decimal: return (value.Discriminator == ConstantValueTypeDiscriminator.Single) ? (decimal)(float)doubleValue : (decimal)doubleValue;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
                     case ConstantValueTypeDiscriminator.Decimal:
                         decimal decimalValue = CheckConstantBounds(destinationType, value.DecimalValue) ? value.DecimalValue : 0m;
                         switch (destinationType)
@@ -1079,13 +1091,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Single: return (double)(float)decimalValue;
                             case SpecialType.System_Double: return (double)decimalValue;
                             case SpecialType.System_Decimal: return (decimal)decimalValue;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
-                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value.Discriminator);
                 }
             }
 
-            Debug.Assert(false, "Unexpected case in constant folding");
-            return value.Value;
+            // all cases should have been handled in the switch above.
+            // return value.Value;
         }
 
         public static bool CheckConstantBounds(SpecialType destinationType, ConstantValue value)
@@ -1164,10 +1178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstantValueTypeDiscriminator.Single:
                 case ConstantValueTypeDiscriminator.Double: return value.DoubleValue;
                 case ConstantValueTypeDiscriminator.Decimal: return value.DecimalValue;
+                default: throw ExceptionUtilities.UnexpectedValue(value.Discriminator);
             }
 
-            Debug.Assert(false, "unexpected constant in CanonicalizeConstant");
-            return value.Value;
+            // all cases handled in the switch, above.
         }
     }
 }

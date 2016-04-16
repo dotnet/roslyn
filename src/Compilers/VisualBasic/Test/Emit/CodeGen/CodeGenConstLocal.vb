@@ -501,21 +501,21 @@ End Module
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0007:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-1()"
+  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-0()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_001f:  stsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Closure$__._Lambda$__0-1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__._Lambda$__0-0", <![CDATA[
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -554,21 +554,21 @@ End Module
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0007:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-1()"
+  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-0()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_001f:  stsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Closure$__._Lambda$__0-1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__._Lambda$__0-0", <![CDATA[
 {
   // Code size       33 (0x21)
   .maxstack  5
@@ -590,7 +590,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedIntegerConstLocalInLambda()
 
@@ -619,21 +619,21 @@ End Module
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0007:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-1()"
+  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-0()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_001f:  stsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Closure$__._Lambda$__0-1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__._Lambda$__0-0", <![CDATA[
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -645,7 +645,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543469, "DevDiv")>
+        <WorkItem(543469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543469")>
         <Fact()>
         Public Sub TestLiftedDecimalConstLocalInLambda()
 
@@ -675,21 +675,21 @@ End Module
 {
   // Code size       42 (0x2a)
   .maxstack  2
-  IL_0000:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0000:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_0007:  ldsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-1()"
+  IL_0013:  ldftn      "Sub C._Closure$__._Lambda$__0-0()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "C._Closure$__.$I0-1 As <generated method>"
+  IL_001f:  stsfld     "C._Closure$__.$I0-0 As <generated method>"
   IL_0024:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_0029:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("C._Closure$__._Lambda$__0-1", <![CDATA[
+            verifier.VerifyIL("C._Closure$__._Lambda$__0-0", <![CDATA[
 {
   // Code size       65 (0x41)
   .maxstack  7
@@ -722,7 +722,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543475, "DevDiv")>
+        <WorkItem(543475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543475")>
         <Fact()>
         Public Sub TestLocalConstCycleDetection()
 
@@ -746,7 +746,7 @@ End Module
                                        Diagnostic(ERRID.ERR_CircularEvaluation1, "j").WithArguments("j"))
         End Sub
 
-        <WorkItem(542910, "DevDiv")>
+        <WorkItem(542910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542910")>
         <Fact()>
         Public Sub TestSByteLocalConst()
 
@@ -781,6 +781,37 @@ End Module
 }
 ]]>)
 
+        End Sub
+
+        <Fact()>
+        Public Sub TruncatePrecisionFloat()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Module C
+    Sub Main()
+        const temp1 as single = 23334800f / 5.5f
+        console.WriteLine(Microsoft.VisualBasic.Int(temp1))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800f / 5.5f))
+        console.WriteLine(temp1 * 5.5)
+
+        const temp2 as double = 23334800.0 / 5.5
+        console.WriteLine(Microsoft.VisualBasic.Int(temp2))
+        console.WriteLine(Microsoft.VisualBasic.Int(23334800.0 / 5.5))
+        console.WriteLine(temp2 * 5.5)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+4242691
+4242691
+23334800.5
+4242690
+4242690
+23334800
+            ]]>)
         End Sub
     End Class
 

@@ -35,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '      properties and latebound assignments are special cased since they are semantically statements
             '
-            'TODO: it could make sense to have BoundAssignemntStatement just for the purpose of 
-            '      binding assignments. It would make invariants for both BoundAssignmentExpressin and BoundAssignmentStateent simpler.
+            'TODO: it could make sense to have BoundAssignmentStatement just for the purpose of 
+            '      binding assignments. It would make invariants for both BoundAssignmentExpression and BoundAssignmentStatement simpler.
             Me.New(syntax, left, leftOnTheRightOpt, right:=right, suppressObjectClone:=suppressObjectClone,
                    type:=If(left.IsPropertyOrXmlPropertyAccess(),
                             left.GetPropertyOrXmlProperty().ContainingAssembly.GetSpecialType(SpecialType.System_Void),

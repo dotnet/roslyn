@@ -13,43 +13,43 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     public sealed partial class EditScript<TNode>
     {
-        private readonly Match<TNode> match;
-        private readonly ImmutableArray<Edit<TNode>> edits;
+        private readonly Match<TNode> _match;
+        private readonly ImmutableArray<Edit<TNode>> _edits;
 
         internal EditScript(Match<TNode> match)
         {
-            this.match = match;
+            _match = match;
 
             var edits = new List<Edit<TNode>>();
             AddUpdatesInsertsMoves(edits);
             AddDeletes(edits);
 
-            this.edits = edits.AsImmutable();
+            _edits = edits.AsImmutable();
         }
 
         public ImmutableArray<Edit<TNode>> Edits
         {
-            get { return edits; }
+            get { return _edits; }
         }
 
         public Match<TNode> Match
         {
-            get { return match; }
+            get { return _match; }
         }
 
         private TreeComparer<TNode> Comparer
         {
-            get { return match.Comparer; }
+            get { return _match.Comparer; }
         }
 
         private TNode Root1
         {
-            get { return match.OldRoot; }
+            get { return _match.OldRoot; }
         }
 
         private TNode Root2
         {
-            get { return match.NewRoot; }
+            get { return _match.NewRoot; }
         }
 
         private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // If we needed z then we would need to be updating M' as we encounter insertions.
 
             TNode w;
-            bool hasPartner = match.TryGetPartnerInTree1(x, out w);
+            bool hasPartner = _match.TryGetPartnerInTree1(x, out w);
 
             TNode y;
             bool hasParent = Comparer.TryGetParent(x, out y);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // If parents of w and x don't match, it's a move.
                 // iii. if not (v, y) in M'             
                 // NOTE: The paper says (y, v) but that seems wrong since M': T1 -> T2 and w,v in T1 and x,y in T2.
-                if (!match.Contains(v, y))
+                if (!_match.Contains(v, y))
                 {
                     // A. Let z be the partner of y in M'. (NOTE: z not needed)
                     // B. k := FindPos(x)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             foreach (var w in Comparer.GetDescendants(Root1))
             {
-                if (!match.HasPartnerInTree2(w))
+                if (!_match.HasPartnerInTree2(w))
                 {
                     edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
                 }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             // Step 1
-            //  Make all children of w and and all children x "out of order"
+            //  Make all children of w and all children x "out of order"
             //  NOTE: We don't need to mark nodes "in order".
 
             // Step 2
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             foreach (var e in wChildren)
             {
                 TNode pw;
-                if (match.TryGetPartnerInTree2(e, out pw) && Comparer.GetParent(pw).Equals(x))
+                if (_match.TryGetPartnerInTree2(e, out pw) && Comparer.GetParent(pw).Equals(x))
                 {
                     if (s1 == null)
                     {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             foreach (var e in xChildren)
             {
                 TNode px;
-                if (match.TryGetPartnerInTree1(e, out px) && Comparer.GetParent(px).Equals(w))
+                if (_match.TryGetPartnerInTree1(e, out px) && Comparer.GetParent(px).Equals(w))
                 {
                     if (s2 == null)
                     {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // Step 3, 4
             //  Define the function Equal(a,b) to be true if and only if  (a,c) in M'
             //  Let S <- LCS(S1, S2, Equal)
-            var lcs = new Match<TNode>.LongestCommonSubsequence(match);
+            var lcs = new Match<TNode>.LongestCommonSubsequence(_match);
             var s = lcs.GetMatchingNodes(s1, s2);
 
             // Step 5
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // (a,b) in M
                 // => b in S2 since S2 == { b | parent(b) == x && parent(partner(b)) == w }
                 // (a,b) not in S
-                if (match.TryGetPartnerInTree2(a, out b) &&
+                if (_match.TryGetPartnerInTree2(a, out b) &&
                     Comparer.GetParent(b).Equals(x) &&
                     !ContainsPair(s, a, b))
                 {

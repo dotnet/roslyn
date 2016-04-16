@@ -23,69 +23,69 @@ namespace BoundTreeGenerator
 
     internal sealed class BoundNodeClassWriter
     {
-        private readonly TextWriter writer;
-        private readonly Tree tree;
-        private readonly Dictionary<string, string> typeMap;
-        private Dictionary<string, bool> valueTypes;
-        private readonly TargetLanguage targetLang;
+        private readonly TextWriter _writer;
+        private readonly Tree _tree;
+        private readonly Dictionary<string, string> _typeMap;
+        private Dictionary<string, bool> _valueTypes;
+        private readonly TargetLanguage _targetLang;
 
         private BoundNodeClassWriter(TextWriter writer, Tree tree, TargetLanguage targetLang)
         {
-            this.writer = writer;
-            this.tree = tree;
-            this.targetLang = targetLang;
-            this.typeMap = tree.Types.Where(t => !(t is EnumType || t is ValueType)).ToDictionary(n => n.Name, n => n.Base);
-            this.typeMap.Add(tree.Root, null);
+            _writer = writer;
+            _tree = tree;
+            _targetLang = targetLang;
+            _typeMap = tree.Types.Where(t => !(t is EnumType || t is ValueType)).ToDictionary(n => n.Name, n => n.Base);
+            _typeMap.Add(tree.Root, null);
 
             InitializeValueTypes();
         }
 
         private void InitializeValueTypes()
         {
-            valueTypes = new Dictionary<string, bool>();
-            foreach (ValueType t in tree.Types.Where(t => t is ValueType))
-                valueTypes.Add(t.Name, true);
+            _valueTypes = new Dictionary<string, bool>();
+            foreach (ValueType t in _tree.Types.Where(t => t is ValueType))
+                _valueTypes.Add(t.Name, true);
 
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    valueTypes.Add("bool", true);
-                    valueTypes.Add("int", true);
-                    valueTypes.Add("uint", true);
-                    valueTypes.Add("short", true);
-                    valueTypes.Add("ushort", true);
-                    valueTypes.Add("long", true);
-                    valueTypes.Add("ulong", true);
-                    valueTypes.Add("byte", true);
-                    valueTypes.Add("sbyte", true);
-                    valueTypes.Add("char", true);
-                    valueTypes.Add("Boolean", true);
+                    _valueTypes.Add("bool", true);
+                    _valueTypes.Add("int", true);
+                    _valueTypes.Add("uint", true);
+                    _valueTypes.Add("short", true);
+                    _valueTypes.Add("ushort", true);
+                    _valueTypes.Add("long", true);
+                    _valueTypes.Add("ulong", true);
+                    _valueTypes.Add("byte", true);
+                    _valueTypes.Add("sbyte", true);
+                    _valueTypes.Add("char", true);
+                    _valueTypes.Add("Boolean", true);
                     break;
 
                 case TargetLanguage.VB:
-                    valueTypes.Add("Boolean", true);
-                    valueTypes.Add("Integer", true);
-                    valueTypes.Add("UInteger", true);
-                    valueTypes.Add("Short", true);
-                    valueTypes.Add("UShort", true);
-                    valueTypes.Add("Long", true);
-                    valueTypes.Add("ULong", true);
-                    valueTypes.Add("Byte", true);
-                    valueTypes.Add("SByte", true);
-                    valueTypes.Add("Char", true);
+                    _valueTypes.Add("Boolean", true);
+                    _valueTypes.Add("Integer", true);
+                    _valueTypes.Add("UInteger", true);
+                    _valueTypes.Add("Short", true);
+                    _valueTypes.Add("UShort", true);
+                    _valueTypes.Add("Long", true);
+                    _valueTypes.Add("ULong", true);
+                    _valueTypes.Add("Byte", true);
+                    _valueTypes.Add("SByte", true);
+                    _valueTypes.Add("Char", true);
                     break;
             }
 
-            valueTypes.Add("Int8", true);
-            valueTypes.Add("Int16", true);
-            valueTypes.Add("Int32", true);
-            valueTypes.Add("Int64", true);
-            valueTypes.Add("UInt8", true);
-            valueTypes.Add("UInt16", true);
-            valueTypes.Add("UInt32", true);
-            valueTypes.Add("UInt64", true);
-            valueTypes.Add("ImmutableArray", true);
-            valueTypes.Add("PropertyAccessKind", true);
+            _valueTypes.Add("Int8", true);
+            _valueTypes.Add("Int16", true);
+            _valueTypes.Add("Int32", true);
+            _valueTypes.Add("Int64", true);
+            _valueTypes.Add("UInt8", true);
+            _valueTypes.Add("UInt16", true);
+            _valueTypes.Add("UInt32", true);
+            _valueTypes.Add("UInt64", true);
+            _valueTypes.Add("ImmutableArray", true);
+            _valueTypes.Add("PropertyAccessKind", true);
         }
 
         public static void Write(TextWriter writer, Tree tree, TargetLanguage targetLang)
@@ -93,30 +93,30 @@ namespace BoundTreeGenerator
             new BoundNodeClassWriter(writer, tree, targetLang).WriteFile();
         }
 
-        private int indent = 0;
-        private bool needsIndent = true;
+        private int _indent;
+        private bool _needsIndent = true;
 
         private void Write(string format, params object[] args)
         {
-            if (needsIndent)
+            if (_needsIndent)
             {
-                writer.Write(new string(' ', indent * 4));
-                needsIndent = false;
+                _writer.Write(new string(' ', _indent * 4));
+                _needsIndent = false;
             }
-            writer.Write(format, args);
+            _writer.Write(format, args);
         }
 
         private void WriteLine(string format, params object[] args)
         {
             Write(format, args);
-            writer.WriteLine();
-            needsIndent = true;
+            _writer.WriteLine();
+            _needsIndent = true;
         }
 
         private void Blank()
         {
-            writer.WriteLine();
-            needsIndent = true;
+            _writer.WriteLine();
+            _needsIndent = true;
         }
 
         private void Brace()
@@ -133,24 +133,24 @@ namespace BoundTreeGenerator
 
         private void Indent()
         {
-            ++indent;
+            ++_indent;
         }
 
         private void Outdent()
         {
-            --indent;
+            --_indent;
         }
 
         private void WriteFile()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     WriteLine("// <auto-generated />"); break;
                 case TargetLanguage.VB:
                     WriteLine("' <auto-generated />"); break;
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
 
             Blank();
@@ -179,20 +179,20 @@ namespace BoundTreeGenerator
 
         private void WriteUsing(string nsName)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     WriteLine("using {0};", nsName); break;
                 case TargetLanguage.VB:
                     WriteLine("Imports {0}", nsName); break;
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteStartNamespace()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     WriteLine("using Microsoft.CodeAnalysis.Text;");
@@ -211,13 +211,13 @@ namespace BoundTreeGenerator
                     Indent();
                     break;
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteEndNamespace()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     Unbrace();
@@ -227,18 +227,18 @@ namespace BoundTreeGenerator
                     WriteLine("End Namespace");
                     break;
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteKinds()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     WriteLine("internal enum BoundKind: byte");
                     Brace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                         WriteLine("{0},", FixKeyword(StripBound(node.Name)));
                     Unbrace();
                     break;
@@ -246,20 +246,20 @@ namespace BoundTreeGenerator
                 case TargetLanguage.VB:
                     WriteLine("Friend Enum BoundKind as Byte");
                     Indent();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                         WriteLine("{0}", FixKeyword(StripBound(node.Name)));
                     Outdent();
                     WriteLine("End Enum");
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteTypes()
         {
-            foreach (var node in tree.Types.Where(n => !(n is PredefinedNode)))
+            foreach (var node in _tree.Types.Where(n => !(n is PredefinedNode)))
             {
                 Blank();
                 WriteType(node);
@@ -269,12 +269,12 @@ namespace BoundTreeGenerator
         private bool CanBeSealed(TreeType node)
         {
             // Is this type the base type of anything?
-            return !typeMap.Values.Contains(node.Name);
+            return !_typeMap.Values.Contains(node.Name);
         }
 
         private void WriteClassHeader(TreeType node)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -303,14 +303,13 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
-
         }
 
         private void WriteClassFooter(TreeType node)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     Unbrace();
@@ -322,7 +321,7 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -342,9 +341,9 @@ namespace BoundTreeGenerator
             foreach (T item in items)
             {
                 if (!first)
-                    writer.Write(separator);
+                    _writer.Write(separator);
                 first = false;
-                writer.Write(func(item));
+                _writer.Write(func(item));
             }
         }
 
@@ -355,7 +354,7 @@ namespace BoundTreeGenerator
 
         private void Or<T>(IEnumerable<T> items, Func<T, string> func)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     SeparatedList(" || ", items, func);
@@ -366,7 +365,7 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -399,7 +398,7 @@ namespace BoundTreeGenerator
 
         private void WriteConstructorWithHasErrors(TreeType node, bool isPublic, bool hasErrorsIsOptional)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -527,7 +526,7 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -535,7 +534,7 @@ namespace BoundTreeGenerator
         // without merging hasErrors.
         private void WriteConstructorWithoutHasErrors(TreeType node, bool isPublic)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -633,7 +632,7 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -649,7 +648,7 @@ namespace BoundTreeGenerator
                 foreach (Field field in nullCheckFields)
                 {
                     bool isROArray = (GetGenericType(field.Type) == "ImmutableArray");
-                    switch (targetLang)
+                    switch (_targetLang)
                     {
                         case TargetLanguage.CSharp:
                             if (isROArray)
@@ -691,10 +690,10 @@ namespace BoundTreeGenerator
 
         private TreeType BaseType(TreeType node)
         {
-            string name = typeMap[node.Name];
-            if (name == tree.Root)
+            string name = _typeMap[node.Name];
+            if (name == _tree.Root)
                 return null;
-            return tree.Types.Single(t => t.Name == name);
+            return _tree.Types.Single(t => t.Name == name);
         }
 
         private static bool HasValidate(TreeType node)
@@ -762,7 +761,7 @@ namespace BoundTreeGenerator
                     case "":
                         break;
                     default:
-                        throw new ApplicationException(string.Format("Unexpected value for \"Null\" attribute: {0}", f.Null));
+                        throw new ArgumentException("Unexpected value", nameof(f.Null));
                 }
             }
 
@@ -782,12 +781,12 @@ namespace BoundTreeGenerator
             else if (BaseType(node) != null)
                 return GetField(BaseType(node), fieldName);
             else
-                throw new ApplicationException(string.Format("Field {0} not found in type {1}", fieldName, node.Name));
+                throw new InvalidOperationException($"Field {fieldName} not found in type {node.Name}");
         }
 
         private void WriteField(Field field)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     Blank();
@@ -798,7 +797,7 @@ namespace BoundTreeGenerator
                     }
                     else
                     {
-                        WriteLine("public {0}{1} {2} {{ get; private set; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                     }
                     break;
 
@@ -817,13 +816,13 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteAccept(string name)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     //Blank();
@@ -857,7 +856,7 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -897,7 +896,7 @@ namespace BoundTreeGenerator
                 return;
             bool emitNew = (!Fields(node).Any()) && !(BaseType(node) is AbstractNode);
 
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -972,13 +971,13 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private string StripBound(string name)
         {
-            if (name.StartsWith("Bound"))
+            if (name.StartsWith("Bound", StringComparison.Ordinal))
             {
                 name = name.Substring(5);
             }
@@ -988,7 +987,7 @@ namespace BoundTreeGenerator
 
         private void WriteVisitor()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
 
@@ -1002,7 +1001,7 @@ namespace BoundTreeGenerator
                     Brace();
                     WriteLine("switch (node.Kind)");
                     Brace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("case BoundKind.{0}: ", FixKeyword(StripBound(node.Name)));
                         Indent();
@@ -1041,7 +1040,7 @@ namespace BoundTreeGenerator
                     Blank();
                     WriteLine("internal abstract partial class BoundTreeVisitor<A,R>");
                     Brace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("public virtual R Visit{0}({1} node, A arg)", StripBound(node.Name), node.Name);
                         Brace();
@@ -1053,7 +1052,7 @@ namespace BoundTreeGenerator
                     Blank();
                     WriteLine("internal abstract partial class BoundTreeVisitor");
                     Brace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("public virtual BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                         Brace();
@@ -1074,7 +1073,7 @@ namespace BoundTreeGenerator
                     Indent();
                     WriteLine("Select Case node.Kind");
                     Indent();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("Case BoundKind.{0}: ", FixKeyword(StripBound(node.Name)));
                         Indent();
@@ -1121,7 +1120,7 @@ namespace BoundTreeGenerator
                     Blank();
                     WriteLine("Friend MustInherit Partial Class BoundTreeVisitor(Of A,R)");
                     Indent();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("Public Overridable Function Visit{0}(node As {1}, arg As A) As R", StripBound(node.Name), node.Name);
                         Indent();
@@ -1136,7 +1135,7 @@ namespace BoundTreeGenerator
                     Blank();
                     WriteLine("Friend MustInherit Partial Class BoundTreeVisitor");
                     Indent();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("Public Overridable Function Visit{0}(node As {1}) As BoundNode", StripBound(node.Name), node.Name);
                         Indent();
@@ -1150,19 +1149,19 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteWalker()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     Blank();
                     WriteLine("internal abstract partial class BoundTreeWalker: BoundTreeVisitor");
                     Brace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                         Brace();
@@ -1183,7 +1182,7 @@ namespace BoundTreeGenerator
                     WriteLine("Inherits BoundTreeVisitor");
                     Blank();
 
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("Public Overrides Function Visit{0}(node as {1}) As BoundNode", StripBound(node.Name), node.Name);
                         Indent();
@@ -1202,13 +1201,13 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteTreeDumperNodeProducer()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     Blank();
@@ -1221,7 +1220,7 @@ namespace BoundTreeGenerator
                     Brace();
                     WriteLine("return (new BoundTreeDumperNodeProducer()).Visit(node, null);");
                     Unbrace();
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("public override TreeDumperNode Visit{0}({1} node, object arg)", StripBound(node.Name), node.Name);
                         Brace();
@@ -1238,7 +1237,7 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt"))
+                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt", StringComparison.Ordinal))
                                     {
                                         Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? SpecializedCollections.EmptyArray<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
@@ -1283,7 +1282,7 @@ namespace BoundTreeGenerator
                     WriteLine("End Function");
                     Blank();
 
-                    foreach (var node in tree.Types.OfType<Node>())
+                    foreach (var node in _tree.Types.OfType<Node>())
                     {
                         WriteLine("Public Overrides Function Visit{0}(node As {1}, arg As Object) As TreeDumperNode", StripBound(node.Name), node.Name);
                         Indent();
@@ -1324,20 +1323,20 @@ namespace BoundTreeGenerator
                     break;
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private void WriteRewriter()
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
                         Blank();
                         WriteLine("internal abstract partial class BoundTreeRewriter : BoundTreeVisitor");
                         Brace();
-                        foreach (var node in tree.Types.OfType<Node>())
+                        foreach (var node in _tree.Types.OfType<Node>())
                         {
                             WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                             Brace();
@@ -1376,7 +1375,7 @@ namespace BoundTreeGenerator
                         Indent();
                         WriteLine("Inherits BoundTreeVisitor");
                         Blank();
-                        foreach (var node in tree.Types.OfType<Node>())
+                        foreach (var node in _tree.Types.OfType<Node>())
                         {
                             WriteLine("Public Overrides Function Visit{0}(node As {1}) As BoundNode", StripBound(node.Name), node.Name);
                             Indent();
@@ -1420,7 +1419,7 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -1436,28 +1435,29 @@ namespace BoundTreeGenerator
 
         private bool IsImmutableArray(string typeName)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<");
+                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private bool IsNodeList(string typeName)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("IList<") || typeName.StartsWith("ImmutableArray<");
+                    return typeName.StartsWith("IList<", StringComparison.Ordinal) ||
+                           typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("IList(Of", StringComparison.OrdinalIgnoreCase) ||
                            typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -1468,7 +1468,7 @@ namespace BoundTreeGenerator
 
         private string GetGenericType(string typeName)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -1489,13 +1489,13 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
         private string GetElementType(string typeName)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     {
@@ -1524,7 +1524,7 @@ namespace BoundTreeGenerator
                     }
 
                 default:
-                    throw new ApplicationException("Unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
 
@@ -1537,8 +1537,8 @@ namespace BoundTreeGenerator
         {
             string genericType = GetGenericType(typeName);
 
-            if (valueTypes.ContainsKey(genericType))
-                return valueTypes[genericType];
+            if (_valueTypes.ContainsKey(genericType))
+                return _valueTypes[genericType];
             else
                 return false;
         }
@@ -1548,7 +1548,7 @@ namespace BoundTreeGenerator
             if (typeName == derivedTypeName)
                 return true;
             string baseType;
-            if (derivedTypeName != null && this.typeMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }
@@ -1562,7 +1562,7 @@ namespace BoundTreeGenerator
 
         private bool IsNode(string typeName)
         {
-            return this.typeMap.ContainsKey(typeName);
+            return _typeMap.ContainsKey(typeName);
         }
 
         private static bool IsNew(Field f)
@@ -1593,7 +1593,7 @@ namespace BoundTreeGenerator
         {
             if (IsKeyword(name))
             {
-                switch (targetLang)
+                switch (_targetLang)
                 {
                     case TargetLanguage.CSharp:
                         return "@" + name;
@@ -1602,7 +1602,7 @@ namespace BoundTreeGenerator
                         return "[" + name + "]";
 
                     default:
-                        throw new ApplicationException("unexpected target language");
+                        throw new ArgumentException("Unexpected target language", nameof(_targetLang));
                 }
             }
 
@@ -1611,7 +1611,7 @@ namespace BoundTreeGenerator
 
         private bool IsKeyword(string name)
         {
-            switch (targetLang)
+            switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
                     return name.IsCSharpKeyword();
@@ -1620,7 +1620,7 @@ namespace BoundTreeGenerator
                     return name.IsVBKeyword();
 
                 default:
-                    throw new ApplicationException("unexpected target language");
+                    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
         }
     }

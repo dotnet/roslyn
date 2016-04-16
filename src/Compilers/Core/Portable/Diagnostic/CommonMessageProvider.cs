@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis
                     return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Hidden);
                 case ReportDiagnostic.Suppress:
                     return null;
-                case ReportDiagnostic.Default:
                 default:
                     return diagnosticInfo;
             }
@@ -137,8 +136,9 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_FailedToCreateTempFile { get; }
 
         // command line:
-        public abstract int ERR_NoScriptsSpecified { get; }
+        public abstract int ERR_ExpectedSingleScript { get; }
         public abstract int ERR_OpenResponseFile { get; }
+        public abstract int ERR_InvalidPathMap { get; }
         public abstract int FTL_InputFileNameTooLong { get; }
         public abstract int ERR_FileNotFound { get; }
         public abstract int ERR_NoSourceFile { get; }
@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis
         public abstract int WRN_AnalyzerCannotBeCreated { get; }
         public abstract int WRN_NoAnalyzerInAssembly { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
+        public abstract int ERR_CompileCancelled { get; }
+
+        // compilation options:
+        public abstract int ERR_BadCompilationOptionValue { get; }
+        public abstract int ERR_MutuallyExclusiveOptions { get; }
 
         // emit options:
         public abstract int ERR_InvalidDebugInformationFormat { get; }
@@ -198,6 +203,9 @@ namespace Microsoft.CodeAnalysis
         // PE writing:
         public abstract int ERR_MetadataNameTooLong { get; }
         public abstract int ERR_EncReferenceToAddedMember { get; }
+        public abstract int ERR_TooManyUserStrings { get; }
+        public abstract int ERR_PeWritingFailure { get; }
+        public abstract int ERR_ModuleEmitFailure { get; }
 
         public abstract void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute);
         public abstract void ReportInvalidNamedArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int namedArgumentIndex, ITypeSymbol attributeClass, string parameterName);

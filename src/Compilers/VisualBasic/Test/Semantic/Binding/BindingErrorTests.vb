@@ -390,7 +390,7 @@ End Class
             CompilationUtils.AssertNoErrors(compilation)
         End Sub
 
-        <WorkItem(540629, "DevDiv")>
+        <WorkItem(540629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540629")>
         <Fact()>
         Public Sub BC30002ERR_UndefinedType1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -626,8 +626,7 @@ End structure
         ]]>
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected><![CDATA[
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
         Dim x1$ = 33 & 2.34 'No inference here
@@ -727,12 +726,11 @@ BC30039: Loop control variable cannot be a property or a late-bound indexed arra
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545641, "DevDiv")>
+        <Fact(), WorkItem(545641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545641")>
         Public Sub MissingLatebindingHelpers()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb">
-Imports System
 Class Program
     Shared Sub Main()
         Dim Result As Object
@@ -742,8 +740,7 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl.ForLoopInitObj' is not defined.
         For Result = 1 To 2
@@ -767,7 +764,7 @@ Class Program
     Shared Sub Main()
         Dim obj As Object = New cls1
         obj.P1 = 42                         ' assignment    (Set)
-        obj.P1()                            ' sideeffect    (Call)
+        obj.P1()                            ' side-effect   (Call)
         Console.WriteLine(obj.P1)           ' value         (Get)
     End Sub
 
@@ -787,14 +784,13 @@ Class Program
 End Class
     </file>
 </compilation>)
-
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateSet' is not defined.
         obj.P1 = 42                         ' assignment    (Set)
         ~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall' is not defined.
-        obj.P1()                            ' sideeffect    (Call)
+        obj.P1()                            ' side-effect   (Call)
         ~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet' is not defined.
         Console.WriteLine(obj.P1)           ' value         (Get)
@@ -999,7 +995,7 @@ BC30043: 'MyClass' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MyClassInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1035,7 +1031,7 @@ BC30043: 'MyClass' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MeInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1071,7 +1067,7 @@ BC30043: 'Me' is valid only within an instance method.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC30043ERR_UseOfKeywordNotInInstanceMethod1_MyBaseInAttribute_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1214,7 +1210,7 @@ BC30049: 'Redim' statement requires an array.
 </expected>)
         End Sub
 
-        <WorkItem(542209, "DevDiv")>
+        <WorkItem(542209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542209")>
         <Fact()>
         Public Sub BC30052ERR_ArrayRankLimit()
             CompilationUtils.CreateCompilationWithMscorlib(
@@ -1229,15 +1225,23 @@ BC30049: 'Redim' statement requires an array.
             Diagnostic(ERRID.ERR_ArrayRankLimit, "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33)"))
         End Sub
 
-        <Fact()>
-        Public Sub BC30053ERR_AsNewArray()
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AsNewArray">
         <file name="a.vb">
         Module M1
             Sub Foo()
                 Dim c() As New System.Exception
+                Dim d(), e() As New System.Exception
+                Dim f(), g As New System.Exception
+                Dim h, i() As New System.Exception
             End Sub
+
+            Dim x() As New System.Exception
+            Dim y(), z() As New System.Exception
+            Dim u(), v As New System.Exception
+            Dim w, q() As New System.Exception
         End Module
         </file>
     </compilation>)
@@ -1246,6 +1250,89 @@ BC30049: 'Redim' statement requires an array.
 BC30053: Arrays cannot be declared with 'New'.
                 Dim c() As New System.Exception
                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(), g As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i() As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                     ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(), v As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q() As New System.Exception
+                   ~~~
+</errors>
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_02()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="AsNewArray">
+        <file name="a.vb">
+        Module M1
+            Sub Foo()
+                Dim c(1) As New System.Exception
+                Dim d(1), e(1) As New System.Exception
+                Dim f(1), g As New System.Exception
+                Dim h, i(1) As New System.Exception
+            End Sub
+
+            Dim x(1) As New System.Exception
+            Dim y(1), z(1) As New System.Exception
+            Dim u(1), v As New System.Exception
+            Dim w, q(1) As New System.Exception
+        End Module
+        </file>
+    </compilation>)
+
+            Dim expectedErrors1 = <errors>
+BC30053: Arrays cannot be declared with 'New'.
+                Dim c(1) As New System.Exception
+                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(1), g As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i(1) As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                      ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(1), v As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q(1) As New System.Exception
+                   ~~~~
 </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -1273,7 +1360,7 @@ BC30057: Too many arguments to 'Public Sub test(name As String, age As Integer)'
         End Sub
 
         ' 30057 is better here
-        <WorkItem(528720, "DevDiv")>
+        <WorkItem(528720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528720")>
         <Fact()>
         Public Sub BC30057ERR_TooManyArgs1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1869,7 +1956,7 @@ End Class
 
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr()
 
@@ -1895,7 +1982,7 @@ End Class
     </compilation>, references:={SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In q Select x).Count()"))
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr_2()
 
@@ -1922,7 +2009,7 @@ End Class
     </compilation>, references:={SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F1"))
         End Sub
 
-        <WorkItem(542967, "DevDiv")>
+        <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
         <Fact()>
         Public Sub BC30059ERR_RequiredConstExpr_QueryInAttr_3()
 
@@ -2211,7 +2298,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
         End Sub
 
 
-        <WorkItem(575055, "DevDiv")>
+        <WorkItem(575055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575055")>
         <Fact>
         Public Sub BC30068ERR_IdentifierWithSameNameDifferentScope()
             Dim source = <compilation>
@@ -2239,7 +2326,7 @@ End Module
 
 
         ' change error 30098 to 30068
-        <WorkItem(538107, "DevDiv")>
+        <WorkItem(538107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538107")>
         <Fact()>
         Public Sub BC30068ERR_LValueRequired_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -2962,7 +3049,7 @@ BC30547: 'T' cannot be indexed because it has no default property.
     End Class
     </file>
 </compilation>)
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_MissingRuntimeHelper, "P").WithArguments("Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger"))
         End Sub
 
@@ -3162,7 +3249,7 @@ End Module
             Diagnostic(ERRID.ERR_TypeNotExpression1, "Program").WithArguments("Program"))
         End Sub
 
-        <WorkItem(545166, "DevDiv")>
+        <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         <Fact()>
         Public Sub BC30109ERR_ClassNotExpression1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -3654,7 +3741,7 @@ BC42024: Unused local variable: 'i'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(528749, "DevDiv")>
+        <Fact(), WorkItem(528749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528749")>
         Public Sub BC30209ERR_StrictDisallowImplicitObject_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="StrictDisallowImplicitObject">
@@ -3882,7 +3969,7 @@ BC30277: Type character '#' does not match declared data type 'Integer'.
 </expected>)
         End Sub
 
-        <WorkItem(528681, "DevDiv")>
+        <WorkItem(528681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528681")>
         <Fact()>
         Public Sub BC30277ERR_TypecharNoMatch2_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -4233,7 +4320,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
 </errors>)
         End Sub
 
-        <WorkItem(541012, "DevDiv")>
+        <WorkItem(541012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541012")>
         <Fact()>
         Public Sub BC30283ERR_CantOverrideConstructor()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4285,7 +4372,7 @@ BC42024: Unused local variable: 'i'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(531346, "DevDiv")>
+        <Fact(), WorkItem(531346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531346")>
         Public Sub UnicodeCaseInsensitiveLocals()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="UnicodeCaseInsensitiveLocals">
@@ -5029,12 +5116,12 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
 </expected>)
         End Sub
 
-        <WorkItem(579764, "DevDiv")>
+        <WorkItem(579764, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579764")>
         <Fact()>
         Public Sub BC30311ERR_WithArray_ParseAndDeclarationErrors()
             'This test is because previously in native command line compiler we would produce errors for both parsing and binding errors,  now 
             ' we won't produce the binding if parsing was not successful from the command line.  However, the diagnostics will display both messages and 
-            ' hence the need for two tests to verify this behaviour.
+            ' hence the need for two tests to verify this behavior.
 
             Dim source =
 <compilation>
@@ -5068,7 +5155,7 @@ End Module        </file>
         End Sub
 
 
-        <Fact(), WorkItem(542069, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5119,7 +5206,7 @@ BC33038: Type 'base' must define operator '>=' to be used in a 'For' statement.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542069, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5142,7 +5229,7 @@ BC30337: 'For' loop control variable cannot be of type 'Date' because the type d
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542069, "DevDiv"), WorkItem(544464, "DevDiv")>
+        <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069"), WorkItem(544464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544464")>
         Public Sub BC30337ERR_ForLoopType1_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ForLoopType1">
@@ -5419,7 +5506,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 </expected>)
         End Sub
 
-        <Fact, WorkItem(529193, "DevDiv")>
+        <Fact, WorkItem(529193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529193")>
         Public Sub BC30369ERR_BadInstanceMemberAccess_8()
             CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
@@ -5492,7 +5579,7 @@ BC30375: 'New' cannot be used on an interface.
 
         End Sub
 
-        <Fact(), WorkItem(999399, "DevDiv")>
+        <Fact(), WorkItem(999399, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/999399")>
         Public Sub BC30387ERR_NoConstructorOnBase2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoConstructorOnBase2">
@@ -5518,7 +5605,7 @@ BC30387: Class 'M1.c1' must declare a 'Sub New' because its base class 'M1.Base'
 
             CompilationUtils.AssertTheseDiagnostics(compilation, expected)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnosticsForTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), Nothing, True), expected)
+            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single()), expected)
         End Sub
 
         <Fact()>
@@ -5699,7 +5786,7 @@ BC30390: 'B.Private Sub M()' is not accessible in this context because it is 'Pr
 </expected>)
         End Sub
 
-        <WorkItem(540640, "DevDiv")>
+        <WorkItem(540640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540640")>
         <Fact()>
         Public Sub BC30390ERR_InaccessibleMember3_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -5788,7 +5875,7 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 </expected>)
         End Sub
 
-        <WorkItem(542801, "DevDiv")>
+        <WorkItem(542801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542801")>
         <Fact()>
         Public Sub BC30393ERR_ExitTryNotWithinTry_ExitFromFinally()
 
@@ -5822,11 +5909,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-        x.Where(Function(y)
-          ~~~~~
+BC30393: 'Exit Try' can only appear inside a 'Try' statement.
+                        Exit Try
+                        ~~~~~~~~
 </expected>)
         End Sub
 
@@ -6817,7 +6902,7 @@ BC30456: 'bar1' is not a member of 'S1'.
 </expected>)
         End Sub
 
-        <WorkItem(538903, "DevDiv")>
+        <WorkItem(538903, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538903")>
         <Fact()>
         Public Sub BC30456ERR_NameNotMember2_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -6957,7 +7042,7 @@ BC30456: 'M' is not a member of 'M1.B'.
 </expected>)
         End Sub
 
-        <WorkItem(529710, "DevDiv")>
+        <WorkItem(529710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529710")>
         <Fact()>
         Public Sub BC30456ERR_NameNotMember3_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -7374,7 +7459,7 @@ BC30500: Constant 'f1' cannot depend on its own value.
 
         End Sub
 
-        <Fact(), WorkItem(528728, "DevDiv")>
+        <Fact(), WorkItem(528728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528728")>
         Public Sub BC30500ERR_CircularEvaluation1_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="CircularEvaluation1">
@@ -7776,7 +7861,7 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
 </expected>)
         End Sub
 
-        <WorkItem(528762, "DevDiv")>
+        <WorkItem(528762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528762")>
         <Fact>
         Public Sub BC30512ERR_NarrowingConversionDisallowed2_8()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -8025,7 +8110,7 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
 </expected>)
         End Sub
 
-        <WorkItem(546763, "DevDiv")>
+        <WorkItem(546763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546763")>
         <Fact()>
         Public Sub BC30518ERR_NoCallableOverloadCandidates_LateBindingDisabled()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -8058,7 +8143,7 @@ BC30518: Overload resolution failed because no accessible 'ForEach' can be calle
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(542956, "DevDiv")>
+        <Fact(), WorkItem(542956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542956")>
         Public Sub BC30518ERR_NoCallableOverloadCandidates2_trycatch()
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -8091,11 +8176,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-        x.Where(Function(y)
-          ~~~~~
+BC30101: Branching out of a 'Finally' is not valid.
+                        Exit Function
+                        ~~~~~~~~~~~~~
 BC42353: Function '&lt;anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
                 End Function)
                 ~~~~~~~~~~~~
@@ -8739,7 +8822,7 @@ BC30545: Property access must assign to the property or use its value.
 </expected>)
         End Sub
 
-        <WorkItem(531311, "DevDiv")>
+        <WorkItem(531311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531311")>
         <Fact()>
         Public Sub BC30545ERR_PropertyAccessIgnored_Latebound()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -8984,6 +9067,30 @@ BC30567: Array initializer is missing 1 elements.
         End Sub
 
         <Fact()>
+        Public Sub BC30567ERR_InitializerTooFewElements1_2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb">
+Class C
+    Private A() As Object = New Object(0) {}
+    Private B As Object() = New Object(2) {}
+    Private C As Object(,) = New Object(1, 0) {}
+    Private D As Object(,) = New Object(1, 0) {{}, {2}}
+    Private E As Object(,) = New Object(0, 2) {}
+    Private F()() As Object = New Object(0)() {}
+    Private G()() As Object = New Object(0)() {New Object(0) {}}
+End Class
+    </file>
+    </compilation>)
+            compilation.AssertTheseDiagnostics(
+    <expected>
+BC30567: Array initializer is missing 1 elements.
+    Private D As Object(,) = New Object(1, 0) {{}, {2}}
+                                               ~~
+</expected>)
+        End Sub
+
+        <Fact()>
         Public Sub BC30568ERR_InitializerTooManyElements1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="InitializerTooManyElements1">
@@ -9074,7 +9181,7 @@ BC42017: Late bound resolution; runtime errors could occur.
 </expected>)
         End Sub
 
-        <WorkItem(546763, "DevDiv")>
+        <WorkItem(546763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546763")>
         <Fact()>
         Public Sub BC30574ERR_StrictDisallowsLateBinding_16745()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -9618,7 +9725,7 @@ BC30616: Variable 's' hides a variable in an enclosing block.
         End Sub
 
         ' spec changes in Roslyn
-        <WorkItem(528680, "DevDiv")>
+        <WorkItem(528680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528680")>
         <Fact()>
         Public Sub BC30616ERR_BlockLocalShadowing1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -10225,7 +10332,7 @@ BC42104: Variable 'a6' is used before it has been assigned a value. A null refer
 </expected>)
         End Sub
 
-        <WorkItem(542258, "DevDiv")>
+        <WorkItem(542258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542258")>
         <Fact()>
         Public Sub BC30672ERR_InitWithExplicitArraySizes_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -10313,7 +10420,7 @@ BC30676: 'E' is not an event of 'C1'.
 
         End Sub
 
-        <Fact(), WorkItem(918579, "DevDiv"), WorkItem(34, "CodePlex")>
+        <Fact(), WorkItem(918579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918579"), WorkItem(34, "CodePlex")>
         Public Sub BC30685ERR_AmbiguousAcrossInterfaces3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="AmbiguousAcrossInterfaces3">
@@ -10505,7 +10612,7 @@ BC30734: 'value' is already declared as a parameter of this method.
 </expected>)
         End Sub
 
-        <WorkItem(528680, "DevDiv")>
+        <WorkItem(528680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528680")>
         <Fact()>
         Public Sub BC30734ERR_LocalNamedSameAsParam1_3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -10609,7 +10716,7 @@ BC30742: Value '65536' cannot be converted to 'Char'.
 </expected>)
         End Sub
 
-        <WorkItem(574290, "DevDiv")>
+        <WorkItem(574290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574290")>
         <Fact()>
         Public Sub BC30742ERR_PassVBNullToAsc()
             Dim source =
@@ -10708,7 +10815,7 @@ BC30754: 'GoTo LB1' is not valid because 'LB1' is inside a 'Try', 'Catch' or 'Fi
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(543055, "DevDiv")>
+        <WorkItem(543055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543055")>
         <Fact()>
         Public Sub BC30754ERR_GotoIntoTryHandler_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -10923,7 +11030,7 @@ BC32023: Expression is of type 'Type1', which is not a collection type.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540627, "DevDiv")>
+        <WorkItem(540627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540627")>
         <Fact()>
         Public Sub BC30758ERR_BadAttributeNonPublicConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11158,7 +11265,7 @@ BC30920: First statement of this 'Sub New' must be an explicit call to 'MyBase.N
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(531309, "DevDiv")>
+        <WorkItem(531309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531309")>
         <Fact()>
         Public Sub BC30933ERR_LateBoundOverloadInterfaceCall1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11268,7 +11375,7 @@ BC30939: 'AddressOf' expression cannot be converted to '[Delegate]' because type
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(529157, "DevDiv")>
+        <Fact(), WorkItem(529157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529157")>
         Public Sub BC30940ERR_ReturnFromEventMethod() 'diag behavior change by design- not worth investing in.
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="ReturnFromEventMethod">
@@ -11306,7 +11413,7 @@ BC30451: 'value' is not declared. It may be inaccessible due to its protection l
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542270, "DevDiv")>
+        <WorkItem(542270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542270")>
         <Fact()>
         Public Sub BC30949ERR_ArrayInitializerForNonConstDim()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11329,7 +11436,7 @@ BC30949: Array initializer cannot be specified for a non constant dimension; use
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542270, "DevDiv")>
+        <WorkItem(542270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542270")>
         <Fact()>
         Public Sub BC30949ERR_ArrayInitializerForNonConstDim_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11537,7 +11644,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542268, "DevDiv")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub BC30980ERR_CircularInference2_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11562,7 +11669,7 @@ BC42104: Variable 'a' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542268, "DevDiv")>
+        <WorkItem(542268, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542268")>
         <Fact()>
         Public Sub BC30980ERR_CircularInference2_3a()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -11584,7 +11691,7 @@ BC42104: Variable 'a' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(542191, "DevDiv")>
+        <Fact(), WorkItem(542191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542191")>
         Public Sub BC30982ERR_NoSuitableWidestType1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NoSuitableWidestType1">
@@ -11869,7 +11976,7 @@ BC31082: 'ex' is not a local variable or parameter, and so cannot be used as a '
 </expected>)
         End Sub
 
-        <WorkItem(538613, "DevDiv")>
+        <WorkItem(538613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538613")>
         <Fact()>
         Public Sub BC30251_ModuleConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11890,7 +11997,7 @@ BC30251: Type 'M' has no constructors.
 </expected>)
         End Sub
 
-        <WorkItem(538613, "DevDiv")>
+        <WorkItem(538613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538613")>
         <Fact()>
         Public Sub BC30251_ModuleGenericConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -11911,7 +12018,7 @@ BC30251: Type 'M' has no constructors.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(570936, "DevDiv")>
+        <Fact(), WorkItem(570936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570936")>
         Public Sub BC31092ERR_ParamArrayWrongType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ParamArrayWrongType">
@@ -11937,7 +12044,7 @@ BC31092: ParamArray parameters must have an array type.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(570936, "DevDiv")>
+        <Fact(), WorkItem(570936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570936")>
         Public Sub BC31092ERR_ParamArrayWrongType_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ParamArrayWrongType">
@@ -12017,7 +12124,7 @@ BC31095: Reference to object under construction is not valid when calling anothe
 </expected>)
         End Sub
 
-        <WorkItem(541798, "DevDiv")>
+        <WorkItem(541798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541798")>
         <Fact()>
         Public Sub BC31095ERR_InvalidMeReference()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -12046,7 +12153,7 @@ BC31095: Reference to object under construction is not valid when calling anothe
 </expected>)
         End Sub
 
-        <WorkItem(541799, "DevDiv")>
+        <WorkItem(541799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541799")>
         <Fact()>
         Public Sub BC31096ERR_InvalidImplicitMeReference()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -12447,7 +12554,7 @@ BC31148: XML namespace prefix 'p6' is not defined.
 ]]></errors>)
         End Sub
 
-        <WorkItem(531633, "DevDiv")>
+        <WorkItem(531633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531633")>
         <Fact()>
         Public Sub BC31148ERR_UndefinedXmlPrefix_3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -12818,10 +12925,10 @@ BC31189: Element names cannot use the 'xmlns' prefix.
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
                 Dim x = Function() <aoeu>
                                    ~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
                 Dim y = Function() <aoeu val=<%= (Function() <htns></htns>)().ToString() %>/>
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -12848,13 +12955,13 @@ End Module
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private A = <a><b><%= <c/> %></b></a>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private B = <a b=<%= <c/> %>/>
                 ~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private C = <a/>.<b>.<c>
                 ~~~~~~~~~~~~
 BC31172: An embedded expression cannot be used here.
@@ -12863,22 +12970,22 @@ BC31172: An embedded expression cannot be used here.
 BC31172: An embedded expression cannot be used here.
     Private E = <%= <x><%= A %></x> %>
                 ~~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private E = <%= <x><%= A %></x> %>
                     ~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F = <a/>.<a>.<b>
                 ~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private G = <a b="c"/>.<a>.@b
                 ~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private H = <a/>...<b>
                 ~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private J = <!-- comment -->
                 ~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private K = <?xml version="1.0"?><x/>
                 ~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -12896,10 +13003,10 @@ End Module
 </file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors>
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F1 = &lt;x&gt;&lt;![CDATA[str]]&gt;&lt;/&gt;
                  ~~~~~~~~~~~~~~~~~~~~~
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F2 = &lt;![CDATA[str]]&gt;
                  ~~~~~~~~~~~~~~~
 </errors>)
@@ -12916,7 +13023,7 @@ End Module
 ]]></file>
 </compilation>)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
     Private F = GetXmlNamespace()
                 ~~~~~~~~~~~~~~~~~
 ]]></errors>)
@@ -13424,7 +13531,7 @@ BC31394: Expression of type 'ArgIterator' cannot be converted to 'Object' or 'Va
     </expected>)
         End Sub
 
-        <WorkItem(527685, "DevDiv")>
+        <WorkItem(527685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527685")>
         <Fact()>
         Public Sub BC31394ERR_RestrictedConversion1_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -13455,7 +13562,7 @@ BC42109: Variable 'TypeRefInstance' is used before it has been assigned a value.
     </expected>)
         End Sub
 
-        <WorkItem(527685, "DevDiv")>
+        <WorkItem(527685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527685")>
         <Fact()>
         Public Sub BC31394ERR_RestrictedConversion1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -13482,7 +13589,7 @@ BC31394: Expression of type 'RuntimeArgumentHandle' cannot be converted to 'Obje
     </expected>)
         End Sub
 
-        <Fact(), WorkItem(529561, "DevDiv")>
+        <Fact(), WorkItem(529561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529561")>
         Public Sub BC31396ERR_RestrictedType1_1()
             CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -13749,7 +13856,7 @@ BC31419: 'IsNot' requires operands that have reference types, but this operand h
 </expected>)
         End Sub
 
-        <WorkItem(542192, "DevDiv")>
+        <WorkItem(542192, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542192")>
         <Fact()>
         Public Sub BC31428ERR_VoidArrayDisallowed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14039,7 +14146,7 @@ End Class
 
         End Sub
 
-        Private Shared ReadOnly BadAttributeIl As String = <![CDATA[
+        Private Shared ReadOnly s_badAttributeIl As String = <![CDATA[
 .class public auto ansi beforefieldinit BaseAttribute
        extends [mscorlib]System.Attribute
 {
@@ -14107,7 +14214,7 @@ End Class
 } // end of class DerivedAttribute
 ]]>.Value.Replace(vbLf, vbNewLine)
 
-        <WorkItem(528981, "DevDiv")>
+        <WorkItem(528981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528981")>
         <Fact()>
         Public Sub BC31501ERR_BadAttributeReadOnlyProperty2()
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(
@@ -14118,11 +14225,11 @@ Class Test
 
 End Class
     ]]></file>
-    </compilation>, BadAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
+    </compilation>, s_badAttributeIl).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeReadOnlyProperty1, "PROP").WithArguments("PROP"))
 
         End Sub
 
-        <WorkItem(540627, "DevDiv")>
+        <WorkItem(540627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540627")>
         <Fact()>
         Public Sub BC31511ERR_BadAttributeNonPublicProperty1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -14151,7 +14258,7 @@ End Class
     )
         End Sub
 
-        <WorkItem(539101, "DevDiv")>
+        <WorkItem(539101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539101")>
         <Fact()>
         Public Sub BC32000ERR_UseOfLocalBeforeDeclaration1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14200,7 +14307,7 @@ BC32001: 'MyBase' is not valid within a Module.
 </expected>)
         End Sub
 
-        <WorkItem(542958, "DevDiv")>
+        <WorkItem(542958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542958")>
         <Fact()>
         Public Sub BC32001ERR_UseOfKeywordFromModule1_MeAsAttributeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14235,7 +14342,7 @@ BC32001: 'Me' is not valid within a Module.
 </expected>)
         End Sub
 
-        <WorkItem(542960, "DevDiv")>
+        <WorkItem(542960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542960")>
         <Fact()>
         Public Sub BC32001ERR_UseOfKeywordFromModule1_MyBaseAsAttributeInModule()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14598,7 +14705,7 @@ BC32013: Option Strict On disallows operands of type Object for operator '='. Us
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC30332: Value of type 'Integer()()' cannot be converted to 'Integer(*,*)' because 'Integer()' is not derived from 'Integer'.
+BC30414: Value of type 'Integer()()' cannot be converted to 'Integer(*,*)' because the array types have different numbers of dimensions.
                 Dim arr10 As Integer(,) = New Integer(9)(5) {} ' Invalid
                                           ~~~~~~~~~~~~~~~~~~~~
 BC32014: Bounds can be specified only for the top-level array when initializing an array of arrays.
@@ -14607,7 +14714,7 @@ BC32014: Bounds can be specified only for the top-level array when initializing 
 </expected>)
         End Sub
 
-        <WorkItem(545621, "DevDiv")>
+        <WorkItem(545621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545621")>
         <Fact()>
         Public Sub BC32014ERR_NoConstituentArraySizes1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14632,7 +14739,7 @@ BC32014: Bounds can be specified only for the top-level array when initializing 
     </expected>)
         End Sub
 
-        <WorkItem(528729, "DevDiv")>
+        <WorkItem(528729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528729")>
         <Fact()>
         Public Sub BC32016ERR_FunctionResultCannotBeIndexed1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -14655,7 +14762,7 @@ BC32016: 'Public Function FreeFile() As Integer' has no parameters and its retur
 </expected>)
         End Sub
 
-        <Fact, WorkItem(543658, "DevDiv")>
+        <Fact, WorkItem(543658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543658")>
         Public Sub BC32021ERR_NamedArgAlsoOmitted2()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NamedArgAlsoOmitted2">
@@ -15345,7 +15452,7 @@ BC32059: Array lower bounds can be only '0'.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542204, "DevDiv")>
+        <WorkItem(542204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542204")>
         <Fact()>
         Public Sub BC32079ERR_TypeParameterDisallowed()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15374,7 +15481,7 @@ BC32079: Type parameters or types constructed with type parameters are not allow
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542204, "DevDiv")>
+        <WorkItem(542204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542204")>
         <Fact()>
         Public Sub BC32079ERR_OpenTypeDisallowed()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15519,7 +15626,7 @@ BC32096: 'For Each' on type 'T1' is ambiguous because the type implements multip
                                  </errors>)
         End Sub
 
-        <WorkItem(543616, "DevDiv")>
+        <WorkItem(543616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543616")>
         <Fact()>
         Public Sub BC32096ERR_ForEachAmbiguousIEnumerable1_2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -15666,7 +15773,7 @@ BC32098: Type parameters cannot be used as qualifiers.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(545050, "DevDiv")>
+        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub BC32126ERR_AddressOfNullableMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AddressOfNullableMethod">
@@ -15740,7 +15847,7 @@ BC32128: 'IsNot' operand of type 'S1?' can be compared only to 'Nothing' because
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545669, "DevDiv")>
+        <WorkItem(545669, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545669")>
         <Fact()>
         Public Sub BC32303ERR_IllegalCallOrIndex()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -15872,7 +15979,7 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
             compilation1.VerifyDiagnostics(Diagnostic(ERRID.ERR_CopyBackTypeMismatch3, "o").WithArguments("x", "Integer", "c2"))
         End Sub
 
-        ' Rosly extra errors (last 3)
+        ' Roslyn extra errors (last 3)
         <Fact()>
         Public Sub BC33038ERR_ForLoopOperatorRequired2()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -16607,7 +16714,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(543658, "DevDiv")>
+        <Fact(), WorkItem(543658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543658")>
         Public Sub BC36583ERR_NamedArgAlsoOmitted3()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
     <compilation name="NamedArgAlsoOmitted3">
@@ -16810,8 +16917,7 @@ BC36594: Definition of method 'y' is not accessible in this context.
         End Module
     </file>
     </compilation>)
-
-            AssertTheseDiagnostics(compilation,
+            AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defines a variable that is used in a lambda or query expression.
                 GoTo Label1
@@ -17377,7 +17483,7 @@ BC36639: 'ByRef' parameter 'x' cannot be used in a lambda expression.
         End Module
     </file>
     </compilation>)
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 Diagnostic(ERRID.ERR_CannotLiftRestrictedTypeLambda, "x").WithArguments("System.ArgIterator"))
         End Sub
 
@@ -17541,7 +17647,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
 
         End Sub
 
-        <WorkItem(528732, "DevDiv")>
+        <WorkItem(528732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528732")>
         <Fact()>
         Public Sub BC36666ERR_InaccessibleReturnTypeOfMember2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -18385,7 +18491,7 @@ BC40052: Range specified for 'Case' statement is not valid. Make sure that the l
         End Sub
 
         <Fact>
-        <WorkItem(759127, "DevDiv")>
+        <WorkItem(759127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/759127")>
         Public Sub BC41000WRN_AttributeSpecifiedMultipleTimes()
             ' No warnings Expected - Previously would generate a BC41000.  The signature of Attribute 
             ' determined From attribute used in original bug.
@@ -18904,7 +19010,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(528718, "DevDiv")>
+        <WorkItem(528718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528718")>
         <Fact()>
         Public Sub BC42025WRN_SharedMemberThroughInstance_3()
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -18957,7 +19063,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(528734, "DevDiv")>
+        <Fact(), WorkItem(528734, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528734")>
         Public Sub BC42026WRN_RecursivePropertyCall()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RecursivePropertyCall">
@@ -19296,9 +19402,9 @@ BC42026: Expression recursively calls the containing property 'Public Property P
         End Sub
 
         <Fact()>
-        Public Sub BC42029WRN_OverlapingCatch()
+        Public Sub BC42029WRN_OverlappingCatch()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="OverlapingCatch">
+    <compilation>
         <file name="a.vb">
             Imports System
             Module Module1
@@ -19568,7 +19674,7 @@ BC42104: Variable 'v' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(546820, "DevDiv")>
+        <WorkItem(546820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546820")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_StaticLocal()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19587,7 +19693,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -19615,7 +19721,7 @@ BC42104: Variable 'x' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_2()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation>
         <file name="a.vb">
 Class C
@@ -19633,7 +19739,8 @@ Class C
 End Class
         </file>
     </compilation>)
-            Dim expectedErrors1 = <errors>
+            AssertTheseEmitDiagnostics(compilation,
+<errors>
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.Conversions.ToString' is not defined.
         For Each x As String In "abc"
                                 ~~~~~
@@ -19646,11 +19753,10 @@ BC35000: Requested operation is not available because the runtime library functi
 BC42104: Variable 'S' is used before it has been assigned a value. A null reference exception could result at runtime.
         System.Console.WriteLine(S)
                                  ~
-</errors>
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+</errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19679,7 +19785,7 @@ BC42104: Variable 'S' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19707,7 +19813,7 @@ BC42104: Variable 'Y' is used before it has been assigned a value. A null refere
 </errors>)
         End Sub
 
-        <WorkItem(542080, "DevDiv")>
+        <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact()>
         Public Sub BC42104WRN_DefAsgUseNullRef_5()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -19837,7 +19943,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
                  </errors>)
         End Sub
 
-        <WorkItem(528735, "DevDiv")>
+        <WorkItem(528735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528735")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -19881,7 +19987,7 @@ BC42105: Function 'F6' doesn't return a value on all code paths. A null referenc
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545313, "DevDiv")>
+        <WorkItem(545313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545313")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1b()
             ' Make sure initializers are analyzed for errors/warnings
@@ -19914,7 +20020,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </errors>)
         End Sub
 
-        <WorkItem(837973, "DevDiv")>
+        <WorkItem(837973, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837973")>
         <Fact()>
         Public Sub Bug837973()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -19983,7 +20089,7 @@ BC42105: Function 'Async_Regress134668_Test3' doesn't return a value on all code
 ]]></errors>)
         End Sub
 
-        <WorkItem(545313, "DevDiv")>
+        <WorkItem(545313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545313")>
         <Fact()>
         Public Sub BC42105WRN_DefAsgNoRetValFuncRef1c()
             ' Make sure initializers are analyzed for errors/warnings ONLY ONCE 
@@ -20137,7 +20243,7 @@ BC42107: Property 'P6' doesn't return a value on all code paths. A null referenc
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(540421, "DevDiv")>
+        <WorkItem(540421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540421")>
         <Fact()>
         Public Sub BC42108WRN_DefAsgUseNullRefByRefStr()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20237,7 +20343,7 @@ BC42108: Variable 's' is passed by reference before it has been assigned a value
 </errors>)
         End Sub
 
-        <WorkItem(540421, "DevDiv")>
+        <WorkItem(540421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540421")>
         <Fact()>
         Public Sub BC42108WRN_DefAsgUseNullRefByRefStr2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20329,7 +20435,7 @@ BC42109: Variable 's' is used before it has been assigned a value. A null refere
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(546818, "DevDiv")>
+        <WorkItem(546818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546818")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_NoError()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20355,7 +20461,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(547098, "DevDiv")>
+        <WorkItem(547098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547098")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_NoError2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20393,9 +20499,9 @@ Imports System
             CompilationUtils.AssertTheseDiagnostics(compilation1, <errors></errors>)
         End Sub
 
-        <WorkItem(546377, "DevDiv")>
-        <WorkItem(546423, "DevDiv")>
-        <WorkItem(546420, "DevDiv")>
+        <WorkItem(546377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546377")>
+        <WorkItem(546423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546423")>
+        <WorkItem(546420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546420")>
         <Fact()>
         Public Sub Bug15747()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20417,9 +20523,9 @@ End Module
     </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546377, "DevDiv")>
-        <WorkItem(546423, "DevDiv")>
-        <WorkItem(546420, "DevDiv")>
+        <WorkItem(546377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546377")>
+        <WorkItem(546423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546423")>
+        <WorkItem(546420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546420")>
         <Fact()>
         Public Sub Bug15747b()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20441,7 +20547,7 @@ End Module
     </compilation>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546175, "DevDiv")>
+        <WorkItem(546175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546175")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_Dev11Compat()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20514,7 +20620,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "g").WithArguments("g"))
         End Sub
 
-        <WorkItem(546175, "DevDiv")>
+        <WorkItem(546175, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546175")>
         <Fact()>
         Public Sub BC42109WRN_DefAsgUseNullRefStr_Dev11Compat2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20576,7 +20682,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRefStr, "g").WithArguments("g"))
         End Sub
 
-        <WorkItem(652008, "DevDiv")>
+        <WorkItem(652008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652008")>
         <Fact()>
         Public Sub BC42110WRN_FieldInForNotExplicit_DiagnosticRemoved()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20615,7 +20721,7 @@ BC42322: Runtime errors might occur when converting 'String' to 'IEnumerator(Of 
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(545479, "DevDiv")>
+        <WorkItem(545479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545479")>
         <Fact()>
         Public Sub BC42322WRN_InterfaceConversion2_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20656,7 +20762,7 @@ BC42322: Runtime errors might occur when converting 'I' to 'String'.
                         Dim exampleFunc1 As Func(Of Integer) = Function() i
                     Next
 
-                    ' since Dev11 the scope for for each loops has been changed; no warnings here
+                    ' since Dev11 the scope for foreach loops has been changed; no warnings here
                     For each j as integer in (function(){1+j, 2+j})()
                         Dim exampleFunc2 As Func(Of Integer) = Function() j
                     Next
@@ -20692,7 +20798,7 @@ BC42324: Using the iteration variable in a lambda expression may have unexpected
 
         End Sub
 
-        <WorkItem(545252, "DevDiv")>
+        <WorkItem(545252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545252")>
         <Fact()>
         Public Sub BC30413ERR_WithEventsIsDelegate()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -20711,7 +20817,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545195, "DevDiv")>
+        <WorkItem(545195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545195")>
         <Fact()>
         Public Sub BC42328WRN_RelDelegatePassedToRemoveHandler()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20873,13 +20979,13 @@ BC42349: Using DirectCast operator to cast a value-type to the same type is obso
 
                     Module M1
                         Sub foo()
-                            ' resouce type is a concrete structure + immutable (OK)
+                            ' resource type is a concrete structure + immutable (OK)
                             Using a As New ImmutableStructure()
                             End Using
                             Using New ImmutableStructure() ' ok
                             End Using
 
-                            ' resouce type is a concrete structure + mutable (Warning)
+                            ' resource type is a concrete structure + mutable (Warning)
                             Using b As New MutableStructure()
                             End Using
                             Using New MutableStructure() ' as expression also ok.
@@ -21053,7 +21159,7 @@ BC42353: Function 'Fun1' doesn't return a value on all code paths. Are you missi
 </expected>)
         End Sub
 
-        <WorkItem(542802, "DevDiv")>
+        <WorkItem(542802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542802")>
         <Fact()>
         Public Sub BC42353WRN_DefAsgNoRetValFuncVal1_Lambda()
 
@@ -21081,7 +21187,7 @@ End Class
             VerifyDiagnostics(compilation, Diagnostic(ERRID.WRN_DefAsgNoRetValFuncVal1, "End Function").WithArguments("<anonymous method>"))
         End Sub
 
-        <WorkItem(542816, "DevDiv")>
+        <WorkItem(542816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542816")>
         <Fact()>
         Public Sub BC42353WRN_DefAsgNoRetValFuncVal1_Lambda_2()
 
@@ -21356,7 +21462,7 @@ End Class
 </errors>)
         End Sub
 
-        <WorkItem(938459, "DevDiv")>
+        <WorkItem(938459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938459")>
         <Fact>
         Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritenceOrdering()
             Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -21487,7 +21593,7 @@ BC30002: Type 'System.Void' is not defined.
 </errors>)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Class()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21514,7 +21620,7 @@ BC30026: 'End Sub' expected.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Interface()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21537,7 +21643,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(530126, "DevDiv")>
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Enum()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21562,7 +21668,8 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
-        <Fact(), WorkItem(530126, "DevDiv")>
+
+        <Fact(), WorkItem(530126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530126")>
         Public Sub Bug_15314_Structure()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21584,6 +21691,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
+
         <Fact()>
         Public Sub Bug4185()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21605,7 +21713,7 @@ BC30451: 'Environent' is not declared. It may be inaccessible due to its protect
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <Fact(), WorkItem(545179, "DevDiv")>
+        <Fact(), WorkItem(545179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545179")>
         Public Sub Bug13459()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
@@ -21638,7 +21746,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub BaseConstructorImplicitCallWithoutSystemVoid()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21670,7 +21778,7 @@ Public Class C2
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ParamArrayBindingCheckForAttributeConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21703,7 +21811,7 @@ BC30002: Type 'System.String' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub DefaultPropertyBindingCheckForAttributeConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21744,7 +21852,7 @@ BC30002: Type 'System.Void' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ConstBindingCheckForDateTimeConstantConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21776,7 +21884,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub ConstBindingCheckForDecimalConstantConstructor()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21808,7 +21916,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub SynthesizedInstanceConstructorBinding()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21830,7 +21938,7 @@ Public Class C1
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub SynthesizedSharedConstructorBinding()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21862,7 +21970,7 @@ BC30002: Type 'System.DateTime' is not defined.
 </errors>)
         End Sub
 
-        <WorkItem(541066, "DevDiv")>
+        <WorkItem(541066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541066")>
         <Fact()>
         Public Sub EnumWithoutMscorReference()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21888,7 +21996,7 @@ Enum E
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(
@@ -21919,9 +22027,6 @@ BC30002: Type 'System.Object' is not defined.
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~
-BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
-        Dim a = DnT.DateString
-                ~~~~~~~~~~~~~~
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'String'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~~~~~~~~~~~~
@@ -21931,7 +22036,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
 ]]></errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias02()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -21952,7 +22057,7 @@ BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries bec
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias03()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -21978,7 +22083,7 @@ BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries bec
 </errors>)
         End Sub
 
-        <WorkItem(541468, "DevDiv")>
+        <WorkItem(541468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541468")>
         <Fact()>
         Public Sub TypeUsedViaAlias04()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
@@ -22040,7 +22145,7 @@ BC30260: 'Main' is already declared as 'Friend Const main As Object' in this mod
 </expected>)
         End Sub
 
-        <WorkItem(542596, "DevDiv")>
+        <WorkItem(542596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542596")>
         <Fact()>
         Public Sub RegularArgumentAfterNamed()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23273,7 +23378,7 @@ BC30401: 'E4' cannot implement 'Blah' because there is no matching event on inte
 </errors>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase_CaseStatementError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23308,7 +23413,7 @@ Ca
 </expected>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase_CaseStatementError_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23345,7 +23450,7 @@ BC30451: 'y' is not declared. It may be inaccessible due to its protection level
 </expected>)
         End Sub
 
-        <WorkItem(543095, "DevDiv")>
+        <WorkItem(543095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543095")>
         <Fact()>
         Public Sub SelectCase()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23371,7 +23476,7 @@ End Structure
             Diagnostic(ERRID.ERR_NameNotDeclared1, "ca").WithArguments("ca"))
         End Sub
 
-        <WorkItem(543300, "DevDiv")>
+        <WorkItem(543300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543300")>
         <Fact()>
         Public Sub BoundConversion()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -23412,7 +23517,7 @@ End Class
                                            Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Linq"))
         End Sub
 
-        <WorkItem(543300, "DevDiv")>
+        <WorkItem(543300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543300")>
         <Fact()>
         Public Sub BoundConversion_1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -23435,7 +23540,7 @@ End Sub
                 Diagnostic(ERRID.ERR_InvalidEndSub, "End Sub"))
         End Sub
 
-        <WorkItem(543319, "DevDiv")>
+        <WorkItem(543319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543319")>
         <Fact()>
         Public Sub CaseOnlyAppearInSelect()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23459,7 +23564,7 @@ End Module
             VerifyDiagnostics(compilation, Diagnostic(ERRID.ERR_CaseNoSelect, "Case ""b"""))
         End Sub
 
-        <WorkItem(543319, "DevDiv")>
+        <WorkItem(543319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543319")>
         <Fact()>
         Public Sub CaseOnlyAppearInSelect_1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23485,7 +23590,7 @@ End Class
                 Diagnostic(ERRID.ERR_CaseNoSelect, "Case ""b"""))
         End Sub
 
-        <WorkItem(543333, "DevDiv")>
+        <WorkItem(543333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543333")>
         <Fact()>
         Public Sub BindReturn()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23503,7 +23608,7 @@ End Class
                               Diagnostic(ERRID.ERR_InvalidEndSub, "End sub"))
         End Sub
 
-        <WorkItem(543746, "DevDiv")>
+        <WorkItem(543746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543746")>
         <Fact()>
         Public Sub LocalConstAssignedToSelf()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23522,7 +23627,7 @@ End Module
                     Diagnostic(ERRID.WRN_DefAsgUseNullRef, "X").WithArguments("X"))
         End Sub
 
-        <WorkItem(543746, "DevDiv")>
+        <WorkItem(543746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543746")>
         <Fact>
         Public Sub LocalConstCycle()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23546,7 +23651,7 @@ End Module
                     Diagnostic(ERRID.ERR_UseOfLocalBeforeDeclaration1, "c").WithArguments("c"))
         End Sub
 
-        <WorkItem(543823, "DevDiv")>
+        <WorkItem(543823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543823")>
         <Fact()>
         Public Sub LocalConstCycle02()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23570,7 +23675,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543821, "DevDiv")>
+        <WorkItem(543821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543821")>
         <Fact()>
         Public Sub LocalConstCycle03()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23594,7 +23699,7 @@ End Module
                               Diagnostic(ERRID.WRN_DefAsgUseNullRef, "Z").WithArguments("Z"))
         End Sub
 
-        <WorkItem(543755, "DevDiv")>
+        <WorkItem(543755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543755")>
         <Fact()>
         Public Sub BracketedIdentifierMissingEndBracket()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -23625,7 +23730,7 @@ BC30034: Bracketed identifier is missing closing ']'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(536245, "DevDiv"), WorkItem(543652, "DevDiv")>
+        <Fact(), WorkItem(536245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536245"), WorkItem(543652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543652")>
         Public Sub BC30192ERR_ParamArrayMustBeLast()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                 <compilation>
@@ -23649,7 +23754,7 @@ BC30050: ParamArray parameter must be an array.
 </expected>)
         End Sub
 
-        <WorkItem(544501, "DevDiv")>
+        <WorkItem(544501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544501")>
         <Fact()>
         Public Sub TestCombinePrivateAndNotOverridable()
             Dim compilation =
@@ -23691,7 +23796,7 @@ BC31408: 'Private' and 'NotOverridable' cannot be combined.
 </expected>)
         End Sub
 
-        <WorkItem(546098, "DevDiv")>
+        <WorkItem(546098, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546098")>
         <Fact()>
         Public Sub InstanceMemberOfStructInsideSharedLambda()
             Dim compilation =
@@ -23719,7 +23824,7 @@ BC30369: Cannot refer to an instance member of a class from within a shared meth
 </expected>)
         End Sub
 
-        <WorkItem(546053, "DevDiv")>
+        <WorkItem(546053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546053")>
         <Fact()>
         Public Sub EventHandlerBindingError()
             Dim compilation =
@@ -23745,7 +23850,7 @@ BC30676: 'evt' is not an event of 'Object'.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_Object()
             Dim compilation =
@@ -23782,7 +23887,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_Array()
             Dim compilation =
@@ -23821,7 +23926,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(530912, "DevDiv")>
+        <WorkItem(530912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530912")>
         <Fact()>
         Public Sub Bug_17183_LateBinding_COM()
             Dim compilation =
@@ -23867,7 +23972,7 @@ BC30574: Option Strict On disallows late binding.
 </expected>)
         End Sub
 
-        <WorkItem(531400, "DevDiv")>
+        <WorkItem(531400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531400")>
         <Fact()>
         Public Sub Bug18070()
             Dim compilation =
@@ -23927,7 +24032,7 @@ Font)
 
         End Sub
 
-        <WorkItem(566606, "DevDiv")>
+        <WorkItem(566606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566606")>
         <Fact()>
         Public Sub BrokenFor()
             Dim compilation =
@@ -24246,7 +24351,7 @@ BC36908: Late-bound extension methods are not supported.
 </expected>)
         End Sub
 
-        <WorkItem(573728, "DevDiv")>
+        <WorkItem(573728, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573728")>
         <Fact()>
         Public Sub Bug573728()
             Dim compilation =
@@ -24274,7 +24379,7 @@ BC30057: Too many arguments to 'D'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(792754, "DevDiv")>
+        <Fact(), WorkItem(792754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792754")>
         Public Sub NameClashAcrossFiles()
             Dim comp =
                 CreateCompilationWithMscorlibAndVBRuntime(
@@ -24316,7 +24421,7 @@ BC30002: Type 'Settings' is not defined.
                        ~~~~~~~~
 ]]></expected>)
 
-            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb")).Single
+            Dim tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("a.vb", StringComparison.Ordinal)).Single
             Dim model = comp.GetSemanticModel(tree)
 
             AssertTheseDiagnostics(model.GetDiagnostics(),
@@ -24326,7 +24431,7 @@ BC30002: Type 'Settings' is not defined.
                      ~~~~~~~~
 ]]></expected>)
 
-            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb")).Single
+            tree = comp.SyntaxTrees.Where(Function(t) t.FilePath.EndsWith("b.vb", StringComparison.Ordinal)).Single
             model = comp.GetSemanticModel(tree)
             AssertTheseDiagnostics(model.GetDiagnostics(),
 <expected><![CDATA[
@@ -24393,6 +24498,1475 @@ BC42004: Expression recursively calls the containing Operator 'Public Shared Wid
                          ~
 ]]></expected>)
 
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_ReadonlyAutoProperties()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+
+    Public Sub New()
+        'Check assignment of readonly auto property
+        Test = "Test"
+    End Sub
+
+    'Check readonly auto-properties
+    Public ReadOnly Property Test As String
+End Class
+
+Interface I1
+    ReadOnly Property Test1 As String
+    WriteOnly Property Test2 As String
+    Property Test3 As String
+End Interface
+
+MustInherit Class C1
+    MustOverride ReadOnly Property Test1 As String
+    MustOverride WriteOnly Property Test2 As String
+    MustOverride Property Test3 As String
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support readonly auto-implemented properties.
+    Public ReadOnly Property Test As String
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 9.0 does not support auto-implemented properties.
+    Public ReadOnly Property Test As String
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere01()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+
+    Sub New()
+#Region "Region in .ctor"
+#End Region ' "Region in .ctor"
+    End Sub
+
+    Shared Sub New()
+#Region "Region in .cctor"
+#End Region ' "Region in .cctor"
+    End Sub
+
+    Public Sub ASub()
+#Region "Region in a Sub"
+#End Region ' "Region in a Sub"
+    End Sub
+
+    Public Function AFunc()
+#Region "Region in a Func"
+#End Region ' "Region in a Func"
+    End Function
+
+    Shared Operator +(x As TestClass, y As TestClass) As TestClass
+#Region "Region in an operator"
+#End Region ' "Region in an operator"
+    End Operator
+
+    Property P As Integer
+        Get
+#Region "Region in a get"
+#End Region ' "Region in a get"
+        End Get
+        Set(value As Integer)
+#Region "Region in a set"
+#End Region ' "Region in a set"
+        End Set
+    End Property
+
+    Custom Event E As System.Action
+        AddHandler(value As Action)
+#Region "Region in an add"
+#End Region ' "Region in an add"
+        End AddHandler
+        RemoveHandler(value As Action)
+#Region "Region in a remove"
+#End Region ' "Region in a remove"
+        End RemoveHandler
+        RaiseEvent()
+#Region "Region in a raise"
+#End Region ' "Region in a raise"
+        End RaiseEvent
+    End Event
+
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in .ctor"
+~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in .ctor"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in .cctor"
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in .cctor"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a Sub"
+~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a Sub"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a Func"
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a Func"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in an operator"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in an operator"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a get"
+~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a get"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a set"
+~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a set"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in an add"
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in an add"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a remove"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a remove"
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region in a raise"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' "Region in a raise"
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere02()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+#Region "Region"
+#End Region 
+    Sub New()
+    End Sub
+#Region "Region"
+#End Region 
+    Shared Sub New()
+    End Sub
+#Region "Region"
+#End Region 
+    Public Sub ASub()
+    End Sub
+#Region "Region"
+#End Region 
+    Public Function AFunc()
+    End Function
+#Region "Region"
+#End Region 
+    Shared Operator +(x As TestClass, y As TestClass) As TestClass
+    End Operator
+#Region "Region"
+#End Region 
+    Property P As Integer
+#Region "Region"
+#End Region 
+        Get
+        End Get
+#Region "Region"
+#End Region 
+        Set(value As Integer)
+        End Set
+#Region "Region"
+#End Region 
+    End Property
+#Region "Region"
+#End Region 
+    Custom Event E As System.Action
+#Region "Region"
+#End Region 
+        AddHandler(value As Action)
+        End AddHandler
+#Region "Region"
+#End Region 
+        RemoveHandler(value As Action)
+        End RemoveHandler
+#Region "Region"
+#End Region 
+        RaiseEvent()
+        End RaiseEvent
+#Region "Region"
+#End Region 
+    End Event
+#Region "Region"
+#End Region 
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere03()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Sub New()
+    End Sub
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Shared Sub New()
+    End Sub
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Public Sub ASub()
+    End Sub
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Public Function AFunc()
+    End Function
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Shared Operator +(x As TestClass, y As TestClass) As TestClass
+    End Operator
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Property P As Integer
+#Region "Region"
+#End Region 
+        Get
+        End Get
+#Region "Region"
+#End Region 
+        Set(value As Integer)
+        End Set
+#Region "Region"
+#End Region 
+    End Property
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+    Custom Event E As System.Action
+#Region "Region"
+#End Region 
+        AddHandler(value As Action)
+        End AddHandler
+#Region "Region"
+#End Region 
+        RemoveHandler(value As Action)
+        End RemoveHandler
+#Region "Region"
+#End Region 
+        RaiseEvent()
+        End RaiseEvent
+#Region "Region"
+#End Region 
+    End Event
+#Region "Region"
+    Private f1 as Integer
+#End Region 
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere04()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+#Region "Region"
+    Sub New()
+    End Sub
+#End Region 
+#Region "Region"
+    Shared Sub New()
+    End Sub
+#End Region 
+#Region "Region"
+    Public Sub ASub()
+    End Sub
+#End Region 
+#Region "Region"
+    Public Function AFunc()
+    End Function
+#End Region 
+#Region "Region"
+    Shared Operator +(x As TestClass, y As TestClass) As TestClass
+    End Operator
+#End Region 
+#Region "Region"
+    Property P As Integer
+#Region "Region"
+        Get
+        End Get
+#End Region 
+#Region "Region"
+        Set(value As Integer)
+        End Set
+#End Region 
+    End Property
+#End Region 
+#Region "Region"
+    Custom Event E As System.Action
+#Region "Region"
+        AddHandler(value As Action)
+        End AddHandler
+#End Region 
+#Region "Region"
+        RemoveHandler(value As Action)
+        End RemoveHandler
+#End Region 
+#Region "Region"
+        RaiseEvent()
+        End RaiseEvent
+#End Region 
+    End Event
+#End Region 
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere05()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+    Property P As Integer
+        Get
+#Region "Region"
+#End Region 
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC30481: 'Class' statement must end with a matching 'End Class'.
+Class TestClass
+~~~~~~~~~~~~~~~
+BC30025: Property missing 'End Property'.
+    Property P As Integer
+    ~~~~~~~~~~~~~~~~~~~~~
+BC30631: 'Get' statement must end with a matching 'End Get'.
+        Get
+        ~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere06()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+    Property P As Integer
+        Get
+        End Get
+#Region "Region"
+#End Region</file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC30481: 'Class' statement must end with a matching 'End Class'.
+Class TestClass
+~~~~~~~~~~~~~~~
+BC30025: Property missing 'End Property'.
+    Property P As Integer
+    ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere07()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+    Property P As Integer
+        Get
+#Region "Region"
+#End Region 
+    End Property
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC30631: 'Get' statement must end with a matching 'End Get'.
+        Get
+        ~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere08()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class TestClass
+    Sub Test()
+#if False
+#Region "Region"
+#End Region 
+#End if
+    End Sub
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere09()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+#Region "Region 1"
+#End Region ' 1 
+        </file>
+        <file name="b.vb">
+#Region "Region 2"
+        </file>
+        <file name="c.vb">
+#End Region ' 3 
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region 2"
+~~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 3
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere10()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Namespace NS1
+#Region "Region1"
+#End Region ' 1
+End Namespace
+
+#Region "Region2"
+Namespace NS2
+#End Region ' 2
+End Namespace
+
+Namespace NS3
+#Region "Region3"
+End Namespace
+#End Region ' 3
+
+Namespace NS4
+#Region "Region4"
+
+End Namespace
+Namespace NS5
+
+#End Region ' 4
+
+End Namespace
+
+#Region "Region5"
+Namespace NS6
+End Namespace
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Namespace NS7
+#Region "Region6"
+End Namespace
+        </file>
+        <file name="c.vb">
+Namespace NS8
+#End Region ' 7
+End Namespace
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere11()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Module NS1
+#Region "Region1"
+#End Region ' 1
+End Module
+
+#Region "Region2"
+Module NS2
+#End Region ' 2
+End Module
+
+Module NS3
+#Region "Region3"
+End Module
+#End Region ' 3
+
+Module NS4
+#Region "Region4"
+
+End Module
+Module NS5
+
+#End Region ' 4
+
+End Module
+
+#Region "Region5"
+Module NS6
+End Module
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Module NS7
+#Region "Region6"
+End Module
+        </file>
+        <file name="c.vb">
+Module NS8
+#End Region ' 7
+End Module
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere12()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class NS1
+#Region "Region1"
+#End Region ' 1
+End Class
+
+#Region "Region2"
+Class NS2
+#End Region ' 2
+End Class
+
+Class NS3
+#Region "Region3"
+End Class
+#End Region ' 3
+
+Class NS4
+#Region "Region4"
+
+End Class
+Class NS5
+
+#End Region ' 4
+
+End Class
+
+#Region "Region5"
+Class NS6
+End Class
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Class NS7
+#Region "Region6"
+End Class
+        </file>
+        <file name="c.vb">
+Class NS8
+#End Region ' 7
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere13()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Structure NS1
+#Region "Region1"
+#End Region ' 1
+End Structure
+
+#Region "Region2"
+Structure NS2
+#End Region ' 2
+End Structure
+
+Structure NS3
+#Region "Region3"
+End Structure
+#End Region ' 3
+
+Structure NS4
+#Region "Region4"
+
+End Structure
+Structure NS5
+
+#End Region ' 4
+
+End Structure
+
+#Region "Region5"
+Structure NS6
+End Structure
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Structure NS7
+#Region "Region6"
+End Structure
+        </file>
+        <file name="c.vb">
+Structure NS8
+#End Region ' 7
+End Structure
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere14()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Interface NS1
+#Region "Region1"
+#End Region ' 1
+End Interface
+
+#Region "Region2"
+Interface NS2
+#End Region ' 2
+End Interface
+
+Interface NS3
+#Region "Region3"
+End Interface
+#End Region ' 3
+
+Interface NS4
+#Region "Region4"
+
+End Interface
+Interface NS5
+
+#End Region ' 4
+
+End Interface
+
+#Region "Region5"
+Interface NS6
+End Interface
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Interface NS7
+#Region "Region6"
+End Interface
+        </file>
+        <file name="c.vb">
+Interface NS8
+#End Region ' 7
+End Interface
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere15()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Enum NS1
+#Region "Region1"
+#End Region ' 1
+End Enum
+
+#Region "Region2"
+Enum NS2
+#End Region ' 2
+End Enum
+
+Enum NS3
+#Region "Region3"
+End Enum
+#End Region ' 3
+
+Enum NS4
+#Region "Region4"
+
+End Enum
+Enum NS5
+
+#End Region ' 4
+
+End Enum
+
+#Region "Region5"
+Enum NS6
+End Enum
+#End Region ' 5
+        </file>
+        <file name="b.vb">
+Enum NS7
+#Region "Region6"
+End Enum
+        </file>
+        <file name="c.vb">
+Enum NS8
+#End Region ' 7
+End Enum
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere16()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class NS1
+    Property P1 As Integer
+#Region "Region1"
+#End Region ' 1
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+
+Class NS2
+#Region "Region2"
+    Property P1 As Integer
+#End Region ' 2
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+
+Class NS3
+    Property P1 As Integer
+#Region "Region3"
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+#End Region ' 3
+End Class
+
+Class NS4
+    Property P1 As Integer
+#Region "Region4"
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+
+    Property P2 As Integer
+
+#End Region ' 4
+
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+
+Class NS6
+#Region "Region5"
+    Property P1 As Integer
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+#End Region ' 5
+End Class
+        </file>
+        <file name="b.vb">
+Class NS7
+    Property P1 As Integer
+#Region "Region6"
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        </file>
+        <file name="c.vb">
+Class NS8
+    Property P1 As Integer
+#End Region ' 7
+        Get
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere17()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Class NS1
+    Custom Event E1 As System.Action
+#Region "Region1"
+#End Region ' 1
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Class NS2
+#Region "Region2"
+    Custom Event E1 As System.Action
+#End Region ' 2
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Class NS3
+    Custom Event E1 As System.Action
+#Region "Region3"
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+#End Region ' 3
+End Class
+
+Class NS4
+    Custom Event E1 As System.Action
+#Region "Region4"
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+
+    Custom Event E2 As System.Action
+
+#End Region ' 4
+
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+
+Class NS6
+#Region "Region5"
+    Custom Event E1 As System.Action
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+#End Region ' 5
+End Class
+        </file>
+        <file name="b.vb">
+Class NS7
+    Custom Event E1 As System.Action
+#Region "Region6"
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+        </file>
+        <file name="c.vb">
+Class NS8
+    Custom Event E1 As System.Action
+#End Region ' 7
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 3
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 4
+~~~~~~~~~~~
+BC30681: '#Region' statement must end with a matching '#End Region'.
+#Region "Region6"
+~~~~~~~~~~~~~~~~~
+BC30680: '#End Region' must be preceded by a matching '#Region'.
+#End Region ' 7
+~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_RegionEveryWhere18()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+#Region "Region1"
+Class NS1
+#Region "Region2"
+        Sub Test1()
+#End Region ' 2
+        End Sub
+End Class
+#End Region ' 1
+        </file>
+        <file name="b.vb">
+#Region "Region3"
+Class NS2
+        Sub Test1()
+#Region "Region4"
+        End Sub
+#End Region ' 4
+End Class
+#End Region ' 3
+        </file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#End Region ' 2
+~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support region directives within method bodies or regions crossing boundaries of declaration blocks.
+#Region "Region4"
+~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_CObjInAttributes()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass1
+
+    <System.ComponentModel.DefaultValue(CObj("Test"))>
+    Public Property Test2 As String
+
+    '<System.ComponentModel.DefaultValue(CType("Test", Object))>
+    'Public Property Test3 As String
+
+    '<System.ComponentModel.DefaultValue(DirectCast("Test", Object))>
+    'Public Property Test4 As String
+
+    '<System.ComponentModel.DefaultValue(TryCast("Test", Object))>
+    'Public Property Test5 As String
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {SystemRef}, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC36716: Visual Basic 12.0 does not support CObj in attribute arguments.
+    <System.ComponentModel.DefaultValue(CObj("Test"))>
+                                        ~~~~
+]]></expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_MultilineStrings()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass
+
+    Dim test4 = "
+    This is
+    a muiltiline
+    string"
+
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support multiline string literals.
+    Dim test4 = "
+                ~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_LineContinuationComments()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass
+
+    Dim test5 As String = ""
+    Dim chars = From c In test5 'This is a test of comments in a linq statement
+                Let asc = Asc(c) 'VS2015 can handle this
+                Select asc
+
+    Sub Test()
+        Dim chars2 = From c In test5 'This is a test of comments in a linq statement
+                     Let asc = Asc(c) 'VS2015 can handle this
+                     Select asc
+    End Sub
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support line continuation comments.
+    Dim chars = From c In test5 'This is a test of comments in a linq statement
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support line continuation comments.
+        Dim chars2 = From c In test5 'This is a test of comments in a linq statement
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 9.0 does not support implicit line continuation.
+    Dim chars = From c In test5 'This is a test of comments in a linq statement
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        Dim chars2 = From c In test5 'This is a test of comments in a linq statement
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_TypeOfIsNot()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass
+
+        Sub Test()
+            Dim test6 As String = ""
+            If TypeOf test6 IsNot System.String Then Console.WriteLine("That string isn't a string")
+        End Sub
+
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support TypeOf IsNot expression.
+            If TypeOf test6 IsNot System.String Then Console.WriteLine("That string isn't a string")
+                            ~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_YearFirstDateLiterals()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass
+
+        Sub Test()
+            Dim d = #2015-08-23#
+        End Sub
+
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support year-first date literals.
+            Dim d = #2015-08-23#
+                    ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_Pragma()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Class TestClass
+
+        Sub Test()
+#Disable Warning BC42024
+            Dim test7 As String 'Should have no "unused variable" warning
+#Enable Warning BC42024
+        End Sub
+
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support warning directives.
+#Disable Warning BC42024
+~~~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support warning directives.
+#Enable Warning BC42024
+~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_PartialModulesAndInterfaces()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Partial Module Module1
+End Module
+
+Partial Interface IFace
+End Interface
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseParseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support partial modules.
+Partial Module Module1
+~~~~~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support partial interfaces.
+Partial Interface IFace
+~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(5072, "https://github.com/dotnet/roslyn/issues/5072")>
+        Public Sub LangVersion_ImplementReadonlyWithReadwrite()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Interface IReadOnly
+    ReadOnly Property Test1 As String
+    WriteOnly Property Test2 As String
+End Interface
+
+Class ReadWrite
+    Implements IReadOnly
+
+    Public Property Test1 As String Implements IReadOnly.Test1
+
+    Public Property Test2 As String Implements IReadOnly.Test2
+End Class
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, {SystemRef}, parseOptions:=VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36716: Visual Basic 12.0 does not support implementing read-only or write-only property with read-write property.
+    Public Property Test1 As String Implements IReadOnly.Test1
+                                               ~~~~~~~~~~~~~~~
+BC36716: Visual Basic 12.0 does not support implementing read-only or write-only property with read-write property.
+    Public Property Test2 As String Implements IReadOnly.Test2
+                                               ~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
     End Class

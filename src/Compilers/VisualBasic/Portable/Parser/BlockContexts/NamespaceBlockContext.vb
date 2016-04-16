@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.ModuleBlock
 
-                    Return UseSyntax(node, newContext, DirectCast(node, TypeBlockSyntax).End.IsMissing)
+                    Return UseSyntax(node, newContext, DirectCast(node, TypeBlockSyntax).EndBlockStatement.IsMissing)
 
                 Case SyntaxKind.NamespaceBlock
 

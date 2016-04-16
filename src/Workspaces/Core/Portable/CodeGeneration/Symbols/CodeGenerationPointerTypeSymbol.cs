@@ -2,14 +2,14 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPointerTypeSymbol : CodeGenerationTypeSymbol, IPointerTypeSymbol
     {
-        public ITypeSymbol PointedAtType { get; private set; }
+        public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
             : base(null, null, Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)

@@ -15,24 +15,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' treats assignments in the region as un-assigning the variable would
     ''' cause "unassigned" errors outside the region.
     ''' </summary>
-    Class DataFlowsOutWalker
+    Friend Class DataFlowsOutWalker
         Inherits AbstractRegionDataFlowPass
 
-        Private ReadOnly dataFlowsIn As ImmutableArray(Of ISymbol)
-        Private ReadOnly originalUnassigned As HashSet(Of Symbol)
-        Private ReadOnly dataFlowsOut As New HashSet(Of Symbol)()
+        Private ReadOnly _dataFlowsIn As ImmutableArray(Of ISymbol)
+        Private ReadOnly _originalUnassigned As HashSet(Of Symbol)
+        Private ReadOnly _dataFlowsOut As New HashSet(Of Symbol)()
 #If DEBUG Then
         ' we'd like to ensure that only variables get returned in DataFlowsOut that were assigned to inside the region.
-        Private ReadOnly assignedInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _assignedInside As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 #End If
 
-        Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
+        Private Sub New(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
                 unassignedVariables As HashSet(Of Symbol), originalUnassigned As HashSet(Of Symbol), dataFlowsIn As ImmutableArray(Of ISymbol))
 
             MyBase.New(info, region, unassignedVariables, trackUnassignments:=True, trackStructsWithIntrinsicTypedFields:=True)
 
-            Me.dataFlowsIn = dataFlowsIn
-            Me.originalUnassigned = originalUnassigned
+            Me._dataFlowsIn = dataFlowsIn
+            Me._originalUnassigned = originalUnassigned
         End Sub
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo, region As FlowAnalysisRegionInfo,
@@ -49,10 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim walker = New DataFlowsOutWalker(info, region, unassignedWithoutStatic, unassignedVariables, dataFlowsIn)
             Try
                 Dim success = walker.Analyze
-                Dim result = walker.dataFlowsOut
+                Dim result = walker._dataFlowsOut
 #If DEBUG Then
                 ' Assert that DataFlowsOut only contains variables that were assigned to inside the region
-                Debug.Assert(Not success OrElse Not result.Any(Function(variable) Not walker.assignedInside.Contains(variable)))
+                Debug.Assert(Not success OrElse Not result.Any(Function(variable) Not walker._assignedInside.Contains(variable)))
 #End If
 
                 Return If(success, result, New HashSet(Of Symbol)())
@@ -65,11 +65,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' to handle loops properly, we must assume that every variable (except static locals) 
             ' that flows in is assigned at the beginning of the loop.  If it isn't, then it must 
             ' be in a loop and flow out of the region in that loop (and into the region inside the loop).
-            For Each variable As Symbol In dataFlowsIn
+            For Each variable As Symbol In _dataFlowsIn
                 Dim slot As Integer = Me.MakeSlot(variable)
                 If Not Me.State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
                         (variable.Kind <> SymbolKind.Local OrElse Not DirectCast(variable, LocalSymbol).IsStatic) Then
-                    dataFlowsOut.Add(variable)
+                    _dataFlowsOut.Add(variable)
                 End If
             Next
 
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim symbol = GetNodeSymbol(node)
                     If symbol IsNot Nothing Then
 #If DEBUG Then
-                        assignedInside.Add(symbol)
+                        _assignedInside.Add(symbol)
 #End If
                     End If
                 End If
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                     Dim exprIdentifier = DirectCast(variableBySlot(slot).Symbol, ParameterSymbol)
                                     If exprIdentifier IsNot Nothing AndAlso exprIdentifier.IsByRef Then
-                                        dataFlowsOut.Add(exprIdentifier)
+                                        _dataFlowsOut.Add(exprIdentifier)
                                     End If
                                 End If
                             End If
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Dim slot As Integer = slots(0)
                                     If slot >= SlotKind.FirstAvailable Then
                                         Debug.Assert(locSymbol Is variableBySlot(slot).Symbol)
-                                        dataFlowsOut.Add(variableBySlot(slot).Symbol)
+                                        _dataFlowsOut.Add(variableBySlot(slot).Symbol)
                                     End If
                                 End If
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(local.Kind <> SymbolKind.Field OrElse boundFieldAccess IsNot Nothing)
 
-            If Not dataFlowsOut.Contains(local) AndAlso local.Kind <> SymbolKind.RangeVariable AndAlso Not IsInside Then
+            If Not _dataFlowsOut.Contains(local) AndAlso local.Kind <> SymbolKind.RangeVariable AndAlso Not IsInside Then
                 If local.Kind = SymbolKind.Field Then
                     Dim sym As Symbol = GetNodeSymbol(boundFieldAccess)
 
@@ -153,11 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
 
                     If sym IsNot Nothing Then
-                        dataFlowsOut.Add(sym)
+                        _dataFlowsOut.Add(sym)
                     End If
 
                 Else
-                    dataFlowsOut.Add(local)
+                    _dataFlowsOut.Add(local)
                 End If
             End If
 
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub ReportUnassignedByRefParameter(parameter As ParameterSymbol)
-            dataFlowsOut.Add(parameter)
+            _dataFlowsOut.Add(parameter)
 
             MyBase.ReportUnassignedByRefParameter(parameter)
         End Sub
@@ -176,9 +176,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isStaticLocal As Boolean = variable.Kind = SymbolKind.Local AndAlso DirectCast(variable, LocalSymbol).IsStatic
 
                 If IsInside AndAlso (isByRefParameter OrElse isStaticLocal AndAlso WasUsedBeforeAssignment(variable)) Then
-                    dataFlowsOut.Add(variable)
+                    _dataFlowsOut.Add(variable)
 #If DEBUG Then
-                    assignedInside.Add(variable)
+                    _assignedInside.Add(variable)
 #End If
                 End If
             End If
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function WasUsedBeforeAssignment(sym As Symbol) As Boolean
-            Return Me.originalUnassigned.Contains(sym)
+            Return Me._originalUnassigned.Contains(sym)
         End Function
 
         Friend Overrides Sub AssignLocalOnDeclaration(local As LocalSymbol, node As BoundLocalDeclaration)

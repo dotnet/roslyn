@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
-    Module EmitHelpers
+    Friend Module EmitHelpers
 
         Friend Function EmitDifference(
             compilation As VisualBasicCompilation,
@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Try
                 moduleVersionId = baseline.OriginalMetadata.GetModuleVersionId()
             Catch ex As BadImageFormatException
+                ' https://github.com/dotnet/roslyn/issues/8910:
                 ' Return MakeEmitResult(success:=False, diagnostics:= ..., baseline:=Nothing)
                 Throw
             End Try
@@ -40,7 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, moduleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
-            Dim moduleBeingBuilt = New PEDeltaAssemblyBuilder(
+            Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
+            Try
+                moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
                     emitOptions:=emitOpts,
                     outputKind:=compilation.Options.OutputKind,
@@ -49,21 +52,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     previousGeneration:=baseline,
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
+            Catch e As NotSupportedException
+                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+            End Try
 
             If testData IsNot Nothing Then
                 moduleBeingBuilt.SetMethodTestData(testData.Methods)
                 testData.Module = moduleBeingBuilt
             End If
 
-            baseline = moduleBeingBuilt.PreviousGeneration
-
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
             Dim changes = moduleBeingBuilt.Changes
+
+            Dim newBaseline As EmitBaseline = Nothing
 
             If compilation.Compile(moduleBeingBuilt,
                                    win32Resources:=Nothing,
                                    xmlDocStream:=Nothing,
-                                   generateDebugInfo:=True,
+                                   emittingPdb:=True,
                                    diagnostics:=diagnostics,
                                    filterOpt:=AddressOf changes.RequiresCompilation,
                                    cancellationToken:=cancellationToken) Then
@@ -71,42 +79,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' Map the definitions from the previous compilation to the current compilation.
                 ' This must be done after compiling above since synthesized definitions
                 ' (generated when compiling method bodies) may be required.
-                baseline = MapToCompilation(compilation, moduleBeingBuilt)
+                Dim mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt)
 
-                Using pdbWriter = New Cci.PdbWriter(pdbName, pdbStream, If(testData IsNot Nothing, testData.SymWriterFactory, Nothing))
-                    Dim context = New EmitContext(moduleBeingBuilt, Nothing, diagnostics)
-                    Dim encId = Guid.NewGuid()
-
-                    Try
-                        Dim writer = New DeltaMetadataWriter(
-                            context,
-                            compilation.MessageProvider,
-                            baseline,
-                            encId,
-                            definitionMap,
-                            changes,
-                            cancellationToken)
-
-                        Dim metadataSizes As Cci.MetadataSizes = Nothing
-                        writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, metadataSizes)
-                        writer.GetMethodTokens(updatedMethods)
-
-                        Dim hasErrors = diagnostics.HasAnyErrors()
-
-                        Return New EmitDifferenceResult(
-                            success:=Not hasErrors,
-                            diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                            baseline:=If(hasErrors, Nothing, writer.GetDelta(baseline, compilation, encId, metadataSizes)))
-
-                    Catch e As Cci.PdbWritingException
-                        diagnostics.Add(ERRID.ERR_PDBWritingFailed, Location.None, e.Message)
-                    Catch e As PermissionSetFileReadException
-                        diagnostics.Add(ERRID.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message)
-                    End Try
-                End Using
+                newBaseline = compilation.SerializeToDeltaStreams(
+                    moduleBeingBuilt,
+                    mappedBaseline,
+                    definitionMap,
+                    changes,
+                    metadataStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethods,
+                    diagnostics,
+                    testData?.SymWriterFactory,
+                    cancellationToken)
             End If
 
-            Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+            Return New EmitDifferenceResult(
+                success:=newBaseline IsNot Nothing,
+                diagnostics:=diagnostics.ToReadOnlyAndFree(),
+                baseline:=newBaseline)
         End Function
 
         Friend Function MapToCompilation(
@@ -141,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
 
-            ' TODO can we reuse some data from the previos matcher?
+            ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
                 anonymousTypeMap,
                 sourceAssembly,

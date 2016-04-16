@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataTypeOf : Cci.IMetadataTypeOf
     {
-        private readonly Cci.ITypeReference typeToGet;
-        private readonly Cci.ITypeReference systemType;
+        private readonly Cci.ITypeReference _typeToGet;
+        private readonly Cci.ITypeReference _systemType;
 
         public MetadataTypeOf(Cci.ITypeReference typeToGet, Cci.ITypeReference systemType)
         {
-            this.typeToGet = typeToGet;
-            this.systemType = systemType;
+            _typeToGet = typeToGet;
+            _systemType = systemType;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                return this.typeToGet;
+                return _typeToGet;
             }
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         Cci.ITypeReference Cci.IMetadataExpression.Type
         {
-            get { return this.systemType; }
+            get { return _systemType; }
         }
     }
 }

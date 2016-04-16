@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Text;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     }
 }";
 
-        [Fact]
+        [ClrOnlyFact]
         public void EnumWithPrivateInstanceField()
         {
             // No errors.
@@ -259,7 +259,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037, "DevDiv")]
+        [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
         [Fact]
         public void CircularDefinitionManyMembers_Explicit()
         {
@@ -272,7 +272,7 @@ enum F
                 Diagnostic(ErrorCode.ERR_CircConstValue, "M0").WithArguments("E.M0").WithLocation(3, 5));
         }
 
-        [WorkItem(843037, "DevDiv")]
+        [WorkItem(843037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843037")]
         [Fact]
         public void InvertedDefinitionManyMembers_Explicit()
         {

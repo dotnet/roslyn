@@ -8,21 +8,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class CompilationTypeGenerator : ITypeGenerator
         {
-            private readonly Compilation compilation;
+            private readonly Compilation _compilation;
 
             public CompilationTypeGenerator(Compilation compilation)
             {
-                this.compilation = compilation;
+                _compilation = compilation;
             }
 
             public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
             {
-                return compilation.CreateArrayTypeSymbol(elementType, rank);
+                return _compilation.CreateArrayTypeSymbol(elementType, rank);
             }
 
             public ITypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
             {
-                return compilation.CreatePointerTypeSymbol(pointedAtType);
+                return _compilation.CreatePointerTypeSymbol(pointedAtType);
             }
 
             public ITypeSymbol Construct(INamedTypeSymbol namedType, ITypeSymbol[] typeArguments)

@@ -3,10 +3,9 @@
 using System.Collections.Immutable;
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Reflection;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Microsoft.Cci
 {
@@ -14,19 +13,21 @@ namespace Microsoft.Cci
     {
         internal static readonly Guid CorSymLanguageTypeCSharp = new Guid("{3f5162f8-07c6-11d3-9053-00c04fa302a1}");
         internal static readonly Guid CorSymLanguageTypeBasic = new Guid("{3a12d0b8-c26c-11d0-b442-00a0244a1dd2}");
-        private static readonly Guid CorSymLanguageVendorMicrosoft = new Guid("{994b45c4-e6e9-11d2-903f-00c04fa302a1}");
-        private static readonly Guid CorSymDocumentTypeText = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
+        private static readonly Guid s_corSymLanguageVendorMicrosoft = new Guid("{994b45c4-e6e9-11d2-903f-00c04fa302a1}");
+        private static readonly Guid s_corSymDocumentTypeText = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
 
-        private string location;
-        private Guid language;
-        private bool isComputedChecksum;
+        private readonly string _location;
+        private readonly Guid _language;
+        private readonly bool _isComputedChecksum;
 
-        private Task<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm;
+        private readonly Task<ValueTuple<ImmutableArray<byte>, Guid>> _checksumAndAlgorithm;
 
         public DebugSourceDocument(string location, Guid language)
         {
-            this.location = location; // If it's a path, it should be normalized.
-            this.language = language;
+            Debug.Assert(location != null);
+
+            _location = location; // If it's a path, it should be normalized.
+            _language = language;
         }
 
         /// <summary>
@@ -35,8 +36,8 @@ namespace Microsoft.Cci
         public DebugSourceDocument(string location, Guid language, Func<ValueTuple<ImmutableArray<byte>, Guid>> checksumAndAlgorithm)
             : this(location, language)
         {
-            this.checksumAndAlgorithm = Task.Run(checksumAndAlgorithm);
-            this.isComputedChecksum = true;
+            _checksumAndAlgorithm = Task.Run(checksumAndAlgorithm);
+            _isComputedChecksum = true;
         }
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace Microsoft.Cci
         public DebugSourceDocument(string location, Guid language, ImmutableArray<byte> checksum, Guid algorithm)
             : this(location, language)
         {
-            this.checksumAndAlgorithm = Task.FromResult(ValueTuple.Create(checksum, algorithm));
+            _checksumAndAlgorithm = Task.FromResult(ValueTuple.Create(checksum, algorithm));
         }
 
         internal static bool IsSupportedAlgorithm(SourceHashAlgorithm algorithm)
@@ -81,29 +82,29 @@ namespace Microsoft.Cci
 
         public Guid DocumentType
         {
-            get { return CorSymDocumentTypeText; }
+            get { return s_corSymDocumentTypeText; }
         }
 
         public Guid Language
         {
-            get { return language; }
+            get { return _language; }
         }
 
         public Guid LanguageVendor
         {
-            get { return CorSymLanguageVendorMicrosoft; }
+            get { return s_corSymLanguageVendorMicrosoft; }
         }
 
         public string Location
         {
-            get { return this.location; }
+            get { return _location; }
         }
 
         public ValueTuple<ImmutableArray<byte>, Guid> ChecksumAndAlgorithm
         {
             get
             {
-                return (checksumAndAlgorithm == null) ? default(ValueTuple<ImmutableArray<byte>, Guid>) : checksumAndAlgorithm.Result;
+                return _checksumAndAlgorithm?.Result ?? default(ValueTuple<ImmutableArray<byte>, Guid>);
             }
         }
 
@@ -115,7 +116,7 @@ namespace Microsoft.Cci
         {
             get
             {
-                return this.isComputedChecksum;
+                return _isComputedChecksum;
             }
         }
     }

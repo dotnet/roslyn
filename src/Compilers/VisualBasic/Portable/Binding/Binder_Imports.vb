@@ -90,56 +90,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If aliasTarget.Kind <> SymbolKind.ErrorType Then
-                    Dim aliasIdentifier = aliasImportSyntax.Alias.Identifier
-                    Dim aliasText = aliasIdentifier.ValueText
-                    ' Parser checks for type characters on alias text, so don't need to check again here.
+                Dim aliasIdentifier = aliasImportSyntax.Alias.Identifier
+                Dim aliasText = aliasIdentifier.ValueText
+                ' Parser checks for type characters on alias text, so don't need to check again here.
 
-                    ' Check for duplicate symbol.
-                    If data.Aliases.ContainsKey(aliasText) Then
-                        Binder.ReportDiagnostic(diagBag, aliasIdentifier, ERRID.ERR_DuplicateNamedImportAlias1, aliasText)
-                    Else
-                        ' Make sure that the Import's alias doesn't have the same name as a type or a namespace in the global namespace
-                        Dim conflictsWith = binder.Compilation.GlobalNamespace.GetMembers(aliasText)
+                ' Check for duplicate symbol.
+                If data.Aliases.ContainsKey(aliasText) Then
+                    Binder.ReportDiagnostic(diagBag, aliasIdentifier, ERRID.ERR_DuplicateNamedImportAlias1, aliasText)
+                Else
+                    ' Make sure that the Import's alias doesn't have the same name as a type or a namespace in the global namespace
+                    Dim conflictsWith = binder.Compilation.GlobalNamespace.GetMembers(aliasText)
 
-                        If Not conflictsWith.IsEmpty Then
-                            ' TODO: Note that symbol's name in this error message is supposed to include Class/Namespace word at the beginning.
-                            '       Might need to use special format for that parameter in the error message. 
-                            Binder.ReportDiagnostic(diagBag,
+                    If Not conflictsWith.IsEmpty Then
+                        ' TODO: Note that symbol's name in this error message is supposed to include Class/Namespace word at the beginning.
+                        '       Might need to use special format for that parameter in the error message. 
+                        Binder.ReportDiagnostic(diagBag,
                                                     aliasImportSyntax,
                                                     ERRID.ERR_ImportAliasConflictsWithType2,
                                                     aliasText,
                                                     conflictsWith(0))
-                        Else
-                            ' NOTE: we are mimicing Dev10 behavior where referencing type symbol in 
-                            '       alias 'declaration' fails in case the symbol has errors.
+                    Else
+                        If aliasTarget.Kind <> SymbolKind.ErrorType Then
                             Dim useSiteErrorInfo As DiagnosticInfo = aliasTarget.GetUseSiteErrorInfo()
-                            If Not AllowAliasWithUseSiteError(useSiteErrorInfo) Then
+
+                            If ShouldReportUseSiteErrorForAlias(useSiteErrorInfo) Then
                                 Binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
-                                ' NOTE: Do not create an alias!!!
-
-                            Else
-                                Dim aliasSymbol = New AliasSymbol(binder.Compilation,
-                                                                 binder.ContainingNamespaceOrType,
-                                                                 aliasText,
-                                                                 aliasTarget,
-                                                                 If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
-
-                                data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart)
                             End If
                         End If
+
+                        ' We create the alias symbol even when the target is erroneous, 
+                        ' so that we can bind to the alias and avoid cascading errors.
+                        ' As a result the further consumers of the aliases have to account for the error case.
+                        Dim aliasSymbol = New AliasSymbol(binder.Compilation,
+                                                             binder.ContainingNamespaceOrType,
+                                                             aliasText,
+                                                             aliasTarget,
+                                                             If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
+
+                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart)
                     End If
                 End If
             End Sub
 
             ''' <summary>
-            ''' Checks use site error and returns True in case the alias should still be created for the
-            ''' type with this site error. In current implementation checks for errors ##36924, 36925
+            ''' Checks use site error and returns True in case it should be reported for the alias. 
+            ''' In current implementation checks for errors #36924 and #36925
             ''' </summary>
-            Private Shared Function AllowAliasWithUseSiteError(useSiteErrorInfo As DiagnosticInfo) As Boolean
-                Return useSiteErrorInfo Is Nothing OrElse
-                        useSiteErrorInfo.Code = ERRID.ERR_CannotUseGenericTypeAcrossAssemblyBoundaries OrElse
-                        useSiteErrorInfo.Code = ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries
+            Private Shared Function ShouldReportUseSiteErrorForAlias(useSiteErrorInfo As DiagnosticInfo) As Boolean
+                Return useSiteErrorInfo IsNot Nothing AndAlso
+                       useSiteErrorInfo.Code <> ERRID.ERR_CannotUseGenericTypeAcrossAssemblyBoundaries AndAlso
+                       useSiteErrorInfo.Code <> ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries
             End Function
 
             ' Bind a members imports clause. If it is OK, and also unique, add it to the members imports set.

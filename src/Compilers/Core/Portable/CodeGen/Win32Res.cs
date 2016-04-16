@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 {
     internal class Win32Resource : Cci.IWin32Resource
     {
-        private readonly byte[] data;
-        private readonly DWORD codePage;
-        private readonly DWORD languageId;
-        private readonly int id;
-        private readonly string name;
-        private readonly int typeId;
-        private readonly string typeName;
+        private readonly byte[] _data;
+        private readonly DWORD _codePage;
+        private readonly DWORD _languageId;
+        private readonly int _id;
+        private readonly string _name;
+        private readonly int _typeId;
+        private readonly string _typeName;
 
         internal Win32Resource(
             byte[] data,
@@ -26,48 +26,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             int typeId,
             string typeName)
         {
-            this.data = data;
-            this.codePage = codePage;
-            this.languageId = languageId;
-            this.id = id;
-            this.name = name;
-            this.typeId = typeId;
-            this.typeName = typeName;
+            _data = data;
+            _codePage = codePage;
+            _languageId = languageId;
+            _id = id;
+            _name = name;
+            _typeId = typeId;
+            _typeName = typeName;
         }
 
-        public string TypeName
-        {
-            get { return typeName; }
-        }
+        public string TypeName => _typeName;
 
-        public int TypeId
-        {
-            get { return typeId; }
-        }
+        public int TypeId => _typeId;
 
-        public string Name
-        {
-            get { return name; }
-        }
+        public string Name => _name;
 
-        public int Id
-        {
-            get { return id; }
-        }
+        public int Id => _id;
 
-        public DWORD LanguageId
-        {
-            get { return languageId; }
-        }
+        public DWORD LanguageId => _languageId;
 
-        public DWORD CodePage
-        {
-            get { return codePage; }
-        }
+        public DWORD CodePage => _codePage;
 
-        public IEnumerable<byte> Data
-        {
-            get { return data; }
-        }
+        public IEnumerable<byte> Data => _data;
     }
 }

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <summary>
     /// Id that associates an emitted user-defined or long-lived synthesized local variable 
     /// with a syntax node that defined it. If a syntax node defines multiple variables it 
-    /// provides information neccessary to identify which one of these variables is it.
+    /// provides information necessary to identify which one of these variables is it.
     /// </summary>
     internal struct LocalDebugId : IEquatable<LocalDebugId>
     {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return Hash.Combine(SyntaxOffset, Ordinal);
         }
-        
+
         public override bool Equals(object obj)
         {
             return obj is LocalDebugId && Equals((LocalDebugId)obj);

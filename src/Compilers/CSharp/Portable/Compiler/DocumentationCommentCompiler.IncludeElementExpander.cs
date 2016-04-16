@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class IncludeElementExpander
         {
-            private readonly Symbol memberSymbol;
-            private readonly ImmutableArray<CSharpSyntaxNode> sourceIncludeElementNodes;
-            private readonly CSharpCompilation compilation;
-            private readonly DiagnosticBag diagnostics;
-            private readonly CancellationToken cancellationToken;
+            private readonly Symbol _memberSymbol;
+            private readonly ImmutableArray<CSharpSyntaxNode> _sourceIncludeElementNodes;
+            private readonly CSharpCompilation _compilation;
+            private readonly DiagnosticBag _diagnostics;
+            private readonly CancellationToken _cancellationToken;
 
-            private int nextSourceIncludeElementIndex;
-            private HashSet<Location> inProgressIncludeElementNodes;
-            private HashSet<ParameterSymbol> documentedParameters;
-            private HashSet<TypeParameterSymbol> documentedTypeParameters;
-            private DocumentationCommentIncludeCache includedFileCache;
+            private int _nextSourceIncludeElementIndex;
+            private HashSet<Location> _inProgressIncludeElementNodes;
+            private HashSet<ParameterSymbol> _documentedParameters;
+            private HashSet<TypeParameterSymbol> _documentedTypeParameters;
+            private DocumentationCommentIncludeCache _includedFileCache;
 
             private IncludeElementExpander(
                 Symbol memberSymbol,
@@ -44,17 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics,
                 CancellationToken cancellationToken)
             {
-                this.memberSymbol = memberSymbol;
-                this.sourceIncludeElementNodes = sourceIncludeElementNodes;
-                this.compilation = compilation;
-                this.diagnostics = diagnostics;
-                this.cancellationToken = cancellationToken;
+                _memberSymbol = memberSymbol;
+                _sourceIncludeElementNodes = sourceIncludeElementNodes;
+                _compilation = compilation;
+                _diagnostics = diagnostics;
+                _cancellationToken = cancellationToken;
 
-                this.documentedParameters = documentedParameters;
-                this.documentedTypeParameters = documentedTypeParameters;
-                this.includedFileCache = includedFileCache;
+                _documentedParameters = documentedParameters;
+                _documentedTypeParameters = documentedTypeParameters;
+                _includedFileCache = includedFileCache;
 
-                this.nextSourceIncludeElementIndex = 0;
+                _nextSourceIncludeElementIndex = 0;
             }
 
             public static void ProcessIncludes(
@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                Debug.Assert(expander.nextSourceIncludeElementIndex == expander.sourceIncludeElementNodes.Length);
+                Debug.Assert(expander._nextSourceIncludeElementIndex == expander._sourceIncludeElementNodes.Length);
 
-                documentedParameters = expander.documentedParameters;
-                documentedTypeParameters = expander.documentedTypeParameters;
-                includedFileCache = expander.includedFileCache;
+                documentedParameters = expander._documentedParameters;
+                documentedTypeParameters = expander._documentedTypeParameters;
+                includedFileCache = expander._includedFileCache;
             }
 
             /// <remarks>
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: could add a depth count and just not rewrite below that depth.
             private XNode[] Rewrite(XNode node, string currentXmlFilePath, CSharpSyntaxNode originatingSyntax)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 string commentMessage = null;
 
@@ -272,11 +272,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (diagnose)
                     {
-                        diagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new LocalizableErrorArgument(MessageID.IDS_OperationCausedStackOverflow));
+                        _diagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new LocalizableErrorArgument(MessageID.IDS_OperationCausedStackOverflow));
                     }
 
-                    // TODO: use culture from compilation instead of invariant culture?
-                    commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLNOINCLUDE, CultureInfo.InvariantCulture);
+                    commentMessage = ErrorFacts.GetMessage(MessageID.IDS_XMLNOINCLUDE, CultureInfo.CurrentUICulture);
 
                     // Don't inspect the children - we're already in a cycle.
                     return new XNode[] { new XComment(commentMessage), includeElement.Copy(copyAttributeAnnotations: false) };
@@ -302,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string xpathValue = pathAttr.Value;
                     string filePathValue = fileAttr.Value;
 
-                    var resolver = compilation.Options.XmlReferenceResolver;
+                    var resolver = _compilation.Options.XmlReferenceResolver;
                     if (resolver == null)
                     {
                         includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.XmlReferencesNotSupported)));
@@ -320,9 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    if (includedFileCache == null)
+                    if (_includedFileCache == null)
                     {
-                        includedFileCache = new DocumentationCommentIncludeCache(resolver);
+                        _includedFileCache = new DocumentationCommentIncludeCache(resolver);
                     }
 
                     try
@@ -331,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         try
                         {
-                            doc = includedFileCache.GetOrMakeDocument(resolvedFilePath);
+                            doc = _includedFileCache.GetOrMakeDocument(resolvedFilePath);
                         }
                         catch (IOException e)
                         {
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (location.IsInSource)
                         {
-                            commentMessage = string.Format(ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED2, CultureInfo.InvariantCulture), resolvedFilePath);
+                            commentMessage = string.Format(ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED2, CultureInfo.CurrentUICulture), resolvedFilePath);
 
                             // As in Dev11, return only the comment - drop the include element.
                             return new XNode[] { new XComment(commentMessage) };
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (diagnose)
                     {
-                        diagnostics.AddRange(includeDiagnostics);
+                        _diagnostics.AddRange(includeDiagnostics);
                     }
 
                     includeDiagnostics.Free();
@@ -428,8 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (location.IsInSource)
                 {
-                    // TODO: use culture from compilation instead of invariant culture?
-                    return ErrorFacts.GetMessage(messageId, CultureInfo.InvariantCulture);
+                    return ErrorFacts.GetMessage(messageId, CultureInfo.CurrentUICulture);
                 }
                 else
                 {
@@ -439,18 +437,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private bool EnterIncludeElement(Location location)
             {
-                if (this.inProgressIncludeElementNodes == null)
+                if (_inProgressIncludeElementNodes == null)
                 {
-                    this.inProgressIncludeElementNodes = new HashSet<Location>();
+                    _inProgressIncludeElementNodes = new HashSet<Location>();
                 }
 
-                return this.inProgressIncludeElementNodes.Add(location);
+                return _inProgressIncludeElementNodes.Add(location);
             }
 
             private bool LeaveIncludeElement(Location location)
             {
-                Debug.Assert(this.inProgressIncludeElementNodes != null);
-                bool result = this.inProgressIncludeElementNodes.Remove(location);
+                Debug.Assert(_inProgressIncludeElementNodes != null);
+                bool result = _inProgressIncludeElementNodes.Remove(location);
                 Debug.Assert(result);
                 return result;
             }
@@ -467,11 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // order as the DocumentationCommentWalker, we can access the elements of includeElementNodes in order.
                 if (currentXmlFilePath == null)
                 {
-                    Debug.Assert(nextSourceIncludeElementIndex < sourceIncludeElementNodes.Length);
+                    Debug.Assert(_nextSourceIncludeElementIndex < _sourceIncludeElementNodes.Length);
                     Debug.Assert(originatingSyntax == null);
-                    originatingSyntax = sourceIncludeElementNodes[nextSourceIncludeElementIndex];
+                    originatingSyntax = _sourceIncludeElementNodes[_nextSourceIncludeElementIndex];
                     location = originatingSyntax.Location;
-                    nextSourceIncludeElementIndex++;
+                    _nextSourceIncludeElementIndex++;
 
                     // #line shall not affect the base path:
                     currentXmlFilePath = location.GetLineSpan().Path;
@@ -507,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(memberDeclSyntax != null,
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
-                Binder binder = BinderFactory.MakeCrefBinder(crefSyntax, memberDeclSyntax, compilation.GetBinderFactory(memberDeclSyntax.SyntaxTree));
+                Binder binder = BinderFactory.MakeCrefBinder(crefSyntax, memberDeclSyntax, _compilation.GetBinderFactory(memberDeclSyntax.SyntaxTree));
 
                 DiagnosticBag crefDiagnostics = DiagnosticBag.GetInstance();
                 attribute.Value = GetDocumentationCommentId(crefSyntax, binder, crefDiagnostics); // NOTE: mutation (element must be a copy)
@@ -530,8 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     "Why are we processing a documentation comment that is not attached to a member declaration?");
 
                 DiagnosticBag nameDiagnostics = DiagnosticBag.GetInstance();
-                Binder binder = MakeNameBinder(isParameter, memberSymbol, compilation);
-                DocumentationCommentCompiler.BindName(attrSyntax, binder, memberSymbol, ref documentedParameters, ref documentedTypeParameters, nameDiagnostics);
+                Binder binder = MakeNameBinder(isParameter, _memberSymbol, _compilation);
+                DocumentationCommentCompiler.BindName(attrSyntax, binder, _memberSymbol, ref _documentedParameters, ref _documentedTypeParameters, nameDiagnostics);
                 RecordBindingDiagnostics(nameDiagnostics, sourceLocation); // Respects DocumentationMode.
                 nameDiagnostics.Free();
             }
@@ -629,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // via the Dummy tree.
                     foreach (Diagnostic diagnostic in CSharpSyntaxTree.Dummy.GetDiagnostics(treelessSyntax))
                     {
-                        diagnostics.Add(diagnostic.WithLocation(sourceLocation));
+                        _diagnostics.Add(diagnostic.WithLocation(sourceLocation));
                     }
                 }
             }
@@ -644,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (Diagnostic diagnostic in bindingDiagnostics.AsEnumerable())
                     {
                         // CONSIDER: Dev11 actually uses the originating location plus the offset into the cref/name
-                        diagnostics.Add(diagnostic.WithLocation(sourceLocation));
+                        _diagnostics.Add(diagnostic.WithLocation(sourceLocation));
                     }
                 }
             }

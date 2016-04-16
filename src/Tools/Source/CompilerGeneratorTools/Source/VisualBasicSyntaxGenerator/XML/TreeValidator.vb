@@ -6,7 +6,7 @@
 ' is read, but before the output phase.
 '-----------------------------------------------------------------------------------------------------------
 
-Module TreeValidator
+Friend Module TreeValidator
 
     Public Const MaxSyntaxKinds = &H400
 

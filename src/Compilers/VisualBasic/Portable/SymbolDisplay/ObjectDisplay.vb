@@ -14,13 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 #Enable Warning RS0010
     Friend Module ObjectDisplay
 
-        Const NullChar As Char = ChrW(0)
-        Const Back As Char = ChrW(8)
-        Const Cr As Char = ChrW(13)
-        Const FormFeed As Char = ChrW(12)
-        Const Lf As Char = ChrW(10)
-        Const Tab As Char = ChrW(9)
-        Const VerticalTab As Char = ChrW(11)
+        Private Const s_nullChar As Char = ChrW(0)
+        Private Const s_back As Char = ChrW(8)
+        Private Const s_Cr As Char = ChrW(13)
+        Private Const s_formFeed As Char = ChrW(12)
+        Private Const s_Lf As Char = ChrW(10)
+        Private Const s_tab As Char = ChrW(9)
+        Private Const s_verticalTab As Char = ChrW(11)
 
         ''' <summary>
         ''' Returns a string representation of an object of primitive type.
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         ''' </summary>
         ''' <param name="value">Literal value.</param>
         ''' <param name="options">Options used to customize formatting of a literal value.</param>
-        Friend Function FormatLiteral(value As String, options As ObjectDisplayOptions, Optional nonPrintableSubstitute As Char = Nothing) As String
+        Friend Function FormatLiteral(value As String, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
             If value Is Nothing Then
@@ -132,8 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
             Dim sb = pooledBuilder.Builder
 
-            For Each token As Integer In TokenizeString(value, options.IncludesOption(ObjectDisplayOptions.UseQuotes), nonPrintableSubstitute,
-                                                        options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
+            For Each token As Integer In TokenizeString(value, options)
                 sb.Append(ChrW(token And &HFFFF)) ' lower 16 bits of token contains the Unicode char value
             Next
 
@@ -143,48 +142,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         Friend Function FormatLiteral(c As Char, options As ObjectDisplayOptions) As String
             ValidateOptions(options)
 
+            If IsPrintable(c) OrElse Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Then
+                Return If(options.IncludesOption(ObjectDisplayOptions.UseQuotes),
+                    """" & EscapeQuote(c) & """c",
+                    c.ToString())
+            End If
+
             Dim wellKnown = GetWellKnownCharacterName(c)
             If wellKnown IsNot Nothing Then
                 Return wellKnown
             End If
 
-            If Not IsPrintable(c) Then
-                Dim codepoint = AscW(c)
-                Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
-            End If
-
-            If options.IncludesOption(ObjectDisplayOptions.UseQuotes) Then
-                Return """"c & EscapeQuote(c) & """"c & "c"
-            Else
-                Return c
-            End If
+            Dim codepoint = AscW(c)
+            Return If(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers), "ChrW(&H" & codepoint.ToString("X"), "ChrW(" & codepoint.ToString()) & ")"
         End Function
 
         Private Function EscapeQuote(c As Char) As String
             Return If(c = """", """""", c)
         End Function
 
-        Friend Function FormatLiteral(value As SByte, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As SByte, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
                 Return "&H" & If(value >= 0, value.ToString("X2"), CInt(value).ToString("X8"))
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                Return value.ToString(GetFormatCulture(cultureInfo))
             End If
         End Function
 
-        Friend Function FormatLiteral(value As Byte, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Byte, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             If options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) Then
                 Return "&H" & value.ToString("X2")
             Else
-                Return value.ToString(CultureInfo.InvariantCulture)
+                Return value.ToString(GetFormatCulture(cultureInfo))
             End If
         End Function
 
-        Friend Function FormatLiteral(value As Short, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Short, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -194,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(If(value >= 0, value.ToString("X4"), CInt(value).ToString("X8")))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -204,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As UShort, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As UShort, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -214,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(value.ToString("X4"))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -224,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Integer, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Integer, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -234,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(value.ToString("X8"))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -244,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As UInteger, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As UInteger, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -254,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(value.ToString("X8"))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -264,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Long, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Long, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -274,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(value.ToString("X16"))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -284,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As ULong, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As ULong, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
             Dim pooledBuilder = PooledStringBuilder.GetInstance()
@@ -294,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 sb.Append("&H")
                 sb.Append(value.ToString("X16"))
             Else
-                sb.Append(value.ToString(CultureInfo.InvariantCulture))
+                sb.Append(value.ToString(GetFormatCulture(cultureInfo)))
             End If
 
             If options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix) Then
@@ -304,31 +301,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Friend Function FormatLiteral(value As Double, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Double, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
-            Dim result = value.ToString("R", CultureInfo.InvariantCulture)
+            Dim result = value.ToString("R", GetFormatCulture(cultureInfo))
 
             Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "R", result)
         End Function
 
-        Friend Function FormatLiteral(value As Single, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Single, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
-            Dim result = value.ToString("R", CultureInfo.InvariantCulture)
+            Dim result = value.ToString("R", GetFormatCulture(cultureInfo))
 
             Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "F", result)
         End Function
 
-        Friend Function FormatLiteral(value As Decimal, options As ObjectDisplayOptions) As String
+        Friend Function FormatLiteral(value As Decimal, options As ObjectDisplayOptions, Optional cultureInfo As CultureInfo = Nothing) As String
             ValidateOptions(options)
 
-            Dim result = value.ToString(CultureInfo.InvariantCulture)
+            Dim result = value.ToString(GetFormatCulture(cultureInfo))
 
             Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "D", result)
         End Function
 
-        Friend Function FormatLiteral(value As DateTime) As String
+        Friend Function FormatLiteral(value As Date) As String
             Return value.ToString("#M/d/yyyy hh:mm:ss tt#", CultureInfo.InvariantCulture)
         End Function
 
@@ -361,9 +358,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
         End Function
 
         ' TODO: consider making "token" returned by this function a structure to abstract bit masking operations
-        Friend Iterator Function TokenizeString(str As String, quote As Boolean, nonPrintableSubstitute As Char, useHexadecimalNumbers As Boolean) As IEnumerable(Of Integer)
+        Friend Iterator Function TokenizeString(str As String, options As ObjectDisplayOptions) As IEnumerable(Of Integer)
+            Dim useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes)
+            Dim useHexadecimalNumbers = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers)
+            Dim escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters)
+
             If str.Length = 0 Then
-                If quote Then
+                If useQuotes Then
                     Yield Quotes()
                     Yield Quotes()
                 End If
@@ -379,29 +380,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 Dim c = str(i)
                 i += 1
                 Dim wellKnown As String
-                Dim isNonPrintable As Boolean
+                Dim shouldEscape As Boolean
                 Dim isCrLf As Boolean
 
-                ' vbCrLf
-                If c = Cr AndAlso i < str.Length AndAlso str(i) = Lf Then
+                If Not escapeNonPrintable Then
+                    wellKnown = Nothing
+                    shouldEscape = False
+                    isCrLf = False
+                ElseIf c = s_Cr AndAlso i < str.Length AndAlso str(i) = s_Lf Then
                     wellKnown = "vbCrLf"
-                    isNonPrintable = True
+                    shouldEscape = True
                     isCrLf = True
                     i += 1
                 Else
                     wellKnown = GetWellKnownCharacterName(c)
-                    isNonPrintable = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
+                    shouldEscape = wellKnown IsNot Nothing OrElse Not IsPrintable(c)
                     isCrLf = False
                 End If
 
-                If isNonPrintable Then
-                    If nonPrintableSubstitute <> NullChar Then
-                        Yield Character(nonPrintableSubstitute)
-
-                        If isCrLf Then
-                            Yield Character(nonPrintableSubstitute)
-                        End If
-                    ElseIf quote Then
+                If shouldEscape Then
+                    If useQuotes Then
                         If lastConcatenandWasQuoted Then
                             Yield Quotes()
                             lastConcatenandWasQuoted = False
@@ -439,13 +437,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
                         startNewConcatenand = True
                     ElseIf (isCrLf) Then
-                        Yield Character(Cr)
-                        Yield Character(Lf)
+                        Yield Character(s_Cr)
+                        Yield Character(s_Lf)
                     Else
                         Yield Character(c)
                     End If
                 Else
-                    If isFirst AndAlso quote Then
+                    If isFirst AndAlso useQuotes Then
                         Yield Quotes()
                     End If
 
@@ -459,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                     End If
 
                     lastConcatenandWasQuoted = True
-                    If c = """"c AndAlso quote Then
+                    If c = """"c AndAlso useQuotes Then
                         Yield Quotes()
                         Yield Quotes()
                     Else
@@ -468,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                 End If
             End While
 
-            If quote AndAlso lastConcatenandWasQuoted Then
+            If useQuotes AndAlso lastConcatenandWasQuoted Then
                 Yield Quotes()
             End If
         End Function
@@ -480,29 +478,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 
         Friend Function GetWellKnownCharacterName(c As Char) As String
             Select Case c
-                Case NullChar
+                Case s_nullChar
                     Return "vbNullChar"
-                Case Back
+                Case s_back
                     Return "vbBack"
-                Case Cr
+                Case s_Cr
                     Return "vbCr"
-                Case FormFeed
+                Case s_formFeed
                     Return "vbFormFeed"
-                Case Lf
+                Case s_Lf
                     Return "vbLf"
-                Case Tab
+                Case s_tab
                     Return "vbTab"
-                Case VerticalTab
+                Case s_verticalTab
                     Return "vbVerticalTab"
             End Select
 
             Return Nothing
         End Function
 
+        Private Function GetFormatCulture(cultureInfo As CultureInfo) As CultureInfo
+            Return If(cultureInfo, CultureInfo.InvariantCulture)
+        End Function
+
         <Conditional("DEBUG")>
         Private Sub ValidateOptions(options As ObjectDisplayOptions)
             ' This option is not supported and has no meaning in Visual Basic...should not be passed...
             Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
+            Debug.Assert(Not options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters) Or options.IncludesOption(ObjectDisplayOptions.UseQuotes))
         End Sub
 
     End Module

@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Assignment expressions in lowered form should always have suppressObjectClone = True
         ''' </summary>
         Public Function AssignmentExpression(left As BoundExpression, right As BoundExpression) As BoundAssignmentOperator
-            Debug.Assert(left.Type = right.Type)
+            Debug.Assert(left.Type = right.Type OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
             Dim boundNode = New BoundAssignmentOperator(_syntax, left, right, True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -988,11 +988,12 @@ nextm:
             Return blocks.AsImmutableOrNull()
         End Function
 
-        Public Function [Catch](local As LocalSymbol, block As BoundBlock) As BoundCatchBlock
+        Public Function [Catch](local As LocalSymbol, block As BoundBlock, Optional isSynthesizedAsyncCatchAll As Boolean = False) As BoundCatchBlock
             Dim m1 = WellKnownMember(Of MethodSymbol)(Microsoft.CodeAnalysis.WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError)
             Dim m2 = WellKnownMember(Of MethodSymbol)(Microsoft.CodeAnalysis.WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError)
             Return New BoundCatchBlock(Syntax, local, Me.Local(local, False), Nothing, Nothing, block,
-                                       hasErrors:=m1 Is Nothing OrElse m2 Is Nothing)
+                                       hasErrors:=m1 Is Nothing OrElse m2 Is Nothing,
+                                       isSynthesizedAsyncCatchAll:=isSynthesizedAsyncCatchAll)
         End Function
 
         Public Function SequencePoint(syntax As VisualBasicSyntaxNode, statement As BoundStatement) As BoundStatement
@@ -1003,7 +1004,7 @@ nextm:
             Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
         End Function
 
-        Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+        Public Function SequencePointWithSpan(syntax As VisualBasicSyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
             Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 

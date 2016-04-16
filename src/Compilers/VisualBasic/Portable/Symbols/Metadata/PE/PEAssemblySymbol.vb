@@ -22,12 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' An Assembly object providing metadata for the assembly.
         ''' </summary>
         ''' <remarks></remarks>
-        Private ReadOnly m_Assembly As PEAssembly
+        Private ReadOnly _assembly As PEAssembly
 
         ''' <summary>
         ''' A MetadataDocumentationProvider providing XML documentation for this assembly.
         ''' </summary>
-        Private ReadOnly m_DocumentationProvider As DocumentationProvider
+        Private ReadOnly _documentationProvider As DocumentationProvider
 
         ''' <summary>
         ''' The list of contained PEModuleSymbol objects.
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' can return it from Modules property as is.
         ''' </summary>
         ''' <remarks></remarks>
-        Private ReadOnly m_Modules As ImmutableArray(Of ModuleSymbol)
+        Private ReadOnly _modules As ImmutableArray(Of ModuleSymbol)
 
         ''' <summary>
         ''' An array of assemblies involved in canonical type resolution of
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' references used by a compilation referencing this assembly.
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
-        Private m_NoPiaResolutionAssemblies As ImmutableArray(Of AssemblySymbol)
+        Private _noPiaResolutionAssemblies As ImmutableArray(Of AssemblySymbol)
 
         ''' <summary>
         ''' An array of assemblies referenced by this assembly, which are linked (/l-ed) by 
@@ -51,23 +51,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' If this AssemblySymbol is linked too, it will be in this array too.
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
-        Private m_LinkedReferencedAssemblies As ImmutableArray(Of AssemblySymbol)
+        Private _linkedReferencedAssemblies As ImmutableArray(Of AssemblySymbol)
 
         ''' <summary>
         ''' Assembly is /l-ed by compilation that is using it as a reference.
         ''' </summary>
-        Private ReadOnly m_IsLinked As Boolean
+        Private ReadOnly _isLinked As Boolean
 
-        Private m_LazyMightContainExtensionMethods As Byte = ThreeState.Unknown
+        Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
-        Private m_lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
             Debug.Assert(assembly IsNot Nothing)
-            m_Assembly = assembly
+            _assembly = assembly
 
-            m_DocumentationProvider = documentationProvider
+            _documentationProvider = documentationProvider
 
             Dim modules(assembly.Modules.Length - 1) As ModuleSymbol
 
@@ -75,25 +75,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 modules(i) = New PEModuleSymbol(Me, assembly.Modules(i), importOptions, i)
             Next
 
-            m_Modules = modules.AsImmutableOrNull()
-            m_IsLinked = isLinked
+            _modules = modules.AsImmutableOrNull()
+            _isLinked = isLinked
         End Sub
 
         Friend ReadOnly Property Assembly As PEAssembly
             Get
-                Return m_Assembly
+                Return _assembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property Identity As AssemblyIdentity
             Get
-                Return m_Assembly.Identity
+                Return _assembly.Identity
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AssemblyVersionPattern As Version
+            Get
+                ' TODO: https://github.com/dotnet/roslyn/issues/9000
+                Return Nothing
             End Get
         End Property
 
         Friend Overrides ReadOnly Property PublicKey As ImmutableArray(Of Byte)
             Get
-                Return m_Assembly.Identity.PublicKey
+                Return _assembly.Identity.PublicKey
             End Get
         End Property
 
@@ -110,10 +117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            If m_lazyCustomAttributes.IsDefault Then
-                PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, m_lazyCustomAttributes)
+            If _lazyCustomAttributes.IsDefault Then
+                PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)
             End If
-            Return m_lazyCustomAttributes
+            Return _lazyCustomAttributes
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
@@ -124,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
             Get
-                Return m_Modules
+                Return _modules
             End Get
         End Property
 
@@ -177,45 +184,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
-            Return m_NoPiaResolutionAssemblies
+            Return _noPiaResolutionAssemblies
         End Function
 
         Friend Overrides Sub SetNoPiaResolutionAssemblies(assemblies As ImmutableArray(Of AssemblySymbol))
-            m_NoPiaResolutionAssemblies = assemblies
+            _noPiaResolutionAssemblies = assemblies
         End Sub
 
         Friend Overrides Sub SetLinkedReferencedAssemblies(assemblies As ImmutableArray(Of AssemblySymbol))
-            m_LinkedReferencedAssemblies = assemblies
+            _linkedReferencedAssemblies = assemblies
         End Sub
 
         Friend Overrides Function GetLinkedReferencedAssemblies() As ImmutableArray(Of AssemblySymbol)
-            Return m_LinkedReferencedAssemblies
+            Return _linkedReferencedAssemblies
         End Function
 
         Friend Overrides ReadOnly Property IsLinked As Boolean
             Get
-                Return m_IsLinked
+                Return _isLinked
             End Get
         End Property
 
         Friend ReadOnly Property DocumentationProvider As DocumentationProvider
             Get
-                Return m_DocumentationProvider
+                Return _documentationProvider
             End Get
         End Property
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
-                If m_LazyMightContainExtensionMethods = ThreeState.Unknown Then
+                If _lazyMightContainExtensionMethods = ThreeState.Unknown Then
                     Dim primaryModuleSymbol = PrimaryModule
-                    If primaryModuleSymbol.Module.HasExtensionAttribute(m_Assembly.Handle, ignoreCase:=True) Then
-                        m_LazyMightContainExtensionMethods = ThreeState.True
+                    If primaryModuleSymbol.Module.HasExtensionAttribute(_assembly.Handle, ignoreCase:=True) Then
+                        _lazyMightContainExtensionMethods = ThreeState.True
                     Else
-                        m_LazyMightContainExtensionMethods = ThreeState.False
+                        _lazyMightContainExtensionMethods = ThreeState.False
                     End If
                 End If
 
-                Return m_LazyMightContainExtensionMethods = ThreeState.True
+                Return _lazyMightContainExtensionMethods = ThreeState.True
             End Get
         End Property
 
@@ -227,6 +234,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides Function GetMetadata() As AssemblyMetadata
+            Return _assembly.GetNonDisposableMetadata()
+        End Function
     End Class
 End Namespace
-

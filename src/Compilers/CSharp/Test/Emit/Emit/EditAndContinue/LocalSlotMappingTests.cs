@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,6 +17,86 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class LocalSlotMappingTests : EditAndContinueTestBase
     {
+        /// <summary>
+        /// If no changes were made we don't product a syntax map.
+        /// If we don't have syntax map and preserve variables is true we should still successfully map the locals to their previous slots.
+        /// </summary>
+        [Fact]
+        public void SlotMappingWithNoChanges()
+        {
+            var source0 = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        var b = true;
+        do
+        {
+            Console.WriteLine(""hi"");
+        } while (b == true);
+    }
+}
+";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source0);
+
+            var v0 = CompileAndVerify(compilation0);
+
+            var methodData0 = v0.TestData.GetMethodData("C.Main");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+
+            v0.VerifyIL("C.Main", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                bool V_1)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+ -IL_0003:  nop
+ -IL_0004:  ldstr      ""hi""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+ -IL_000f:  nop
+ -IL_0010:  ldloc.0
+  IL_0011:  stloc.1
+ ~IL_0012:  ldloc.1
+  IL_0013:  brtrue.s   IL_0003
+ -IL_0015:  ret
+}", sequencePoints: "C.Main");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap: null, preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.Main", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  nop
+  IL_0004:  ldstr      ""hi""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ldloc.0
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brtrue.s   IL_0003
+  IL_0015:  ret
+
+}");
+        }
+
         [Fact]
         public void OutOfOrderUserLocals()
         {
@@ -40,75 +120,67 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.M", @"
 {
-  // Code size       85 (0x55)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0, //j
                 int V_1, //i
-                int V_2,
-                bool V_3,
-                int V_4, //i
-                bool V_5,
-                bool V_6)
+                bool V_2,
+                int V_3, //i
+                bool V_4,
+                bool V_5)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0012
+  IL_0003:  br.s       IL_0010
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  nop
   IL_000c:  ldloc.1
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.2
-  IL_000f:  ldc.i4.1
-  IL_0010:  add
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  ldc.i4.1
-  IL_0014:  clt
-  IL_0016:  stloc.3
-  IL_0017:  ldloc.3
-  IL_0018:  brtrue.s   IL_0005
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.s    V_4
-  IL_001d:  br.s       IL_002e
-  IL_001f:  ldc.i4.2
-  IL_0020:  call       ""void System.Console.WriteLine(int)""
-  IL_0025:  nop
-  IL_0026:  ldloc.s    V_4
-  IL_0028:  stloc.2
-  IL_0029:  ldloc.2
-  IL_002a:  ldc.i4.1
-  IL_002b:  add
-  IL_002c:  stloc.s    V_4
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldc.i4.2
-  IL_0031:  clt
-  IL_0033:  stloc.s    V_5
-  IL_0035:  ldloc.s    V_5
-  IL_0037:  brtrue.s   IL_001f
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.0
-  IL_003b:  br.s       IL_004a
-  IL_003d:  ldc.i4.3
-  IL_003e:  call       ""void System.Console.WriteLine(int)""
-  IL_0043:  nop
-  IL_0044:  ldloc.0
-  IL_0045:  stloc.2
-  IL_0046:  ldloc.2
-  IL_0047:  ldc.i4.1
-  IL_0048:  add
-  IL_0049:  stloc.0
-  IL_004a:  ldloc.0
-  IL_004b:  ldc.i4.3
-  IL_004c:  clt
-  IL_004e:  stloc.s    V_6
-  IL_0050:  ldloc.s    V_6
-  IL_0052:  brtrue.s   IL_003d
-  IL_0054:  ret
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  clt
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  brtrue.s   IL_0005
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.3
+  IL_001a:  br.s       IL_0027
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+  IL_0023:  ldloc.3
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.2
+  IL_0029:  clt
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  brtrue.s   IL_001c
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0040
+  IL_0035:  ldc.i4.3
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.1
+  IL_003e:  add
+  IL_003f:  stloc.0
+  IL_0040:  ldloc.0
+  IL_0041:  ldc.i4.3
+  IL_0042:  clt
+  IL_0044:  stloc.s    V_5
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  brtrue.s   IL_0035
+  IL_004a:  ret
 }
 ");
-            v0.VerifyPdb("C.M", @"
-<symbols>
+            v0.VerifyPdb("C.M", @"<symbols>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -118,7 +190,6 @@ public class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""135"" />
           <slot kind=""0"" offset=""20"" />
-          <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""0"" offset=""79"" />
           <slot kind=""1"" offset=""70"" />
@@ -126,53 +197,47 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x3"" hidden=""true"" document=""0"" />
-        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" document=""0"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" document=""0"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" document=""0"" />
-        <entry offset=""0x17"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x1d"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" document=""0"" />
-        <entry offset=""0x26"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" document=""0"" />
-        <entry offset=""0x2e"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" document=""0"" />
-        <entry offset=""0x35"" hidden=""true"" document=""0"" />
-        <entry offset=""0x39"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x3b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x3d"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" document=""0"" />
-        <entry offset=""0x44"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" document=""0"" />
-        <entry offset=""0x4a"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x50"" hidden=""true"" document=""0"" />
-        <entry offset=""0x54"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" />
+        <entry offset=""0x3"" hidden=""true"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
+        <entry offset=""0x1a"" hidden=""true"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" />
+        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" />
+        <entry offset=""0x2d"" hidden=""true"" />
+        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" />
+        <entry offset=""0x33"" hidden=""true"" />
+        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" />
+        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" />
+        <entry offset=""0x46"" hidden=""true"" />
+        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
-      <locals>
-        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
-        <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x1a"" attributes=""0"" />
-        <local name=""i"" il_index=""4"" il_start=""0x1a"" il_end=""0x39"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x55"">
+      <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
-        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
-        <scope startOffset=""0x1"" endOffset=""0x1a"">
-          <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x1a"" attributes=""0"" />
+        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+        <scope startOffset=""0x1"" endOffset=""0x18"">
+          <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1a"" endOffset=""0x39"">
-          <local name=""i"" il_index=""4"" il_start=""0x1a"" il_end=""0x39"" attributes=""0"" />
+        <scope startOffset=""0x18"" endOffset=""0x31"">
+          <local name=""i"" il_index=""3"" il_start=""0x18"" il_end=""0x31"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
-            var debugInfoProvider = v0.CreatePdbInfoProvider();
+</symbols>");
+            var symReader = v0.CreateSymReader();
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), debugInfoProvider.GetEncMethodDebugInfo);
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), symReader.GetEncMethodDebugInfo);
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -182,76 +247,66 @@ public class C
             // check that all user-defined and long-lived synthesized local slots are reused
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       91 (0x5b)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0, //j
                 int V_1, //i
-                [int] V_2,
-                bool V_3,
-                int V_4, //i
-                bool V_5,
-                bool V_6,
-                int V_7)
+                bool V_2,
+                int V_3, //i
+                bool V_4,
+                bool V_5)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0014
+  IL_0003:  br.s       IL_0010
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  nop
   IL_000c:  ldloc.1
-  IL_000d:  stloc.s    V_7
-  IL_000f:  ldloc.s    V_7
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldc.i4.1
-  IL_0012:  add
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldc.i4.1
-  IL_0016:  clt
-  IL_0018:  stloc.3
-  IL_0019:  ldloc.3
-  IL_001a:  brtrue.s   IL_0005
-  IL_001c:  ldc.i4.1
-  IL_001d:  stloc.s    V_4
-  IL_001f:  br.s       IL_0032
-  IL_0021:  ldc.i4.2
-  IL_0022:  call       ""void System.Console.WriteLine(int)""
-  IL_0027:  nop
-  IL_0028:  ldloc.s    V_4
-  IL_002a:  stloc.s    V_7
-  IL_002c:  ldloc.s    V_7
-  IL_002e:  ldc.i4.1
-  IL_002f:  add
-  IL_0030:  stloc.s    V_4
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  ldc.i4.2
-  IL_0035:  clt
-  IL_0037:  stloc.s    V_5
-  IL_0039:  ldloc.s    V_5
-  IL_003b:  brtrue.s   IL_0021
+  IL_0012:  clt
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  brtrue.s   IL_0005
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.3
+  IL_001a:  br.s       IL_0027
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+  IL_0023:  ldloc.3
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.2
+  IL_0029:  clt
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  brtrue.s   IL_001c
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0040
+  IL_0035:  ldc.i4.3
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  IL_003c:  ldloc.0
   IL_003d:  ldc.i4.1
-  IL_003e:  stloc.0
-  IL_003f:  br.s       IL_0050
+  IL_003e:  add
+  IL_003f:  stloc.0
+  IL_0040:  ldloc.0
   IL_0041:  ldc.i4.3
-  IL_0042:  call       ""void System.Console.WriteLine(int)""
-  IL_0047:  nop
-  IL_0048:  ldloc.0
-  IL_0049:  stloc.s    V_7
-  IL_004b:  ldloc.s    V_7
-  IL_004d:  ldc.i4.1
-  IL_004e:  add
-  IL_004f:  stloc.0
-  IL_0050:  ldloc.0
-  IL_0051:  ldc.i4.3
-  IL_0052:  clt
-  IL_0054:  stloc.s    V_6
-  IL_0056:  ldloc.s    V_6
-  IL_0058:  brtrue.s   IL_0041
-  IL_005a:  ret
+  IL_0042:  clt
+  IL_0044:  stloc.s    V_5
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  brtrue.s   IL_0035
+  IL_004a:  ret
 }
 ");
-
-            debugInfoProvider.Dispose();
         }
 
         /// <summary>
@@ -289,19 +344,17 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" hidden=""true"" document=""0"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x16"" hidden=""true"" document=""0"" />
-        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""0"" />
-        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x2b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
+        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
+        <entry offset=""0x16"" hidden=""true"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
+        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" />
+        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x2b"" hidden=""true"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -314,16 +367,14 @@ public class C
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
-        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x12"" hidden=""true"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""0"" />
-        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""0"" />
-        <entry offset=""0x24"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
+        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
+        <entry offset=""0x12"" hidden=""true"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
+        <entry offset=""0x24"" hidden=""true"" />
+        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>
@@ -476,23 +527,23 @@ public class C
                 object V_2,
                 bool V_3)
  -IL_0000:  nop
- ~IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+ -IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-   -IL_0003:  call       ""object C.F()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
     IL_0011:  nop
    -IL_0012:  nop
-   ~IL_0013:  ldc.i4.0
-    IL_0014:  stloc.3
+   -IL_0013:  call       ""object C.F()""
+    IL_0018:  stloc.2
+    IL_0019:  ldc.i4.0
+    IL_001a:  stloc.3
     .try
     {
-     -IL_0015:  call       ""object C.F()""
-      IL_001a:  stloc.2
       IL_001b:  ldloc.2
       IL_001c:  ldloca.s   V_3
       IL_001e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -692,7 +743,7 @@ public class C
 }");
         }
 
-        [WorkItem(770053, "DevDiv")]
+        [WorkItem(770053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770053")]
         [Fact]
         public void FixedMultiple()
         {
@@ -1406,7 +1457,7 @@ class C
 }";
             // Make sure the source contains an array with too many dimensions.
             var tooManyCommas = new string(',', 256);
-            Assert.True(source.IndexOf(tooManyCommas) > 0);
+            Assert.True(source.IndexOf(tooManyCommas, StringComparison.Ordinal) > 0);
 
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
@@ -1482,12 +1533,12 @@ class C
                 char V_4, //c
                 System.IDisposable V_5)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F1()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1568,12 +1619,12 @@ class C
                 char V_4, //c
                 [unchanged] V_5)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F1()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1648,12 +1699,12 @@ class C
     IL_0017:  nop
     IL_0018:  endfinally
   }
- ~IL_0019:  ldc.i4.0
-  IL_001a:  stloc.1
+ -IL_0019:  call       ""object C.F1()""
+  IL_001e:  stloc.0
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
   .try
   {
-   -IL_001b:  call       ""object C.F1()""
-    IL_0020:  stloc.0
     IL_0021:  ldloc.0
     IL_0022:  ldloca.s   V_1
     IL_0024:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1758,12 +1809,12 @@ class C
                 object V_6,
                 bool V_7)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.s    V_5
+  IL_0001:  call       ""object C.F3()""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.s    V_5
   .try
   {
-    IL_0004:  call       ""object C.F3()""
-    IL_0009:  stloc.s    V_4
     IL_000b:  ldloc.s    V_4
     IL_000d:  ldloca.s   V_5
     IL_000f:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1781,12 +1832,12 @@ class C
     IL_0024:  nop
     IL_0025:  endfinally
   }
-  IL_0026:  ldc.i4.0
-  IL_0027:  stloc.1
+  IL_0026:  call       ""object C.F1()""
+  IL_002b:  stloc.0
+  IL_002c:  ldc.i4.0
+  IL_002d:  stloc.1
   .try
   {
-    IL_0028:  call       ""object C.F1()""
-    IL_002d:  stloc.0
     IL_002e:  ldloc.0
     IL_002f:  ldloca.s   V_1
     IL_0031:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1804,12 +1855,12 @@ class C
     IL_0044:  nop
     IL_0045:  endfinally
   }
-  IL_0046:  ldc.i4.0
-  IL_0047:  stloc.s    V_7
+  IL_0046:  call       ""object C.F4()""
+  IL_004b:  stloc.s    V_6
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.s    V_7
   .try
   {
-    IL_0049:  call       ""object C.F4()""
-    IL_004e:  stloc.s    V_6
     IL_0050:  ldloc.s    V_6
     IL_0052:  ldloca.s   V_7
     IL_0054:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1880,103 +1931,100 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
-@"{
-  // Code size      145 (0x91)
+@"
+{
+  // Code size      137 (0x89)
   .maxstack  4
   .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                [int] V_2,
+                [int] V_1,
+                A V_2,
                 A V_3,
-                A V_4,
-                bool V_5,
-                A V_6,
-                object V_7, //o
-                A V_8,
-                A V_9,
-                int V_10)
+                bool V_4,
+                A V_5,
+                object V_6, //o
+                A V_7,
+                int V_8)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_8
-  IL_0004:  call       ""A C.F()""
-  IL_0009:  stloc.s    V_9
-  IL_000b:  ldloc.s    V_8
-  IL_000d:  ldloc.s    V_9
-  IL_000f:  callvirt   ""int A.this[A].get""
-  IL_0014:  stloc.s    V_10
-  IL_0016:  ldloc.s    V_8
-  IL_0018:  ldloc.s    V_9
-  IL_001a:  ldloc.s    V_10
-  IL_001c:  ldc.i4.1
-  IL_001d:  add
-  IL_001e:  callvirt   ""void A.this[A].set""
-  IL_0023:  nop
-  IL_0024:  call       ""A C.F()""
-  IL_0029:  stloc.3
+  IL_0002:  call       ""A C.F()""
+  IL_0007:  stloc.s    V_7
+  IL_0009:  dup
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  callvirt   ""int A.this[A].get""
+  IL_0011:  stloc.s    V_8
+  IL_0013:  ldloc.s    V_7
+  IL_0015:  ldloc.s    V_8
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  callvirt   ""void A.this[A].set""
+  IL_001e:  nop
+  IL_001f:  call       ""A C.F()""
+  IL_0024:  stloc.2
   .try
   {
-    IL_002a:  nop
-    IL_002b:  nop
-    IL_002c:  leave.s    IL_0039
+    IL_0025:  nop
+    IL_0026:  nop
+    IL_0027:  leave.s    IL_0034
   }
   finally
   {
-    IL_002e:  ldloc.3
-    IL_002f:  brfalse.s  IL_0038
-    IL_0031:  ldloc.3
-    IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0037:  nop
-    IL_0038:  endfinally
+    IL_0029:  ldloc.2
+    IL_002a:  brfalse.s  IL_0033
+    IL_002c:  ldloc.2
+    IL_002d:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0032:  nop
+    IL_0033:  endfinally
   }
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.s    V_5
+  IL_0034:  call       ""A C.F()""
+  IL_0039:  stloc.3
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.s    V_4
   .try
   {
-    IL_003c:  call       ""A C.F()""
-    IL_0041:  stloc.s    V_4
-    IL_0043:  ldloc.s    V_4
-    IL_0045:  ldloca.s   V_5
-    IL_0047:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_004c:  nop
-    IL_004d:  nop
-    IL_004e:  nop
-    IL_004f:  leave.s    IL_005e
+    IL_003d:  ldloc.3
+    IL_003e:  ldloca.s   V_4
+    IL_0040:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0045:  nop
+    IL_0046:  nop
+    IL_0047:  nop
+    IL_0048:  leave.s    IL_0056
   }
   finally
   {
-    IL_0051:  ldloc.s    V_5
-    IL_0053:  brfalse.s  IL_005d
-    IL_0055:  ldloc.s    V_4
-    IL_0057:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_005c:  nop
-    IL_005d:  endfinally
+    IL_004a:  ldloc.s    V_4
+    IL_004c:  brfalse.s  IL_0055
+    IL_004e:  ldloc.3
+    IL_004f:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0054:  nop
+    IL_0055:  endfinally
   }
-  IL_005e:  nop
-  IL_005f:  call       ""B C.G()""
-  IL_0064:  callvirt   ""A B.GetEnumerator()""
-  IL_0069:  stloc.s    V_6
+  IL_0056:  nop
+  IL_0057:  call       ""B C.G()""
+  IL_005c:  callvirt   ""A B.GetEnumerator()""
+  IL_0061:  stloc.s    V_5
   .try
   {
-    IL_006b:  br.s       IL_0078
-    IL_006d:  ldloc.s    V_6
-    IL_006f:  callvirt   ""object A.Current.get""
-    IL_0074:  stloc.s    V_7
-    IL_0076:  nop
-    IL_0077:  nop
-    IL_0078:  ldloc.s    V_6
-    IL_007a:  callvirt   ""bool A.MoveNext()""
-    IL_007f:  brtrue.s   IL_006d
-    IL_0081:  leave.s    IL_0090
+    IL_0063:  br.s       IL_0070
+    IL_0065:  ldloc.s    V_5
+    IL_0067:  callvirt   ""object A.Current.get""
+    IL_006c:  stloc.s    V_6
+    IL_006e:  nop
+    IL_006f:  nop
+    IL_0070:  ldloc.s    V_5
+    IL_0072:  callvirt   ""bool A.MoveNext()""
+    IL_0077:  brtrue.s   IL_0065
+    IL_0079:  leave.s    IL_0088
   }
   finally
   {
-    IL_0083:  ldloc.s    V_6
-    IL_0085:  brfalse.s  IL_008f
-    IL_0087:  ldloc.s    V_6
-    IL_0089:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_008e:  nop
-    IL_008f:  endfinally
+    IL_007b:  ldloc.s    V_5
+    IL_007d:  brfalse.s  IL_0087
+    IL_007f:  ldloc.s    V_5
+    IL_0081:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0086:  nop
+    IL_0087:  endfinally
   }
-  IL_0090:  ret
+  IL_0088:  ret
 }");
         }
 
@@ -2083,7 +2131,7 @@ class C
  -IL_0037:  ret       
 }", methodToken: diff1.UpdatedMethods.Single());
         }
-        
+
         [Fact]
         public void Switch_Integer()
         {
@@ -2158,16 +2206,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" document=""0"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" document=""0"" />
-        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" document=""0"" />
-        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" />
+        <entry offset=""0x7"" hidden=""true"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" />
+        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" />
+        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2273,15 +2320,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" document=""0"" />
-        <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
-        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" />
+        <entry offset=""0x7"" hidden=""true"" />
+        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2379,16 +2425,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" hidden=""true"" document=""0"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
-        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" document=""0"" />
-        <entry offset=""0x12"" hidden=""true"" document=""0"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" hidden=""true"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" />
+        <entry offset=""0x12"" hidden=""true"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2423,7 +2468,7 @@ class C
         }
 
         [Fact]
-        public void Do()
+        public void Do1()
         {
             var source0 = @"
 class C
@@ -2487,15 +2532,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
-        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" document=""0"" />
-        <entry offset=""0x10"" hidden=""true"" document=""0"" />
-        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" />
+        <entry offset=""0x10"" hidden=""true"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
-      <locals />
     </method>
   </methods>
 </symbols>");
@@ -2657,17 +2701,17 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.<>c.<M>b__1_0()", @"
 {
-  // Code size       36 (0x24)
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (object V_0,
                 bool V_1)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -2685,10 +2729,8 @@ class C
     IL_001f:  nop
     IL_0020:  endfinally
   }
-  IL_0021:  br.s       IL_0023
-  IL_0023:  ret
+  IL_0021:  ret
 }");
-
 
 #if TODO // identify the lambda in a semantic edit
             var methodData0 = v0.TestData.GetMethodData("C.<M>b__0");
@@ -2728,10 +2770,9 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      137 (0x89)
+  // Code size      131 (0x83)
   .maxstack  2
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
@@ -2742,65 +2783,61 @@ class C
   IL_000d:  ldc.i4.1
   IL_000e:  beq.s      IL_0014
   IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_001a
-  IL_0014:  br.s       IL_007e
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_007a
   IL_0016:  ldc.i4.0
-  IL_0017:  stloc.1
-  IL_0018:  ldloc.1
-  IL_0019:  ret
-  IL_001a:  ldarg.0
-  IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0021:  nop
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.0
-  IL_0024:  stfld      ""bool C.<F>d__0.<>s__2""
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_001f:  nop
+  IL_0020:  ldarg.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldfld      ""C C.<F>d__0.<>4__this""
+  IL_0027:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
+  IL_002c:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_0031:  ldarg.0
+  IL_0032:  ldc.i4.0
+  IL_0033:  stfld      ""bool C.<F>d__0.<>s__2""
   .try
   {
-    IL_0029:  ldarg.0
-    IL_002a:  ldarg.0
-    IL_002b:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0030:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
-    IL_0035:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_003a:  ldarg.0
-    IL_003b:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_0040:  ldarg.0
-    IL_0041:  ldflda     ""bool C.<F>d__0.<>s__2""
-    IL_0046:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0038:  ldarg.0
+    IL_0039:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_003e:  ldarg.0
+    IL_003f:  ldflda     ""bool C.<F>d__0.<>s__2""
+    IL_0044:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0049:  nop
+    IL_004a:  nop
     IL_004b:  nop
-    IL_004c:  nop
-    IL_004d:  nop
-    IL_004e:  leave.s    IL_0065
+    IL_004c:  leave.s    IL_0063
   }
   finally
   {
-    IL_0050:  ldarg.0
-    IL_0051:  ldfld      ""bool C.<F>d__0.<>s__2""
-    IL_0056:  brfalse.s  IL_0064
-    IL_0058:  ldarg.0
-    IL_0059:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-    IL_005e:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_0063:  nop
-    IL_0064:  endfinally
+    IL_004e:  ldarg.0
+    IL_004f:  ldfld      ""bool C.<F>d__0.<>s__2""
+    IL_0054:  brfalse.s  IL_0062
+    IL_0056:  ldarg.0
+    IL_0057:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+    IL_005c:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0061:  nop
+    IL_0062:  endfinally
   }
-  IL_0065:  ldarg.0
-  IL_0066:  ldnull
-  IL_0067:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
-  IL_006c:  ldarg.0
-  IL_006d:  ldc.i4.1
-  IL_006e:  stfld      ""int C.<F>d__0.<>2__current""
-  IL_0073:  ldarg.0
-  IL_0074:  ldc.i4.1
-  IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_007a:  ldc.i4.1
-  IL_007b:  stloc.1
-  IL_007c:  br.s       IL_0018
-  IL_007e:  ldarg.0
-  IL_007f:  ldc.i4.m1
-  IL_0080:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0085:  ldc.i4.0
-  IL_0086:  stloc.1
-  IL_0087:  br.s       IL_0018
+  IL_0063:  ldarg.0
+  IL_0064:  ldnull
+  IL_0065:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_006a:  ldarg.0
+  IL_006b:  ldc.i4.1
+  IL_006c:  stfld      ""int C.<F>d__0.<>2__current""
+  IL_0071:  ldarg.0
+  IL_0072:  ldc.i4.1
+  IL_0073:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0078:  ldc.i4.1
+  IL_0079:  ret
+  IL_007a:  ldarg.0
+  IL_007b:  ldc.i4.m1
+  IL_007c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0081:  ldc.i4.0
+  IL_0082:  ret
 }");
 
 #if TODO 
@@ -2842,46 +2879,46 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      255 (0xff)
+  // Code size      254 (0xfe)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
                 C.<F>d__0 V_3,
                 System.Exception V_4)
-  IL_0000:  ldarg.0
+ ~IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
-    IL_0007:  ldloc.0
+   ~IL_0007:  ldloc.0
     IL_0008:  brfalse.s  IL_000c
     IL_000a:  br.s       IL_0011
     IL_000c:  br         IL_009e
-    IL_0011:  nop
-    IL_0012:  ldarg.0
-    IL_0013:  ldc.i4.0
-    IL_0014:  stfld      ""bool C.<F>d__0.<>s__2""
+   -IL_0011:  nop
+   -IL_0012:  ldarg.0
+    IL_0013:  ldarg.0
+    IL_0014:  ldfld      ""C C.<F>d__0.<>4__this""
+    IL_0019:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
+    IL_001e:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  stfld      ""bool C.<F>d__0.<>s__2""
     .try
     {
-      IL_0019:  ldarg.0
-      IL_001a:  ldarg.0
-      IL_001b:  ldfld      ""C C.<F>d__0.<>4__this""
-      IL_0020:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
-      IL_0025:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
       IL_002a:  ldarg.0
       IL_002b:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
       IL_0030:  ldarg.0
       IL_0031:  ldflda     ""bool C.<F>d__0.<>s__2""
       IL_0036:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
       IL_003b:  nop
-      IL_003c:  nop
-      IL_003d:  nop
+     -IL_003c:  nop
+     -IL_003d:  nop
       IL_003e:  leave.s    IL_0059
     }
     finally
     {
-      IL_0040:  ldloc.0
+     ~IL_0040:  ldloc.0
       IL_0041:  ldc.i4.0
       IL_0042:  bge.s      IL_0058
       IL_0044:  ldarg.0
@@ -2891,17 +2928,17 @@ class C
       IL_004d:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
       IL_0052:  call       ""void System.Threading.Monitor.Exit(object)""
       IL_0057:  nop
-      IL_0058:  endfinally
+     ~IL_0058:  endfinally
     }
-    IL_0059:  ldarg.0
+   ~IL_0059:  ldarg.0
     IL_005a:  ldnull
     IL_005b:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
-    IL_0060:  ldarg.0
+   -IL_0060:  ldarg.0
     IL_0061:  ldfld      ""C C.<F>d__0.<>4__this""
     IL_0066:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
     IL_006b:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
     IL_0070:  stloc.2
-    IL_0071:  ldloca.s   V_2
+   ~IL_0071:  ldloca.s   V_2
     IL_0073:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
     IL_0078:  brtrue.s   IL_00ba
     IL_007a:  ldarg.0
@@ -2909,7 +2946,7 @@ class C
     IL_007c:  dup
     IL_007d:  stloc.0
     IL_007e:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0083:  ldarg.0
+   <IL_0083:  ldarg.0
     IL_0084:  ldloc.2
     IL_0085:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
     IL_008a:  ldarg.0
@@ -2920,8 +2957,8 @@ class C
     IL_0094:  ldloca.s   V_3
     IL_0096:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<F>d__0)""
     IL_009b:  nop
-    IL_009c:  leave.s    IL_00fe
-    IL_009e:  ldarg.0
+    IL_009c:  leave.s    IL_00fd
+   >IL_009e:  ldarg.0
     IL_009f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<F>d__0.<>u__1""
     IL_00a4:  stloc.2
     IL_00a5:  ldarg.0
@@ -2937,35 +2974,34 @@ class C
     IL_00c1:  pop
     IL_00c2:  ldloca.s   V_2
     IL_00c4:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_00ca:  ldc.i4.1
+   -IL_00ca:  ldc.i4.1
     IL_00cb:  stloc.1
-    IL_00cc:  leave.s    IL_00e9
+    IL_00cc:  leave.s    IL_00e8
   }
   catch System.Exception
   {
-    IL_00ce:  stloc.s    V_4
-    IL_00d0:  nop
-    IL_00d1:  ldarg.0
-    IL_00d2:  ldc.i4.s   -2
-    IL_00d4:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_00d9:  ldarg.0
-    IL_00da:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_00df:  ldloc.s    V_4
-    IL_00e1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00e6:  nop
-    IL_00e7:  leave.s    IL_00fe
+   ~IL_00ce:  stloc.s    V_4
+    IL_00d0:  ldarg.0
+    IL_00d1:  ldc.i4.s   -2
+    IL_00d3:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_00d8:  ldarg.0
+    IL_00d9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_00de:  ldloc.s    V_4
+    IL_00e0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00e5:  nop
+    IL_00e6:  leave.s    IL_00fd
   }
-  IL_00e9:  ldarg.0
-  IL_00ea:  ldc.i4.s   -2
-  IL_00ec:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_00f1:  ldarg.0
-  IL_00f2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_00f7:  ldloc.1
-  IL_00f8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00fd:  nop
-  IL_00fe:  ret
+ -IL_00e8:  ldarg.0
+  IL_00e9:  ldc.i4.s   -2
+  IL_00eb:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_00f0:  ldarg.0
+  IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_00f6:  ldloc.1
+  IL_00f7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00fc:  nop
+  IL_00fd:  ret
 }
-");
+", sequencePoints: "C+<F>d__0.MoveNext");
 
 #if TODO
             var methodData0 = v0.TestData.GetMethodData("?");

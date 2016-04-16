@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class SyntaxRewriterTests
     {
-
         #region Green Tree / SeparatedSyntaxList
 
         [Fact]
@@ -314,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = SyntaxFactory.ClassDeclaration("Class1");
             Assert.NotNull(node.SyntaxTree);
             Assert.False(node.SyntaxTree.HasCompilationUnitRoot, "how did we get a CompilationUnit root?");
-            Assert.Same(node, node.SyntaxTree.GetRoot()); 
+            Assert.Same(node, node.SyntaxTree.GetRoot());
         }
 
         [Fact]
@@ -363,13 +362,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var rewrittenRoot = rewriter.Visit(tree.GetCompilationUnitRoot());
             Assert.NotNull(rewrittenRoot.SyntaxTree);
             Assert.True(((SyntaxTree)rewrittenRoot.SyntaxTree).HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
-            Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot()); 
+            Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
         }
 
-        [WorkItem(545049, "DevDiv")]
-        [WorkItem(896538, "DevDiv")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
-        public void RewriteMissingIdentiferInExpressionStatement_ImplicitlyCreatedSyntaxTree()
+        public void RewriteMissingIdentifierInExpressionStatement_ImplicitlyCreatedSyntaxTree()
         {
             var ifStmt1 = (IfStatementSyntax)SyntaxFactory.ParseStatement("if (true)");
             var exprStmt1 = (ExpressionStatementSyntax)ifStmt1.Statement;
@@ -413,10 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFacts.IsStatementExpression(expression);
         }
 
-        [WorkItem(545049, "DevDiv")]
-        [WorkItem(896538, "DevDiv")]
+        [WorkItem(545049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545049")]
+        [WorkItem(896538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896538")]
         [Fact]
-        public void RewriteMissingIdentiferInExpressionStatement_WithSyntaxTree()
+        public void RewriteMissingIdentifierInExpressionStatement_WithSyntaxTree()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class C { static void Main() { if (true) } }");
             var ifStmt1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<IfStatementSyntax>().Single();
@@ -475,11 +474,11 @@ class C { }
             Assert.Equal(expectedNewSource, newRoot.ToFullString());
         }
 
-        [WorkItem(991474, "DevDiv")]
+        [WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")]
         [Fact]
         public void ReturnNullFromStructuredTriviaRoot_Succeeds()
         {
-            var text = 
+            var text =
 @"#region
 class C { }
 #endregion";
@@ -545,27 +544,27 @@ class C { }
         /// </summary>
         internal class GreenRewriter : InternalSyntax.CSharpSyntaxRewriter
         {
-            private readonly Func<InternalSyntax.CSharpSyntaxNode, InternalSyntax.CSharpSyntaxNode> rewriteNode;
-            private readonly Func<InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken> rewriteToken;
+            private readonly Func<InternalSyntax.CSharpSyntaxNode, InternalSyntax.CSharpSyntaxNode> _rewriteNode;
+            private readonly Func<InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken> _rewriteToken;
 
             internal GreenRewriter(
                 Func<InternalSyntax.CSharpSyntaxNode, InternalSyntax.CSharpSyntaxNode> rewriteNode = null,
                 Func<InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken> rewriteToken = null)
             {
-                this.rewriteNode = rewriteNode;
-                this.rewriteToken = rewriteToken;
+                _rewriteNode = rewriteNode;
+                _rewriteToken = rewriteToken;
             }
 
             public override InternalSyntax.CSharpSyntaxNode Visit(InternalSyntax.CSharpSyntaxNode node)
             {
                 var visited = base.Visit(node);
-                return rewriteNode == null ? visited : rewriteNode(visited);
+                return _rewriteNode == null ? visited : _rewriteNode(visited);
             }
 
             public override InternalSyntax.CSharpSyntaxNode VisitToken(InternalSyntax.SyntaxToken token)
             {
                 var visited = (InternalSyntax.SyntaxToken)base.VisitToken(token);
-                return rewriteToken == null ? visited : rewriteToken(visited);
+                return _rewriteToken == null ? visited : _rewriteToken(visited);
             }
         }
 
@@ -574,40 +573,40 @@ class C { }
         /// </summary>
         internal class RedRewriter : CSharpSyntaxRewriter
         {
-            private readonly Func<SyntaxNode, SyntaxNode> rewriteNode;
-            private readonly Func<SyntaxToken, SyntaxToken> rewriteToken;
-            private readonly Func<SyntaxTrivia, SyntaxTrivia> rewriteTrivia;
+            private readonly Func<SyntaxNode, SyntaxNode> _rewriteNode;
+            private readonly Func<SyntaxToken, SyntaxToken> _rewriteToken;
+            private readonly Func<SyntaxTrivia, SyntaxTrivia> _rewriteTrivia;
 
             internal RedRewriter(
                 Func<SyntaxNode, SyntaxNode> rewriteNode = null,
                 Func<SyntaxToken, SyntaxToken> rewriteToken = null,
                 Func<SyntaxTrivia, SyntaxTrivia> rewriteTrivia = null)
             {
-                this.rewriteNode = rewriteNode;
-                this.rewriteToken = rewriteToken;
-                this.rewriteTrivia = rewriteTrivia;
+                _rewriteNode = rewriteNode;
+                _rewriteToken = rewriteToken;
+                _rewriteTrivia = rewriteTrivia;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
                 var visited = base.Visit(node);
-                return rewriteNode == null ? visited : rewriteNode(visited);
+                return _rewriteNode == null ? visited : _rewriteNode(visited);
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var visited = base.VisitToken(token);
-                return rewriteToken == null ? visited : rewriteToken(token);
+                return _rewriteToken == null ? visited : _rewriteToken(token);
             }
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
                 var visited = base.VisitTrivia(trivia);
-                return rewriteTrivia == null ? visited : rewriteTrivia(trivia);
+                return _rewriteTrivia == null ? visited : _rewriteTrivia(trivia);
             }
         }
 
-        internal class BadRewriter :  CSharpSyntaxRewriter
+        internal class BadRewriter : CSharpSyntaxRewriter
         {
             public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
             {

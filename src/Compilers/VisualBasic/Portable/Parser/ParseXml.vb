@@ -10,7 +10,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         ' File: Parser.cpp
         ' Lines: 13261 - 13261
@@ -745,7 +745,7 @@ LessThanSlashTokenCase:
                 ' Not match was found
                 ' Just close the current xml element
 
-                'TODO - Consider whether the current element should be closed or create a missing start tag to match this daggling endd tag.
+                'TODO - Consider whether the current element should be closed or create a missing start tag to match this dangling end tag.
 
                 Dim prefix = ""
                 Dim colon = ""
@@ -805,7 +805,7 @@ LessThanSlashTokenCase:
                     Return SyntaxFactory.XmlElementStartTag(lessThan, Name, attributes, greaterThan)
 
                 Case Else
-                    ' Try to avoid spurios missing '>' error message. Only report error if no skipped text
+                    ' Try to avoid spurious missing '>' error message. Only report error if no skipped text
                     ' and attributes are error free.
                     greaterThan = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.GreaterThanToken)
 
@@ -1184,7 +1184,7 @@ lFailed:
 
             Dim result As CrefReferenceSyntax = SyntaxFactory.CrefReference(name, signature, asClause)
 
-            ' Even if there are diagnostcis in name we don't report them, they will be 
+            ' Even if there are diagnostics in name we don't report them, they will be 
             ' reported later in Documentation comment binding
             If result.ContainsDiagnostics Then
                 result.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)
@@ -1705,7 +1705,7 @@ lFailed:
 
                 If CurrentToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken Then
                     Dim tempNodes = ParseXmlContent(ScannerState.Content)
-                    Debug.Assert(tempNodes.Nodes.Count = 1)
+                    Debug.Assert(tempNodes.Nodes.Length = 1)
 
                     For Each node In tempNodes.Nodes
                         content.Add(DirectCast(node, XmlNodeSyntax))
@@ -2009,7 +2009,7 @@ TryResync:
             beginXmlEmbedded = TransitionFromXmlToVB(beginXmlEmbedded)
             TryEatNewLine(ScannerState.VB)
 
-            Dim value = ParseExpression()
+            Dim value = ParseExpressionCore()
 
             Dim endXmlEmbedded As PunctuationSyntax = Nothing
             If Not TryEatNewLineAndGetToken(SyntaxKind.PercentGreaterThanToken, endXmlEmbedded, createIfMissing:=False, state:=enclosingState) Then
@@ -2064,7 +2064,7 @@ TryResync:
 
         Private _options As WhiteSpaceOptions
 
-        Sub New()
+        Public Sub New()
         End Sub
 
         Public Overrides Function VisitXmlDeclaration(node As XmlDeclarationSyntax) As VisualBasicSyntaxNode
@@ -2427,9 +2427,9 @@ TryResync:
     End Class
 
     Friend Structure XmlContext
-        Private _start As XmlElementStartTagSyntax
+        Private ReadOnly _start As XmlElementStartTagSyntax
         Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
-        Private _pool As SyntaxListPool
+        Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)
             _pool = pool

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MethodBodyModelTests : CSharpTestBase
     {
-        [WorkItem(537881, "DevDiv")]
+        [WorkItem(537881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537881")]
         [Fact]
         public void BindAliasWithSameNameClass()
         {
@@ -54,7 +54,7 @@ namespace B
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [Fact, WorkItem(537919, "DevDiv")]
+        [Fact, WorkItem(537919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537919")]
         public void NullRefForNameAndOptionalMethod()
         {
             var text = @"
@@ -76,7 +76,7 @@ public class MyClass
             comp.GetMethodBodyDiagnostics().Verify();
         }
 
-        [WorkItem(538099, "DevDiv")]
+        [WorkItem(538099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538099")]
         [Fact]
         public void ConversionsForLiterals()
         {
@@ -97,7 +97,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538100, "DevDiv")]
+        [WorkItem(538100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538100")]
         [Fact]
         public void ConversionsFromVoid()
         {
@@ -135,7 +135,7 @@ class Program
             Assert.Equal(1, errors[1503]);
         }
 
-        [WorkItem(538110, "DevDiv")]
+        [WorkItem(538110, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538110")]
         [Fact]
         public void NullComparisons()
         {
@@ -160,7 +160,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538114, "DevDiv")]
+        [WorkItem(538114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538114")]
         [Fact]
         public void OvldRslnWithExplicitIfaceImpl()
         {
@@ -240,7 +240,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538194, "DevDiv")]
+        [WorkItem(538194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538194")]
         [Fact]
         public void ComparisonOperatorForRefTypes()
         {
@@ -263,7 +263,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538211, "DevDiv")]
+        [WorkItem(538211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538211")]
         [Fact]
         public void BindCastConversionOnArithmeticOp()
         {
@@ -291,7 +291,7 @@ public class MyClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538212, "DevDiv")]
+        [WorkItem(538212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538212")]
         [Fact]
         public void NegBindLHSCStyleArray()
         {
@@ -315,7 +315,7 @@ class Test
             // as a statement, and therefore gives three additional errors: that there is 
             // a missing semicolon before and after the '=', and that '=' is not a valid statement.
             // In Roslyn we now do error recovery better and treat the initialization clause
-            // as an initialzier. We therefore expect one parse error, not four.
+            // as an initializer. We therefore expect one parse error, not four.
 
             var tree = Parse(text);
             Assert.Equal(1, tree.GetDiagnostics().Count());
@@ -530,7 +530,7 @@ public class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(538650, "DevDiv")]
+        [WorkItem(538650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538650")]
         [Fact]
         public void PropertyAmbiguity()
         {
@@ -568,7 +568,7 @@ class C
             );
         }
 
-        [WorkItem(538770, "DevDiv")]
+        [WorkItem(538770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538770")]
         [Fact]
         public void DelegateMethodAmbiguity()
         {
@@ -615,7 +615,7 @@ public class Program : I3
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
         }
 
-        [WorkItem(538835, "DevDiv")]
+        [WorkItem(538835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538835")]
         [Fact]
         public void LocalReferenceTypeConsts()
         {
@@ -641,7 +641,7 @@ public class Program
                 );
         }
 
-        [WorkItem(538617, "DevDiv")]
+        [WorkItem(538617, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538617")]
         [Fact]
         public void TypeParameterNotInvocable()
         {
@@ -664,7 +664,7 @@ class A<T> : B
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(539591, "DevDiv")]
+        [WorkItem(539591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539591")]
         [Fact]
         public void ParenthesizedSetOnlyProperty()
         {
@@ -723,7 +723,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(539929, "DevDiv")]
+        [WorkItem(539929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539929")]
         [Fact]
         public void TypeWithSameNameAsProp()
         {
@@ -748,7 +748,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(541504, "DevDiv")]
+        [WorkItem(541504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541504")]
         [Fact]
         public void TypeWithSameNameAsProp2()
         {
@@ -772,7 +772,7 @@ class F
             );
         }
 
-        [WorkItem(541505, "DevDiv")]
+        [WorkItem(541505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541505")]
         [Fact]
         public void TypeWithSameNameAsProp3()
         {
@@ -794,7 +794,7 @@ class F
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
 
-        [WorkItem(539622, "DevDiv")]
+        [WorkItem(539622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539622")]
         [Fact]
         public void AccessTypeThroughAliasNamespace()
         {
@@ -831,7 +831,7 @@ namespace LevelOne.LevelTwo.LevelThree
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540105, "DevDiv")]
+        [WorkItem(540105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
         [Fact]
         public void WarningPassLocalAsRefParameter()
         {
@@ -858,7 +858,7 @@ public static int Main()
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540105, "DevDiv")]
+        [WorkItem(540105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540105")]
         [Fact]
         public void WarningPassLocalAsOutParameter()
         {
@@ -883,7 +883,7 @@ public class TestClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(540270, "DevDiv")]
+        [WorkItem(540270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540270")]
         [Fact]
         public void SimpleNameThroughUsingAlias()
         {
@@ -910,7 +910,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(544434, "DevDiv")]
+        [WorkItem(544434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544434")]
         [Fact]
         public void MethodInvocationWithMultipleArgsToParams()
         {
@@ -929,6 +929,32 @@ class Test
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1118749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1118749")]
+        public void InstanceFieldOfEnclosingStruct()
+        {
+            var text = @"
+struct Outer
+{
+    private int f1;
+    void M() { f1 = f1 + 1; }
+    public struct Inner
+    {
+        public Inner(int xyzzy)
+        {
+            var x = f1 - 1;
+        }
+    }
+}";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithMscorlib(tree);
+            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+            comp.GetMethodBodyDiagnostics().Verify(
+                // (10,21): error CS0120: An object reference is required for the non-static field, method, or property 'Outer.f1'
+                //             var x = f1 - 1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "f1").WithArguments("Outer.f1").WithLocation(10, 21)
+                );
         }
     }
 }

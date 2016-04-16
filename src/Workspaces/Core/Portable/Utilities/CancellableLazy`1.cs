@@ -7,19 +7,19 @@ namespace Roslyn.Utilities
 {
     internal class CancellableLazy<T>
     {
-        private NonReentrantLock gate;
-        private Func<CancellationToken, T> valueFactory;
-        private T value;
+        private NonReentrantLock _gate;
+        private Func<CancellationToken, T> _valueFactory;
+        private T _value;
 
         public CancellableLazy(Func<CancellationToken, T> valueFactory)
         {
-            this.gate = new NonReentrantLock();
-            this.valueFactory = valueFactory;
+            _gate = new NonReentrantLock();
+            _valueFactory = valueFactory;
         }
 
         public CancellableLazy(T value)
         {
-            this.value = value;
+            _value = value;
         }
 
         public bool HasValue
@@ -33,9 +33,9 @@ namespace Roslyn.Utilities
 
         public bool TryGetValue(out T value)
         {
-            if (this.valueFactory == null)
+            if (_valueFactory == null)
             {
-                value = this.value;
+                value = _value;
                 return true;
             }
             else
@@ -47,22 +47,22 @@ namespace Roslyn.Utilities
 
         public T GetValue(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var gate = this.gate;
+            var gate = _gate;
             if (gate != null)
             {
                 using (gate.DisposableWait(cancellationToken))
                 {
-                    if (this.valueFactory != null)
+                    if (_valueFactory != null)
                     {
-                        this.value = this.valueFactory(cancellationToken);
-                        Interlocked.Exchange(ref this.valueFactory, null);
+                        _value = _valueFactory(cancellationToken);
+                        Interlocked.Exchange(ref _valueFactory, null);
                     }
 
-                    Interlocked.Exchange(ref this.gate, null);
+                    Interlocked.Exchange(ref _gate, null);
                 }
             }
 
-            return this.value;
+            return _value;
         }
     }
 }

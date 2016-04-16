@@ -13,43 +13,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         Cci.IGenericMethodInstanceReference,
         Cci.ISpecializedMethodReference
     {
-        private readonly Cci.IMethodReference underlyingMethod;
-        private readonly ImmutableArray<Cci.IParameterTypeInformation> argListParams;
+        private readonly Cci.IMethodReference _underlyingMethod;
+        private readonly ImmutableArray<Cci.IParameterTypeInformation> _argListParams;
 
         public ExpandedVarargsMethodReference(Cci.IMethodReference underlyingMethod, ImmutableArray<Cci.IParameterTypeInformation> argListParams)
         {
             Debug.Assert(underlyingMethod.AcceptsExtraArguments);
             Debug.Assert(!argListParams.IsEmpty);
 
-            this.underlyingMethod = underlyingMethod;
-            this.argListParams = argListParams;
+            _underlyingMethod = underlyingMethod;
+            _argListParams = argListParams;
         }
 
         bool Cci.IMethodReference.AcceptsExtraArguments
         {
-            get { return underlyingMethod.AcceptsExtraArguments; }
+            get { return _underlyingMethod.AcceptsExtraArguments; }
         }
 
         ushort Cci.IMethodReference.GenericParameterCount
         {
-            get { return underlyingMethod.GenericParameterCount; }
+            get { return _underlyingMethod.GenericParameterCount; }
         }
 
         bool Cci.IMethodReference.IsGeneric
         {
-            get { return underlyingMethod.IsGeneric; }
+            get { return _underlyingMethod.IsGeneric; }
         }
 
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
-            return underlyingMethod.GetResolvedMethod(context);
+            return _underlyingMethod.GetResolvedMethod(context);
         }
 
         ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
             get
             {
-                return argListParams;
+                return _argListParams;
             }
         }
 
@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                if (underlyingMethod.AsGenericMethodInstanceReference == null)
+                if (_underlyingMethod.AsGenericMethodInstanceReference == null)
                 {
                     return null;
                 }
 
-                Debug.Assert(underlyingMethod.AsGenericMethodInstanceReference == underlyingMethod);
+                Debug.Assert(_underlyingMethod.AsGenericMethodInstanceReference == _underlyingMethod);
                 return this;
             }
         }
@@ -71,54 +71,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                if (underlyingMethod.AsSpecializedMethodReference == null)
+                if (_underlyingMethod.AsSpecializedMethodReference == null)
                 {
                     return null;
                 }
 
-                Debug.Assert(underlyingMethod.AsSpecializedMethodReference == underlyingMethod);
+                Debug.Assert(_underlyingMethod.AsSpecializedMethodReference == _underlyingMethod);
                 return this;
             }
         }
 
         Cci.CallingConvention Cci.ISignature.CallingConvention
         {
-            get { return underlyingMethod.CallingConvention; }
+            get { return _underlyingMethod.CallingConvention; }
         }
 
         ushort Cci.ISignature.ParameterCount
         {
-            get { return underlyingMethod.ParameterCount; }
+            get { return _underlyingMethod.ParameterCount; }
         }
 
         ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
         {
-            return underlyingMethod.GetParameters(context);
+            return _underlyingMethod.GetParameters(context);
         }
 
         ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
         {
-            get { return underlyingMethod.ReturnValueCustomModifiers; }
+            get { return _underlyingMethod.ReturnValueCustomModifiers; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef
         {
-            get { return underlyingMethod.ReturnValueIsByRef; }
+            get { return _underlyingMethod.ReturnValueIsByRef; }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return underlyingMethod.GetType(context);
+            return _underlyingMethod.GetType(context);
         }
 
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
-            return underlyingMethod.GetContainingType(context);
+            return _underlyingMethod.GetContainingType(context);
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return underlyingMethod.GetAttributes(context);
+            return _underlyingMethod.GetAttributes(context);
         }
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
@@ -144,37 +144,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         string Cci.INamedEntity.Name
         {
-            get { return underlyingMethod.Name; }
+            get { return _underlyingMethod.Name; }
         }
 
         IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
         {
-            return underlyingMethod.AsGenericMethodInstanceReference.GetGenericArguments(context);
+            return _underlyingMethod.AsGenericMethodInstanceReference.GetGenericArguments(context);
         }
 
         Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
         {
-            return new ExpandedVarargsMethodReference(underlyingMethod.AsGenericMethodInstanceReference.GetGenericMethod(context), argListParams);
+            return new ExpandedVarargsMethodReference(_underlyingMethod.AsGenericMethodInstanceReference.GetGenericMethod(context), _argListParams);
         }
 
         Cci.IMethodReference Cci.ISpecializedMethodReference.UnspecializedVersion
         {
             get
             {
-                return new ExpandedVarargsMethodReference(underlyingMethod.AsSpecializedMethodReference.UnspecializedVersion, argListParams);
+                return new ExpandedVarargsMethodReference(_underlyingMethod.AsSpecializedMethodReference.UnspecializedVersion, _argListParams);
             }
         }
 
         public override string ToString()
         {
             var result = PooledStringBuilder.GetInstance();
-            Append(result, underlyingMethod);
+            Append(result, _underlyingMethod);
 
             result.Builder.Append(" with __arglist( ");
 
             bool first = true;
 
-            foreach (var p in argListParams)
+            foreach (var p in _argListParams)
             {
                 if (first)
                 {

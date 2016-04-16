@@ -20,13 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' </summary>
     Friend Class SpeculationAnalyzer
         Inherits AbstractSpeculationAnalyzer(Of SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel)
+                                             ArgumentSyntax, ForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion)
 
         ''' <summary>
         ''' Creates a semantic analyzer for speculative syntax replacement.
         ''' </summary>
         ''' <param name="expression">Original expression to be replaced.</param>
-        ''' <param name="newExpression">New expession to replace the orginal expression.</param>
+        ''' <param name="newExpression">New expression to replace the original expression.</param>
         ''' <param name="semanticModel">Semantic model of <paramref name="expression"/> node's syntax tree.</param>
         ''' <param name="cancellationToken">Cancellation token.</param>
         ''' <param name="skipVerificationForReplacedNode">
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 semanticModel = semanticModel.ParentModel
             End If
 
-            Dim speculativeModel As semanticModel = Nothing
+            Dim speculativeModel As SemanticModel = Nothing
             Dim statementNode = TryCast(nodeToSpeculate, ExecutableStatementSyntax)
             If statementNode IsNot Nothing Then
                 semanticModel.TryGetSpeculativeSemanticModel(position, statementNode, speculativeModel)
@@ -234,8 +234,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim originalSingleLineLambda = DirectCast(originalLambda, SingleLineLambdaExpressionSyntax)
                     Dim replacedSingleLineLambda = DirectCast(replacedLambda, SingleLineLambdaExpressionSyntax)
 
-                    originalParams = originalSingleLineLambda.Begin.ParameterList.Parameters
-                    replacedParams = replacedSingleLineLambda.Begin.ParameterList.Parameters
+                    originalParams = originalSingleLineLambda.SubOrFunctionHeader.ParameterList.Parameters
+                    replacedParams = replacedSingleLineLambda.SubOrFunctionHeader.ParameterList.Parameters
                     originalLambdaBody = originalSingleLineLambda.Body
                     replacedLambdaBody = replacedSingleLineLambda.Body
 
@@ -243,8 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Dim originalMultiLineLambda = DirectCast(originalLambda, MultiLineLambdaExpressionSyntax)
                     Dim replacedMultiLineLambda = DirectCast(replacedLambda, MultiLineLambdaExpressionSyntax)
 
-                    originalParams = originalMultiLineLambda.Begin.ParameterList.Parameters
-                    replacedParams = replacedMultiLineLambda.Begin.ParameterList.Parameters
+                    originalParams = originalMultiLineLambda.SubOrFunctionHeader.ParameterList.Parameters
+                    replacedParams = replacedMultiLineLambda.SubOrFunctionHeader.ParameterList.Parameters
                     originalLambdaBody = originalMultiLineLambda
                     replacedLambdaBody = replacedMultiLineLambda
 
@@ -328,6 +328,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return Not ImplicitConversionsAreCompatible(originalExpression, newExpression)
+            ElseIf TypeOf currentOriginalNode Is AssignmentStatementSyntax Then
+                Dim originalAssignmentStatement = DirectCast(currentOriginalNode, AssignmentStatementSyntax)
+
+                If SyntaxFacts.IsAssignmentStatementOperatorToken(originalAssignmentStatement.OperatorToken.Kind()) Then
+                    Dim newAssignmentStatement = DirectCast(currentReplacedNode, AssignmentStatementSyntax)
+
+                    If ReplacementBreaksCompoundAssignment(originalAssignmentStatement.Left, originalAssignmentStatement.Right, newAssignmentStatement.Left, newAssignmentStatement.Right) Then
+                        Return True
+                    End If
+                End If
+            ElseIf currentOriginalNode.Kind = SyntaxKind.ConditionalAccessExpression Then
+                Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
+                Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
+                Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
             ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
@@ -341,8 +355,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 Return False
             ElseIf currentOriginalNode.Kind = SyntaxKind.CollectionInitializer Then
-                Return previousOriginalNode IsNot Nothing AndAlso
+                Return _
+                    previousOriginalNode IsNot Nothing AndAlso
                     ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
+            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
+                Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
+                Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
+
+                Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
             Else
                 Dim originalCollectionRangeVariableSyntax = TryCast(currentOriginalNode, CollectionRangeVariableSyntax)
                 If originalCollectionRangeVariableSyntax IsNot Nothing Then
@@ -462,12 +482,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             If SyntaxFacts.IsAssignmentStatementOperatorToken(operatorTokenKind) AndAlso
                 operatorTokenKind <> SyntaxKind.LessThanLessThanEqualsToken AndAlso
                 operatorTokenKind <> SyntaxKind.GreaterThanGreaterThanEqualsToken AndAlso
-                ReplacementBreaksCompoundAssignExpression(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right) Then
+                ReplacementBreaksCompoundAssignment(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right) Then
                 Return True
             End If
 
             Return Not SymbolsAreCompatible(binaryExpression, newBinaryExpression) OrElse
                 Not TypesAreCompatible(binaryExpression, newBinaryExpression)
+        End Function
+
+        Private Function ReplacementBreaksConditionalAccessExpression(conditionalAccessExpression As ConditionalAccessExpressionSyntax, newConditionalAccessExpression As ConditionalAccessExpressionSyntax) As Boolean
+            Return _
+                Not SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+                Not TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) OrElse
+                Not SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) OrElse
+                Not TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull)
+        End Function
+
+        Private Function ReplacementBreaksInterpolation(interpolation As InterpolationSyntax, newInterpolation As InterpolationSyntax) As Boolean
+            Return Not TypesAreCompatible(interpolation.Expression, newInterpolation.Expression)
         End Function
 
         Protected Overrides Function GetForEachStatementExpression(forEachStatement As ForEachStatementSyntax) As ExpressionSyntax
@@ -491,9 +523,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
-            Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
-            Return ConversionsAreCompatible(originalConversion, newConversion)
+            Dim originalConversion As Conversion?
+            Dim newConversion As Conversion?
+
+            Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
+
+            If originalConversion Is Nothing OrElse newConversion Is Nothing
+                Return False
+            End If
+
+            ' When Option Strict is not Off and the new expression has a constant value, it's possible that
+            ' there Is a hidden narrowing conversion that will be missed. In that case, use the
+            ' conversion between the type of the new expression and the new target type.
+
+            If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
+               Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
+                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).ConvertedType
+                newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
+            End If
+
+            Return ConversionsAreCompatible(originalConversion.Value, newConversion.Value)
         End Function
 
         Private Overloads Function ConversionsAreCompatible(originalConversion As Conversion, newConversion As Conversion) As Boolean
@@ -530,6 +579,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Protected Overrides Function IsReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
             Return compilation.ClassifyConversion(sourceType, targetType).IsReference
+        End Function
+
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, expression As ExpressionSyntax, targetType As ITypeSymbol) As Conversion
+            Return model.ClassifyConversion(expression, targetType)
+        End Function
+
+        Protected Overrides Function ClassifyConversion(model As SemanticModel, originalType As ITypeSymbol, targetType As ITypeSymbol) As Conversion
+            Return model.Compilation.ClassifyConversion(originalType, targetType)
         End Function
     End Class
 End Namespace

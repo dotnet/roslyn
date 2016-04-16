@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class ConstantFieldsInProgressBinder : Binder
     {
-        private readonly ConstantFieldsInProgress inProgress;
+        private readonly ConstantFieldsInProgress _inProgress;
 
         internal ConstantFieldsInProgressBinder(ConstantFieldsInProgress inProgress, Binder next)
             : base(next, BinderFlags.FieldInitializer | next.Flags)
         {
-            this.inProgress = inProgress;
+            _inProgress = inProgress;
         }
 
         internal override ConstantFieldsInProgress ConstantFieldsInProgress
         {
             get
             {
-                return inProgress;
+                return _inProgress;
             }
         }
     }

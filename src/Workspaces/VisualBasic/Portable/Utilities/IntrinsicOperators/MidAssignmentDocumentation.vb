@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class MidAssignmentDocumentation
+    Friend NotInheritable Class MidAssignmentDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides ReadOnly Property DocumentationText As String
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 2
                     Return VBWorkspaceResources.NumberOfCharsToReplace
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 2
                     Return VBWorkspaceResources.Length
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 

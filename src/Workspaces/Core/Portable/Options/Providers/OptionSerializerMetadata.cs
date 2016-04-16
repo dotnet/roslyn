@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options.Providers
 {
     internal class OptionSerializerMetadata : LanguageMetadata
     {
-        public IEnumerable<string> Features { get; private set; }
+        public IEnumerable<string> Features { get; }
 
         public OptionSerializerMetadata(IDictionary<string, object> data) : base(data)
         {

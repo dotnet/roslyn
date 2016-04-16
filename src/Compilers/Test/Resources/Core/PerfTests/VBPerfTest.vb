@@ -147,7 +147,7 @@ Namespace ns1
             End If
         End Sub
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c1.abst(ref string, params int[])")
             x = x.ToString() : y = New Integer() {y(0)} ' Read, Write Ref + Paramarrays
@@ -469,7 +469,7 @@ Namespace ns1
             End If
         End Sub
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c2<T>.abst(ref string, params int[])")
             x = y(0).ToString() : y = Nothing ' Read, Write Ref + Paramarrays
@@ -482,7 +482,7 @@ Namespace ns1
             Return 1
         End Function
 
-        ' Overriden Virtual Methods
+        ' Overridden Virtual Methods
         Public Overrides Function virt(ByRef x As Integer, y As c1, ParamArray z As c2(Of String)()) As Integer
             Console.WriteLine("    c2<T>.virt(ref int, c1, params c2<string>[])")
             x = 0 : x = y.GetHashCode() : z = Nothing ' Read, Write Ref + Paramarrays
@@ -1414,7 +1414,7 @@ Namespace ns1
                 Console.WriteLine("    c8.prop2.get()")
                 Return _prop2
             End Get
-            ' Inaccessibile Setter
+            ' Inaccessible Setter
             Private Set(value As List(Of Integer))
                 _prop2 = value
                 Console.WriteLine("    c8.prop2.set()")
@@ -2728,7 +2728,7 @@ Namespace ns1
 
                 ' Delegate Binding
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
-                'reuslts in bad (unverifiable) code generation. Investigate whether we can
+                'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
                 'Dim d2 As Del2(Of TT, UU, VV) = AddressOf foo(Of TT, UU, VV) : d2 = AddressOf foo(Of TT, UU, VV)
                 'Dim d3 As Del3(Of TT, VV, UU) = AddressOf foo : d3 = AddressOf foo(Of TT, VV, UU)
@@ -2740,7 +2740,7 @@ Namespace ns1
 
                 ' Delegate Binding
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
-                'reuslts in bad (unverifiable) code generation. Investigate whether we can
+                'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
                 'Dim d22 As Del2(Of Integer, Del, VV) = AddressOf foo(Of Integer, Del, VV) : d22 = AddressOf foo(Of Integer, Del, VV)
                 'Dim d32 As Del3(Of Long, Integer, Exception) = AddressOf foo : d32 = AddressOf foo(Of Long, Integer, Exception)

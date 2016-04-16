@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        private IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> MapAddedOrChangedMethods(IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> addedOrChangedMethods)
+        private IReadOnlyDictionary<int, AddedOrChangedMethodInfo> MapAddedOrChangedMethods(IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods)
         {
-            var result = new Dictionary<uint, AddedOrChangedMethodInfo>();
+            var result = new Dictionary<int, AddedOrChangedMethodInfo>();
 
             foreach (var pair in addedOrChangedMethods)
             {

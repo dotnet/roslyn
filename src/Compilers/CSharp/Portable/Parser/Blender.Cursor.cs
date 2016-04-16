@@ -9,7 +9,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    partial struct Blender
+    internal partial struct Blender
     {
         /// <summary>
         /// THe cursor represents a location in the tree that we can move around to indicate where
@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private struct Cursor
         {
             public readonly SyntaxNodeOrToken CurrentNodeOrToken;
-            private readonly int indexInParent;
+            private readonly int _indexInParent;
 
             private Cursor(SyntaxNodeOrToken node, int indexInParent)
             {
                 this.CurrentNodeOrToken = node;
-                this.indexInParent = indexInParent;
+                _indexInParent = indexInParent;
             }
 
             public static Cursor FromRoot(CSharp.CSharpSyntaxNode node)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // First, look to the nodes to the right of this one in our parent's child list
                     // to get the next sibling.
                     var siblings = this.CurrentNodeOrToken.Parent.ChildNodesAndTokens();
-                    for (int i = indexInParent + 1, n = siblings.Count; i < n; i++)
+                    for (int i = _indexInParent + 1, n = siblings.Count; i < n; i++)
                     {
                         var sibling = siblings[i];
                         if (IsNonZeroWidthOrIsEndOfFile(sibling))
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Just try to get the first node directly.  This is faster than getting the list of
                 // child nodes and tokens (which forces all children to be enumerated for the sake
                 // of counting.  It should always be safe to index the 0th element of a node.  But
-                // just to make sure that this is not a problem, we verify that the slotcount of the
+                // just to make sure that this is not a problem, we verify that the slot count of the
                 // node is greater than 0.
                 var node = CurrentNodeOrToken.AsNode();
 
@@ -122,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (node.Kind() == SyntaxKind.InterpolatedStringExpression)
                 {
                     var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringExpressionSyntax)node.Green);
-                    var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, this.indexInParent);
-                    return new Cursor(redToken, this.indexInParent);
+                    var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, _indexInParent);
+                    return new Cursor(redToken, _indexInParent);
                 }
 
                 if (node.SlotCount > 0)

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             var result = token.Kind() == SyntaxKind.IdentifierToken ? CreateNewIdentifierTokenFromToken(token, escape: false) : token;
 
             // we can't remove the escaping if this would change the semantic. This can happen in cases
-            // where there are two attribute declarations one with and and one without the attribute
+            // where there are two attribute declarations: one with and one without the attribute
             // suffix.
             if (SyntaxFacts.IsAttributeName(parent))
             {

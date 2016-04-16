@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNode>)null));
         }
 
-        [Fact, WorkItem(127)]
+        [Fact, WorkItem(127, "https://github.com/dotnet/roslyn/issues/127")]
         public void AddEmptySyntaxList()
         {
             var attributes = new AttributeListSyntax[0];
@@ -245,6 +245,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause));
             Assert.False(list.Any(SyntaxKind.WhereClause));
+        }
+
+        [Fact]
+        public void WithLotsOfChildrenTest()
+        {
+            var alphabet = "abcdefghijklmnopqrstuvwxyz";
+            var commaSeparatedList = string.Join(",", (IEnumerable<char>)alphabet);
+            var parsedArgumentList = SyntaxFactory.ParseArgumentList(commaSeparatedList);
+            Assert.Equal(alphabet.Length, parsedArgumentList.Arguments.Count);
+
+            for (int position = 0; position < parsedArgumentList.FullWidth; position++)
+            {
+                var item = ChildSyntaxList.ChildThatContainsPosition(parsedArgumentList, position);
+                Assert.Equal(position, item.Position);
+                Assert.Equal(1, item.Width);
+                if (position % 2 == 0)
+                {
+                    // Even. We should get a node
+                    Assert.True(item.IsNode);
+                    Assert.True(item.IsKind(SyntaxKind.Argument));
+                    string expectedArgName = ((char)('a' + (position / 2))).ToString();
+                    Assert.Equal(expectedArgName, ((ArgumentSyntax)item).Expression.ToString());
+                }
+                else
+                {
+                    // Odd. We should get a comma
+                    Assert.True(item.IsToken);
+                    Assert.True(item.IsKind(SyntaxKind.CommaToken));
+                    int expectedTokenIndex = position + 1; // + 1 because there is a (missing) OpenParen at slot 0
+                    Assert.Equal(expectedTokenIndex, item.AsToken().Index);
+                }
+            }
         }
     }
 }

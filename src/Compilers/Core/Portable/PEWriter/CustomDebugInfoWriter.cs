@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -13,14 +13,18 @@ namespace Microsoft.Cci
 {
     internal sealed class CustomDebugInfoWriter
     {
-        private uint methodTokenWithModuleInfo;
-        private IMethodBody methodBodyWithModuleInfo;
+        private int _methodTokenWithModuleInfo;
+        private IMethodBody _methodBodyWithModuleInfo;
 
-        private uint previousMethodTokenWithUsingInfo;
-        private IMethodBody previousMethodBodyWithUsingInfo;
+        private int _previousMethodTokenWithUsingInfo;
+        private IMethodBody _previousMethodBodyWithUsingInfo;
 
-        public CustomDebugInfoWriter()
+        private readonly PdbWriter _pdbWriter;
+
+        public CustomDebugInfoWriter(PdbWriter pdbWriter)
         {
+            Debug.Assert(pdbWriter != null);
+            _pdbWriter = pdbWriter;
         }
 
         /// <summary>
@@ -28,15 +32,15 @@ namespace Microsoft.Cci
         /// Returns non-null <paramref name="forwardToMethod"/> if the forwarding should be done directly via UsingNamespace,
         /// null if the forwarding is done via custom debug info.
         /// </summary>
-        public bool ShouldForwardNamespaceScopes(IMethodBody methodBody, uint methodToken, out IMethodDefinition forwardToMethod)
+        public bool ShouldForwardNamespaceScopes(EmitContext context, IMethodBody methodBody, int methodToken, out IMethodDefinition forwardToMethod)
         {
-            if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody) || methodBody.NamespaceScopes.IsEmpty)
+            if (ShouldForwardToPreviousMethodWithUsingInfo(context, methodBody))
             {
                 // SerializeNamespaceScopeMetadata will do the actual forwarding in case this is a CSharp method.
                 // VB on the other hand adds a "@methodtoken" to the scopes instead.
-                if (methodBody.NamespaceScopeEncoding == NamespaceScopeEncoding.Forwarding)
+                if (context.Module.GenerateVisualBasicStylePdb)
                 {
-                    forwardToMethod = this.previousMethodBodyWithUsingInfo.MethodDefinition;
+                    forwardToMethod = _previousMethodBodyWithUsingInfo.MethodDefinition;
                 }
                 else
                 {
@@ -46,35 +50,35 @@ namespace Microsoft.Cci
                 return true;
             }
 
-            this.previousMethodBodyWithUsingInfo = methodBody;
-            this.previousMethodTokenWithUsingInfo = methodToken;
+            _previousMethodBodyWithUsingInfo = methodBody;
+            _previousMethodTokenWithUsingInfo = methodToken;
             forwardToMethod = null;
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(IModule module, IMethodBody methodBody, uint methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, int methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
             // CONSIDER: this may not be the same "first" method as in Dev10, but
             // it shouldn't matter since all methods will still forward to a method
             // containing the appropriate information.
-            if (this.methodBodyWithModuleInfo == null) //UNDONE: || edit-and-continue
+            if (_methodBodyWithModuleInfo == null) //UNDONE: || edit-and-continue
             {
                 // This module level information could go on every method (and does in
                 // the edit-and-continue case), but - as an optimization - we'll just
                 // put it on the first method we happen to encounter and then put a
                 // reference to the first method's token in every other method (so they
                 // can find the information).
-                if (module.ExternNamespaces.Any())
+                if (context.Module.GetAssemblyReferenceAliases(context).Any())
                 {
-                    this.methodTokenWithModuleInfo = methodToken;
-                    this.methodBodyWithModuleInfo = methodBody;
+                    _methodTokenWithModuleInfo = methodToken;
+                    _methodBodyWithModuleInfo = methodBody;
                     emitExternNamespaces = true;
                 }
             }
 
-            var customDebugInfo = ArrayBuilder<MemoryStream>.GetInstance();
+            var customDebugInfo = ArrayBuilder<PooledBlobBuilder>.GetInstance();
 
             SerializeIteratorClassMetadata(methodBody, customDebugInfo);
 
@@ -88,7 +92,7 @@ namespace Microsoft.Cci
             // is not a regression).
             if (methodBody.StateMachineTypeName == null)
             {
-                SerializeNamespaceScopeMetadata(methodBody, customDebugInfo);
+                SerializeNamespaceScopeMetadata(context, methodBody, customDebugInfo);
                 SerializeStateMachineLocalScopes(methodBody, customDebugInfo);
             }
 
@@ -99,66 +103,98 @@ namespace Microsoft.Cci
                 // delta doesn't need this information - we use information recorded by previous generation emit
                 if (!isEncDelta)
                 {
-                    var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
-
-                    // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
-                    // so we use its EnC method debug info to store information about locals hoisted to the state machine.
-                    var encDebugInfo = encSlotInfo.IsDefault ?
-                        GetEncDebugInfoForLocals(methodBody.LocalVariables) :
-                        GetEncDebugInfoForLocals(encSlotInfo);
-
-                    encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
+                    var encMethodInfo = MetadataWriter.GetEncMethodDebugInfo(methodBody);
+                    SerializeCustomDebugInformation(encMethodInfo, customDebugInfo);
                 }
             }
 
             byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
+
+            foreach(var builder in customDebugInfo)
+            {
+                builder.Free();
+            }
+
             customDebugInfo.Free();
+
             return result;
         }
 
-        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<ILocalDefinition> locals)
+        // internal for testing
+        internal static void SerializeCustomDebugInformation(EditAndContinueMethodDebugInformation debugInfo, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            // PERF: note that we pass debugInfo as explicit parameter
+            //       that is intentional to avoid capturing debugInfo as that 
+            //       would result in a lot of delegate allocations here that are otherwise can be avoided.
+            if (!debugInfo.LocalSlots.IsDefaultOrEmpty)
             {
-                return default(EditAndContinueMethodDebugInformation);
+                customDebugInfo.Add(
+                    SerializeRecord(
+                        CDI.CdiKindEditAndContinueLocalSlotMap, 
+                        debugInfo,
+                        (info, builder) => info.SerializeLocalSlots(builder)));
             }
 
-            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
-        }
-
-        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<EncHoistedLocalInfo> locals)
-        {
-            if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
+            if (!debugInfo.Lambdas.IsDefaultOrEmpty)
             {
-                return default(EditAndContinueMethodDebugInformation);
+                customDebugInfo.Add(
+                    SerializeRecord(
+                        CDI.CdiKindEditAndContinueLambdaMap,
+                        debugInfo,
+                        (info, builder) => info.SerializeLambdaMap(builder)));
             }
-
-            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
         }
 
-        private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
+        private static PooledBlobBuilder SerializeRecord(
+            byte kind,
+            EditAndContinueMethodDebugInformation debugInfo,
+            Action<EditAndContinueMethodDebugInformation, BlobBuilder> recordSerializer)
+        {
+            var cmw = PooledBlobBuilder.GetInstance();
+            cmw.WriteByte(CDI.CdiVersion);
+            cmw.WriteByte(kind);
+            cmw.WriteByte(0);
+
+            // alignment size and length (will be patched)
+            var alignmentSizeAndLengthWriter = cmw.ReserveBytes(sizeof(byte) + sizeof(uint));
+
+            recordSerializer(debugInfo, cmw);
+
+            int length = cmw.Position;
+            int alignedLength = 4 * ((length + 3) / 4);
+            byte alignmentSize = (byte)(alignedLength - length);
+            cmw.WriteBytes(0, alignmentSize);
+
+            // fill in alignment size and length:
+            alignmentSizeAndLengthWriter.WriteByte(alignmentSize);
+            alignmentSizeAndLengthWriter.WriteUInt32((uint)alignedLength);
+
+            return cmw;
+        }
+
+        private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             SerializeReferenceToIteratorClass(methodBody.StateMachineTypeName, customDebugInfo);
         }
 
-        private static void SerializeReferenceToIteratorClass(string iteratorClassName, ArrayBuilder<MemoryStream> customDebugInfo)
+        private static void SerializeReferenceToIteratorClass(string iteratorClassName, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             if (iteratorClassName == null) return;
-            MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, true);
+            var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardIterator);
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
-            cmw.WriteUint(length);
-            cmw.WriteString(iteratorClassName, true);
+            cmw.WriteUInt32(length);
+            cmw.WriteUTF16(iteratorClassName);
+            cmw.WriteInt16(0);
             cmw.Align(4);
-            Debug.Assert(customMetadata.Position == length);
-            customDebugInfo.Add(customMetadata);
+            Debug.Assert(cmw.Position == length);
+            customDebugInfo.Add(cmw);
         }
 
-        private static void SerializeStateMachineLocalScopes(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
+        private static void SerializeStateMachineLocalScopes(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             var scopes = methodBody.StateMachineHoistedLocalScopes;
             if (scopes.IsDefaultOrEmpty)
@@ -167,23 +203,31 @@ namespace Microsoft.Cci
             }
 
             uint numberOfScopes = (uint)scopes.Length;
-            MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata);
+            var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindStateMachineHoistedLocalScopes);
             cmw.Align(4);
-            cmw.WriteUint(12 + numberOfScopes * 8);
-            cmw.WriteUint(numberOfScopes);
+            cmw.WriteUInt32(12 + numberOfScopes * 8);
+            cmw.WriteUInt32(numberOfScopes);
             foreach (var scope in scopes)
             {
-                cmw.WriteUint(scope.StartOffset);
-                cmw.WriteUint(scope.EndOffset);
+                if (scope.IsDefault)
+                {
+                    cmw.WriteUInt32(0);
+                    cmw.WriteUInt32(0);
+                }
+                else
+                {
+                    // Dev12 C# emits end-inclusive range
+                    cmw.WriteUInt32((uint)scope.StartOffset);
+                    cmw.WriteUInt32((uint)scope.EndOffset - 1);
+                }
             }
 
-            customDebugInfo.Add(customMetadata);
+            customDebugInfo.Add(cmw);
         }
 
-        private static void SerializeDynamicLocalInfo(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
+        private static void SerializeDynamicLocalInfo(IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
             if (!methodBody.HasDynamicLocalVariables)
             {
@@ -194,18 +238,18 @@ namespace Microsoft.Cci
 
             foreach (ILocalDefinition local in methodBody.LocalVariables)
             {
+                Debug.Assert(local.SlotIndex >= 0);
                 if (local.IsDynamic)
                 {
                     dynamicLocals.Add(local);
                 }
             }
 
-            int dynamicVariableCount = dynamicLocals.Count;
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
                 foreach (var localConstant in currentScope.Constants)
                 {
+                    Debug.Assert(localConstant.SlotIndex < 0);
                     if (localConstant.IsDynamic)
                     {
                         dynamicLocals.Add(localConstant);
@@ -213,213 +257,204 @@ namespace Microsoft.Cci
                 }
             }
 
-            Debug.Assert(dynamicLocals.Any()); // There must be atleast one dynamic local if this point is reached
+            Debug.Assert(dynamicLocals.Any()); // There must be at least one dynamic local if this point is reached
 
-            const int blobSize = 200;//DynamicAttribute - 64, DynamicAttributeLength - 4, SlotIndex -4, IdentifierName - 128
-            MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, true);
+            const int dynamicAttributeSize = 64;
+            const int identifierSize = 64;
+            const int blobSize = dynamicAttributeSize + 4 + 4 + identifierSize * 2;//DynamicAttribute: 64, DynamicAttributeLength: 4, SlotIndex: 4, IdentifierName: 128
+            var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindDynamicLocals);
             cmw.Align(4);
             // size = Version,Kind + size + cBuckets + (dynamicCount * sizeOf(Local Blob))
-            cmw.WriteUint(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
-            cmw.WriteUint((uint)dynamicLocals.Count);
+            cmw.WriteUInt32(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
+            cmw.WriteUInt32((uint)dynamicLocals.Count);
 
-            int localIndex = 0;
             foreach (ILocalDefinition local in dynamicLocals)
             {
-                if (local.Name.Length > 63)//Ignore and push empty information
+                if (local.Name.Length >= identifierSize)//Ignore and push empty information
                 {
                     cmw.WriteBytes(0, blobSize);
                     continue;
                 }
 
                 var dynamicTransformFlags = local.DynamicTransformFlags;
-                if (!dynamicTransformFlags.IsDefault && dynamicTransformFlags.Length <= 64)
+                if (!dynamicTransformFlags.IsDefault && dynamicTransformFlags.Length <= dynamicAttributeSize)
                 {
-                    byte[] flag = new byte[64];
+                    byte[] flag = new byte[dynamicAttributeSize];
                     for (int k = 0; k < dynamicTransformFlags.Length; k++)
                     {
                         if ((bool)dynamicTransformFlags[k].Value)
                         {
-                            flag[k] = (byte)1;
+                            flag[k] = 1;
                         }
                     }
                     cmw.WriteBytes(flag); //Written Flag
-                    cmw.WriteUint((uint)dynamicTransformFlags.Length); //Written Length
+                    cmw.WriteUInt32((uint)dynamicTransformFlags.Length); //Written Length
                 }
                 else
                 {
-                    cmw.WriteBytes(0, 68); //Empty flag array and size.
+                    cmw.WriteBytes(0, dynamicAttributeSize + 4); //Empty flag array and size.
                 }
 
-                if (localIndex < dynamicVariableCount)
-                {
-                    // Dynamic variable
-                    cmw.WriteUint((uint)local.SlotIndex);
-                }
-                else
-                {
-                    // Dynamic constant
-                    cmw.WriteUint(0);
-                }
+                var localIndex = local.SlotIndex;
+                cmw.WriteUInt32((localIndex < 0) ? 0u : (uint)localIndex);
 
-                char[] localName = new char[64];
+                char[] localName = new char[identifierSize];
                 local.Name.CopyTo(0, localName, 0, local.Name.Length);
-                cmw.WriteChars(localName);
-
-                localIndex++;
+                cmw.WriteUTF16(localName);
             }
 
             dynamicLocals.Free();
-            customDebugInfo.Add(customMetadata);
+            customDebugInfo.Add(cmw);
         }
 
-        private static byte[] SerializeCustomDebugMetadata(ArrayBuilder<MemoryStream> customDebugInfo)
+        // internal for testing
+        internal static byte[] SerializeCustomDebugMetadata(ArrayBuilder<PooledBlobBuilder> recordWriters)
         {
-            if (customDebugInfo.Count == 0)
+            if (recordWriters.Count == 0)
             {
                 return null;
             }
 
-            MemoryStream customMetadata = MemoryStream.GetInstance();
-            BinaryWriter cmw = new BinaryWriter(customMetadata);
-            cmw.WriteByte(CDI.CdiVersion);
-            cmw.WriteByte((byte)customDebugInfo.Count); // count
-            cmw.Align(4);
-            foreach (MemoryStream ms in customDebugInfo)
+            int records = 0;
+            foreach(var rec in recordWriters)
             {
-                ms.WriteTo(customMetadata);
+                records += rec.Count;
             }
 
-            var result = customMetadata.ToArray();
-            customMetadata.Free();
+            var result = new byte[
+                sizeof(byte) +                  // version
+                sizeof(byte) +                  // record count
+                sizeof(ushort) +                // padding
+                records                         // records
+            ];
+
+            var cmw = new BlobWriter(result);
+            cmw.WriteByte(CDI.CdiVersion);
+            cmw.WriteByte((byte)recordWriters.Count); // count
+            cmw.WriteInt16(0);
+            foreach (var recordWriter in recordWriters)
+            {
+                cmw.WriteBytes(recordWriter);
+            }
+
             return result;
         }
 
-        private void SerializeNamespaceScopeMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)
+        private void SerializeNamespaceScopeMetadata(EmitContext context, IMethodBody methodBody, ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
-            if (methodBody.NamespaceScopeEncoding == NamespaceScopeEncoding.Forwarding)
+            if (context.Module.GenerateVisualBasicStylePdb)
             {
                 return;
             }
 
-            if (ShouldForwardToPreviousMethodWithUsingInfo(methodBody))
+            if (ShouldForwardToPreviousMethodWithUsingInfo(context, methodBody))
             {
-                Debug.Assert(!ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody));
+                Debug.Assert(!ReferenceEquals(_previousMethodBodyWithUsingInfo, methodBody));
                 SerializeReferenceToPreviousMethodWithUsingInfo(customDebugInfo);
                 return;
             }
 
-            MemoryStream customMetadata = new MemoryStream();
             List<ushort> usingCounts = new List<ushort>();
-            BinaryWriter cmw = new BinaryWriter(customMetadata);
-            foreach (NamespaceScope namespaceScope in methodBody.NamespaceScopes)
+            var cmw = PooledBlobBuilder.GetInstance();
+            for (IImportScope scope = methodBody.ImportScope; scope != null; scope = scope.Parent)
             {
-                usingCounts.Add((ushort)namespaceScope.UsedNamespaces.Length);
+                usingCounts.Add((ushort)scope.GetUsedNamespaces().Length);
             }
 
             // ACASEY: This originally wrote (uint)12, (ushort)1, (ushort)0 in the
             // case where usingCounts was empty, but I'm not sure why.
             if (usingCounts.Count > 0)
             {
-                uint streamLength = 0;
+                uint streamLength;
                 cmw.WriteByte(CDI.CdiVersion);
                 cmw.WriteByte(CDI.CdiKindUsingInfo);
                 cmw.Align(4);
 
-                cmw.WriteUint(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
-                cmw.WriteUshort((ushort)usingCounts.Count);
+                cmw.WriteUInt32(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
+                cmw.WriteUInt16((ushort)usingCounts.Count);
                 foreach (ushort uc in usingCounts)
                 {
-                    cmw.WriteUshort(uc);
+                    cmw.WriteUInt16(uc);
                 }
 
                 cmw.Align(4);
-                Debug.Assert(streamLength == customMetadata.Length);
-                customDebugInfo.Add(customMetadata);
+                Debug.Assert(streamLength == cmw.Count);
+                customDebugInfo.Add(cmw);
             }
 
-            if (this.methodBodyWithModuleInfo != null && !ReferenceEquals(this.methodBodyWithModuleInfo, methodBody))
+            if (_methodBodyWithModuleInfo != null && !ReferenceEquals(_methodBodyWithModuleInfo, methodBody))
             {
                 SerializeReferenceToMethodWithModuleInfo(customDebugInfo);
             }
         }
 
-        private bool ShouldForwardToPreviousMethodWithUsingInfo(IMethodBody methodBody)
+        private bool ShouldForwardToPreviousMethodWithUsingInfo(EmitContext context, IMethodBody methodBody)
         {
-            if (this.previousMethodBodyWithUsingInfo == null || ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody))
+            if (_previousMethodBodyWithUsingInfo == null ||
+                ReferenceEquals(_previousMethodBodyWithUsingInfo, methodBody))
             {
                 return false;
             }
 
-            // CONSIDER: is there a more efficient way to check if the scopes are the same?
-            // CONSIDER: might want to cache the list of scopes.
-            var previousScopes = this.previousMethodBodyWithUsingInfo.NamespaceScopes;
-            return methodBody.NamespaceScopes.SequenceEqual(previousScopes, NamespaceScopeComparer.Instance);
+            // VB includes method namespace in namespace scopes:
+            if (context.Module.GenerateVisualBasicStylePdb)
+            {
+                if (_pdbWriter.GetOrCreateSerializedNamespaceName(_previousMethodBodyWithUsingInfo.MethodDefinition.ContainingNamespace) !=
+                    _pdbWriter.GetOrCreateSerializedNamespaceName(methodBody.MethodDefinition.ContainingNamespace))
+                {
+                    return false;
+                }
+            }
+
+            var previousScopes = _previousMethodBodyWithUsingInfo.ImportScope;
+
+            // methods share the same import scope (common case for methods declared in the same file)
+            if (methodBody.ImportScope == previousScopes)
+            {
+                return true;
+            }
+
+            // If methods are in different files they don't share the same scopes,
+            // but the imports might be the same nevertheless.
+            // Note: not comparing project-level imports since those are the same for all method bodies.
+            var s1 = methodBody.ImportScope;
+            var s2 = previousScopes;
+            while (s1 != null && s2 != null)
+            {
+                if (!s1.GetUsedNamespaces().SequenceEqual(s2.GetUsedNamespaces()))
+                {
+                    return false;
+                }
+
+                s1 = s1.Parent;
+                s2 = s2.Parent;
+            }
+
+            return s1 == s2;
         }
 
-        private void SerializeReferenceToMethodWithModuleInfo(ArrayBuilder<MemoryStream> customDebugInfo)
+        private void SerializeReferenceToMethodWithModuleInfo(ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
-            MemoryStream customMetadata = new MemoryStream(12);
-            BinaryWriter cmw = new BinaryWriter(customMetadata);
+            var cmw = PooledBlobBuilder.GetInstance();
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardToModuleInfo);
             cmw.Align(4);
-            cmw.WriteUint(12);
-            cmw.WriteUint(this.methodTokenWithModuleInfo);
-            customDebugInfo.Add(customMetadata);
+            cmw.WriteUInt32(12);
+            cmw.WriteUInt32((uint)_methodTokenWithModuleInfo);
+            customDebugInfo.Add(cmw);
         }
 
-        private void SerializeReferenceToPreviousMethodWithUsingInfo(ArrayBuilder<MemoryStream> customDebugInfo)
+        private void SerializeReferenceToPreviousMethodWithUsingInfo(ArrayBuilder<PooledBlobBuilder> customDebugInfo)
         {
-            MemoryStream customMetadata = new MemoryStream(12);
-            BinaryWriter cmw = new BinaryWriter(customMetadata);
+            var cmw = PooledBlobBuilder.GetInstance(12);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardInfo);
             cmw.Align(4);
-            cmw.WriteUint(12);
-            cmw.WriteUint(this.previousMethodTokenWithUsingInfo);
-            customDebugInfo.Add(customMetadata);
-        }
-
-        private class NamespaceScopeComparer : IEqualityComparer<NamespaceScope>
-        {
-            public static readonly IEqualityComparer<NamespaceScope> Instance = new NamespaceScopeComparer();
-
-            public bool Equals(NamespaceScope x, NamespaceScope y)
-            {
-                Debug.Assert(x != null);
-                Debug.Assert(y != null);
-                return x.UsedNamespaces.SequenceEqual(y.UsedNamespaces, UsedNamespaceOrTypeComparer.Instance);
-            }
-
-            public int GetHashCode(NamespaceScope obj)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private class UsedNamespaceOrTypeComparer : IEqualityComparer<UsedNamespaceOrType>
-        {
-            public static readonly IEqualityComparer<UsedNamespaceOrType> Instance = new UsedNamespaceOrTypeComparer();
-
-            public bool Equals(UsedNamespaceOrType x, UsedNamespaceOrType y)
-            {
-                Debug.Assert(x != null);
-                Debug.Assert(y != null);
-                return x.Kind == y.Kind &&
-                    x.Alias == y.Alias &&
-                    x.TargetName == y.TargetName &&
-                    x.ExternAlias == y.ExternAlias &&
-                    x.ProjectLevel == y.ProjectLevel;
-            }
-
-            public int GetHashCode(UsedNamespaceOrType obj)
-            {
-                Debug.Assert(false);
-                return 0;
-            }
+            cmw.WriteUInt32(12);
+            cmw.WriteUInt32((uint)_previousMethodTokenWithUsingInfo);
+            customDebugInfo.Add(cmw);
         }
     }
 }

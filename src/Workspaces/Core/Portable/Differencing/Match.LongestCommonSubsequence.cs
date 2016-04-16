@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Differencing
     {
         internal sealed class LongestCommonSubsequence : LongestCommonSubsequence<IReadOnlyList<TNode>>
         {
-            private readonly Match<TNode> match;
+            private readonly Match<TNode> _match;
 
             internal LongestCommonSubsequence(Match<TNode> match)
             {
                 Debug.Assert(match != null);
-                this.match = match;
+                _match = match;
             }
 
             protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
             {
-                return match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
+                return _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
             }
 
             internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
                 {
-                    yield return new Edit<TNode>(edit.Kind, match.Comparer,
+                    yield return new Edit<TNode>(edit.Kind, _match.Comparer,
                         edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default(TNode),
                         edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default(TNode));
                 }

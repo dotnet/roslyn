@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private class NullSyntaxReference : SyntaxReference
             {
-                private readonly SyntaxTree tree;
+                private readonly SyntaxTree _tree;
 
                 public NullSyntaxReference(SyntaxTree tree)
                 {
-                    this.tree = tree;
+                    _tree = tree;
                 }
 
                 public override SyntaxTree SyntaxTree
                 {
                     get
                     {
-                        return tree;
+                        return _tree;
                     }
                 }
 

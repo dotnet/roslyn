@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
-Module MetadataTestHelpers
+Friend Module MetadataTestHelpers
 
     <Extension>
     Friend Function GetCorLibType(this As ModuleSymbol, typeId As SpecialType) As NamedTypeSymbol
@@ -48,7 +48,7 @@ Module MetadataTestHelpers
                 Continue For
             End If
 
-            Throw TestExceptionUtilities.Unreachable
+            Throw New InvalidOperationException()
         Next
 
         Dim options = If(importInternals, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.ReleaseDll)

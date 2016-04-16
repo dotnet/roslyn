@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCompoundAssignmentOperator((BoundCompoundAssignmentOperator)expression, used: false);
 
                 case BoundKind.Call:
-                    if (this.allowOmissionOfConditionalCalls)
+                    if (_allowOmissionOfConditionalCalls)
                     {
                         var call = (BoundCall)expression;
                         if (call.Method.CallsAreOmitted(call.SyntaxTree))

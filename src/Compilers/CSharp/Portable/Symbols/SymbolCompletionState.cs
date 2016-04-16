@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// it must be volatile to ensure the read is not reordered/optimized to happen 
         /// before the writes.
         /// </summary>
-        private volatile int completeParts;
+        private volatile int _completeParts;
 
         internal int IncompleteParts
         {
             get
             {
-                return ~this.completeParts & (int)CompletionPart.All;
+                return ~_completeParts & (int)CompletionPart.All;
             }
         }
 
@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 symbol.GetAttributes();
             }
+
+            // any other values are completion parts intended for other kinds of symbols
+            NotePartComplete(CompletionPart.All);
         }
 
         internal bool HasComplete(CompletionPart part)
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // completeParts is used as a flag indicating completion of other assignments 
             // Volatile.Read is used to ensure the read is not reordered/optimized to happen 
             // before the writes.
-            return (this.completeParts & (int)part) == (int)part;
+            return (_completeParts & (int)part) == (int)part;
         }
 
         internal bool NotePartComplete(CompletionPart part)
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // passing volatile completeParts byref is ok here.
             // ThreadSafeFlagOperations.Set performs interlocked assignments
 #pragma warning disable 0420
-            return ThreadSafeFlagOperations.Set(ref this.completeParts, (int)part);
+            return ThreadSafeFlagOperations.Set(ref _completeParts, (int)part);
 #pragma warning restore 0420
         }
 
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int bit = (1 << i);
                 if ((bit & (int)CompletionPart.All) == 0) break;
-                if ((bit & completeParts) != 0)
+                if ((bit & _completeParts) != 0)
                 {
                     if (any) result.Append(", ");
                     result.Append(i);

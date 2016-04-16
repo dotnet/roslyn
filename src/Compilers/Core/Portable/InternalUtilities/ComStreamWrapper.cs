@@ -9,24 +9,28 @@ namespace Roslyn.Utilities
 {
     internal sealed class ComStreamWrapper : IStream
     {
-        private readonly Stream stream;
+        private readonly Stream _stream;
 
         public ComStreamWrapper(Stream stream)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.CanSeek);
 
-            this.stream = stream;
+            _stream = stream;
         }
 
         public void Commit(int grfCommitFlags)
         {
-            stream.Flush();
+            _stream.Flush();
         }
 
+        /// <summary>
+        /// The actual number of bytes read can be fewer than the number of bytes requested 
+        /// if an error occurs or if the end of the stream is reached during the read operation.
+        /// </summary>
         public unsafe void Read(byte[] pv, int cb, IntPtr pcbRead)
         {
-            int bytesRead = stream.Read(pv, 0, cb);
+            int bytesRead = _stream.TryReadAll(pv, 0, cb);
 
             if (pcbRead != IntPtr.Zero)
             {
@@ -36,7 +40,7 @@ namespace Roslyn.Utilities
 
         public unsafe void Seek(long dlibMove, int origin, IntPtr plibNewPosition)
         {
-            long newPosition = stream.Seek(dlibMove, (SeekOrigin)origin);
+            long newPosition = _stream.Seek(dlibMove, (SeekOrigin)origin);
             if (plibNewPosition != IntPtr.Zero)
             {
                 *(long*)plibNewPosition = newPosition;
@@ -45,20 +49,20 @@ namespace Roslyn.Utilities
 
         public void SetSize(long libNewSize)
         {
-            stream.SetLength(libNewSize);
+            _stream.SetLength(libNewSize);
         }
 
         public void Stat(out STATSTG pstatstg, int grfStatFlag)
         {
             pstatstg = new STATSTG()
             {
-                cbSize = stream.Length
+                cbSize = _stream.Length
             };
         }
 
         public unsafe void Write(byte[] pv, int cb, IntPtr pcbWritten)
         {
-            stream.Write(pv, 0, cb);
+            _stream.Write(pv, 0, cb);
             if (pcbWritten != IntPtr.Zero)
             {
                 *(int*)pcbWritten = cb;

@@ -5,20 +5,22 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CompilerServer;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
-using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class TouchedFileLoggingTests : CSharpTestBase
     {
-        private static readonly string libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string baseDirectory = TempRoot.Root;
+        private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
+        private readonly string _baseDirectory = TempRoot.Root;
         private const string helloWorldCS = @"using System;
 
 class C
@@ -29,14 +31,14 @@ class C
     }
 }";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, baseDirectory, new[] { "/nologo", hello,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
                string.Format(@"/touchedfiles:""{0}""", touchedBase) });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -57,7 +59,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
@@ -73,11 +75,11 @@ class C
   </runtime>
 </configuration>").Path;
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, baseDirectory,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory,
                 new[] { "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
@@ -103,16 +105,16 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StrongNameKeyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path;
+            var snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.General.snKey).Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, baseDirectory,
+            var cmd = new MockCSharpCompiler(null, _baseDirectory,
                 new[] { "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
@@ -138,7 +140,7 @@ class C
             CleanupAllGeneratedFiles(hello);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void XmlDocumentFileCsc()
         {
             var sourcePath = Temp.CreateFile().WriteAllText(@"
@@ -150,7 +152,7 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, baseDirectory, new[]
+            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
             {
                 "/nologo",
                 "/target:library",
@@ -195,10 +197,9 @@ public class C { }").Path;
             CleanupAllGeneratedFiles(sourcePath);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TrivialMetadataCaching()
         {
-
             List<String> filelist = new List<string>();
 
             // Do the following compilation twice.
@@ -213,10 +214,14 @@ public class C { }").Path;
 
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(null,
+                var cmd = new CSharpCompilerServer(
+                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    baseDirectory,
-                    libDirectory);
+                    null,
+                    _baseDirectory,
+                    RuntimeEnvironment.GetRuntimeDirectory(),
+                    s_libDirectory,
+                    new TestAnalyzerAssemblyLoader());
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -247,7 +252,7 @@ public class C { }").Path;
         /// so this method must be called before the execution of
         /// Csc.Run.
         /// </summary>
-        private static void BuildTouchedFiles(CSharpCompiler cmd, 
+        private static void BuildTouchedFiles(CSharpCompiler cmd,
                                               string outputPath,
                                               out List<string> expectedReads,
                                               out List<string> expectedWrites)
@@ -263,14 +268,6 @@ public class C { }").Path;
             var writes = new List<string>();
             writes.Add(outputPath);
 
-            // Hook temporary file creation
-            cmd.PathGetTempFileName = () =>
-            {
-                // Named 'GetFileName', but actually a path
-                string tempPath = Path.GetTempFileName();
-                writes.Add(tempPath);
-                return tempPath;
-            };
             expectedWrites = writes;
         }
 
@@ -289,6 +286,19 @@ public class C { }").Path;
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
+        }
+
+        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

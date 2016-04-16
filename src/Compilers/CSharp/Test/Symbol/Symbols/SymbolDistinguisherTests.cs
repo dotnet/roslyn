@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -140,7 +141,7 @@ public class C
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var distinguisher = new SymbolDistinguisher(null, sourceType, referencedType); 
+            var distinguisher = new SymbolDistinguisher(null, sourceType, referencedType);
             Assert.Equal(@"C [a\..\file.cs(1)]", distinguisher.First.ToString()); // File path comes out of tree.
             Assert.Equal("C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
         }
@@ -181,8 +182,8 @@ public class C
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
             var sourceParameter = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
-            var referenedParameter = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
-            var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referenedParameter);
+            var referencedParameter = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
+            var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referencedParameter);
             // NOTE: Locations come from parameter *types*.
             // NOTE: RefKind retained.
             Assert.Equal("ref C [file.cs(2)]", distinguisher.First.ToString());
@@ -257,8 +258,8 @@ public class C
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
             var sourceParameter = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
-            var referenedParameter = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
-            var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referenedParameter);
+            var referencedParameter = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M").Parameters.Single();
+            var distinguisher = new SymbolDistinguisher(comp, sourceParameter, referencedParameter);
             // NOTE: Locations come from parameter element types.
             // NOTE: 'params' retained.
             Assert.Equal("params C[] [file.cs(2)]", distinguisher.First.ToString());
@@ -679,6 +680,109 @@ public class Test
                 // file.cs(8,9): error CS0315: The type 'C [file.cs(2)]' cannot be used as type parameter 'T' in the generic type or method 'Lib.M<T>()'. There is no boxing conversion from 'C [file.cs(2)]' to 'C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]'.
                 //         Lib.M<C>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Lib.M<C>").WithArguments("Lib.M<T>()", "C [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", "T", "C [file.cs(2)]").WithLocation(8, 9));
+        }
+
+        [WorkItem(6262, "https://github.com/dotnet/roslyn/issues/6262")]
+        [Fact]
+        public void SymbolDistinguisherEquality()
+        {
+            var source =
+@"class A { }
+class B { }
+class C { }";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var sA = compilation.GetMember<NamedTypeSymbol>("A");
+            var sB = compilation.GetMember<NamedTypeSymbol>("B");
+            var sC = compilation.GetMember<NamedTypeSymbol>("C");
+            Assert.True(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sA, sB)));
+            Assert.False(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sA, sC)));
+            Assert.False(AreEqual(new SymbolDistinguisher(compilation, sA, sB), new SymbolDistinguisher(compilation, sC, sB)));
+        }
+
+        private static bool AreEqual(SymbolDistinguisher a, SymbolDistinguisher b)
+        {
+            return a.First.Equals(b.First) && a.Second.Equals(b.Second);
+        }
+
+        [WorkItem(8588, "https://github.com/dotnet/roslyn/issues/8588")]
+        [Fact]
+        public void SameErrorTypeArgumentsDifferentSourceAssemblies()
+        {
+            var source0 =
+@"public class A
+{
+    public static void M(System.Collections.Generic.IEnumerable<E> e)
+    {
+    }
+}";
+            var source1 =
+@"class B
+{
+    static void M(System.Collections.Generic.IEnumerable<E> e)
+    {
+        A.M(e);
+    }
+}";
+            var comp0 = CreateCompilationWithMscorlib(source0);
+            comp0.VerifyDiagnostics(
+                // (3,65): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(System.Collections.Generic.IEnumerable<E> e)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 65));
+            var ref0 = new CSharpCompilationReference(comp0);
+            var comp1 = CreateCompilationWithMscorlib(Parse(source1), new[] { ref0 });
+            comp1.VerifyDiagnostics(
+                // (3,58): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void M(System.Collections.Generic.IEnumerable<E> e)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 58),
+                // (5,13): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<E>' to 'System.Collections.Generic.IEnumerable<E>'
+                //         A.M(e);
+                Diagnostic(ErrorCode.ERR_BadArgType, "e").WithArguments("1", "System.Collections.Generic.IEnumerable<E>", "System.Collections.Generic.IEnumerable<E>").WithLocation(5, 13));
+        }
+
+        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [Fact]
+        public void DescriptionNoCompilation()
+        {
+            var source =
+@"class A { }
+class B { }";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var typeA = compilation.GetMember<NamedTypeSymbol>("A");
+            var typeB = compilation.GetMember<NamedTypeSymbol>("B");
+            var distinguisher1 = new SymbolDistinguisher(compilation, typeA, typeB);
+            var distinguisher2 = new SymbolDistinguisher(null, typeA, typeB);
+            var arg1A = distinguisher1.First;
+            var arg2A = distinguisher2.First;
+            Assert.False(arg1A.Equals(arg2A));
+            Assert.False(arg2A.Equals(arg1A));
+            int hashCode1A = arg1A.GetHashCode();
+            int hashCode2A = arg2A.GetHashCode();
+        }
+
+        [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
+        [Fact]
+        public void CompareDiagnosticsNoCompilation()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> where T : A { }";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics();
+            var ref1 = compilation1.EmitToImageReference();
+            var source2 =
+@"class C : B<object> { }";
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { ref1 });
+            var diagnostics = compilation2.GetDiagnostics();
+            diagnostics.Verify(
+                // (1,7): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. There is no implicit reference conversion from 'object' to 'A'.
+                // class C : B<object> { }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "C").WithArguments("B<T>", "A", "T", "object").WithLocation(1, 7));
+            // Command-line compiler calls SymbolDistinguisher.Description.GetHashCode()
+            // when adding diagnostics to a set.
+            foreach (var diagnostic in diagnostics)
+            {
+                diagnostic.GetHashCode();
+            }
         }
     }
 }

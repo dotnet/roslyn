@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,62 +17,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class MemberSemanticModel
         Inherits VBSemanticModel
 
-        Private ReadOnly m_Root As VisualBasicSyntaxNode
-        Private ReadOnly m_RootBinder As Binder
+        Private ReadOnly _root As VisualBasicSyntaxNode
+        Private ReadOnly _rootBinder As Binder
 
         ' Fields specific to speculative MemberSemanticModel
-        Private ReadOnly m_parentSemanticModelOpt As SyntaxTreeSemanticModel
-        Private ReadOnly m_speculatedPosition As Integer
+        Private ReadOnly _parentSemanticModelOpt As SyntaxTreeSemanticModel
+        Private ReadOnly _speculatedPosition As Integer
+        Private ReadOnly _ignoresAccessibility As Boolean
 
-        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer)
+        Friend Sub New(root As VisualBasicSyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
-            m_Root = root
-            m_RootBinder = SemanticModelBinder.Mark(rootBinder)
-            m_parentSemanticModelOpt = parentSemanticModelOpt
-            m_speculatedPosition = speculatedPosition
+            _root = root
+            _ignoresAccessibility = ignoreAccessibility
+            _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
+            _parentSemanticModelOpt = parentSemanticModelOpt
+            _speculatedPosition = speculatedPosition
         End Sub
 
         Friend ReadOnly Property RootBinder As Binder
             Get
-                Return m_RootBinder
+                Return _rootBinder
             End Get
         End Property
 
         Friend NotOverridable Overrides ReadOnly Property Root As VisualBasicSyntaxNode
             Get
-                Return m_Root
+                Return _root
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property IsSpeculativeSemanticModel As Boolean
             Get
-                Return m_parentSemanticModelOpt IsNot Nothing
+                Return _parentSemanticModelOpt IsNot Nothing
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property OriginalPositionForSpeculation As Integer
             Get
-                Return Me.m_speculatedPosition
+                Return Me._speculatedPosition
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ParentModel As SemanticModel
             Get
-                Return Me.m_parentSemanticModelOpt
+                Return Me._parentSemanticModelOpt
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IgnoresAccessibility As Boolean
+            Get
+                Return Me._ignoresAccessibility
             End Get
         End Property
 
         Friend NotOverridable Overloads Overrides Function GetEnclosingBinder(position As Integer) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, FindInitialNodeFromPosition(position), position)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder)
+            Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         Private Overloads Function GetEnclosingBinder(node As VisualBasicSyntaxNode) As Binder
             Dim binder = GetEnclosingBinderInternal(Me.RootBinder, Me.Root, node, node.SpanStart)
             Debug.Assert(binder IsNot Nothing)
-            Return SemanticModelBinder.Mark(binder)
+            Return SemanticModelBinder.Mark(binder, IgnoresAccessibility)
         End Function
 
         ' Get the bound node corresponding to the root.
@@ -89,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
-            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
+            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
@@ -163,17 +172,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim expressionSyntax = TryCast(parent, ExpressionSyntax)
+            Dim expressionSyntax = TryCast(parent, expressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
             End If
 
-            Dim statementSyntax = TryCast(parent, StatementSyntax)
+            Dim statementSyntax = TryCast(parent, statementSyntax)
             If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
                 Return statementSyntax
             End If
 
-            Dim attributeSyntax = TryCast(parent, AttributeSyntax)
+            Dim attributeSyntax = TryCast(parent, attributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return attributeSyntax
             End If
@@ -212,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' if "node" argument is a BoundRaiseEvent, returns its underlying boundcall instesd.
+        ''' if "node" argument is a BoundRaiseEvent, returns its underlying boundcall instead.
         ''' Otherwise returns "node" unchanged.
         ''' </summary>
         Private Shared Function UnwrapRaiseEvent(node As BoundNode) As BoundNode
@@ -272,6 +281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ExitWhileStatement,
                      SyntaxKind.ExitFunctionStatement,
                      SyntaxKind.ExitSubStatement,
+                     SyntaxKind.ExitOperatorStatement,
+                     SyntaxKind.ExitPropertyStatement,
                      SyntaxKind.ContinueDoStatement,
                      SyntaxKind.ContinueForStatement,
                      SyntaxKind.ContinueWhileStatement,
@@ -282,6 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ConstructorBlock,
                      SyntaxKind.GetAccessorBlock,
                      SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.OperatorBlock,
                      SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock,
                      SyntaxKind.ReDimStatement,
                      SyntaxKind.ReDimPreserveStatement,
@@ -291,6 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.OnErrorGoToMinusOneStatement,
                      SyntaxKind.OnErrorGoToLabelStatement,
                      SyntaxKind.OnErrorResumeNextStatement,
+                     SyntaxKind.ResumeStatement,
                      SyntaxKind.ResumeLabelStatement,
                      SyntaxKind.ResumeNextStatement,
                      SyntaxKind.EndStatement,
@@ -315,6 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndSelectStatement,
                      SyntaxKind.EndSubStatement,
                      SyntaxKind.EndFunctionStatement,
+                     SyntaxKind.EndOperatorStatement,
                      SyntaxKind.WhileStatement,
                      SyntaxKind.EndWhileStatement,
                      SyntaxKind.TryStatement,
@@ -361,7 +375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.IncompleteMember,
                      SyntaxKind.InheritsStatement,
                      SyntaxKind.ImplementsStatement,
-                     SyntaxKind.ImportsStatement
+                     SyntaxKind.ImportsStatement,
+                     SyntaxKind.EnumMemberDeclaration
                     Return False
 
                 Case Else
@@ -537,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(identifierSyntax As ModifiedIdentifierSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
             If identifierSyntax Is Nothing Then
-                Throw New ArgumentNullException("identifierSyntax")
+                Throw New ArgumentNullException(NameOf(identifierSyntax))
             End If
             If Not IsInTree(identifierSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -571,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(anonymousObjectCreationExpressionSyntax As AnonymousObjectCreationExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
             If anonymousObjectCreationExpressionSyntax Is Nothing Then
-                Throw New ArgumentNullException("anonymousObjectCreationExpressionSyntax")
+                Throw New ArgumentNullException(NameOf(anonymousObjectCreationExpressionSyntax))
             End If
             If Not IsInTree(anonymousObjectCreationExpressionSyntax) Then
                 Throw New ArgumentException(VBResources.AnonymousObjectCreationExpressionSyntaxNotWithinTree)
@@ -587,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(fieldInitializerSyntax As FieldInitializerSyntax, Optional cancellationToken As System.Threading.CancellationToken = Nothing) As IPropertySymbol
             If fieldInitializerSyntax Is Nothing Then
-                Throw New ArgumentNullException("fieldInitializerSyntax")
+                Throw New ArgumentNullException(NameOf(fieldInitializerSyntax))
             End If
             If Not IsInTree(fieldInitializerSyntax) Then
                 Throw New ArgumentException(VBResources.FieldInitializerSyntaxNotWithinSyntaxTree)
@@ -622,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As CollectionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -643,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As ExpressionRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -660,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function GetDeclaredSymbol(rangeVariableSyntax As AggregationRangeVariableSyntax, Optional cancellationToken As CancellationToken = Nothing) As IRangeVariableSymbol
             If rangeVariableSyntax Is Nothing Then
-                Throw New ArgumentNullException("rangeVariableSyntax")
+                Throw New ArgumentNullException(NameOf(rangeVariableSyntax))
             End If
             If Not IsInTree(rangeVariableSyntax) Then
                 Throw New ArgumentException(VBResources.IdentifierSyntaxNotWithinSyntaxTree)
@@ -771,6 +786,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim summary = GetBoundNodeSummary(node)
+            Dim result As BoundNode
+            Select Case options
+                Case GetOperationOptions.Highest
+                    result = summary.HighestBoundNode
+                Case GetOperationOptions.Parent
+                    result = summary.LowestBoundNodeOfSyntacticParent
+                Case Else
+                    result = summary.LowestBoundNode
+            End Select
+
+            Return TryCast(result, IOperation)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
@@ -917,7 +947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim select2 As SymbolInfo = GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
-                ' Now let's check if there is another Select call preceeding this one.
+                ' Now let's check if there is another Select call preceding this one.
                 Dim select1Node = DirectCast(CompilerGeneratedNodeFinder.FindIn(bound, node, BoundKind.QueryClause), BoundQueryClause)
 
                 If select1Node IsNot Nothing Then
@@ -1028,46 +1058,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing)
-            rwLock.EnterWriteLock()
+            _rwLock.EnterWriteLock()
             Try
-                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me.guardedNodeMap, thisSyntaxNodeOnly)
+                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me._guardedNodeMap, thisSyntaxNodeOnly)
             Finally
-                rwLock.ExitWriteLock()
+                _rwLock.ExitWriteLock()
             End Try
         End Sub
 
         Private Class CompilerGeneratedNodeFinder
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
-            Private ReadOnly m_TargetSyntax As VisualBasicSyntaxNode
-            Private ReadOnly m_TargetBoundKind As BoundKind
-            Private m_Found As BoundNode
+            Private ReadOnly _targetSyntax As VisualBasicSyntaxNode
+            Private ReadOnly _targetBoundKind As BoundKind
+            Private _found As BoundNode
 
             Private Sub New(targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind)
-                m_TargetSyntax = targetSyntax
-                m_TargetBoundKind = targetBoundKind
+                _targetSyntax = targetSyntax
+                _targetBoundKind = targetBoundKind
             End Sub
 
             Public Shared Function FindIn(context As BoundNode, targetSyntax As VisualBasicSyntaxNode, targetBoundKind As BoundKind) As BoundNode
+                Debug.Assert(targetBoundKind <> BoundKind.BinaryOperator) ' Otherwise VisitBinaryOperator should be adjusted
+
                 Dim finder As New CompilerGeneratedNodeFinder(targetSyntax, targetBoundKind)
                 finder.Visit(context)
-                Return finder.m_Found
+                Return finder._found
             End Function
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
-                If node Is Nothing OrElse m_Found IsNot Nothing Then
+                If node Is Nothing OrElse _found IsNot Nothing Then
                     Return Nothing
                 End If
 
                 If node.WasCompilerGenerated AndAlso
-                   node.Syntax Is m_TargetSyntax AndAlso
-                   node.Kind = m_TargetBoundKind Then
+                   node.Syntax Is _targetSyntax AndAlso
+                   node.Kind = _targetBoundKind Then
 
-                    m_Found = node
+                    _found = node
                     Return Nothing
                 End If
 
                 Return MyBase.Visit(node)
+            End Function
+
+            Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+                Return False
             End Function
         End Class
 
@@ -1092,7 +1128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly rwLock As ReaderWriterLockSlim = New ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion)
+        Private ReadOnly _rwLock As ReaderWriterLockSlim = New ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion)
 
         '' This class manages a cache of bound nodes and binders for all the executable code under the root SyntaxNode
         '' of this SemanticModel.
@@ -1105,12 +1141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '' map, so that we can answer GetEnclosingBinder questions.
 
         ' The bound nodes associated with syntaxnode, from highest in the tree to lowest.
-        Private ReadOnly guardedNodeMap As New SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
+        Private ReadOnly _guardedNodeMap As New SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
 
-        Private ReadOnly guardedQueryBindersMap As New Dictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of Binder))()
-        Private ReadOnly guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
+        Private ReadOnly _guardedQueryBindersMap As New Dictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of Binder))()
+        Private ReadOnly _guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
 
-        Private ReadOnly guardedDiagnostics As DiagnosticBag = New DiagnosticBag()
+        Private ReadOnly _guardedDiagnostics As DiagnosticBag = New DiagnosticBag()
 
         ' If implicit variable declaration is in play, then we must bind everything
         ' up front in order to get all implicit local variables declared.
@@ -1118,7 +1154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' an implicit local, we have to bind the whole method body from start to finish. 
         Private Sub EnsureFullyBoundIfImplicitVariablesAllowed()
             If Me.RootBinder.ImplicitVariableDeclarationAllowed AndAlso Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
-                rwLock.EnterWriteLock()
+                _rwLock.EnterWriteLock()
                 Try
                     ' To prevent races, we must check again under the lock.
                     If Not Me.RootBinder.AllImplicitVariableDeclarationsAreHandled Then
@@ -1126,18 +1162,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.GuardedIncrementalBind(Me.Root, Me.RootBinder)
 
                         ' after this call, RootBinder.AllImplicitVariableDeclarationsAreHandled = True
-                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(Me.guardedDiagnostics)
+                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(Me._guardedDiagnostics)
                     End If
                 Finally
-                    rwLock.ExitWriteLock()
+                    _rwLock.ExitWriteLock()
                 End Try
             End If
         End Sub
 
         Private Function GuardedGetBoundNodesFromMap(node As VisualBasicSyntaxNode) As ImmutableArray(Of BoundNode)
-            Debug.Assert(rwLock.IsReadLockHeld OrElse rwLock.IsWriteLockHeld)
+            Debug.Assert(_rwLock.IsReadLockHeld OrElse _rwLock.IsWriteLockHeld)
             Dim result As ImmutableArray(Of BoundNode) = Nothing
-            Return If(Me.guardedNodeMap.TryGetValue(node, result), result, Nothing)
+            Return If(Me._guardedNodeMap.TryGetValue(node, result), result, Nothing)
         End Function
 
         ''' <summary>
@@ -1191,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
                                 Dim multiLineLambda = DirectCast(current, MultiLineLambdaExpressionSyntax)
 
-                                If multiLineLambda.Begin.FullSpan.Contains(position) Then
+                                If multiLineLambda.SubOrFunctionHeader.FullSpan.Contains(position) Then
                                     Return lambdaBinder
                                 End If
                             End If
@@ -1554,13 +1590,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim binders As ImmutableArray(Of Binder) = Nothing
 
-            rwLock.EnterReadLock()
+            _rwLock.EnterReadLock()
             Try
-                If Me.guardedQueryBindersMap.TryGetValue(node, binders) Then
+                If Me._guardedQueryBindersMap.TryGetValue(node, binders) Then
                     Return binders
                 End If
             Finally
-                rwLock.ExitReadLock()
+                _rwLock.ExitReadLock()
             End Try
 
             ' Calling GetUpperBoundNode for the expression will force the
@@ -1568,9 +1604,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' to be generated.
             Dim boundNode = GetUpperBoundNode(node)
 
-            rwLock.EnterWriteLock()
+            _rwLock.EnterWriteLock()
             Try
-                If Me.guardedQueryBindersMap.TryGetValue(node, binders) Then
+                If Me._guardedQueryBindersMap.TryGetValue(node, binders) Then
                     Return binders
                 End If
 
@@ -1580,10 +1616,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AssertIfShouldHaveFound(node)
                 End If
 
-                Me.guardedQueryBindersMap.Add(node, Nothing)
+                Me._guardedQueryBindersMap.Add(node, Nothing)
                 Return Nothing
             Finally
-                rwLock.ExitWriteLock()
+                _rwLock.ExitWriteLock()
             End Try
         End Function
 
@@ -1607,23 +1643,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim cachedBinder As Binder.AnonymousTypeFieldInitializerBinder = Nothing
 
-                    rwLock.EnterReadLock()
+                    _rwLock.EnterReadLock()
                     Try
-                        If Me.guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                        If Me._guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
                             binder = cachedBinder
                             Return binder IsNot Nothing
                         End If
                     Finally
-                        rwLock.ExitReadLock()
+                        _rwLock.ExitReadLock()
                     End Try
 
                     ' Get bound node for the whole AnonymousType initializer expression.
                     ' This will build required maps for it.
                     Dim boundNode As BoundNode = GetUpperBoundNode(initialization.Parent.Parent)
 
-                    rwLock.EnterReadLock()
+                    _rwLock.EnterReadLock()
                     Try
-                        If Me.guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
+                        If Me._guardedAnonymousTypeBinderMap.TryGetValue(initialization, cachedBinder) Then
                             binder = cachedBinder
                             Return binder IsNot Nothing
                         End If
@@ -1634,7 +1670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             AssertIfShouldHaveFound(initialization)
                         End If
                     Finally
-                        rwLock.ExitReadLock()
+                        _rwLock.ExitReadLock()
                     End Try
                 End If
             End If
@@ -1682,11 +1718,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
         Private Function ShouldHaveFound(node As VisualBasicSyntaxNode, Optional guard As Boolean = False) As Boolean
             If guard Then
-                rwLock.EnterReadLock()
+                _rwLock.EnterReadLock()
                 Try
                     Return ShouldHaveFound(node, guard:=False)
                 Finally
-                    rwLock.ExitReadLock()
+                    _rwLock.ExitReadLock()
                 End Try
             End If
 
@@ -1727,11 +1763,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             EnsureFullyBoundIfImplicitVariablesAllowed()
 
             ' First, look in the cached bounds nodes.
-            rwLock.EnterReadLock()
+            _rwLock.EnterReadLock()
             Try
                 bound = GuardedGetBoundNodesFromMap(node)
             Finally
-                rwLock.ExitReadLock()
+                _rwLock.ExitReadLock()
             End Try
 
             If Not bound.IsDefault Then
@@ -1747,7 +1783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bindingRoot = Me.GetBindingRoot(node)
             Dim bindingRootBinder = GetEnclosingBinder(bindingRoot)
 
-            rwLock.EnterWriteLock()
+            _rwLock.EnterWriteLock()
             Try
                 bound = GuardedGetBoundNodesFromMap(node)
                 If bound.IsDefault Then
@@ -1759,7 +1795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return bound
                 End If
             Finally
-                rwLock.ExitWriteLock()
+                _rwLock.ExitWriteLock()
             End Try
 
             ' If we still didn't find it, its still possible we could bind it directly.
@@ -1769,16 +1805,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' In this case, however, we only add the single bound node we found to the map, not any child bound nodes,
             ' to avoid duplicates in the map if a parent of this node comes through this code path also.
             If TypeOf node Is ExpressionSyntax OrElse TypeOf node Is StatementSyntax Then
-                Dim binder = GetEnclosingBinder(node)
+                Dim binder = New IncrementalBinder(Me, GetEnclosingBinder(node))
 
-                rwLock.EnterWriteLock()
+                _rwLock.EnterWriteLock()
                 Try
                     bound = GuardedGetBoundNodesFromMap(node)
 
                     If bound.IsDefault Then
                         ' Bind the node and cache any associated bound nodes we find.
-                        Dim boundNode = Me.Bind(binder, node, Me.guardedDiagnostics)
-                        SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, guardedNodeMap, node)
+                        Dim boundNode = Me.Bind(binder, node, Me._guardedDiagnostics)
+                        SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedNodeMap, node)
                     End If
 
                     bound = GuardedGetBoundNodesFromMap(node)
@@ -1787,7 +1823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return bound
                     End If
                 Finally
-                    rwLock.ExitWriteLock()
+                    _rwLock.ExitWriteLock()
                 End Try
             End If
 
@@ -1821,9 +1857,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' root of this model). Side effect is to store nodes into the guarded node map.
         ''' </summary>
         Private Sub GuardedIncrementalBind(bindingRoot As VisualBasicSyntaxNode, enclosingBinder As Binder)
-            Debug.Assert(rwLock.IsWriteLockHeld)
+            Debug.Assert(_rwLock.IsWriteLockHeld)
 
-            If guardedNodeMap.ContainsKey(bindingRoot) Then
+            If _guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' We've already bound this. No need to bind it again (saves a bit of 
                 ' work below).
                 Return
@@ -1831,16 +1867,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(enclosingBinder.IsSemanticModelBinder)
             Dim binder = New IncrementalBinder(Me, enclosingBinder)
-            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, Me.guardedDiagnostics)
+            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, Me._guardedDiagnostics)
 
             ' if the node could not be bound, there's nothing more to do.
             If boundRoot Is Nothing Then
                 Return
             End If
 
-            SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundRoot, Me, guardedNodeMap)
+            SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundRoot, Me, _guardedNodeMap)
 
-            If Not guardedNodeMap.ContainsKey(bindingRoot) Then
+            If Not _guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' Generally 'bindingRoot' is supposed to be found in node map at this point,
                 ' but it will not happen in some scenarios such as for field or property 
                 ' initializers, let's add it to prevent re-binding 
@@ -1851,7 +1887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              bindingRoot.Kind = SyntaxKind.EnumMemberDeclaration OrElse
                              bindingRoot Is Me.Root AndAlso Me.IsSpeculativeSemanticModel)
 
-                guardedNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
+                _guardedNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
             End If
         End Sub
 
@@ -1922,7 +1958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ''' <summary>
-            ''' We override GetBinder so that the BindStatement override is stil
+            ''' We override GetBinder so that the BindStatement override is still
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
@@ -1937,7 +1973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             ''' <summary>
-            ''' We override GetBinder so that the BindStatement override is stil
+            ''' We override GetBinder so that the BindStatement override is still
             ''' in effect on nested binders.
             ''' </summary>
             Public Overrides Function GetBinder(list As SyntaxList(Of StatementSyntax)) As Binder
@@ -1994,12 +2030,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''                                     Binder.AnonymousTypeFieldInitializerBinder used to bind its expression.
         '''</summary>
         Private Class SemanticModelMapsBuilder
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuard
 
             Private ReadOnly _semanticModel As MemberSemanticModel
             Private ReadOnly _thisSyntaxNodeOnly As VisualBasicSyntaxNode ' If not Nothing, record nodes for this syntax node only.
             Private _placeholderReplacementMap As Dictionary(Of BoundValuePlaceholderBase, BoundExpression)
-            Private _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
+            Private ReadOnly _nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode)
 
             Private Sub New(semanticModel As MemberSemanticModel, thisSyntaxNodeOnly As VisualBasicSyntaxNode, nodeCache As OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode))
                 _semanticModel = semanticModel
@@ -2013,7 +2049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 nodeCache As SmallDictionary(Of VisualBasicSyntaxNode, ImmutableArray(Of BoundNode)),
                 Optional thisSyntaxNodeOnly As VisualBasicSyntaxNode = Nothing
             )
-                Debug.Assert(semanticModel.rwLock.IsWriteLockHeld)
+                Debug.Assert(semanticModel._rwLock.IsWriteLockHeld)
 
                 Dim additionalNodes = OrderPreservingMultiDictionary(Of VisualBasicSyntaxNode, BoundNode).GetInstance()
 
@@ -2106,6 +2142,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MyBase.Visit(node)
             End Function
 
+            Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+                Return False
+            End Function
+
+            Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
+                If node.Left.Kind <> BoundKind.BinaryOperator Then
+                    Return MyBase.VisitBinaryOperator(node)
+                End If
+
+                Dim rightOperands = ArrayBuilder(Of BoundExpression).GetInstance()
+
+                rightOperands.Push(node.Right)
+
+                Dim binary = DirectCast(node.Left, BoundBinaryOperator)
+
+                If RecordNode(binary) Then
+                    _nodeCache.Add(binary.Syntax, binary)
+                End If
+
+                rightOperands.Push(binary.Right)
+
+                Dim current As BoundExpression = binary.Left
+
+                While current.Kind = BoundKind.BinaryOperator
+                    binary = DirectCast(current, BoundBinaryOperator)
+
+                    If RecordNode(binary) Then
+                        _nodeCache.Add(binary.Syntax, binary)
+                    End If
+
+                    rightOperands.Push(binary.Right)
+                    current = binary.Left
+                End While
+
+                Me.Visit(current)
+
+                While rightOperands.Count > 0
+                    Me.Visit(rightOperands.Pop())
+                End While
+
+                rightOperands.Free()
+                Return Nothing
+            End Function
+
             Public Overrides Function VisitUnboundLambda(node As UnboundLambda) As BoundNode
                 Return Visit(node.BindForErrorRecovery())
             End Function
@@ -2173,10 +2253,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If RecordNode(node) Then
 #If DEBUG Then
                     Dim haveBindersInTheMap As ImmutableArray(Of Binder) = Nothing
-                    Debug.Assert(Not _semanticModel.guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
+                    Debug.Assert(Not _semanticModel._guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
 #End If
 
-                    _semanticModel.guardedQueryBindersMap(node.Syntax) = node.Binders
+                    _semanticModel._guardedQueryBindersMap(node.Syntax) = node.Binders
                 End If
 
                 Return MyBase.VisitQueryClause(node)
@@ -2186,9 +2266,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If RecordNode(node) Then
 #If DEBUG Then
                     Dim haveBindersInTheMap As ImmutableArray(Of Binder) = Nothing
-                    Debug.Assert(Not _semanticModel.guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
+                    Debug.Assert(Not _semanticModel._guardedQueryBindersMap.TryGetValue(node.Syntax, haveBindersInTheMap) OrElse haveBindersInTheMap.Equals(node.Binders))
 #End If
-                    _semanticModel.guardedQueryBindersMap(node.Syntax) = node.Binders
+                    _semanticModel._guardedQueryBindersMap(node.Syntax) = node.Binders
                 End If
 
                 Return MyBase.VisitAggregateClause(node)
@@ -2201,9 +2281,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initialization IsNot Nothing Then
 #If DEBUG Then
                         Dim haveBindersInTheMap As Binder.AnonymousTypeFieldInitializerBinder = Nothing
-                        Debug.Assert(Not _semanticModel.guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
+                        Debug.Assert(Not _semanticModel._guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
 #End If
-                        _semanticModel.guardedAnonymousTypeBinderMap(initialization) = node.Binder
+                        _semanticModel._guardedAnonymousTypeBinderMap(initialization) = node.Binder
                     End If
                 End If
 
@@ -2313,6 +2393,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
                 Return Me.VisitObjectInitializerExpressionBase(node)
+            End Function
+
+            Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
+                MyBase.VisitLateInvocation(node)
+
+                Dim member = TryCast(node.Member, BoundLateMemberAccess)
+                If member IsNot Nothing AndAlso member.ReceiverOpt Is Nothing AndAlso node.MethodOrPropertyGroupOpt IsNot Nothing Then
+                    ' The semantic model needs to see the method or property group's receiver if its member's receiver is Nothing.
+                    Visit(node.MethodOrPropertyGroupOpt.ReceiverOpt)
+                End If
+
+                Return Nothing
             End Function
         End Class
     End Class

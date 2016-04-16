@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
 
         Private Function ScanInterpolatedStringPunctuation() As SyntaxToken
-            If Not CanGetChar() Then
+            If Not CanGet() Then
                 Return MakeEndOfInterpolatedStringToken()
             End If
 
@@ -20,25 +20,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim offset = leadingTriviaLength
             Dim length As Integer
 
-            If Not CanGetCharAtOffset(offset) Then
+            If Not CanGet(offset) Then
                 Return MakeEndOfInterpolatedStringToken()
             End If
 
-            Dim c = PeekAheadChar(offset)
+            Dim c = Peek(offset)
 
             ' This should only ever happen for $" or }
             Debug.Assert(leadingTriviaLength = 0 OrElse c = "$"c OrElse c = FULLWIDTH_DOLLAR_SIGN OrElse IsRightCurlyBracket(c))
 
             ' Another } may follow the close brace of an interpolation if the interpolation lacked a format clause.
             ' This is because the normal escaping rules only apply when parsing the format string.
-            Debug.Assert(Not CanGetCharAtOffset(1) OrElse PeekAheadChar(offset + 1) <> c OrElse IsRightCurlyBracket(c), "Escape sequence not detected.")
+            Debug.Assert(Not CanGet(offset + 1) OrElse Peek(offset + 1) <> c OrElse Not (IsLeftCurlyBracket(c) OrElse IsDoubleQuote(c)), "Escape sequence not detected.")
 
             Dim scanTrailingTrivia As Boolean
 
             Select Case c
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
 
-                    If CanGetCharAtOffset(offset + 1) AndAlso IsDoubleQuote(PeekAheadChar(offset + 1)) Then
+                    If CanGet(offset + 1) AndAlso IsDoubleQuote(Peek(offset + 1)) Then
                         kind = SyntaxKind.DollarSignDoubleQuoteToken
                         length = 2
                         scanTrailingTrivia = False ' Trailing whitespace should be scanned as interpolated string text.
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Else
 
                     If IsDoubleQuote(c) Then
-                        Debug.Assert(Not CanGetCharAtOffset(offset + 1) OrElse Not IsDoubleQuote(PeekAheadChar(offset + 1)))
+                        Debug.Assert(Not CanGet(offset + 1) OrElse Not IsDoubleQuote(Peek(offset + 1)))
 
                         kind = SyntaxKind.DoubleQuoteToken
                         length = 1
@@ -112,22 +112,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function IsInterpolatedStringPunctuation(Optional offset As Integer = 0) As Boolean
-            If Not CanGetCharAtOffset(offset) Then Return False
+            If Not CanGet(offset) Then Return False
 
-            Dim c = PeekAheadChar(offset)
+            Dim c = Peek(offset)
 
             If IsLeftCurlyBracket(c) Then
-                Return Not CanGetCharAtOffset(offset + 1) OrElse Not IsLeftCurlyBracket(PeekAheadChar(offset + 1))
+                Return Not CanGet(offset + 1) OrElse Not IsLeftCurlyBracket(Peek(offset + 1))
 
             ElseIf IsRightCurlyBracket(c) Then
-                Return Not CanGetCharAtOffset(offset + 1) OrElse Not IsRightCurlyBracket(PeekAheadChar(offset + 1))
+                Return Not CanGet(offset + 1) OrElse Not IsRightCurlyBracket(Peek(offset + 1))
 
             ElseIf IsDoubleQuote(c)
                 'A subtle difference between this case and the one above.
                 ' In both interpolated and literal strings the two quote characters used in an escape sequence don't have to match.
                 ' It's enough that the next character is *a* quote char. It doesn't have to be the same quote.
                 ' If we want to preserve consistency the quotes need to be special cased.
-                Return Not CanGetCharAtOffset(offset + 1) OrElse Not IsDoubleQuote(PeekAheadChar(offset + 1))
+                Return Not CanGet(offset + 1) OrElse Not IsDoubleQuote(Peek(offset + 1))
 
             Else
                 Return False
@@ -135,22 +135,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanInterpolatedStringText(scanTrailingWhitespaceAsTrivia As Boolean) As SyntaxToken
-            If Not CanGetChar() Then Return MakeEndOfInterpolatedStringToken()
+            If Not CanGet() Then Return MakeEndOfInterpolatedStringToken()
 
             Dim offset = 0
             Dim pendingWhitespace = 0
             Dim valueBuilder = GetScratch()
 
-            Do While CanGetCharAtOffset(offset)
+            Do While CanGet(offset)
 
-                Dim c = PeekAheadChar(offset)
+                Dim c = Peek(offset)
 
                 ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
                 ' We insert that curly brace doubled and because this is the escaping sequence understood by String.Format, that will be replaced by a single brace.
                 ' This is deliberate design and it aligns with existing rules for double quote escaping in strings.
                 If IsLeftCurlyBracket(c) Then
 
-                    If CanGetCharAtOffset(offset + 1) AndAlso IsLeftCurlyBracket(PeekAheadChar(offset + 1)) Then
+                    If CanGet(offset + 1) AndAlso IsLeftCurlyBracket(Peek(offset + 1)) Then
                         ' This is an escape sequence.
 
                         valueBuilder.Append("{{")
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ElseIf IsRightCurlyBracket(c) Then
 
-                    If CanGetCharAtOffset(offset + 1) AndAlso IsRightCurlyBracket(PeekAheadChar(offset + 1)) Then
+                    If CanGet(offset + 1) AndAlso IsRightCurlyBracket(Peek(offset + 1)) Then
                         ' This is an escape sequence.
 
                         valueBuilder.Append("}}")
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ElseIf IsDoubleQuote(c)
 
-                    If CanGetCharAtOffset(offset + 1) AndAlso IsDoubleQuote(PeekAheadChar(offset + 1)) Then
+                    If CanGet(offset + 1) AndAlso IsDoubleQuote(Peek(offset + 1)) Then
                         ' This is a VB double quote escape. Oddly enough this logic allows mixing and matching of
                         ' smart and dumb double quotes in any order. Regardless we always emit as a standard double quote.
                         ' This is consistent with their handling in string literals.

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class NamedTypeSymbol :
+    internal partial class NamedTypeSymbol :
         Cci.ITypeReference,
         Cci.ITypeDefinition,
         Cci.INamedTypeReference,
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericTypeInstanceReference,
         Cci.ISpecializedNestedTypeReference
     {
-
         bool Cci.ITypeReference.IsEnum
         {
             get { return this.TypeKind == TypeKind.Enum; }
@@ -271,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
 
-            if (this.TypeKind == TypeKind.Submission)
+            if (this.IsScriptClass)
             {
-                // although submission semantically doesn't have a base we need to emit one into metadata:
+                // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
                 baseType = this.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
@@ -664,10 +663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                        yield return method;
-                    }
+                    yield return method;
                 }
             }
+        }
 
         IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
         {
@@ -804,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // consumer cannot figure where namespace ends and actual type name starts.
                 // Therefore it is a good practice to avoid type names with dots.
                 // Exception: The EE copies type names from metadata, which may contain dots already.
-                Debug.Assert(this.IsErrorType() || 
+                Debug.Assert(this.IsErrorType() ||
                     !unsuffixedName.Contains(".") ||
                     this.OriginalDefinition is PENamedTypeSymbol, "type name contains dots: " + unsuffixedName);
 
@@ -827,8 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // INamespaceTypeReference is a type contained in a namespace
                 // if this method is called for a nested type, we are in big trouble.
                 Debug.Assert(((Cci.ITypeReference)this).AsNamespaceTypeReference != null);
-                return this.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
-            }
+
+                return this.ContainingNamespace.QualifiedName;
+           }
         }
 
         bool Cci.INamespaceTypeDefinition.IsPublic
@@ -886,13 +886,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
-            foreach (TypeSymbol type in this.TypeArgumentsNoUseSiteDiagnostics)
+
+            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+            if (this.HasTypeArgumentsCustomModifiers)
             {
-                builder.Add(moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
+                modifiers = this.TypeArgumentsCustomModifiers;
+            }
+
+            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+
+                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
+                {
+                    arg = new Cci.ModifiedTypeReference(arg, modifiers[i].As<Cci.ICustomModifier>());
+                }
+
+                builder.Add(arg);
             }
 
             return builder.ToImmutableAndFree();
-
         }
 
         Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType

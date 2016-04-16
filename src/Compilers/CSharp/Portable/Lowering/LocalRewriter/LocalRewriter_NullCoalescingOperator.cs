@@ -12,52 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            // check for common pattern   a?.b ?? c  where b is a value type
-            // in such cases the result of the expression is either b or c
-            // we can skip nullable wrapping/unwrapping
-
-            BoundConditionalAccess conditionalAccess;
-            var leftConversion = node.LeftConversion;
-
-            if ((leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable) &&
-                TryGetOptimizableNullableConditionalAccess(node.LeftOperand, out conditionalAccess))
-            {
-                return FuseNodes(conditionalAccess, node);
-            }
-
             BoundExpression rewrittenLeft = (BoundExpression)Visit(node.LeftOperand);
             BoundExpression rewrittenRight = (BoundExpression)Visit(node.RightOperand);
             TypeSymbol rewrittenResultType = VisitType(node.Type);
 
             return MakeNullCoalescingOperator(node.Syntax, rewrittenLeft, rewrittenRight, node.LeftConversion, rewrittenResultType);
-        }
-
-        private BoundNode FuseNodes(BoundConditionalAccess conditionalAccess, BoundNullCoalescingOperator node)
-        {
-            var type = node.RightOperand.Type;
-            conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.AccessExpression, type);
-
-            var whenNull = (BoundExpression)Visit(node.RightOperand);
-            if (whenNull.IsDefaultValue() && whenNull.Type.SpecialType != SpecialType.System_Decimal)
-            {
-                whenNull = null;
-            }
-
-            return RewriteConditionalAccess(conditionalAccess, used: true, rewrittenWhenNull: whenNull);
-        }
-
-        private bool TryGetOptimizableNullableConditionalAccess(BoundExpression operand, out BoundConditionalAccess conditionalAccess)
-        {
-            if (operand.Kind != BoundKind.ConditionalAccess ||
-                            inExpressionLambda ||
-                            factory.CurrentMethod.IsAsync)
-            {
-                conditionalAccess = null;
-                return false;
-            }
-
-            conditionalAccess = (BoundConditionalAccess)operand;
-            return conditionalAccess.Type.IsNullableType() && !conditionalAccess.AccessExpression.Type.IsNullableType();
         }
 
         private BoundExpression MakeNullCoalescingOperator(
@@ -73,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)rewrittenResultType != null);
             Debug.Assert(rewrittenRight.Type.Equals(rewrittenResultType, ignoreDynamic: true));
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 TypeSymbol strippedLeftType = rewrittenLeft.Type.StrippedType();
                 Conversion rewrittenConversion = MakeConversion(syntax, leftConversion, strippedLeftType, rewrittenResultType);
@@ -81,17 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // first we can make a small optimization:
+            // If left is a constant then we already know whether it is null or not. If it is null then we 
+            // can simply generate "right". If it is not null then we can simply generate
+            // MakeConversion(left).
 
-            ConstantValue leftConstantValue = rewrittenLeft.ConstantValue;
-            if (leftConstantValue != null)
+            if (rewrittenLeft.IsDefaultValue())
             {
-                // If left is a constant then we already know whether it is null or not. If it is null then we 
-                // can simply generate "right". If it is not null then we can simply generate
-                // MakeConversion(left).
+                return rewrittenRight;
+            }
 
-                return leftConstantValue.IsNull ?
-                    rewrittenRight :
-                    GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
+            if (rewrittenLeft.ConstantValue != null)
+            {
+                Debug.Assert(!rewrittenLeft.ConstantValue.IsNull);
+
+                return GetConvertedLeftForNullCoalescingOperator(rewrittenLeft, leftConversion, rewrittenResultType);
             }
 
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
@@ -107,6 +69,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, rewrittenResultType);
             }
 
+            if (leftConversion.IsIdentity || leftConversion.Kind == ConversionKind.ExplicitNullable)
+            {
+                var conditionalAccess = rewrittenLeft as BoundLoweredConditionalAccess;
+                if (conditionalAccess != null &&
+                    (conditionalAccess.WhenNullOpt == null || NullableNeverHasValue(conditionalAccess.WhenNullOpt)))
+                {
+                    var notNullAccess = NullableAlwaysHasValue(conditionalAccess.WhenNotNull);
+                    if (notNullAccess != null)
+                    {
+                        var whenNullOpt = rewrittenRight;
+
+                        if (whenNullOpt.Type.IsNullableType())
+                        {
+                            notNullAccess = conditionalAccess.WhenNotNull;
+                        }
+
+                        if (whenNullOpt.IsDefaultValue() && whenNullOpt.Type.SpecialType != SpecialType.System_Decimal)
+                        {
+                            whenNullOpt = null;
+                        }
+
+                        return conditionalAccess.Update(
+                            conditionalAccess.Receiver,
+                            conditionalAccess.HasValueMethodOpt,
+                            whenNotNull: notNullAccess,
+                            whenNullOpt: whenNullOpt,
+                            id: conditionalAccess.Id,
+                            type: rewrittenResultType
+                        );
+                    }
+                }
+            }
+
             // We lower left ?? right to 
             //
             // var temp = left;
@@ -114,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             BoundAssignmentOperator tempAssignment;
-            BoundLocal boundTemp = factory.StoreToTemp(rewrittenLeft, out tempAssignment);
+            BoundLocal boundTemp = _factory.StoreToTemp(rewrittenLeft, out tempAssignment);
 
             // temp != null
             BoundExpression nullCheck = MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);

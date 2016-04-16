@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -35,7 +36,7 @@ struct S
             Assert.Equal(0, synthesizedConstructor.Parameters.Length);
         }
 
-        [Fact, WorkItem(543133, "DevDiv")]
+        [Fact, WorkItem(543133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543133")]
         public void FieldAssignedAndReferenced()
         {
             var text =
@@ -79,13 +80,13 @@ class C
         S s5 = s4;
     }
 }");
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal("s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal("s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("s4", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
         }
 
         [Fact]
-        [WorkItem(545509, "DevDiv")]
+        [WorkItem(545509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545509")]
         public void StructIndexerReceiver()
         {
             string program = @"
@@ -131,7 +132,7 @@ class SectionInformation2
         }
 
         [Fact]
-        [WorkItem(545710, "DevDiv")]
+        [WorkItem(545710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545710")]
         public void StructFieldWithAssignedPropertyMembers()
         {
             string program = @"
@@ -158,7 +159,7 @@ class GraphicsContext
         }
 
         [Fact]
-        [WorkItem(874526)]
+        [WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")]
         public void GenericStructWithPropertyUsingStruct()
         {
             var source =
@@ -172,7 +173,7 @@ class GraphicsContext
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
         }
 
-        [Fact, WorkItem(1017887)]
+        [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
         public void EmptyStructsFromMetadata()
         {
             var comp1 = CreateCompilationWithMscorlib(
@@ -199,7 +200,10 @@ public struct StructWithValue
         var v2 = v1;
     }
 }";
-            CreateCompilationWithMscorlib(source2, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable()), references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source2,
+                options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { sourceReference },
+                parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
@@ -223,7 +227,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem(1072447)]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
         {
             var comp1 = CreateCompilationWithMscorlib(
@@ -256,7 +260,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem(1072447)]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
         {
             var comp1 = CreateCompilationWithMscorlib(
@@ -287,7 +291,7 @@ public struct StructWithValue
                 );
         }
 
-        [Fact, WorkItem(1072447)]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
         {
             var comp1 = CreateCompilationWithMscorlib(
@@ -326,7 +330,7 @@ public struct Struct
                 );
         }
 
-        [Fact, WorkItem(1072447)]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule()
         {
             var source = @"
@@ -342,7 +346,7 @@ public struct Struct
     internal C1.S data;
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -361,7 +365,7 @@ public struct Struct
                 );
         }
 
-        [Fact, WorkItem(1072447)]
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
         {
             var source = @"
@@ -370,7 +374,7 @@ public struct Struct
     private string data;
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -385,6 +389,5 @@ public struct Struct
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 );
         }
-
     }
 }

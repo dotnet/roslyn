@@ -15,17 +15,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits SpecializedMethodReference
         Implements Cci.IGenericMethodInstanceReference
 
-        Private m_GenericMethod As SpecializedMethodReference
+        Private ReadOnly _genericMethod As SpecializedMethodReference
 
         Public Sub New(underlyingMethod As MethodSymbol)
             MyBase.New(underlyingMethod)
 
             Debug.Assert(underlyingMethod.ContainingType.IsOrInGenericType() AndAlso underlyingMethod.ContainingType.IsDefinition)
-            m_GenericMethod = New SpecializedMethodReference(underlyingMethod)
+            _genericMethod = New SpecializedMethodReference(underlyingMethod)
         End Sub
 
         Public Function GetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
-            Return m_GenericMethod
+            Return _genericMethod
         End Function
 
         Public Function GetGenericArguments(context As EmitContext) As IEnumerable(Of Cci.ITypeReference) Implements Cci.IGenericMethodInstanceReference.GetGenericArguments

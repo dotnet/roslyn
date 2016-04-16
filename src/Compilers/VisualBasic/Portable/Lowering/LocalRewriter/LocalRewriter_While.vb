@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 afterBodyResumeLabel = RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(node.Syntax)
             End If
 
-            Return RewriteWhileStatement(node.Syntax,
+            Return RewriteWhileStatement(node,
                                          DirectCast(node.Syntax, WhileBlockSyntax).WhileStatement,
                                          DirectCast(node.Syntax, WhileBlockSyntax).EndWhileStatement,
                                          VisitExpressionNode(node.Condition),
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Function RewriteWhileStatement(
-            syntaxNode As VisualBasicSyntaxNode,
+            statement As BoundStatement,
             statementBeginSyntax As VisualBasicSyntaxNode,
             statementEndSyntax As VisualBasicSyntaxNode,
             rewrittenCondition As BoundExpression,
@@ -57,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional afterBodyResumeTargetOpt As BoundStatement = Nothing
         ) As BoundNode
             Dim startLabel = GenerateLabel("start")
+            Dim statementSyntax = statement.Syntax
 
             If GenerateDebugInfo Then
                 If statementEndSyntax IsNot Nothing Then
@@ -69,11 +70,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rewrittenBody = Concat(rewrittenBody, afterBodyResumeTargetOpt)
             End If
 
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while methods invoked in the condition are being executed.
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
-                                                                 syntaxNode,
-                                                                 rewrittenCondition,
-                                                                 loopIfTrue,
-                                                                 startLabel)
+                statementSyntax,
+                AddConditionSequencePoint(rewrittenCondition, statement),
+                loopIfTrue,
+                startLabel)
 
             If Not conditionResumeTargetOpt.IsDefaultOrEmpty Then
                 ifConditionGotoStart = New BoundStatementList(ifConditionGotoStart.Syntax, conditionResumeTargetOpt.Add(ifConditionGotoStart))
@@ -101,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'We do not want to associate it with statement before.
             'This jump may be a target of another jump (for example if loops are nested) and that will make 
             'impression of the previous statement being re-executed
-            Dim gotoContinue As BoundStatement = New BoundGotoStatement(syntaxNode, continueLabel, Nothing)
+            Dim gotoContinue As BoundStatement = New BoundGotoStatement(statementSyntax, continueLabel, Nothing)
 
             If loopResumeLabelOpt IsNot Nothing Then
                 gotoContinue = Concat(loopResumeLabelOpt, gotoContinue)
@@ -111,13 +114,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 gotoContinue = New BoundSequencePoint(Nothing, gotoContinue)
             End If
 
-            Return New BoundStatementList(syntaxNode, ImmutableArray.Create(Of BoundStatement)(
+            Return New BoundStatementList(statementSyntax, ImmutableArray.Create(Of BoundStatement)(
                     gotoContinue,
-                    New BoundLabelStatement(syntaxNode, startLabel),
+                    New BoundLabelStatement(statementSyntax, startLabel),
                     rewrittenBody,
-                    New BoundLabelStatement(syntaxNode, continueLabel),
+                    New BoundLabelStatement(statementSyntax, continueLabel),
                     ifConditionGotoStart,
-                    New BoundLabelStatement(syntaxNode, exitLabel)
+                    New BoundLabelStatement(statementSyntax, exitLabel)
                 ))
 
         End Function

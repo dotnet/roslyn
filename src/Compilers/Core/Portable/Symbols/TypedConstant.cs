@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct TypedConstant : IEquatable<TypedConstant>
     {
-        private readonly TypedConstantKind kind;
-        private readonly ITypeSymbol type;
-        private readonly object value;
+        private readonly TypedConstantKind _kind;
+        private readonly ITypeSymbol _type;
+        private readonly object _value;
 
         internal TypedConstant(ITypeSymbol type, TypedConstantKind kind, object value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
-            this.kind = kind;
-            this.type = type;
-            this.value = value;
+            _kind = kind;
+            _type = type;
+            _value = value;
         }
 
         internal TypedConstant(ITypeSymbol type, ImmutableArray<TypedConstant> array)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public TypedConstantKind Kind
         {
-            get { return kind; }
+            get { return _kind; }
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type
         {
-            get { return type; }
+            get { return _type; }
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return value == null;
+                return _value == null;
             }
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("TypedConstant is an array. Use Values property.");
                 }
 
-                return value;
+                return _value;
             }
         }
 
@@ -94,20 +94,20 @@ namespace Microsoft.CodeAnalysis
                     return default(ImmutableArray<TypedConstant>);
                 }
 
-                return (ImmutableArray<TypedConstant>)value;
+                return (ImmutableArray<TypedConstant>)_value;
             }
         }
 
         internal T DecodeValue<T>(SpecialType specialType)
         {
-            if (this.kind == TypedConstantKind.Error)
+            if (_kind == TypedConstantKind.Error)
             {
                 return default(T);
             }
 
-            if (type.SpecialType == specialType || (type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
+            if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                return (T)value;
+                return (T)_value;
             }
 
             // the actual argument type doesn't match the type of the parameter - an error has already been reported by the binder
@@ -167,17 +167,16 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(TypedConstant other)
         {
-            return this.kind == other.kind
-                && object.Equals(this.value, other.value)
-                && object.Equals(this.type, other.type);
+            return _kind == other._kind
+                && object.Equals(_value, other._value)
+                && object.Equals(_type, other._type);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(value,
-                   Hash.Combine(type, (int)this.Kind));
+            return Hash.Combine(_value,
+                   Hash.Combine(_type, (int)this.Kind));
         }
-
         #region Testing & Debugging
 #if false
         /// <summary>

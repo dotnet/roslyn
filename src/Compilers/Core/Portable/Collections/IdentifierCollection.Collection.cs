@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
         private abstract class CollectionBase : ICollection<string>
         {
             protected readonly IdentifierCollection IdentifierCollection;
-            private int count = -1;
+            private int _count = -1;
 
             protected CollectionBase(IdentifierCollection identifierCollection)
             {
@@ -38,23 +38,20 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    if (this.count == -1)
+                    if (_count == -1)
                     {
-                        this.count = this.IdentifierCollection.map.Values.Sum(o => o is string ? 1 : ((ISet<string>)o).Count);
+                        _count = this.IdentifierCollection._map.Values.Sum(o => o is string ? 1 : ((ISet<string>)o).Count);
                     }
 
-                    return this.count;
+                    return _count;
                 }
             }
 
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
+            public bool IsReadOnly => true;
 
             public IEnumerator<string> GetEnumerator()
             {
-                foreach (var obj in this.IdentifierCollection.map.Values)
+                foreach (var obj in this.IdentifierCollection._map.Values)
                 {
                     var strs = obj as HashSet<string>;
                     if (strs != null)
@@ -100,10 +97,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Contains(string item)
-            {
-                return IdentifierCollection.CaseSensitiveContains(item);
-            }
+            public override bool Contains(string item) => IdentifierCollection.CaseSensitiveContains(item);
         }
 
         private sealed class CaseInsensitiveCollection : CollectionBase
@@ -112,10 +106,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Contains(string item)
-            {
-                return IdentifierCollection.CaseInsensitiveContains(item);
-            }
+            public override bool Contains(string item) => IdentifierCollection.CaseInsensitiveContains(item);
         }
     }
 }

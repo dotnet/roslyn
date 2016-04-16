@@ -13,18 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEAttributeData : CSharpAttributeData
     {
-        private readonly MetadataDecoder decoder;
-        private readonly CustomAttributeHandle handle;
-        private NamedTypeSymbol lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates unitialized.
-        private MethodSymbol lazyAttributeConstructor;
-        private ImmutableArray<TypedConstant> lazyConstructorArguments;
-        private ImmutableArray<KeyValuePair<string, TypedConstant>> lazyNamedArguments;
-        private ThreeState lazyHasErrors = ThreeState.Unknown;
+        private readonly MetadataDecoder _decoder;
+        private readonly CustomAttributeHandle _handle;
+        private NamedTypeSymbol _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
+        private MethodSymbol _lazyAttributeConstructor;
+        private ImmutableArray<TypedConstant> _lazyConstructorArguments;
+        private ImmutableArray<KeyValuePair<string, TypedConstant>> _lazyNamedArguments;
+        private ThreeState _lazyHasErrors = ThreeState.Unknown;
 
         internal PEAttributeData(PEModuleSymbol moduleSymbol, CustomAttributeHandle handle)
         {
-            decoder = new MetadataDecoder(moduleSymbol);
-            this.handle = handle;
+            _decoder = new MetadataDecoder(moduleSymbol);
+            _handle = handle;
         }
 
         public override NamedTypeSymbol AttributeClass
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureClassAndConstructorSymbolsAreLoaded();
-                return this.lazyAttributeClass;
+                return _lazyAttributeClass;
             }
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureClassAndConstructorSymbolsAreLoaded();
-                return this.lazyAttributeConstructor;
+                return _lazyAttributeConstructor;
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureAttributeArgumentsAreLoaded();
-                return this.lazyConstructorArguments;
+                return _lazyConstructorArguments;
             }
         }
 
@@ -64,52 +64,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureAttributeArgumentsAreLoaded();
-                return this.lazyNamedArguments;
+                return _lazyNamedArguments;
             }
         }
 
         private void EnsureClassAndConstructorSymbolsAreLoaded()
         {
 #pragma warning disable 0252
-            if ((object)this.lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
+            if ((object)_lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
             {
                 TypeSymbol attributeClass;
                 MethodSymbol attributeConstructor;
 
-                if (!decoder.GetCustomAttribute(this.handle, out attributeClass, out attributeConstructor))
+                if (!_decoder.GetCustomAttribute(_handle, out attributeClass, out attributeConstructor))
                 {
                     // TODO: should we create CSErrorTypeSymbol for attribute class??
-                    lazyHasErrors = ThreeState.True;
+                    _lazyHasErrors = ThreeState.True;
                 }
                 else if ((object)attributeClass == null || attributeClass.IsErrorType() || (object)attributeConstructor == null)
                 {
-                    lazyHasErrors = ThreeState.True;
+                    _lazyHasErrors = ThreeState.True;
                 }
 
-                Interlocked.CompareExchange(ref this.lazyAttributeConstructor, attributeConstructor, null);
-                Interlocked.CompareExchange(ref this.lazyAttributeClass, (NamedTypeSymbol)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
+                Interlocked.CompareExchange(ref _lazyAttributeConstructor, attributeConstructor, null);
+                Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
             }
 #pragma warning restore 0252
         }
 
         private void EnsureAttributeArgumentsAreLoaded()
         {
-            if (this.lazyConstructorArguments.IsDefault || this.lazyNamedArguments.IsDefault)
+            if (_lazyConstructorArguments.IsDefault || _lazyNamedArguments.IsDefault)
             {
                 TypedConstant[] lazyConstructorArguments = null;
                 KeyValuePair<string, TypedConstant>[] lazyNamedArguments = null;
 
-                if (!decoder.GetCustomAttribute(this.handle, out lazyConstructorArguments, out lazyNamedArguments))
+                if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
                 {
-                    lazyHasErrors = ThreeState.True;
+                    _lazyHasErrors = ThreeState.True;
                 }
 
                 Debug.Assert(lazyConstructorArguments != null && lazyNamedArguments != null);
 
-                ImmutableInterlocked.InterlockedInitialize(ref this.lazyConstructorArguments,
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyConstructorArguments,
                     ImmutableArray.Create<TypedConstant>(lazyConstructorArguments));
 
-                ImmutableInterlocked.InterlockedInitialize(ref this.lazyNamedArguments,
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyNamedArguments,
                     ImmutableArray.Create<KeyValuePair<string, TypedConstant>>(lazyNamedArguments));
             }
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override bool IsTargetAttribute(string namespaceName, string typeName)
         {
             // Matching an attribute by name should not load the attribute class.
-            return this.decoder.IsTargetAttribute(this.handle, namespaceName, typeName);
+            return _decoder.IsTargetAttribute(_handle, namespaceName, typeName);
         }
 
         /// <summary>
@@ -141,25 +141,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override int GetTargetAttributeSignatureIndex(Symbol targetSymbol, AttributeDescription description)
         {
             // Matching an attribute by name should not load the attribute class.
-            return this.decoder.GetTargetAttributeSignatureIndex(handle, description);
+            return _decoder.GetTargetAttributeSignatureIndex(_handle, description);
         }
 
         internal override bool HasErrors
         {
             get
             {
-                if (lazyHasErrors == ThreeState.Unknown)
+                if (_lazyHasErrors == ThreeState.Unknown)
                 {
                     EnsureClassAndConstructorSymbolsAreLoaded();
                     EnsureAttributeArgumentsAreLoaded();
 
-                    if (lazyHasErrors == ThreeState.Unknown)
+                    if (_lazyHasErrors == ThreeState.Unknown)
                     {
-                        lazyHasErrors = ThreeState.False;
+                        _lazyHasErrors = ThreeState.False;
                     }
                 }
 
-                return lazyHasErrors.Value();
+                return _lazyHasErrors.Value();
             }
         }
     }

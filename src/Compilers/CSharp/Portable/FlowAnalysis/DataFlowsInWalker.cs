@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // TODO: normalize the result by removing variables that are unassigned in an unmodified
         // flow analysis.
-        private readonly HashSet<Symbol> dataFlowsIn = new HashSet<Symbol>();
+        private readonly HashSet<Symbol> _dataFlowsIn = new HashSet<Symbol>();
 
         private DataFlowsInWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion,
             HashSet<Symbol> unassignedVariables, HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes)
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        new HashSet<Symbol> Analyze(ref bool badRegion)
+        private new HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
-            return dataFlowsIn;
+            return _dataFlowsIn;
         }
 
         private LocalState ResetState(LocalState state)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void EnterRegion()
         {
             this.State = ResetState(this.State);
-            this.dataFlowsIn.Clear();
+            _dataFlowsIn.Clear();
             base.EnterRegion();
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside && !RegionContains(node.RangeVariableSymbol.Locations[0].SourceSpan))
             {
-                dataFlowsIn.Add(node.RangeVariableSymbol);
+                _dataFlowsIn.Add(node.RangeVariableSymbol);
             }
 
             return null;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: how to handle fields of structs?
             if (RegionContains(node.Span) && !(symbol is FieldSymbol))
             {
-                dataFlowsIn.Add(symbol);
+                _dataFlowsIn.Add(symbol);
             }
 
             base.ReportUnassigned(symbol, node);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != null && node is ReturnStatementSyntax && RegionContains(node.Span))
             {
-                dataFlowsIn.Add(parameter);
+                _dataFlowsIn.Add(parameter);
             }
 
             base.ReportUnassignedOutParameter(parameter, node, location);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //  if the field access is reported as unassigned it should mean the original local 
                 //  or parameter flows in, so we should get the symbol associated with the expression
-                dataFlowsIn.Add(GetNonFieldSymbol(unassignedSlot));
+                _dataFlowsIn.Add(GetNonFieldSymbol(unassignedSlot));
             }
 
             base.ReportUnassigned(fieldSymbol, unassignedSlot, node);

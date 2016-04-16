@@ -16,7 +16,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class ExpressionLambdaRewriter
 
-        Private Const CoalesceLambdaParameterName = "CoalesceLHS"
+        Private Const s_coalesceLambdaParameterName = "CoalesceLHS"
 
         Private Function VisitTernaryConditionalExpression(node As BoundTernaryConditionalExpression) As BoundExpression
             Dim condition As BoundExpression = Visit(node.Condition)
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateCoalesceLambdaParameterSymbol(paramType As TypeSymbol) As ParameterSymbol
-            Return Me._factory.SynthesizedParameter(paramType, CoalesceLambdaParameterName)
+            Return Me._factory.SynthesizedParameter(paramType, s_coalesceLambdaParameterName)
         End Function
 
         Private Function CreateCoalesceLambdaParameter(paramSymbol As ParameterSymbol) As BoundExpression
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim paramLocalSymbol As LocalSymbol = Me._factory.SynthesizedLocal(parameterExpressionType)
             Dim parameterReference As BoundLocal = Me._factory.Local(paramLocalSymbol, True)
-            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type), _factory.Literal(CoalesceLambdaParameterName))
+            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type), _factory.Literal(s_coalesceLambdaParameterName))
 
             Me._parameterMap(lambdaParameter) = parameterReference.MakeRValue
             Dim convertedValue As BoundExpression = Visit(body)
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' For user defined copnversion we need to keep the proper method call 
+            ' For user defined conversion we need to keep the proper method call 
             Return ReplaceArgWithParameterInUserDefinedConversion(conversion, toType, parameter, isChecked)
         End Function
 

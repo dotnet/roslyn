@@ -100,18 +100,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             Dim numericLiteral = DirectCast(lastExpression, LiteralExpressionSyntax)
                             Dim numericToken = numericLiteral.Token
                             Dim numericText = numericToken.ToString()
-                            If numericText.StartsWith("&h") OrElse numericText.StartsWith("&H") Then
+                            If numericText.StartsWith("&H", StringComparison.OrdinalIgnoreCase) Then
                                 Dim firstTwoChars = numericText.Substring(0, 2)
 
-                                If (numericText.EndsWith("US") OrElse numericText.EndsWith("us") OrElse
-                                numericText.EndsWith("uS") OrElse numericText.EndsWith("Us")) AndAlso
+                                If numericText.EndsWith("US", StringComparison.OrdinalIgnoreCase) AndAlso
                                value >= UShort.MinValue AndAlso value <= UShort.MaxValue Then
                                     Dim ushortValue = CUShort(value)
 
                                     Dim lastTwoChars = numericText.Substring(numericText.Length - 2, 2)
                                     Return SyntaxFactory.NumericLiteralExpression(
                                     SyntaxFactory.IntegerLiteralToken(firstTwoChars + ushortValue.ToString("X") + lastTwoChars, LiteralBase.Hexadecimal, TypeCharacter.UShortLiteral, IntegerUtilities.ToUnsigned(ushortValue)))
-                                ElseIf (numericText.EndsWith("S") OrElse numericText.EndsWith("s")) AndAlso
+                                ElseIf numericText.EndsWith("S", StringComparison.OrdinalIgnoreCase) AndAlso
                                    value >= Short.MinValue AndAlso value <= Short.MaxValue Then
                                     Dim shortValue = CShort(value)
                                     Return SyntaxFactory.NumericLiteralExpression(
@@ -120,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     Return SyntaxFactory.NumericLiteralExpression(
                                     SyntaxFactory.IntegerLiteralToken(firstTwoChars + value.ToString("X"), LiteralBase.Hexadecimal, TypeCharacter.None, IntegerUtilities.ToUnsigned(value)))
                                 End If
-                            ElseIf numericText.StartsWith("&o") OrElse numericText.StartsWith("&O") Then
+                            ElseIf numericText.StartsWith("&O", StringComparison.OrdinalIgnoreCase) Then
                                 Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(numericText.Substring(0, 2) + Convert.ToString(value, 8), LiteralBase.Octal, TypeCharacter.None, IntegerUtilities.ToUnsigned(value)))
                             End If
                         End If

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
         Inherits AbstractSymbolDisplayVisitor(Of SemanticModel)
 
-        Private ReadOnly escapeKeywordIdentifiers As Boolean
+        Private ReadOnly _escapeKeywordIdentifiers As Boolean
 
         ' A Symbol in VB might be a PENamedSymbolWithEmittedNamespaceName and in that case the 
         ' casing of the contained types and namespaces might differ because of merged classes/namespaces.
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(builder, format, True, semanticModelOpt, positionOpt)
             Debug.Assert(format IsNot Nothing, "Format must not be null")
 
-            Me.escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
+            Me._escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
         End Sub
 
         Private Sub New(
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
 
-            Me.escapeKeywordIdentifiers = escapeKeywordIdentifiers
+            Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.format,
                     Me.semanticModelOpt,
                     Me.positionOpt,
-                        Me.escapeKeywordIdentifiers,
+                        Me._escapeKeywordIdentifiers,
                     isFirstSymbolVisited:=False)
         End Function
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    symbol As ISymbol,
                                    text As String,
                                    noEscaping As Boolean) As SymbolDisplayPart
-            Dim escape = (AlwaysEscape(kind, text) OrElse Not noEscaping) AndAlso escapeKeywordIdentifiers AndAlso IsEscapable(kind)
+            Dim escape = (AlwaysEscape(kind, text) OrElse Not noEscaping) AndAlso _escapeKeywordIdentifiers AndAlso IsEscapable(kind)
             Return New SymbolDisplayPart(kind, symbol, If(escape, EscapeIdentifier(text), text))
         End Function
 
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not emittedName.IsEmpty Then
-                Dim nsIdx = emittedName.LastIndexOf(".")
+                Dim nsIdx = emittedName.LastIndexOf("."c)
                 If nsIdx > -1 Then
                     myCaseCorrectedNSName = emittedName.Substring(nsIdx + 1)
                     myCaseCorrectedParentNSName = emittedName.Substring(0, nsIdx)
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If ShouldVisitNamespace(containingNamespace) Then
-                    VisitNamespace(DirectCast(containingNamespace, INamespaceSymbol), myCaseCorrectedParentNSName)
+                    VisitNamespace(containingNamespace, myCaseCorrectedParentNSName)
                     AddOperator(SyntaxKind.DotToken)
                     visitedParents = True
                 End If
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 (Not namedType.IsScriptClass OrElse format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
         End Function
 
-        Private Function IsEnumMember(symbol As ISymbol) As Boolean
+        Private Shared Function IsEnumMember(symbol As ISymbol) As Boolean
             Return _
                 symbol IsNot Nothing AndAlso
                 symbol.Kind = SymbolKind.Field AndAlso

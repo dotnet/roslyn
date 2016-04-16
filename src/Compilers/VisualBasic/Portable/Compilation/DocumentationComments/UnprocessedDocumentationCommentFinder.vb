@@ -7,7 +7,6 @@ Imports System.IO
 Imports System.Text
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Visit block start statement
                     Me._isInsideMethodOrLambda = False
-                    Me.Visit(node.Begin)
+                    Me.Visit(node.BlockStatement)
 
                     ' Visit the rest 
                     Me._isInsideMethodOrLambda = True

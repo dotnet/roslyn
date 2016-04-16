@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
-        private ArrayElement<SyntaxListBuilder>[] freeList = new ArrayElement<SyntaxListBuilder>[10];
-        private int freeIndex = 0;
+        private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
+        private int _freeIndex;
 
 #if DEBUG
-        private readonly List<SyntaxListBuilder> allocated = new List<SyntaxListBuilder>();
+        private readonly List<SyntaxListBuilder> _allocated = new List<SyntaxListBuilder>();
 #endif
 
         internal SyntaxListPool()
@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxListBuilder Allocate()
         {
             SyntaxListBuilder item;
-            if (freeIndex > 0)
+            if (_freeIndex > 0)
             {
-                freeIndex--;
-                item = freeList[freeIndex].Value;
-                freeList[freeIndex].Value = null;
+                _freeIndex--;
+                item = _freeList[_freeIndex].Value;
+                _freeList[_freeIndex].Value = null;
             }
             else
             {
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
 #if DEBUG
-            Debug.Assert(!allocated.Contains(item));
-            allocated.Add(item);
+            Debug.Assert(!_allocated.Contains(item));
+            _allocated.Add(item);
 #endif
             return item;
         }
@@ -61,24 +61,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal void Free(SyntaxListBuilder item)
         {
             item.Clear();
-            if (freeIndex >= freeList.Length)
+            if (_freeIndex >= _freeList.Length)
             {
                 this.Grow();
             }
 #if DEBUG
-            Debug.Assert(allocated.Contains(item));
+            Debug.Assert(_allocated.Contains(item));
 
-            allocated.Remove(item);
+            _allocated.Remove(item);
 #endif
-            freeList[freeIndex].Value = item;
-            freeIndex++;
+            _freeList[_freeIndex].Value = item;
+            _freeIndex++;
         }
 
         private void Grow()
         {
-            var tmp = new ArrayElement<SyntaxListBuilder>[freeList.Length * 2];
-            Array.Copy(freeList, tmp, freeList.Length);
-            freeList = tmp;
+            var tmp = new ArrayElement<SyntaxListBuilder>[_freeList.Length * 2];
+            Array.Copy(_freeList, tmp, _freeList.Length);
+            _freeList = tmp;
         }
     }
 }

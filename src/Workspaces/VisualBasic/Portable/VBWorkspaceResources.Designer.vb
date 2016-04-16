@@ -359,6 +359,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &lt;result&gt;.
+        '''</summary>
+        Friend ReadOnly Property Result() As String
+            Get
+                Return ResourceManager.GetString("Result", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Returned if it evaluates to a reference or nullable type that is not Nothing..
         '''</summary>
         Friend ReadOnly Property ReturnedIfINotNothing() As String

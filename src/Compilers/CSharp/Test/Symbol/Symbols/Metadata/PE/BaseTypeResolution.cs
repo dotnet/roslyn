@@ -329,7 +329,7 @@ class Test2 : M4
             var crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2;
             var crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib;
 
-            var compilation1 = CreateCompilationWithMscorlib( compilationDef1, new MetadataReference[] {crossRefLib}, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilationWithMscorlib(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -361,7 +361,7 @@ public class M4 : M2
             Assert.False(m4.BaseType.IsErrorType());
             Assert.False(m4.BaseType.BaseType.IsErrorType());
 
-            var compilation3 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] {crossRefModule2}, TestOptions.ReleaseDll);
+            var compilation3 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
 
             m3 = compilation3.GetTypeByMetadataName("M3");
             m4 = compilation3.GetTypeByMetadataName("M4");
@@ -377,18 +377,17 @@ public class M4 : M2
             //        referenced by type 'M2' could not be resolved
 
             DiagnosticDescription[] errors = {
-    // (2,19): error CS0246: The type or namespace name 'M1' could not be found (are you missing a using directive or an assembly reference?)
-    // public class M3 : M1
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M1").WithArguments("M1"),
-    // (5,19): error CS7079: The type 'M1' is defined in a module that has not been added. You must add the module 'CrossRefModule1.netmodule'.
-    // public class M4 : M2
-    Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "M2").WithArguments("M1", "CrossRefModule1.netmodule"),
-    // error CS8014: Reference to 'CrossRefModule1.netmodule' netmodule missing.
-    Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("CrossRefModule1.netmodule")
+                // (2,19): error CS0246: The type or namespace name 'M1' could not be found (are you missing a using directive or an assembly reference?)
+                // public class M3 : M1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M1").WithArguments("M1"),
+                // (5,19): error CS7079: The type 'M1' is defined in a module that has not been added. You must add the module 'CrossRefModule1.netmodule'.
+                // public class M4 : M2
+                Diagnostic(ErrorCode.ERR_NoTypeDefFromModule, "M2").WithArguments("M1", "CrossRefModule1.netmodule"),
+                // error CS8014: Reference to 'CrossRefModule1.netmodule' netmodule missing.
+                Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("CrossRefModule1.netmodule")
                                              };
 
             compilation3.VerifyDiagnostics(errors);
         }
-
     }
 }

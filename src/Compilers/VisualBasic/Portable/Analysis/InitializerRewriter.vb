@@ -2,17 +2,14 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
     ''' Turns the bound initializers into a list of bound assignment statements
     ''' </summary>
-    Friend Class InitializerRewriter
+    Friend Module InitializerRewriter
 
         ''' <summary>
         ''' Builds a constructor body. 
@@ -27,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''  - field initializers and top-level code
         '''  - remaining constructor statements (empty for a submission)
         ''' </returns>
-        Friend Shared Function BuildConstructorBody(
+        Friend Function BuildConstructorBody(
             compilationState As TypeCompilationState,
             constructorMethod As MethodSymbol,
             constructorInitializerOpt As BoundStatement,
@@ -42,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' rewrite initializers just once, statements will be reused when emitting all constructors with field initializers:
-            If Not processedInitializers.BoundInitializers.IsDefaultOrEmpty AndAlso processedInitializers.InitializerStatements.IsDefault Then
-                processedInitializers.InitializerStatements = RewriteInitializersAsStatements(constructorMethod, processedInitializers.BoundInitializers)
+            If processedInitializers.InitializerStatements.IsDefault Then
+                processedInitializers.InitializerStatements = processedInitializers.BoundInitializers.SelectAsArray(AddressOf RewriteInitializerAsStatement)
                 Debug.Assert(processedInitializers.BoundInitializers.Length = processedInitializers.InitializerStatements.Length)
             End If
 
@@ -123,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     'Dev10 always performs base call if event is in the base class. 
                                     'Even if Me/MyClass syntax was used. It seems to be somewhat of a bug 
-                                    'that noone cared about. For compat reasons we will do the same.
+                                    'that no-one cared about. For compat reasons we will do the same.
                                     receiver = New BoundMyBaseReference(syntax, meParam.Type).MakeCompilerGenerated()
                                 End If
                             End If
@@ -144,11 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' insert initializers AFTER implicit or explicit call to a base constructor
             ' and after Handles hookup if there were any
-            If Not initializerStatements.IsDefault Then
-                For Each initializer In initializerStatements
-                    boundStatements.Add(initializer)
-                Next
-            End If
+            boundStatements.AddRange(initializerStatements)
 
             ' Add InitializeComponent call, if need to.
             If Not constructorMethod.IsShared AndAlso compilationState.InitializeComponentOpt IsNot Nothing AndAlso constructorMethod.IsImplicitlyDeclared Then
@@ -175,6 +168,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundBlock(block.Syntax, block.StatementListSyntax, block.Locals, boundStatements.ToImmutableAndFree(), block.HasErrors)
         End Function
 
+        Friend Function BuildScriptInitializerBody(
+            initializerMethod As SynthesizedInteractiveInitializerMethod,
+            processedInitializers As Binder.ProcessedFieldOrPropertyInitializers,
+            block As BoundBlock) As BoundBlock
+
+            Dim initializerStatements = RewriteInitializersAsStatements(initializerMethod, processedInitializers.BoundInitializers)
+            processedInitializers.InitializerStatements = initializerStatements
+
+            Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance()
+            boundStatements.AddRange(initializerStatements)
+            boundStatements.AddRange(block.Statements)
+            Return New BoundBlock(block.Syntax, block.StatementListSyntax, block.Locals, boundStatements.ToImmutableAndFree(), block.HasErrors)
+        End Function
+
         ''' <summary>
         ''' Rewrites GlobalStatementInitializers to ExpressionStatements and gets the initializers for fields and properties.
         ''' </summary>
@@ -182,54 +189,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Initializers for fields and properties cannot be rewritten to their final form at this place because they might need 
         ''' to be rewritten to replace their placeholder expressions to the final locals or temporaries (e.g. in case of a field
         ''' declaration with "AsNew" and multiple variable names. The final rewriting will during local rewriting.
-        ''' The statement list returned by this function can be copied into all constructors without reprocessing it.
+        ''' The statement list returned by this function can be copied into the initializer without reprocessing it.
         ''' </remarks>
-        Private Shared Function RewriteInitializersAsStatements(constructor As MethodSymbol,
-                                                                boundInitializers As ImmutableArray(Of BoundInitializer)) As ImmutableArray(Of BoundStatement)
-            Debug.Assert(Not boundInitializers.IsEmpty)
+        Private Function RewriteInitializersAsStatements(
+            method As SynthesizedInteractiveInitializerMethod,
+            boundInitializers As ImmutableArray(Of BoundInitializer)) As ImmutableArray(Of BoundStatement)
 
             Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance(boundInitializers.Length)
-            For Each init In boundInitializers
-                Select Case init.Kind
-                    Case BoundKind.FieldOrPropertyInitializer
-                        boundStatements.Add(init)
+            Dim submissionResultType = method.ResultType
+            Dim submissionResult As BoundExpression = Nothing
 
-                    Case BoundKind.GlobalStatementInitializer
-                        Dim stmtInit = DirectCast(init, BoundGlobalStatementInitializer)
-                        Dim syntax = init.Syntax
-
-                        If constructor.IsSubmissionConstructor AndAlso init Is boundInitializers.Last AndAlso stmtInit.Statement.Kind = BoundKind.ExpressionStatement Then
-                            Dim submissionResultVariable = New BoundParameter(syntax, constructor.Parameters(1), constructor.Parameters(1).Type)
-                            Dim expr = DirectCast(stmtInit.Statement, BoundExpressionStatement).Expression
-
-                            Debug.Assert(expr.Type IsNot Nothing)
-                            If expr.Type.SpecialType <> SpecialType.System_Void Then
-                                boundStatements.Add(New BoundExpressionStatement(
-                                                         syntax,
-                                                         New BoundAssignmentOperator(
-                                                            syntax,
-                                                            submissionResultVariable,
-                                                            expr,
-                                                            False,
-                                                            expr.Type)))
-                                Exit Select
-                            End If
+            For Each initializer In boundInitializers
+                If submissionResultType IsNot Nothing AndAlso
+                    initializer Is boundInitializers.Last AndAlso
+                    initializer.Kind = BoundKind.GlobalStatementInitializer Then
+                    Dim statement = DirectCast(initializer, BoundGlobalStatementInitializer).Statement
+                    If statement.Kind = BoundKind.ExpressionStatement Then
+                        Dim expr = DirectCast(statement, BoundExpressionStatement).Expression
+                        Debug.Assert(expr.Type IsNot Nothing)
+                        If expr.Type.SpecialType <> SpecialType.System_Void Then
+                            submissionResult = expr
+                            Continue For
                         End If
-
-                        boundStatements.Add(stmtInit.Statement)
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(init.Kind)
-                End Select
+                    End If
+                End If
+                boundStatements.Add(RewriteInitializerAsStatement(initializer))
             Next
 
+            If submissionResultType IsNot Nothing Then
+                If submissionResult Is Nothing Then
+                    ' Return Nothing if submission does not have a trailing expression.
+                    submissionResult = New BoundLiteral(method.Syntax, ConstantValue.Nothing, submissionResultType)
+                End If
+                Debug.Assert(submissionResult.Type.SpecialType <> SpecialType.System_Void)
+
+                ' The expression is converted to the submission result type when the initializer is bound.
+                boundStatements.Add(New BoundReturnStatement(submissionResult.Syntax, submissionResult, method.FunctionLocal, method.ExitLabel))
+            End If
+
             Return boundStatements.ToImmutableAndFree()
+        End Function
+
+        Private Function RewriteInitializerAsStatement(initializer As BoundInitializer) As BoundStatement
+            Select Case initializer.Kind
+                Case BoundKind.FieldInitializer, BoundKind.PropertyInitializer
+                    Return initializer
+                Case BoundKind.GlobalStatementInitializer
+                    Return DirectCast(initializer, BoundGlobalStatementInitializer).Statement
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(initializer.Kind)
+            End Select
         End Function
 
         ''' <summary> 
         ''' Determines if this constructor calls another constructor of the constructor's containing class. 
         ''' </summary>
-        Friend Shared Function HasExplicitMeConstructorCall(block As BoundBlock, container As TypeSymbol, <Out()> ByRef isMyBaseConstructorCall As Boolean) As Boolean
+        Friend Function HasExplicitMeConstructorCall(block As BoundBlock, container As TypeSymbol, <Out()> ByRef isMyBaseConstructorCall As Boolean) As Boolean
             isMyBaseConstructorCall = False
 
             If block.Statements.Any Then
@@ -240,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       block's statements; otherwise it would complicate this rewriting because we 
                 '       will have to insert field initializers right after constructor call
 
-                ' NOTE: If in future some rewriters break this assumption, the insersion 
+                ' NOTE: If in future some rewriters break this assumption, the insertion 
                 '       of initializers as well as the following code should be revised
 
                 If firstBoundStatement.Kind = BoundKind.ExpressionStatement Then
@@ -263,5 +278,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
-    End Class
+    End Module
 End Namespace

@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!explicitInterfaceType.IsInterfaceType())
             {
                 //we'd like to highlight just the type part of the name
-                var explictInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
-                var location = new SourceLocation(explictInterfaceSyntax);
+                var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
+                var location = new SourceLocation(explicitInterfaceSyntax);
 
                 diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, location, explicitInterfaceType);
                 return null;
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(explicitInterfaceNamedType))
             {
                 //we'd like to highlight just the type part of the name
-                var explictInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
-                var location = new SourceLocation(explictInterfaceSyntax);
+                var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
+                var location = new SourceLocation(explicitInterfaceSyntax);
 
                 diagnostics.Add(ErrorCode.ERR_ClassDoesntImplementInterface, location, implementingMember, explicitInterfaceNamedType);
                 //do a lookup anyway

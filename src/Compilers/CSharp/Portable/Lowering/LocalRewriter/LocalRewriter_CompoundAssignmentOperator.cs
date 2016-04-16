@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (binaryOperator == BinaryOperatorKind.Addition || binaryOperator == BinaryOperatorKind.Subtraction);
 
             // save RHS to a temp, we need to use it twice:
-            if (isPossibleEventHandlerOperation && IntroducingReadCanBeObservable(loweredRight))
+            if (isPossibleEventHandlerOperation && CanChangeValueBetweenReads(loweredRight))
             {
                 BoundAssignmentOperator assignmentToTemp;
-                var temp = this.factory.StoreToTemp(loweredRight, out assignmentToTemp);
+                var temp = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
                 loweredRight = temp;
                 stores.Add(assignmentToTemp);
                 temps.Add(temp.LocalSymbol);
@@ -96,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsEvent("Foo", dyn) ? InvokeMember("{add|remove}_Foo", dyn, RHS) : rewrittenAssignment
                 var memberAccess = (BoundDynamicMemberAccess)transformedLHS;
 
-                var isEventCondition = dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
+                var isEventCondition = _dynamicFactory.MakeDynamicIsEventTest(memberAccess.Name, memberAccess.Receiver);
 
-                var invokeEventAccessor = dynamicFactory.MakeDynamicEventAccessorInvocation(
+                var invokeEventAccessor = _dynamicFactory.MakeDynamicEventAccessorInvocation(
                     (binaryOperator == BinaryOperatorKind.Addition ? "add_" : "remove_") + memberAccess.Name,
                     memberAccess.Receiver,
                     loweredRight);
 
-                rewrittenAssignment = factory.Conditional(isEventCondition.ToExpression(), invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
+                rewrittenAssignment = _factory.Conditional(isEventCondition.ToExpression(), invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
             }
 
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var prop = (BoundPropertyAccess)originalLHS;
 
                         // If the property is static or if the receiver is of kind "Base" or "this", then we can just generate prop = prop + value
-                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !IntroducingReadCanBeObservable(prop.ReceiverOpt))
+                        if (prop.ReceiverOpt == null || prop.PropertySymbol.IsStatic || !CanChangeValueBetweenReads(prop.ReceiverOpt))
                         {
                             return prop;
                         }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // SPEC VIOLATION: as value types.
                         var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-                        var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+                        var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
                         stores.Add(assignmentToTemp);
                         temps.Add(receiverTemp.LocalSymbol);
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DynamicMemberAccess:
                     {
                         var memberAccess = (BoundDynamicMemberAccess)originalLHS;
-                        if (!IntroducingReadCanBeObservable(memberAccess.Receiver))
+                        if (!CanChangeValueBetweenReads(memberAccess.Receiver))
                         {
                             return memberAccess;
                         }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // store receiver to temp:
                         var rewrittenReceiver = VisitExpression(memberAccess.Receiver);
                         BoundAssignmentOperator assignmentToTemp;
-                        var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+                        var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
                         stores.Add(assignmentToTemp);
                         temps.Add(receiverTemp.LocalSymbol);
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiverOpt != null);
 
                         BoundExpression transformedReceiver;
-                        if (IntroducingReadCanBeObservable(receiverOpt))
+                        if (CanChangeValueBetweenReads(receiverOpt))
                         {
                             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC VIOLATION: as value types.
                             var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
-                            var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
+                            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
                             transformedReceiver = receiverTemp;
                             stores.Add(assignmentToTemp);
                             temps.Add(receiverTemp.LocalSymbol);
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
                             BoundAssignmentOperator storeToTemp;
-                            var boundTemp = this.factory.StoreToTemp(array, out storeToTemp);
+                            var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                             stores.Add(storeToTemp);
                             temps.Add(boundTemp.LocalSymbol);
                             actualArguments[actualArguments.Length - 1] = boundTemp;
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
 
                         //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-                        if (fieldAccess.FieldSymbol.IsStatic || !IntroducingReadCanBeObservable(receiverOpt))
+                        if (fieldAccess.FieldSymbol.IsStatic || !CanChangeValueBetweenReads(receiverOpt))
                         {
                             return fieldAccess;
                         }
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             BoundAssignmentOperator assignmentToTemp;
-                            var receiverTemp = this.factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+                            var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
                             stores.Add(assignmentToTemp);
                             temps.Add(receiverTemp.LocalSymbol);
                             return new BoundFieldAccess(fieldAccess.Syntax, receiverTemp, fieldAccess.FieldSymbol, null);
@@ -434,10 +434,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundDynamicIndexerAccess)originalLHS;
 
                         BoundExpression loweredReceiver;
-                        if (IntroducingReadCanBeObservable(indexerAccess.ReceiverOpt))
+                        if (CanChangeValueBetweenReads(indexerAccess.ReceiverOpt))
                         {
                             BoundAssignmentOperator assignmentToTemp;
-                            var temp = this.factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
+                            var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
                             stores.Add(assignmentToTemp);
                             temps.Add(temp.LocalSymbol);
                             loweredReceiver = temp;
@@ -452,10 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = 0; i < arguments.Length; i++)
                         {
-                            if (IntroducingReadCanBeObservable(arguments[i]))
+                            if (CanChangeValueBetweenReads(arguments[i]))
                             {
                                 BoundAssignmentOperator assignmentToTemp;
-                                var temp = this.factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
+                                var temp = _factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
                                 stores.Add(assignmentToTemp);
                                 temps.Add(temp.LocalSymbol);
                                 loweredArguments[i] = temp;
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenVariable = VisitExpression(originalLHS);
 
             BoundAssignmentOperator assignmentToTemp2;
-            var variableTemp = this.factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref);
+            var variableTemp = _factory.StoreToTemp(rewrittenVariable, out assignmentToTemp2, refKind: RefKind.Ref);
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> temps)
         {
             BoundAssignmentOperator assignmentToArrayTemp;
-            var arrayTemp = this.factory.StoreToTemp(loweredExpression, out assignmentToArrayTemp);
+            var arrayTemp = _factory.StoreToTemp(loweredExpression, out assignmentToArrayTemp);
             stores.Add(assignmentToArrayTemp);
             temps.Add(arrayTemp.LocalSymbol);
             var boundTempArray = arrayTemp;
@@ -555,10 +555,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTempIndices = new BoundExpression[loweredIndices.Length];
             for (int i = 0; i < boundTempIndices.Length; i++)
             {
-                if (IntroducingReadCanBeObservable(loweredIndices[i]))
+                if (CanChangeValueBetweenReads(loweredIndices[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
-                    var temp = this.factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
+                    var temp = _factory.StoreToTemp(loweredIndices[i], out assignmentToTemp);
                     stores.Add(assignmentToTemp);
                     temps.Add(temp.LocalSymbol);
                     boundTempIndices[i] = temp;
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return factory.ArrayAccess(boundTempArray, boundTempIndices);
+            return _factory.ArrayAccess(boundTempArray, boundTempIndices);
         }
 
         /// <summary>
@@ -583,8 +583,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// even though l is a local, we must access it via a temp since "foo(ref l)" may change it
         /// on between accesses. 
         /// </summary>
-        internal static bool IntroducingReadCanBeObservable(BoundExpression expression, bool localsMayBeAssignedOrCaptured = true)
+        internal static bool CanChangeValueBetweenReads(
+            BoundExpression expression,
+            bool localsMayBeAssignedOrCaptured = true)
         {
+            if (expression.IsDefaultValue())
+            {
+                return false;
+            }
+
+            if (expression.ConstantValue != null)
+            {
+                var type = expression.Type;
+                return !ConstantValueIsTrivial(type);
+            }
+
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -592,12 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case BoundKind.Literal:
-                    // don't allocate a temp for simple primitive types:
                     var type = expression.Type;
-                    return (object)type != null && 
-                        !type.SpecialType.IsClrInteger() &&
-                        !type.IsReferenceType &&
-                        !type.IsEnumType();
+                    return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
                     return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
@@ -608,6 +617,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return true;
             }
+        }
+
+        // a simple check for common non-side-effecting expressions
+        internal static bool ReadIsSideeffecting(
+            BoundExpression expression)
+        {
+            if (expression.ConstantValue != null)
+            {
+                return false;
+            }
+
+            if (expression.IsDefaultValue())
+            {
+                return false;
+            }
+
+            switch (expression.Kind)
+            {
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.Literal:
+                case BoundKind.Parameter:
+                case BoundKind.Local:
+                case BoundKind.Lambda:
+                    return false;
+
+                case BoundKind.Conversion:
+                    var conv = (BoundConversion)expression;
+                    return conv.ConversionHasSideEffects() ||
+                        ReadIsSideeffecting(conv.Operand);
+
+                case BoundKind.ObjectCreationExpression:
+                    // common production of lowered conversions to nullable
+                    // new S?(arg)
+                    if (expression.Type.IsNullableType())
+                    {
+                        var objCreation = (BoundObjectCreationExpression)expression;
+                        return objCreation.Arguments.Length == 1 && ReadIsSideeffecting(objCreation.Arguments[0]);
+                    }
+
+                    return false;
+
+                default:
+                    return true;
+            }
+        }
+
+        // nontrivial literals do not change between reads
+        // but may require re-constructing, so it is better 
+        // to treat them as potentially changing.
+        private static bool ConstantValueIsTrivial(TypeSymbol type)
+        {
+            return (object)type == null ||
+                type.SpecialType.IsClrInteger() ||
+                type.IsReferenceType ||
+                type.IsEnumType();
         }
     }
 }

@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     internal class WorkspaceServiceMetadata
     {
-        public string ServiceType { get; private set; }
-        public string Layer { get; private set; }
+        public string ServiceType { get; }
+        public string Layer { get; }
 
-        public WorkspaceServiceMetadata(Type serviceType, string layer) 
+        public WorkspaceServiceMetadata(Type serviceType, string layer)
             : this(serviceType.AssemblyQualifiedName, layer)
         {
         }

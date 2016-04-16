@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "ControlFlowPass and DataflowAnalysis"
 
         <Fact()>
-        Sub SyncLockInSelect()
+        Public Sub SyncLockInSelect()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="SyncLockInSelect">
     <file name="a.vb">
@@ -36,21 +36,21 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(1, analysisControlflow.ExitPoints.Count())
         End Sub
 
         <Fact()>
-        Sub UnreachableCode()
+        Public Sub UnreachableCode()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="UnreachableCode">
     <file name="a.vb">
@@ -70,21 +70,21 @@ End Class
 
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("x1", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("x1", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(1, analysisControlflow.ExitPoints.Count())
         End Sub
 
         <Fact()>
-        Sub AssignmentInSyncLock()
+        Public Sub AssignmentInSyncLock()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="AssignmentInSyncLock">
     <file name="a.vb">
@@ -103,21 +103,21 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(0, analysisControlflow.ExitPoints.Count())
         End Sub
 
         <Fact()>
-        Sub SyncLock_AssignmentInInLambda()
+        Public Sub SyncLock_AssignmentInInLambda()
             Dim analysis = CompileAndAnalyzeControlAndDataFlow(
 <compilation name="SyncLock_AssignmentInInLambda">
     <file name="a.vb">
@@ -138,21 +138,21 @@ End Class
 </compilation>)
             Dim analysisControlflow = analysis.Item1
             Dim analysisDataflow = analysis.Item2
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("myLock", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("myLock", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
             Assert.Equal(0, analysisControlflow.EntryPoints.Count())
             Assert.Equal(0, analysisControlflow.ExitPoints.Count())
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock()
+        Public Sub NestedSyncLock()
             Dim analysisDataflow = CompileAndAnalyzeDataFlow(
 <compilation name="NestedSyncLock">
     <file name="a.vb">
@@ -171,19 +171,19 @@ lab1:
 End Class
     </file>
 </compilation>)
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal("Me, syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal("Me, syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
         End Sub
 
         <Fact()>
-        Sub DataflowOfInnerStatement()
+        Public Sub DataflowOfInnerStatement()
             Dim analysisDataflow = CompileAndAnalyzeDataFlow(
 <compilation name="DataflowOfInnerStatement">
     <file name="a.vb">
@@ -199,14 +199,14 @@ Public Class Program
 End Class
     </file>
 </compilation>)
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(analysisDataflow.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.ReadInside))
-            Assert.Equal("syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenInside))
-            Assert.Equal("Me, syncroot", GetSymbolNamesSortedAndJoined(analysisDataflow.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(analysisDataflow.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.ReadInside))
+            Assert.Equal("syncroot", GetSymbolNamesJoined(analysisDataflow.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(analysisDataflow.WrittenInside))
+            Assert.Equal("Me, syncroot", GetSymbolNamesJoined(analysisDataflow.WrittenOutside))
 
         End Sub
 
@@ -214,7 +214,7 @@ End Class
 
 #Region "Semantic API"
 
-        <WorkItem(545364, "DevDiv")>
+        <WorkItem(545364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545364")>
         <Fact()>
         Public Sub SyncLockLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -251,7 +251,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockQuery()
+        Public Sub SyncLockQuery()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockQuery">
@@ -289,7 +289,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockGenericType()
+        Public Sub SyncLockGenericType()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockGenericType">
     <file name="a.vb">
@@ -323,7 +323,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockAnonymous()
+        Public Sub SyncLockAnonymous()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockAnonymous">
@@ -352,7 +352,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SyncLockCreateObject()
+        Public Sub SyncLockCreateObject()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockCreateObject">
@@ -383,7 +383,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockNothing()
+        Public Sub SimpleSyncLockNothing()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockNothing">
     <file name="a.vb">
@@ -412,7 +412,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockDelegate()
+        Public Sub SimpleSyncLockDelegate()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SimpleSyncLockDelegate">
     <file name="a.vb">
@@ -445,7 +445,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockMe()
+        Public Sub SyncLockMe()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="SyncLockMe">
     <file name="a.vb">

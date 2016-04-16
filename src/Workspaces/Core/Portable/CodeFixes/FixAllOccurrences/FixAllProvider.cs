@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -26,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Gets the diagnostic IDs for which fix all occurrences is supported.
-        /// By default, it returns <see cref="CodeFixProvider.GetFixableDiagnosticIds"/> for the given <paramref name="originalCodeFixProvider"/>.
+        /// By default, it returns <see cref="CodeFixProvider.FixableDiagnosticIds"/> for the given <paramref name="originalCodeFixProvider"/>.
         /// </summary>
         /// <param name="originalCodeFixProvider">Original code fix provider that returned this fix all provider from <see cref="CodeFixProvider.GetFixAllProvider"/> method.</param>
         public virtual IEnumerable<string> GetSupportedFixAllDiagnosticIds(CodeFixProvider originalCodeFixProvider)
         {
-            return originalCodeFixProvider.GetFixableDiagnosticIds();
+            return originalCodeFixProvider.FixableDiagnosticIds;
         }
 
         /// <summary>

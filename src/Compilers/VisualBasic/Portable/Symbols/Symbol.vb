@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
+Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -116,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' this should be relatively uncommon
                     ' most symbols that may be contained in a type
                     ' know their containing type and can override ContainingType
-                    ' with a more precicse implementation
+                    ' with a more precise implementation
                     Return containerAsType
                 End If
 
@@ -185,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol), "SourceAssemblySymbol must override DeclaringCompilation")
                         Return Nothing
                     Case SymbolKind.NetModule
-                        Debug.Assert(Not (TypeOf Me Is sourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
+                        Debug.Assert(Not (TypeOf Me Is SourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
                         Return Nothing
                 End Select
 
-                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, sourceModuleSymbol)
+                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
             End Get
         End Property
@@ -241,15 +242,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Get a source location key for sorting. For performance, it's important that this be 
+        ''' <para>
+        ''' Get a source location key for sorting. For performance, it's important that this
         ''' be able to be returned from a symbol without doing any additional allocations (even
-        ''' if nothing is cached yet.) 
-        ''' 
-        ''' Only members of source namespaces, original source types, and namespaces that can be merged
-        ''' need implement this function.
+        ''' if nothing is cached yet.)
+        ''' </para>
+        ''' <para>
+        ''' Only (original) source symbols and namespaces that can be merged
+        ''' need override this function if they want to do so for efficiency.
+        ''' </para>
         ''' </summary>
         Friend Overridable Function GetLexicalSortKey() As LexicalSortKey
-            Throw ExceptionUtilities.Unreachable
+            Dim locations = Me.Locations
+            Dim declaringCompilation = Me.DeclaringCompilation
+            Debug.Assert(declaringCompilation IsNot Nothing) ' require that it is a source symbol
+            Return If(locations.Length > 0, New LexicalSortKey(locations(0), declaringCompilation), LexicalSortKey.NotInSource)
         End Function
 
         ''' <summary>
@@ -382,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns true if this symbol was declared as requiring an override; i.e., declared
         ''' with the "MustOverride" modifier. Never returns true for types. 
-        ''' Also methods, properties and events declared in interface are considered to have MustOveride.
+        ''' Also methods, properties and events declared in interface are considered to have MustOverride.
         ''' </summary>
         Public MustOverride ReadOnly Property IsMustOverride As Boolean
 
@@ -446,13 +453,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' accessors and the backing field for an automatically implemented property.
         ''' 
         ''' NOTE: there are scenarios in which ImplicitlyDefinedBy is called while bound members 
-        '''       are not yet published. Ths typically happens if ImplicitlyDefinedBy while binding members.
-        '''       In such case, if calee needs to refer to a member of enclosing type it must 
+        '''       are not yet published. This typically happens if ImplicitlyDefinedBy while binding members.
+        '''       In such case, if callee needs to refer to a member of enclosing type it must 
         '''       do that in the context of unpublished members that caller provides 
         '''       (asking encompassing type for members will cause infinite recursion).
         ''' 
         ''' NOTE: There could be several threads trying to bind and publish members, only one will succeed.
-        '''       Reporting ImplicitlyDefinedBy withing the set of members known to the caller guarantees
+        '''       Reporting ImplicitlyDefinedBy within the set of members known to the caller guarantees
         '''       that if particular thread succeeds it will not have information that refers to something
         '''       built by another thread and discarded.
         ''' </summary>
@@ -794,9 +801,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
         Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            Dim declaringReferences = Me.DeclaringSyntaxReferences
+            If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
+                Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
+            End If
+
             ' Default implementation: go through all locations and check for the definition.
             ' This is overridden for certain special cases (e.g., the implicit default constructor).
-            For Each syntaxRef In Me.DeclaringSyntaxReferences
+            For Each syntaxRef In declaringReferences
                 cancellationToken.ThrowIfCancellationRequested()
 
                 If syntaxRef.SyntaxTree Is tree AndAlso
@@ -863,10 +875,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
-                    Case ERRID.ERR_UnreferencedAssemblyBase3,
-                         ERRID.ERR_UnreferencedAssemblyImplements3
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedAssembly3, errorInfo.Arguments(0), errorInfo.Arguments(1))
-
                     Case ERRID.ERR_UnreferencedModuleBase3,
                          ERRID.ERR_UnreferencedModuleImplements3
                         errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, errorInfo.Arguments(0), errorInfo.Arguments(1))

@@ -9,40 +9,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class ParameterTypeInformation
         Implements Cci.IParameterTypeInformation
 
-        Private ReadOnly m_UnderlyingParameter As ParameterSymbol
+        Private ReadOnly _underlyingParameter As ParameterSymbol
 
         Public Sub New(underlyingParameter As ParameterSymbol)
             Debug.Assert(underlyingParameter IsNot Nothing)
-            Me.m_UnderlyingParameter = underlyingParameter
+            Me._underlyingParameter = underlyingParameter
         End Sub
 
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IParameterTypeInformation.CustomModifiers
             Get
-                Return m_UnderlyingParameter.CustomModifiers.As(Of Cci.ICustomModifier)
+                Return _underlyingParameter.CustomModifiers.As(Of Cci.ICustomModifier)
             End Get
         End Property
 
         Private ReadOnly Property IParameterTypeInformationIsByReference As Boolean Implements Cci.IParameterTypeInformation.IsByReference
             Get
-                Return m_UnderlyingParameter.IsByRef
+                Return _underlyingParameter.IsByRef
             End Get
         End Property
 
-        Private ReadOnly Property IParameterTypeInformationHasByRefBeforeCustomModifiers As Boolean Implements Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
             Get
-                Return m_UnderlyingParameter.HasByRefBeforeCustomModifiers
+                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 
         Private Function IParameterTypeInformationGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IParameterTypeInformation.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Dim paramType As TypeSymbol = m_UnderlyingParameter.Type
+            Dim paramType As TypeSymbol = _underlyingParameter.Type
             Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements Cci.IParameterListEntry.Index
             Get
-                Return CType(m_UnderlyingParameter.Ordinal, UShort)
+                Return CType(_underlyingParameter.Ordinal, UShort)
             End Get
         End Property
     End Class

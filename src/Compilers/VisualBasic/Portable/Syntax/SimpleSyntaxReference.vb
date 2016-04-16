@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class SimpleSyntaxReference
         Inherits SyntaxReference
 
-        Private _tree As SyntaxTree
-        Private _node As SyntaxNode
+        Private ReadOnly _tree As SyntaxTree
+        Private ReadOnly _node As SyntaxNode
 
         Friend Sub New(tree As SyntaxTree, node As SyntaxNode)
             _tree = tree

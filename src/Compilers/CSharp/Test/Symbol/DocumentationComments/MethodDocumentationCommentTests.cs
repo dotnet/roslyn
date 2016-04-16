@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MethodDocumentationCommentTests : CSharpTestBase
     {
-        private readonly CSharpCompilation compilation;
-        private readonly NamespaceSymbol acmeNamespace;
-        private readonly NamedTypeSymbol widgetClass;
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
 
         public MethodDocumentationCommentTests()
         {
-            compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
+            _compilation = CreateCompilationWithMscorlibAndDocumentationComments(@"namespace Acme
 {
     struct ValueType
     {
@@ -60,26 +60,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
         }
 
         [Fact]
         public void TestMethodInStruct()
         {
-            Assert.Equal("M:Acme.ValueType.M(System.Int32)", acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("M").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.ValueType.M(System.Int32)", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("M").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestNestedClass()
         {
-            Assert.Equal("M:Acme.Widget.NestedClass.M(System.Int32)", widgetClass.GetTypeMembers("NestedClass").Single().GetMembers("M").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.NestedClass.M(System.Int32)", _widgetClass.GetTypeMembers("NestedClass").Single().GetMembers("M").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestStaticMethod()
         {
-            var m0 = widgetClass.GetMembers("M0").Single();
+            var m0 = _widgetClass.GetMembers("M0").Single();
             Assert.Equal("M:Acme.Widget.M0", m0.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.M0"">
@@ -91,69 +91,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMethodWithRefAndOut()
         {
-            Assert.Equal("M:Acme.Widget.M1(System.Char,System.Single@,Acme.ValueType@)", widgetClass.GetMembers("M1").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M1(System.Char,System.Single@,Acme.ValueType@)", _widgetClass.GetMembers("M1").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestMethodWithArrays1()
         {
-            Assert.Equal("M:Acme.Widget.M2(System.Int16[],System.Int32[0:,0:],System.Int64[][])", widgetClass.GetMembers("M2").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M2(System.Int16[],System.Int32[0:,0:],System.Int64[][])", _widgetClass.GetMembers("M2").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestMethodWithArrays2()
         {
-            Assert.Equal("M:Acme.Widget.M3(System.Int64[][],Acme.Widget[0:,0:,0:][])", widgetClass.GetMembers("M3").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M3(System.Int64[][],Acme.Widget[0:,0:,0:][])", _widgetClass.GetMembers("M3").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestUnsafe1()
         {
-            Assert.Equal("M:Acme.Widget.M4(System.Char*,Color**)", widgetClass.GetMembers("M4").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M4(System.Char*,Color**)", _widgetClass.GetMembers("M4").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestUnsafe2()
         {
-            Assert.Equal("M:Acme.Widget.M5(System.Void*,System.Double*[0:,0:][])", widgetClass.GetMembers("M5").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M5(System.Void*,System.Double*[0:,0:][])", _widgetClass.GetMembers("M5").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestParams()
         {
-            Assert.Equal("M:Acme.Widget.M6(System.Int32,System.Object[])", widgetClass.GetMembers("M6").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.Widget.M6(System.Int32,System.Object[])", _widgetClass.GetMembers("M6").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestMethodInGenericClass()
         {
-            Assert.Equal("M:Acme.MyList`1.Test(`0)", acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.MyList`1.Test(`0)", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Test").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem(766313, "DevDiv")]
+        [WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsParameter()
         {
-            Assert.Equal("M:Acme.MyList`1.Zip(Acme.MyList{`0})", acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Zip").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.MyList`1.Zip(Acme.MyList{`0})", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("Zip").Single().GetDocumentationCommentId());
         }
 
-        [WorkItem(766313, "DevDiv")]
+        [WorkItem(766313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766313")]
         [Fact]
         public void TestMethodWithGenericDeclaringTypeAsTypeParameter()
         {
-            Assert.Equal("M:Acme.MyList`1.ReallyZip(Acme.MyList{Acme.MyList{`0}})", acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("ReallyZip").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.MyList`1.ReallyZip(Acme.MyList{Acme.MyList{`0}})", _acmeNamespace.GetTypeMembers("MyList", 1).Single().GetMembers("ReallyZip").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestMethodWithClosedGenericParameter()
         {
-            Assert.Equal("M:Acme.UseList.Process(Acme.MyList{System.Int32})", acmeNamespace.GetTypeMembers("UseList").Single().GetMembers("Process").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.UseList.Process(Acme.MyList{System.Int32})", _acmeNamespace.GetTypeMembers("UseList").Single().GetMembers("Process").Single().GetDocumentationCommentId());
         }
 
         [Fact]
         public void TestGenericMethod()
         {
-            Assert.Equal("M:Acme.UseList.GetValues``1(``0)", acmeNamespace.GetTypeMembers("UseList").Single().GetMembers("GetValues").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.UseList.GetValues``1(``0)", _acmeNamespace.GetTypeMembers("UseList").Single().GetMembers("GetValues").Single().GetDocumentationCommentId());
         }
 
         [Fact]
@@ -177,10 +177,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact, WorkItem(530924, "DevDiv")]
+        [Fact, WorkItem(530924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530924")]
         public void TestConversionOperator()
         {
-            Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
+            Assert.Equal("M:Acme.ValueType.op_Explicit(System.Byte)~Acme.ValueType", _acmeNamespace.GetTypeMembers("ValueType").Single().GetMembers("op_Explicit").Single().GetDocumentationCommentId());
+        }
+
+        [Fact, WorkItem(4699, "https://github.com/dotnet/roslyn/issues/4699")]
+        public void GetMalformedDocumentationCommentXml()
+        {
+            var source = @"
+class Test
+{
+    /// <summary>
+    /// Info
+    /// <!-- comment
+    /// </summary
+    static void Main() {}
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+            var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
+
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
+            main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
+
+            Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
+            main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
+
+            Assert.Equal(@"", main.GetDocumentationCommentXml().Trim());
         }
     }
 }

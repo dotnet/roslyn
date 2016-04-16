@@ -2,11 +2,9 @@
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -38,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public readonly TEmbeddedTypesManager TypeManager;
             public readonly TNamedTypeSymbol UnderlyingNamedType;
 
-            private ImmutableArray<Cci.IFieldDefinition> lazyFields;
-            private ImmutableArray<Cci.IMethodDefinition> lazyMethods;
-            private ImmutableArray<Cci.IPropertyDefinition> lazyProperties;
-            private ImmutableArray<Cci.IEventDefinition> lazyEvents;
-            private ImmutableArray<TAttributeData> lazyAttributes;
-            private int lazyAssemblyRefIndex = -1;
+            private ImmutableArray<Cci.IFieldDefinition> _lazyFields;
+            private ImmutableArray<Cci.IMethodDefinition> _lazyMethods;
+            private ImmutableArray<Cci.IPropertyDefinition> _lazyProperties;
+            private ImmutableArray<Cci.IEventDefinition> _lazyEvents;
+            private ImmutableArray<TAttributeData> _lazyAttributes;
+            private int _lazyAssemblyRefIndex = -1;
 
             protected CommonEmbeddedType(TEmbeddedTypesManager typeManager, TNamedTypeSymbol underlyingNamedType)
             {
@@ -91,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 // Copy some of the attributes.
 
-                int signatureIndex;
                 bool hasGuid = false;
                 bool hasComEventInterfaceAttribute = false;
 
@@ -119,56 +116,60 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComEventInterfaceAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
                         }
                     }
-                    else if ((signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute)) != -1)
+                    else
                     {
-                        Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        int signatureIndex = TypeManager.GetTargetAttributeSignatureIndex(UnderlyingNamedType, attrData, AttributeDescription.InterfaceTypeAttribute);
+                        if (signatureIndex != -1)
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
-                                                                                            WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorComInterfaceType,
-                                                                      attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.BestFitMappingAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.CoClassAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.FlagsAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 0 && UnderlyingNamedType.IsEnum)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-                        }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.DefaultMemberAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
-                        {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
-
-                            // Embed members matching default member name.
-                            string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
-                            if (defaultMember != null)
+                            Debug.Assert(signatureIndex == 0 || signatureIndex == 1);
+                            if (attrData.CommonConstructorArguments.Length == 1)
                             {
-                                EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
+                                    WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorComInterfaceType,
+                                    attrData, syntaxNodeOpt, diagnostics));
                             }
                         }
-                    }
-                    else if (IsTargetAttribute(attrData, AttributeDescription.UnmanagedFunctionPointerAttribute))
-                    {
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        else if (IsTargetAttribute(attrData, AttributeDescription.BestFitMappingAttribute))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.CoClassAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.FlagsAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 0 && UnderlyingNamedType.IsEnum)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.DefaultMemberAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+
+                                // Embed members matching default member name.
+                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                if (defaultMember != null)
+                                {
+                                    EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
+                                }
+                            }
+                        }
+                        else if (IsTargetAttribute(attrData, AttributeDescription.UnmanagedFunctionPointerAttribute))
+                        {
+                            if (attrData.CommonConstructorArguments.Length == 1)
+                            {
+                                builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            }
                         }
                     }
                 }
@@ -210,12 +211,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    if (this.lazyAssemblyRefIndex == -1)
+                    if (_lazyAssemblyRefIndex == -1)
                     {
-                        this.lazyAssemblyRefIndex = GetAssemblyRefIndex();
-                        Debug.Assert(this.lazyAssemblyRefIndex >= 0);
+                        _lazyAssemblyRefIndex = GetAssemblyRefIndex();
+                        Debug.Assert(_lazyAssemblyRefIndex >= 0);
                     }
-                    return this.lazyAssemblyRefIndex;
+                    return _lazyAssemblyRefIndex;
                 }
             }
 
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    if (lazyEvents.IsDefault)
+                    if (_lazyEvents.IsDefault)
                     {
                         Debug.Assert(TypeManager.IsFrozen);
 
@@ -252,10 +253,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             }
                         }
 
-                        ImmutableInterlocked.InterlockedInitialize(ref lazyEvents, builder.ToImmutableAndFree());
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                     }
 
-                    return lazyEvents;
+                    return _lazyEvents;
                 }
             }
 
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IFieldDefinition> Cci.ITypeDefinition.GetFields(EmitContext context)
             {
-                if (lazyFields.IsDefault)
+                if (_lazyFields.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -282,10 +283,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyFields, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, builder.ToImmutableAndFree());
                 }
 
-                return lazyFields;
+                return _lazyFields;
             }
 
             IEnumerable<Cci.IGenericTypeParameter> Cci.ITypeDefinition.GenericParameters
@@ -403,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return layout != null ? layout.Value.Kind : System.Runtime.InteropServices.LayoutKind.Auto;
+                    return layout?.Kind ?? System.Runtime.InteropServices.LayoutKind.Auto;
                 }
             }
 
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return (ushort)(layout != null ? layout.Value.Alignment : 0);
+                    return (ushort)(layout?.Alignment ?? 0);
                 }
             }
 
@@ -421,13 +422,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     var layout = GetTypeLayoutIfStruct();
-                    return (uint)(layout != null ? layout.Value.Size : 0);
+                    return (uint)(layout?.Size ?? 0);
                 }
             }
 
             IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
             {
-                if (lazyMethods.IsDefault)
+                if (_lazyMethods.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             {
                                 if (gapSize > 0)
                                 {
-                                    builder.Add(new VtblGap(this, Microsoft.CodeAnalysis.ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
+                                    builder.Add(new VtblGap(this, ModuleExtensions.GetVTableGapName(gapIndex, gapSize)));
                                     gapIndex++;
                                     gapSize = 0;
                                 }
@@ -464,10 +465,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyMethods, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyMethods, builder.ToImmutableAndFree());
                 }
 
-                return lazyMethods;
+                return _lazyMethods;
             }
 
             IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
@@ -477,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IPropertyDefinition> Cci.ITypeDefinition.GetProperties(EmitContext context)
             {
-                if (lazyProperties.IsDefault)
+                if (_lazyProperties.IsDefault)
                 {
                     Debug.Assert(TypeManager.IsFrozen);
 
@@ -493,10 +494,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         }
                     }
 
-                    ImmutableInterlocked.InterlockedInitialize(ref lazyProperties, builder.ToImmutableAndFree());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyProperties, builder.ToImmutableAndFree());
                 }
 
-                return lazyProperties;
+                return _lazyProperties;
             }
 
             IEnumerable<Cci.SecurityAttribute> Cci.ITypeDefinition.SecurityAttributes
@@ -518,12 +519,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
-                if (this.lazyAttributes.IsDefault)
+                if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
-                    if (ImmutableInterlocked.InterlockedInitialize(ref this.lazyAttributes, attributes))
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
                         // Save any diagnostics that we encountered.
                         context.Diagnostics.AddRange(diagnostics);
@@ -532,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     diagnostics.Free();
                 }
 
-                return this.lazyAttributes;
+                return _lazyAttributes;
             }
 
             void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             result.RemoveRange(index, count);
             return SyntaxFactory.List(result);
         }
-        
+
         public static SyntaxList<T> ToSyntaxList<T>(this IEnumerable<T> sequence) where T : SyntaxNode
         {
             return SyntaxFactory.List(sequence);

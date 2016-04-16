@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal class AbstractLexer : IDisposable
     {
         internal readonly SlidingTextWindow TextWindow;
-        private List<SyntaxDiagnosticInfo> errors;
+        private List<SyntaxDiagnosticInfo> _errors;
 
         protected AbstractLexer(SourceText text)
         {
@@ -27,32 +27,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected void Start()
         {
             TextWindow.Start();
-            this.errors = null;
+            _errors = null;
         }
 
         protected bool HasErrors
         {
-            get { return this.errors != null; }
+            get { return _errors != null; }
         }
 
         protected SyntaxDiagnosticInfo[] GetErrors(int leadingTriviaWidth)
         {
-            if (this.errors != null)
+            if (_errors != null)
             {
                 if (leadingTriviaWidth > 0)
                 {
-                    var array = new SyntaxDiagnosticInfo[this.errors.Count];
-                    for (int i = 0; i < this.errors.Count; i++)
+                    var array = new SyntaxDiagnosticInfo[_errors.Count];
+                    for (int i = 0; i < _errors.Count; i++)
                     {
                         // fixup error positioning to account for leading trivia
-                        array[i] = this.errors[i].WithOffset(this.errors[i].Offset + leadingTriviaWidth);
+                        array[i] = _errors[i].WithOffset(_errors[i].Offset + leadingTriviaWidth);
                     }
 
                     return array;
                 }
                 else
                 {
-                    return this.errors.ToArray();
+                    return _errors.ToArray();
                 }
             }
             else
@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (error != null)
             {
-                if (this.errors == null)
+                if (_errors == null)
                 {
-                    this.errors = new List<SyntaxDiagnosticInfo>(8);
+                    _errors = new List<SyntaxDiagnosticInfo>(8);
                 }
 
-                this.errors.Add(error);
+                _errors.Add(error);
             }
         }
 

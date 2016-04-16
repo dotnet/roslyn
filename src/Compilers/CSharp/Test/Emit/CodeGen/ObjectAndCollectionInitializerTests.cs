@@ -187,7 +187,7 @@ struct S : I
 }
 ";
             string expectedOutput = "1";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
 {
   // Code size       36 (0x24)
@@ -240,7 +240,7 @@ struct S : I
     public Decimal? X { get; set; }
 }";
             string expectedOutput = "1.1";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
 {
   // Code size       51 (0x33)
@@ -513,7 +513,7 @@ public class Test
 2
 3
 4";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       98 (0x62)
@@ -581,7 +581,7 @@ public class Test
 2
 3
 4";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       97 (0x61)
@@ -664,7 +664,7 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      118 (0x76)
@@ -752,7 +752,7 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      117 (0x75)
@@ -793,7 +793,7 @@ public class Test
 }");
         }
 
-        [WorkItem(529272, "DevDiv")]
+        [WorkItem(2021, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
         [Fact()]
         public void ObjectInitializerFieldlikeEvent()
         {
@@ -847,7 +847,7 @@ public class Test
 ";
             string expectedOutput = @"1
 0";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
@@ -1150,7 +1150,6 @@ class A
 5";
 
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-
         }
 
         [Fact]
@@ -1254,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef },expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1931,7 +1930,7 @@ class Program
             var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArray()
         {
             var source = @"
@@ -1980,7 +1979,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerMDArray()
         {
             var source = @"
@@ -2072,7 +2071,7 @@ class C
         }
 
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerJaggedArrayNestedInitializer()
         {
             var source = @"
@@ -2129,7 +2128,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330)]
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArrayNestedObjectInitializer()
         {
             var source = @"
@@ -2738,7 +2737,7 @@ public class D : IEnumerable
 2
 3
 4.4";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       66 (0x42)
@@ -2831,7 +2830,7 @@ public class D : IEnumerable
 6
 7.7
 8.8";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      184 (0xb8)
@@ -3039,7 +3038,7 @@ public class B
 1
 2
 3";
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       92 (0x5c)
@@ -3078,7 +3077,7 @@ public class B
   IL_005b:  ret
 }");
         }
-        
+
         [Fact]
         public void CollectionInitializerTest_CtorAddsToCollection()
         {
@@ -3254,7 +3253,7 @@ Name:Bob Harris
 PH:
 650-555-0199";
 
-            var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      103 (0x67)
@@ -3339,7 +3338,7 @@ partial class C : IEnumerable
 ");
         }
 
-        [Fact, WorkItem(1089276, "DevDiv")]
+        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_01()
         {
             var source = @"
@@ -3366,7 +3365,7 @@ unsafe class C
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1");
         }
 
-        [Fact, WorkItem(1089276, "DevDiv")]
+        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_02()
         {
             var source = @"
@@ -3405,7 +3404,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: 
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput:
 @"get_Index
 2
 3");

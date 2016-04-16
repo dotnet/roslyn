@@ -415,7 +415,7 @@ F");
         }
 
         [Fact]
-        [WorkItem(679120, "DevDiv")]
+        [WorkItem(679120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679120")]
         public void ConcatEmptyArray()
         {
             var source = @"
@@ -467,7 +467,7 @@ End");
 ");
         }
 
-        [WorkItem(529064, "DevDiv")]
+        [WorkItem(529064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529064")]
         [Fact]
         public void TestStringConcatOnLiteralAndCompound()
         {
@@ -736,7 +736,7 @@ public class Test
 ");
         }
 
-        [Fact, WorkItem(1092853, "DevDiv")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral()
         {
             const string source = @"
@@ -773,7 +773,7 @@ class Repro
 ");
         }
 
-        [Fact, WorkItem(1092853, "DevDiv")]
+        [Fact, WorkItem(1092853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092853")]
         public void ConcatWithNullCoalescedNullLiteral_2()
         {
             const string source = @"
@@ -806,6 +806,269 @@ class Repro
   IL_000a:  ldnull
   IL_000b:  call       ""string string.Concat(string, string)""
   IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConcatMutableStructs()
+        {
+            const string source = @"
+using System;
+using static System.Console;
+
+struct Mutable
+{
+    int x;
+
+    public override string ToString() => (x++).ToString();
+
+    static void Main()
+    {
+        Mutable m = new Mutable();
+        Write(""("" + m + "")"");               // (0)
+        Write(""("" + m + "")"");               // (0)
+
+        Write(""("" + m.ToString() + "")"");    // (0)
+        Write(""("" + m.ToString() + "")"");    // (1)
+        Write(""("" + m.ToString() + "")"");    // (2)
+
+        Nullable<Mutable> n = new Mutable();
+        Write(""("" + n + "")"");               // (0)
+        Write(""("" + n + "")"");               // (0)
+
+        Write(""("" + n.ToString() + "")"");    // (0)
+        Write(""("" + n.ToString() + "")"");    // (1)
+        Write(""("" + n.ToString() + "")"");    // (2)
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "(0)(0)(0)(1)(2)(0)(0)(0)(1)(2)");
+        }
+
+        [Fact]
+        public void ConcatWithSpecialValueTypes()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    static void Main()
+    {
+        const char a = 'a', b = 'b';
+        char c = 'c', d = 'd';
+
+        Console.WriteLine(a + ""1"");
+        Console.WriteLine(""2"" + b);
+
+        Console.WriteLine(c + ""3"");
+        Console.WriteLine(""4"" + d);
+        
+        Console.WriteLine(true + ""5"" + c);
+        Console.WriteLine(""6"" + d + (IntPtr)7);
+        Console.WriteLine(""8"" + (UIntPtr)9 + false);
+
+        Console.WriteLine(c + ""10"" + d + ""11"");
+        Console.WriteLine(""12"" + c + ""13"" + d);
+
+        Console.WriteLine(a + ""14"" + b + ""15"" + a + ""16"");
+        Console.WriteLine(c + ""17"" + d + ""18"" + c + ""19"");
+
+        Console.WriteLine(""20"" + 21 + c + d + c + d);
+        Console.WriteLine(""22"" + c + ""23"" + d + c + d);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"a1
+2b
+c3
+4d
+True5c
+6d7
+89False
+c10d11
+12c13d
+a14b15a16
+c17d18c19
+2021cdcd
+22c23dcd");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size      473 (0x1d9)
+  .maxstack  4
+  .locals init (char V_0, //c
+                char V_1, //d
+                bool V_2,
+                System.IntPtr V_3,
+                System.UIntPtr V_4)
+  IL_0000:  ldc.i4.s   99
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.s   100
+  IL_0005:  stloc.1
+  IL_0006:  ldstr      ""a1""
+  IL_000b:  call       ""void System.Console.WriteLine(string)""
+  IL_0010:  ldstr      ""2b""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""string char.ToString()""
+  IL_0021:  ldstr      ""3""
+  IL_0026:  call       ""string string.Concat(string, string)""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ldstr      ""4""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  call       ""string char.ToString()""
+  IL_003c:  call       ""string string.Concat(string, string)""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldc.i4.1
+  IL_0047:  stloc.2
+  IL_0048:  ldloca.s   V_2
+  IL_004a:  call       ""string bool.ToString()""
+  IL_004f:  ldstr      ""5""
+  IL_0054:  ldloca.s   V_0
+  IL_0056:  call       ""string char.ToString()""
+  IL_005b:  call       ""string string.Concat(string, string, string)""
+  IL_0060:  call       ""void System.Console.WriteLine(string)""
+  IL_0065:  ldstr      ""6""
+  IL_006a:  ldloca.s   V_1
+  IL_006c:  call       ""string char.ToString()""
+  IL_0071:  ldc.i4.7
+  IL_0072:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0077:  stloc.3
+  IL_0078:  ldloca.s   V_3
+  IL_007a:  call       ""string System.IntPtr.ToString()""
+  IL_007f:  call       ""string string.Concat(string, string, string)""
+  IL_0084:  call       ""void System.Console.WriteLine(string)""
+  IL_0089:  ldstr      ""8""
+  IL_008e:  ldc.i4.s   9
+  IL_0090:  conv.i8
+  IL_0091:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
+  IL_0096:  stloc.s    V_4
+  IL_0098:  ldloca.s   V_4
+  IL_009a:  call       ""string System.UIntPtr.ToString()""
+  IL_009f:  ldc.i4.0
+  IL_00a0:  stloc.2
+  IL_00a1:  ldloca.s   V_2
+  IL_00a3:  call       ""string bool.ToString()""
+  IL_00a8:  call       ""string string.Concat(string, string, string)""
+  IL_00ad:  call       ""void System.Console.WriteLine(string)""
+  IL_00b2:  ldloca.s   V_0
+  IL_00b4:  call       ""string char.ToString()""
+  IL_00b9:  ldstr      ""10""
+  IL_00be:  ldloca.s   V_1
+  IL_00c0:  call       ""string char.ToString()""
+  IL_00c5:  ldstr      ""11""
+  IL_00ca:  call       ""string string.Concat(string, string, string, string)""
+  IL_00cf:  call       ""void System.Console.WriteLine(string)""
+  IL_00d4:  ldstr      ""12""
+  IL_00d9:  ldloca.s   V_0
+  IL_00db:  call       ""string char.ToString()""
+  IL_00e0:  ldstr      ""13""
+  IL_00e5:  ldloca.s   V_1
+  IL_00e7:  call       ""string char.ToString()""
+  IL_00ec:  call       ""string string.Concat(string, string, string, string)""
+  IL_00f1:  call       ""void System.Console.WriteLine(string)""
+  IL_00f6:  ldstr      ""a14b15a16""
+  IL_00fb:  call       ""void System.Console.WriteLine(string)""
+  IL_0100:  ldc.i4.6
+  IL_0101:  newarr     ""string""
+  IL_0106:  dup
+  IL_0107:  ldc.i4.0
+  IL_0108:  ldloca.s   V_0
+  IL_010a:  call       ""string char.ToString()""
+  IL_010f:  stelem.ref
+  IL_0110:  dup
+  IL_0111:  ldc.i4.1
+  IL_0112:  ldstr      ""17""
+  IL_0117:  stelem.ref
+  IL_0118:  dup
+  IL_0119:  ldc.i4.2
+  IL_011a:  ldloca.s   V_1
+  IL_011c:  call       ""string char.ToString()""
+  IL_0121:  stelem.ref
+  IL_0122:  dup
+  IL_0123:  ldc.i4.3
+  IL_0124:  ldstr      ""18""
+  IL_0129:  stelem.ref
+  IL_012a:  dup
+  IL_012b:  ldc.i4.4
+  IL_012c:  ldloca.s   V_0
+  IL_012e:  call       ""string char.ToString()""
+  IL_0133:  stelem.ref
+  IL_0134:  dup
+  IL_0135:  ldc.i4.5
+  IL_0136:  ldstr      ""19""
+  IL_013b:  stelem.ref
+  IL_013c:  call       ""string string.Concat(params string[])""
+  IL_0141:  call       ""void System.Console.WriteLine(string)""
+  IL_0146:  ldc.i4.6
+  IL_0147:  newarr     ""object""
+  IL_014c:  dup
+  IL_014d:  ldc.i4.0
+  IL_014e:  ldstr      ""20""
+  IL_0153:  stelem.ref
+  IL_0154:  dup
+  IL_0155:  ldc.i4.1
+  IL_0156:  ldc.i4.s   21
+  IL_0158:  box        ""int""
+  IL_015d:  stelem.ref
+  IL_015e:  dup
+  IL_015f:  ldc.i4.2
+  IL_0160:  ldloca.s   V_0
+  IL_0162:  call       ""string char.ToString()""
+  IL_0167:  stelem.ref
+  IL_0168:  dup
+  IL_0169:  ldc.i4.3
+  IL_016a:  ldloca.s   V_1
+  IL_016c:  call       ""string char.ToString()""
+  IL_0171:  stelem.ref
+  IL_0172:  dup
+  IL_0173:  ldc.i4.4
+  IL_0174:  ldloca.s   V_0
+  IL_0176:  call       ""string char.ToString()""
+  IL_017b:  stelem.ref
+  IL_017c:  dup
+  IL_017d:  ldc.i4.5
+  IL_017e:  ldloca.s   V_1
+  IL_0180:  call       ""string char.ToString()""
+  IL_0185:  stelem.ref
+  IL_0186:  call       ""string string.Concat(params object[])""
+  IL_018b:  call       ""void System.Console.WriteLine(string)""
+  IL_0190:  ldc.i4.6
+  IL_0191:  newarr     ""string""
+  IL_0196:  dup
+  IL_0197:  ldc.i4.0
+  IL_0198:  ldstr      ""22""
+  IL_019d:  stelem.ref
+  IL_019e:  dup
+  IL_019f:  ldc.i4.1
+  IL_01a0:  ldloca.s   V_0
+  IL_01a2:  call       ""string char.ToString()""
+  IL_01a7:  stelem.ref
+  IL_01a8:  dup
+  IL_01a9:  ldc.i4.2
+  IL_01aa:  ldstr      ""23""
+  IL_01af:  stelem.ref
+  IL_01b0:  dup
+  IL_01b1:  ldc.i4.3
+  IL_01b2:  ldloca.s   V_1
+  IL_01b4:  call       ""string char.ToString()""
+  IL_01b9:  stelem.ref
+  IL_01ba:  dup
+  IL_01bb:  ldc.i4.4
+  IL_01bc:  ldloca.s   V_0
+  IL_01be:  call       ""string char.ToString()""
+  IL_01c3:  stelem.ref
+  IL_01c4:  dup
+  IL_01c5:  ldc.i4.5
+  IL_01c6:  ldloca.s   V_1
+  IL_01c8:  call       ""string char.ToString()""
+  IL_01cd:  stelem.ref
+  IL_01ce:  call       ""string string.Concat(params string[])""
+  IL_01d3:  call       ""void System.Console.WriteLine(string)""
+  IL_01d8:  ret
 }
 ");
         }

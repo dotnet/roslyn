@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
@@ -26,6 +26,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
+        private void AddIndentBlockOperationsForFromClause(List<IndentBlockOperation> list, FromClauseSyntax fromClause)
+        {
+            // Only add the indent block operation if the 'in' keyword is present. Otherwise, we'll get the following:
+            //
+            //     from x
+            //         in args
+            //
+            // Rather than:
+            //
+            //     from x
+            //     in args
+            //
+            // However, we want to get the following result if the 'in' keyword is present to allow nested queries
+            // to be formatted properly.
+            //
+            //     from x in
+            //         args
+
+            if (fromClause.InKeyword.IsMissing)
+            {
+                return;
+            }
+
+            var baseToken = fromClause.FromKeyword;
+            var startToken = fromClause.Expression.GetFirstToken(includeZeroWidth: true);
+            var endToken = fromClause.Expression.GetLastToken(includeZeroWidth: true);
+
+            AddIndentBlockOperation(list, baseToken, startToken, endToken);
+        }
+
         public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
         {
             nextOperation.Invoke(list);
@@ -33,19 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var queryExpression = node as QueryExpressionSyntax;
             if (queryExpression != null)
             {
-                var firstToken = queryExpression.FromClause.Expression.GetFirstToken(includeZeroWidth: true);
-                var lastToken = queryExpression.FromClause.Expression.GetLastToken(includeZeroWidth: true);
-                AddIndentBlockOperation(list, queryExpression.FromClause.FromKeyword, firstToken, lastToken);
+                AddIndentBlockOperationsForFromClause(list, queryExpression.FromClause);
 
-                for (int i = 0; i < queryExpression.Body.Clauses.Count; i++)
+                foreach (var queryClause in queryExpression.Body.Clauses)
                 {
                     // if it is nested query expression
-                    var fromClause = queryExpression.Body.Clauses[i] as FromClauseSyntax;
+                    var fromClause = queryClause as FromClauseSyntax;
                     if (fromClause != null)
                     {
-                        firstToken = fromClause.Expression.GetFirstToken(includeZeroWidth: true);
-                        lastToken = fromClause.Expression.GetLastToken(includeZeroWidth: true);
-                        AddIndentBlockOperation(list, fromClause.FromKeyword, firstToken, lastToken);
+                        AddIndentBlockOperationsForFromClause(list, fromClause);
                     }
                 }
 

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 using System.Diagnostics;
+
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -16,19 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// An Assembly object providing metadata for the assembly.
         /// </summary>
-        private readonly PEAssembly assembly;
+        private readonly PEAssembly _assembly;
 
         /// <summary>
         /// A DocumentationProvider that provides XML documentation comments for this assembly.
         /// </summary>
-        private readonly DocumentationProvider documentationProvider;
+        private readonly DocumentationProvider _documentationProvider;
 
         /// <summary>
         /// The list of contained PEModuleSymbol objects.
         /// The list doesn't use type ReadOnlyCollection(Of PEModuleSymbol) so that we
         /// can return it from Modules property as is.
         /// </summary>
-        private readonly ImmutableArray<ModuleSymbol> modules;
+        private readonly ImmutableArray<ModuleSymbol> _modules;
 
         /// <summary>
         /// An array of assemblies involved in canonical type resolution of
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// references used by a compilation referencing this assembly.
         /// The array and its content is provided by ReferenceManager and must not be modified.
         /// </summary>
-        private ImmutableArray<AssemblySymbol> noPiaResolutionAssemblies;
+        private ImmutableArray<AssemblySymbol> _noPiaResolutionAssemblies;
 
         /// <summary>
         /// An array of assemblies referenced by this assembly, which are linked (/l-ed) by 
@@ -44,29 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// If this AssemblySymbol is linked too, it will be in this array too.
         /// The array and its content is provided by ReferenceManager and must not be modified.
         /// </summary>
-        private ImmutableArray<AssemblySymbol> linkedReferencedAssemblies;
+        private ImmutableArray<AssemblySymbol> _linkedReferencedAssemblies;
 
         /// <summary>
         /// Assembly is /l-ed by compilation that is using it as a reference.
         /// </summary>
-        private readonly bool isLinked;
+        private readonly bool _isLinked;
 
         /// <summary>
         /// Assembly's custom attributes
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
-
-        /// <summary>
-        /// Lazily initialized by MightContainExtensionMethods property.
-        /// </summary>
-        private ThreeState lazyContainsExtensionMethods;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
             Debug.Assert(assembly != null);
             Debug.Assert(documentationProvider != null);
-            this.assembly = assembly;
-            this.documentationProvider = documentationProvider;
+            _assembly = assembly;
+            _documentationProvider = documentationProvider;
 
             var modules = new ModuleSymbol[assembly.Modules.Length];
 
@@ -75,15 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 modules[i] = new PEModuleSymbol(this, assembly.Modules[i], importOptions, i);
             }
 
-            this.modules = modules.AsImmutableOrNull();
-            this.isLinked = isLinked;
+            _modules = modules.AsImmutableOrNull();
+            _isLinked = isLinked;
         }
 
         internal PEAssembly Assembly
         {
             get
             {
-                return assembly;
+                return _assembly;
             }
         }
 
@@ -91,15 +88,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return assembly.Identity;
+                return _assembly.Identity;
             }
         }
+
+        // TODO: https://github.com/dotnet/roslyn/issues/9000
+        public override Version AssemblyVersionPattern => null;
 
         public override ImmutableArray<ModuleSymbol> Modules
         {
             get
             {
-                return modules;
+                return _modules;
             }
         }
 
@@ -113,20 +113,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            if (this.lazyCustomAttributes.IsDefault)
+            if (_lazyCustomAttributes.IsDefault)
             {
                 if (this.MightContainExtensionMethods)
                 {
-                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(this.assembly.Handle,
-                        ref this.lazyCustomAttributes);
+                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
+                        ref _lazyCustomAttributes);
                 }
                 else
                 {
-                    this.PrimaryModule.LoadCustomAttributes(this.assembly.Handle,
-                        ref this.lazyCustomAttributes);
+                    this.PrimaryModule.LoadCustomAttributes(_assembly.Handle,
+                        ref _lazyCustomAttributes);
                 }
             }
-            return this.lazyCustomAttributes;
+            return _lazyCustomAttributes;
         }
 
         /// <summary>
@@ -171,22 +171,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
         {
-            return noPiaResolutionAssemblies;
+            return _noPiaResolutionAssemblies;
         }
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            this.noPiaResolutionAssemblies = assemblies;
+            _noPiaResolutionAssemblies = assemblies;
         }
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            this.linkedReferencedAssemblies = assemblies;
+            _linkedReferencedAssemblies = assemblies;
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
         {
-            return this.linkedReferencedAssemblies;
+            return _linkedReferencedAssemblies;
         }
 
         internal override ImmutableArray<byte> PublicKey
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.documentationProvider;
+                return _documentationProvider;
             }
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return this.isLinked;
+                return _isLinked;
             }
         }
 
@@ -233,20 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if (!this.lazyContainsExtensionMethods.HasValue())
-                {
-                    var moduleSymbol = this.PrimaryModule;
-                    var module = moduleSymbol.Module;
-                    // The F# compiler may not emit an assembly-level ExtensionAttribute, and previous versions of C# never checked for it.
-                    // In order to avoid a breaking change (while preserving the perceived performance benefits of not looking for extension
-                    // methods in assemblies that don't contain them), we'll also look for FSharpInterfaceDataVersionAttribute.
-                    var mightContainExtensionMethods = module.HasExtensionAttribute(this.assembly.Handle, ignoreCase: false) ||
-                                                       module.HasFSharpInterfaceDataVersionAttribute(this.assembly.Handle);
-
-                    this.lazyContainsExtensionMethods = mightContainExtensionMethods.ToThreeState();
-                }
-
-                return this.lazyContainsExtensionMethods.Value();
+                // While the specification for ExtensionAttribute requires that the containing assembly
+                // have the attribute if any type in the assembly has the attribute, some compilers do
+                // not properly follow that spec. Therefore we pessimistically assume every assembly
+                // may contain extension methods.
+                return true;
             }
         }
 
@@ -254,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (PEModuleSymbol)this.modules[0];
+                return (PEModuleSymbol)_modules[0];
             }
         }
 
@@ -262,5 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
+
+        public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
     }
 }

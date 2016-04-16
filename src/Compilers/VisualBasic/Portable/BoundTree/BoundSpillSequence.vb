@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundSpillSequence
+    Friend Partial Class BoundSpillSequence
 
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get

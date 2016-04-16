@@ -1,15 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Xunit
 
-<TestClass()>
 Public Class SyntaxTrees
 
-    <TestMethod()>
+    <Fact>
     Public Sub FindNodeUsingMembers()
         Dim code =
 <code>
@@ -23,12 +22,12 @@ End Class
         Dim compilationUnit = CType(tree.GetRoot(), CompilationUnitSyntax)
         Dim typeBlock = CType(compilationUnit.Members(0), TypeBlockSyntax)
         Dim methodBlock = CType(typeBlock.Members(0), MethodBlockSyntax)
-        Dim parameter = methodBlock.Begin.ParameterList.Parameters(0)
+        Dim parameter = methodBlock.SubOrFunctionStatement.ParameterList.Parameters(0)
         Dim parameterName = parameter.Identifier.Identifier
-        Assert.AreEqual("i", parameterName.ValueText)
+        Assert.Equal("i", parameterName.ValueText)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub FindNodeUsingQuery()
         Dim code =
 <code>
@@ -40,10 +39,10 @@ End Class
 
         Dim root As SyntaxNode = SyntaxFactory.ParseCompilationUnit(code)
         Dim parameter = root.DescendantNodes().OfType(Of ParameterSyntax)().First()
-        Assert.AreEqual("i", parameter.Identifier.Identifier.ValueText)
+        Assert.Equal("i", parameter.Identifier.Identifier.ValueText)
     End Sub
 
-    <TestMethod()>
+    <Fact>
     Public Sub UpdateNode()
         Dim code =
 <code>
@@ -55,13 +54,13 @@ End Class
 
         Dim tree = SyntaxFactory.ParseSyntaxTree(code)
         Dim root = CType(tree.GetRoot(), CompilationUnitSyntax)
-        Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().Begin, MethodStatementSyntax)
+        Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().SubOrFunctionStatement, MethodStatementSyntax)
 
         Dim newMethod = method.Update(
             method.Kind,
             method.AttributeLists,
             method.Modifiers,
-            method.Keyword,
+            method.SubOrFunctionKeyword,
             SyntaxFactory.Identifier("NewMethodName"),
             method.TypeParameterList,
             method.ParameterList,
@@ -80,7 +79,7 @@ Class C
 End Class
 </code>.GetCode()
 
-        Assert.AreEqual(newCode, newTree.GetText().ToString())
+        Assert.Equal(newCode, newTree.GetText().ToString())
     End Sub
 
     Private Class FileContentsDumper
@@ -89,17 +88,17 @@ End Class
         Private ReadOnly sb As New StringBuilder()
 
         Public Overrides Sub VisitClassStatement(node As ClassStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.ClassKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitClassStatement(node)
         End Sub
 
         Public Overrides Sub VisitStructureStatement(node As StructureStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.StructureKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitStructureStatement(node)
         End Sub
 
         Public Overrides Sub VisitInterfaceStatement(node As InterfaceStatementSyntax)
-            sb.AppendLine(node.Keyword.ValueText & " " & node.Identifier.ValueText)
+            sb.AppendLine(node.InterfaceKeyword.ValueText & " " & node.Identifier.ValueText)
             MyBase.VisitInterfaceStatement(node)
         End Sub
 
@@ -113,7 +112,7 @@ End Class
         End Function
     End Class
 
-    <TestMethod()>
+    <Fact>
     Public Sub WalkTreeUsingSyntaxWalker()
         Dim code =
 <code>
@@ -138,7 +137,7 @@ End Class
                            "Structure S" & vbCrLf &
                            "  M2" & vbCrLf
 
-        Assert.AreEqual(expectedText, visitor.ToString())
+        Assert.Equal(expectedText, visitor.ToString())
     End Sub
 
     Private Class RemoveMethodsRewriter
@@ -151,7 +150,7 @@ End Class
     End Class
 
 
-    <TestMethod()>
+    <Fact>
     Public Sub TransformTreeUsingSyntaxRewriter()
         Dim code =
 <code>
@@ -174,7 +173,7 @@ Class C
 End Class
 </code>.GetCode()
 
-        Assert.AreEqual(expectedCode, newRoot.ToFullString())
+        Assert.Equal(expectedCode, newRoot.ToFullString())
     End Sub
 
 End Class

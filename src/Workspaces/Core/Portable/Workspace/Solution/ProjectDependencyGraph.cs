@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class ProjectDependencyGraph
     {
-        private readonly ImmutableArray<ProjectId> projectIds;
-        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap;
+        private readonly ImmutableArray<ProjectId> _projectIds;
+        private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
         // guards lazy computed data
-        private readonly NonReentrantLock dataLock = new NonReentrantLock();
+        private readonly NonReentrantLock _dataLock = new NonReentrantLock();
 
         // these are computed fully on demand
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> lazyReverseReferencesMap;
-        private ImmutableArray<ProjectId> lazyTopologicallySortedProjects;
-        private ImmutableArray<IEnumerable<ProjectId>> lazyDependencySets;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _lazyReverseReferencesMap;
+        private ImmutableArray<ProjectId> _lazyTopologicallySortedProjects;
+        private ImmutableArray<IEnumerable<ProjectId>> _lazyDependencySets;
 
         // these accumulate results on demand
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> transitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> reverseTransitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
+        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap = ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty;
 
         internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
             ImmutableArray.Create<ProjectId>(),
@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> referencesMap)
         {
-            this.projectIds = projectIds;
-            this.referencesMap = referencesMap;
+            _projectIds = projectIds;
+            _referencesMap = referencesMap;
         }
 
         /// <summary>
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             ImmutableHashSet<ProjectId> projectIds;
-            if (this.referencesMap.TryGetValue(projectId, out projectIds))
+            if (_referencesMap.TryGetValue(projectId, out projectIds))
             {
                 return projectIds;
             }
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
-            if (this.lazyReverseReferencesMap == null)
+            if (_lazyReverseReferencesMap == null)
             {
-                using (this.dataLock.DisposableWait())
+                using (_dataLock.DisposableWait())
                 {
                     return this.GetProjectsThatDirectlyDependOnThisProject_NoLock(projectId);
                 }
@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableHashSet<ProjectId> GetProjectsThatDirectlyDependOnThisProject_NoLock(ProjectId projectId)
         {
-            if (this.lazyReverseReferencesMap == null)
+            if (_lazyReverseReferencesMap == null)
             {
-                this.lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
+                _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
             }
 
             ImmutableHashSet<ProjectId> reverseReferences;
-            if (this.lazyReverseReferencesMap.TryGetValue(projectId, out reverseReferences))
+            if (_lazyReverseReferencesMap.TryGetValue(projectId, out reverseReferences))
             {
                 return reverseReferences;
             }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         {
             var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
 
-            foreach (var kvp in this.referencesMap)
+            foreach (var kvp in _referencesMap)
             {
                 var references = kvp.Value;
                 foreach (var referencedId in references)
@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             // first try without lock for speed
-            var currentMap = this.transitiveReferencesMap;
+            var currentMap = _transitiveReferencesMap;
             ImmutableHashSet<ProjectId> transitiveReferences;
             if (currentMap.TryGetValue(projectId, out transitiveReferences))
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                using (this.dataLock.DisposableWait())
+                using (_dataLock.DisposableWait())
                 {
                     return GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(projectId);
                 }
@@ -160,14 +160,14 @@ namespace Microsoft.CodeAnalysis
         private ImmutableHashSet<ProjectId> GetProjectsThatThisProjectTransitivelyDependsOn_NoLock(ProjectId projectId)
         {
             ImmutableHashSet<ProjectId> transitiveReferences;
-            if (!this.transitiveReferencesMap.TryGetValue(projectId, out transitiveReferences))
+            if (!_transitiveReferencesMap.TryGetValue(projectId, out transitiveReferences))
             {
                 using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 {
                     var results = pooledObject.Object;
                     this.ComputeTransitiveReferences(projectId, results);
                     transitiveReferences = results.ToImmutableHashSet();
-                    this.transitiveReferencesMap = this.transitiveReferencesMap.Add(projectId, transitiveReferences);
+                    _transitiveReferencesMap = _transitiveReferencesMap.Add(projectId, transitiveReferences);
                 }
             }
 
@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             // first try without lock for speed
-            var currentMap = this.reverseTransitiveReferencesMap;
+            var currentMap = _reverseTransitiveReferencesMap;
             ImmutableHashSet<ProjectId> reverseTransitiveReferences;
             if (currentMap.TryGetValue(projectId, out reverseTransitiveReferences))
             {
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                using (this.dataLock.DisposableWait())
+                using (_dataLock.DisposableWait())
                 {
                     return this.GetProjectsThatTransitivelyDependOnThisProject_NoLock(projectId);
                 }
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
         {
             ImmutableHashSet<ProjectId> reverseTransitiveReferences;
 
-            if (!this.reverseTransitiveReferencesMap.TryGetValue(projectId, out reverseTransitiveReferences))
+            if (!_reverseTransitiveReferencesMap.TryGetValue(projectId, out reverseTransitiveReferences))
             {
                 using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
 
                     ComputeReverseTransitiveReferences(projectId, results);
                     reverseTransitiveReferences = results.ToImmutableHashSet();
-                    this.reverseTransitiveReferencesMap = this.reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
+                    _reverseTransitiveReferencesMap = _reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
                 }
             }
 
@@ -251,30 +251,30 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects == null)
             {
-                using (this.dataLock.DisposableWait(cancellationToken))
+                using (_dataLock.DisposableWait(cancellationToken))
                 {
                     this.GetTopologicallySortedProjects_NoLock(cancellationToken);
                 }
             }
 
-            return this.lazyTopologicallySortedProjects;
+            return _lazyTopologicallySortedProjects;
         }
 
         private IEnumerable<ProjectId> GetTopologicallySortedProjects_NoLock(CancellationToken cancellationToken)
         {
-            if (this.lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects == null)
             {
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
                 {
-                    this.TopologicalSort(this.projectIds, seenProjects.Object, resultList.Object, cancellationToken);
-                    this.lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
+                    this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
+                    _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
                 }
             }
 
-            return this.lazyTopologicallySortedProjects;
+            return _lazyTopologicallySortedProjects;
         }
 
         private void TopologicalSort(
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Recurse and add anything this project depends on before adding the project itself.
                     ImmutableHashSet<ProjectId> projectReferenceIds;
-                    if (this.referencesMap.TryGetValue(projectId, out projectReferenceIds))
+                    if (_referencesMap.TryGetValue(projectId, out projectReferenceIds))
                     {
                         TopologicalSort(projectReferenceIds, seenProjects, resultList, cancellationToken);
                     }
@@ -308,35 +308,35 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.lazyDependencySets == null)
+            if (_lazyDependencySets == null)
             {
-                using (this.dataLock.DisposableWait(cancellationToken))
+                using (_dataLock.DisposableWait(cancellationToken))
                 {
                     this.GetDependencySets_NoLock(cancellationToken);
                 }
             }
 
-            return this.lazyDependencySets;
+            return _lazyDependencySets;
         }
 
         private IEnumerable<IEnumerable<ProjectId>> GetDependencySets_NoLock(CancellationToken cancellationToken)
         {
-            if (this.lazyDependencySets == null)
+            if (_lazyDependencySets == null)
             {
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject())
                 {
                     this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
-                    this.lazyDependencySets = results.Object.ToImmutableArray();
+                    _lazyDependencySets = results.Object.ToImmutableArray();
                 }
             }
 
-            return this.lazyDependencySets;
+            return _lazyDependencySets;
         }
 
         private void ComputeDependencySets(HashSet<ProjectId> seenProjects, List<IEnumerable<ProjectId>> results, CancellationToken cancellationToken)
         {
-            foreach (var project in this.projectIds)
+            foreach (var project in _projectIds)
             {
                 if (seenProjects.Add(project))
                 {

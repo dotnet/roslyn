@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -351,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Use conditional weak table so we always return same identity for structured trivia
-        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>> structuresTable
+        private static readonly ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>> s_structuresTable
             = new ConditionalWeakTable<SyntaxNode, Dictionary<Microsoft.CodeAnalysis.SyntaxTrivia, SyntaxNode>>();
 
         /// <summary>
@@ -378,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (parent != null)
                 {
                     SyntaxNode structure;
-                    var structsInParent = structuresTable.GetOrCreateValue(parent);
+                    var structsInParent = s_structuresTable.GetOrCreateValue(parent);
                     lock (structsInParent)
                     {
                         if (!structsInParent.TryGetValue(trivia, out structure))

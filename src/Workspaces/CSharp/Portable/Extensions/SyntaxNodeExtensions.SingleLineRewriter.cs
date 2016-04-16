@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         internal class SingleLineRewriter : CSharpSyntaxRewriter
         {
-            private bool lastTokenEndedInWhitespace;
+            private bool _lastTokenEndedInWhitespace;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                if (lastTokenEndedInWhitespace)
+                if (_lastTokenEndedInWhitespace)
                 {
                     token = token.WithLeadingTrivia(Enumerable.Empty<SyntaxTrivia>());
                 }
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (token.TrailingTrivia.Count > 0)
                 {
                     token = token.WithTrailingTrivia(SyntaxFactory.Space);
-                    lastTokenEndedInWhitespace = true;
+                    _lastTokenEndedInWhitespace = true;
                 }
                 else
                 {
-                    lastTokenEndedInWhitespace = false;
+                    _lastTokenEndedInWhitespace = false;
                 }
 
                 return token;

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LexicalTests
     {
-        private readonly CSharpParseOptions options;
+        private readonly CSharpParseOptions _options;
 
         public LexicalTests()
         {
-            this.options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
+            _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
         }
 
         private SyntaxToken Lex(string text)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private SyntaxToken DebuggerLex(string text)
         {
-            using (var lexer = new InternalSyntax.Lexer(SourceText.From(text), options))
+            using (var lexer = new InternalSyntax.Lexer(SourceText.From(text), _options))
             {
                 return new SyntaxToken(lexer.Lex(InternalSyntax.LexerMode.DebuggerSyntax));
             }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private IEnumerable<InternalSyntax.BlendedNode> Blend(string text)
         {
-            using (var lexer = new InternalSyntax.Lexer(SourceText.From(text), options))
+            using (var lexer = new InternalSyntax.Lexer(SourceText.From(text), _options))
             {
                 var blender = new InternalSyntax.Blender(lexer, null, null);
                 InternalSyntax.BlendedNode result;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     yield return result;
                 }
                 while (result.Token.Kind != SyntaxKind.EndOfFileToken);
-            }           
+            }
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].Kind());
         }
 
-        [WorkItem(537500, "DevDiv")]
+        [WorkItem(537500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537500")]
         [Fact]
         [Trait("Feature", "Comments")]
         public void TestSingleLineDocCommentFollowedBySlash()
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotEqual('\\', text[0]);
-            Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, Char.GetUnicodeCategory(text[0]));
+            Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, CharUnicodeInfo.GetUnicodeCategory(text[0]));
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
@@ -1404,8 +1404,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
         }
 
-        [WorkItem(547238, "DevDiv")]
-        [Fact, WorkItem(547238, "DevDiv")]
+        [WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
+        [Fact, WorkItem(547238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547238")]
         [Trait("Feature", "Literals")]
         public void TestNumericLiteralWithExponentAndDecimalSpecifier04()
         {
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidReal, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithFloatSpecifer()
+        public void TestNumericLiteralWithFloatSpecifier()
         {
             var value = 123f;
             var text = "123f";
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithUpperFloatSpecifer()
+        public void TestNumericLiteralWithUpperFloatSpecifier()
         {
             var value = 123F;
             var text = "123F";
@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndFloatSpecifer()
+        public void TestNumericLiteralWithDecimalAndFloatSpecifier()
         {
             var value = 123.456f;
             var text = "123.456f";
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndExponentAndFloatSpecifer()
+        public void TestNumericLiteralWithDecimalAndExponentAndFloatSpecifier()
         {
             var value = 123.456e10f;
             var text = "123.456e10f";
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDoubleSpecifer()
+        public void TestNumericLiteralWithDoubleSpecifier()
         {
             var value = 123d;
             var text = "123d";
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithUpperDoubleSpecifer()
+        public void TestNumericLiteralWithUpperDoubleSpecifier()
         {
             var value = 123D;
             var text = "123D";
@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndDoubleSpecifer()
+        public void TestNumericLiteralWithDecimalAndDoubleSpecifier()
         {
             var value = 123.456d;
             var text = "123.456d";
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndExponentAndDoubleSpecifer()
+        public void TestNumericLiteralWithDecimalAndExponentAndDoubleSpecifier()
         {
             var value = 123.456e10d;
             var text = "123.456e10D";
@@ -1596,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalSpecifier()
         {
             var value = 123m;
             var text = "123m";
@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalPointAndDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalPointAndDecimalSpecifier()
         {
             var value = 123.456m;
             var text = "123.456m";
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalPointAndExponentAndDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalPointAndExponentAndDecimalSpecifier()
         {
             var value = 123.456e2m;
             var text = "123.456e2m";
@@ -2283,79 +2283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDebuggerCompilerGeneratedIdentifiers()
-        {
-            string text = "<>";
-            var token = DebuggerLexToken(text);
-
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            var errors = token.Errors();
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.Equal(text, token.Value);
-
-            text = "<>f__AnonymousType0";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.Equal(text, token.Value);
-
-            text = "<>f__AnonymousType0>";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Value);
-
-            text = "<>f__AnonymousType0<";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
-            Assert.Equal(text.Substring(0, text.Length - 1), token.Value);
-
-            text = "<>f__\\u0041nonymousType1";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal(text, token.Text);
-            Assert.NotEqual(text, token.Value);
-            Assert.Equal("<>f__AnonymousType1", token.Value);
-
-            text = "<<>";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.LessThanToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal("<", token.Text);
-
-            text = "<<X";
-            token = DebuggerLexToken(text);
-            errors = token.Errors();
-            
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind());
-            Assert.Equal(0, errors.Length);
-            Assert.Equal("<<", token.Text);
-        }
-
-        [Fact]
         public void TestDebuggerDollarIdentifiers()
         {
             string text = "$";
@@ -2371,7 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             text = "$x";
             token = DebuggerLexToken(text);
             errors = token.Errors();
-            
+
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
@@ -2381,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             text = "x$";
             token = DebuggerLexToken(text);
             errors = token.Errors();
-            
+
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
@@ -2456,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Earlier identifier syntax "[0-9]+#" not supported.
         /// </summary>
-        [WorkItem(1071347)]
+        [WorkItem(1071347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1071347")]
         [Fact]
         public void TestDebuggerAliasIdentifiers()
         {
@@ -2475,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             text = "0123#";
             token = DebuggerLexToken(text);
             errors = token.Errors();
-            
+
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(1, errors.Length);
@@ -2485,7 +2412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             text = "0x123#";
             token = DebuggerLexToken(text);
             errors = token.Errors();
-            
+
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(1, errors.Length);
@@ -2495,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             text = "123L#";
             token = DebuggerLexToken(text);
             errors = token.Errors();
-            
+
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(1, errors.Length);
@@ -2657,16 +2584,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LexerCache.MaxKeywordLength, max);
         }
 
-        [WorkItem(545781, "DevDiv")]
+        [WorkItem(545781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545781")]
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {
-            var oldCulture = Thread.CurrentThread.CurrentCulture;
+            var oldCulture = CultureInfo.CurrentCulture;
             try
             {
-                Thread.CurrentThread.CurrentCulture = (CultureInfo)oldCulture.Clone();
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~";
-                Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
+                CultureInfo.CurrentCulture = (CultureInfo)oldCulture.Clone();
+                CultureInfo.CurrentCulture.NumberFormat.NegativeSign = "~";
+                CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator = ",";
 
                 // If the exponent ("-1") is parsed using the current culture, then
                 // parsing will raise a FormatException because the current culture
@@ -2676,7 +2603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             finally
             {
-                Thread.CurrentThread.CurrentCulture = oldCulture;
+                CultureInfo.CurrentCulture = oldCulture;
             }
         }
 

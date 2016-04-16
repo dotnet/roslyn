@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Partial Class SourceNamedTypeSymbol
+    Friend Partial Class SourceNamedTypeSymbol
 
         Protected Overrides Sub AddGroupClassMembersIfNeeded(membersBuilder As MembersAndInitializersBuilder, diagnostics As DiagnosticBag)
             ' For reference, see Bindable::IsMyGroupCollection and Bindable::CrackAttributesOnAllSymbolsInContainer in native code.
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim createMethods() As String = If(attributeData.GetConstructorArgument(Of String)(1, SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
                     Dim disposeMethods() As String = If(attributeData.GetConstructorArgument(Of String)(2, SpecialType.System_String), "").Split(separatorComma, StringSplitOptions.None)
 
-                    ' DefaltInstanceAliases are respected only for attrubutes applied in MyTemplate.
+                    ' DefaultInstanceAliases are respected only for attributes applied in MyTemplate.
                     Dim defaultInstances() As String
 
                     If attributeSyntax.SyntaxTree.IsMyTemplate Then
@@ -323,7 +323,7 @@ DoneWithBindingAttributes:
 
                     Select Case memberSyntax.Kind
                         Case SyntaxKind.ConstructorBlock
-                            constructorSyntax = DirectCast(memberSyntax, ConstructorBlockSyntax).Begin
+                            constructorSyntax = DirectCast(memberSyntax, ConstructorBlockSyntax).SubNewStatement
                         Case SyntaxKind.SubNewStatement
                             constructorSyntax = DirectCast(memberSyntax, SubNewStatementSyntax)
                         Case Else

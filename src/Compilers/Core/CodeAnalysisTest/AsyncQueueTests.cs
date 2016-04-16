@@ -44,6 +44,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TryEnqueueAfterPromisingNotTo()
+        {
+            var queue = new AsyncQueue<int>();
+            Assert.True(queue.TryEnqueue(42));
+            queue.PromiseNotToEnqueue();
+            Assert.Throws(typeof(InvalidOperationException), () => {
+                queue.TryEnqueue(42);
+            });
+        }
+
+        [Fact]
         public async Task DequeueThenEnqueue()
         {
             var queue = new AsyncQueue<int>();
@@ -188,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await queue.WhenCompletedTask.ConfigureAwait(false);
 
             // The AsyncQueue<T>.Task property won't complete until all of the 
-            // exitsing DequeueAsync values have also completed.
+            // existing DequeueAsync values have also completed.
             Assert.True(task.IsCompleted);
         }
 
@@ -210,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TryDequeueAfterComplete()
         {
-            var queue = new AsyncQueue<int> ();
+            var queue = new AsyncQueue<int>();
             queue.Enqueue(13);
             queue.Complete();
             await queue.WhenCompletedTask.ConfigureAwait(false);

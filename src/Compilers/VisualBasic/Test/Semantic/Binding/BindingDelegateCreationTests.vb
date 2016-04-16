@@ -186,7 +186,7 @@ Module Program
 End Module
     </file>
 </compilation>
-            Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.DelegatesWithoutInvoke.AsImmutableOrNull())
+            Dim ref = MetadataReference.CreateFromImage(TestResources.General.DelegatesWithoutInvoke.AsImmutableOrNull())
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>
@@ -721,10 +721,10 @@ BC36663: Option Strict On does not allow narrowing in implicit type conversions 
         End Sub
 
         <Fact>
-        Public Sub NoZeroArgumentRelaxationIfAmbigousMatchesExist()
+        Public Sub NoZeroArgumentRelaxationIfAmbiguousMatchesExist()
             For Each optionValue In {"Off"}
                 Dim source =
-    <compilation name="NoZeroArgumentRelaxationIfAmbigousMatchesExist">
+    <compilation>
         <file name="a.vb">
 Option strict <%= optionValue %>    
 Imports System
@@ -836,7 +836,7 @@ End Module
     </file>
     </compilation>
 
-                Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.DelegateByRefParamArray.AsImmutableOrNull())
+                Dim ref = MetadataReference.CreateFromImage(TestResources.General.DelegateByRefParamArray.AsImmutableOrNull())
 
                 Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
                 AssertTheseDiagnostics(c1,
@@ -1031,7 +1031,7 @@ foo
 ]]>)
         End Sub
 
-        <WorkItem(542068, "DevDiv")>
+        <WorkItem(542068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542068")>
         <Fact>
         Public Sub DelegateBindingForGenericMethods01b()
             For Each OptionStrict In {"On", "Off"}
@@ -1097,7 +1097,7 @@ End Module
             Next
         End Sub
 
-        <WorkItem(543083, "DevDiv")>
+        <WorkItem(543083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543083")>
         <Fact()>
         Public Sub AddressOfOfCurrentMethod()
             Dim source =
@@ -1211,7 +1211,7 @@ BC36625: Lambda expression cannot be converted to 'Expression(Of Byte)' because 
             Next
         End Sub
 
-        <WorkItem(546014, "DevDiv")>
+        <WorkItem(546014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546014")>
         <Fact>
         Public Sub Bug14947()
             Dim source =
@@ -1243,8 +1243,8 @@ End Class
             CompileAndVerify(source, "all working here")
         End Sub
 
-        <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForSharednessMismatch()
+        <Fact>
+        Public Sub InvalidDelegateRelaxationForSharednessMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1272,8 +1272,8 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="2")
         End Sub
 
-        <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForSharednessMismatch_2()
+        <Fact>
+        Public Sub InvalidDelegateRelaxationForSharednessMismatch_2()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1314,8 +1314,8 @@ BC30518: Overload resolution failed because no accessible 'Foo' can be called wi
                                            </expected>)
         End Sub
 
-        <Fact, WorkItem(17302)>
-        Sub InvalidDelegateRelaxationForMyClassMismatch()
+        <Fact>
+        Public Sub InvalidDelegateRelaxationForMyClassMismatch()
             Dim compilationDef = <compilation>
                                      <file name="a.vb"><![CDATA[
 Option Strict On

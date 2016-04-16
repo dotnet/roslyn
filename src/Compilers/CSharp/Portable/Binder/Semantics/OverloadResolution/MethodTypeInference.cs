@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 /*
 SPEC:
@@ -82,20 +83,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Indirect = 0x12
         }
 
-        private readonly ConversionsBase conversions;
-        private readonly ImmutableArray<TypeParameterSymbol> methodTypeParameters;
-        private readonly NamedTypeSymbol constructedContainingTypeOfMethod;
-        private readonly ImmutableArray<TypeSymbol> formalParameterTypes;
-        private readonly ImmutableArray<RefKind> formalParameterRefKinds;
-        private readonly ImmutableArray<TypeSymbol> argumentTypes;
-        private readonly ImmutableArray<BoundExpression> arguments;
+        private readonly ConversionsBase _conversions;
+        private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
+        private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
+        private readonly ImmutableArray<TypeSymbol> _formalParameterTypes;
+        private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
+        private readonly ImmutableArray<TypeSymbol> _argumentTypes;
+        private readonly ImmutableArray<BoundExpression> _arguments;
 
-        private readonly TypeSymbol[] fixedResults;
-        private readonly HashSet<TypeSymbol>[] exactBounds;
-        private readonly HashSet<TypeSymbol>[] upperBounds;
-        private readonly HashSet<TypeSymbol>[] lowerBounds;
-        private Dependency[,] dependencies; // Initialized lazily
-        private bool dependenciesDirty;
+        private readonly TypeSymbol[] _fixedResults;
+        private readonly HashSet<TypeSymbol>[] _exactBounds;
+        private readonly HashSet<TypeSymbol>[] _upperBounds;
+        private readonly HashSet<TypeSymbol>[] _lowerBounds;
+        private Dependency[,] _dependencies; // Initialized lazily
+        private bool _dependenciesDirty;
 
         public static MethodTypeInferenceResult Infer(
             Binder binder,
@@ -254,19 +255,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments)
         {
-            this.conversions = conversions;
-            this.methodTypeParameters = methodTypeParameters;
-            this.constructedContainingTypeOfMethod = constructedContainingTypeOfMethod;
-            this.formalParameterTypes = formalParameterTypes;
-            this.formalParameterRefKinds = formalParameterRefKinds;
-            this.argumentTypes = argumentTypes;
-            this.arguments = arguments;
-            this.fixedResults = new TypeSymbol[methodTypeParameters.Length];
-            this.exactBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
-            this.upperBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
-            this.lowerBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
-            this.dependencies = null;
-            this.dependenciesDirty = false;
+            _conversions = conversions;
+            _methodTypeParameters = methodTypeParameters;
+            _constructedContainingTypeOfMethod = constructedContainingTypeOfMethod;
+            _formalParameterTypes = formalParameterTypes;
+            _formalParameterRefKinds = formalParameterRefKinds;
+            _argumentTypes = argumentTypes;
+            _arguments = arguments;
+            _fixedResults = new TypeSymbol[methodTypeParameters.Length];
+            _exactBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
+            _upperBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
+            _lowerBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
+            _dependencies = null;
+            _dependenciesDirty = false;
         }
 
 #if DEBUG
@@ -275,9 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("Method type inference internal state");
-            sb.AppendFormat("Inferring method type parameters <{0}>\n", string.Join(", ", this.methodTypeParameters));
+            sb.AppendFormat("Inferring method type parameters <{0}>\n", string.Join(", ", _methodTypeParameters));
             sb.Append("Formal parameter types (");
-            for (int i = 0; i < formalParameterTypes.Length; ++i)
+            for (int i = 0; i < _formalParameterTypes.Length; ++i)
             {
                 if (i != 0)
                 {
@@ -293,26 +294,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sb.Append("ref ");
                 }
-                sb.Append(formalParameterTypes[i]);
+                sb.Append(_formalParameterTypes[i]);
             }
 
             sb.Append("\n");
 
-            sb.AppendFormat("Argument types ({0})\n", string.Join(", ", argumentTypes));
+            sb.AppendFormat("Argument types ({0})\n", string.Join(", ", _argumentTypes));
 
-            if (dependencies == null)
+            if (_dependencies == null)
             {
                 sb.AppendLine("Dependencies are not yet calculated");
             }
             else
             {
-                sb.AppendFormat("Dependencies are {0}\n", dependenciesDirty ? "out of date" : "up to date");
+                sb.AppendFormat("Dependencies are {0}\n", _dependenciesDirty ? "out of date" : "up to date");
                 sb.AppendLine("dependency matrix (Not dependent / Direct / Indirect / Unknown):");
-                for (int i = 0; i < methodTypeParameters.Length; ++i)
+                for (int i = 0; i < _methodTypeParameters.Length; ++i)
                 {
-                    for (int j = 0; j < methodTypeParameters.Length; ++j)
+                    for (int j = 0; j < _methodTypeParameters.Length; ++j)
                     {
-                        switch (dependencies[i, j])
+                        switch (_dependencies[i, j])
                         {
                             case Dependency.NotDependent:
                                 sb.Append("N");
@@ -330,14 +331,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     sb.AppendLine();
                 }
-
             }
 
-            for (int i = 0; i < methodTypeParameters.Length; ++i)
+            for (int i = 0; i < _methodTypeParameters.Length; ++i)
             {
-                sb.AppendFormat("Method type parameter {0}: ", methodTypeParameters[i].Name);
+                sb.AppendFormat("Method type parameter {0}: ", _methodTypeParameters[i].Name);
 
-                var fixedType = fixedResults[i];
+                var fixedType = _fixedResults[i];
 
                 if ((object)fixedType == null)
                 {
@@ -348,9 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.AppendFormat("FIXED to {0} ", fixedType);
                 }
 
-                sb.AppendFormat("upper bounds: ({0}) ", (upperBounds[i] == null) ? "" : string.Join(", ", upperBounds[i]));
-                sb.AppendFormat("lower bounds: ({0}) ", (lowerBounds[i] == null) ? "" : string.Join(", ", lowerBounds[i]));
-                sb.AppendFormat("exact bounds: ({0}) ", (exactBounds[i] == null) ? "" : string.Join(", ", exactBounds[i]));
+                sb.AppendFormat("upper bounds: ({0}) ", (_upperBounds[i] == null) ? "" : string.Join(", ", _upperBounds[i]));
+                sb.AppendFormat("lower bounds: ({0}) ", (_lowerBounds[i] == null) ? "" : string.Join(", ", _lowerBounds[i]));
+                sb.AppendFormat("exact bounds: ({0}) ", (_exactBounds[i] == null) ? "" : string.Join(", ", _exactBounds[i]));
                 sb.AppendLine();
             }
 
@@ -361,8 +361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private RefKind GetRefKind(int index)
         {
-            Debug.Assert(0 <= index && index < formalParameterTypes.Length);
-            return formalParameterRefKinds.IsDefault ? RefKind.None : formalParameterRefKinds[index];
+            Debug.Assert(0 <= index && index < _formalParameterTypes.Length);
+            return _formalParameterRefKinds.IsDefault ? RefKind.None : _formalParameterRefKinds[index];
         }
 
         private ImmutableArray<TypeSymbol> GetResults()
@@ -383,35 +383,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is nice and concise.  However, it falls down if there are multiple
             // type params that we have left.
 
-            for (int i = 0; i < methodTypeParameters.Length; i++)
+            for (int i = 0; i < _methodTypeParameters.Length; i++)
             {
-                if ((object)fixedResults[i] != null)
+                if ((object)_fixedResults[i] != null)
                 {
-                    if (!fixedResults[i].IsErrorType())
+                    if (!_fixedResults[i].IsErrorType())
                     {
                         continue;
                     }
 
-                    var errorTypeName = fixedResults[i].Name;
+                    var errorTypeName = _fixedResults[i].Name;
                     if (errorTypeName != null)
                     {
                         continue;
                     }
                 }
-                fixedResults[i] = new ExtendedErrorTypeSymbol(constructedContainingTypeOfMethod, methodTypeParameters[i].Name, 0, null, false);
+                _fixedResults[i] = new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false);
             }
-            return ImmutableArray.Create<TypeSymbol>(fixedResults);
+            return ImmutableArray.Create<TypeSymbol>(_fixedResults);
         }
 
         private bool ValidIndex(int index)
         {
-            return 0 <= index && index < methodTypeParameters.Length;
+            return 0 <= index && index < _methodTypeParameters.Length;
         }
 
         private bool IsUnfixed(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return (object)fixedResults[methodTypeParameterIndex] == null;
+            return (object)_fixedResults[methodTypeParameterIndex] == null;
         }
 
         private bool IsUnfixedTypeParameter(TypeSymbol type)
@@ -423,13 +423,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type;
             int ordinal = typeParameter.Ordinal;
             return ValidIndex(ordinal) &&
-                typeParameter == this.methodTypeParameters[ordinal] &&
+                typeParameter == _methodTypeParameters[ordinal] &&
                 IsUnfixed(ordinal);
         }
 
         private bool AllFixed()
         {
-            for (int methodTypeParameterIndex = 0; methodTypeParameterIndex < methodTypeParameters.Length; ++methodTypeParameterIndex)
+            for (int methodTypeParameterIndex = 0; methodTypeParameterIndex < _methodTypeParameters.Length; ++methodTypeParameterIndex)
             {
                 if (IsUnfixed(methodTypeParameterIndex))
                 {
@@ -443,44 +443,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (lowerBounds[methodTypeParameterIndex] == null)
+            if (_lowerBounds[methodTypeParameterIndex] == null)
             {
-                lowerBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
+                _lowerBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
             }
 
-            lowerBounds[methodTypeParameterIndex].Add(lowerBound);
+            _lowerBounds[methodTypeParameterIndex].Add(lowerBound);
         }
 
         private void AddUpperBound(TypeParameterSymbol methodTypeParameter, TypeSymbol upperBound)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (upperBounds[methodTypeParameterIndex] == null)
+            if (_upperBounds[methodTypeParameterIndex] == null)
             {
-                upperBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
+                _upperBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
             }
 
-            upperBounds[methodTypeParameterIndex].Add(upperBound);
+            _upperBounds[methodTypeParameterIndex].Add(upperBound);
         }
 
         private void AddExactBound(TypeParameterSymbol methodTypeParameter, TypeSymbol exactBound)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
-            if (exactBounds[methodTypeParameterIndex] == null)
+            if (_exactBounds[methodTypeParameterIndex] == null)
             {
-                exactBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
+                _exactBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
             }
 
-            exactBounds[methodTypeParameterIndex].Add(exactBound);
+            _exactBounds[methodTypeParameterIndex].Add(exactBound);
         }
 
         private bool HasBound(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return lowerBounds[methodTypeParameterIndex] != null ||
-                upperBounds[methodTypeParameterIndex] != null ||
-                exactBounds[methodTypeParameterIndex] != null;
+            return _lowerBounds[methodTypeParameterIndex] != null ||
+                _upperBounds[methodTypeParameterIndex] != null ||
+                _exactBounds[methodTypeParameterIndex] != null;
         }
 
         private NamedTypeSymbol GetFixedDelegate(NamedTypeSymbol delegateType)
@@ -494,13 +494,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or there may be input parameters fixed to _unfixed_ method type variables.
             // Both of those scenarios are legal.)
 
-            var fixedArguments = ArrayBuilder<TypeSymbol>.GetInstance(methodTypeParameters.Length, fillWithValue: null);
-            for (int iParam = 0; iParam < methodTypeParameters.Length; iParam++)
+            var fixedArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(_methodTypeParameters.Length);
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
             {
-                fixedArguments[iParam] = IsUnfixed(iParam) ? methodTypeParameters[iParam] : fixedResults[iParam];
+                fixedArguments.Add(new TypeWithModifiers(IsUnfixed(iParam) ? _methodTypeParameters[iParam] : _fixedResults[iParam]));
             }
 
-            TypeMap typeMap = new TypeMap(constructedContainingTypeOfMethod, methodTypeParameters, fixedArguments.ToImmutableAndFree());
+            TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
             return typeMap.SubstituteNamedType(delegateType);
         }
 
@@ -528,23 +528,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void InferTypeArgsFirstPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!formalParameterTypes.IsDefault);
-            Debug.Assert(!arguments.IsDefault);
-            Debug.Assert(arguments.Length == formalParameterTypes.Length);
+            Debug.Assert(!_formalParameterTypes.IsDefault);
+            Debug.Assert(!_arguments.IsDefault);
+            Debug.Assert(_arguments.Length == _formalParameterTypes.Length);
 
             // We expect that we have been handed a list of arguments and a list of the 
             // formal parameter types they correspond to; all the details about named and 
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0; arg < arguments.Length; arg++)
+            for (int arg = 0; arg < _arguments.Length; arg++)
             {
-                var argument = arguments[arg];
+                var argument = _arguments[arg];
 
                 bool isOutOrRef = GetRefKind(arg) != RefKind.None;
 
-                TypeSymbol target = formalParameterTypes[arg];
-                TypeSymbol source = arguments[arg].Type;
+                TypeSymbol target = _formalParameterTypes[arg];
+                TypeSymbol source = _arguments[arg].Type;
 
 
                 // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
@@ -714,13 +714,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: where the output types contain unfixed type parameters but the input
             // SPEC: types do not, an output type inference is made from Ei to Ti.
 
-            for (int arg = 0; arg < arguments.Length; arg++)
+            for (int arg = 0; arg < _arguments.Length; arg++)
             {
-                var formalType = formalParameterTypes[arg];
-                var argument = arguments[arg];
+                var formalType = _formalParameterTypes[arg];
+                var argument = _arguments[arg];
                 if (HasUnfixedParamInOutputType(argument, formalType) && !HasUnfixedParamInInputType(argument, formalType))
                 {
-                    var argumentType = argumentTypes[arg];
+                    var argumentType = _argumentTypes[arg];
                     //UNDONE: if (argument->isTYPEORNAMESPACEERROR() && argumentType->IsErrorType())
                     //UNDONE: {
                     //UNDONE:     argumentType = GetTypeManager().GetErrorSym();
@@ -743,9 +743,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // dependent on anything. We need to first determine which parameters need to be 
             // fixed, and then fix them all at once.
 
-            bool[] needsFixing = new bool[methodTypeParameters.Length];
+            bool[] needsFixing = new bool[_methodTypeParameters.Length];
             var result = InferenceResult.NoProgress;
-            for (int param = 0; param < methodTypeParameters.Length; param++)
+            for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 if (IsUnfixed(param) && HasBound(param) && !DependsOnAny(param))
                 {
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            for (int param = 0; param < methodTypeParameters.Length; param++)
+            for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 // Fix as much as you can, even if there are errors.  That will
                 // help with intellisense.
@@ -778,9 +778,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // As above, we must collect up everything that needs fixing first,
             // and then fix them.
 
-            var needsFixing = new bool[methodTypeParameters.Length];
+            var needsFixing = new bool[_methodTypeParameters.Length];
             var result = InferenceResult.NoProgress;
-            for (int param = 0; param < methodTypeParameters.Length; param++)
+            for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 if (IsUnfixed(param) && HasBound(param) && AnyDependsOn(param))
                 {
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            for (int param = 0; param < methodTypeParameters.Length; param++)
+            for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 // Fix as much as you can, even if there are errors.  That will
                 // help with intellisense.
@@ -844,11 +844,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasUnfixedParamInInputType(BoundExpression pSource, TypeSymbol pDest)
         {
-            for (int iParam = 0; iParam < methodTypeParameters.Length; iParam++)
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
             {
                 if (IsUnfixed(iParam))
                 {
-                    if (DoesInputTypeContain(pSource, pDest, methodTypeParameters[iParam]))
+                    if (DoesInputTypeContain(pSource, pDest, _methodTypeParameters[iParam]))
                     {
                         return true;
                     }
@@ -896,11 +896,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasUnfixedParamInOutputType(BoundExpression argument, TypeSymbol formalParameterType)
         {
-            for (int iParam = 0; iParam < methodTypeParameters.Length; iParam++)
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
             {
                 if (IsUnfixed(iParam))
                 {
-                    if (DoesOutputTypeContain(argument, formalParameterType, methodTypeParameters[iParam]))
+                    if (DoesOutputTypeContain(argument, formalParameterType, _methodTypeParameters[iParam]))
                     {
                         return true;
                     }
@@ -932,12 +932,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixed(iParam));
             Debug.Assert(IsUnfixed(jParam));
 
-            for (int iArg = 0; iArg < arguments.Length; iArg++)
+            for (int iArg = 0; iArg < _arguments.Length; iArg++)
             {
-                var formalParameterType = formalParameterTypes[iArg];
-                var argument = arguments[iArg];
-                if (DoesInputTypeContain(argument, formalParameterType, methodTypeParameters[jParam]) &&
-                    DoesOutputTypeContain(argument, formalParameterType, methodTypeParameters[iParam]))
+                var formalParameterType = _formalParameterTypes[iArg];
+                var argument = _arguments[iArg];
+                if (DoesInputTypeContain(argument, formalParameterType, _methodTypeParameters[jParam]) &&
+                    DoesOutputTypeContain(argument, formalParameterType, _methodTypeParameters[iParam]))
                 {
                     return true;
                 }
@@ -982,18 +982,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // will be very short and not branch or loop at all. This is much more likely to
             // be an O(n^2) algorithm in practice.
 
-            Debug.Assert(dependencies == null);
-            dependencies = new Dependency[methodTypeParameters.Length, methodTypeParameters.Length];
+            Debug.Assert(_dependencies == null);
+            _dependencies = new Dependency[_methodTypeParameters.Length, _methodTypeParameters.Length];
             int iParam;
             int jParam;
             Debug.Assert(0 == (int)Dependency.Unknown);
-            for (iParam = 0; iParam < methodTypeParameters.Length; ++iParam)
+            for (iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
-                for (jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+                for (jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
                     if (DependsDirectlyOn(iParam, jParam))
                     {
-                        dependencies[iParam, jParam] = Dependency.Direct;
+                        _dependencies[iParam, jParam] = Dependency.Direct;
                     }
                 }
             }
@@ -1003,26 +1003,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool DependsOn(int iParam, int jParam)
         {
-            Debug.Assert(dependencies != null);
+            Debug.Assert(_dependencies != null);
 
             // SPEC: Xj depends on Xi if Xj depends directly on Xi, or if Xi depends
             // SPEC: directly on Xk and Xk depends on Xj. Thus "depends on" is the
             // SPEC: transitive but not reflexive closure of "depends directly on".
 
-            Debug.Assert(0 <= iParam && iParam < methodTypeParameters.Length);
-            Debug.Assert(0 <= jParam && jParam < methodTypeParameters.Length);
+            Debug.Assert(0 <= iParam && iParam < _methodTypeParameters.Length);
+            Debug.Assert(0 <= jParam && jParam < _methodTypeParameters.Length);
 
-            if (dependenciesDirty)
+            if (_dependenciesDirty)
             {
                 SetIndirectsToUnknown();
                 DeduceAllDependencies();
             }
-            return 0 != ((dependencies[iParam, jParam]) & Dependency.DependsMask);
+            return 0 != ((_dependencies[iParam, jParam]) & Dependency.DependsMask);
         }
 
         private bool DependsTransitivelyOn(int iParam, int jParam)
         {
-            Debug.Assert(dependencies != null);
+            Debug.Assert(_dependencies != null);
             Debug.Assert(ValidIndex(iParam));
             Debug.Assert(ValidIndex(jParam));
 
@@ -1034,10 +1034,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // directly OR indirectly on Xk and Xk depends on Xj, then that's
             // good enough.)
 
-            for (int kParam = 0; kParam < methodTypeParameters.Length; ++kParam)
+            for (int kParam = 0; kParam < _methodTypeParameters.Length; ++kParam)
             {
-                if (((dependencies[iParam, kParam]) & Dependency.DependsMask) != 0 &&
-                    ((dependencies[kParam, jParam]) & Dependency.DependsMask) != 0)
+                if (((_dependencies[iParam, kParam]) & Dependency.DependsMask) != 0 &&
+                    ((_dependencies[kParam, jParam]) & Dependency.DependsMask) != 0)
                 {
                     return true;
                 }
@@ -1053,22 +1053,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 madeProgress = DeduceDependencies();
             } while (madeProgress);
             SetUnknownsToNotDependent();
-            dependenciesDirty = false;
+            _dependenciesDirty = false;
         }
 
         private bool DeduceDependencies()
         {
-            Debug.Assert(dependencies != null);
+            Debug.Assert(_dependencies != null);
             bool madeProgress = false;
-            for (int iParam = 0; iParam < methodTypeParameters.Length; ++iParam)
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
-                for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+                for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (dependencies[iParam, jParam] == Dependency.Unknown)
+                    if (_dependencies[iParam, jParam] == Dependency.Unknown)
                     {
                         if (DependsTransitivelyOn(iParam, jParam))
                         {
-                            dependencies[iParam, jParam] = Dependency.Indirect;
+                            _dependencies[iParam, jParam] = Dependency.Indirect;
                             madeProgress = true;
                         }
                     }
@@ -1079,14 +1079,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetUnknownsToNotDependent()
         {
-            Debug.Assert(dependencies != null);
-            for (int iParam = 0; iParam < methodTypeParameters.Length; ++iParam)
+            Debug.Assert(_dependencies != null);
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
-                for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+                for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (dependencies[iParam, jParam] == Dependency.Unknown)
+                    if (_dependencies[iParam, jParam] == Dependency.Unknown)
                     {
-                        dependencies[iParam, jParam] = Dependency.NotDependent;
+                        _dependencies[iParam, jParam] = Dependency.NotDependent;
                     }
                 }
             }
@@ -1094,14 +1094,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetIndirectsToUnknown()
         {
-            Debug.Assert(dependencies != null);
-            for (int iParam = 0; iParam < methodTypeParameters.Length; ++iParam)
+            Debug.Assert(_dependencies != null);
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
-                for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+                for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (dependencies[iParam, jParam] == Dependency.Indirect)
+                    if (_dependencies[iParam, jParam] == Dependency.Indirect)
                     {
-                        dependencies[iParam, jParam] = Dependency.Unknown;
+                        _dependencies[iParam, jParam] = Dependency.Unknown;
                     }
                 }
             }
@@ -1113,22 +1113,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void UpdateDependenciesAfterFix(int iParam)
         {
             Debug.Assert(ValidIndex(iParam));
-            if (dependencies == null)
+            if (_dependencies == null)
             {
                 return;
             }
-            for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+            for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
             {
-                dependencies[iParam, jParam] = Dependency.NotDependent;
-                dependencies[jParam, iParam] = Dependency.NotDependent;
+                _dependencies[iParam, jParam] = Dependency.NotDependent;
+                _dependencies[jParam, iParam] = Dependency.NotDependent;
             }
-            dependenciesDirty = true;
+            _dependenciesDirty = true;
         }
 
         private bool DependsOnAny(int iParam)
         {
             Debug.Assert(ValidIndex(iParam));
-            for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+            for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
             {
                 if (DependsOn(iParam, jParam))
                 {
@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool AnyDependsOn(int iParam)
         {
             Debug.Assert(ValidIndex(iParam));
-            for (int jParam = 0; jParam < methodTypeParameters.Length; ++jParam)
+            for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
             {
                 if (DependsOn(jParam, iParam))
                 {
@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arraySource = (ArrayTypeSymbol)source;
             var arrayTarget = (ArrayTypeSymbol)target;
-            if (arraySource.Rank != arrayTarget.Rank)
+            if (!arraySource.HasSameShapeAs(arrayTarget))
             {
                 return false;
             }
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.IsArray())
             {
                 var arrayTarget = (ArrayTypeSymbol)target;
-                if (arrayTarget.Rank != source.Rank)
+                if (!arrayTarget.HasSameShapeAs(source))
                 {
                     return null;
                 }
@@ -1637,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Or it might be IEnum<T> and source is rank one.
 
-            if (source.Rank != 1)
+            if (!source.IsSZArray)
             {
                 return null;
             }
@@ -2216,131 +2216,138 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
-            var exact = exactBounds[iParam];
-            var lower = lowerBounds[iParam];
-            var upper = upperBounds[iParam];
+            var exact = _exactBounds[iParam];
+            var lower = _lowerBounds[iParam];
+            var upper = _upperBounds[iParam];
 
             if (exact != null && exact.Count >= 2)
             {
                 return false;
             }
 
-            var candidates = new HashSet<TypeSymbol>();
-
-            // Optimization: if we have one exact bound then we need not add any
-            // inexact bounds; we're just going to remove them anyway.
-
-            if (exact == null)
+            var candidates = PooledHashSet<TypeSymbol>.GetInstance();
+            try
             {
+
+                // Optimization: if we have one exact bound then we need not add any
+                // inexact bounds; we're just going to remove them anyway.
+
+                if (exact == null)
+                {
+                    if (lower != null)
+                    {
+                        foreach (var lowerBound in lower)
+                        {
+                            candidates.Add(lowerBound);
+                        }
+                    }
+                    if (upper != null)
+                    {
+                        foreach (var upperBound in upper)
+                        {
+                            candidates.Add(upperBound);
+                        }
+                    }
+                }
+                else
+                {
+                    candidates.Add(exact.First());
+                }
+
+                if (candidates.Count == 0)
+                {
+                    return false;
+                }
+
+                // Don't mutate the collection as we're iterating it.
+                var initialCandidates = candidates.ToList();
+
+                // SPEC:   For each lower bound U of Xi all types to which there is not an
+                // SPEC:   implicit conversion from U are removed from the candidate set.
+
                 if (lower != null)
                 {
-                    foreach (var lowerBound in lower)
+                    foreach (var bound in lower)
                     {
-                        candidates.Add(lowerBound);
+                        // Make a copy; don't modify the collection as we're iterating it.
+                        foreach (var candidate in initialCandidates)
+                        {
+                            if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
+                            {
+                                candidates.Remove(candidate);
+                            }
+                        }
                     }
                 }
+
+                // SPEC:   For each upper bound U of Xi all types from which there is not an
+                // SPEC:   implicit conversion to U are removed from the candidate set.
+
                 if (upper != null)
                 {
-                    foreach (var upperBound in upper)
+                    foreach (var bound in upper)
                     {
-                        candidates.Add(upperBound);
-                    }
-                }
-            }
-            else
-            {
-                candidates.Add(exact.First());
-            }
-
-            if (candidates.Count == 0)
-            {
-                return false;
-            }
-
-            // Don't mutate the collection as we're iterating it.
-            var initialCandidates = candidates.ToList();
-
-            // SPEC:   For each lower bound U of Xi all types to which there is not an
-            // SPEC:   implicit conversion from U are removed from the candidate set.
-
-            if (lower != null)
-            {
-                foreach (var bound in lower)
-                {
-                    // Make a copy; don't modify the collection as we're iterating it.
-                    foreach (var candidate in initialCandidates)
-                    {
-                        if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
+                        foreach (var candidate in initialCandidates)
                         {
-                            candidates.Remove(candidate);
+                            if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
+                            {
+                                candidates.Remove(candidate);
+                            }
                         }
                     }
                 }
-            }
 
-            // SPEC:   For each upper bound U of Xi all types from which there is not an
-            // SPEC:   implicit conversion to U are removed from the candidate set.
+                // SPEC: * If among the remaining candidate types there is a unique type V to
+                // SPEC:   which there is an implicit conversion from all the other candidate
+                // SPEC:   types, then the parameter is fixed to V.
 
-            if (upper != null)
-            {
-                foreach (var bound in upper)
+                // SPEC: 4.7 The Dynamic Type
+                //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                // This rule doesn't have to be implemented explicitly due to special handling of 
+                // conversions from dynamic in ImplicitConversionExists helper.
+
+                TypeSymbol best = null;
+                foreach (var candidate in candidates)
                 {
-                    foreach (var candidate in initialCandidates)
+                    foreach (var candidate2 in candidates)
                     {
-                        if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
+                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                         {
-                            candidates.Remove(candidate);
+                            goto OuterBreak;
                         }
                     }
-                }
-            }
 
-            // SPEC: * If among the remaining candidate types there is a unique type V to
-            // SPEC:   which there is an implicit conversion from all the other candidate
-            // SPEC:   types, then the parameter is fixed to V.
-
-            // SPEC: 4.7 The Dynamic Type
-            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            // This rule doesn't have to be implemented explicitly due to special handling of 
-            // conversions from dynamic in ImplicitConversionExists helper.
-
-            TypeSymbol best = null;
-            foreach (var candidate in candidates)
-            {
-                foreach (var candidate2 in candidates)
-                {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    if ((object)best == null)
                     {
-                        goto OuterBreak;
+                        best = candidate;
                     }
+                    else if (!(best.IsDynamic() && candidate.IsObjectType()))
+                    {
+                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+
+                        // best candidate is not unique
+                        return false;
+                    }
+
+                    OuterBreak:
+                    ;
                 }
 
                 if ((object)best == null)
                 {
-                    best = candidate;
-                }
-                else if (!(best.IsDynamic() && candidate.IsObjectType()))
-                {
-                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
-
-                    // best candidate is not unique
+                    // no best candidate
                     return false;
                 }
 
-            OuterBreak:
-                ;
+                _fixedResults[iParam] = best;
+                UpdateDependenciesAfterFix(iParam);
+                return true;
             }
-
-            if ((object)best == null)
+            finally
             {
-                // no best candidate
-                return false;
+                candidates.Free();
             }
-
-            fixedResults[iParam] = best;
-            UpdateDependenciesAfterFix(iParam);
-            return true;
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2351,7 +2358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return this.conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+            return _conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2455,7 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the interface with an original definition matches
         /// the original definition of the target. If the are no matches,
-        /// or multiple multiple matches, the return value is null.
+        /// or multiple matches, the return value is null.
         /// </summary>
         private static NamedTypeSymbol GetInterfaceInferenceBound(ImmutableArray<NamedTypeSymbol> interfaces, NamedTypeSymbol target)
         {
@@ -2545,12 +2552,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool InferTypeArgumentsFromFirstArgument(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!formalParameterTypes.IsDefault);
-            Debug.Assert(formalParameterTypes.Length >= 1);
-            Debug.Assert(!arguments.IsDefault);
-            Debug.Assert(arguments.Length >= 1);
-            TypeSymbol dest = formalParameterTypes[0];
-            TypeSymbol source = arguments[0].Type;
+            Debug.Assert(!_formalParameterTypes.IsDefault);
+            Debug.Assert(_formalParameterTypes.Length >= 1);
+            Debug.Assert(!_arguments.IsDefault);
+            Debug.Assert(_arguments.Length >= 1);
+            TypeSymbol dest = _formalParameterTypes[0];
+            TypeSymbol source = _arguments[0].Type;
             // Rule out lambdas, nulls, and so on.
             if (!IsReallyAType(source))
             {
@@ -2559,9 +2566,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LowerBoundInference(source, dest, ref useSiteDiagnostics);
             // Now check to see that every type parameter used by the first
             // formal parameter type was successfully inferred.
-            for (int iParam = 0; iParam < methodTypeParameters.Length; ++iParam)
+            for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
             {
-                TypeParameterSymbol pParam = methodTypeParameters[iParam];
+                TypeParameterSymbol pParam = _methodTypeParameters[iParam];
                 if (!dest.ContainsTypeParameter(pParam))
                 {
                     continue;
@@ -2576,18 +2583,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the inferred type arguments using the original type
-        /// parameters for any type arguments that were not inferred.
+        /// Return the inferred type arguments using null
+        /// for any type arguments that were not inferred.
         /// </summary>
         private ImmutableArray<TypeSymbol> GetInferredTypeArguments()
         {
-            var typeArgs = ArrayBuilder<TypeSymbol>.GetInstance();
-            for (int i = 0; i < this.methodTypeParameters.Length; i++)
-            {
-                var typeArg = this.fixedResults[i] ?? this.methodTypeParameters[i];
-                typeArgs.Add(typeArg);
-            }
-            return typeArgs.ToImmutableAndFree();
+            return _fixedResults.AsImmutable();
         }
 
         private static bool IsReallyAType(TypeSymbol type)

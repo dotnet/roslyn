@@ -15,19 +15,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// A queue whose enqueue and dequeue operations can be performed in parallel.
     /// </summary>
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
-    public sealed class AsyncQueue<TElement>
+    internal sealed class AsyncQueue<TElement>
     {
-        private readonly TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _whenCompleted = new TaskCompletionSource<bool>();
 
         // Note: All of the below fields are accessed in parallel and may only be accessed
         // when protected by lock (SyncObject)
-        private readonly Queue<TElement> data = new Queue<TElement>();
-        private Queue<TaskCompletionSource<TElement>> waiters;
-        private bool completed;
+        private readonly Queue<TElement> _data = new Queue<TElement>();
+        private Queue<TaskCompletionSource<TElement>> _waiters;
+        private bool _completed;
+        private bool _disallowEnqueue;
 
         private object SyncObject
         {
-            get { return this.data; }
+            get { return _data; }
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (SyncObject)
                 {
-                    return this.data.Count;
+                    return _data.Count;
                 }
             }
         }
@@ -70,25 +71,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool EnqueueCore(TElement value)
         {
+            if (_disallowEnqueue)
+            {
+                throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
+            }
+
             TaskCompletionSource<TElement> waiter;
             lock (SyncObject)
             {
-                if (this.completed)
+                if (_completed)
                 {
                     return false;
                 }
 
-                if (this.waiters == null || this.waiters.Count == 0)
+                if (_waiters == null || _waiters.Count == 0)
                 {
-                    this.data.Enqueue(value);
+                    _data.Enqueue(value);
                     return true;
                 }
 
-                Debug.Assert(this.data.Count == 0);
-                waiter = this.waiters.Dequeue();
+                Debug.Assert(_data.Count == 0);
+                waiter = _waiters.Dequeue();
             }
 
-            waiter.SetResult(value);
+            // Invoke SetResult on a separate task, as this invocation could cause the underlying task to executing,
+            // which could be a long running operation that can potentially cause a deadlock if executed on the current thread.
+            Task.Run(() => waiter.SetResult(value));
+
             return true;
         }
 
@@ -99,13 +108,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             lock (SyncObject)
             {
-                if (this.data.Count == 0)
+                if (_data.Count == 0)
                 {
                     d = default(TElement);
                     return false;
                 }
 
-                d = this.data.Dequeue();
+                d = _data.Dequeue();
                 return true;
             }
         }
@@ -119,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (SyncObject)
                 {
-                    return this.completed;
+                    return _completed;
                 }
             }
         }
@@ -137,6 +146,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        public void PromiseNotToEnqueue()
+        {
+            _disallowEnqueue = true;
+        }
+
         /// <summary>
         /// Same operation as <see cref="AsyncQueue{TElement}.Complete"/> except it will not
         /// throw if the queue is already completed.
@@ -152,14 +166,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Queue<TaskCompletionSource<TElement>> existingWaiters;
             lock (SyncObject)
             {
-                if (this.completed)
+                if (_completed)
                 {
                     return false;
                 }
 
-                existingWaiters = this.waiters;
-                this.completed = true;
-                this.waiters = null;
+                existingWaiters = _waiters;
+                _completed = true;
+                _waiters = null;
             }
 
             Task.Run(() =>
@@ -172,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                whenCompleted.SetResult(true);
+                _whenCompleted.SetResult(true);
             });
 
             return true;
@@ -189,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                return whenCompleted.Task;
+                return _whenCompleted.Task;
             }
         }
 
@@ -228,12 +242,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // No matter what the state we allow DequeueAsync to drain the existing items 
                 // in the queue.  This keeps the behavior in line with TryDequeue
-                if (this.data.Count > 0)
+                if (_data.Count > 0)
                 {
-                    return Task.FromResult(this.data.Dequeue());
+                    return Task.FromResult(_data.Dequeue());
                 }
 
-                if (this.completed)
+                if (_completed)
                 {
                     var tcs = new TaskCompletionSource<TElement>();
                     tcs.SetCanceled();
@@ -241,13 +255,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    if (this.waiters == null)
+                    if (_waiters == null)
                     {
-                        this.waiters = new Queue<TaskCompletionSource<TElement>>();
+                        _waiters = new Queue<TaskCompletionSource<TElement>>();
                     }
 
                     var waiter = new TaskCompletionSource<TElement>();
-                    this.waiters.Enqueue(waiter);
+                    _waiters.Enqueue(waiter);
                     return waiter.Task;
                 }
             }

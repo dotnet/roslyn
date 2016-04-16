@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract class AbstractPersistentStorage : IPersistentStorage
     {
-        private readonly IOptionService optionService;
-        private readonly Action<AbstractPersistentStorage> disposer;
+        private readonly IOptionService _optionService;
+        private readonly Action<AbstractPersistentStorage> _disposer;
 
-        private int refCounter;
+        private int _refCounter;
 
         protected AbstractPersistentStorage(
             IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer)
@@ -24,22 +24,22 @@ namespace Microsoft.CodeAnalysis.Host
             this.WorkingFolderPath = workingFolderPath;
             this.SolutionFilePath = solutionFilePath;
 
-            this.refCounter = 0;
-            this.optionService = optionService;
-            this.disposer = disposer;
+            _refCounter = 0;
+            _optionService = optionService;
+            _disposer = disposer;
         }
 
-        public string WorkingFolderPath { get; private set; }
-        public string SolutionFilePath { get; private set; }
+        public string WorkingFolderPath { get; }
+        public string SolutionFilePath { get; }
 
         protected bool PersistenceEnabled
         {
-            get { return optionService.GetOption(PersistentStorageOptions.Enabled); }
+            get { return _optionService.GetOption(PersistentStorageOptions.Enabled); }
         }
 
         public void Dispose()
         {
-            disposer(this);
+            _disposer(this);
         }
 
         /// <summary>
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public void AddRefUnsafe()
         {
-            Contract.Requires(refCounter >= 0);
-            Interlocked.Increment(ref refCounter);
+            Contract.Requires(_refCounter >= 0);
+            Interlocked.Increment(ref _refCounter);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public bool ReleaseRefUnsafe()
         {
-            var changedValue = Interlocked.Decrement(ref refCounter);
+            var changedValue = Interlocked.Decrement(ref _refCounter);
 
             Contract.Requires(changedValue >= 0);
             return changedValue == 0;

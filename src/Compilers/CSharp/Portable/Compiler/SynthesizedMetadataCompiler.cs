@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Instrumentation;
 
 #if DEBUG
 using Roslyn.Utilities;
-#endif
 
+#endif
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -20,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class SynthesizedMetadataCompiler : CSharpSymbolVisitor
     {
-        private readonly PEModuleBuilder moduleBeingBuilt;
-        private readonly CancellationToken cancellationToken;
+        private readonly PEModuleBuilder _moduleBeingBuilt;
+        private readonly CancellationToken _cancellationToken;
 
         private SynthesizedMetadataCompiler(PEModuleBuilder moduleBeingBuilt, CancellationToken cancellationToken)
         {
             Debug.Assert(moduleBeingBuilt != null);
-            this.moduleBeingBuilt = moduleBeingBuilt;
-            this.cancellationToken = cancellationToken;
+            _moduleBeingBuilt = moduleBeingBuilt;
+            _cancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -41,17 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CancellationToken cancellationToken)
         {
             Debug.Assert(moduleBeingBuilt != null);
-           
-            using (Logger.LogBlock(FunctionId.CSharp_Compiler_CompileSynthesizedMethodMetadata, message: compilation.AssemblyName, cancellationToken: cancellationToken))
-            {
-                var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
-                compiler.Visit(compilation.SourceModule.GlobalNamespace);
-            }
+
+            var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
+            compiler.Visit(compilation.SourceModule.GlobalNamespace);
         }
 
         public override void VisitNamespace(NamespaceSymbol symbol)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var s in symbol.GetMembers())
             {
@@ -61,20 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitNamedType(NamedTypeSymbol symbol)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             var sourceTypeSymbol = symbol as SourceMemberContainerTypeSymbol;
             if ((object)sourceTypeSymbol != null)
             {
-                if (moduleBeingBuilt != null)
+                if (_moduleBeingBuilt != null)
                 {
                     // In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a 
                     // base type from another assembly) it is necessary for the compiler to generate explicit implementations for
                     // some interface methods.  They don't go in the symbol table, but if we are emitting metadata, then we should
                     // generate MethodDef entries for them.
-                    foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(cancellationToken))
+                    foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
                     {
-                        moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
+                        _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
                     }
                 }
             }
@@ -99,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
-                    moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                    _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
                 }
             }
         }

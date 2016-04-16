@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return Me.Manager.ContainingModule.RootNamespace
+                    Return Me.Manager.ContainingModule.GlobalNamespace
                 End Get
             End Property
 
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Throw ExceptionUtilities.Unreachable
             End Sub
 
-            Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+            Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
             Friend NotOverridable Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
                 Throw ExceptionUtilities.Unreachable

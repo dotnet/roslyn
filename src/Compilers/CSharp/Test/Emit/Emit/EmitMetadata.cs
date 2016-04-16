@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -155,14 +157,13 @@ public class Test : C107
 }
 ";
 
-            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
                 Assert.Equal(refs[0].Name, "MDTestLib1", StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(refs[1].Name, "mscorlib", StringComparer.OrdinalIgnoreCase);
-            }, emitOptions: TestEmitters.CCI); // TODO(tomat): Ref.Emit infrastructure can't locate the dependent assemblies
-
+            });
         }
 
         [Fact]
@@ -173,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -187,7 +188,7 @@ public class Test : Class2
             });
         }
 
-        [WorkItem(687434, "DevDiv")]
+        [WorkItem(687434, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687434")]
         [Fact()]
         public void Bug687434()
         {
@@ -197,61 +198,7 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact]
-        public void AssemblyRefs_DuplicateRows()
-        {
-            var compilation = CreateCompilationWithMscorlib(
-                "class C : C1 { }; class D { }",
-                new[] { TestReferences.SymbolsTests.Methods.CSMethods });
-
-            PEAssemblyBuilder assembly = new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                Enumerable.Empty<ResourceDescription>(),
-                // map all references to a single name:
-                assembylSymbol => new AssemblyIdentity("foo")
-            );
-
-            // Don't attempt to emit if there were any syntax, declaration, semantic, or emitted errors previously.
-            DiagnosticBag diagnostics = new DiagnosticBag();
-
-            MethodCompiler.CompileMethodBodies(
-                compilation: compilation,
-                moduleBeingBuiltOpt: assembly,
-                generateDebugInfo: false,
-                hasDeclarationErrors: false,
-                diagnostics: diagnostics,
-                filterOpt: null,
-                cancellationToken: default(CancellationToken));
-
-            diagnostics.Verify();
-            var context = new EmitContext(assembly, null, new DiagnosticBag());
-            ImmutableArray<byte> image;
-            using (var stream = new MemoryStream())
-            {
-                Cci.PeWriter.WritePeToStream(
-                    context,
-                    compilation.MessageProvider,
-                    stream,
-                    pdbWriterOpt: null,
-                    allowMissingMethodBodies: false,
-                    deterministic: false,
-                    cancellationToken: CancellationToken.None);
-
-                image = stream.ToImmutable();
-            }
-            context.Diagnostics.Verify();
-
-            // check that there are no duplicate rows in AssemblyRef table:
-            PEAssembly emittedAssembly = AssemblyMetadata.CreateFromImage(image).GetAssembly();
-            var emittedReferences = emittedAssembly.Modules[0].ReferencedAssemblies;
-            Assert.Equal(1, emittedReferences.Length);
-            Assert.Equal("foo", emittedReferences[0].Name);
-        }
-
-        [Fact, WorkItem(529006, "DevDiv")]
+        [Fact, WorkItem(529006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529006")]
         public void AddModule()
         {
             var netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(filePath: Path.GetFullPath("netModule1.netmodule"));
@@ -263,7 +210,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, emitOptions: TestEmitters.RefEmitBug, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -427,7 +374,7 @@ abstract public class A
     public abstract void M5<T, S>(T p17, S p18);
 }";
 
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: TestEmitters.CCI, symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
@@ -441,7 +388,7 @@ abstract public class A
                 var method2Ret = (ArrayTypeSymbol)m2.ReturnType;
                 var method3Ret = (ArrayTypeSymbol)m3.ReturnType;
 
-                Assert.Equal(1, method1Ret.Rank);
+                Assert.True(method1Ret.IsSZArray);
                 Assert.Same(classA, method1Ret.ElementType);
                 Assert.Equal(2, method2Ret.Rank);
                 Assert.Same(classA, method2Ret.ElementType);
@@ -535,7 +482,7 @@ static class C
                     Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1201,7 +1148,7 @@ public class C : I
         // Property/method override should succeed (and should reference
         // the correct base method, even if there is a method/property
         // with the same name in an intermediate class.
-        [WorkItem(538720, "DevDiv")]
+        [WorkItem(538720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538720")]
         [Fact]
         public void TestPropertyOverrideGet()
         {
@@ -1316,7 +1263,7 @@ class C : B<string>
                 Assert.Equal(accessor.AssociatedSymbol, property);
                 if (isFromSource)
                 {
-                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be fakse for auto property accessors");
+                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
                 }
             }
         }
@@ -1718,7 +1665,6 @@ class C1<C1T1, C1T2>
             CompileAndVerify(source);
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1()
         {
@@ -1734,10 +1680,9 @@ public class E
   }
   N2 n2; 
 }
-", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+");
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1_EP()
         {
@@ -1759,7 +1704,7 @@ public class E
   }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"1234", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: @"1234");
         }
 
         [Fact]
@@ -1768,7 +1713,7 @@ public class E
             CompileAndVerify(@"
 class B<T> where T : A {}
 class A : B<A> {}
-", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+");
         }
 
         [Fact]
@@ -1841,7 +1786,7 @@ public class B : I<C> { }
 public class C : I<B> { }
 public interface I<T> { }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1967,7 +1912,7 @@ True
 ");
         }
 
-        [WorkItem(540581, "DevDiv")]
+        [WorkItem(540581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540581")]
         [Fact]
         public void RefEmit_DependencyGraphAndCachedTypeReferences()
         {
@@ -2158,6 +2103,42 @@ public class Methods
             CompileAndVerify(sources, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
+        [Fact]
+        public void Issue4695()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    sealed class Cache
+    {
+        abstract class BucketwiseBase<TArg> where TArg : class
+        {
+            internal abstract void Default(TArg arg);
+        }
+
+        class BucketwiseBase<TAccumulator, TArg> : BucketwiseBase<TArg> where TArg : class
+        {
+            internal override void Default(TArg arg = null) { }
+        }
+
+        public string GetAll()
+        {
+            new BucketwiseBase<object, object>().Default(); // Bad image format thrown here on legacy compiler 
+            return ""OK"";
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Cache().GetAll());
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "OK");
+        }
+
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
         {
             Assert.NotNull(type.GetMembers("Public").SingleOrDefault());
@@ -2168,7 +2149,8 @@ public class Methods
                 Assert.Null(member);
         }
 
-        [Fact, WorkItem(90)]
+        [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]
+        [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
             var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
@@ -2181,18 +2163,316 @@ public class Methods
             VerifyEmitWithNoResources(comp, Platform.X86);
         }
 
-        private static void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
+        private void VerifyEmitWithNoResources(CSharpCompilation comp, Platform platform)
         {
             var options = TestOptions.ReleaseExe.WithPlatform(platform);
+            CompileAndVerify(comp.WithAssemblyName("EmitWithNoResourcesAllPlatforms_" + platform.ToString()).WithOptions(options));
+        }
 
-            using (var outputStream = new MemoryStream())
+        [Fact]
+        public unsafe void PEHeaders1()
+        {
+            var options = EmitOptions.Default.WithFileAlignment(8192);
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
+
+            var peStream = CreateCompilationWithMscorlib(
+                syntax,
+                options: TestOptions.ReleaseDll.WithDeterministic(true),
+                assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
+
+            peStream.Position = 0;
+            var peReader = new PEReader(peStream);
+
+            var peHeaders = peReader.PEHeaders;
+            var peHeader = peHeaders.PEHeader;
+            var coffHeader = peHeaders.CoffHeader;
+            var corHeader = peHeaders.CorHeader;
+
+            Assert.Equal(PEMagic.PE32, peHeader.Magic);
+            Assert.Equal(0x0000237E, peHeader.AddressOfEntryPoint);
+            Assert.Equal(0x00002000, peHeader.BaseOfCode);
+            Assert.Equal(0x00004000, peHeader.BaseOfData);
+            Assert.Equal(0x00002000, peHeader.SizeOfHeaders);
+            Assert.Equal(0x00002000, peHeader.SizeOfCode);
+            Assert.Equal(0x00001000u, peHeader.SizeOfHeapCommit);
+            Assert.Equal(0x00100000u, peHeader.SizeOfHeapReserve);
+            Assert.Equal(0x00006000, peHeader.SizeOfImage);
+            Assert.Equal(0x00002000, peHeader.SizeOfInitializedData);
+            Assert.Equal(0x00001000u, peHeader.SizeOfStackCommit);
+            Assert.Equal(0x00100000u, peHeader.SizeOfStackReserve);
+            Assert.Equal(0, peHeader.SizeOfUninitializedData);
+            Assert.Equal(Subsystem.WindowsCui, peHeader.Subsystem);
+            Assert.Equal(DllCharacteristics.DynamicBase | DllCharacteristics.NxCompatible | DllCharacteristics.NoSeh | DllCharacteristics.TerminalServerAware, peHeader.DllCharacteristics);
+            Assert.Equal(0u, peHeader.CheckSum);
+            Assert.Equal(0x2000, peHeader.FileAlignment);
+            Assert.Equal(0x10000000u, peHeader.ImageBase);
+            Assert.Equal(0x2000, peHeader.SectionAlignment);
+            Assert.Equal(0, peHeader.MajorImageVersion);
+            Assert.Equal(0, peHeader.MinorImageVersion);
+            Assert.Equal(0x30, peHeader.MajorLinkerVersion);
+            Assert.Equal(0, peHeader.MinorLinkerVersion);
+            Assert.Equal(4, peHeader.MajorOperatingSystemVersion);
+            Assert.Equal(0, peHeader.MinorOperatingSystemVersion);
+            Assert.Equal(4, peHeader.MajorSubsystemVersion);
+            Assert.Equal(0, peHeader.MinorSubsystemVersion);
+            Assert.Equal(16, peHeader.NumberOfRvaAndSizes);
+            Assert.Equal(0x2000, peHeader.SizeOfHeaders);
+
+            Assert.Equal(0x4000, peHeader.BaseRelocationTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0xc, peHeader.BaseRelocationTableDirectory.Size);
+            Assert.Equal(0, peHeader.BoundImportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.BoundImportTableDirectory.Size);
+            Assert.Equal(0, peHeader.CertificateTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.CertificateTableDirectory.Size);
+            Assert.Equal(0, peHeader.CopyrightTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.CopyrightTableDirectory.Size);
+            Assert.Equal(0x2008, peHeader.CorHeaderTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x48, peHeader.CorHeaderTableDirectory.Size);
+            Assert.Equal(0x2310, peHeader.DebugTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x1C, peHeader.DebugTableDirectory.Size);
+            Assert.Equal(0, peHeader.ExceptionTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ExceptionTableDirectory.Size);
+            Assert.Equal(0, peHeader.ExportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ExportTableDirectory.Size);
+            Assert.Equal(0x2000, peHeader.ImportAddressTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x8, peHeader.ImportAddressTableDirectory.Size);
+            Assert.Equal(0x232C, peHeader.ImportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x4f, peHeader.ImportTableDirectory.Size);
+            Assert.Equal(0, peHeader.LoadConfigTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.LoadConfigTableDirectory.Size);
+            Assert.Equal(0, peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ResourceTableDirectory.Size);
+            Assert.Equal(0, peHeader.ThreadLocalStorageTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ThreadLocalStorageTableDirectory.Size);
+
+            int importAddressTableDirectoryOffset;
+            Assert.True(peHeaders.TryGetDirectoryOffset(peHeader.ImportAddressTableDirectory, out importAddressTableDirectoryOffset));
+            Assert.Equal(0x2000, importAddressTableDirectoryOffset);
+
+            var importAddressTableDirectoryBytes = new byte[peHeader.ImportAddressTableDirectory.Size];
+            peStream.Position = importAddressTableDirectoryOffset;
+            peStream.Read(importAddressTableDirectoryBytes, 0, importAddressTableDirectoryBytes.Length);
+            AssertEx.Equal(new byte[]
             {
-                var success = comp.WithOptions(options).Emit(outputStream).Success;
-                Assert.True(success);
+                0x60, 0x23, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00
+            }, importAddressTableDirectoryBytes);
 
-                var peVerifyOutput = CLRHelpers.PeVerify(outputStream.ToImmutable()).Join(Environment.NewLine);
-                Assert.Equal(string.Empty, peVerifyOutput);
-            }
+            int importTableDirectoryOffset;
+            Assert.True(peHeaders.TryGetDirectoryOffset(peHeader.ImportTableDirectory, out importTableDirectoryOffset));
+            Assert.Equal(0x232C, importTableDirectoryOffset);
+
+            var importTableDirectoryBytes = new byte[peHeader.ImportTableDirectory.Size];
+            peStream.Position = importTableDirectoryOffset;
+            peStream.Read(importTableDirectoryBytes, 0, importTableDirectoryBytes.Length);
+            AssertEx.Equal(new byte[]
+            {
+                0x54, 0x23, 0x00, 0x00, // RVA
+                0x00, 0x00, 0x00, 0x00, // 0
+                0x00, 0x00, 0x00, 0x00, // 0
+                0x6E, 0x23, 0x00, 0x00, // name RVA
+                0x00, 0x20, 0x00, 0x00, // ImportAddressTableDirectory RVA
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x60, 0x23, 0x00, 0x00, // hint RVA
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00,             // hint
+                (byte)'_', (byte)'C', (byte)'o', (byte)'r', (byte)'D', (byte)'l', (byte)'l', (byte)'M', (byte)'a', (byte)'i', (byte)'n', 0x00,
+                (byte)'m', (byte)'s', (byte)'c', (byte)'o', (byte)'r', (byte)'e', (byte)'e', (byte)'.', (byte)'d', (byte)'l', (byte)'l', 0x00,
+                0x00
+            }, importTableDirectoryBytes);
+
+            var entryPointSectionIndex = peHeaders.GetContainingSectionIndex(peHeader.AddressOfEntryPoint);
+            Assert.Equal(0, entryPointSectionIndex);
+
+            peStream.Position = peHeaders.SectionHeaders[0].PointerToRawData + peHeader.AddressOfEntryPoint - peHeaders.SectionHeaders[0].VirtualAddress;
+            byte[] startupStub = new byte[8];
+            peStream.Read(startupStub, 0, startupStub.Length);
+            AssertEx.Equal(new byte[] { 0xFF, 0x25, 0x00, 0x20, 0x00, 0x10, 0x00, 0x00 }, startupStub);
+
+            Assert.Equal(Characteristics.Dll | Characteristics.LargeAddressAware | Characteristics.ExecutableImage, coffHeader.Characteristics);
+            Assert.Equal(Machine.I386, coffHeader.Machine);
+            Assert.Equal(2, coffHeader.NumberOfSections);
+            Assert.Equal(0, coffHeader.NumberOfSymbols);
+            Assert.Equal(0, coffHeader.PointerToSymbolTable);
+            Assert.Equal(0xe0, coffHeader.SizeOfOptionalHeader);
+            Assert.Equal(-609170495, coffHeader.TimeDateStamp);
+
+            Assert.Equal(0, corHeader.EntryPointTokenOrRelativeVirtualAddress);
+            Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
+            Assert.Equal(2, corHeader.MajorRuntimeVersion);
+            Assert.Equal(5, corHeader.MinorRuntimeVersion);
+
+            Assert.Equal(0, corHeader.CodeManagerTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.CodeManagerTableDirectory.Size);
+            Assert.Equal(0, corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ExportAddressTableJumpsDirectory.Size);
+            Assert.Equal(0, corHeader.ManagedNativeHeaderDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ManagedNativeHeaderDirectory.Size);
+            Assert.Equal(0x2058, corHeader.MetadataDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x02b8, corHeader.MetadataDirectory.Size);
+            Assert.Equal(0, corHeader.ResourcesDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ResourcesDirectory.Size);
+            Assert.Equal(0, corHeader.StrongNameSignatureDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.StrongNameSignatureDirectory.Size);
+            Assert.Equal(0, corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.VtableFixupsDirectory.Size);
+
+            var sections = peHeaders.SectionHeaders;
+            Assert.Equal(2, sections.Length);
+
+            Assert.Equal(".text", sections[0].Name);
+            Assert.Equal(0, sections[0].NumberOfLineNumbers);
+            Assert.Equal(0, sections[0].NumberOfRelocations);
+            Assert.Equal(0, sections[0].PointerToLineNumbers);
+            Assert.Equal(0x2000, sections[0].PointerToRawData);
+            Assert.Equal(0, sections[0].PointerToRelocations);
+            Assert.Equal(SectionCharacteristics.ContainsCode | SectionCharacteristics.MemExecute | SectionCharacteristics.MemRead, sections[0].SectionCharacteristics);
+            Assert.Equal(0x2000, sections[0].SizeOfRawData);
+            Assert.Equal(0x2000, sections[0].VirtualAddress);
+            Assert.Equal(900, sections[0].VirtualSize);
+
+            Assert.Equal(".reloc", sections[1].Name);
+            Assert.Equal(0, sections[1].NumberOfLineNumbers);
+            Assert.Equal(0, sections[1].NumberOfRelocations);
+            Assert.Equal(0, sections[1].PointerToLineNumbers);
+            Assert.Equal(0x4000, sections[1].PointerToRawData);
+            Assert.Equal(0, sections[1].PointerToRelocations);
+            Assert.Equal(SectionCharacteristics.ContainsInitializedData | SectionCharacteristics.MemDiscardable | SectionCharacteristics.MemRead, sections[1].SectionCharacteristics);
+            Assert.Equal(0x2000, sections[1].SizeOfRawData);
+            Assert.Equal(0x4000, sections[1].VirtualAddress);
+            Assert.Equal(12, sections[1].VirtualSize);
+
+            var relocBlock = peReader.GetSectionData(sections[1].VirtualAddress);
+            var relocBytes = new byte[sections[1].VirtualSize];
+            Marshal.Copy((IntPtr)relocBlock.Pointer, relocBytes, 0, relocBytes.Length);
+            AssertEx.Equal(new byte[] { 0, 0x20, 0, 0, 0x0c, 0, 0, 0, 0x80, 0x33, 0, 0 }, relocBytes);
+        }
+
+        [Fact]
+        public void PEHeaders2()
+        {
+            var options = EmitOptions.Default.
+                WithFileAlignment(512).
+                WithBaseAddress(0x123456789ABCDEF).
+                WithHighEntropyVirtualAddressSpace(true).
+                WithSubsystemVersion(SubsystemVersion.WindowsXP);
+
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
+
+            var peStream = CreateCompilationWithMscorlib(
+                syntax,
+                options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
+                assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
+
+            peStream.Position = 0;
+            var peHeaders = new PEHeaders(peStream);
+
+            var peHeader = peHeaders.PEHeader;
+            var coffHeader = peHeaders.CoffHeader;
+            var corHeader = peHeaders.CorHeader;
+
+            Assert.Equal(PEMagic.PE32Plus, peHeader.Magic);
+            Assert.Equal(0x00000000, peHeader.AddressOfEntryPoint);
+            Assert.Equal(0x00002000, peHeader.BaseOfCode);
+            Assert.Equal(0x00000000, peHeader.BaseOfData);
+            Assert.Equal(0x00000200, peHeader.SizeOfHeaders);
+            Assert.Equal(0x00000400, peHeader.SizeOfCode);
+            Assert.Equal(0x00002000u, peHeader.SizeOfHeapCommit);
+            Assert.Equal(0x00100000u, peHeader.SizeOfHeapReserve);
+            Assert.Equal(0x00004000, peHeader.SizeOfImage);
+            Assert.Equal(0x00000000, peHeader.SizeOfInitializedData);
+            Assert.Equal(0x00004000u, peHeader.SizeOfStackCommit);
+            Assert.Equal(0x0400000u, peHeader.SizeOfStackReserve);
+            Assert.Equal(0, peHeader.SizeOfUninitializedData);
+            Assert.Equal(Subsystem.WindowsCui, peHeader.Subsystem);
+            Assert.Equal(0u, peHeader.CheckSum);
+            Assert.Equal(0x200, peHeader.FileAlignment);
+            Assert.Equal(0x0123456789ac0000u, peHeader.ImageBase);
+            Assert.Equal(0x2000, peHeader.SectionAlignment);
+            Assert.Equal(0, peHeader.MajorImageVersion);
+            Assert.Equal(0, peHeader.MinorImageVersion);
+            Assert.Equal(0x30, peHeader.MajorLinkerVersion);
+            Assert.Equal(0, peHeader.MinorLinkerVersion);
+            Assert.Equal(4, peHeader.MajorOperatingSystemVersion);
+            Assert.Equal(0, peHeader.MinorOperatingSystemVersion);
+            Assert.Equal(5, peHeader.MajorSubsystemVersion);
+            Assert.Equal(1, peHeader.MinorSubsystemVersion);
+            Assert.Equal(16, peHeader.NumberOfRvaAndSizes);
+            Assert.Equal(0x200, peHeader.SizeOfHeaders);
+
+            Assert.Equal(0, peHeader.BaseRelocationTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.BaseRelocationTableDirectory.Size);
+            Assert.Equal(0, peHeader.BoundImportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.BoundImportTableDirectory.Size);
+            Assert.Equal(0, peHeader.CertificateTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.CertificateTableDirectory.Size);
+            Assert.Equal(0, peHeader.CopyrightTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.CopyrightTableDirectory.Size);
+            Assert.Equal(0x2000, peHeader.CorHeaderTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x48, peHeader.CorHeaderTableDirectory.Size);
+            Assert.Equal(0x2324, peHeader.DebugTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x1C, peHeader.DebugTableDirectory.Size);
+            Assert.Equal(0, peHeader.ExceptionTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ExceptionTableDirectory.Size);
+            Assert.Equal(0, peHeader.ExportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ExportTableDirectory.Size);
+            Assert.Equal(0, peHeader.ImportAddressTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ImportAddressTableDirectory.Size);
+            Assert.Equal(0, peHeader.ImportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ImportTableDirectory.Size);
+            Assert.Equal(0, peHeader.LoadConfigTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.LoadConfigTableDirectory.Size);
+            Assert.Equal(0, peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ResourceTableDirectory.Size);
+            Assert.Equal(0, peHeader.ThreadLocalStorageTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, peHeader.ThreadLocalStorageTableDirectory.Size);
+
+            Assert.Equal(Characteristics.LargeAddressAware | Characteristics.ExecutableImage, coffHeader.Characteristics);
+            Assert.Equal(Machine.Amd64, coffHeader.Machine);
+            Assert.Equal(1, coffHeader.NumberOfSections);
+            Assert.Equal(0, coffHeader.NumberOfSymbols);
+            Assert.Equal(0, coffHeader.PointerToSymbolTable);
+            Assert.Equal(240, coffHeader.SizeOfOptionalHeader);
+            Assert.Equal(-862605524, coffHeader.TimeDateStamp);
+
+            Assert.Equal(0x06000001, corHeader.EntryPointTokenOrRelativeVirtualAddress);
+            Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
+            Assert.Equal(2, corHeader.MajorRuntimeVersion);
+            Assert.Equal(5, corHeader.MinorRuntimeVersion);
+
+            Assert.Equal(0, corHeader.CodeManagerTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.CodeManagerTableDirectory.Size);
+            Assert.Equal(0, corHeader.ExportAddressTableJumpsDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ExportAddressTableJumpsDirectory.Size);
+            Assert.Equal(0, corHeader.ManagedNativeHeaderDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ManagedNativeHeaderDirectory.Size);
+            Assert.Equal(0x2054, corHeader.MetadataDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x02d0, corHeader.MetadataDirectory.Size);
+            Assert.Equal(0, corHeader.ResourcesDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.ResourcesDirectory.Size);
+            Assert.Equal(0, corHeader.StrongNameSignatureDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.StrongNameSignatureDirectory.Size);
+            Assert.Equal(0, corHeader.VtableFixupsDirectory.RelativeVirtualAddress);
+            Assert.Equal(0, corHeader.VtableFixupsDirectory.Size);
+
+            var sections = peHeaders.SectionHeaders;
+            Assert.Equal(1, sections.Length);
+
+            Assert.Equal(".text", sections[0].Name);
+            Assert.Equal(0, sections[0].NumberOfLineNumbers);
+            Assert.Equal(0, sections[0].NumberOfRelocations);
+            Assert.Equal(0, sections[0].PointerToLineNumbers);
+            Assert.Equal(0x200, sections[0].PointerToRawData);
+            Assert.Equal(0, sections[0].PointerToRelocations);
+            Assert.Equal(SectionCharacteristics.ContainsCode | SectionCharacteristics.MemExecute | SectionCharacteristics.MemRead, sections[0].SectionCharacteristics);
+            Assert.Equal(0x400, sections[0].SizeOfRawData);
+            Assert.Equal(0x2000, sections[0].VirtualAddress);
+            Assert.Equal(832, sections[0].VirtualSize);
         }
     }
 }

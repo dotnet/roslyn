@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private const int FixedSizeNotInitialized = -1;
 
         // In a fixed-size field declaration, stores the fixed size of the buffer
-        private int fixedSize = FixedSizeNotInitialized;
+        private int _fixedSize = FixedSizeNotInitialized;
 
         internal SourceFixedFieldSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.fixedSize == FixedSizeNotInitialized)
+                if (_fixedSize == FixedSizeNotInitialized)
                 {
                     DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
                     int size = 0;
@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // Winner writes diagnostics.
-                    if (Interlocked.CompareExchange(ref this.fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
+                    if (Interlocked.CompareExchange(ref _fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
                     {
-                        this.AddSemanticDiagnostics(diagnostics);
+                        this.AddDeclarationDiagnostics(diagnostics);
                         if (state.NotePartComplete(CompletionPart.FixedSize))
                         {
                             // FixedSize is the last completion part for fields.
@@ -132,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Free();
                 }
 
-                Debug.Assert(this.fixedSize != FixedSizeNotInitialized);
-                return this.fixedSize;
+                Debug.Assert(_fixedSize != FixedSizeNotInitialized);
+                return _fixedSize;
             }
         }
 
@@ -147,39 +147,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string FixedElementFieldName = "FixedElementField";
 
-        private readonly SourceMemberFieldSymbol field;
-        private readonly MethodSymbol constructor;
-        private readonly FieldSymbol internalField;
+        private readonly SourceMemberFieldSymbol _field;
+        private readonly MethodSymbol _constructor;
+        private readonly FieldSymbol _internalField;
 
         public FixedFieldImplementationType(SourceMemberFieldSymbol field)
             : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name), typeParameters: ImmutableArray<TypeParameterSymbol>.Empty, typeMap: TypeMap.Empty)
         {
-            this.field = field;
-            this.constructor = new SynthesizedInstanceConstructor(this);
-            this.internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
+            _field = field;
+            _constructor = new SynthesizedInstanceConstructor(this);
+            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return field.ContainingType; }
+            get { return _field.ContainingType; }
         }
 
         public override TypeKind TypeKind
         {
             get { return TypeKind.Struct; }
         }
-                
+
         internal override MethodSymbol Constructor
         {
-            get { return constructor; }
+            get { return _constructor; }
         }
 
         internal override TypeLayout Layout
         {
             get
             {
-                int nElements = field.FixedSize;
-                var elementType = ((PointerTypeSymbol)field.Type).PointedAtType;
+                int nElements = _field.FixedSize;
+                var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
                 int elementSize = elementType.FixedBufferElementSizeInBytes();
                 const int alignment = 0;
                 int totalSize = nElements * elementSize;
@@ -188,9 +188,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override CharSet MarshallingCharSet
+        {
+            get
+            {
+                // We manually propagate the CharSet field of StructLayout attribute for fabricated structs implementing fixed buffers.
+                // See void AttrBind::EmitStructLayoutAttributeCharSet(AttributeNode *attr) in native codebase.
+                return _field.ContainingType.MarshallingCharSet;
+            }
+        }
         internal override FieldSymbol FixedElementField
         {
-            get { return internalField; }
+            get { return _internalField; }
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -207,14 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return ImmutableArray.Create<Symbol>(constructor, internalField);
+            return ImmutableArray.Create<Symbol>(_constructor, _internalField);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
             return
-                (name == constructor.Name) ? ImmutableArray.Create<Symbol>(constructor) :
-                (name == FixedElementFieldName) ? ImmutableArray.Create<Symbol>(internalField) :
+                (name == _constructor.Name) ? ImmutableArray.Create<Symbol>(_constructor) :
+                (name == FixedElementFieldName) ? ImmutableArray.Create<Symbol>(_internalField) :
                 ImmutableArray<Symbol>.Empty;
         }
 

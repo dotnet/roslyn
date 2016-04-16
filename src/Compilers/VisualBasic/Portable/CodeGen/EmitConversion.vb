@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports PrimitiveTypeCode = Microsoft.Cci.PrimitiveTypeCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         Private Shared Function IsSimpleType(type As PrimitiveTypeCode) As Boolean
             Dim result = False
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim typeTo = conversion.Type
 
             If conversion.Operand.IsNothingLiteral Then
-                Debug.Assert(typeTo.IsValueType AndAlso Not typeTo.IsTypeParameter)
+                Debug.Assert(typeTo.IsValueType OrElse typeTo.IsTypeParameter)
 
                 If used Then
                     'TODO: used
@@ -390,8 +391,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Function ConversionHasSideEffects(conversion As BoundConversion) As Boolean
-            ' only some intrinsic conversions are sideeffect free
-            ' the only sideeffect of an intrinsic conversion is a throw when we fail to convert.
+            ' only some intrinsic conversions are side-effect free
+            ' the only side-effect of an intrinsic conversion is a throw when we fail to convert.
             ' 
             ' unchecked numeric conv does not throw
             ' implicit ref cast does not throw

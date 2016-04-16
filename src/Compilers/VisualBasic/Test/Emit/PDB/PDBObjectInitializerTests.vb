@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBObjectInitializerTests
@@ -29,13 +31,9 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -43,28 +41,22 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="78" document="0"/>
-                <entry offset="0x19" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="78"/>
+                <entry offset="0x17" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x1a">
+            <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
+                <local name="inst" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -92,13 +84,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -106,28 +93,22 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="68" document="0"/>
-                <entry offset="0x19" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="68"/>
+                <entry offset="0x17" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x1a">
+            <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
+                <local name="inst" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -154,13 +135,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -168,29 +144,22 @@ End Class
             <customDebugInfo>
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
-                    <slot kind="temp"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="13" endLine="14" endColumn="90" document="0"/>
-                <entry offset="0x1d" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="29"/>
+                <entry offset="0x1" startLine="14" startColumn="13" endLine="14" endColumn="90"/>
+                <entry offset="0x19" startLine="15" startColumn="5" endLine="15" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1e" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x1e">
+            <scope startOffset="0x0" endOffset="0x1a">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="inst" il_index="0" il_start="0x0" il_end="0x1e" attributes="0"/>
+                <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact>
@@ -218,13 +187,8 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe)
-
-            Dim actual = PDBTests.GetPdbXml(compilation, "C1.Main")
-
-            Dim expected =
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            compilation.VerifyPdb("C1.Main",
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -233,31 +197,24 @@ End Class
                 <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="11"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="18" document="0"/>
-                <entry offset="0x19" startLine="15" startColumn="20" endLine="15" endColumn="25" document="0"/>
-                <entry offset="0x31" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="18"/>
+                <entry offset="0x17" startLine="15" startColumn="20" endLine="15" endColumn="25"/>
+                <entry offset="0x2d" startLine="16" startColumn="5" endLine="16" endColumn="12"/>
             </sequencePoints>
-            <locals>
-                <local name="inst1" il_index="0" il_start="0x0" il_end="0x32" attributes="0"/>
-                <local name="inst2" il_index="1" il_start="0x0" il_end="0x32" attributes="0"/>
-            </locals>
-            <scope startOffset="0x0" endOffset="0x32">
+            <scope startOffset="0x0" endOffset="0x2e">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="inst1" il_index="0" il_start="0x0" il_end="0x32" attributes="0"/>
-                <local name="inst2" il_index="1" il_start="0x0" il_end="0x32" attributes="0"/>
+                <local name="inst1" il_index="0" il_start="0x0" il_end="0x2e" attributes="0"/>
+                <local name="inst2" il_index="1" il_start="0x0" il_end="0x2e" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
     End Class

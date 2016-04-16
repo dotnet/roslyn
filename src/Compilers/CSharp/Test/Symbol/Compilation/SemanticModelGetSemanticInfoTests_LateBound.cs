@@ -165,7 +165,7 @@ class C
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal("void C.bar(System.Int32 a)", semanticInfo.Symbol.ToTestDisplayString());
-            
+
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -208,8 +208,8 @@ class List : List<int>
         /*<bind>*/Add/*</bind>*/(x);
     }
 }";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source); 
-            
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
+
             Assert.Null(semanticInfo.Type);
             Assert.Equal("void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -299,7 +299,7 @@ class C
             Assert.Equal("System.Int32 C.bar(ref dynamic a)", semanticInfo.Symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(531141, "DevDiv")]
+        [Fact, WorkItem(531141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531141")]
         public void MethodInvocation_StaticReceiver_IdentifierNameSyntax()
         {
             string sourceCode = @"
@@ -332,7 +332,7 @@ namespace Dynamic
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
-            
+
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(dynamic d)", semanticInfo.Symbol.ToTestDisplayString());
 
@@ -491,11 +491,11 @@ class C
         public void UnaryOperators()
         {
             var operators = new[] { "~", "!", "-", "+", "++", "--" };
-            var operatorNames = new[] { WellKnownMemberNames.OnesComplementOperatorName, 
+            var operatorNames = new[] { WellKnownMemberNames.OnesComplementOperatorName,
                                         WellKnownMemberNames.LogicalNotOperatorName,
                                         WellKnownMemberNames.UnaryNegationOperatorName,
-                                        WellKnownMemberNames.UnaryPlusOperatorName, 
-                                        WellKnownMemberNames.IncrementOperatorName, 
+                                        WellKnownMemberNames.UnaryPlusOperatorName,
+                                        WellKnownMemberNames.IncrementOperatorName,
                                         WellKnownMemberNames.DecrementOperatorName };
 
             for (int i = 0; i < operators.Length; i++)
@@ -589,7 +589,7 @@ class C
         }
 
         [Fact]
-        public void NullCoallescing()
+        public void NullCoalescing()
         {
             string sourceCode = @"
 class C
@@ -691,7 +691,7 @@ class C
                 Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
                 Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-                Assert.Equal("dynamic.operator " + op.Substring(0, op.Length-1) + "(dynamic, dynamic)", semanticInfo.Symbol.ToString());
+                Assert.Equal("dynamic.operator " + op.Substring(0, op.Length - 1) + "(dynamic, dynamic)", semanticInfo.Symbol.ToString());
                 Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
                 Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
                 Assert.Equal(0, semanticInfo.MethodGroup.Length);

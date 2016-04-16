@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // TODO: tune pool size.
         private const int poolSize = 64;
-        private static readonly ObjectPool<LookupSymbolsInfo> pool = new ObjectPool<LookupSymbolsInfo>(() => new LookupSymbolsInfo(), poolSize);
+        private static readonly ObjectPool<LookupSymbolsInfo> s_pool = new ObjectPool<LookupSymbolsInfo>(() => new LookupSymbolsInfo(), poolSize);
 
         private LookupSymbolsInfo()
             : base(StringComparer.Ordinal)
@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Note that poolables are not finalizable. If one gets collected - no big deal.
             this.Clear();
-            pool.Free(this);
+            s_pool.Free(this);
         }
 
         // 2) Expose the way to get an instance.
         public static LookupSymbolsInfo GetInstance()
         {
-            var info = pool.Allocate();
-            Debug.Assert(info.Names.Count == 0);
+            var info = s_pool.Allocate();
+            Debug.Assert(info.Count == 0);
             return info;
         }
     }

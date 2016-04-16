@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' There's no real need to set MethodConversionKind.Error because there are no overloads of the same method where one 
                     ' may be legal to call because it's shared and the other's not.
-                    ' However to be future proove, we set it regardless.
+                    ' However to be future proof, we set it regardless.
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return source.GetConversionClassification(destination)
         End Function
 
-        Private Shared ReadOnly CheckDelegateParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckDelegateParameterModifier
+        Private Shared ReadOnly s_checkDelegateParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckDelegateParameterModifier
 
         ''' <summary>
         ''' Checks if a parameter is a ParamArray and reports this as an error.
@@ -974,11 +974,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceMethodGroup = addressOfExpression.MethodGroup
             Dim receiver As BoundExpression = sourceMethodGroup.ReceiverOpt
 
+            Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso
                 Not addressOfExpression.HasErrors AndAlso
                 Not delegateResolutionResult.Diagnostics.HasAnyErrors Then
 
-                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, targetMethod.IsShared, clearIfShared:=True, diagnostics:=diagnostics)
+                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, targetMethod.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
 
             If Me.OptionStrict = OptionStrict.On AndAlso Conversions.IsNarrowingConversion(delegateResolutionResult.DelegateConversions) Then
@@ -1024,18 +1025,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, addressOfExpression.MethodGroup.Syntax, ERRID.ERR_NoPartialMethodInAddressOf1, target)
             End If
 
+            Dim newReceiver As BoundExpression
             If receiver IsNot Nothing Then
                 If receiver.IsPropertyOrXmlPropertyAccess() Then
                     receiver = MakeRValue(receiver, diagnostics)
                 End If
-
-                sourceMethodGroup = sourceMethodGroup.Update(sourceMethodGroup.TypeArgumentsOpt,
-                                                             sourceMethodGroup.Methods,
-                                                             sourceMethodGroup.PendingExtensionMethodsOpt,
-                                                             sourceMethodGroup.ResultKind,
-                                                             Nothing,
-                                                             sourceMethodGroup.QualificationKind)
+                newReceiver = Nothing
+            Else
+                newReceiver = If(resolvedTypeOrValueReceiver, sourceMethodGroup.ReceiverOpt)
             End If
+
+            sourceMethodGroup = sourceMethodGroup.Update(sourceMethodGroup.TypeArgumentsOpt,
+                                                         sourceMethodGroup.Methods,
+                                                         sourceMethodGroup.PendingExtensionMethodsOpt,
+                                                         sourceMethodGroup.ResultKind,
+                                                         newReceiver,
+                                                         sourceMethodGroup.QualificationKind)
+
 
             ' the delegate creation has the lambda stored internally to not clutter the bound tree with synthesized nodes 
             ' in the first pass. Later on in the DelegateRewriter the node get's rewritten with the lambda if needed.
@@ -1121,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntaxNode">Location to use for various synthetic nodes and symbols.</param>
         ''' <param name="delegateInvoke">The Invoke method to "implement".</param>
         ''' <param name="methodGroup">The method group with the only method in it.</param>
-        ''' <param name="delegateRelaxation">Delegate relaxation to store withing the new BoundLambda node.</param>
+        ''' <param name="delegateRelaxation">Delegate relaxation to store within the new BoundLambda node.</param>
         ''' <param name="diagnostics"></param>
         Private Function BuildDelegateRelaxationLambda(
             syntaxNode As VisualBasicSyntaxNode,
@@ -1160,7 +1166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' this lambda symbol.
             Dim lambdaSymbol = New SynthesizedLambdaSymbol(SynthesizedLambdaKind.DelegateRelaxationStub,
                                                            syntaxNode,
-                                                           lambdaSymbolParameters.AsImmutableOrNull,
+                                                           lambdaSymbolParameters.AsImmutable(),
                                                            delegateInvokeReturnType,
                                                            Me)
 
@@ -1176,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim lambdaBoundParameters(targetParameterCount - 1) As BoundExpression
 
             If Not droppedArguments Then
-                For parameterIndex = 0 To lambdaSymbolParameters.Count - 1
+                For parameterIndex = 0 To lambdaSymbolParameters.Length - 1
                     Dim lambdaSymbolParameter = lambdaSymbolParameters(parameterIndex)
                     Dim boundParameter = New BoundParameter(syntaxNode,
                                                             lambdaSymbolParameter,
@@ -1198,7 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                         syntaxNode,
                                                                                         TypeCharacter.None,
                                                                                         methodGroup,
-                                                                                        lambdaBoundParameters.AsImmutableOrNull,
+                                                                                        lambdaBoundParameters.AsImmutable(),
                                                                                         Nothing,
                                                                                         diagnostics,
                                                                                         suppressAbstractCallDiagnostics:=True,

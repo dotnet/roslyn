@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As ImmutableArray(Of Diagnostic)
+        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As DiagnosticBag
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -498,7 +498,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         If node.IsKind(SyntaxKind.PropertyStatement) Then
                             Dim propertyBlock = DirectCast(node.Parent, PropertyBlockSyntax)
-                            Return propertyBlock.Accessors.Where(Function(a) a.IsKind(SyntaxKind.GetAccessorBlock)).Single().Begin
+                            Return propertyBlock.Accessors.Where(Function(a) a.IsKind(SyntaxKind.GetAccessorBlock)).Single().BlockStatement
+                        ElseIf node.IsKind(SyntaxKind.EventStatement) Then
+                            Dim eventBlock = DirectCast(node.Parent, EventBlockSyntax)
+                            Return eventBlock.Accessors.Where(Function(a) a.IsKind(SyntaxKind.AddHandlerAccessorBlock)).Single().BlockStatement
                         End If
 
                         Debug.Assert(node.IsKind(SyntaxKind.FunctionStatement))
@@ -767,8 +770,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _modifiedIdentifierOpt As ModifiedIdentifierSyntax ' either Nothing or a modifier identifier containing the type modifiers.
             Private ReadOnly _asClauseOpt As AsClauseSyntax ' can be Nothing if no AsClause
-            Private ReadOnly _initializerOpt As EqualsValueSyntax ' can be Nothing is no initializer
-            Private _evaluatedConstant As EvaluatedConstant
+            Private ReadOnly _initializerOpt As EqualsValueSyntax ' can be Nothing if no initializer
+            Private _evaluatedConstant As EvaluatedConstantInfo
+
+            Private NotInheritable Class EvaluatedConstantInfo
+                Inherits EvaluatedConstant
+
+                Public Sub New(value As ConstantValue, type As TypeSymbol, expression As BoundExpression, diagnostics As DiagnosticBag)
+                    MyBase.New(value, type)
+
+                    Debug.Assert(expression IsNot Nothing)
+
+                    Me.Expression = expression
+                    Me.Diagnostics = diagnostics
+                End Sub
+
+                Public ReadOnly Expression As BoundExpression
+                Public ReadOnly Diagnostics As DiagnosticBag
+            End Class
 
             ''' <summary>
             ''' Create a local variable symbol. Note: this does not insert it automatically into a
@@ -815,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If IsConst Then
                     If _evaluatedConstant Is Nothing Then
-                        Dim diagBag = DiagnosticBag.GetInstance()
+                        Dim diagBag = New DiagnosticBag()
 
                         ' BindLocalConstantInitializer may be called before or after the constant's type has been set.
                         ' It is called before when we are inferring the constant's type. In that case the constant has no explicit type 
@@ -837,20 +856,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      Not valueExpression.HasErrors AndAlso
                                         (valueExpression.Type Is Nothing OrElse Not valueExpression.Type.IsErrorType))
 
-                        SetConstantExpression(valueExpression.Type, constValue, diagBag.ToReadOnlyAndFree())
+                        SetConstantExpression(valueExpression.Type, constValue, valueExpression, diagBag)
 
                         Return valueExpression
                     End If
 
-                    ' This is here in case GetConstantExpression is called a second time.  Normally this does not happen but one case happens due to the debug.assert in LocalSymbol.SetType()
-                    ' which called ComputeType and then GetConstantExpression indirectly.  Because the bound expression is not saved in the symbol.  Create one with the constant value.
-
-                    If _evaluatedConstant.Value IsNot Nothing Then
-                        Return New BoundLiteral(_initializerOpt, _evaluatedConstant.Value, _evaluatedConstant.Type)
-                    End If
-
-                    Return New BoundBadExpression(If(DirectCast(_initializerOpt, VisualBasicSyntaxNode), _modifiedIdentifierOpt),
-                                                  LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, _evaluatedConstant.Type, hasErrors:=True)
+                    Return _evaluatedConstant.Expression
                 End If
 
                 ' GetConstantExpression should not be called if this is not a constant.
@@ -866,14 +877,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Value, Nothing)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As ImmutableArray(Of Diagnostic)
+            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As DiagnosticBag
                 GetConstantValue(containingBinder)
-                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, ImmutableArray(Of Diagnostic).Empty)
+                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, Nothing)
             End Function
 
-            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, diagnostics As ImmutableArray(Of Diagnostic))
+            Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, expression As BoundExpression, diagnostics As DiagnosticBag)
                 If _evaluatedConstant Is Nothing Then
-                    Interlocked.CompareExchange(_evaluatedConstant, New EvaluatedConstant(constantValue, type, diagnostics), Nothing)
+                    Interlocked.CompareExchange(_evaluatedConstant, New EvaluatedConstantInfo(constantValue, type, expression, diagnostics), Nothing)
                 End If
             End Sub
 
@@ -973,7 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _originalVariable.GetConstantValue(binder)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As ImmutableArray(Of Diagnostic)
+            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As DiagnosticBag
                 Return _originalVariable.GetConstantValueDiagnostics(binder)
             End Function
 

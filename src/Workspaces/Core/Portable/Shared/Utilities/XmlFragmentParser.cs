@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -12,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal sealed class XmlFragmentParser
     {
-        private XmlReader xmlReader;
-        private readonly Reader textReader = new Reader();
+        private XmlReader _xmlReader;
+        private readonly Reader _textReader = new Reader();
 
-        private static readonly ObjectPool<XmlFragmentParser> pool =
+        private static readonly ObjectPool<XmlFragmentParser> s_pool =
             new ObjectPool<XmlFragmentParser>(() => new XmlFragmentParser(), size: 2);
 
         /// <summary>
@@ -32,29 +34,35 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </remarks>
         public static void ParseFragment<TArg>(string xmlFragment, Action<XmlReader, TArg> callback, TArg arg)
         {
-            var instance = pool.Allocate();
+            var instance = s_pool.Allocate();
             try
             {
                 instance.ParseInternal(xmlFragment, callback, arg);
             }
             finally
             {
-                pool.Free(instance);
+                s_pool.Free(instance);
             }
         }
 
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
+            MessageId = "System.Xml.XmlReader.Create",
+            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
+XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
+However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
+So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private void ParseInternal<TArg>(string text, Action<XmlReader, TArg> callback, TArg arg)
         {
-            textReader.SetText(text);
+            _textReader.SetText(text);
 
-            if (xmlReader == null)
+            if (_xmlReader == null)
             {
-                xmlReader = XmlReader.Create(textReader, XmlSettings);
+                _xmlReader = XmlReader.Create(_textReader, s_xmlSettings);
             }
 
             try
@@ -64,23 +72,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     if (BeforeStart)
                     {
                         // Skip over the synthetic root element and first node
-                        xmlReader.Read();
+                        _xmlReader.Read();
                     }
                     else
                     {
-                        callback(xmlReader, arg);
+                        callback(_xmlReader, arg);
                     }
                 }
 
                 // Read the final EndElement to reset things for the next user.
-                xmlReader.ReadEndElement();
+                _xmlReader.ReadEndElement();
             }
             catch
             {
                 // The reader is in a bad state, so dispose of it and recreate a new one next time we get called.
-                xmlReader.Dispose();
-                xmlReader = null;
-                textReader.Reset();
+                _xmlReader.Dispose();
+                _xmlReader = null;
+                _textReader.Reset();
                 throw;
             }
         }
@@ -92,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // Depth 0 = Document root
                 // Depth 1 = Synthetic wrapper, "CurrentElement"
                 // Depth 2 = Start of user's fragment.
-                return xmlReader.Depth < 2;
+                return _xmlReader.Depth < 2;
             }
         }
 
@@ -100,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             get
             {
-                return xmlReader.Depth == 1
-                    && xmlReader.NodeType == XmlNodeType.EndElement
-                    && xmlReader.LocalName == Reader.CurrentElementName;
+                return _xmlReader.Depth == 1
+                    && _xmlReader.NodeType == XmlNodeType.EndElement
+                    && _xmlReader.LocalName == Reader.CurrentElementName;
             }
         }
 
@@ -116,36 +124,36 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             /// <summary>
             /// Current text to validate.
             /// </summary>
-            private string text;
+            private string _text;
 
-            private int position;
+            private int _position;
 
             // Base the root element name on a GUID to avoid accidental (or intentional) collisions. An underscore is
             // prefixed because element names must not start with a number.
-            private static readonly string RootElementName = "_" + Guid.NewGuid().ToString("N");
+            private static readonly string s_rootElementName = "_" + Guid.NewGuid().ToString("N");
 
             // We insert an extra synthetic element name to allow for raw text at the root
             internal static readonly string CurrentElementName = "_" + Guid.NewGuid().ToString("N");
 
-            private static readonly string RootStart = "<" + RootElementName + ">";
-            private static readonly string CurrentStart = "<" + CurrentElementName + ">";
-            private static readonly string CurrentEnd = "</" + CurrentElementName + ">";
+            private static readonly string s_rootStart = "<" + s_rootElementName + ">";
+            private static readonly string s_currentStart = "<" + CurrentElementName + ">";
+            private static readonly string s_currentEnd = "</" + CurrentElementName + ">";
 
             public void Reset()
             {
-                this.text = null;
-                this.position = 0;
+                _text = null;
+                _position = 0;
             }
 
             public void SetText(string text)
             {
-                this.text = text;
+                _text = text;
 
                 // The first read shall read the <root>, 
                 // the subsequents reads shall start with <current> element
-                if (this.position > 0)
+                if (_position > 0)
                 {
-                    this.position = RootStart.Length;
+                    _position = s_rootStart.Length;
                 }
             }
 
@@ -165,16 +173,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 int initialCount = count;
 
                 // <root>
-                position += EncodeAndAdvance(RootStart, position, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(s_rootStart, _position, buffer, ref index, ref count);
 
                 // <current>
-                position += EncodeAndAdvance(CurrentStart, position - RootStart.Length, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(s_currentStart, _position - s_rootStart.Length, buffer, ref index, ref count);
 
                 // text
-                position += EncodeAndAdvance(text, position - RootStart.Length - CurrentStart.Length, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(_text, _position - s_rootStart.Length - s_currentStart.Length, buffer, ref index, ref count);
 
                 // </current>
-                position += EncodeAndAdvance(CurrentEnd, position - RootStart.Length - CurrentStart.Length - text.Length, buffer, ref index, ref count);
+                _position += EncodeAndAdvance(s_currentEnd, _position - s_rootStart.Length - s_currentStart.Length - _text.Length, buffer, ref index, ref count);
 
                 // Pretend that the stream is infinite, i.e. never return 0 characters read.
                 if (initialCount == count)

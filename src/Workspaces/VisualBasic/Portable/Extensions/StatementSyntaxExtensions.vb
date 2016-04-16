@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
-    Module StatementSyntaxExtensions
+    Friend Module StatementSyntaxExtensions
 
         <Extension()>
         Public Function GetAttributes(member As StatementSyntax) As SyntaxList(Of AttributeListSyntax)
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
                         SyntaxKind.StructureBlock
-                        Return DirectCast(member, TypeBlockSyntax).Begin.AttributeLists
+                        Return DirectCast(member, TypeBlockSyntax).BlockStatement.AttributeLists
                     Case SyntaxKind.EnumBlock
                         Return DirectCast(member, EnumBlockSyntax).EnumStatement.AttributeLists
                     Case SyntaxKind.ClassStatement,
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.AddHandlerAccessorBlock,
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
-                        Return DirectCast(member, MethodBlockBaseSyntax).Begin.AttributeLists
+                        Return DirectCast(member, MethodBlockBaseSyntax).BlockStatement.AttributeLists
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,
                         SyntaxKind.SubNewStatement,
@@ -81,11 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.ModuleBlock,
                         SyntaxKind.StructureBlock
                         Dim typeBlock = DirectCast(member, TypeBlockSyntax)
-                        Dim newBegin = DirectCast(typeBlock.Begin.WithAttributeLists(attributeLists), TypeStatementSyntax)
-                        Return typeBlock.WithBegin(newBegin)
+                        Dim newBegin = DirectCast(typeBlock.BlockStatement.WithAttributeLists(attributeLists), TypeStatementSyntax)
+                        Return typeBlock.WithBlockStatement(newBegin)
                     Case SyntaxKind.EnumBlock
                         Dim enumBlock = DirectCast(member, EnumBlockSyntax)
-                        Dim newEnumStatement = DirectCast(enumBlock.EnumStatement.WithAttributeLists(attributeLists), EnumStatementSyntax)
+                        Dim newEnumStatement = enumBlock.EnumStatement.WithAttributeLists(attributeLists)
                         Return enumBlock.WithEnumStatement(newEnumStatement)
                     Case SyntaxKind.ClassStatement
                         Return DirectCast(member, ClassStatementSyntax).WithAttributeLists(attributeLists)
@@ -123,8 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
                         Dim methodBlock = DirectCast(member, MethodBlockBaseSyntax)
-                        Dim newBegin = methodBlock.Begin.WithAttributeLists(attributeLists)
-                        Return methodBlock.ReplaceNode(methodBlock.Begin, newBegin)
+                        Dim newBegin = methodBlock.BlockStatement.WithAttributeLists(attributeLists)
+                        Return methodBlock.ReplaceNode(methodBlock.BlockStatement, newBegin)
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).WithAttributeLists(attributeLists)
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
                         SyntaxKind.StructureBlock
-                        Return DirectCast(member, TypeBlockSyntax).Begin.Modifiers
+                        Return DirectCast(member, TypeBlockSyntax).BlockStatement.Modifiers
                     Case SyntaxKind.EnumBlock
                         Return DirectCast(member, EnumBlockSyntax).EnumStatement.Modifiers
                     Case SyntaxKind.ClassStatement,
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.AddHandlerAccessorBlock,
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
-                        Return DirectCast(member, MethodBlockBaseSyntax).Begin.Modifiers
+                        Return DirectCast(member, MethodBlockBaseSyntax).BlockStatement.Modifiers
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,
                         SyntaxKind.SubNewStatement,
@@ -221,16 +221,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock
                         Dim classBlock = DirectCast(member, ClassBlockSyntax)
-                        Return classBlock.WithBegin(classBlock.Begin.WithModifiers(modifiers))
+                        Return classBlock.WithClassStatement(classBlock.ClassStatement.WithModifiers(modifiers))
                     Case SyntaxKind.InterfaceBlock
                         Dim interfaceBlock = DirectCast(member, InterfaceBlockSyntax)
-                        Return interfaceBlock.WithBegin(interfaceBlock.Begin.WithModifiers(modifiers))
+                        Return interfaceBlock.WithInterfaceStatement(interfaceBlock.InterfaceStatement.WithModifiers(modifiers))
                     Case SyntaxKind.ModuleBlock
                         Dim moduleBlock = DirectCast(member, ModuleBlockSyntax)
-                        Return moduleBlock.WithBegin(moduleBlock.Begin.WithModifiers(modifiers))
+                        Return moduleBlock.WithModuleStatement(moduleBlock.ModuleStatement.WithModifiers(modifiers))
                     Case SyntaxKind.StructureBlock
                         Dim structureBlock = DirectCast(member, StructureBlockSyntax)
-                        Return structureBlock.WithBegin(structureBlock.Begin.WithModifiers(modifiers))
+                        Return structureBlock.WithStructureStatement(structureBlock.StructureStatement.WithModifiers(modifiers))
                     Case SyntaxKind.EnumBlock
                         Dim enumBlock = DirectCast(member, EnumBlockSyntax)
                         Return enumBlock.WithEnumStatement(enumBlock.EnumStatement.WithModifiers(modifiers))
@@ -259,20 +259,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Case SyntaxKind.FunctionBlock,
                         SyntaxKind.SubBlock
                         Dim methodBlock = DirectCast(member, MethodBlockSyntax)
-                        Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), MethodStatementSyntax))
+                        Return methodBlock.WithSubOrFunctionStatement(DirectCast(methodBlock.SubOrFunctionStatement.WithModifiers(modifiers), MethodStatementSyntax))
                     Case SyntaxKind.ConstructorBlock
                         Dim methodBlock = DirectCast(member, ConstructorBlockSyntax)
-                        Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), SubNewStatementSyntax))
+                        Return methodBlock.WithSubNewStatement(DirectCast(methodBlock.SubNewStatement.WithModifiers(modifiers), SubNewStatementSyntax))
                     Case SyntaxKind.OperatorBlock
                         Dim methodBlock = DirectCast(member, OperatorBlockSyntax)
-                        Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), OperatorStatementSyntax))
+                        Return methodBlock.WithOperatorStatement(DirectCast(methodBlock.OperatorStatement.WithModifiers(modifiers), OperatorStatementSyntax))
                     Case SyntaxKind.GetAccessorBlock,
                         SyntaxKind.SetAccessorBlock,
                         SyntaxKind.AddHandlerAccessorBlock,
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
                         Dim methodBlock = DirectCast(member, AccessorBlockSyntax)
-                        Return methodBlock.WithBegin(DirectCast(methodBlock.Begin.WithModifiers(modifiers), AccessorStatementSyntax))
+                        Return methodBlock.WithAccessorStatement(DirectCast(methodBlock.AccessorStatement.WithModifiers(modifiers), AccessorStatementSyntax))
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).WithModifiers(modifiers)
@@ -299,14 +299,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetNameTokenOrNothing(member As StatementSyntax) As SyntaxToken
+        Public Function GetNameToken(member As DeclarationStatementSyntax) As SyntaxToken
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
                         SyntaxKind.StructureBlock
-                        Return DirectCast(member, TypeBlockSyntax).Begin.Identifier
+                        Return DirectCast(member, TypeBlockSyntax).BlockStatement.Identifier
                     Case SyntaxKind.EnumBlock
                         Return DirectCast(member, EnumBlockSyntax).EnumStatement.Identifier
                     Case SyntaxKind.ClassStatement,
@@ -328,7 +328,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return DirectCast(member, PropertyStatementSyntax).Identifier
                     Case SyntaxKind.FunctionBlock,
                         SyntaxKind.SubBlock
-                        Return DirectCast(DirectCast(member, MethodBlockSyntax).Begin, MethodStatementSyntax).Identifier
+                        Return DirectCast(DirectCast(member, MethodBlockSyntax).BlockStatement, MethodStatementSyntax).Identifier
+                    Case SyntaxKind.ConstructorBlock
+                        Return DirectCast(DirectCast(member, ConstructorBlockSyntax).BlockStatement, SubNewStatementSyntax).NewKeyword
+                    Case SyntaxKind.OperatorBlock
+                        Return DirectCast(DirectCast(member, OperatorBlockSyntax).BlockStatement, OperatorStatementSyntax).OperatorToken
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).Identifier
@@ -341,7 +345,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End Select
             End If
 
-            ' Constructors, accessors and operators don't have names.
+            Return Nothing
+        End Function
+
+        <Extension()>
+        Public Function GetMemberKeywordToken(member As DeclarationStatementSyntax) As SyntaxToken
+            If member IsNot Nothing Then
+                Select Case member.Kind
+                    Case SyntaxKind.ConstructorBlock
+                        Return DirectCast(DirectCast(member, ConstructorBlockSyntax).BlockStatement, SubNewStatementSyntax).SubKeyword
+                    Case SyntaxKind.DeclareSubStatement,
+                        SyntaxKind.DeclareFunctionStatement
+                        Return DirectCast(member, DeclareStatementSyntax).DeclarationKeyword
+                    Case SyntaxKind.DelegateSubStatement,
+                        SyntaxKind.DelegateFunctionStatement
+                        Return DirectCast(member, DelegateStatementSyntax).DeclarationKeyword
+                    Case SyntaxKind.EventBlock
+                        Return DirectCast(member, EventBlockSyntax).EventStatement.EventKeyword
+                    Case SyntaxKind.EventStatement
+                        Return DirectCast(member, EventStatementSyntax).EventKeyword
+                    Case SyntaxKind.FunctionBlock,
+                        SyntaxKind.SubBlock
+                        Return DirectCast(DirectCast(member, MethodBlockSyntax).BlockStatement, MethodStatementSyntax).DeclarationKeyword
+                    Case SyntaxKind.FunctionStatement,
+                        SyntaxKind.SubStatement
+                        Return DirectCast(member, MethodStatementSyntax).DeclarationKeyword
+                    Case SyntaxKind.OperatorBlock
+                        Return DirectCast(DirectCast(member, OperatorBlockSyntax).BlockStatement, OperatorStatementSyntax).OperatorKeyword
+                    Case SyntaxKind.PropertyBlock
+                        Return DirectCast(member, PropertyBlockSyntax).PropertyStatement.PropertyKeyword
+                    Case SyntaxKind.PropertyStatement
+                        Return DirectCast(member, PropertyStatementSyntax).PropertyKeyword
+                End Select
+            End If
+
             Return Nothing
         End Function
 
@@ -358,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.StructureBlock
-                        Return DirectCast(member, TypeBlockSyntax).Begin.TypeParameterList
+                        Return DirectCast(member, TypeBlockSyntax).BlockStatement.TypeParameterList
                     Case SyntaxKind.ClassStatement,
                         SyntaxKind.InterfaceStatement,
                         SyntaxKind.StructureStatement
@@ -368,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         Return DirectCast(member, DelegateStatementSyntax).TypeParameterList
                     Case SyntaxKind.SubBlock,
                         SyntaxKind.FunctionBlock
-                        Return DirectCast(DirectCast(member, MethodBlockSyntax).Begin, MethodStatementSyntax).TypeParameterList
+                        Return DirectCast(DirectCast(member, MethodBlockSyntax).BlockStatement, MethodStatementSyntax).TypeParameterList
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).TypeParameterList
@@ -391,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         SyntaxKind.AddHandlerAccessorBlock,
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
-                        Return DirectCast(member, MethodBlockBaseSyntax).Begin.ParameterList
+                        Return DirectCast(member, MethodBlockBaseSyntax).BlockStatement.ParameterList
                     Case SyntaxKind.SubStatement,
                         SyntaxKind.FunctionStatement,
                         SyntaxKind.SubNewStatement,
@@ -420,13 +457,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Nothing
         End Function
 
-        Private Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
+        <Extension()>
+        Public Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
             If member IsNot Nothing Then
                 Select Case member.Kind
                     Case SyntaxKind.FunctionBlock
-                        Return DirectCast(member, MethodBlockSyntax).Begin.AsClause
+                        Return DirectCast(member, MethodBlockSyntax).SubOrFunctionStatement.AsClause
                     Case SyntaxKind.OperatorBlock
-                        Return DirectCast(member, OperatorBlockSyntax).Begin.AsClause
+                        Return DirectCast(member, OperatorBlockSyntax).OperatorStatement.AsClause
                     Case SyntaxKind.FunctionStatement
                         Return DirectCast(member, MethodStatementSyntax).AsClause
                     Case SyntaxKind.OperatorStatement
@@ -451,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetReturnType(member As StatementSyntax) As TypeSyntax
-            Dim asClause = GetAsClause(member)
+            Dim asClause = member.GetAsClause()
             Return If(asClause IsNot Nothing, asClause.Type, Nothing)
         End Function
 
@@ -533,14 +571,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     SyntaxKind.InterfaceBlock,
                     SyntaxKind.ModuleBlock,
                     SyntaxKind.StructureBlock
-                    Return DirectCast(statement, TypeBlockSyntax).Begin
+                    Return DirectCast(statement, TypeBlockSyntax).BlockStatement
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(statement, EnumBlockSyntax).EnumStatement
                 Case SyntaxKind.SubBlock,
                     SyntaxKind.FunctionBlock,
                     SyntaxKind.ConstructorBlock,
                     SyntaxKind.OperatorBlock
-                    Return DirectCast(statement, MethodBlockBaseSyntax).Begin
+                    Return DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(statement, PropertyBlockSyntax).PropertyStatement
                 Case SyntaxKind.EventBlock
@@ -619,14 +657,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     SyntaxKind.InterfaceBlock,
                     SyntaxKind.ModuleBlock,
                     SyntaxKind.StructureBlock
-                    Return DirectCast(statement, TypeBlockSyntax).Begin
+                    Return DirectCast(statement, TypeBlockSyntax).BlockStatement
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(statement, EnumBlockSyntax).EnumStatement
                 Case SyntaxKind.SubBlock,
                     SyntaxKind.FunctionBlock,
                     SyntaxKind.ConstructorBlock,
                     SyntaxKind.OperatorBlock
-                    Return DirectCast(statement, MethodBlockBaseSyntax).Begin
+                    Return DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(statement, PropertyBlockSyntax).PropertyStatement
                 Case SyntaxKind.EventBlock

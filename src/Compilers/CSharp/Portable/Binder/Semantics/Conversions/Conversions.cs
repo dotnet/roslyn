@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
                         if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), ignoreCustomModifiers: true, ignoreDynamic: true))
+                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class Conversions : ConversionsBase
     {
-        private readonly Binder binder;
+        private readonly Binder _binder;
 
         public Conversions(Binder binder)
             : this(binder, currentRecursionDepth: 0)
@@ -630,15 +630,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversions(Binder binder, int currentRecursionDepth)
             : base(binder.Compilation.Assembly.CorLibrary, currentRecursionDepth)
         {
-            this.binder = binder;
+            _binder = binder;
         }
 
         protected override ConversionsBase CreateInstance(int currentRecursionDepth)
         {
-            return new Conversions(this.binder, currentRecursionDepth);
+            return new Conversions(_binder, currentRecursionDepth);
         }
 
-        private CSharpCompilation Compilation { get { return binder.Compilation; } }
+        private CSharpCompilation Compilation { get { return _binder.Compilation; } }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            var resolution = ResolveDelegateMethodGroup(this.binder, source, methodSymbol, ref useSiteDiagnostics);
+            var resolution = ResolveDelegateMethodGroup(_binder, source, methodSymbol, ref useSiteDiagnostics);
             var conversion = (resolution.IsEmpty || resolution.HasAnyErrors) ?
                 Conversion.NoConversion :
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
             GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, Compilation);
-            this.binder.OverloadResolution.MethodInvocationOverloadResolution(
+            _binder.OverloadResolution.MethodInvocationOverloadResolution(
                 methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
             var conversion = ToConversion(result, methodGroup, delegateType);
 

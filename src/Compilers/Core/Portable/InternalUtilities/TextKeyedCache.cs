@@ -69,24 +69,24 @@ namespace Roslyn.Utilities
 
         // local cache
         // simple fast and not threadsafe cache 
-        // with lmited size and "last add wins" expiration policy
-        private readonly LocalEntry[] localTable = new LocalEntry[LocalSize];
+        // with limited size and "last add wins" expiration policy
+        private readonly LocalEntry[] _localTable = new LocalEntry[LocalSize];
 
         // shared threadsafe cache
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static SharedEntry[] sharedTable = new SharedEntry[SharedSize];
+        private static readonly SharedEntry[] s_sharedTable = new SharedEntry[SharedSize];
 
         // store a reference to shared cache locally
         // accessing a static field of a generic type could be nontrivial
-        private readonly SharedEntry[] sharedTableInst = sharedTable;
+        private readonly SharedEntry[] _sharedTableInst = s_sharedTable;
 
-        private readonly StringTable strings;
+        private readonly StringTable _strings;
 
         // random - used for selecting a victim in the shared cache.
         // TODO: consider whether a counter is random enough
-        private Random random;
+        private Random _random;
 
         internal TextKeyedCache() :
             this(null)
@@ -98,12 +98,12 @@ namespace Roslyn.Utilities
 
         private TextKeyedCache(ObjectPool<TextKeyedCache<T>> pool)
         {
-            this.pool = pool;
-            this.strings = new StringTable();
+            _pool = pool;
+            _strings = new StringTable();
         }
 
-        private readonly ObjectPool<TextKeyedCache<T>> pool;
-        private static readonly ObjectPool<TextKeyedCache<T>> StaticPool = CreatePool();
+        private readonly ObjectPool<TextKeyedCache<T>> _pool;
+        private static readonly ObjectPool<TextKeyedCache<T>> s_staticPool = CreatePool();
 
         private static ObjectPool<TextKeyedCache<T>> CreatePool()
         {
@@ -114,7 +114,7 @@ namespace Roslyn.Utilities
 
         public static TextKeyedCache<T> GetInstance()
         {
-            return StaticPool.Allocate();
+            return s_staticPool.Allocate();
         }
 
         public void Free()
@@ -123,7 +123,7 @@ namespace Roslyn.Utilities
             // Array.Clear(this.localTable, 0, this.localTable.Length);
             // Array.Clear(sharedTable, 0, sharedTable.Length);
 
-            pool.Free(this);
+            _pool.Free(this);
         }
 
         #endregion // Poolable
@@ -131,7 +131,7 @@ namespace Roslyn.Utilities
         internal T FindItem(char[] chars, int start, int len, int hashCode)
         {
             // capture array to avoid extra range checks
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
             SharedEntryValue e = FindSharedEntry(chars, start, len, hashCode);
             if (e != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new LocalEntry(...)
                 arr[idx].HashCode = hashCode;
@@ -164,7 +164,7 @@ namespace Roslyn.Utilities
 
         private SharedEntryValue FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
-            var arr = sharedTableInst;
+            var arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
 
             SharedEntryValue e = null;
@@ -199,14 +199,14 @@ namespace Roslyn.Utilities
 
         internal void AddItem(char[] chars, int start, int len, int hashCode, T item)
         {
-            var text = this.strings.Add(chars, start, len);
+            var text = _strings.Add(chars, start, len);
 
             // add to the shared table first (in case someone looks for same item)
             var e = new SharedEntryValue(text, item);
             AddSharedEntry(hashCode, e);
 
             // add to the local table too
-            var arr = localTable;
+            var arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
             arr[idx].HashCode = hashCode;
             arr[idx].Text = text;
@@ -215,7 +215,7 @@ namespace Roslyn.Utilities
 
         private void AddSharedEntry(int hashCode, SharedEntryValue e)
         {
-            var arr = sharedTableInst;
+            var arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket
@@ -256,14 +256,14 @@ namespace Roslyn.Utilities
 
         private int NextRandom()
         {
-            var r = random;
+            var r = _random;
             if (r != null)
             {
                 return r.Next();
             }
 
             r = new Random();
-            random = r;
+            _random = r;
             return r.Next();
         }
     }

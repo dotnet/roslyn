@@ -11,9 +11,9 @@ namespace Roslyn.Utilities
         internal static readonly ObjectPool<List<object>> ListPool =
             new ObjectPool<List<object>>(() => new List<object>(128), 2);
 
-        private readonly ObjectReaderData baseData;
-        private readonly List<object> values = ListPool.Allocate();
-        private readonly int baseDataCount;
+        private readonly ObjectReaderData _baseData;
+        private readonly List<object> _values = ListPool.Allocate();
+        private readonly int _baseDataCount;
 
         internal ObjectReaderData(params object[] items)
             : this((IEnumerable<object>)items)
@@ -26,51 +26,51 @@ namespace Roslyn.Utilities
             {
                 foreach (var value in items)
                 {
-                    this.values.Add(value);
+                    _values.Add(value);
                 }
             }
         }
 
         internal ObjectReaderData(ObjectReaderData baseData)
         {
-            Debug.Assert(baseData == null || baseData.baseData == null, "Should be <= 1 level deep");
-            this.baseData = baseData;
-            this.baseDataCount = (baseData != null) ? baseData.values.Count : 0;
+            Debug.Assert(baseData?._baseData == null, "Should be <= 1 level deep");
+            _baseData = baseData;
+            _baseDataCount = baseData?._values.Count ?? 0;
         }
 
         public void Dispose()
         {
-            this.values.Clear();
-            ListPool.Free(this.values);
+            _values.Clear();
+            ListPool.Free(_values);
         }
 
         public int GetNextId()
         {
-            this.values.Add(null);
-            return baseDataCount + this.values.Count - 1;
+            _values.Add(null);
+            return _baseDataCount + _values.Count - 1;
         }
 
         public void AddValue(int id, object value)
         {
-            this.values[id - baseDataCount] = value;
+            _values[id - _baseDataCount] = value;
         }
 
         public object GetValue(int id)
         {
-            if (this.baseData != null)
+            if (_baseData != null)
             {
-                if (id < baseDataCount)
+                if (id < _baseDataCount)
                 {
-                    return this.baseData.GetValue(id);
+                    return _baseData.GetValue(id);
                 }
                 else
                 {
-                    return this.values[id - baseDataCount];
+                    return _values[id - _baseDataCount];
                 }
             }
             else
             {
-                return this.values[id];
+                return _values[id];
             }
         }
     }

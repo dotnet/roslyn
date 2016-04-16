@@ -18,28 +18,28 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Full metadata name of a type, includes namespace name for top level types.
         /// </summary>
-        private string fullName;
+        private string _fullName;
 
         /// <summary>
         /// Namespace name for top level types.
         /// </summary>
-        private string namespaceName;
+        private string _namespaceName;
 
         /// <summary>
         /// Name of the type without namespace prefix, but possibly with generic arity mangling present.
         /// </summary>
-        private string typeName;
+        private string _typeName;
 
         /// <summary>
         /// Name of the type without namespace prefix and without generic arity mangling.
         /// </summary>
-        private string unmangledTypeName;
+        private string _unmangledTypeName;
 
         /// <summary>
         /// Arity of the type inferred based on the name mangling. It doesn't have to match the actual
         /// arity of the type.
         /// </summary>
-        private short inferredArity;
+        private short _inferredArity;
 
         /// <summary>
         /// While resolving the name, consider only types with this arity.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         /// If forcedArity >= 0 and useCLSCompliantNameArityEncoding, lookup may
         /// fail because forcedArity doesn't match the one encoded in the name.
         /// </summary>
-        private short forcedArity;
+        private short _forcedArity;
 
         /// <summary>
         /// While resolving the name, consider only types following 
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis
         /// emitted name and arity.
         /// TODO: PERF: Encode this field elsewhere to save 4 bytes
         /// </summary>
-        private bool useCLSCompliantNameArityEncoding;
+        private bool _useCLSCompliantNameArityEncoding;
 
         /// <summary>
         /// Individual parts of qualified namespace name.
         /// </summary>
-        private ImmutableArray<string> namespaceSegments;
+        private ImmutableArray<string> _namespaceSegments;
 
         public static MetadataTypeName FromFullName(string fullName, bool useCLSCompliantNameArityEncoding = false, int forcedArity = -1)
         {
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis
 
             MetadataTypeName name;
 
-            name.fullName = fullName;
-            name.namespaceName = null;
-            name.typeName = null;
-            name.unmangledTypeName = null;
-            name.inferredArity = -1;
-            name.useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
-            name.forcedArity = (short)forcedArity;
-            name.namespaceSegments = default(ImmutableArray<string>);
+            name._fullName = fullName;
+            name._namespaceName = null;
+            name._typeName = null;
+            name._unmangledTypeName = null;
+            name._inferredArity = -1;
+            name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
+            name._forcedArity = (short)forcedArity;
+            name._namespaceSegments = default(ImmutableArray<string>);
 
             return name;
         }
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis
 
             MetadataTypeName name;
 
-            name.fullName = null;
-            name.namespaceName = namespaceName;
-            name.typeName = typeName;
-            name.unmangledTypeName = null;
-            name.inferredArity = -1;
-            name.useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
-            name.forcedArity = (short)forcedArity;
-            name.namespaceSegments = default(ImmutableArray<string>);
+            name._fullName = null;
+            name._namespaceName = namespaceName;
+            name._typeName = typeName;
+            name._unmangledTypeName = null;
+            name._inferredArity = -1;
+            name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
+            name._forcedArity = (short)forcedArity;
+            name._namespaceSegments = default(ImmutableArray<string>);
 
             return name;
         }
@@ -126,14 +126,14 @@ namespace Microsoft.CodeAnalysis
 
             MetadataTypeName name;
 
-            name.fullName = typeName;
-            name.namespaceName = string.Empty;
-            name.typeName = typeName;
-            name.unmangledTypeName = null;
-            name.inferredArity = -1;
-            name.useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
-            name.forcedArity = (short)forcedArity;
-            name.namespaceSegments = ImmutableArray<string>.Empty;
+            name._fullName = typeName;
+            name._namespaceName = string.Empty;
+            name._typeName = typeName;
+            name._unmangledTypeName = null;
+            name._inferredArity = -1;
+            name._useCLSCompliantNameArityEncoding = useCLSCompliantNameArityEncoding;
+            name._forcedArity = (short)forcedArity;
+            name._namespaceSegments = ImmutableArray<string>.Empty;
 
             return name;
         }
@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (fullName == null)
+                if (_fullName == null)
                 {
-                    Debug.Assert(namespaceName != null);
-                    Debug.Assert(typeName != null);
-                    fullName = MetadataHelpers.BuildQualifiedName(namespaceName, typeName);
+                    Debug.Assert(_namespaceName != null);
+                    Debug.Assert(_typeName != null);
+                    _fullName = MetadataHelpers.BuildQualifiedName(_namespaceName, _typeName);
                 }
 
-                return fullName;
+                return _fullName;
             }
         }
 
@@ -163,13 +163,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (namespaceName == null)
+                if (_namespaceName == null)
                 {
-                    Debug.Assert(fullName != null);
-                    typeName = MetadataHelpers.SplitQualifiedName(fullName, out namespaceName);
+                    Debug.Assert(_fullName != null);
+                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
                 }
 
-                return namespaceName;
+                return _namespaceName;
             }
         }
 
@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (typeName == null)
+                if (_typeName == null)
                 {
-                    Debug.Assert(fullName != null);
-                    typeName = MetadataHelpers.SplitQualifiedName(fullName, out namespaceName);
+                    Debug.Assert(_fullName != null);
+                    _typeName = MetadataHelpers.SplitQualifiedName(_fullName, out _namespaceName);
                 }
 
-                return typeName;
+                return _typeName;
             }
         }
 
@@ -197,13 +197,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (unmangledTypeName == null)
+                if (_unmangledTypeName == null)
                 {
-                    Debug.Assert(inferredArity == -1);
-                    unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out inferredArity);
+                    Debug.Assert(_inferredArity == -1);
+                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
                 }
 
-                return unmangledTypeName;
+                return _unmangledTypeName;
             }
         }
 
@@ -215,13 +215,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (inferredArity == -1)
+                if (_inferredArity == -1)
                 {
-                    Debug.Assert(unmangledTypeName == null);
-                    unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out inferredArity);
+                    Debug.Assert(_unmangledTypeName == null);
+                    _unmangledTypeName = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(TypeName, out _inferredArity);
                 }
 
-                return inferredArity;
+                return _inferredArity;
             }
         }
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return useCLSCompliantNameArityEncoding;
+                return _useCLSCompliantNameArityEncoding;
             }
         }
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return forcedArity;
+                return _forcedArity;
             }
         }
 
@@ -271,12 +271,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (namespaceSegments.IsDefault)
+                if (_namespaceSegments.IsDefault)
                 {
-                    namespaceSegments = MetadataHelpers.SplitQualifiedName(NamespaceName);
+                    _namespaceSegments = MetadataHelpers.SplitQualifiedName(NamespaceName);
                 }
 
-                return namespaceSegments;
+                return _namespaceSegments;
             }
         }
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return typeName == null && fullName == null;
+                return _typeName == null && _fullName == null;
             }
         }
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return String.Format("{{{0},{1},{2},{3}}}", NamespaceName, TypeName, UseCLSCompliantNameArityEncoding.ToString(), forcedArity.ToString());
+                return String.Format("{{{0},{1},{2},{3}}}", NamespaceName, TypeName, UseCLSCompliantNameArityEncoding.ToString(), _forcedArity.ToString());
             }
         }
     }

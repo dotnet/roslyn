@@ -3,7 +3,6 @@
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -18,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim module0 = assembly.Modules(0)
 
             Dim objectType = module0.GlobalNamespace.GetMembers("System").
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(0, objectType.TypeParameters.Length)
             Assert.Equal(0, objectType.TypeArguments.Length)
 
-            assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)
+            assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib1)
             module0 = assembly.Modules(0)
 
             Dim C1 = module0.GlobalNamespace.GetTypeMembers("C1").Single()
@@ -189,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         End Sub
 
-        <WorkItem(619267, "DevDiv")>
+        <WorkItem(619267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619267")>
         <Fact>
         Public Sub InvalidNestedArity_2()
             Dim ilSource = <![CDATA[

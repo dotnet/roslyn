@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -710,7 +710,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
             Optional isDefaultMemberAccess As Boolean = False,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional forceExpandedForm As Boolean = False
         ) As BoundExpression
 
             Debug.Assert(group IsNot Nothing)
@@ -721,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' When this happens, it is worth trying to do overload resolution on the "bad" set
             ' to report better errors.
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics)
+            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics, forceExpandedForm:=forceExpandedForm)
 
             If diagnostics.Add(node, useSiteDiagnostics) Then
                 If group.ResultKind <> LookupResultKind.Inaccessible Then
@@ -776,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create and report the diagnostic.
                 If results.Candidates.Length = 0 Then
                     results = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, includeEliminatedCandidates:=True, callerInfoOpt:=callerInfoOpt,
-                                                                                              useSiteDiagnostics:=Nothing)
+                                                                                              useSiteDiagnostics:=Nothing, forceExpandedForm:=forceExpandedForm)
                 End If
 
                 Return ReportOverloadResolutionFailureAndProduceBoundNode(node, group, boundArguments, argumentNames, results, diagnostics,
@@ -842,8 +843,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 VerifyTypeCharacterConsistency(node, returnType, typeChar, diagnostics)
             End If
 
+            Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso Not hasErrors Then
-                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, clearIfShared:=True, diagnostics:=diagnostics)
+                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
 
             If Not suppressAbstractCallDiagnostics AndAlso receiver IsNot Nothing AndAlso (receiver.IsMyBaseReference OrElse receiver.IsMyClassReference) Then
@@ -864,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
-                        errorLocation = lambdaNode.Begin
+                        errorLocation = lambdaNode.SubOrFunctionHeader
                     End If
 
                     ReportDiagnostic(diagnostics, errorLocation, ERRID.WRN_AsyncSubCouldBeFunction)
@@ -904,14 +906,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundCall node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim methodGroup = DirectCast(group, BoundMethodGroup)
-                If receiver IsNot Nothing Then
-                    methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
-                                                     methodGroup.Methods,
-                                                     methodGroup.PendingExtensionMethodsOpt,
-                                                     methodGroup.ResultKind,
-                                                     Nothing,
-                                                     methodGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, methodGroup.ReceiverOpt))
+                methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
+                                                 methodGroup.Methods,
+                                                 methodGroup.PendingExtensionMethodsOpt,
+                                                 methodGroup.ResultKind,
+                                                 newReceiver,
+                                                 methodGroup.QualificationKind)
 
                 Return New BoundCall(
                     node,
@@ -942,12 +943,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundPropertyAccess node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
-                If receiver IsNot Nothing Then
-                    propertyGroup = propertyGroup.Update(propertyGroup.Properties,
-                                                         propertyGroup.ResultKind,
-                                                         Nothing,
-                                                         propertyGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, propertyGroup.ReceiverOpt))
+                propertyGroup = propertyGroup.Update(propertyGroup.Properties,
+                                                     propertyGroup.ResultKind,
+                                                     newReceiver,
+                                                     propertyGroup.QualificationKind)
 
                 Return New BoundPropertyAccess(
                     node,
@@ -1266,7 +1266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        representCandidateInDiagnosticsOpt)
         End Function
 
-        Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
+        Public Shared Function GetLocationForOverloadResolutionDiagnostic(node As VisualBasicSyntaxNode, Optional groupOpt As BoundMethodOrPropertyGroup = Nothing) As Location
             Dim result As VisualBasicSyntaxNode
 
             If groupOpt IsNot Nothing Then
@@ -1809,13 +1809,11 @@ ProduceBoundNode:
             queryMode As Boolean,
             callerInfoOpt As VisualBasicSyntaxNode
         )
-            Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
             End If
-
-            ' TODO: Collapse the same errors reported for all candidates (see Semantics::ReportOverloadResolutionFailure in Dev10).
 
             For i As Integer = 0 To candidates.Count - 1 Step 1
 
@@ -1846,56 +1844,106 @@ ProduceBoundNode:
                                                          callerInfoOpt:=callerInfoOpt,
                                                          representCandidateInDiagnosticsOpt:=Nothing)
 
-                Dim symbol = candidates(i).Candidate.UnderlyingSymbol
-                Dim isExtension As Boolean = symbol.IsReducedExtensionMethod()
+                diagnosticPerSymbol.Add(KeyValuePair.Create(candidates(i).Candidate.UnderlyingSymbol, candidateDiagnostics.ToReadOnlyAndFree()))
 
-                Dim sealedCandidateDiagnostics = candidateDiagnostics.ToReadOnlyAndFree()
-
-                ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
-                ' errors there are per candidate.
-                ' One narrowing error will be shown like:
-                '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
-                ' More than one narrowing issues in the parameters are abbreviated with:
-                '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
-
-                If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
-                    If isExtension Then
-                        For Each iDiagnostic In sealedCandidateDiagnostics
-                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
-                                                                       symbol, symbol.ContainingType, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
-                        Next
-                    Else
-                        For Each iDiagnostic In sealedCandidateDiagnostics
-                            Dim msg = VisualBasicDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
-                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, symbol, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
-                        Next
-                    End If
-                Else
-                    If isExtension Then
-                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
-                                                                   symbol, symbol.ContainingType,
-                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
-                    Else
-                        diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2,
-                                                                   symbol,
-                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
-                    End If
-                End If
             Next
 
-            Dim diagnosticCoumpoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
-            If delegateSymbol Is Nothing Then
-                ReportDiagnostic(diagnostics, diagnosticLocation,
+            ' See if there are errors that are reported for each candidate at the same location within a lambda argument.  
+            ' Report them and don't report remaining diagnostics for each symbol separately.
+            If Not ReportCommonErrorsFromLambdas(diagnosticPerSymbol, arguments, diagnostics) Then
+                Dim diagnosticInfos = ArrayBuilder(Of DiagnosticInfo).GetInstance(candidates.Count)
+
+                For i As Integer = 0 To diagnosticPerSymbol.Count - 1
+                    Dim symbol = diagnosticPerSymbol(i).Key
+                    Dim isExtension As Boolean = symbol.IsReducedExtensionMethod()
+
+                    Dim sealedCandidateDiagnostics = diagnosticPerSymbol(i).Value
+
+                    ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
+                    ' errors there are per candidate.
+                    ' One narrowing error will be shown like:
+                    '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+                    ' More than one narrowing issues in the parameters are abbreviated with:
+                    '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+
+                    If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
+                        If isExtension Then
+                            For Each iDiagnostic In sealedCandidateDiagnostics
+                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
+                                                                       symbol, symbol.ContainingType, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
+                            Next
+                        Else
+                            For Each iDiagnostic In sealedCandidateDiagnostics
+                                Dim msg = VisualBasicDiagnosticFormatter.Instance.Format(iDiagnostic.WithLocation(Location.None))
+                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, symbol, DirectCast(iDiagnostic, DiagnosticWithInfo).Info))
+                            Next
+                        End If
+                    Else
+                        If isExtension Then
+                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3,
+                                                                   symbol, symbol.ContainingType,
+                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
+                        Else
+                            diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2,
+                                                                   symbol,
+                                                                   ErrorFactory.ErrorInfo(ERRID.ERR_DelegateBindingMismatch, symbol)))
+                        End If
+                    End If
+                Next
+
+                Dim diagnosticCompoundInfos() As DiagnosticInfo = diagnosticInfos.ToArrayAndFree()
+                If delegateSymbol Is Nothing Then
+                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
-            Else
-                ReportDiagnostic(diagnostics, diagnosticLocation,
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
+                Else
+                    ReportDiagnostic(diagnostics, diagnosticLocation,
                                  ErrorFactory.ErrorInfo(errorNo, CustomSymbolDisplayFormatter.ShortErrorName(candidates(0).Candidate.UnderlyingSymbol),
                                                         CustomSymbolDisplayFormatter.DelegateSignature(delegateSymbol),
-                                                        New CompoundDiagnosticInfo(diagnosticCoumpoundInfos)))
+                                                        New CompoundDiagnosticInfo(diagnosticCompoundInfos)))
+                End If
             End If
+
+            diagnosticPerSymbol.Free()
         End Sub
 
+        Private Shared Function ReportCommonErrorsFromLambdas(
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableArray(Of Diagnostic))),
+            arguments As ImmutableArray(Of BoundExpression),
+            diagnostics As DiagnosticBag
+        ) As Boolean
+            Dim haveCommonErrors As Boolean = False
+
+            For Each diagnostic In diagnosticPerSymbol(0).Value
+                If diagnostic.Severity <> DiagnosticSeverity.Error Then
+                    Continue For
+                End If
+
+                For Each argument In arguments
+                    If argument.Syntax.SyntaxTree Is diagnostic.Location.SourceTree AndAlso
+                       argument.Kind = BoundKind.UnboundLambda Then
+                        If argument.Syntax.Span.Contains(diagnostic.Location.SourceSpan) Then
+                            Dim common As Boolean = True
+                            For i As Integer = 1 To diagnosticPerSymbol.Count - 1
+                                If Not diagnosticPerSymbol(i).Value.Contains(diagnostic) Then
+                                    common = False
+                                    Exit For
+                                End If
+                            Next
+
+                            If common Then
+                                haveCommonErrors = True
+                                diagnostics.Add(diagnostic)
+                            End If
+
+                            Exit For
+                        End If
+                    End If
+                Next
+            Next
+
+            Return haveCommonErrors
+        End Function
 
         ''' <summary>
         ''' Should be kept in sync with OverloadResolution.MatchArguments. Anything that 
@@ -2163,6 +2211,12 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
+                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                            ' Already reported some errors, let's not report a general inference error
+                            Return
+                        End If
+
                         If Not includeMethodNameInErrorMessages Then
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit1, ERRID.ERR_TypeInferenceFailure1))
                         ElseIf candidateIsExtension Then
@@ -2286,7 +2340,7 @@ ProduceBoundNode:
                         ElseIf allowExpandedParamArrayForm Then
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If arrayType.Rank <> 1 Then
+                            If Not arrayType.IsSZArray Then
                                 ' ERRID_ParamArrayWrongType
                                 ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                                 someArgumentsBad = True
@@ -2769,7 +2823,7 @@ ProduceBoundNode:
                                                                       False, copyBackType, diagnostics,
                                                                       copybackConversionParamName:=parameterName).MakeCompilerGenerated()
 
-                ' since we are going to assing to a latebound invocation
+                ' since we are going to assign to a latebound invocation
                 ' force its arguments to be rvalues.
                 If argument.Kind = BoundKind.LateInvocation Then
                     argument = MakeArgsRValues(DirectCast(argument, BoundLateInvocation), diagnostics)
@@ -2902,7 +2956,7 @@ ProduceBoundNode:
             ' With SeparatedSyntaxList, it is most efficient to iterate with foreach and not to access Count.
 
             If arguments.IsDefaultOrEmpty Then
-                boundArguments = NoArguments
+                boundArguments = s_noArguments
                 argumentNames = Nothing
                 argumentNamesLocations = Nothing
             Else
@@ -2973,7 +3027,7 @@ ProduceBoundNode:
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
+            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
             If defaultConstantValue IsNot Nothing Then
 
                 If callerInfoOpt IsNot Nothing AndAlso
@@ -3050,50 +3104,51 @@ ProduceBoundNode:
                     End If
                 End If
 
-                ' Only consider optional parameters when the constant value is good.  Bad constant values are ignored and result in an 
-                ' argument mismatch error.
-                If Not defaultConstantValue.IsBad Then
+                ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
+                ' is a possible outcome of running an obfuscator over a valid DLL 
+                If defaultConstantValue.IsBad Then
+                    defaultConstantValue = ConstantValue.Null
+                End If
 
-                    Dim defaultSpecialType = defaultConstantValue.SpecialType
-                    Dim defaultArgumentType As TypeSymbol = Nothing
+                Dim defaultSpecialType = defaultConstantValue.SpecialType
+                Dim defaultArgumentType As TypeSymbol = Nothing
 
-                    ' Constant has a type.
-                    Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
+                ' Constant has a type.
+                Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
 
-                    If param.HasOptionCompare Then
+                If param.HasOptionCompare Then
 
-                        ' If the argument has the OptionCompareAttribute
-                        ' then use the setting for Option Compare [Binary|Text]
-                        ' Other languages will use the default value specified.
+                    ' If the argument has the OptionCompareAttribute
+                    ' then use the setting for Option Compare [Binary|Text]
+                    ' Other languages will use the default value specified.
 
-                        If Me.OptionCompareText Then
-                            defaultConstantValue = ConstantValue.Create(1)
-                        Else
-                            defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
-                        End If
-
-                        If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
-                            defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                        Else
-                            defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
-                        End If
-
-                    ElseIf defaultSpecialType <> SpecialType.None Then
-                        If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
-                            ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
-                            ' use the parameter's enum type.
-                            defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                        Else
-                            'Use the primitive type.
-                            defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
-                        End If
+                    If Me.OptionCompareText Then
+                        defaultConstantValue = ConstantValue.Create(1)
                     Else
-                        ' No type in constant.  Constant should be nothing
-                        Debug.Assert(defaultConstantValue.IsNothing)
+                        defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
                     End If
 
-                    defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
+                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
+                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
+                    Else
+                        defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
+                    End If
+
+                ElseIf defaultSpecialType <> SpecialType.None Then
+                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
+                        ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
+                        ' use the parameter's enum type.
+                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
+                    Else
+                        'Use the primitive type.
+                        defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
+                    End If
+                Else
+                    ' No type in constant.  Constant should be nothing
+                    Debug.Assert(defaultConstantValue.IsNothing)
                 End If
+
+                defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
 
             ElseIf param.IsOptional Then
 

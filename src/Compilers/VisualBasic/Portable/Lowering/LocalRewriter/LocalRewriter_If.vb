@@ -1,12 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -96,9 +92,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' == Rewrite the whole node
-            Dim result As BoundStatement = RewriteIfStatement(node.Syntax, conditionSyntax, newCondition, newConsequence, newAlternative,
-                                                              generateDebugInfo:=True,
-                                                              unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
+
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while methods invoked in the condition are being executed.
+            Dim result As BoundStatement = RewriteIfStatement(
+                node.Syntax,
+                conditionSyntax,
+                AddConditionSequencePoint(newCondition, node),
+                newConsequence,
+                newAlternative,
+                generateDebugInfo:=True,
+                unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget)
 
             Return result
         End Function

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -10,20 +12,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FormattingTests : TestBase
     {
-        [Fact]
-        public void TestCSharpFormatting()
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestCSharpFormatting()
         {
             var text = @"public class C{public int X;}";
             var expectedFormattedText = @"public class C { public int X; }";
 
-            var tree = CS.SyntaxFactory.ParseSyntaxTree(text);
-            var formattedRoot = Formatter.Format(tree.GetRoot(), new TestWorkspace());
-            var actualFormattedText = formattedRoot.ToFullString();
-
-            Assert.Equal(expectedFormattedText, actualFormattedText);
+            await AssertFormatCSharpAsync(expectedFormattedText, text);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void TestCSharpDefaultRules()
         {
             var rules = Formatter.GetDefaultFormattingRules(new TestWorkspace(), LanguageNames.CSharp);
@@ -32,8 +30,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEmpty(rules);
         }
 
-        [Fact]
-        public void TestVisualBasicFormatting()
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestVisualBasicFormatting()
         {
             var text = @"
 Public Class C
@@ -46,20 +44,39 @@ Public Class C
 End Class
 ";
 
-            var tree = VB.SyntaxFactory.ParseSyntaxTree(text);
-            var formattedRoot = Formatter.Format(tree.GetRoot(), new TestWorkspace());
-            var actualFormattedText = formattedRoot.ToFullString();
-
-            Assert.Equal(expectedFormattedText, actualFormattedText);
+            await AssertFormatVBAsync(expectedFormattedText, text);
         }
 
-        [Fact]
-        public void TestVisualBasicDefaulFormattingRules()
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void TestVisualBasicDefaultFormattingRules()
         {
             var rules = Formatter.GetDefaultFormattingRules(new TestWorkspace(), LanguageNames.VisualBasic);
 
             Assert.NotNull(rules);
             Assert.NotEmpty(rules);
+        }
+
+        private Task AssertFormatCSharpAsync(string expected, string input)
+        {
+            var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
+            return AssertFormatAsync(expected, tree);
+        }
+
+        private Task AssertFormatVBAsync(string expected, string input)
+        {
+            var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
+            return AssertFormatAsync(expected, tree);
+        }
+
+        private async Task AssertFormatAsync(string expected, SyntaxTree tree)
+        {
+            using (var workspace = new TestWorkspace())
+            {
+                var formattedRoot = await Formatter.FormatAsync(tree.GetRoot(), workspace);
+                var actualFormattedText = formattedRoot.ToFullString();
+
+                Assert.Equal(expected, actualFormattedText);
+            }
         }
     }
 }

@@ -73,19 +73,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundAssignmentOperator tempAssignment = null;
             BoundLocal boundTemp = null;
-            if (!eventSymbol.IsStatic && IntroducingReadCanBeObservable(rewrittenReceiverOpt))
+            if (!eventSymbol.IsStatic && CanChangeValueBetweenReads(rewrittenReceiverOpt))
             {
-                boundTemp = factory.StoreToTemp(rewrittenReceiverOpt, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(rewrittenReceiverOpt, out tempAssignment);
             }
 
-            NamedTypeSymbol tokenType = factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
-            NamedTypeSymbol marshalType = factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal);
+            NamedTypeSymbol tokenType = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
+            NamedTypeSymbol marshalType = _factory.WellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal);
 
-            NamedTypeSymbol actionType = factory.WellKnownType(WellKnownType.System_Action_T).Construct(tokenType);
+            NamedTypeSymbol actionType = _factory.WellKnownType(WellKnownType.System_Action_T).Construct(tokenType);
 
             TypeSymbol eventType = eventSymbol.Type;
 
-            BoundExpression delegateCreationArgument = boundTemp ?? rewrittenReceiverOpt ?? factory.Type(eventType);
+            BoundExpression delegateCreationArgument = boundTemp ?? rewrittenReceiverOpt ?? _factory.Type(eventType);
 
             BoundDelegateCreationExpression removeDelegate = new BoundDelegateCreationExpression(
                 syntax: syntax,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                NamedTypeSymbol func2Type = factory.WellKnownType(WellKnownType.System_Func_T2).Construct(eventType, tokenType);
+                NamedTypeSymbol func2Type = _factory.WellKnownType(WellKnownType.System_Func_T2).Construct(eventType, tokenType);
 
                 BoundDelegateCreationExpression addDelegate = new BoundDelegateCreationExpression(
                     syntax: syntax,
@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string accessorName = SourcePropertyAccessorSymbol.GetAccessorName(invocationListProperty.Name,
                         getNotSet: true,
                         isWinMdOutput: invocationListProperty.IsCompilationOutputWinMdObj());
-                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, invocationListProperty.ContainingType, accessorName), syntax.Location);
+                    _diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, invocationListProperty.ContainingType, accessorName), syntax.Location);
                 }
                 else
                 {
                     invocationListAccessor = invocationListAccessor.AsMember(fieldType);
-                    return factory.Call(getOrCreateCall, invocationListAccessor);
+                    return _factory.Call(getOrCreateCall, invocationListAccessor);
                 }
             }
 
@@ -281,27 +281,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = null;
 
-            CSharpSyntaxNode oldSyntax = factory.Syntax;
-            factory.Syntax = node.Syntax;
+            CSharpSyntaxNode oldSyntax = _factory.Syntax;
+            _factory.Syntax = node.Syntax;
 
 
-            var ctor = factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
+            var ctor = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__ctor);
 
             if ((object)ctor != null)
             {
-                var addRemove = factory.WellKnownMethod(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
+                var addRemove = _factory.WellKnownMethod(node.IsAddition ? WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler :
                                                                           WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler);
 
                 if ((object)addRemove != null)
                 {
-                    BoundExpression eventInfo = factory.New(ctor, factory.Typeof(node.Event.ContainingType), factory.Literal(node.Event.MetadataName));
-                    result = factory.Call(eventInfo, addRemove,
-                                          factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
-                                          factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));
+                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
+                    result = _factory.Call(eventInfo, addRemove,
+                                          _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
+                                          _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));
                 }
             }
 
-            factory.Syntax = oldSyntax;
+            _factory.Syntax = oldSyntax;
 
             // The code we just generated doesn't contain any direct references to the event itself,
             // but the com event binder needs the event to exist on the local type. We'll poke the pia reference
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var module = this.EmitModule;
             if (module != null)
             {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, diagnostics, isUsedForComAwareEventBinding: true);
+                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
             }
 
             if (result != null)

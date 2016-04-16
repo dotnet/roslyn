@@ -16,39 +16,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class SourceNamespaceSymbol : NamespaceSymbol
     {
-        private readonly SourceModuleSymbol module;
-        private readonly Symbol container;
-        private readonly MergedNamespaceDeclaration mergedDeclaration;
+        private readonly SourceModuleSymbol _module;
+        private readonly Symbol _container;
+        private readonly MergedNamespaceDeclaration _mergedDeclaration;
 
-        private SymbolCompletionState state;
-        private ImmutableArray<Location> locations;
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> nameToMembersMap;
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> nameToTypeMembersMap;
-        private ImmutableArray<Symbol> lazyAllMembers;
-        private ImmutableArray<NamedTypeSymbol> lazyTypeMembersUnordered;
+        private SymbolCompletionState _state;
+        private ImmutableArray<Location> _locations;
+        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
+        private ImmutableArray<Symbol> _lazyAllMembers;
+        private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
-        private int flags;
+        private int _flags;
 
-        private LexicalSortKey lazyLexicalSortKey = LexicalSortKey.NotInitialized;
+        private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
         internal SourceNamespaceSymbol(SourceModuleSymbol module, Symbol container, MergedNamespaceDeclaration mergedDeclaration)
         {
-            this.module = module;
-            this.container = container;
-            this.mergedDeclaration = mergedDeclaration;
+            _module = module;
+            _container = container;
+            _mergedDeclaration = mergedDeclaration;
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
         {
-            get { return mergedDeclaration; }
+            get { return _mergedDeclaration; }
         }
 
         public override Symbol ContainingSymbol
         {
             get
             {
-                return container;
+                return _container;
             }
         }
 
@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return module.ContainingAssembly;
+                return _module.ContainingAssembly;
             }
         }
 
         internal IEnumerable<Imports> GetBoundImportsMerged()
         {
             var compilation = this.DeclaringCompilation;
-            foreach (var declaration in mergedDeclaration.Declarations)
+            foreach (var declaration in _mergedDeclaration.Declarations)
             {
                 if (declaration.HasUsings || declaration.HasExternAliases)
                 {
@@ -76,57 +76,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return mergedDeclaration.Name;
+                return _mergedDeclaration.Name;
             }
         }
 
         internal override LexicalSortKey GetLexicalSortKey()
         {
-            if (!lazyLexicalSortKey.IsInitialized)
+            if (!_lazyLexicalSortKey.IsInitialized)
             {
-                lazyLexicalSortKey.SetFrom(mergedDeclaration.GetLexicalSortKey(this.DeclaringCompilation));
+                _lazyLexicalSortKey.SetFrom(_mergedDeclaration.GetLexicalSortKey(this.DeclaringCompilation));
             }
-            return lazyLexicalSortKey;
+            return _lazyLexicalSortKey;
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                if (locations.IsDefault)
+                if (_locations.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref locations,
-                        mergedDeclaration.NameLocations,
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
+                        _mergedDeclaration.NameLocations,
                         default(ImmutableArray<Location>));
                 }
 
-                return locations;
+                return _locations;
             }
         }
 
-        private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> DeclaringSyntaxReferencesSelector = d =>
+        private static readonly Func<SingleNamespaceDeclaration, SyntaxReference> s_declaringSyntaxReferencesSelector = d =>
             new NamespaceDeclarationSyntaxReference(d.SyntaxReference);
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
-                // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-                // namespace decl node we want to return. here we will wrap the original syntax reference in 
-                // the translation syntax reference so that we can lazily manipulate a node return to the caller
-                return mergedDeclaration.Declarations.SelectAsArray(DeclaringSyntaxReferencesSelector);
+                return ComputeDeclaringReferencesCore();
             }
+        }
+
+        private ImmutableArray<SyntaxReference> ComputeDeclaringReferencesCore()
+        {
+            // SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
+            // namespace decl node we want to return. here we will wrap the original syntax reference in 
+            // the translation syntax reference so that we can lazily manipulate a node return to the caller
+            return _mergedDeclaration.Declarations.SelectAsArray(s_declaringSyntaxReferencesSelector);
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
-            var result = this.lazyAllMembers;
+            var result = _lazyAllMembers;
 
             if (result.IsDefault)
             {
                 var members = StaticCast<Symbol>.From(this.GetNameToMembersMap().Flatten(null));  // don't sort.
-                ImmutableInterlocked.InterlockedInitialize(ref this.lazyAllMembers, members);
-                result = this.lazyAllMembers;
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyAllMembers, members);
+                result = _lazyAllMembers;
             }
 
 #if DEBUG
@@ -140,9 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            if ((flags & LazyAllMembersIsSorted) != 0)
+            if ((_flags & LazyAllMembersIsSorted) != 0)
             {
-                return this.lazyAllMembers;
+                return _lazyAllMembers;
             }
             else
             {
@@ -152,10 +157,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // The array isn't sorted. Sort it and remember that we sorted it.
                     allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance);
-                    ImmutableInterlocked.InterlockedExchange(ref this.lazyAllMembers, allMembers);
+                    ImmutableInterlocked.InterlockedExchange(ref _lazyAllMembers, allMembers);
                 }
 
-                ThreadSafeFlagOperations.Set(ref flags, LazyAllMembersIsSorted);
+                ThreadSafeFlagOperations.Set(ref _flags, LazyAllMembersIsSorted);
                 return allMembers;
             }
         }
@@ -170,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            if (lazyTypeMembersUnordered.IsDefault)
+            if (_lazyTypeMembersUnordered.IsDefault)
             {
                 var members = this.GetNameToTypeMembersMap().Flatten();
-                ImmutableInterlocked.InterlockedInitialize(ref lazyTypeMembersUnordered, members);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeMembersUnordered, members);
             }
 
-            return lazyTypeMembersUnordered;
+            return _lazyTypeMembersUnordered;
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
@@ -201,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.module;
+                return _module;
             }
         }
 
@@ -209,39 +214,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return new NamespaceExtent(module);
+                return new NamespaceExtent(_module);
             }
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
         {
-            if (nameToMembersMap == null)
+            if (_nameToMembersMap == null)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (Interlocked.CompareExchange(ref nameToMembersMap, MakeNameToMembersMap(diagnostics), null) == null)
+                if (Interlocked.CompareExchange(ref _nameToMembersMap, MakeNameToMembersMap(diagnostics), null) == null)
                 {
                     // NOTE: the following is not cancellable.  Once we've set the
                     // members, we *must* do the following to make sure we're in a consistent state.
-                    this.DeclaringCompilation.SemanticDiagnostics.AddRange(diagnostics);
-
+                    this.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
                     RegisterDeclaredCorTypes();
-                    state.NotePartComplete(CompletionPart.NameToMembersMap);
+
+                    // We may produce a SymbolDeclaredEvent for the enclosing namespace before events for its contained members
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                    _state.NotePartComplete(CompletionPart.NameToMembersMap);
                 }
 
                 diagnostics.Free();
             }
 
-            return nameToMembersMap;
+            return _nameToMembersMap;
         }
 
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
         {
-            if (nameToTypeMembersMap == null)
+            if (_nameToTypeMembersMap == null)
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
 
-                var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>();
+                var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
 
                 Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> map = this.GetNameToMembersMap();
                 foreach (var kvp in map)
@@ -285,10 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                Interlocked.CompareExchange(ref nameToTypeMembersMap, dictionary, null);
+                Interlocked.CompareExchange(ref _nameToTypeMembersMap, dictionary, null);
             }
 
-            return nameToTypeMembersMap;
+            return _nameToTypeMembersMap;
         }
 
         private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(DiagnosticBag diagnostics)
@@ -302,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another 
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = new NameToSymbolMapBuilder(mergedDeclaration.Children.Length);
-            foreach (var declaration in mergedDeclaration.Children)
+            var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
+            foreach (var declaration in _mergedDeclaration.Children)
             {
                 builder.Add(BuildSymbol(declaration, diagnostics));
             }
@@ -338,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if ((object)constituent != (object)this)
                             {
-                                // For whatever reason native compiler only detects conflicts agains types.
+                                // For whatever reason native compiler only detects conflicts against types.
                                 // It doesn't complain when source declares a type with the same name as 
                                 // a namespace in added module, but complains when source declares a namespace 
                                 // with the same name as a type in added module.
@@ -390,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Namespace:
-                    return new SourceNamespaceSymbol(this.module, this, (MergedNamespaceDeclaration)declaration);
+                    return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration);
 
                 case DeclarationKind.Struct:
                 case DeclarationKind.Interface:
@@ -419,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingAssembly.KeepLookingForDeclaredSpecialTypes)
             {
                 // Register newly declared COR types
-                foreach (var array in nameToMembersMap.Values)
+                foreach (var array in _nameToMembersMap.Values)
                 {
                     foreach (var member in array)
                     {
@@ -439,41 +446,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (this.IsGlobalNamespace)
+            {
+                return true;
+            }
+
+            // Check if any namespace declaration block intersects with the given tree/span.
+            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (syntaxRef.SyntaxTree != tree)
+                {
+                    continue;
+                }
+
+                if (!definedWithinSpan.HasValue)
+                {
+                    return true;
+                }
+
+                var syntax = syntaxRef.GetSyntax(cancellationToken);
+                if (syntax.FullSpan.IntersectsWith(definedWithinSpan.Value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private struct NameToSymbolMapBuilder
         {
-            private readonly Dictionary<string, object> dictionary;
+            private readonly Dictionary<string, object> _dictionary;
 
             public NameToSymbolMapBuilder(int capacity)
             {
-                this.dictionary = new Dictionary<string, object>(capacity);
+                _dictionary = new Dictionary<string, object>(capacity, StringOrdinalComparer.Instance);
             }
 
             public void Add(NamespaceOrTypeSymbol symbol)
             {
                 string name = symbol.Name;
                 object item;
-                if (this.dictionary.TryGetValue(name, out item))
+                if (_dictionary.TryGetValue(name, out item))
                 {
                     var builder = item as ArrayBuilder<NamespaceOrTypeSymbol>;
                     if (builder == null)
                     {
                         builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
                         builder.Add((NamespaceOrTypeSymbol)item);
-                        this.dictionary[name] = builder;
+                        _dictionary[name] = builder;
                     }
                     builder.Add(symbol);
                 }
                 else
                 {
-                    this.dictionary[name] = symbol;
+                    _dictionary[name] = symbol;
                 }
             }
 
             public Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
             {
-                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(this.dictionary.Count);
+                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count, StringOrdinalComparer.Instance);
 
-                foreach (var kvp in this.dictionary)
+                foreach (var kvp in _dictionary)
                 {
                     object value = kvp.Value;
                     ImmutableArray<NamespaceOrTypeSymbol> members;

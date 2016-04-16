@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We do this to ensure that expression lambdas and expression-bodied
             // properties have sequence points.
             if (this.GenerateDebugInfo &&
-                (!rewritten.WasCompilerGenerated || 
+                (!rewritten.WasCompilerGenerated ||
                  (node.ExpressionOpt != null && IsLambdaOrExpressionBodiedMember)))
             {
                 // We're not calling AddSequencePoint since it ignores compiler-generated nodes.
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = this.factory.CurrentMethod;
+                var method = _factory.CurrentMethod;
                 if (method is LambdaSymbol)
                 {
                     return true;

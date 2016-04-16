@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// The contents are provided by ReferenceManager and may not be modified.
         /// </remarks>
-        private ModuleReferences<AssemblySymbol> moduleReferences;
+        private ModuleReferences<AssemblySymbol> _moduleReferences;
 
         /// <summary>
         /// Does this symbol represent a missing module.
@@ -39,14 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from GetReferencedAssemblies and from GetReferencedAssemblySymbols 
         /// should correspond to each other.
-        /// 
-        /// The array and its content is provided by ReferenceManager and must not be modified.
         /// </summary>
-        /// <returns></returns>
         internal sealed override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
         {
             AssertReferencesInitialized();
-            return moduleReferences.Names;
+            return _moduleReferences.Identities;
         }
 
         /// <summary>
@@ -54,20 +51,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// by this module. Items at the same position from GetReferencedAssemblies and 
         /// from GetReferencedAssemblySymbols should correspond to each other. If reference is 
         /// not resolved by compiler, GetReferencedAssemblySymbols returns MissingAssemblySymbol in the
-        /// correspnding item.
-        /// 
-        /// The array and its content is provided by ReferenceManager and must not be modified.
+        /// corresponding item.
         /// </summary>
         internal sealed override ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols()
         {
             AssertReferencesInitialized();
-            return moduleReferences.Symbols;
+            return _moduleReferences.Symbols;
         }
 
         internal ImmutableArray<UnifiedAssembly<AssemblySymbol>> GetUnifiedAssemblies()
         {
             AssertReferencesInitialized();
-            return moduleReferences.UnifiedAssemblies;
+            return _moduleReferences.UnifiedAssemblies;
         }
 
         internal override bool HasUnifiedReferences
@@ -158,19 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AssertReferencesUninitialized();
 
-            this.moduleReferences = moduleReferences;
+            _moduleReferences = moduleReferences;
         }
 
         [Conditional("DEBUG")]
         internal void AssertReferencesUninitialized()
         {
-            Debug.Assert(moduleReferences == null);
+            Debug.Assert(_moduleReferences == null);
         }
 
         [Conditional("DEBUG")]
         internal void AssertReferencesInitialized()
         {
-            Debug.Assert(moduleReferences != null);
+            Debug.Assert(_moduleReferences != null);
         }
 
         /// <summary>

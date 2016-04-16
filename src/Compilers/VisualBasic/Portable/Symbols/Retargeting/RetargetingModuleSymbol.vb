@@ -33,12 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Owning <see cref="RetargetingAssemblySymbol"/>.
         ''' </summary>
-        Private ReadOnly m_RetargetingAssembly As RetargetingAssemblySymbol
+        Private ReadOnly _retargetingAssembly As RetargetingAssemblySymbol
 
         ''' <summary>
         ''' The underlying <see cref="ModuleSymbol"/>, cannot be another <see cref="RetargetingModuleSymbol"/>.
         ''' </summary>
-        Private ReadOnly m_UnderlyingModule As SourceModuleSymbol
+        Private ReadOnly _underlyingModule As SourceModuleSymbol
 
         ''' <summary>
         ''' The map that captures information about what assembly should be retargeted 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' value is the corresponding <see cref="AssemblySymbol"/> referenced by this module, and corresponding
         ''' retargeting map for symbols.
         ''' </summary>
-        Private ReadOnly m_RetargetingAssemblyMap As New Dictionary(Of AssemblySymbol, DestinationData)()
+        Private ReadOnly _retargetingAssemblyMap As New Dictionary(Of AssemblySymbol, DestinationData)()
 
         Private Structure DestinationData
             Public [To] As AssemblySymbol
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Retargeted custom attributes
         ''' </summary>
-        Private m_LazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
         ''' <summary>
         ''' Constructor.
@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Debug.Assert(retargetingAssembly IsNot Nothing)
             Debug.Assert(underlyingModule IsNot Nothing)
 
-            m_RetargetingAssembly = retargetingAssembly
-            m_UnderlyingModule = underlyingModule
+            _retargetingAssembly = retargetingAssembly
+            _underlyingModule = underlyingModule
             RetargetingTranslator = New RetargetingSymbolTranslator(Me)
 
             Me._createRetargetingMethod = AddressOf CreateRetargetingMethod
@@ -90,20 +90,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property Ordinal As Integer
             Get
-                Debug.Assert(m_UnderlyingModule.Ordinal = 0)
+                Debug.Assert(_underlyingModule.Ordinal = 0)
                 Return 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Machine As System.Reflection.PortableExecutable.Machine
             Get
-                Return m_UnderlyingModule.Machine
+                Return _underlyingModule.Machine
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Bit32Required As Boolean
             Get
-                Return m_UnderlyingModule.Bit32Required
+                Return _underlyingModule.Bit32Required
             End Get
         End Property
 
@@ -112,47 +112,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' </summary>
         Public ReadOnly Property UnderlyingModule As SourceModuleSymbol
             Get
-                Return m_UnderlyingModule
+                Return _underlyingModule
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_RetargetingAssembly
+                Return _retargetingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_RetargetingAssembly
+                Return _retargetingAssembly
             End Get
         End Property
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Return RetargetingTranslator.GetRetargetedAttributes(m_UnderlyingModule, m_LazyCustomAttributes)
+            Return RetargetingTranslator.GetRetargetedAttributes(_underlyingModule, _lazyCustomAttributes)
         End Function
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_UnderlyingModule.Name
+                Return _underlyingModule.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return m_UnderlyingModule.MetadataName
+                Return _underlyingModule.MetadataName
             End Get
         End Property
 
         Public Overrides ReadOnly Property GlobalNamespace As NamespaceSymbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingModule.GlobalNamespace)
+                Return RetargetingTranslator.Retarget(_underlyingModule.GlobalNamespace)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_UnderlyingModule.Locations
+                Return _underlyingModule.Locations
             End Get
         End Property
 
@@ -166,11 +166,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             MyBase.SetReferences(moduleReferences, originatingSourceAssemblyDebugOnly)
 
             ' Build the retargeting map
-            m_RetargetingAssemblyMap.Clear()
+            _retargetingAssemblyMap.Clear()
 
-            Dim underlyingBoundReferences As ImmutableArray(Of AssemblySymbol) = m_UnderlyingModule.GetReferencedAssemblySymbols()
+            Dim underlyingBoundReferences As ImmutableArray(Of AssemblySymbol) = _underlyingModule.GetReferencedAssemblySymbols()
             Dim referencedAssemblySymbols As ImmutableArray(Of AssemblySymbol) = moduleReferences.Symbols
-            Dim referencedAssemblies As ImmutableArray(Of AssemblyIdentity) = moduleReferences.Names
+            Dim referencedAssemblies As ImmutableArray(Of AssemblyIdentity) = moduleReferences.Identities
 
             Debug.Assert(referencedAssemblySymbols.Length = referencedAssemblies.Length)
             Debug.Assert(referencedAssemblySymbols.Length <= underlyingBoundReferences.Length) ' Linked references are filtered out.
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End While
 
 #If DEBUG Then
-                Dim identityComparer = m_UnderlyingModule.DeclaringCompilation.Options.AssemblyIdentityComparer
+                Dim identityComparer = _underlyingModule.DeclaringCompilation.Options.AssemblyIdentityComparer
                 Dim definitionIdentity = If(referencedAssemblySymbols(i) Is originatingSourceAssemblyDebugOnly,
                                             New AssemblyIdentity(name:=originatingSourceAssemblyDebugOnly.Name),
                                             referencedAssemblySymbols(i).Identity)
@@ -204,10 +204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 If referencedAssemblySymbols(i) IsNot underlyingBoundReferences(j) Then
                     Dim destinationData As DestinationData = Nothing
 
-                    If Not m_RetargetingAssemblyMap.TryGetValue(underlyingBoundReferences(j), destinationData) Then
+                    If Not _retargetingAssemblyMap.TryGetValue(underlyingBoundReferences(j), destinationData) Then
                         Dim symbolMap = New ConcurrentDictionary(Of NamedTypeSymbol, NamedTypeSymbol)()
 
-                        m_RetargetingAssemblyMap.Add(underlyingBoundReferences(j),
+                        _retargetingAssemblyMap.Add(underlyingBoundReferences(j),
                             New DestinationData With {.To = referencedAssemblySymbols(i), .SymbolMap = symbolMap})
                     Else
                         Debug.Assert(destinationData.To Is referencedAssemblySymbols(i))
@@ -227,37 +227,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
-                Return m_UnderlyingModule.TypeNames
+                Return _underlyingModule.TypeNames
             End Get
         End Property
 
         Friend Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
             Get
-                Return m_UnderlyingModule.NamespaceNames
+                Return _underlyingModule.NamespaceNames
             End Get
         End Property
 
         Friend Overrides ReadOnly Property MightContainExtensionMethods As Boolean
             Get
-                Return m_UnderlyingModule.MightContainExtensionMethods
+                Return _underlyingModule.MightContainExtensionMethods
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
             Get
-                Return m_UnderlyingModule.HasAssemblyCompilationRelaxationsAttribute
+                Return _underlyingModule.HasAssemblyCompilationRelaxationsAttribute
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean
             Get
-                Return m_UnderlyingModule.HasAssemblyRuntimeCompatibilityAttribute
+                Return _underlyingModule.HasAssemblyRuntimeCompatibilityAttribute
             End Get
         End Property
 
         Friend Overrides ReadOnly Property DefaultMarshallingCharSet As CharSet?
             Get
-                Return m_UnderlyingModule.DefaultMarshallingCharSet
+                Return _underlyingModule.DefaultMarshallingCharSet
             End Get
         End Property
 
@@ -271,7 +271,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_UnderlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+        End Function
+
+        Public Overrides Function GetMetadata() As ModuleMetadata
+            Return _underlyingModule.GetMetadata()
         End Function
     End Class
 End Namespace

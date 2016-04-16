@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class FormattedSymbolList : IMessageSerializable
     {
-        private readonly IEnumerable<ISymbol> symbols;
-        private readonly SymbolDisplayFormat symbolDisplayFormat;
+        private readonly IEnumerable<ISymbol> _symbols;
+        private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
         internal FormattedSymbolList(IEnumerable<ISymbol> symbols, SymbolDisplayFormat symbolDisplayFormat = null)
         {
             Debug.Assert(symbols != null);
 
-            this.symbols = symbols;
-            this.symbolDisplayFormat = symbolDisplayFormat;
+            _symbols = symbols;
+            _symbolDisplayFormat = symbolDisplayFormat;
         }
 
         public override string ToString()
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             StringBuilder builder = pooled.Builder;
 
             bool first = true;
-            foreach (var symbol in symbols)
+            foreach (var symbol in _symbols)
             {
                 if (first)
                 {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                     builder.Append(", ");
                 }
 
-                builder.Append(symbol.ToDisplayString(symbolDisplayFormat));
+                builder.Append(symbol.ToDisplayString(_symbolDisplayFormat));
             }
 
             return pooled.ToStringAndFree();

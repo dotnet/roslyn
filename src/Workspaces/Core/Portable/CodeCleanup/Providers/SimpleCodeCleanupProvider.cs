@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     /// </summary>
     internal class SimpleCodeCleanupProvider : ICodeCleanupProvider
     {
-        private readonly Func<Document, IEnumerable<TextSpan>, CancellationToken, Task<Document>> documentDelegatee;
-        private readonly Func<SyntaxNode, IEnumerable<TextSpan>, Workspace, CancellationToken, SyntaxNode> syntaxDelegatee;
+        private readonly Func<Document, IEnumerable<TextSpan>, CancellationToken, Task<Document>> _documentDelegatee;
+        private readonly Func<SyntaxNode, IEnumerable<TextSpan>, Workspace, CancellationToken, SyntaxNode> _syntaxDelegatee;
 
         public SimpleCodeCleanupProvider(string name,
             Func<Document, IEnumerable<TextSpan>, CancellationToken, Task<Document>> documentDelegatee = null,
@@ -24,21 +24,21 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Contract.Requires(documentDelegatee != null || syntaxDelegatee != null);
 
             this.Name = name;
-            this.documentDelegatee = documentDelegatee;
-            this.syntaxDelegatee = syntaxDelegatee;
+            _documentDelegatee = documentDelegatee;
+            _syntaxDelegatee = syntaxDelegatee;
         }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
-            if (this.documentDelegatee != null)
+            if (_documentDelegatee != null)
             {
-                return await this.documentDelegatee(document, spans, cancellationToken).ConfigureAwait(false);
+                return await _documentDelegatee(document, spans, cancellationToken).ConfigureAwait(false);
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = this.syntaxDelegatee(root, spans, document.Project.Solution.Workspace, cancellationToken);
+            var newRoot = _syntaxDelegatee(root, spans, document.Project.Solution.Workspace, cancellationToken);
 
             if (root != newRoot)
             {
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             return document;
         }
 
-        public SyntaxNode Cleanup(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
+        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
-            if (this.syntaxDelegatee != null)
+            if (_syntaxDelegatee != null)
             {
-                return this.syntaxDelegatee(root, spans, workspace, cancellationToken);
+                return Task.FromResult(_syntaxDelegatee(root, spans, workspace, cancellationToken));
             }
 
-            return root;
+            return Task.FromResult(root);
         }
     }
 }

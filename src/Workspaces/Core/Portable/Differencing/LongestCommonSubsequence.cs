@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 yield return new SequenceEdit(-1, j);
             }
         }
-        
+
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
         /// The smaller distance the more of their elements match.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         /// <summary>
-        /// Calculates costs of all paths in an edit graph starting from vertext (0,0) and ending in vertex (lengthA, lengthB). 
+        /// Calculates costs of all paths in an edit graph starting from vertex (0,0) and ending in vertex (lengthA, lengthB). 
         /// </summary>
         /// <remarks>
         /// The edit graph for A and B has a vertex at each point in the grid (i,j), i in [0, lengthA] and j in [0, lengthB].

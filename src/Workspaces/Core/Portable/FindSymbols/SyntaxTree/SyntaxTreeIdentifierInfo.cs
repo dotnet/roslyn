@@ -4,13 +4,12 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SyntaxTreeIdentifierInfo : AbstractPersistableState, IObjectWritable
+    internal partial class SyntaxTreeIdentifierInfo : AbstractSyntaxTreeInfo
     {
         private const string PersistenceName = "<SyntaxTreeInfoIdentifierPersistence>";
         private const string SerializationFormat = "1";
@@ -20,12 +19,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// 
         /// this is not snapshot based so multiple versions of snapshots can re-use same data as long as it is relevant.
         /// </summary>
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIdentifierInfo>> cache =
-            new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIdentifierInfo>>();
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
+            new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
-        private readonly VersionStamp version;
-        private readonly BloomFilter identifierFilter;
-        private readonly BloomFilter escapedIdentifierFilter;
+        private readonly VersionStamp _version;
+        private readonly BloomFilter _identifierFilter;
+        private readonly BloomFilter _escapedIdentifierFilter;
 
         public SyntaxTreeIdentifierInfo(
             VersionStamp version,
@@ -35,17 +34,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (identifierFilter == null)
             {
-                throw new ArgumentNullException("identifierFilter");
+                throw new ArgumentNullException(nameof(identifierFilter));
             }
 
             if (escapedIdentifierFilter == null)
             {
-                throw new ArgumentNullException("escapedIdentifierFilter");
+                throw new ArgumentNullException(nameof(escapedIdentifierFilter));
             }
 
-            this.version = version;
-            this.identifierFilter = identifierFilter;
-            this.escapedIdentifierFilter = escapedIdentifierFilter;
+            _version = version;
+            _identifierFilter = identifierFilter;
+            _escapedIdentifierFilter = escapedIdentifierFilter;
         }
 
         /// <summary>
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool ProbablyContainsIdentifier(string identifier)
         {
-            return identifierFilter.ProbablyContains(identifier);
+            return _identifierFilter.ProbablyContains(identifier);
         }
 
         /// <summary>
@@ -69,13 +68,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public bool ProbablyContainsEscapedIdentifier(string identifier)
         {
-            return escapedIdentifierFilter.ProbablyContains(identifier);
+            return _escapedIdentifierFilter.ProbablyContains(identifier);
         }
 
-        public void WriteTo(ObjectWriter writer)
+        public override void WriteTo(ObjectWriter writer)
         {
-            this.identifierFilter.WriteTo(writer);
-            this.escapedIdentifierFilter.WriteTo(writer);
+            _identifierFilter.WriteTo(writer);
+            _escapedIdentifierFilter.WriteTo(writer);
+        }
+
+        public static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
+        {
+            return PrecalculatedAsync(document, PersistenceName, SerializationFormat, cancellationToken);
+        }
+
+        public static async Task<SyntaxTreeIdentifierInfo> LoadAsync(Document document, CancellationToken cancellationToken)
+        {
+            var info = await LoadAsync(document, ReadFrom, s_cache, PersistenceName, SerializationFormat, cancellationToken).ConfigureAwait(false);
+            return (SyntaxTreeIdentifierInfo)info;
+        }
+
+        public override Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SaveAsync(document, s_cache, PersistenceName, SerializationFormat, cancellationToken);
         }
 
         private static SyntaxTreeIdentifierInfo ReadFrom(ObjectReader reader, VersionStamp version)
@@ -92,105 +107,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
-        }
-
-        public static Task<bool> PrecalculatedAsync(Document document, CancellationToken cancellationToken)
-        {
-            return PrecalculatedAsync(document, PersistenceName, SerializationFormat, cancellationToken);
-        }
-
-        public static async Task<SyntaxTreeIdentifierInfo> LoadAsync(Document document, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var infoTable = GetInfoTable(document.Project.Solution.BranchId, workspace);
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            // first look to see if we already have the info in the live cache
-            SyntaxTreeIdentifierInfo info;
-            if (infoTable.TryGetValue(document.Id, out info) && info.Version == version)
-            {
-                return info;
-            }
-
-            // we know cached information is invalid, delete it.
-            infoTable.Remove(document.Id);
-
-            // now, check primary cache to see whether we have a hit
-            var primaryInfoTable = GetInfoTable(workspace.PrimaryBranchId, workspace);
-            if (primaryInfoTable.TryGetValue(document.Id, out info) && info.Version == version)
-            {
-                return info;
-            }
-
-            // check whether we can re-use persisted data
-            info = await LoadAsync(document, PersistenceName, SerializationFormat, ReadFrom, cancellationToken).ConfigureAwait(false);
-            if (info != null)
-            {
-                // check whether we need to cache it
-                if (document.IsOpen())
-                {
-                    Contract.Requires(!await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false));
-                    primaryInfoTable.Remove(document.Id);
-                    primaryInfoTable.GetValue(document.Id, _ => info);
-                }
-
-                return info;
-            }
-
-            return null;
-        }
-
-        public async Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var infoTable = GetInfoTable(document.Project.Solution.BranchId, workspace);
-
-            // if it is forked document
-            if (await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false))
-            {
-                infoTable.Remove(document.Id);
-                infoTable.GetValue(document.Id, _ => this);
-                return false;
-            }
-
-            // okay, cache this info if it is from opened document or persistence failed.
-            var persisted = await SaveAsync(document, PersistenceName, SerializationFormat, this, cancellationToken).ConfigureAwait(false);
-            if (!persisted || document.IsOpen())
-            {
-                var primaryInfoTable = GetInfoTable(workspace.PrimaryBranchId, workspace);
-                primaryInfoTable.Remove(document.Id);
-                primaryInfoTable.GetValue(document.Id, _ => this);
-            }
-
-            return persisted;
-        }
-
-        private static ConditionalWeakTable<DocumentId, SyntaxTreeIdentifierInfo> GetInfoTable(BranchId branchId, Workspace workspace)
-        {
-            return cache.GetValue(branchId, id =>
-            {
-                if (id == workspace.PrimaryBranchId)
-                {
-                    workspace.DocumentClosed += OnDocumentClosed;
-                }
-
-                return new ConditionalWeakTable<DocumentId, SyntaxTreeIdentifierInfo>();
-            });
-        }
-
-        private static void OnDocumentClosed(object sender, DocumentEventArgs e)
-        {
-            if (!e.Document.IsFromPrimaryBranch())
-            {
-                return;
-            }
-
-            ConditionalWeakTable<DocumentId, SyntaxTreeIdentifierInfo> infoTable;
-            if (cache.TryGetValue(e.Document.Project.Solution.BranchId, out infoTable))
-            {
-                // remove closed document from primary branch from live cache.
-                infoTable.Remove(e.Document.Id);
-            }
         }
     }
 }

@@ -375,13 +375,13 @@ public class D : A
 public class E : B.N
 {}");
 
-            TestDiagnostics(c.GetDiagnostics(),
-"'iField' error CS1540: Cannot access protected member 'A.iField' via a qualifier of type 'D'; the qualifier must be of type 'B.N.NN' (or derived from it)"
-            );
-
+            c.VerifyDiagnostics(
+                // (19,27): error CS1540: Cannot access protected member 'A.iField' via a qualifier of type 'D'; the qualifier must be of type 'B.N.NN' (or derived from it)
+                //                 int q = d.iField;
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "iField").WithArguments("A.iField", "D", "B.N.NN").WithLocation(19, 27));
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected02()
         {
@@ -399,10 +399,10 @@ class C : I<C.D.E>
 }
 ");
 
-            TestDiagnostics(c.GetDiagnostics());
+            c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckProtected03()
         {
@@ -423,8 +423,10 @@ class B
 }
 ");
 
-            TestDiagnostics(c.GetDiagnostics(),
-"'C' error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'");
+            c.VerifyDiagnostics(
+                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                //     class C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
 
         [Fact]
@@ -437,7 +439,7 @@ class B
             // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
             // SPEC VIOLATION: then the best method is chosen.
             // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behaviour; it is arguably sensible and would be a 
+            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
             // SPEC VIOLATION: bad breaking change to fix now.
 
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -454,13 +456,12 @@ public class D : B
        B b = new D();
        b.M(123);
        // According to the spec, this should choose the int version and then error;
-       // the native compiler chooses the double version. We match the native compiler behaviour.
+       // the native compiler chooses the double version. We match the native compiler behavior.
     }
 }
 ");
 
-            TestDiagnostics(c.GetDiagnostics());
-
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -473,7 +474,7 @@ public class D : B
             // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
             // SPEC VIOLATION: then the best method is chosen.
             // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behaviour; it is arguably sensible and would be a 
+            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
             // SPEC VIOLATION: bad breaking change to fix now.
             //
             // This fact has interesting implications in "Color Color" scenarios; when one 
@@ -565,11 +566,10 @@ namespace CS1540
 
 ");
 
-            TestDiagnostics(c.GetDiagnostics());
-
+            c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate()
         {
@@ -587,10 +587,10 @@ class C : I<C.D.E>
 }
 ");
 
-            TestDiagnostics(c.GetDiagnostics());
+            c.VerifyDiagnostics();
         }
 
-        [WorkItem(539561, "DevDiv")]
+        [WorkItem(539561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539561")]
         [Fact]
         public void AccessCheckPrivate02()
         {
@@ -611,8 +611,10 @@ class B
 }
 ");
 
-            TestDiagnostics(c.GetDiagnostics(),
-"'C' error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'");
+            c.VerifyDiagnostics(
+                // (8,11): error CS0060: Inconsistent accessibility: base class 'X<B.C.D.E>' is less accessible than class 'B.C'
+                //     class C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
 
         [Fact]
@@ -646,14 +648,22 @@ public class A
     }
 }", new List<MetadataReference>() { new CSharpCompilationReference(other) });
 
-            TestDiagnostics(c.GetDiagnostics(),
-"'c_int' error CS0122: 'C.c_int' is inaccessible due to its protection level",
-"'c_pro' error CS0122: 'C.c_pro' is inaccessible due to its protection level",
-"'c_intpro' error CS0122: 'C.c_intpro' is inaccessible due to its protection level",
-"'c_priv' error CS0122: 'C.c_priv' is inaccessible due to its protection level",
-"'D' error CS0122: 'D' is inaccessible due to its protection level"
-);
-
+            c.VerifyDiagnostics(
+                // (6,19): error CS0122: 'C.c_int' is inaccessible due to its protection level
+                //         int b = C.c_int;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_int").WithArguments("C.c_int").WithLocation(6, 19),
+                // (7,19): error CS0122: 'C.c_pro' is inaccessible due to its protection level
+                //         int c = C.c_pro;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_pro").WithArguments("C.c_pro").WithLocation(7, 19),
+                // (8,19): error CS0122: 'C.c_intpro' is inaccessible due to its protection level
+                //         int d = C.c_intpro;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_intpro").WithArguments("C.c_intpro").WithLocation(8, 19),
+                // (9,19): error CS0122: 'C.c_priv' is inaccessible due to its protection level
+                //         int e = C.c_priv;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
+                // (10,17): error CS0122: 'D' is inaccessible due to its protection level
+                //         int f = D.d_pub;
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
         }
 
         [Fact]
@@ -687,12 +697,16 @@ public class A: C
     }
 }", new[] { new CSharpCompilationReference(other) });
 
-            TestDiagnostics(c.GetDiagnostics(),
-"'c_int' error CS0122: 'C.c_int' is inaccessible due to its protection level",
-"'c_priv' error CS0122: 'C.c_priv' is inaccessible due to its protection level",
-"'D' error CS0122: 'D' is inaccessible due to its protection level"
-);
-
+            c.VerifyDiagnostics(
+                // (6,19): error CS0122: 'C.c_int' is inaccessible due to its protection level
+                //         int b = C.c_int;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_int").WithArguments("C.c_int").WithLocation(6, 19),
+                // (9,19): error CS0122: 'C.c_priv' is inaccessible due to its protection level
+                //         int e = C.c_priv;
+                Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
+                // (10,17): error CS0122: 'D' is inaccessible due to its protection level
+                //         int f = D.d_pub;
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("D").WithLocation(10, 17));
         }
 
         [Fact]
@@ -804,8 +818,10 @@ public class A
     protected B(C o) {}
   }
 }", new MetadataReference[] { new CSharpCompilationReference(other) }, assemblyName: "AccessCheckCrossAssemblyParameterProtectedMethod2");
-            TestDiagnostics(c.GetDiagnostics(),
-"'C' error CS0122: 'C' is inaccessible due to its protection level");
+            c.VerifyDiagnostics(
+                // (6,17): error CS0122: 'C' is inaccessible due to its protection level
+                //     protected B(C o) {}
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C").WithLocation(6, 17));
         }
 
         [Fact]
@@ -827,7 +843,7 @@ public class A
             Assert.Empty(c.GetDiagnostics());
         }
 
-        [WorkItem(543745, "DevDiv")]
+        [WorkItem(543745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543745")]
         [Fact]
         public void InternalInaccessibleProperty()
         {
@@ -859,7 +875,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
         }
 
-        [WorkItem(546209, "DevDiv")]
+        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void OverriddenMemberFromInternalType()
         {
@@ -872,7 +888,7 @@ internal class A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -898,7 +914,7 @@ internal abstract class B3 : A
 }";
             var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
@@ -932,7 +948,7 @@ internal abstract class B3 : A
                 Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b3.P").WithArguments("B3.P").WithLocation(14, 13));
         }
 
-        [WorkItem(546209, "DevDiv")]
+        [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]
         [Fact]
         public void InternalOverriddenMember()
         {
@@ -945,7 +961,7 @@ public abstract class A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -956,7 +972,7 @@ public abstract class B : A
 }";
             var compilation2 = CreateCompilationWithMscorlib(source2, assemblyName: "B", references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"class C
@@ -971,7 +987,7 @@ public abstract class B : A
             compilation3.VerifyDiagnostics();
         }
 
-        [WorkItem(530360, "DevDiv")]
+        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType()
         {
@@ -982,7 +998,7 @@ internal class A
 }
 ";
             var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilationA);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             // Dev11 compiler doesn't allow this code, Roslyn does.
@@ -994,7 +1010,7 @@ public class B
 }
 ";
             var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
-            compilationVerifier = CompileAndVerify(compilationB, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilationB);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"
@@ -1013,7 +1029,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M").WithArguments("B.M()"));
         }
 
-        [WorkItem(530360, "DevDiv")]
+        [WorkItem(530360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530360")]
         [Fact]
         public void InaccessibleReturnType_Dynamic()
         {
@@ -1024,7 +1040,7 @@ internal class A
 }
 ";
             var compilationA = CreateCompilationWithMscorlib(sourceA, assemblyName: "A");
-            var compilationVerifier = CompileAndVerify(compilationA, emitOptions: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilationA);
             var referenceA = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceB = @"
@@ -1035,7 +1051,7 @@ public class B
 }
 ";
             var compilationB = CreateCompilationWithMscorlib(sourceB, assemblyName: "B", references: new[] { referenceA });
-            compilationVerifier = CompileAndVerify(compilationB, emitOptions: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilationB);
             var referenceB = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
 
             var sourceC = @"
@@ -1054,7 +1070,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.M(d)").WithArguments("B.M(int)"));
         }
 
-        [WorkItem(563573, "DevDiv")]
+        [WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier01()
         {
@@ -1081,7 +1097,7 @@ class C
             CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
 
-        [WorkItem(563563, "DevDiv"), WorkItem(563573, "DevDiv")]
+        [WorkItem(563563, "DevDiv"), WorkItem(563573, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563573")]
         [Fact]
         public void MissingIdentifier02()
         {
@@ -1109,7 +1125,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(552452, "DevDiv")]
+        [WorkItem(552452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552452")]
         public void AccessTestInBadCode01()
         {
             var source =

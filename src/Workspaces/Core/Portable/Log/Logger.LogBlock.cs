@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // Regardless of how many tasks we can run in parallel on the machine, we likely won't need more than 256
         // instrumentation points in flight at a given time.
         // Use an object pool since we may be logging up to 1-10k events/second
-        private static readonly ObjectPool<RoslynLogBlock> Pool = new ObjectPool<RoslynLogBlock>(() => new RoslynLogBlock(Pool), Math.Min(Environment.ProcessorCount * 8, 256));
+        private static readonly ObjectPool<RoslynLogBlock> s_pool = new ObjectPool<RoslynLogBlock>(() => new RoslynLogBlock(s_pool), Math.Min(Environment.ProcessorCount * 8, 256));
 
         private static IDisposable CreateLogBlock(FunctionId functionId, LogMessage message, int blockId, CancellationToken cancellationToken)
         {
-            var block = Pool.Allocate();
-            block.Construct(currentLogger, functionId, message, blockId, cancellationToken);
+            var block = s_pool.Allocate();
+            block.Construct(s_currentLogger, functionId, message, blockId, cancellationToken);
             return block;
         }
 
@@ -26,53 +26,53 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         private class RoslynLogBlock : IDisposable
         {
-            private readonly ObjectPool<RoslynLogBlock> pool;
+            private readonly ObjectPool<RoslynLogBlock> _pool;
 
             // these need to be cleared before putting back to pool
-            private ILogger logger;
-            private LogMessage logMessage;
-            private CancellationToken cancellationToken;
+            private ILogger _logger;
+            private LogMessage _logMessage;
+            private CancellationToken _cancellationToken;
 
-            private FunctionId functionId;
-            private int tick;
-            private int blockId;
+            private FunctionId _functionId;
+            private int _tick;
+            private int _blockId;
 
             public RoslynLogBlock(ObjectPool<RoslynLogBlock> pool)
             {
-                this.pool = pool;
+                _pool = pool;
             }
 
             public void Construct(ILogger logger, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
             {
-                this.logger = logger;
-                this.functionId = functionId;
-                this.logMessage = logMessage;
-                this.tick = Environment.TickCount;
-                this.blockId = blockId;
-                this.cancellationToken = cancellationToken;
+                _logger = logger;
+                _functionId = functionId;
+                _logMessage = logMessage;
+                _tick = Environment.TickCount;
+                _blockId = blockId;
+                _cancellationToken = cancellationToken;
 
                 logger.LogBlockStart(functionId, logMessage, blockId, cancellationToken);
             }
 
             public void Dispose()
             {
-                if (logger == null)
+                if (_logger == null)
                 {
                     return;
                 }
 
                 // This delta is valid for durations of < 25 days
-                var delta = Environment.TickCount - this.tick;
+                var delta = Environment.TickCount - _tick;
 
-                logger.LogBlockEnd(functionId, logMessage, blockId, delta, cancellationToken);
+                _logger.LogBlockEnd(_functionId, _logMessage, _blockId, delta, _cancellationToken);
 
                 // Free this block back to the pool
-                logMessage.Free();
-                logMessage = null;
-                logger = null;
-                cancellationToken = default(CancellationToken);
+                _logMessage.Free();
+                _logMessage = null;
+                _logger = null;
+                _cancellationToken = default(CancellationToken);
 
-                pool.Free(this);
+                _pool.Free(this);
             }
         }
     }

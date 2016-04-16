@@ -876,8 +876,8 @@ BC33107: First operand in a binary 'If' expression must be nullable or a referen
 </expected>)
         End Sub
 
-        <Fact, WorkItem(544983, "DevDiv")>
-        Sub Bug13187()
+        <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
+        Public Sub Bug13187()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -925,8 +925,8 @@ Full
 
         End Sub
 
-        <Fact, WorkItem(544983, "DevDiv")>
-        Sub Bug13187_2()
+        <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
+        Public Sub Bug13187_2()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">

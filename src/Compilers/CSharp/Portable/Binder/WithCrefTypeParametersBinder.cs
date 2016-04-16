@@ -14,26 +14,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class WithCrefTypeParametersBinder : WithTypeParametersBinder
     {
-        private readonly CrefSyntax crefSyntax;
-        private MultiDictionary<string, TypeParameterSymbol> lazyTypeParameterMap;
+        private readonly CrefSyntax _crefSyntax;
+        private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
         internal WithCrefTypeParametersBinder(CrefSyntax crefSyntax, Binder next)
             : base(next)
         {
-            this.crefSyntax = crefSyntax;
+            _crefSyntax = crefSyntax;
         }
 
         protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
         {
             get
             {
-                if (this.lazyTypeParameterMap == null)
+                if (_lazyTypeParameterMap == null)
                 {
                     MultiDictionary<string, TypeParameterSymbol> map = CreateTypeParameterMap();
-                    Interlocked.CompareExchange(ref this.lazyTypeParameterMap, map, null);
+                    Interlocked.CompareExchange(ref _lazyTypeParameterMap, map, null);
                 }
 
-                return lazyTypeParameterMap;
+                return _lazyTypeParameterMap;
             }
         }
 
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var map = new MultiDictionary<string, TypeParameterSymbol>();
 
-            switch (crefSyntax.Kind())
+            switch (_crefSyntax.Kind())
             {
                 case SyntaxKind.TypeCref:
                     {
-                        AddTypeParameters(((TypeCrefSyntax)crefSyntax).Type, map);
+                        AddTypeParameters(((TypeCrefSyntax)_crefSyntax).Type, map);
                         break;
                     }
                 case SyntaxKind.QualifiedCref:
                     {
-                        QualifiedCrefSyntax qualifiedCrefSyntax = ((QualifiedCrefSyntax)crefSyntax);
+                        QualifiedCrefSyntax qualifiedCrefSyntax = ((QualifiedCrefSyntax)_crefSyntax);
                         AddTypeParameters(qualifiedCrefSyntax.Member, map);
                         AddTypeParameters(qualifiedCrefSyntax.Container, map);
                         break;
@@ -60,13 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
                     {
-                        AddTypeParameters((MemberCrefSyntax)crefSyntax, map);
+                        AddTypeParameters((MemberCrefSyntax)_crefSyntax, map);
                         break;
                     }
                 default:
                     {
-                        Debug.Assert(false, "Unexpected cref syntax kind " + crefSyntax.Kind());
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(_crefSyntax.Kind());
                     }
             }
             return map;
@@ -74,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddTypeParameters(TypeSyntax typeSyntax, MultiDictionary<string, TypeParameterSymbol> map)
         {
-
             switch (typeSyntax.Kind())
             {
                 case SyntaxKind.AliasQualifiedName:
@@ -94,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected type syntax kind " + typeSyntax.Kind());
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind());
             }
         }
 

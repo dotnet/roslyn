@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -122,6 +123,20 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new string('\t', numberOfTabs) + new string(' ', numberOfSpaces);
         }
 
+        public static StringBuilder AppendIndentationString(this StringBuilder sb, int desiredIndentation, bool useTab, int tabSize)
+        {
+            int numberOfTabs = 0;
+            int numberOfSpaces = Math.Max(0, desiredIndentation);
+
+            if (useTab)
+            {
+                numberOfTabs = desiredIndentation / tabSize;
+                numberOfSpaces -= numberOfTabs * tabSize;
+            }
+
+            return sb.Append('\t', repeatCount: numberOfTabs).Append(' ', repeatCount: numberOfSpaces);
+        }
+
         public static void ProcessTextBetweenTokens(
             this string text,
             TreeData treeInfo,
@@ -142,11 +157,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // with tab, more expensive way. get column of token1 and then calculate right space amount
-            var initialColumn = baseToken.RawKind == 0 ? 0 /* the very begining of the file */ : treeInfo.GetOriginalColumn(tabSize, baseToken);
+            var initialColumn = baseToken.RawKind == 0 ? 0 /* the very beginning of the file */ : treeInfo.GetOriginalColumn(tabSize, baseToken);
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 
-        private static char[] trimChars = new char[] { '\r', '\n' };
+        private static readonly char[] s_trimChars = new char[] { '\r', '\n' };
 
         public static string AdjustIndentForXmlDocExteriorTrivia(
             this string triviaText,
@@ -159,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var isEmptyString = false;
             var builder = StringBuilderPool.Allocate();
 
-            var trimmedTriviaText = triviaText.TrimEnd(trimChars);
+            var trimmedTriviaText = triviaText.TrimEnd(s_trimChars);
             var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(triviaText);
             if (nonWhitespaceCharIndex == -1)
             {
@@ -168,9 +183,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var newIndentation = GetNewIndentationForComments(triviaText, nonWhitespaceCharIndex, forceIndentation, indentation, indentationDelta, tabSize);
-            var newIndentationString = newIndentation.CreateIndentationString(useTab, tabSize);
 
-            builder.Append(newIndentationString);
+            builder.AppendIndentationString(newIndentation, useTab, tabSize);
             if (!isEmptyString)
             {
                 builder.Append(triviaText, nonWhitespaceCharIndex, triviaText.Length - nonWhitespaceCharIndex);
@@ -185,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             int indentation,
             int indentationDelta,
             bool useTab,
-            int tabSize)
+            int tabSize,
+            string newLine)
         {
             var builder = StringBuilderPool.Allocate();
 
@@ -194,29 +209,27 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfFalse(lines.Length > 0);
 
             // add first line and append new line iff it is not a single line xml doc comment
-            builder.Append(lines[0].Trim(trimChars));
+            builder.Append(lines[0].Trim(s_trimChars));
             if (0 < lines.Length - 1)
             {
-                builder.AppendLine();
+                builder.Append(newLine);
             }
 
             // add rest of xml doc comments
             for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i].TrimEnd(trimChars);
+                var line = lines[i].TrimEnd(s_trimChars);
                 var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(line);
                 if (nonWhitespaceCharIndex >= 0)
                 {
                     var newIndentation = GetNewIndentationForComments(line, nonWhitespaceCharIndex, forceIndentation, indentation, indentationDelta, tabSize);
-                    var newIndentationString = newIndentation.CreateIndentationString(useTab, tabSize);
-
-                    builder.Append(newIndentationString);
+                    builder.AppendIndentationString(newIndentation, useTab, tabSize);
                     builder.Append(line, nonWhitespaceCharIndex, line.Length - nonWhitespaceCharIndex);
                 }
 
                 if (i < lines.Length - 1)
                 {
-                    builder.AppendLine();
+                    builder.Append(newLine);
                 }
             }
 

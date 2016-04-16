@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             if (!(occurrence > 0))
             {
-                throw new ArgumentException("Specified value must be greater than zero.", "occurrence");
+                throw new ArgumentException("Specified value must be greater than zero.", nameof(occurrence));
             }
             SyntaxNodeOrToken foundNode = default(SyntaxNodeOrToken);
             if (TryFindNodeOrToken(syntaxTree.GetCompilationUnitRoot(), kind, ref occurrence, ref foundNode))
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
             var parts = SplitMemberName(qualifiedName);
-            
+
             lastContainer = container;
             for (int i = 0; i < parts.Length - 1; i++)
             {
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return true;
                     }
 
-                    // TODO: improve the comparision mechanism for generic types.
+                    // TODO: improve the comparison mechanism for generic types.
                     if (typeSym.Kind == SymbolKind.NamedType &&
                         ((NamedTypeSymbol)typeSym).IsGenericType)
                     {
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return typeSym.Name == expType.Name;
                 }
                 // generic
-                if (!(expType.IsGenericType))
+                if (!(expType.GetTypeInfo().IsGenericType))
                 {
                     return false;
                 }
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     return false;
                 }
-                if (!IsEqual(arySym.BaseType, expType.BaseType))
+                if (!IsEqual(arySym.BaseType, expType.GetTypeInfo().BaseType))
                 {
                     return false;
                 }
@@ -517,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }
 
-// This is deliberately declared in the global namespace so that it will always be discoverable (regarless of usings).
+// This is deliberately declared in the global namespace so that it will always be discoverable (regardless of usings).
 internal static class Extensions
 {
     /// <summary>

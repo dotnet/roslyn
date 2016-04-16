@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Private Class FormattedComplexTrivia
-            Inherits TriviaDataWithList(Of SyntaxTrivia)
+            Inherits TriviaDataWithList
 
             Private ReadOnly _formatter As VisualBasicTriviaFormatter
             Private ReadOnly _textChanges As IList(Of TextChange)

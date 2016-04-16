@@ -32,14 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int i = 0;
                 goto start;
 
-                again:
+            again:
                 hashCode = unchecked((text[i] ^ hashCode) * 16777619);
                 i = i + 1;
 
-                start:
+            start:
                 if (i < text.Length)
                     goto again;
-
             }
             return hashCode;
         }
@@ -119,7 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);
-
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
@@ -201,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    abstract partial class MethodToClassRewriter : BoundTreeRewriter
+    internal abstract partial class MethodToClassRewriter
     {
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {

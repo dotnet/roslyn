@@ -208,7 +208,7 @@ End Class
             Assert.Equal(source.IsImplicitlyDeclared, underlying.IsImplicitlyDeclared)
         End Sub
 
-        <WorkItem(542571, "DevDiv")>
+        <WorkItem(542571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542571")>
         <Fact>
         Public Sub RetargetExplicitImplementationDifferentModule()
 
@@ -335,7 +335,7 @@ Public Interface I(Of T)
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetInvalidEnumUnderlyingType_Implicit()
             Dim source =
 <compilation name="test">
@@ -373,7 +373,7 @@ End Enum]]>.Value.Replace(vbLf, vbCrLf)).WithArguments("System.Void"),
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetInvalidEnumUnderlyingType_Explicit()
             Dim source =
 <compilation name="test">
@@ -411,7 +411,7 @@ End Enum]]>.Value.Replace(vbLf, vbCrLf)).WithArguments("System.Void"),
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetInvalidInterfaceType_Class()
             Dim source =
 <compilation>
@@ -438,7 +438,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetMissingInterfaceType_Class()
             Dim source =
 <compilation name="test">
@@ -478,7 +478,7 @@ BC30002: Type 'System.Int16' is not defined.
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetInvalidInterfaceType_Struct()
             Dim source =
     <compilation>
@@ -505,8 +505,8 @@ End Structure
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
-        <WorkItem(609515, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
+        <WorkItem(609515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")>
         Public Sub RetargetMissingInterfaceType_Struct()
             Dim source =
     <compilation name="test">
@@ -546,7 +546,7 @@ BC30002: Type 'System.Int16' is not defined.
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
         Public Sub RetargetInvalidInterfaceType_Interface()
             Dim source =
     <compilation>
@@ -578,8 +578,8 @@ BC30354: Interface can inherit only from another interface.
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
-        <WorkItem(609515, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
+        <WorkItem(609515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609515")>
         Public Sub RetargetMissingInterfaceType_Interface()
             Dim source =
     <compilation>
@@ -606,8 +606,8 @@ End Interface
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
-        <WorkItem(609519, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
+        <WorkItem(609519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")>
         Public Sub RetargetInvalidConstraint()
             Dim source =
     <compilation>
@@ -638,8 +638,8 @@ Public Class C(Of T As Short)
         End Sub
 
         <Fact>
-        <WorkItem(604878, "DevDiv")>
-        <WorkItem(609519, "DevDiv")>
+        <WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")>
+        <WorkItem(609519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609519")>
         Public Sub RetargetMissingConstraint()
             Dim source =
     <compilation name="test">
@@ -682,7 +682,7 @@ Public Class C(Of T As Short)
 
         <Fact>
         Public Sub Retarget_Non_GenericTypes()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -738,7 +738,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -929,7 +929,7 @@ End Namespace
                </compilation>
 
 
-            'Check Expected Behaviour - Expect no diagnostic errors without retargeting            
+            'Check Expected Behavior - Expect no diagnostic errors without retargeting            
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibrary_Metadata = referenceLibrary_Compilation.ToMetadataReference
@@ -939,7 +939,7 @@ End Namespace
             main_NoRetarget.VerifyDiagnostics()
 
 
-            'Retargetted - should result in No additional Errors also and same runtime behaviour
+            'Retargetted - should result in No additional Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
@@ -1021,7 +1021,7 @@ End Namespace
 
         <Fact>
         Public Sub Retarget_GenericTypes()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -1078,7 +1078,7 @@ Class NewClass_Using_Attribute
         End Class
 
 
-        Class New_InhertitedAttribute
+        Class New_InheritedAttribute
             Inherits ClassLibrary1.TestAttribute
         End Class
 
@@ -1292,7 +1292,7 @@ End Namespace
                    </file>
                </compilation>
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -1303,7 +1303,7 @@ End Namespace
             main_NoRetarget.VerifyDiagnostics()
 
 
-            '//Retargetted - should result in No Errors also and same runtime behaviour
+            '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
@@ -1367,9 +1367,9 @@ End Namespace
         End Sub
 
         <Fact>
-        Sub Retarget_Scoping()
+        Public Sub Retarget_Scoping()
             'Retargeting symbols occurs for types even if inaccessible 
-            'Diagnostics are checked to verify Semnatic behaviour
+            'Diagnostics are checked to verify semantic behavior
 
             Dim source =
                <compilation name="App1">
@@ -1485,7 +1485,7 @@ End Namespace
                </compilation>
 
 
-            'Check Expected Behaviour             
+            'Check Expected Behavior             
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
             Dim referenceLibraryMetaData = referenceLibrary_Compilation.ToMetadataReference
@@ -1511,7 +1511,7 @@ End Namespace
             Dim sourceMethod As MethodSymbol = Nothing
             Dim retargetingMethod As MethodSymbol = Nothing
 
-            'Public With Different Accessible Memeber
+            'Public With Different Accessible Member
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
@@ -1548,8 +1548,8 @@ End Namespace
             CheckMethods(sourceType.GetMember("Sub_In_Interface"), retargetingType.GetMember("Sub_In_Interface"))
             CheckMethods(sourceType.GetMember("Function_In_Interface"), retargetingType.GetMember("Function_In_Interface"))
 
-            'Diagnostics shouyld be the same in Retargeting or Non-Retargeting scenarios as they are these are handled in
-            'semantic behaviour and symbols need to be available for this to occur irrespective of scope.
+            'Diagnostics should be the same in Retargeting or Non-Retargeting scenarios as they are these are handled in
+            'semantic behavior and symbols need to be available for this to occur irrespective of scope.
             'Expect same diagnostic errors with retargeting
             main_NoRetarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
     Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
@@ -1560,7 +1560,7 @@ End Namespace
     Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
     Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestStructure").WithArguments("TestStructure", "Friend"))
 
-            '//Retargetted - should result in No Errors also and same runtime behaviour
+            '//Retargetted - should result in No Errors also and same runtime behavior
             Main_Retarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
     Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
     Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),
@@ -1574,7 +1574,7 @@ End Namespace
 
         <Fact>
         Public Sub Retarget_Array_Types()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -1671,7 +1671,7 @@ Imports System
 
 
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -1689,7 +1689,7 @@ Imports System
             main_NoRetarget.VerifyDiagnostics()
 
 
-            '//Retargetted - should result in No Errors also and same runtime behaviour
+            '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[11
@@ -1771,7 +1771,7 @@ Imports System
 
         <Fact>
         Public Sub Retarget_Overloads_overrides_Shadows()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -1873,7 +1873,7 @@ End Class
                    </file>
                </compilation>
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -1890,7 +1890,7 @@ MethodOverload(Base)
 
 
 
-            '//Retargetted - should result in No Errors also same runtime behaviour
+            '//Retargetted - should result in No Errors also same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Sharedmethod
@@ -1979,7 +1979,7 @@ MethodOverload(Base)
 
         <Fact>
         Public Sub Retarget_Events()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -2151,7 +2151,7 @@ End Class
 
 
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -2168,7 +2168,7 @@ Success]]>)
             main_NoRetarget.VerifyDiagnostics()
 
 
-            '//Retargetted - should result in No Errors also and same runtime behaviour
+            '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
@@ -2223,7 +2223,7 @@ Success]]>)
 
         <Fact>
         Public Sub Retarget_Attributes()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -2349,7 +2349,7 @@ End Class
 
 
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -2412,7 +2412,7 @@ test
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
+        Public Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
             'This test should also result in clean compilation after retargeting
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -2584,7 +2584,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -2690,7 +2690,7 @@ End Class
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_Errors()
+        Public Sub RetargetTest_NoChangeInDiagnostics_Errors()
             ' Ensure that same errors occur in retargeting for constraint compilation errors
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -2864,7 +2864,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -2976,7 +2976,7 @@ End Class
 
         <Fact>
         Public Sub Retarget_Delegate()
-            'The test involves compilation with/without retargeting and ensuring same behaviour at runtime
+            'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
 
@@ -3066,7 +3066,7 @@ End Namespace
                    </file>
                </compilation>
 
-            'Check Expected Behaviour - Expect no diagnostic errors with retargeting
+            'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -3077,7 +3077,7 @@ End Namespace
             main_NoRetarget.VerifyDiagnostics()
 
 
-            '//Retargetted - should result in No Errors also and same runtime behaviour
+            '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             Dim Main_Retarget = CompileAndVerify(source, additionalRefs:={RetargetReference}, options:=TestOptions.ReleaseExe,
                                                  expectedOutput:=<![CDATA[Success
@@ -3187,7 +3187,7 @@ End Namespace
             Return New VisualBasicCompilationReference(NewCompilation)
         End Function
 
-        <Fact> <WorkItem(703433, "DevDiv")>
+        <Fact> <WorkItem(703433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703433")>
         Public Sub Bug703433()
             Dim source1 =
 <compilation>

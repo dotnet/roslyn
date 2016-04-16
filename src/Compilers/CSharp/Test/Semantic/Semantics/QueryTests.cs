@@ -566,7 +566,7 @@ class Query
             Assert.Equal("ThenBy", oinfo1.Symbol.Name);
         }
 
-        [WorkItem(541774, "DevDiv")]
+        [WorkItem(541774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541774")]
         [Fact]
         public void MultipleFromClauseIdentifierInExprNotInContext()
         {
@@ -586,7 +586,7 @@ class Program
                 );
         }
 
-        [WorkItem(541906, "DevDiv")]
+        [WorkItem(541906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541906")]
         [Fact]
         public void NullLiteralFollowingJoinInQuery()
         {
@@ -613,7 +613,7 @@ class Program
                 );
         }
 
-        [WorkItem(541779, "DevDiv")]
+        [WorkItem(541779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541779")]
         [Fact]
         public void MultipleFromClauseQueryExpr()
         {
@@ -643,7 +643,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
-        [WorkItem(541782, "DevDiv")]
+        [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
         [Fact]
         public void FromSelectQueryExprOnArraysWithTypeImplicit()
         {
@@ -671,7 +671,7 @@ class Program
         }
 
 
-        [WorkItem(541788, "DevDiv")]
+        [WorkItem(541788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541788")]
         [Fact]
         public void JoinClauseTest()
         {
@@ -700,7 +700,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
-        [WorkItem(541789, "DevDiv")]
+        [WorkItem(541789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541789")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void WhereClauseTest()
@@ -731,7 +731,7 @@ class Program
             CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
-        [WorkItem(541942, "DevDiv")]
+        [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
         [Fact]
         public void WhereDefinedInType()
         {
@@ -782,7 +782,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select")).Parent;
+            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -812,7 +812,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select w")).Parent;
+            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select w", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -839,13 +839,13 @@ public class Test2
             compilation.VerifyDiagnostics();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("x+1")).Parent;
+            var e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("x+1", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(e);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             Assert.Equal("x", info.Symbol.Name);
 
-            e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("w+1")).Parent;
+            e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("w+1", StringComparison.Ordinal)).Parent;
             info = semanticModel.GetSemanticInfoSummary(e);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -857,7 +857,7 @@ public class Test2
             Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", info2.Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(541806, "DevDiv")]
+        [WorkItem(541806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541806")]
         [Fact]
         public void GetDeclaredSymbolForQueryContinuation()
         {
@@ -877,7 +877,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w")).Parent;
+            var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w", StringComparison.Ordinal)).Parent;
             var symbol = semanticModel.GetDeclaredSymbol(queryContinuation);
 
             Assert.NotNull(symbol);
@@ -885,7 +885,7 @@ public class Test2
             Assert.Equal(SymbolKind.RangeVariable, symbol.Kind);
         }
 
-        [WorkItem(541899, "DevDiv")]
+        [WorkItem(541899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541899")]
         [Fact]
         public void ComputeQueryVariableType()
         {
@@ -904,12 +904,12 @@ public class Test2
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("5"));
+            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
             var info = semanticModel.GetSpeculativeTypeInfo(selectExpression.SpanStart, SyntaxFactory.ParseExpression("x"), SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
-        [WorkItem(541893, "DevDiv")]
+        [WorkItem(541893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541893")]
         [Fact]
         public void GetDeclaredSymbolForJoinIntoClause()
         {
@@ -930,7 +930,7 @@ static class Test
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8")).Parent;
+            var joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8", StringComparison.Ordinal)).Parent;
             var symbol = semanticModel.GetDeclaredSymbol(joinInto);
 
             Assert.NotNull(symbol);
@@ -939,8 +939,8 @@ static class Test
             Assert.Equal("? x8", symbol.ToTestDisplayString());
         }
 
-        [WorkItem(541982, "DevDiv")]
-        [WorkItem(543494, "DevDiv")]
+        [WorkItem(541982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541982")]
+        [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
         [Fact()]
         public void GetDeclaredSymbolAddAccessorDeclIncompleteQuery()
         {
@@ -968,7 +968,7 @@ public class QueryExpressionTest
             Assert.True(symbols.All(s => ReferenceEquals(s, null)));
         }
 
-        [WorkItem(542235, "DevDiv")]
+        [WorkItem(542235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542235")]
         [Fact]
         public void TwoFromClauseFollowedBySelectClause()
         {
@@ -1008,7 +1008,7 @@ class Test
             Assert.Equal(CandidateReason.None, symbolInfoForSelect.CandidateReason);
         }
 
-        [WorkItem(528747, "DevDiv")]
+        [WorkItem(528747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528747")]
         [Fact]
         public void SemanticInfoForOrderingClauses()
         {
@@ -1042,7 +1042,7 @@ public class QueryExpressionTest
             Assert.Equal(3, count);
         }
 
-        [WorkItem(542266, "DevDiv")]
+        [WorkItem(542266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542266")]
         [Fact]
         public void FromOrderBySelectQueryTranslation()
         {
@@ -1095,7 +1095,7 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem(528756, "DevDiv")]
+        [WorkItem(528756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528756")]
         [Fact]
         public void FromWhereSelectTranslation()
         {
@@ -1133,7 +1133,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "System.Linq.Enumerable.Range(4, 5).Where(n => n > 10)").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select"));
         }
 
-        [WorkItem(528760, "DevDiv")]
+        [WorkItem(528760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528760")]
         [Fact]
         public void FromJoinSelectTranslation()
         {
@@ -1159,8 +1159,8 @@ class Program
             Assert.Null(symbolInfoForSelect.Symbol);
         }
 
-        [WorkItem(528761, "DevDiv")]
-        [WorkItem(544585, "DevDiv")]
+        [WorkItem(528761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528761")]
+        [WorkItem(544585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544585")]
         [Fact]
         public void OrderingSyntaxWithOverloadResolutionFailure()
         {
@@ -1194,7 +1194,7 @@ class Program
             Assert.Null(symbolInfoForOrdering.Symbol);
         }
 
-        [WorkItem(542292, "DevDiv")]
+        [WorkItem(542292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542292")]
         [Fact]
         public void EmitIncompleteQueryWithSyntaxErrors()
         {
@@ -1216,7 +1216,7 @@ class Program
             }
         }
 
-        [WorkItem(542294, "DevDiv")]
+        [WorkItem(542294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542294")]
         [Fact]
         public void EmitQueryWithBindErrors()
         {
@@ -1238,7 +1238,7 @@ class Program
             }
         }
 
-        [WorkItem(542372, "DevDiv")]
+        [WorkItem(542372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542372")]
         [Fact]
         public void BindToIncompleteSelectManyDecl()
         {
@@ -1273,7 +1273,7 @@ class C<T>
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem(542419, "DevDiv")]
+        [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
         [Fact]
         public void BindIdentifierInWhereErrorTolerance()
         {
@@ -1299,9 +1299,9 @@ class Program
             Assert.NotEmpty(diags);
         }
 
-        [WorkItem(542460, "DevDiv")]
+        [WorkItem(542460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542460")]
         [Fact]
-        public void QueryWithMultipleParseErrorsAndInteractiveParseOption()
+        public void QueryWithMultipleParseErrorsAndScriptParseOption()
         {
             string sourceCode = @"
 using System;
@@ -1318,7 +1318,7 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
@@ -1327,9 +1327,9 @@ public class QueryExpressionTest
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(542496, "DevDiv")]
+        [WorkItem(542496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542496")]
         [Fact]
-        public void QueryExpressionInFieldInitReferencingAnotherFieldWithInteractiveParseOption()
+        public void QueryExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
             string sourceCode = @"
 using System.Linq;
@@ -1344,7 +1344,7 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
@@ -1353,7 +1353,7 @@ class P
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [WorkItem(542559, "DevDiv")]
+        [WorkItem(542559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542559")]
         [Fact]
         public void StaticTypeInFromClause()
         {
@@ -1371,16 +1371,16 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
-                // (9,36): error CS0718: 'System.GC': static types cannot be used as type arguments
+                // (9,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(9, 36),
-                // (10,23): error CS0718: 'System.GC': static types cannot be used as type arguments
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
+                // (10,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = from GC x in string.Empty select x;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 18)
                 );
         }
 
-        [WorkItem(542560, "DevDiv")]
+        [WorkItem(542560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542560")]
         [Fact]
         public void MethodGroupInFromClause()
         {
@@ -1404,7 +1404,7 @@ class Program
                 );
         }
 
-        [WorkItem(542558, "DevDiv")]
+        [WorkItem(542558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
         [Fact]
         public void SelectFromType01()
         {
@@ -1437,7 +1437,7 @@ class C
             Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
-        [WorkItem(542558, "DevDiv")]
+        [WorkItem(542558, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542558")]
         [Fact]
         public void SelectFromType02()
         {
@@ -1467,10 +1467,10 @@ class C
             Assert.Equal(null, info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
-            Assert.Equal("Invoke", infoSelect.Symbol.Name);
+            Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
-        [WorkItem(542624, "DevDiv")]
+        [WorkItem(542624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
         [Fact]
         public void QueryColorColor()
         {
@@ -1509,7 +1509,7 @@ class Program
             );
         }
 
-        [WorkItem(542704, "DevDiv")]
+        [WorkItem(542704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542704")]
         [Fact]
         public void QueryOnSourceWithGroupByMethod()
         {
@@ -1592,8 +1592,8 @@ public class QueryExpressionTest
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
-        [WorkItem(543787, "DevDiv")]
-        [Fact]
+        [WorkItem(543787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543787")]
+        [ClrOnlyFact]
         public void GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
         {
             string source = @"
@@ -1613,7 +1613,7 @@ class Test
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
-            var index = source.IndexOf("select i");
+            var index = source.IndexOf("select i", StringComparison.Ordinal);
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
@@ -1623,7 +1623,7 @@ class Test
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
         }
 
-        [WorkItem(543790, "DevDiv")]
+        [WorkItem(543790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543790")]
         [Fact]
         public void GetQueryClauseInfoForQueryWithSyntaxErrors()
         {
@@ -1640,7 +1640,7 @@ class Test
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
-            var index = source.IndexOf("join int delegate in expr2 on i equals delegate");
+            var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);
@@ -1648,7 +1648,7 @@ class Test
             Assert.NotNull(queryInfo);
         }
 
-        [WorkItem(545797, "DevDiv")]
+        [WorkItem(545797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
         [Fact]
         public void QueryOnNull()
         {
@@ -1674,7 +1674,7 @@ static class C
                 );
         }
 
-        [WorkItem(545797, "DevDiv")]
+        [WorkItem(545797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545797")]
         [Fact]
         public void QueryOnLambda()
         {
@@ -1700,7 +1700,7 @@ static class C
                 );
         }
 
-        [WorkItem(545444, "DevDiv")]
+        [WorkItem(545444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545444")]
         [Fact]
         public void RefOmittedOnComCall()
         {
@@ -1736,7 +1736,55 @@ class Test
                 );
         }
 
-        [WorkItem(529350, "DevDiv")]
+        [Fact, WorkItem(5728, "https://github.com/dotnet/roslyn/issues/5728")]
+        public void RefOmittedOnComCallErr()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
+
+[ComImport]
+[Guid(""A88A175D-2448-447A-B786-64682CBEF156"")]
+public interface IRef1
+{
+    long M(uint y, ref int x, int z);
+    long M(uint y, ref int x, int z, int q);
+}
+
+public class Ref1Impl : IRef1
+{
+    public long M(uint y, ref int x, int z) { return x + y; }
+    public long M(uint y, ref int x, int z, int q) { return x + y; }
+}
+
+class Test1
+{
+    static void Test(Expression<Action<IRef1>> e)
+    {
+
+    }
+
+    static void Test<U>(Expression<Func<IRef1, U>> e)
+    {
+
+    }
+
+    public static void Main()
+    {
+        Test(ref1 => ref1.M(1, ));
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+    // (34,32): error CS1525: Invalid expression term ')'
+    //         Test(ref1 => ref1.M(1, ));
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(34, 32)
+                );
+        }
+
+
+        [WorkItem(529350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529350")]
         [Fact]
         public void BindLambdaBodyWhenError()
         {

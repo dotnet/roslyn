@@ -21,16 +21,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                           End Function))
         End Function
 
-        Friend Const DefaultIndentation As String = "    "
-
         <Extension()>
-        Public Function NormalizeWhitespace(Of TNode As SyntaxNode)(node As TNode, useDefaultCasing As Boolean, Optional indentation As String = DefaultIndentation, Optional elasticTrivia As Boolean = False) As TNode
-            Return CType(SyntaxFormatter.Format(node, indentation, elasticTrivia, useDefaultCasing), TNode)
+        Public Function NormalizeWhitespace(Of TNode As SyntaxNode)(node As TNode, useDefaultCasing As Boolean, indentation As String, elasticTrivia As Boolean) As TNode
+            Return CType(SyntaxNormalizer.Normalize(node, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia, useDefaultCasing), TNode)
         End Function
 
         <Extension()>
-        Public Function NormalizeWhitespace(token As SyntaxToken, Optional indentation As String = DefaultIndentation, Optional elasticTrivia As Boolean = False) As SyntaxToken
-            Return SyntaxFormatter.Format(token, indentation, elasticTrivia)
+        Public Function NormalizeWhitespace(Of TNode As SyntaxNode)(node As TNode, useDefaultCasing As Boolean, Optional indentation As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, Optional eol As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, Optional elasticTrivia As Boolean = False) As TNode
+            Return CType(SyntaxNormalizer.Normalize(node, indentation, eol, elasticTrivia, useDefaultCasing), TNode)
+        End Function
+
+        <Extension()>
+        Public Function NormalizeWhitespace(token As SyntaxToken, indentation As String, elasticTrivia As Boolean) As SyntaxToken
+            Return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia, False)
+        End Function
+
+        <Extension()>
+        Public Function NormalizeWhitespace(token As SyntaxToken, Optional indentation As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, Optional eol As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, Optional elasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxToken
+            Return SyntaxNormalizer.Normalize(token, indentation, eol, elasticTrivia, useDefaultCasing)
+        End Function
+
+        <Extension()>
+        Public Function NormalizeWhitespace(trivia As SyntaxTriviaList, Optional indentation As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, Optional eol As String = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, Optional elasticTrivia As Boolean = False, Optional useDefaultCasing As Boolean = False) As SyntaxTriviaList
+            Return SyntaxNormalizer.Normalize(trivia, indentation, eol, elasticTrivia, useDefaultCasing)
         End Function
 
         ''' <summary>

@@ -20,17 +20,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Represents an exported type.
-    /// </summary>
-    internal interface ITypeExport : IDefinition
-    {
-        /// <summary>
-        /// Type reference of the exported type.
-        /// </summary>
-        ITypeReference ExportedType { get; }
-    }
-
-    /// <summary>
     /// This interface models the metadata representation of an array type reference.
     /// </summary>
     internal interface IArrayTypeReference : ITypeReference
@@ -43,10 +32,9 @@ namespace Microsoft.Cci
         /// <summary>
         /// This type of array is a single dimensional array with zero lower bound for index values.
         /// </summary>
-        bool IsVector
+        bool IsSZArray
         {
             get;
-
             // ^ ensures result ==> Rank == 1;
         }
 
@@ -57,7 +45,6 @@ namespace Microsoft.Cci
         IEnumerable<int> LowerBounds
         {
             get;
-
             // ^ ensures count(result) <= Rank;
         }
 
@@ -67,7 +54,6 @@ namespace Microsoft.Cci
         uint Rank
         {
             get;
-
             // ^ ensures result > 0;
         }
 
@@ -79,7 +65,6 @@ namespace Microsoft.Cci
         IEnumerable<ulong> Sizes
         {
             get;
-
             // ^ ensures count(result) <= Rank;
         }
     }
@@ -122,13 +107,9 @@ namespace Microsoft.Cci
         /// <summary>
         /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
         /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.  When this flag is set, we need to reverse the
-        /// emit order.
+        /// interop scenarios, we need to support such signatures. 
         /// </summary>
-        /// <remarks>
-        /// We support before (correct) and after (incorrect, but works), but not in between.
-        /// </remarks>
-        bool HasByRefBeforeCustomModifiers { get; }
+        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The type of argument value that corresponds to this parameter.
@@ -152,7 +133,6 @@ namespace Microsoft.Cci
         bool MustBeReferenceType
         {
             get;
-
             // ^ ensures result ==> !this.MustBeValueType;
         }
 
@@ -162,7 +142,6 @@ namespace Microsoft.Cci
         bool MustBeValueType
         {
             get;
-
             // ^ ensures result ==> !this.MustBeReferenceType;
         }
 
@@ -198,7 +177,6 @@ namespace Microsoft.Cci
         new IMethodDefinition DefiningMethod
         {
             get;
-
             // ^ ensures result.IsGeneric;
         }
     }
@@ -232,7 +210,6 @@ namespace Microsoft.Cci
         INamedTypeReference GenericType
         {
             get;
-
             // ^ ensures result.ResolvedType.IsGeneric;
         }
     }
@@ -294,6 +271,17 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
+    /// Represents a namespace.
+    /// </summary>
+    internal interface INamespace : INamedEntity
+    {
+        /// <summary>
+        /// Containing namespace or null if this namespace is global.
+        /// </summary>
+        INamespace ContainingNamespace { get; }
+    }
+
+    /// <summary>
     /// A reference to a type definition that is a member of a namespace definition.
     /// </summary>
     internal interface INamespaceTypeReference : INamedTypeReference
@@ -340,7 +328,7 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Models an explicit implemenation or override of a base class virtual method or an explicit implementation of an interface method.
+    /// Models an explicit implementation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
     internal struct MethodImplementation
     {
@@ -359,7 +347,7 @@ namespace Microsoft.Cci
             this.ImplementingMethod = ImplementingMethod;
             this.ImplementedMethod = ImplementedMethod;
         }
-        
+
         /// <summary>
         /// The type that is explicitly implementing or overriding the base class virtual method or explicitly implementing an interface method.
         /// </summary>
@@ -455,7 +443,6 @@ namespace Microsoft.Cci
         ushort GenericParameterCount
         { // TODO: remove this
             get;
-
             // ^ ensures !this.IsGeneric ==> result == 0;
             // ^ ensures this.IsGeneric ==> result > 0;
         }
@@ -583,7 +570,7 @@ namespace Microsoft.Cci
         /// The type definition being referred to.
         /// </summary>
         ITypeDefinition GetResolvedType(EmitContext context);
-        
+
         /// <summary>
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
         /// the type code identifies which of the primitive types it corresponds to.
@@ -617,7 +604,7 @@ namespace Microsoft.Cci
         Boolean,
 
         /// <summary>
-        /// An usigned 16 bit integer representing a Unicode UTF16 code point.
+        /// An unsigned 16 bit integer representing a Unicode UTF16 code point.
         /// </summary>
         Char,
 
@@ -697,7 +684,7 @@ namespace Microsoft.Cci
         UIntPtr,
 
         /// <summary>
-        /// A type that denotes the absense of a value.
+        /// A type that denotes the absence of a value.
         /// </summary>
         Void,
 

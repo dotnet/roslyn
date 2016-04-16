@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class BaseTypeAnalysis
     {
         // let's keep up to 16 hashsets so that we do not need to allocate them over and over.
-        // we do not allocate hashsets recursively, so even for bigh hieararchies, one hashset is sufficient
+        // we do not allocate hashsets recursively, so even for big hierarchies, one hashset is sufficient
         // We may need more than one in a case of running this analysis concurrently, so we will keep up to 16
         // which seems plenty for this scenario.
-        private static readonly ObjectPool<HashSet<Symbol>> hsPool =
+        private static readonly ObjectPool<HashSet<Symbol>> s_hsPool =
             new ObjectPool<HashSet<Symbol>>(() => new HashSet<Symbol>(ReferenceEqualityComparer.Instance), 16);
 
         internal static bool ClassDependsOn(TypeSymbol depends, TypeSymbol on)
@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var hs = hsPool.Allocate();
+            var hs = s_hsPool.Allocate();
             ClassDependsClosure(depends, depends.DeclaringCompilation, hs);
 
             var result = hs.Contains(on.OriginalDefinition);
             hs.Clear();
-            hsPool.Free(hs);
+            s_hsPool.Free(hs);
 
             return result;
         }
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var hs = hsPool.Allocate();
+            var hs = s_hsPool.Allocate();
             StructDependsClosure(depends, hs, on);
 
             var result = hs.Contains(on);
             hs.Clear();
-            hsPool.Free(hs);
+            s_hsPool.Free(hs);
 
             return result;
         }
@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Otherwise, we have to build and inspect the closure of depended-upon types.
-            HashSet<Symbol> closure = hsPool.Allocate();
+            HashSet<Symbol> closure = s_hsPool.Allocate();
             bool result = DependsOnDefinitelyManagedType(type, closure);
             closure.Clear();
-            hsPool.Free(closure);
+            s_hsPool.Free(closure);
             return result;
         }
 
@@ -282,12 +282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var hs = hsPool.Allocate();
+            var hs = s_hsPool.Allocate();
             InterfaceDependsClosure(depends, hs);
 
             var result = hs.Contains(on.OriginalDefinition);
             hs.Clear();
-            hsPool.Free(hs);
+            s_hsPool.Free(hs);
 
             return result;
         }

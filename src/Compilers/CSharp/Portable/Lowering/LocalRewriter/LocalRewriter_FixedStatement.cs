@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLocalDeclaration localDecl = localDecls[i];
                 LocalSymbol temp;
                 LocalSymbol localToClear;
-                statementBuilder.Add(InitializeFixedStatementLocal(localDecl, factory, out temp, out localToClear));
+                statementBuilder.Add(InitializeFixedStatementLocal(localDecl, _factory, out temp, out localToClear));
 
                 if (!ReferenceEquals(temp, null))
                 {
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // NOTE: Dev10 nulls out the locals in declaration order (as opposed to "popping" them in reverse order).
-                cleanup[i] = factory.Assignment(factory.Local(localToClear), factory.Null(localToClear.Type));
+                cleanup[i] = _factory.Assignment(_factory.Local(localToClear), _factory.Null(localToClear.Type));
             }
 
             BoundStatement rewrittenBody = VisitStatement(node.Body);
             statementBuilder.Add(rewrittenBody);
-            statementBuilder.Add(factory.HiddenSequencePoint());
+            statementBuilder.Add(_factory.HiddenSequencePoint());
 
             Debug.Assert(statementBuilder.Count == numFixedLocals + 1 + 1);
 
@@ -53,18 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   2) the fixed statement is not in a try block (syntactic or synthesized).
             if (IsInTryBlock(node) || HasGotoOut(rewrittenBody))
             {
-                return factory.Block(
+                return _factory.Block(
                     localBuilder.ToImmutableAndFree(),
                     new BoundTryStatement(
-                        factory.Syntax,
-                        factory.Block(statementBuilder.ToImmutableAndFree()),
+                        _factory.Syntax,
+                        _factory.Block(statementBuilder.ToImmutableAndFree()),
                         ImmutableArray<BoundCatchBlock>.Empty,
-                        factory.Block(cleanup)));
+                        _factory.Block(cleanup)));
             }
             else
             {
                 statementBuilder.AddRange(cleanup);
-                return factory.Block(localBuilder.ToImmutableAndFree(), statementBuilder.ToImmutableAndFree());
+                return _factory.Block(localBuilder.ToImmutableAndFree(), statementBuilder.ToImmutableAndFree());
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this by having each fixed statement cache a set of unmatched gotos that can be
         /// reused by any containing fixed statements.
         /// </summary>
-        private Dictionary<BoundNode, HashSet<LabelSymbol>> lazyUnmatchedLabelCache;
+        private Dictionary<BoundNode, HashSet<LabelSymbol>> _lazyUnmatchedLabelCache;
 
         /// <summary>
         /// Look for gotos without corresponding labels in the lowered body of a fixed statement.
@@ -165,14 +165,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool HasGotoOut(BoundNode node)
         {
-            if (lazyUnmatchedLabelCache == null)
+            if (_lazyUnmatchedLabelCache == null)
             {
-                lazyUnmatchedLabelCache = new Dictionary<BoundNode, HashSet<LabelSymbol>>();
+                _lazyUnmatchedLabelCache = new Dictionary<BoundNode, HashSet<LabelSymbol>>();
             }
 
-            HashSet<LabelSymbol> unmatched = UnmatchedGotoFinder.Find(node, lazyUnmatchedLabelCache);
+            HashSet<LabelSymbol> unmatched = UnmatchedGotoFinder.Find(node, _lazyUnmatchedLabelCache, RecursionDepth);
 
-            lazyUnmatchedLabelCache.Add(node, unmatched);
+            _lazyUnmatchedLabelCache.Add(node, unmatched);
 
             return unmatched != null && unmatched.Count > 0;
         }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Local(stringTemp),
                 fixedInitializer.ElementPointerTypeConversion);
 
-            BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(declarator, localSymbol, 
+            BoundStatement localInit = AddLocalDeclarationSequencePointIfNecessary(declarator, localSymbol,
                 factory.Assignment(factory.Local(localSymbol), convertedStringTemp));
 
             BoundExpression notNullCheck = MakeNullCheck(factory.Syntax, factory.Local(localSymbol), BinaryOperatorKind.NotEqual);
@@ -289,7 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayTemp = factory.SynthesizedLocal(initializerType);
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type;
             TypeSymbol arrayElementType = arrayType.ElementType;
-            int arrayRank = arrayType.Rank;
 
             // NOTE: we pin the pointer, not the array.
             Debug.Assert(!arrayTemp.IsPinned);
@@ -303,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression lengthCall;
 
-            if (arrayRank == 1)
+            if (arrayType.IsSZArray)
             {
                 lengthCall = factory.ArrayLength(factory.Local(arrayTemp));
             }
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression firstElementAddress = new BoundAddressOfOperator(factory.Syntax, firstElement, isFixedStatementAddressOf: true, type: new PointerTypeSymbol(arrayElementType));
             BoundExpression convertedFirstElementAddress = factory.Convert(
                 localType,
-                firstElementAddress, 
+                firstElementAddress,
                 fixedInitializer.ElementPointerTypeConversion);
 
             //loc = &temp[0]

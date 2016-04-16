@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(false, "Should have returned in the catch block before this point.");
         }
-
         [Fact]
         public void TestExecuteWithErrorReportingWithSuppressFailFast()
         {

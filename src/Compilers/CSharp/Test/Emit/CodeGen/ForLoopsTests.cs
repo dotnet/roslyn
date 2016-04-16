@@ -648,7 +648,7 @@ class C
 
         // Inner for loop referencing the outer for loop iteration variable
         [Fact]
-        public void InnerRefOuterInteration()
+        public void InnerRefOuterIteration()
         {
             var text =
 @"
@@ -700,7 +700,7 @@ class C
         }
 
         // Breaking from nested Loops
-        [Fact, WorkItem(527952, "DevDiv")]
+        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         public void BreakFromNestedLoop()
         {
             var source = @"
@@ -755,7 +755,7 @@ class C
 ");
         }
 
-        [WorkItem(539555, "DevDiv")]
+        [WorkItem(539555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539555")]
         // Continuing for nested Loops
         [Fact]
         public void ContinueForNestedLoop()
@@ -880,7 +880,7 @@ class C
         }
 
         // Goto in for Loops
-        [Fact, WorkItem(527952, "DevDiv")]
+        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         public void GotoForNestedLoop_2()
         {
             var source = @"
@@ -933,7 +933,7 @@ class C
         }
 
         // Goto in for Loops
-        [Fact, WorkItem(527952, "DevDiv")]
+        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         public void GotoForNestedLoop_3()
         {
             var source =
@@ -955,7 +955,7 @@ class C
 }
 ";
             var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
-            
+
             c.VerifyIL("C.Main", @"
 {
   // Code size       25 (0x19)
@@ -1245,7 +1245,7 @@ class C
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
         }
 
-        [Fact, WorkItem(527952, "DevDiv")]
+        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
         public void CS0162WRN_UnreachableCode_2()
         {
             var source = @"
@@ -1270,7 +1270,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(528275, "DevDiv")]
+        [Fact, WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
         public void CS0162WRN_UnreachableCode_3()
         {
             var text = @"
@@ -1468,7 +1468,8 @@ public class Foo
     public string s;
 }
 ";
-            string expectedIL = @"{
+            string expectedIL = @"
+{
   // Code size       50 (0x32)
   .maxstack  3
   .locals init (Foo V_0) //f
@@ -1482,7 +1483,7 @@ public class Foo
   IL_0017:  stloc.0
   IL_0018:  br.s       IL_0028
   IL_001a:  ldloc.0
-  IL_001b:  dup
+  IL_001b:  ldloc.0
   IL_001c:  ldfld      ""int Foo.i""
   IL_0021:  ldc.i4.1
   IL_0022:  add
@@ -1538,7 +1539,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef },  expectedOutput: @"Initialize
+            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1698,7 +1699,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text,  additionalRefs: new[] {  SystemCoreRef }, expectedOutput: @"1
+            var comp = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
 4
 9
 16");
@@ -1746,7 +1747,7 @@ public class C1
         }
 
         // PostFix Increment In For
-        [Fact, WorkItem(539759, "DevDiv")]
+        [Fact, WorkItem(539759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539759")]
         public void PostFixIncrementInFor()
         {
             var text =
@@ -1862,7 +1863,7 @@ class Program
 -5");
         }
 
-        [Fact, WorkItem(992882, "DevDiv")]
+        [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
         public void InfiniteLoopVerify()
         {
             var text =
@@ -1891,7 +1892,7 @@ class Program
                 VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact, WorkItem(992882, "DevDiv")]
+        [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
         public void InfiniteLoopVerify01()
         {
             var text =
@@ -1927,6 +1928,5 @@ class Program
   IL_0012:  br.s       IL_0003
 }");
         }
-
     }
 }

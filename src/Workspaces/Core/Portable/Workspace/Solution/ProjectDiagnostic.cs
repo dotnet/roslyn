@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis
 {
     public class ProjectDiagnostic : WorkspaceDiagnostic
     {
-        public ProjectId ProjectId { get; private set; }
+        public ProjectId ProjectId { get; }
 
         public ProjectDiagnostic(WorkspaceDiagnosticKind kind, string message, ProjectId projectId)
             : base(kind, message)

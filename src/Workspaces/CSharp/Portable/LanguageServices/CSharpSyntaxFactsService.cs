@@ -1,14 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -46,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && token.Parent is BinaryExpressionSyntax) ||
+                    (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree.IsInNonUserCode(position, cancellationToken);
         }
 
-        public bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var csharpTree = syntaxTree as SyntaxTree;
             if (csharpTree == null)
@@ -269,40 +271,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch ((SyntaxKind)token.RawKind)
             {
-            case SyntaxKind.BoolKeyword:
-                return PredefinedType.Boolean;
-            case SyntaxKind.ByteKeyword:
-                return PredefinedType.Byte;
-            case SyntaxKind.SByteKeyword:
-                return PredefinedType.SByte;
-            case SyntaxKind.IntKeyword:
-                return PredefinedType.Int32;
-            case SyntaxKind.UIntKeyword:
-                return PredefinedType.UInt32;
-            case SyntaxKind.ShortKeyword:
-                return PredefinedType.Int16;
-            case SyntaxKind.UShortKeyword:
-                return PredefinedType.UInt16;
-            case SyntaxKind.LongKeyword:
-                return PredefinedType.Int64;
-            case SyntaxKind.ULongKeyword:
-                return PredefinedType.UInt64;
-            case SyntaxKind.FloatKeyword:
-                return PredefinedType.Single;
-            case SyntaxKind.DoubleKeyword:
-                return PredefinedType.Double;
-            case SyntaxKind.DecimalKeyword:
-                return PredefinedType.Decimal;
-            case SyntaxKind.StringKeyword:
-                return PredefinedType.String;
-            case SyntaxKind.CharKeyword:
-                return PredefinedType.Char;
-            case SyntaxKind.ObjectKeyword:
-                return PredefinedType.Object;
-            case SyntaxKind.VoidKeyword:
-                return PredefinedType.Void;
-            default:
-                return PredefinedType.None;
+                case SyntaxKind.BoolKeyword:
+                    return PredefinedType.Boolean;
+                case SyntaxKind.ByteKeyword:
+                    return PredefinedType.Byte;
+                case SyntaxKind.SByteKeyword:
+                    return PredefinedType.SByte;
+                case SyntaxKind.IntKeyword:
+                    return PredefinedType.Int32;
+                case SyntaxKind.UIntKeyword:
+                    return PredefinedType.UInt32;
+                case SyntaxKind.ShortKeyword:
+                    return PredefinedType.Int16;
+                case SyntaxKind.UShortKeyword:
+                    return PredefinedType.UInt16;
+                case SyntaxKind.LongKeyword:
+                    return PredefinedType.Int64;
+                case SyntaxKind.ULongKeyword:
+                    return PredefinedType.UInt64;
+                case SyntaxKind.FloatKeyword:
+                    return PredefinedType.Single;
+                case SyntaxKind.DoubleKeyword:
+                    return PredefinedType.Double;
+                case SyntaxKind.DecimalKeyword:
+                    return PredefinedType.Decimal;
+                case SyntaxKind.StringKeyword:
+                    return PredefinedType.String;
+                case SyntaxKind.CharKeyword:
+                    return PredefinedType.Char;
+                case SyntaxKind.ObjectKeyword:
+                    return PredefinedType.Object;
+                case SyntaxKind.VoidKeyword:
+                    return PredefinedType.Void;
+                default:
+                    return PredefinedType.None;
             }
         }
 
@@ -328,70 +330,70 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch ((SyntaxKind)token.RawKind)
             {
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.PlusEqualsToken:
-                return PredefinedOperator.Addition;
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.PlusEqualsToken:
+                    return PredefinedOperator.Addition;
 
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.MinusEqualsToken:
-                return PredefinedOperator.Subtraction;
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.MinusEqualsToken:
+                    return PredefinedOperator.Subtraction;
 
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.AmpersandEqualsToken:
-                return PredefinedOperator.BitwiseAnd;
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                    return PredefinedOperator.BitwiseAnd;
 
-            case SyntaxKind.BarToken:
-            case SyntaxKind.BarEqualsToken:
-                return PredefinedOperator.BitwiseOr;
+                case SyntaxKind.BarToken:
+                case SyntaxKind.BarEqualsToken:
+                    return PredefinedOperator.BitwiseOr;
 
-            case SyntaxKind.MinusMinusToken:
-                return PredefinedOperator.Decrement;
+                case SyntaxKind.MinusMinusToken:
+                    return PredefinedOperator.Decrement;
 
-            case SyntaxKind.PlusPlusToken:
-                return PredefinedOperator.Increment;
+                case SyntaxKind.PlusPlusToken:
+                    return PredefinedOperator.Increment;
 
-            case SyntaxKind.SlashToken:
-            case SyntaxKind.SlashEqualsToken:
-                return PredefinedOperator.Division;
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.SlashEqualsToken:
+                    return PredefinedOperator.Division;
 
-            case SyntaxKind.EqualsEqualsToken:
-                return PredefinedOperator.Equality;
+                case SyntaxKind.EqualsEqualsToken:
+                    return PredefinedOperator.Equality;
 
-            case SyntaxKind.CaretToken:
-            case SyntaxKind.CaretEqualsToken:
-                return PredefinedOperator.ExclusiveOr;
+                case SyntaxKind.CaretToken:
+                case SyntaxKind.CaretEqualsToken:
+                    return PredefinedOperator.ExclusiveOr;
 
-            case SyntaxKind.GreaterThanToken:
-                return PredefinedOperator.GreaterThan;
+                case SyntaxKind.GreaterThanToken:
+                    return PredefinedOperator.GreaterThan;
 
-            case SyntaxKind.GreaterThanEqualsToken:
-                return PredefinedOperator.GreaterThanOrEqual;
+                case SyntaxKind.GreaterThanEqualsToken:
+                    return PredefinedOperator.GreaterThanOrEqual;
 
-            case SyntaxKind.ExclamationEqualsToken:
-                return PredefinedOperator.Inequality;
+                case SyntaxKind.ExclamationEqualsToken:
+                    return PredefinedOperator.Inequality;
 
-            case SyntaxKind.LessThanLessThanToken:
-            case SyntaxKind.LessThanLessThanEqualsToken:
-                return PredefinedOperator.LeftShift;
+                case SyntaxKind.LessThanLessThanToken:
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                    return PredefinedOperator.LeftShift;
 
-            case SyntaxKind.LessThanEqualsToken:
-                return PredefinedOperator.LessThanOrEqual;
+                case SyntaxKind.LessThanEqualsToken:
+                    return PredefinedOperator.LessThanOrEqual;
 
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.AsteriskEqualsToken:
-                return PredefinedOperator.Multiplication;
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.AsteriskEqualsToken:
+                    return PredefinedOperator.Multiplication;
 
-            case SyntaxKind.PercentToken:
-            case SyntaxKind.PercentEqualsToken:
-                return PredefinedOperator.Modulus;
+                case SyntaxKind.PercentToken:
+                case SyntaxKind.PercentEqualsToken:
+                    return PredefinedOperator.Modulus;
 
-            case SyntaxKind.ExclamationToken:
-            case SyntaxKind.TildeToken:
-                return PredefinedOperator.Complement;
+                case SyntaxKind.ExclamationToken:
+                case SyntaxKind.TildeToken:
+                    return PredefinedOperator.Complement;
 
-            case SyntaxKind.GreaterThanGreaterThanToken:
-            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                return PredefinedOperator.RightShift;
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    return PredefinedOperator.RightShift;
             }
 
             return PredefinedOperator.None;
@@ -443,13 +445,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (token.Kind())
             {
-            case SyntaxKind.NumericLiteralToken:
-            case SyntaxKind.CharacterLiteralToken:
-            case SyntaxKind.StringLiteralToken:
-            case SyntaxKind.NullKeyword:
-            case SyntaxKind.TrueKeyword:
-            case SyntaxKind.FalseKeyword:
-                return true;
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.CharacterLiteralToken:
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.NullKeyword:
+                case SyntaxKind.TrueKeyword:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedStringTextToken:
+                    return true;
             }
 
             return false;
@@ -457,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsStringLiteral(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken);
+            return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
         }
 
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
@@ -506,9 +512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
-                case SyntaxKind.DelegateKeyword:
-                case SyntaxKind.VoidKeyword:
-                    return false;
+                    case SyntaxKind.DelegateKeyword:
+                    case SyntaxKind.VoidKeyword:
+                        return false;
                 }
 
                 return true;
@@ -549,20 +555,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.MemberBindingExpression))
-            {
-                if (node.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent);
-                }
-                if (node.IsParentKind(SyntaxKind.InvocationExpression) && 
-                    node.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent.Parent);
-                }
-            }
-
-            return (node as MemberAccessExpressionSyntax)?.Expression;
+            return node.IsKind(SyntaxKind.MemberBindingExpression)
+                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression())
+                : (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
         public SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node)
@@ -628,12 +623,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (root == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException(nameof(root));
             }
 
             if (position < 0 || position > root.Span.End)
             {
-                throw new ArgumentOutOfRangeException("position");
+                throw new ArgumentOutOfRangeException(nameof(position));
             }
 
             return root
@@ -698,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind() == SyntaxKind.IndexerMemberCref;
         }
 
-        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position)
+        public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
         {
             Contract.ThrowIfNull(root, "root");
             Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
@@ -716,9 +711,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                if (node is MemberDeclarationSyntax)
+                if (useFullSpan || node.Span.Contains(position))
                 {
-                    return node;
+                    var kind = node.Kind();
+                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
+                    {
+                        return node;
+                    }
                 }
 
                 node = node.Parent;
@@ -737,6 +736,366 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is NamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
                    node is EnumDeclarationSyntax;
+        }
+
+        public bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    var classDecl = (ClassDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.ConstructorDeclaration:
+                    var ctorDecl = (ConstructorDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ctorDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Constructor,
+                        ctorDecl.Identifier.Span,
+                        parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
+                    return true;
+                case SyntaxKind.DelegateDeclaration:
+                    var delegateDecl = (DelegateDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.EnumDeclaration:
+                    var enumDecl = (EnumDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(enumDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.EnumMemberDeclaration:
+                    var enumMember = (EnumMemberDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
+                    return true;
+                case SyntaxKind.EventDeclaration:
+                    var eventDecl = (EventDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.IndexerDeclaration:
+                    var indexerDecl = (IndexerDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
+                    return true;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(interfaceDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ExpandExplicitInterfaceName(method.Identifier.ValueText, method.ExplicitInterfaceSpecifier),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Method,
+                        method.Identifier.Span,
+                        parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
+                        typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
+                    return true;
+                case SyntaxKind.PropertyDeclaration:
+                    var property = (PropertyDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Property, property.Identifier.Span);
+                    return true;
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.VariableDeclarator:
+                    // could either be part of a field declaration or an event field declaration
+                    var variableDeclarator = (VariableDeclaratorSyntax)node;
+                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
+                    var fieldDeclaration = variableDeclaration?.Parent as BaseFieldDeclarationSyntax;
+                    if (fieldDeclaration != null)
+                    {
+                        var kind = fieldDeclaration is EventFieldDeclarationSyntax
+                            ? DeclaredSymbolInfoKind.Event
+                            : fieldDeclaration.Modifiers.Any(m => m.Kind() == SyntaxKind.ConstKeyword)
+                                ? DeclaredSymbolInfoKind.Constant
+                                : DeclaredSymbolInfoKind.Field;
+
+                        declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText,
+                        GetContainerDisplayName(fieldDeclaration.Parent),
+                        GetFullyQualifiedContainerName(fieldDeclaration.Parent),
+                        kind, variableDeclarator.Identifier.Span);
+                        return true;
+                    }
+
+                    break;
+            }
+
+            declaredSymbolInfo = default(DeclaredSymbolInfo);
+            return false;
+        }
+
+        private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+        {
+            if (explicitInterfaceSpecifier == null)
+            {
+                return identifier;
+            }
+            else
+            {
+                var builder = new StringBuilder();
+                ExpandTypeName(explicitInterfaceSpecifier.Name, builder);
+                builder.Append('.');
+                builder.Append(identifier);
+                return builder.ToString();
+            }
+        }
+
+        private static void ExpandTypeName(TypeSyntax type, StringBuilder builder)
+        {
+            switch (type.Kind())
+            {
+                case SyntaxKind.AliasQualifiedName:
+                    var alias = (AliasQualifiedNameSyntax)type;
+                    builder.Append(alias.Alias.Identifier.ValueText);
+                    break;
+                case SyntaxKind.ArrayType:
+                    var array = (ArrayTypeSyntax)type;
+                    ExpandTypeName(array.ElementType, builder);
+                    for (int i = 0; i < array.RankSpecifiers.Count; i++)
+                    {
+                        var rankSpecifier = array.RankSpecifiers[i];
+                        builder.Append(rankSpecifier.OpenBracketToken.Text);
+                        for (int j = 1; j < rankSpecifier.Sizes.Count; j++)
+                        {
+                            builder.Append(',');
+                        }
+
+                        builder.Append(rankSpecifier.CloseBracketToken.Text);
+                    }
+
+                    break;
+                case SyntaxKind.GenericName:
+                    var generic = (GenericNameSyntax)type;
+                    builder.Append(generic.Identifier.ValueText);
+                    if (generic.TypeArgumentList != null)
+                    {
+                        var arguments = generic.TypeArgumentList.Arguments;
+                        builder.Append(generic.TypeArgumentList.LessThanToken.Text);
+                        for (int i = 0; i < arguments.Count; i++)
+                        {
+                            if (i != 0)
+                            {
+                                builder.Append(',');
+                            }
+
+                            ExpandTypeName(arguments[i], builder);
+                        }
+
+                        builder.Append(generic.TypeArgumentList.GreaterThanToken.Text);
+                    }
+
+                    break;
+                case SyntaxKind.IdentifierName:
+                    var identifierName = (IdentifierNameSyntax)type;
+                    builder.Append(identifierName.Identifier.ValueText);
+                    break;
+                case SyntaxKind.NullableType:
+                    var nullable = (NullableTypeSyntax)type;
+                    ExpandTypeName(nullable.ElementType, builder);
+                    builder.Append(nullable.QuestionToken.Text);
+                    break;
+                case SyntaxKind.OmittedTypeArgument:
+                    // do nothing since it was omitted, but don't reach the default block
+                    break;
+                case SyntaxKind.PointerType:
+                    var pointer = (PointerTypeSyntax)type;
+                    ExpandTypeName(pointer.ElementType, builder);
+                    builder.Append(pointer.AsteriskToken.Text);
+                    break;
+                case SyntaxKind.PredefinedType:
+                    var predefined = (PredefinedTypeSyntax)type;
+                    builder.Append(predefined.Keyword.Text);
+                    break;
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)type;
+                    ExpandTypeName(qualified.Left, builder);
+                    builder.Append(qualified.DotToken.Text);
+                    ExpandTypeName(qualified.Right, builder);
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected type syntax " + type.Kind());
+                    break;
+            }
+        }
+
+        private string GetContainerDisplayName(SyntaxNode node)
+        {
+            return GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
+        }
+
+        private string GetFullyQualifiedContainerName(SyntaxNode node)
+        {
+            return GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
+        }
+
+        private const string dotToken = ".";
+
+        public string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null)
+        {
+            if (node == null)
+            {
+                return string.Empty;
+            }
+
+            var pooled = PooledStringBuilder.GetInstance();
+            var builder = pooled.Builder;
+
+            // return type
+            var memberDeclaration = node as MemberDeclarationSyntax;
+            if ((options & DisplayNameOptions.IncludeType) != 0)
+            {
+                var type = memberDeclaration.GetMemberType();
+                if (type != null && !type.IsMissing)
+                {
+                    builder.Append(type);
+                    builder.Append(' ');
+                }
+            }
+
+            var names = ArrayBuilder<string>.GetInstance();
+            // containing type(s)
+            var parent = node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
+            while (parent is TypeDeclarationSyntax)
+            {
+                names.Push(GetName(parent, options));
+                parent = parent.Parent;
+            }
+            // containing namespace(s) in source (if any)
+            if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
+            {
+                while (parent != null && parent.Kind() == SyntaxKind.NamespaceDeclaration)
+                {
+                    names.Add(GetName(parent, options));
+                    parent = parent.Parent;
+                }
+            }
+            while (!names.IsEmpty())
+            {
+                var name = names.Pop();
+                if (name != null)
+                {
+                    builder.Append(name);
+                    builder.Append(dotToken);
+                }
+            }
+
+            // name (including generic type parameters)
+            builder.Append(GetName(node, options));
+
+            // parameter list (if any)
+            if ((options & DisplayNameOptions.IncludeParameters) != 0)
+            {
+                builder.Append(memberDeclaration.GetParameterList());
+            }
+
+            return pooled.ToStringAndFree();
+        }
+
+        private static string GetName(SyntaxNode node, DisplayNameOptions options)
+        {
+            const string missingTokenPlaceholder = "?";
+
+            switch (node.Kind())
+            {
+                case SyntaxKind.CompilationUnit:
+                    return null;
+                case SyntaxKind.IdentifierName:
+                    var identifier = ((IdentifierNameSyntax)node).Identifier;
+                    return identifier.IsMissing ? missingTokenPlaceholder : identifier.Text;
+                case SyntaxKind.IncompleteMember:
+                    return missingTokenPlaceholder;
+                case SyntaxKind.NamespaceDeclaration:
+                    return GetName(((NamespaceDeclarationSyntax)node).Name, options);
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)node;
+                    return GetName(qualified.Left, options) + dotToken + GetName(qualified.Right, options);
+            }
+
+            string name = null;
+            var memberDeclaration = node as MemberDeclarationSyntax;
+            if (memberDeclaration != null)
+            {
+                var nameToken = memberDeclaration.GetNameToken();
+                if (nameToken == default(SyntaxToken))
+                {
+                    Debug.Assert(memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration);
+                    name = (memberDeclaration as ConversionOperatorDeclarationSyntax)?.Type.ToString();
+                }
+                else
+                {
+                    name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
+                    if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
+                    {
+                        name = "~" + name;
+                    }
+                    if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
+                    {
+                        var pooled = PooledStringBuilder.GetInstance();
+                        var builder = pooled.Builder;
+                        builder.Append(name);
+                        AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
+                        name = pooled.ToStringAndFree();
+                    }
+                }
+            }
+            else
+            {
+                var fieldDeclarator = node as VariableDeclaratorSyntax;
+                if (fieldDeclarator != null)
+                {
+                    var nameToken = fieldDeclarator.Identifier;
+                    if (nameToken != default(SyntaxToken))
+                    {
+                        name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
+                    }
+                }
+            }
+            Debug.Assert(name != null, "Unexpected node type " + node.Kind());
+            return name;
+        }
+
+        private static void AppendTypeParameterList(StringBuilder builder, TypeParameterListSyntax typeParameterList)
+        {
+            if (typeParameterList != null && typeParameterList.Parameters.Count > 0)
+            {
+                builder.Append('<');
+                builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
+                for (int i = 1; i < typeParameterList.Parameters.Count; i++)
+                {
+                    builder.Append(", ");
+                    builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
+                }
+                builder.Append('>');
+            }
         }
 
         public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root)
@@ -849,7 +1208,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int currentId = 0;
             SyntaxNode currentNode;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode));
+            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode))
+            {
+                return null;
+            }
 
             Contract.ThrowIfNull(currentNode);
             CheckMemberId(root, currentNode, memberId);
@@ -948,6 +1310,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // The inside of an interpolated string is treated as its own token so we
+                // need to force navigation to the parent expression syntax.
+                if (node is InterpolatedStringTextSyntax && parent is InterpolatedStringExpressionSyntax)
+                {
+                    node = parent;
+                    break;
+                }
+
                 // If this node is not parented by a name, we're done.
                 var name = parent as NameSyntax;
                 if (name == null)
@@ -1019,6 +1389,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             openBrace = default(SyntaxToken);
             return false;
+        }
+
+        public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return trivia.FullSpan;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return default(TextSpan);
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return default(TextSpan);
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax)
+                        {
+                            var branch = (BranchingDirectiveTriviaSyntax)structure;
+                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
+                        }
+                    }
+                }
+            }
+
+            return default(TextSpan);
+        }
+
+        public string GetNameForArgument(SyntaxNode argument)
+        {
+            if ((argument as ArgumentSyntax)?.NameColon != null)
+            {
+                return (argument as ArgumentSyntax).NameColon.Name.Identifier.ValueText;
+            }
+
+            return string.Empty;
         }
     }
 }

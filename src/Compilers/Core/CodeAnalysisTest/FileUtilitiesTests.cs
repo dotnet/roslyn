@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void GetPathRoot()
         {
             Assert.Equal(null, PathUtilities.GetPathRoot(null));
-            Assert.Equal(null, PathUtilities.GetPathRoot(""));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("abc.txt"));
-            Assert.Equal(null, PathUtilities.GetPathRoot("C:"));
+            Assert.Equal("", PathUtilities.GetPathRoot(""));
+            Assert.Equal("", PathUtilities.GetPathRoot("C"));
+            Assert.Equal("", PathUtilities.GetPathRoot("abc.txt"));
+            Assert.Equal("C:", PathUtilities.GetPathRoot("C:"));
             Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\"));
             Assert.Equal(@"C:/", PathUtilities.GetPathRoot(@"C:/"));
             Assert.Equal(@"C:\", PathUtilities.GetPathRoot(@"C:\\"));
@@ -69,19 +69,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 case PlatformID.Unix:
                     Assert.Equal("/", PathUtilities.GetPathRoot(@"/"));
                     Assert.Equal(@"/", PathUtilities.GetPathRoot(@"/x"));
-                    // Be permissive of either directory seperator, just
+                    // Be permissive of either directory separator, just
                     // like we are in other cases
                     Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
                     Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
                     break;
                 default:
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\"));
-                    Assert.Equal(null, PathUtilities.GetPathRoot(@"\x"));
+                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\"));
+                    Assert.Equal(@"\", PathUtilities.GetPathRoot(@"\x"));
                     break;
             }
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x"));
-            Assert.Equal(null, PathUtilities.GetPathRoot(@"\\x\"));
+            Assert.Equal(@"\\", PathUtilities.GetPathRoot(@"\\"));
+            Assert.Equal(@"\\x", PathUtilities.GetPathRoot(@"\\x"));
+            Assert.Equal(@"\\x\", PathUtilities.GetPathRoot(@"\\x\"));
             Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y"));
             Assert.Equal(@"\\\x\y", PathUtilities.GetPathRoot(@"\\\x\y"));
             Assert.Equal(@"\\\\x\y", PathUtilities.GetPathRoot(@"\\\\x\y"));
@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"\\x\y", PathUtilities.GetPathRoot(@"\\x\y\\"));
             Assert.Equal(@"\\abc\xyz", PathUtilities.GetPathRoot(@"\\abc\xyz"));
             Assert.Equal(@"\\server\$c", PathUtilities.GetPathRoot(@"\\server\$c\Public"));
-
             // TODO (tomat): long UNC paths
             // Assert.Equal(@"\\?\C:\", PathUtilities.GetPathRoot(@"\\?\C:\abc\def"));
         }
@@ -127,13 +126,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // absolute path:
             TestPath(@"C:\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"C:\abc\def.dll");
             TestPath(@"C:\abc\\\\\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"C:\abc\\\\\def.dll");
-            
+
             // root-relative path:
             TestPath(@"\abc\def.dll", @"Q:\baz\x.csx", baseDir, noSearchPaths, @"Q:\abc\def.dll");
             TestPath(@"\abc\def.dll", null, baseDir, noSearchPaths, @"X:\abc\def.dll");
             TestPath(@"\abc\def.dll", "foo.csx", null, noSearchPaths, null);
-            TestPath(@"\abc\def.dll", @"C:foo.csx", null, noSearchPaths, null);
-            TestPath(@"/abc\def.dll", @"\foo.csx", null, noSearchPaths, null);
+            // TestPath(@"\abc\def.dll", @"C:foo.csx", null, noSearchPaths, null);
+            // TestPath(@"/abc\def.dll", @"\foo.csx", null, noSearchPaths, null);
             TestPath(@"/abc\def.dll", null, @"\\x\y\z", noSearchPaths, @"\\x\y\abc\def.dll");
             TestPath(@"/abc\def.dll", null, null, noSearchPaths, null);
             TestPath(@"/**/", null, baseDir, noSearchPaths, @"X:\**/");
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(PathKind.RelativeToCurrentRoot, PathUtilities.GetPathKind(@"/:x.dll"));
             TestPath(@"/:x.dll", null, @"d:\", noSearchPaths, @"d:\:x.dll");
-            
+
             Assert.Equal(PathKind.Absolute, PathUtilities.GetPathKind(@"//:x.dll"));
             TestPath(@"//:x.dll", null, @"d:\", noSearchPaths, @"//:x.dll");
 

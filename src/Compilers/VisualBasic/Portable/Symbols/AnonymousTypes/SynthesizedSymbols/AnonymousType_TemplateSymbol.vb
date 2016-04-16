@@ -2,9 +2,9 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class AnonymousTypeTemplateSymbol
             Inherits AnonymousTypeOrDelegateTemplateSymbol
 
-            Private ReadOnly m_properties As ImmutableArray(Of AnonymousTypePropertySymbol)
-            Private ReadOnly m_members As ImmutableArray(Of Symbol)
-            Private ReadOnly m_interfaces As ImmutableArray(Of NamedTypeSymbol)
+            Private ReadOnly _properties As ImmutableArray(Of AnonymousTypePropertySymbol)
+            Private ReadOnly _members As ImmutableArray(Of Symbol)
+            Private ReadOnly _interfaces As ImmutableArray(Of NamedTypeSymbol)
             Friend ReadOnly HasAtLeastOneKeyField As Boolean
 
             Public Sub New(manager As AnonymousTypeManager,
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     otherMembersBuilder.Add([property].AssociatedField)
                 Next
 
-                m_properties = propertiesArray.AsImmutableOrNull()
+                _properties = propertiesArray.AsImmutableOrNull()
 
                 ' Add a constructor
                 methodMembersBuilder.Add(New AnonymousTypeConstructorSymbol(Me))
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Add optional 'Inherits IEquatable'
                     Dim equatableInterface As NamedTypeSymbol = Me.Manager.System_IEquatable_T.Construct(ImmutableArray.Create(Of TypeSymbol)(Me))
-                    m_interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
+                    _interfaces = ImmutableArray.Create(Of NamedTypeSymbol)(equatableInterface)
 
                     ' Add 'IEquatable.Equals'
                     Dim method As Symbol = DirectCast(equatableInterface, SubstitutedNamedType).GetMemberForDefinition(Me.Manager.System_IEquatable_T_Equals)
@@ -82,18 +82,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     methodMembersBuilder.Add(New AnonymousTypeEqualsMethodSymbol(Me, iEquatableEquals))
 
                 Else
-                    m_interfaces = ImmutableArray(Of NamedTypeSymbol).Empty
+                    _interfaces = ImmutableArray(Of NamedTypeSymbol).Empty
                 End If
 
                 methodMembersBuilder.AddRange(otherMembersBuilder)
                 otherMembersBuilder.Free()
-                m_members = methodMembersBuilder.ToImmutableAndFree()
-
+                _members = methodMembersBuilder.ToImmutableAndFree()
             End Sub
 
-            Friend Overrides Function GetAnonymousTypeKey() As Microsoft.CodeAnalysis.Emit.AnonymousTypeKey
-                Dim names = m_properties.SelectAsArray(Function(p) p.Name)
-                Return New Microsoft.CodeAnalysis.Emit.AnonymousTypeKey(names)
+            Friend Overrides Function GetAnonymousTypeKey() As AnonymousTypeKey
+                Dim properties = _properties.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=p.IsReadOnly, ignoreCase:=True))
+                Return New AnonymousTypeKey(properties)
             End Function
 
             Friend Overrides ReadOnly Property GeneratedNamePrefix As String
@@ -104,12 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property Properties As ImmutableArray(Of AnonymousTypePropertySymbol)
                 Get
-                    Return Me.m_properties
+                    Return Me._properties
                 End Get
             End Property
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-                Return m_members
+                Return _members
             End Function
 
             Friend Overrides Iterator Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
@@ -125,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-                Return m_interfaces
+                Return _interfaces
             End Function
 
             Public Overrides ReadOnly Property TypeKind As TypeKind
@@ -140,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()

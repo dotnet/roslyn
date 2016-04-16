@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -13,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceClonedParameterSymbol : SourceParameterSymbolBase
     {
         // if true suppresses params-array and default value:
-        private readonly bool suppressOptional;
+        private readonly bool _suppressOptional;
 
-        private readonly SourceParameterSymbol originalParam;
+        private readonly SourceParameterSymbol _originalParam;
 
         internal SourceClonedParameterSymbol(SourceParameterSymbol originalParam, Symbol newOwner, int newOrdinal, bool suppressOptional)
             : base(newOwner, newOrdinal)
         {
             Debug.Assert((object)originalParam != null);
 
-            this.suppressOptional = suppressOptional;
-            this.originalParam = originalParam;
+            _suppressOptional = suppressOptional;
+            _originalParam = originalParam;
         }
 
         public override bool IsImplicitlyDeclared
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // Since you can't get from the syntax node that represents the orginal parameter 
+                // Since you can't get from the syntax node that represents the original parameter 
                 // back to this symbol we decided not to return the original syntax node here.
                 return ImmutableArray<SyntaxReference>.Empty;
             }
@@ -43,111 +44,111 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsParams
         {
-            get { return !suppressOptional && originalParam.IsParams; }
+            get { return !_suppressOptional && _originalParam.IsParams; }
         }
 
         internal override bool IsMetadataOptional
         {
-            get 
+            get
             {
                 // pseudo-custom attributes are not suppressed:
-                return suppressOptional ? originalParam.HasOptionalAttribute : originalParam.IsMetadataOptional; 
+                return _suppressOptional ? _originalParam.HasOptionalAttribute : _originalParam.IsMetadataOptional;
             }
         }
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
-            get 
+            get
             {
                 // pseudo-custom attributes are not suppressed:
-                return suppressOptional ? originalParam.DefaultValueFromAttributes : originalParam.ExplicitDefaultConstantValue;
+                return _suppressOptional ? _originalParam.DefaultValueFromAttributes : _originalParam.ExplicitDefaultConstantValue;
             }
         }
 
         internal override ConstantValue DefaultValueFromAttributes
         {
-            get { return originalParam.DefaultValueFromAttributes; }
+            get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
+        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
             return new SourceClonedParameterSymbol(
-                originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, hasByRefBeforeCustomModifiers, newIsParams),
+                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, countOfCustomModifiersPrecedingByRef, newIsParams),
                 this.ContainingSymbol,
                 this.Ordinal,
-                this.suppressOptional);
+                _suppressOptional);
         }
 
         #region Forwarded
 
         public override TypeSymbol Type
         {
-            get { return originalParam.Type; }
+            get { return _originalParam.Type; }
         }
 
         public override RefKind RefKind
         {
-            get { return originalParam.RefKind; }
+            get { return _originalParam.RefKind; }
         }
 
         internal override bool IsMetadataIn
         {
-            get { return originalParam.IsMetadataIn; }
+            get { return _originalParam.IsMetadataIn; }
         }
 
         internal override bool IsMetadataOut
         {
-            get { return originalParam.IsMetadataOut; }
+            get { return _originalParam.IsMetadataOut; }
         }
 
         public override ImmutableArray<Location> Locations
         {
-            get { return originalParam.Locations; }
+            get { return _originalParam.Locations; }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return originalParam.GetAttributes();
+            return _originalParam.GetAttributes();
         }
 
         public sealed override string Name
         {
-            get { return originalParam.Name; }
+            get { return _originalParam.Name; }
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
         {
-            get { return originalParam.CustomModifiers; }
+            get { return _originalParam.CustomModifiers; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
-            get { return originalParam.MarshallingInformation; }
+            get { return _originalParam.MarshallingInformation; }
         }
 
         internal override bool IsIDispatchConstant
         {
-            get { return originalParam.IsIDispatchConstant; }
+            get { return _originalParam.IsIDispatchConstant; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { return originalParam.IsIUnknownConstant; }
+            get { return _originalParam.IsIUnknownConstant; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return originalParam.IsCallerFilePath; }
+            get { return _originalParam.IsCallerFilePath; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { return originalParam.IsCallerLineNumber; }
+            get { return _originalParam.IsCallerLineNumber; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return originalParam.IsCallerMemberName; }
+            get { return _originalParam.IsCallerMemberName; }
         }
 
         #endregion

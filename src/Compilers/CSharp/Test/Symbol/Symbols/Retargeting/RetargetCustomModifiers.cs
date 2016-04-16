@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
             var newMsCorLib = MscorlibRef;
 
             var c1 = CSharpCompilation.Create("C1", references: new[]
-            { 
+            {
                 oldMsCorLib,
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule
             });
@@ -137,7 +137,7 @@ public class Modifiers
 }
 ";
 
-            CSharpCompilation c1 = CSharpCompilation.Create("C1", new[] { Parse(source)}, new[] { oldMsCorLib });
+            CSharpCompilation c1 = CSharpCompilation.Create("C1", new[] { Parse(source) }, new[] { oldMsCorLib });
 
             var c1Assembly = c1.Assembly;
 
@@ -163,7 +163,7 @@ public class Modifiers
 
             Assert.False(volatileFldMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile", volatileFldMod.Modifier.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Int32 , volatileFld.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, volatileFld.Type.SpecialType);
             Assert.Same(mscorlibAssembly, volatileFldMod.Modifier.ContainingAssembly);
 
             Assert.Equal("volatileFld", volatileFld.Name);

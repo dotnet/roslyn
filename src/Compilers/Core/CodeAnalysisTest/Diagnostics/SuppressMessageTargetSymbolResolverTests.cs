@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             VerifyNamespaceResolution(@"
 Namespace $$N 
-End Namespace", 
+End Namespace",
                 LanguageNames.VisualBasic, false, "N");
         }
 
@@ -322,7 +322,7 @@ class A
 }
 ",
                 LanguageNames.CSharp, false, "A.B");
-}
+        }
 
         [Fact]
         public void TestDontPartiallyResolveType2()
@@ -510,7 +510,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#remove_E(C.Del)",
                 "C.remove_E(C.Del):System.Void");
         }
@@ -593,7 +593,7 @@ class C
     int $$Foo<T>(T x, params T[] y) {}
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#Foo`1(!!0,!!0[])",
                 "C.Foo(T,T[]):System.Int32");
 
@@ -618,7 +618,7 @@ Class C
     End Function
 End Class
 ",
-                LanguageNames.VisualBasic, false, 
+                LanguageNames.VisualBasic, false,
                 "C.#Foo`1(!!0,!!0[])",
                 "C.Foo(T,T[]):System.Int32");
 
@@ -712,7 +712,7 @@ class C
     static $$C() {}
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#.cctor()",
                 "C..cctor()");
         }
@@ -743,7 +743,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#op_Equality(C,C)",
                 "C.op_Equality(C,C):System.Boolean");
         }
@@ -780,10 +780,10 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#Item[System.Int32,System.String]",
                 "C.Item[System.Int32,System.String]");
-}
+        }
 
         [Fact]
         public void TestResolveIndexer2()
@@ -825,7 +825,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#get_Item(System.String)",
                 "C.get_Item(System.String):C");
         }
@@ -847,7 +847,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#op_Explicit(C):System.Boolean",
                 "C.op_Explicit(C):System.Boolean");
         }
@@ -864,7 +864,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#IsComplex`2(System.Int32*,System.Int32&,!!0&,!!1[])",
                 "C.IsComplex(System.Int32*,System.Int32&,T0&,T1[]):System.Boolean");
         }
@@ -894,7 +894,7 @@ class A
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "A.#Finalize()",
                 "A.Finalize():System.Void");
         }
@@ -929,7 +929,7 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#GetComplex`1()",
                 "C.GetComplex():T[,][,,][][]");
         }
@@ -964,7 +964,7 @@ public class C<T0>
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C`1+D`1.#M`2(!0,!1,!!0)",
                 "C`1+D`1.M(T0,T1,T2):T3");
         }
@@ -1001,7 +1001,7 @@ public class C<T0>
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C`1+D`1.#Item[!1]",
                 "C`1+D`1.Item[!1]:!0");
         }
@@ -1041,10 +1041,10 @@ class C
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#M1(System.Int32&)",
                 "C.M1(System.Int32&):System.Void");
-}
+        }
 
         [Fact]
         public void TestResolveMethodOnOutParameter2()
@@ -1079,7 +1079,7 @@ class C<T3>
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C.#M`1(G`2<System.Double,System.Double>,G`2<!0,!!0[]>)",
                 "C.M(G`2<System.Double,System.Double>,G`2<T3,T4[]>):G`2<System.Int32,System.Int32>");
         }
@@ -1113,7 +1113,7 @@ namespace @namespace
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "namespace.class.if");
         }
 
@@ -1140,7 +1140,7 @@ class C
     string $$Foo(string x) {}
 }
 ",
-            LanguageNames.CSharp, false, 
+            LanguageNames.CSharp, false,
             "C.#[vararg]Foo(System.String)",
             "C.#[cdecl]Foo(System.String)",
             "C.#[fastcall]Foo(System.String)",
@@ -1182,7 +1182,7 @@ public class C<T0>
     }
 }
 ",
-                LanguageNames.CSharp, false, 
+                LanguageNames.CSharp, false,
                 "C`1+D`1.#M`2(!0,!1,!!0", // Missing close paren
                 "C`1+D`1.M`2(T0,T4,T2):", // Missing return type
                 "C`1+D`1.M`2(T0,T4,T2", // Missing close paren
@@ -1216,13 +1216,13 @@ End Class
                 "C`1+D`1.#[blah]M`2(!0,!1,!!0)"); // Invalid calling convention
         }
 
-        private static void VerifyNamespaceResolution(string markup, string language, bool rootNamespace,  params string[] fxCopFullyQualifiedNames)
+        private static void VerifyNamespaceResolution(string markup, string language, bool rootNamespace, params string[] fxCopFullyQualifiedNames)
         {
             string rootNamespaceName = "";
             if (rootNamespace)
             {
                 rootNamespaceName = "RootNamespace";
-        }
+            }
 
             VerifyResolution(markup, fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope.Namespace, language, rootNamespaceName);
         }
@@ -1233,7 +1233,7 @@ End Class
             if (rootNamespace)
             {
                 rootNamespaceName = "RootNamespace";
-        }
+            }
 
             VerifyNoResolution(markup, fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope.Namespace, language, rootNamespaceName);
         }
@@ -1242,7 +1242,7 @@ End Class
         {
             string rootNamespaceName = "";
             if (rootNamespace)
-        {
+            {
                 rootNamespaceName = "RootNamespace";
             }
 
@@ -1253,7 +1253,7 @@ End Class
         {
             string rootNamespaceName = "";
             if (rootNamespace)
-        {
+            {
                 rootNamespaceName = "RootNamespace";
             }
 
@@ -1264,7 +1264,7 @@ End Class
         {
             string rootNamespaceName = "";
             if (rootNamespace)
-        {
+            {
                 rootNamespaceName = "RootNamespace";
             }
 
@@ -1275,7 +1275,7 @@ End Class
         {
             string rootNamespaceName = "";
             if (rootNamespace)
-        {
+            {
                 rootNamespaceName = "RootNamespace";
             }
 

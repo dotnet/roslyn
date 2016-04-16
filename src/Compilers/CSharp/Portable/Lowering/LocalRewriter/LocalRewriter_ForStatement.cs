@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenIncrement = (BoundStatement)Visit(node.Increment);
             var rewrittenBody = (BoundStatement)Visit(node.Body);
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
             return RewriteForStatement(
                 node.Syntax,
                 node.OuterLocals,
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for([|int i = 0, j = 0|]; ; [|i++, j++|])
             //
             // then all the initializers are treated as a single sequence point, as are
-            // all the loop incrementers.
+            // all the loop incrementors.
             //
             // We now make each one individually a sequence point:
             //
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // can contain lambdas whose bodies need to have sequence points inserted, so we
             // need to make sure we visit the children. But we'll also need to make sure that
             // we do not generate one sequence point for each statement in the initializers
-            // and the incrementers.
+            // and the incrementors.
 
             var statementBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             if (rewrittenInitializer != null)
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.GenerateDebugInfo)
             {
                 if (!conditionSpanOpt.IsEmpty)
-                {   
+                {
                     branchBack = new BoundSequencePointWithSpan(syntax, branchBack, conditionSpanOpt);
                 }
                 else

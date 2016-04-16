@@ -24,28 +24,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
         End Structure
 
-        Private Shared ReadOnly triviaKeyHasher As Func(Of TriviaKey, Integer) =
+        Private Shared ReadOnly s_triviaKeyHasher As Func(Of TriviaKey, Integer) =
             Function(key) RuntimeHelpers.GetHashCode(key.spelling) Xor key.kind
 
-        Private Shared ReadOnly triviaKeyEquality As Func(Of TriviaKey, SyntaxTrivia, Boolean) =
+        Private Shared ReadOnly s_triviaKeyEquality As Func(Of TriviaKey, SyntaxTrivia, Boolean) =
             Function(key, value) (key.spelling Is value.Text) AndAlso (key.kind = value.Kind)
 
-        Private Shared ReadOnly singleSpaceWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Private Shared ReadOnly fourSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
-        Private Shared ReadOnly eightSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
-        Private Shared ReadOnly twelveSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
-        Private Shared ReadOnly sixteenSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("                ")
+        Private Shared ReadOnly s_singleSpaceWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private Shared ReadOnly s_fourSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("    ")
+        Private Shared ReadOnly s_eightSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("        ")
+        Private Shared ReadOnly s_twelveSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
+        Private Shared ReadOnly s_sixteenSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("                ")
 
 
         Private Shared Function CreateWsTable() As CachingFactory(Of TriviaKey, SyntaxTrivia)
-            Dim table = New CachingFactory(Of TriviaKey, SyntaxTrivia)(TABLE_LIMIT, Nothing, triviaKeyHasher, triviaKeyEquality)
+            Dim table = New CachingFactory(Of TriviaKey, SyntaxTrivia)(TABLE_LIMIT, Nothing, s_triviaKeyHasher, s_triviaKeyEquality)
 
             ' Prepopulate the table with some common values
-            table.Add(New TriviaKey(" ", SyntaxKind.WhitespaceTrivia), singleSpaceWhitespaceTrivia)
-            table.Add(New TriviaKey("    ", SyntaxKind.WhitespaceTrivia), fourSpacesWhitespaceTrivia)
-            table.Add(New TriviaKey("        ", SyntaxKind.WhitespaceTrivia), eightSpacesWhitespaceTrivia)
-            table.Add(New TriviaKey("            ", SyntaxKind.WhitespaceTrivia), twelveSpacesWhitespaceTrivia)
-            table.Add(New TriviaKey("                ", SyntaxKind.WhitespaceTrivia), sixteenSpacesWhitespaceTrivia)
+            table.Add(New TriviaKey(" ", SyntaxKind.WhitespaceTrivia), s_singleSpaceWhitespaceTrivia)
+            table.Add(New TriviaKey("    ", SyntaxKind.WhitespaceTrivia), s_fourSpacesWhitespaceTrivia)
+            table.Add(New TriviaKey("        ", SyntaxKind.WhitespaceTrivia), s_eightSpacesWhitespaceTrivia)
+            table.Add(New TriviaKey("            ", SyntaxKind.WhitespaceTrivia), s_twelveSpacesWhitespaceTrivia)
+            table.Add(New TriviaKey("                ", SyntaxKind.WhitespaceTrivia), s_sixteenSpacesWhitespaceTrivia)
 
             Return table
         End Function
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "WhiteSpaceList"
 
-        Private Shared ReadOnly wsListKeyHasher As Func(Of SyntaxListBuilder, Integer) =
+        Private Shared ReadOnly s_wsListKeyHasher As Func(Of SyntaxListBuilder, Integer) =
             Function(builder)
                 Dim code = 0
                 For i = 0 To builder.Count - 1
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return code
             End Function
 
-        Private Shared ReadOnly wsListKeyEquality As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode), Boolean) =
+        Private Shared ReadOnly s_wsListKeyEquality As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode), Boolean) =
             Function(builder, list)
                 If builder.Count <> list.Count Then
                     Return False
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return True
             End Function
 
-        Private Shared ReadOnly wsListFactory As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) =
+        Private Shared ReadOnly s_wsListFactory As Func(Of SyntaxListBuilder, SyntaxList(Of VisualBasicSyntaxNode)) =
             Function(builder)
                 Return builder.ToList(Of VisualBasicSyntaxNode)()
             End Function
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
         End Structure
 
-        Private Shared ReadOnly tokenKeyHasher As Func(Of TokenParts, Integer) =
+        Private Shared ReadOnly s_tokenKeyHasher As Func(Of TokenParts, Integer) =
             Function(key)
                 Dim code = RuntimeHelpers.GetHashCode(key.spelling)
                 Dim trivia = key.pTrivia
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return code
             End Function
 
-        Private Shared ReadOnly tokenKeyEquality As Func(Of TokenParts, SyntaxToken, Boolean) =
+        Private Shared ReadOnly s_tokenKeyEquality As Func(Of TokenParts, SyntaxToken, Boolean) =
             Function(x, y)
                 If y Is Nothing OrElse
                     x.spelling IsNot y.Text OrElse
@@ -187,10 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return ct
         End Function
 
-        Private Shared ReadOnly _crLfTrivia As SyntaxTrivia = SyntaxFactory.EndOfLineTrivia(vbCrLf)
+        Private Shared ReadOnly s_crLfTrivia As SyntaxTrivia = SyntaxFactory.EndOfLineTrivia(vbCrLf)
         Friend Function MakeEndOfLineTriviaCRLF() As SyntaxTrivia
             AdvanceChar(2)
-            Return _crLfTrivia
+            Return s_crLfTrivia
         End Function
 
         Friend Function MakeLineContinuationTrivia(text As String) As SyntaxTrivia
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakeColonToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Debug.Assert(PeekChar() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
+            Debug.Assert(Peek() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
             Debug.Assert(Not precedingTrivia.Any())
 
             Dim width = _endOfTerminatorTrivia - _lineBufferOffset
@@ -745,9 +745,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.Token(precedingTrivia.Node, SyntaxKind.EndOfFileToken, Nothing, String.Empty)
         End Function
 
-        Private ReadOnly SimpleEof As SyntaxToken = SyntaxFactory.Token(Nothing, SyntaxKind.EndOfFileToken, Nothing, String.Empty)
+        Private ReadOnly _simpleEof As SyntaxToken = SyntaxFactory.Token(Nothing, SyntaxKind.EndOfFileToken, Nothing, String.Empty)
         Private Function MakeEofToken() As SyntaxToken
-            Return SimpleEof
+            Return _simpleEof
         End Function
 
     End Class

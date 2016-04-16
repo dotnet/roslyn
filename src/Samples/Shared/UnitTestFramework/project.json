@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "Moq": "4.2.1402.2112",
+    "xunit": "2.1.0"
+  },
+  "frameworks": {
+    "net452": {}
+  },
+  "runtimes": {
+    "win7": {},
+    "win7-anycpu": {}
+  }
+}

@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class ImplicitlyTypedFieldBinder : Binder
     {
-        private readonly ConsList<FieldSymbol> fieldsBeingBound;
+        private readonly ConsList<FieldSymbol> _fieldsBeingBound;
 
         public ImplicitlyTypedFieldBinder(Binder next, ConsList<FieldSymbol> fieldsBeingBound)
             : base(next, next.Flags)
         {
-            this.fieldsBeingBound = fieldsBeingBound;
+            _fieldsBeingBound = fieldsBeingBound;
         }
 
         internal override ConsList<FieldSymbol> FieldsBeingBound
         {
             get
             {
-                return fieldsBeingBound;
+                return _fieldsBeingBound;
             }
         }
     }

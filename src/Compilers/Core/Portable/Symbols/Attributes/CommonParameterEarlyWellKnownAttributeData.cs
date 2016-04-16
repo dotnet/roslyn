@@ -10,69 +10,69 @@ namespace Microsoft.CodeAnalysis
     internal abstract class CommonParameterEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region DefaultParameterValue, DecimalConstant, DateTimeConstant
-        private ConstantValue defaultParameterValue = ConstantValue.Unset;
+        private ConstantValue _defaultParameterValue = ConstantValue.Unset;
 
         public ConstantValue DefaultParameterValue
         {
             get
             {
-                return this.defaultParameterValue;
+                return _defaultParameterValue;
             }
             set
             {
                 VerifySealed(expected: false);
-                Debug.Assert(defaultParameterValue == ConstantValue.Unset);
-                this.defaultParameterValue = value;
+                Debug.Assert(_defaultParameterValue == ConstantValue.Unset);
+                _defaultParameterValue = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region CallerInfoAttributes
-        private bool hasCallerLineNumberAttribute;
+        private bool _hasCallerLineNumberAttribute;
         public bool HasCallerLineNumberAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasCallerLineNumberAttribute;
+                return _hasCallerLineNumberAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasCallerLineNumberAttribute = value;
+                _hasCallerLineNumberAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool hasCallerFilePathAttribute;
+        private bool _hasCallerFilePathAttribute;
         public bool HasCallerFilePathAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasCallerFilePathAttribute;
+                return _hasCallerFilePathAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasCallerFilePathAttribute = value;
+                _hasCallerFilePathAttribute = value;
                 SetDataStored();
             }
         }
 
-        private bool hasCallerMemberNameAttribute;
+        private bool _hasCallerMemberNameAttribute;
         public bool HasCallerMemberNameAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasCallerMemberNameAttribute;
+                return _hasCallerMemberNameAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasCallerMemberNameAttribute = value;
+                _hasCallerMemberNameAttribute = value;
                 SetDataStored();
             }
         }

@@ -1,4 +1,6 @@
-﻿Imports System.Globalization
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Globalization
 Imports System.Threading.Thread
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -101,9 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub Characters()
-            ' Note - this is significanlty different from what Dev10 VB EE does, which is
-            ' - ignore "nq" setting
-            ' - print non-printable characters, no escaping
+            ' Note, the legacy EE ignores the "nq" setting
             Assert.Equal("""x""c", FormatPrimitive("x"c, quoteStrings:=True))
             Assert.Equal("x", FormatPrimitive("x"c, quoteStrings:=False))
             Assert.Equal("""x""c", FormatPrimitiveUsingHexadecimalNumbers("x"c, quoteStrings:=True))
@@ -111,16 +111,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal("vbNullChar", FormatPrimitiveUsingHexadecimalNumbers(ChrW(0), quoteStrings:=True))
             Assert.Equal("ChrW(&H1E)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H1E), quoteStrings:=True))
-            Assert.Equal("ChrW(&H1E)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H1E), quoteStrings:=False))
-            Assert.Equal("ChrW(20)", FormatPrimitive(ChrW(20)))
+            Assert.Equal(New String({ChrW(&H1E)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H1E), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(20)}), FormatPrimitive(ChrW(20)))
             Assert.Equal("vbBack", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H8), quoteStrings:=True))
-            Assert.Equal("vbBack", FormatPrimitive(ChrW(&H8)))
+            Assert.Equal(vbBack, FormatPrimitive(ChrW(&H8)))
             Assert.Equal("vbLf", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HA), quoteStrings:=True))
             Assert.Equal("vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbers(vbVerticalTab(0), quoteStrings:=True))
             Assert.Equal("vbTab", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&H9), quoteStrings:=True))
             Assert.Equal("vbFormFeed", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HC), quoteStrings:=True))
             Assert.Equal("vbCr", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HD), quoteStrings:=True))
         End Sub
+
+        <Fact>
+        Public Sub Characters_QuotesAndEscaping()
+            Assert.Equal(QuoteAndEscapingCombinations("a"c), {"a", """a""c", """a""c"})
+            Assert.Equal(QuoteAndEscapingCombinations(vbTab(0)), {vbTab, """" & vbTab & """c", "vbTab"})
+            Assert.Equal(QuoteAndEscapingCombinations(ChrW(&H26F4)), {ChrW(&H26F4).ToString(), """" & ChrW(&H26F4) & """c", """" & ChrW(&H26F4) & """c"}) ' Miscellaneous symbol
+            Assert.Equal(QuoteAndEscapingCombinations(ChrW(&H7F)), {ChrW(&H7F).ToString(), """" & ChrW(&H7F) & """c", "ChrW(127)"}) ' Control character
+            Assert.Equal(QuoteAndEscapingCombinations(""""c), {"""", """""""""c", """""""""c"}) ' Quote
+        End Sub
+
+        Private Shared Function QuoteAndEscapingCombinations(ch As Char) As IEnumerable(Of String)
+            ' Disallowed in VB: ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.EscapeNonPrintableStringCharacters),
+            Return {
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.None),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.UseQuotes),
+                ObjectDisplay.FormatLiteral(ch, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters)
+            }
+        End Function
 
         <Fact()>
         Public Sub Strings()
@@ -132,8 +150,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal("ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=True))
             Assert.Equal("ChrW(65534)", FormatPrimitive(ChrW(&HFFFE), quoteStrings:=True))
-            Assert.Equal("ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=False))
-            Assert.Equal("ChrW(65534)", FormatPrimitive(ChrW(&HFFFE), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(&HFFFE)}), FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFE), quoteStrings:=False))
+            Assert.Equal(New String({ChrW(65534)}), FormatPrimitive(ChrW(&HFFFE), quoteStrings:=False))
 
             Dim s = "a" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & "b"
 
@@ -144,10 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("ChrW(&HFFFF) & ""a"" & ChrW(&HFFFE)", FormatPrimitiveUsingHexadecimalNumbers(ChrW(&HFFFF) & "a" & ChrW(&HFFFE), quoteStrings:=True))
             Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=True))
 
-            ' non-printable characters are replaced by spaces if quoting is disabled
+            ' non-printable characters are unchanged if quoting is disabled
             Assert.Equal(s, FormatPrimitiveUsingHexadecimalNumbers(s, quoteStrings:=False))
-            Assert.Equal("a....b", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None, nonPrintableSubstitute:="."c))
-            Assert.Equal("""a....b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.UseHexadecimalNumbers, nonPrintableSubstitute:="."c))
+            Assert.Equal(s, ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None))
+            Assert.Equal("""a"" & ChrW(&HFFFF) & ChrW(&HFFFE) & vbCrLf & ""b""", ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseHexadecimalNumbers))
 
             ' "well-known" characters:
             Assert.Equal("""a"" & vbBack", FormatPrimitiveUsingHexadecimalNumbers("a" & vbBack, quoteStrings:=True))
@@ -160,7 +178,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("""a"" & vbVerticalTab", FormatPrimitiveUsingHexadecimalNumbers("a" & vbVerticalTab, quoteStrings:=True))
         End Sub
 
-        <Fact(), WorkItem(529850)>
+        <Fact>
+        Public Sub Strings_QuotesAndEscaping()
+            Assert.Equal(QuoteAndEscapingCombinations("a"), {"a", """a""", """a"""})
+            Assert.Equal(QuoteAndEscapingCombinations(vbTab), {vbTab, """" & vbTab & """", "vbTab"})
+            Assert.Equal(QuoteAndEscapingCombinations(ChrW(&H26F4).ToString()), {ChrW(&H26F4).ToString(), """" & ChrW(&H26F4) & """", """" & ChrW(&H26F4) & """"}) ' Miscellaneous symbol
+            Assert.Equal(QuoteAndEscapingCombinations(ChrW(&H7F).ToString()), {ChrW(&H7F).ToString(), """" & ChrW(&H7F) & """", "ChrW(127)"}) ' Control character
+            Assert.Equal(QuoteAndEscapingCombinations(""""), {"""", """""""""", """"""""""}) ' Quote
+        End Sub
+
+        Private Shared Function QuoteAndEscapingCombinations(s As String) As IEnumerable(Of String)
+            ' Disallowed in VB: ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.EscapeNonPrintableStringCharacters),
+            Return {
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.None),
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes),
+                ObjectDisplay.FormatLiteral(s, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters)
+            }
+        End Function
+
+        <Fact(), WorkItem(529850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529850")>
         Public Sub CultureInvariance()
             Dim originalCulture = CurrentThread.CurrentCulture
             Try
@@ -173,14 +209,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Dim decimalValue As New Decimal(12.5)
                 Assert.Equal("12,5", decimalValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(decimalValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(decimalValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
 
                 Dim doubleValue As Double = 12.5
                 Assert.Equal("12,5", doubleValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(doubleValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(doubleValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
 
                 Dim singleValue As Single = 12.5
                 Assert.Equal("12,5", singleValue.ToString())
                 Assert.Equal("12.5", FormatPrimitive(singleValue))
+                Assert.Equal("12.5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CultureInfo.InvariantCulture))
+                Assert.Equal("12,5", ObjectDisplay.FormatLiteral(singleValue, ObjectDisplayOptions.None, CurrentThread.CurrentCulture))
+
             Finally
                 CurrentThread.CurrentCulture = originalCulture
             End Try
@@ -225,12 +268,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("12.5D", FormatPrimitiveIncludingTypeSuffix(decimalValue, useHexadecimalNumbers:=True))
         End Sub
 
+        <Fact>
+        Public Sub StringEscaping()
+            Const value = "a" & vbTab & "b"
+
+            Assert.Equal("a" & vbTab & "b", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.None))
+            Assert.Equal("""a" & vbTab & "b""", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes))
+            ' Not allowed in VB: ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.EscapeNonPrintableStringCharacters)
+            Assert.Equal("""a"" & vbTab & ""b""", ObjectDisplay.FormatPrimitive(value, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters))
+        End Sub
+
         Private Function FormatPrimitive(obj As Object, Optional quoteStrings As Boolean = False) As String
-            Return ObjectDisplay.FormatPrimitive(obj, If(quoteStrings, ObjectDisplayOptions.UseQuotes, ObjectDisplayOptions.None))
+            Return ObjectDisplay.FormatPrimitive(obj, If(quoteStrings, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters, ObjectDisplayOptions.None))
         End Function
 
         Private Function FormatPrimitiveUsingHexadecimalNumbers(obj As Object, Optional quoteStrings As Boolean = False) As String
-            Dim options = If(quoteStrings, ObjectDisplayOptions.UseQuotes, ObjectDisplayOptions.None)
+            Dim options = If(quoteStrings, ObjectDisplayOptions.UseQuotes Or ObjectDisplayOptions.EscapeNonPrintableCharacters, ObjectDisplayOptions.None)
             Return ObjectDisplay.FormatPrimitive(obj, options Or ObjectDisplayOptions.UseHexadecimalNumbers)
         End Function
 

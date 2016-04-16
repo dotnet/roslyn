@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddObjectOrCollectionInitializers(
             ref ArrayBuilder<BoundExpression> dynamicSiteInitializers,
             ref ArrayBuilder<LocalSymbol> temps,
-            ArrayBuilder<BoundExpression> result, 
-            BoundExpression rewrittenReceiver, 
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
             BoundExpression initializerExpression)
         {
-            Debug.Assert(!inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
             Debug.Assert(rewrittenReceiver != null);
 
             switch (initializerExpression.Kind)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> MakeObjectOrCollectionInitializersForExpressionTree(BoundExpression initializerExpression)
         {
-            Debug.Assert(inExpressionLambda);
+            Debug.Assert(_inExpressionLambda);
 
             switch (initializerExpression.Kind)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //                    ~
         private void AddCollectionInitializers(ref ArrayBuilder<BoundExpression> dynamicSiteInitializers, ArrayBuilder<BoundExpression> result, BoundExpression rewrittenReceiver, ImmutableArray<BoundExpression> initializers)
         {
-            Debug.Assert(rewrittenReceiver != null || inExpressionLambda);
+            Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
             foreach (var initializer in initializers)
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!inExpressionLambda);
+                    Debug.Assert(!_inExpressionLambda);
                     Debug.Assert(initializer.Kind == BoundKind.DynamicCollectionElementInitializer);
 
                     rewrittenInitializer = MakeDynamicCollectionInitializer(rewrittenReceiver, (BoundDynamicCollectionElementInitializer)initializer);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with the matching name of this dynamic invocation.
             EmbedIfNeedTo(rewrittenReceiver, initializer.ApplicableMethods, initializer.Syntax);
 
-            return dynamicFactory.MakeDynamicMemberInvocation(
+            return _dynamicFactory.MakeDynamicMemberInvocation(
                 WellKnownMemberNames.CollectionInitializerAddMethodName,
                 rewrittenReceiver,
                 ImmutableArray<TypeSymbol>.Empty,
@@ -133,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(initializer.AddMethod.Name == "Add");
             Debug.Assert(initializer.Arguments.Any());
-            Debug.Assert(rewrittenReceiver != null || inExpressionLambda);
+            Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
             var syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
-            if (this.allowOmissionOfConditionalCalls)
+            if (_allowOmissionOfConditionalCalls)
             {
                 // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
                 // have been checked.
@@ -163,14 +163,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);
-                var newArgs = ArrayBuilder<BoundExpression>.GetInstance();
-                newArgs.AddRange(rewrittenArguments);
-                newArgs[0] = rewrittenReceiver;
-                rewrittenArguments = newArgs.ToImmutableAndFree();
+                Debug.Assert(!_inExpressionLambda, "Expression trees do not support extension Add");
+                rewrittenArguments = rewrittenArguments.SetItem(0, rewrittenReceiver);
                 rewrittenReceiver = null;
             }
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 return initializer.Update(addMethod, rewrittenArguments, false, default(ImmutableArray<int>), initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
             }
@@ -182,11 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddObjectInitializers(
             ref ArrayBuilder<BoundExpression> dynamicSiteInitializers,
             ref ArrayBuilder<LocalSymbol> temps,
-            ArrayBuilder<BoundExpression> result, 
-            BoundExpression rewrittenReceiver, 
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
             ImmutableArray<BoundExpression> initializers)
         {
-            Debug.Assert(!inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
 
             foreach (var initializer in initializers)
             {
@@ -200,14 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         //  new SomeType { Member = 0 };
         //                 ~~~~~~~~~~
         private void AddObjectInitializer(
-            ref ArrayBuilder<BoundExpression> dynamicSiteInitializers, 
+            ref ArrayBuilder<BoundExpression> dynamicSiteInitializers,
             ref ArrayBuilder<LocalSymbol> temps,
-            ArrayBuilder<BoundExpression> result, 
-            BoundExpression rewrittenReceiver, 
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
             BoundAssignmentOperator assignment)
         {
             Debug.Assert(rewrittenReceiver != null);
-            Debug.Assert(!inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
 
             // Update the receiver for the field/property access as we might have introduced a temp for the initializer rewrite.
 
@@ -233,13 +231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var args = EvaluateSideEffectingArgumentsToTemps(memberInit.Arguments, result, ref temps);
                             memberInit = memberInit.Update(
-                                memberInit.MemberSymbol, 
-                                args, 
+                                memberInit.MemberSymbol,
+                                args,
                                 memberInit.ArgumentNamesOpt,
                                 memberInit.ArgumentRefKindsOpt,
                                 memberInit.Expanded,
                                 memberInit.ArgsToParamsOpt,
-                                memberInit.ResultKind, 
+                                memberInit.ResultKind,
                                 memberInit.Type);
                         }
 
@@ -253,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!isRhsNestedInitializer)
                             {
                                 var rewrittenRight = VisitExpression(assignment.Right);
-                                var setMember = dynamicFactory.MakeDynamicSetIndex(
+                                var setMember = _dynamicFactory.MakeDynamicSetIndex(
                                     rewrittenReceiver,
                                     memberInit.Arguments,
                                     memberInit.ArgumentNamesOpt,
@@ -265,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return;
                             }
 
-                            var getMember = dynamicFactory.MakeDynamicGetIndex(
+                            var getMember = _dynamicFactory.MakeDynamicGetIndex(
                                 rewrittenReceiver,
                                 memberInit.Arguments,
                                 memberInit.ArgumentNamesOpt,
@@ -300,13 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!isRhsNestedInitializer)
                         {
                             var rewrittenRight = VisitExpression(assignment.Right);
-                            var setMember = dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
+                            var setMember = _dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
                             dynamicSiteInitializers.Add(setMember.SiteInitialization);
                             result.Add(setMember.SiteInvocation);
                             return;
                         }
 
-                        var getMember = dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
+                        var getMember = _dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
                         dynamicSiteInitializers.Add(getMember.SiteInitialization);
                         rewrittenAccess = getMember.SiteInvocation;
                         break;
@@ -325,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
                             return;
                         }
-                        
+
                         break;
                     }
 
@@ -335,10 +333,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pointerAccess = (BoundPointerElementAccess)assignment.Left;
                         var rewrittenIndex = VisitExpression(pointerAccess.Index);
 
-                        if (IntroducingReadCanBeObservable(rewrittenIndex))
+                        if (CanChangeValueBetweenReads(rewrittenIndex))
                         {
                             BoundAssignmentOperator store;
-                            var temp = this.factory.StoreToTemp(rewrittenIndex, out store);
+                            var temp = _factory.StoreToTemp(rewrittenIndex, out store);
                             rewrittenIndex = temp;
 
                             if (temps == null)
@@ -380,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = args[i];
 
-                if (IntroducingReadCanBeObservable(arg))
+                if (CanChangeValueBetweenReads(arg))
                 {
                     if (newArgs == null)
                     {
@@ -389,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     BoundAssignmentOperator store;
-                    var temp = this.factory.StoreToTemp(arg, out store);
+                    var temp = _factory.StoreToTemp(arg, out store);
                     newArgs.Add(temp);
 
                     if (temps == null)
@@ -406,18 +404,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return newArgs?
-                .ToImmutableAndFree() ?? 
+                .ToImmutableAndFree() ??
                 args;
         }
 
         private BoundExpression MakeObjectInitializerMemberAccess(
-            BoundExpression rewrittenReceiver, 
-            BoundObjectInitializerMember rewrittenLeft, 
+            BoundExpression rewrittenReceiver,
+            BoundObjectInitializerMember rewrittenLeft,
             bool isRhsNestedInitializer)
         {
             var memberSymbol = rewrittenLeft.MemberSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Debug.Assert(memberSymbol != null && this.compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
+            Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 
             switch (memberSymbol.Kind)

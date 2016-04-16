@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BestTypeInferrer
     {
-        private readonly ConversionsBase conversions;
+        private readonly ConversionsBase _conversions;
         private BestTypeInferrer(ConversionsBase conversions)
         {
-            this.conversions = conversions;
+            _conversions = conversions;
         }
 
         public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, ConversionsBase conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
-            var t1tot2 = conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Exists;
-            var t2tot1 = conversions.ClassifyImplicitConversion(type2, type1, ref useSiteDiagnostics).Exists;
+            var t1tot2 = _conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Exists;
+            var t2tot1 = _conversions.ClassifyImplicitConversion(type2, type1, ref useSiteDiagnostics).Exists;
 
             if (t1tot2 && t2tot1)
             {

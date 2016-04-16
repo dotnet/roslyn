@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 ";
             const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
 
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -151,10 +151,10 @@ class Structs
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = Int32.MaxValue)] struct E_P1_S2147483647 {}
 }
 ";
-            Action<PEAssembly, TestEmitters> validator = (assembly, _) =>
+            Action<PEAssembly> validator = (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
-                
+
                 foreach (var typeHandle in metadataReader.TypeDefinitions)
                 {
                     var type = metadataReader.GetTypeDefinition(typeHandle);
@@ -194,8 +194,8 @@ class Structs
                                     expectedPack = ushort.Parse(part.Substring(1));
                                     break;
 
-                                case 'S': 
-                                    expectedSize = uint.Parse(part.Substring(1)); 
+                                case 'S':
+                                    expectedSize = uint.Parse(part.Substring(1));
                                     break;
                             }
                         }
@@ -214,7 +214,7 @@ class Structs
             CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, emitOptions: TestEmitters.CCI, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: false);
         }
 
         [Fact]
@@ -332,7 +332,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, verify: false);
+            CompileAndVerify(source, verify: false);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ public class A
     event Action b;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
@@ -468,7 +468,7 @@ enum En
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithArguments("FieldOffset"));
         }
 
-        [Fact, WorkItem(546660, "DevDiv"), WorkItem(546662, "DevDiv")]
+        [Fact, WorkItem(546660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem(546662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
         public void SequentialLayout_Partials()
         {
             string source = @"
@@ -522,7 +522,7 @@ partial struct S
                 Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
         }
 
-        [Fact, WorkItem(631467, "DevDiv")]
+        [Fact, WorkItem(631467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
         public void SequentialLayout_Partials_02()
         {
             string source = @"
@@ -553,7 +553,19 @@ partial struct C
                 {
                     var type = reader.GetTypeDefinition(typeHandle);
                     var name = reader.GetString(type.Name);
-                    var mdLayout = type.GetLayout();
+
+                    bool badLayout = false;
+                    System.Reflection.Metadata.TypeLayout mdLayout;
+                    try
+                    {
+                        mdLayout = type.GetLayout();
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        badLayout = true;
+                        mdLayout = default(System.Reflection.Metadata.TypeLayout);
+                    }
+
                     bool hasClassLayout = !mdLayout.IsDefault;
                     TypeLayout layout = module.Module.GetTypeLayout(typeHandle);
                     switch (name)
@@ -561,22 +573,14 @@ partial struct C
                         case "<Module>":
                             Assert.False(hasClassLayout);
                             Assert.Equal(default(TypeLayout), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S1":
-                            // invalid size/pack value
-                            Assert.True(hasClassLayout);
-                            Assert.Equal(unchecked((int)0xaaaaaaaa), mdLayout.Size);
-                            Assert.Equal(0xffff, mdLayout.PackingSize);
-                            Assert.Equal(new TypeLayout(LayoutKind.Sequential, 0, 0), layout);
-                            break;
-
                         case "S2":
-                            // invalid size value
-                            Assert.True(hasClassLayout);
-                            Assert.Equal(-1, mdLayout.Size);
-                            Assert.Equal(0x0002, mdLayout.PackingSize);
-                            Assert.Equal(new TypeLayout(LayoutKind.Explicit, 0, 2), layout);
+                            // invalid size/pack value
+                            Assert.False(hasClassLayout);
+                            Assert.True(badLayout);
                             break;
 
                         case "S3":
@@ -584,6 +588,7 @@ partial struct C
                             Assert.Equal(1, mdLayout.Size);
                             Assert.Equal(2, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 2), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S4":
@@ -591,12 +596,14 @@ partial struct C
                             Assert.Equal(unchecked((int)0x12345678), mdLayout.Size);
                             Assert.Equal(0, mdLayout.PackingSize);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0x12345678, alignment: 0), layout);
+                            Assert.False(badLayout);
                             break;
 
                         case "S5":
                             // doesn't have layout
                             Assert.False(hasClassLayout);
                             Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0, alignment: 0), layout);
+                            Assert.False(badLayout);
                             break;
 
                         default:
@@ -608,8 +615,7 @@ partial struct C
 
         private void VerifyStructLayout(string source, bool hasInstanceFields)
         {
-
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 var type = reader.TypeDefinitions
@@ -652,7 +658,5 @@ partial struct C
             VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
             VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
         }
-
-
     }
 }

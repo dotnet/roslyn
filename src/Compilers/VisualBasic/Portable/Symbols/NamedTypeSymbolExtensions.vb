@@ -113,5 +113,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
+        <Extension()>
+        Friend Function AllowsExtensionMethods(container As NamedTypeSymbol) As Boolean
+            Return container.TypeKind = TypeKind.Module OrElse container.IsScriptClass
+        End Function
+
     End Module
 End Namespace

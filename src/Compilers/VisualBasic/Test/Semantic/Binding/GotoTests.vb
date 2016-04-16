@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GotoTests
         Inherits BasicTestBase
 
-        <WorkItem(543106, "DevDiv")>
+        <WorkItem(543106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543106")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda()
 
@@ -44,15 +44,13 @@ End Class
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-        lists.Where(Function(ByVal item)
-              ~~~~~
+BC30101: Branching out of a 'Finally' is not valid.
+                            GoTo lab1
+                                 ~~~~
             </expected>)
         End Sub
 
-        <WorkItem(543392, "DevDiv")>
+        <WorkItem(543392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543392")>
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda_1()
 
@@ -185,7 +183,7 @@ End Module
 
         End Sub
 
-        <WorkItem(543364, "DevDiv")>
+        <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
         Public Sub LabelAfterElse()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -230,9 +228,9 @@ End Module
                                   Diagnostic(ERRID.ERR_LabelNotDefined1, "100").WithArguments("100"))
         End Sub
 
-        <WorkItem(543364, "DevDiv")>
+        <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
-        Public Sub LabelAfterElse_NotNumberic()
+        Public Sub LabelAfterElse_NotNumeric()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LabelAfterElse">
     <file name="a.vb">

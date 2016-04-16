@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             Next
 
-            Return New BoundInterpolatedStringExpression(syntax, contentBuilder.ToImmutableAndFree(), GetSpecialType(SpecialType.System_String, syntax, diagnostics))
+            Return New BoundInterpolatedStringExpression(syntax, contentBuilder.ToImmutableAndFree(), binder:=Me, type:=GetSpecialType(SpecialType.System_String, syntax, diagnostics))
 
         End Function
 
@@ -41,12 +41,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim alignmentOpt As BoundExpression = Nothing
 
             If syntax.AlignmentClause IsNot Nothing Then
-
                 alignmentOpt = BindRValue(syntax.AlignmentClause.Value, diagnostics)
 
-                If Not (alignmentOpt.IsConstant AndAlso alignmentOpt.ConstantValueOpt.IsIntegral) AndAlso
-                   Not syntax.AlignmentClause.Value.HasErrors _
-                Then
+                If alignmentOpt.IsConstant AndAlso alignmentOpt.ConstantValueOpt.IsIntegral Then
+
+                    Dim constantValue = alignmentOpt.ConstantValueOpt
+
+                    If constantValue.IsNegativeNumeric Then
+                        If constantValue.Int64Value < -Short.MaxValue Then
+                            ReportDiagnostic(diagnostics, syntax.AlignmentClause.Value, ERRID.ERR_InterpolationAlignmentOutOfRange)
+                        End If
+                    Else
+                        If constantValue.UInt64Value > Short.MaxValue Then
+                            ReportDiagnostic(diagnostics, syntax.AlignmentClause.Value, ERRID.ERR_InterpolationAlignmentOutOfRange)
+                        End If
+                    End If
+                Else
                     ReportDiagnostic(diagnostics, syntax.AlignmentClause.Value, ERRID.ERR_ExpectedIntLiteral)
                 End If
             End If

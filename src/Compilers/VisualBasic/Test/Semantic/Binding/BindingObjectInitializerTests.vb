@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub SimpleObjectInitialization()
+        Public Sub SimpleObjectInitialization()
             Dim source =
 <compilation name="SimpleObjectInitialization">
     <file name="a.vb">
@@ -44,7 +44,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub ObjectInitializationWithFieldOnRight()
+        Public Sub ObjectInitializationWithFieldOnRight()
             Dim source =
 <compilation name="ObjectInitializationWithFieldOnRight">
     <file name="a.vb">
@@ -72,7 +72,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerEmptyInitializers()
+        Public Sub ObjectInitializerEmptyInitializers()
             Dim source =
 <compilation name="ObjectInitializerEmptyInitializers">
     <file name="a.vb">
@@ -100,7 +100,7 @@ BC30996: Initializer expected.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerMissingIdentifierInInitializer()
+        Public Sub ObjectInitializerMissingIdentifierInInitializer()
             Dim source =
 <compilation name="ObjectInitializerMissingIdentifierInInitializer">
     <file name="a.vb">
@@ -138,9 +138,9 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerOnlyDotIndentifierInInitializer()
+        Public Sub ObjectInitializerOnlyDotIdentifierInInitializer()
             Dim source =
-<compilation name="ObjectInitializerOnlyDotIndentifierInInitializer">
+<compilation>
     <file name="a.vb">
 Option Strict On
 
@@ -170,7 +170,7 @@ BC30984: '=' expected (object initializer).
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerMissingExpressionInInitializer()
+        Public Sub ObjectInitializerMissingExpressionInInitializer()
             Dim source =
 <compilation name="ObjectInitializerMissingExpressionInInitializer">
     <file name="a.vb">
@@ -198,9 +198,9 @@ BC30201: Expression expected.
                                            </expected>)
         End Sub
 
-        <WorkItem(529213, "DevDiv")>
+        <WorkItem(529213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529213")>
         <Fact()>
-        Sub ObjectInitializerKeyKeywordInInitializer()
+        Public Sub ObjectInitializerKeyKeywordInInitializer()
             Dim source =
 <compilation name="ObjectInitializerKeyKeywordInInitializer">
     <file name="a.vb">
@@ -231,9 +231,9 @@ BC30451: 'Key' is not declared. It may be inaccessible due to its protection lev
                                            </expected>)
         End Sub
 
-        <WorkItem(544357, "DevDiv")>
+        <WorkItem(544357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544357")>
         <Fact()>
-        Sub ObjectInitializerMultipleInitializations()
+        Public Sub ObjectInitializerMultipleInitializations()
             Dim source =
 <compilation name="ObjectInitializerMultipleInitializations">
     <file name="a.vb">
@@ -266,7 +266,7 @@ BC30989: Multiple initializations of 'FIELD'.  Fields and properties can be init
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializingObject()
+        Public Sub ObjectInitializerInitializingObject()
             Dim source =
 <compilation name="ObjectInitializerInitializingObject">
     <file name="a.vb">
@@ -295,7 +295,7 @@ BC30994: Object initializer syntax cannot be used to initialize an instance of '
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializingSameClass()
+        Public Sub ObjectInitializerInitializingSameClass()
             Dim source =
 <compilation name="ObjectInitializerInitializingSameClass">
     <file name="a.vb">
@@ -327,7 +327,7 @@ Hello World!
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeSharedFieldOnNewInstance()
+        Public Sub ObjectInitializerInitializeSharedFieldOnNewInstance()
             Dim source =
 <compilation name="ObjectInitializerInitializeSharedFieldOnNewInstance">
     <file name="a.vb">
@@ -355,7 +355,7 @@ BC30991: Member 'Field1' cannot be initialized in an object initializer expressi
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeNonExistentField()
+        Public Sub ObjectInitializerInitializeNonExistentField()
             Dim source =
 <compilation name="ObjectInitializerInitializeNonExistentField">
     <file name="a.vb">
@@ -388,7 +388,7 @@ BC30456: 'Field1' is not a member of 'C1'.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeInaccessibleField()
+        Public Sub ObjectInitializerInitializeInaccessibleField()
             Dim source =
 <compilation name="ObjectInitializerInitializeInaccessibleField">
     <file name="a.vb">
@@ -419,7 +419,7 @@ BC30389: 'C2.Field' is not accessible in this context because it is 'Protected'.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeNonWriteableMember()
+        Public Sub ObjectInitializerInitializeNonWriteableMember()
             Dim source =
 <compilation name="ObjectInitializerInitializeNonWriteableMember">
     <file name="a.vb">
@@ -448,7 +448,7 @@ BC30990: Member 'Foo' cannot be initialized in an object initializer expression 
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeReadOnlyProperty()
+        Public Sub ObjectInitializerInitializeReadOnlyProperty()
             Dim source =
 <compilation name="ObjectInitializerInitializeReadOnlyProperty">
     <file name="a.vb">
@@ -479,7 +479,7 @@ BC30526: Property 'X' is 'ReadOnly'.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializeReadOnlyField()
+        Public Sub ObjectInitializerInitializeReadOnlyField()
             Dim source =
 <compilation name="ObjectInitializerInitializeReadOnlyField">
     <file name="a.vb">
@@ -506,7 +506,7 @@ BC30064: 'ReadOnly' variable cannot be the target of an assignment.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerPropertyWithInaccessibleSet()
+        Public Sub ObjectInitializerPropertyWithInaccessibleSet()
             Dim source =
 <compilation name="ObjectInitializerPropertyWithInaccessibleSet">
     <file name="a.vb">
@@ -540,7 +540,7 @@ BC31102: 'Set' accessor of property 'X' is not accessible.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerTypeIsErrorType()
+        Public Sub ObjectInitializerTypeIsErrorType()
             Dim source =
 <compilation name="ObjectInitializerTypeIsErrorType">
     <file name="a.vb">
@@ -583,7 +583,7 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNewTWith()
+        Public Sub ObjectInitializerNewTWith()
             Dim source =
 <compilation name="ObjectInitializerNewTWith">
     <file name="a.vb">
@@ -620,7 +620,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerTypeParametersInInitializers()
+        Public Sub ObjectInitializerTypeParametersInInitializers()
             Dim source =
 <compilation name="ObjectInitializerTypeParametersInInitializers">
     <file name="a.vb">
@@ -653,7 +653,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedInWithStatement_1()
+        Public Sub ObjectInitializerNestedInWithStatement_1()
             Dim source =
 <compilation name="ObjectInitializerNestedInWithStatement_1">
     <file name="a.vb">
@@ -688,7 +688,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedInWithStatement_2()
+        Public Sub ObjectInitializerNestedInWithStatement_2()
             Dim source =
 <compilation name="ObjectInitializerNestedInWithStatement_2">
     <file name="a.vb">
@@ -725,7 +725,7 @@ BC30456: 'Field2' is not a member of 'C1'.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedInitializers_1()
+        Public Sub ObjectInitializerNestedInitializers_1()
             Dim source =
 <compilation name="ObjectInitializerNestedInitializers_1">
     <file name="a.vb">
@@ -759,7 +759,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedInitializers_2()
+        Public Sub ObjectInitializerNestedInitializers_2()
             Dim source =
 <compilation name="ObjectInitializerNestedInitializers_2">
     <file name="a.vb">
@@ -793,7 +793,7 @@ BC30456: 'Field2' is not a member of 'C2'.
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerCaptureFieldForLambda()
+        Public Sub ObjectInitializerCaptureFieldForLambda()
             Dim source =
 <compilation name="ObjectInitializerCaptureFieldForLambda">
     <file name="a.vb">
@@ -829,7 +829,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerUsedInFieldInitializers()
+        Public Sub ObjectInitializerUsedInFieldInitializers()
             Dim source =
 <compilation name="ObjectInitializerUsedInFieldInitializers">
     <file name="a.vb">
@@ -856,7 +856,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerFlowAnalysisVisitsInitializers()
+        Public Sub ObjectInitializerFlowAnalysisVisitsInitializers()
             Dim source =
 <compilation name="ObjectInitializerFlowAnalysisVisitsInitializers">
     <file name="a.vb">
@@ -887,7 +887,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInitializePropertyWithOptionalParameters()
+        Public Sub ObjectInitializerInitializePropertyWithOptionalParameters()
             Dim source =
 <compilation name="ObjectInitializerInitializePropertyWithOptionalParameters">
     <file name="a.vb">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields()
+        Public Sub ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields()
             Dim source =
 <compilation name="ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields">
     <file name="a.vb">
@@ -949,7 +949,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerUsingInitializedTargetInInitializerValueType()
+        Public Sub ObjectInitializerUsingInitializedTargetInInitializerValueType()
             Dim source =
 <compilation name="ObjectInitializerUsingInitializedTargetInInitializerValueType">
     <file name="a.vb">
@@ -988,7 +988,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerWithLifting_1()
+        Public Sub ObjectInitializerWithLifting_1()
             Dim source =
 <compilation name="ObjectInitializerWithLifting_1">
     <file name="a.vb">
@@ -1023,7 +1023,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerDictionaryLookupOperatorSupported()
+        Public Sub ObjectInitializerDictionaryLookupOperatorSupported()
             Dim source =
 <compilation name="ObjectInitializerDictionaryLookupOperatorSupported">
     <file name="a.vb">
@@ -1055,7 +1055,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerInField()
+        Public Sub ObjectInitializerInField()
             Dim source =
 <compilation name="ObjectInitializerInField">
     <file name="a.vb">
@@ -1090,8 +1090,8 @@ End Class
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
-        <Fact(), WorkItem(788522, "DevDiv")>
-        Sub ObjectInitializerNoStackOverflowFor250LevelsOfNesting()
+        <Fact(), WorkItem(788522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
+        Public Sub ObjectInitializerNoStackOverflowFor150LevelsOfNesting()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1106,17 +1106,6 @@ End Class
 Class C2
     Public Shared Sub Main()
        Dim c As Cust = New Cust With {.y = 1, 
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
-                        .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
                         .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1, .x = New Cust With {.y = 1,
@@ -1146,17 +1135,6 @@ Class C2
 }}}}}}}}}}
 }}}}}}}}}}
 }}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
-}}}}}}}}}}
     End Sub
 End Class       
     </file>
@@ -1169,7 +1147,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerReferencingItself()
+        Public Sub ObjectInitializerReferencingItself()
             Dim source =
 <compilation name="ObjectInitializerReferencingItself">
     <file name="a.vb">
@@ -1322,8 +1300,8 @@ BC42109: Variable 'uinst2' is used before it has been assigned a value. A null r
                                            </expected>)
         End Sub
 
-        <Fact(), WorkItem(567976, "DevDiv")>
-        Sub Bug567976()
+        <Fact(), WorkItem(567976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567976")>
+        Public Sub Bug567976()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1337,6 +1315,9 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
+BC30053: Arrays cannot be declared with 'New'.
+        Dim b13() As New Integer() {1,2,3}
+            ~~~~~
 BC30205: End of statement expected.
         Dim b13() As New Integer() {1,2,3}
                                    ~
@@ -1346,8 +1327,8 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
                                                 </expected>)
         End Sub
 
-        <Fact(), WorkItem(599393, "DevDiv")>
-        Sub Bug599393()
+        <Fact(), WorkItem(599393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599393")>
+        Public Sub Bug599393()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[

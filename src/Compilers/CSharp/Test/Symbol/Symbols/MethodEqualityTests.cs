@@ -234,7 +234,7 @@ class Class
             Assert.Equal(invokedMethods[4], invokedMethods[3]);
 
             //invocations with different type args are not equal
-            var pairWiseNotEqual = new MethodSymbol[] 
+            var pairWiseNotEqual = new MethodSymbol[]
             {
                 invokedMethods[0],
                 invokedMethods[2],

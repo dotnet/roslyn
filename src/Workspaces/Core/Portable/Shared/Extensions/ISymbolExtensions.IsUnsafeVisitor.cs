@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class IsUnsafeVisitor : SymbolVisitor<bool>
         {
-            private readonly HashSet<ISymbol> visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
 
             public IsUnsafeVisitor()
             {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitArrayType(IArrayTypeSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitField(IFieldSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitProperty(IPropertySymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitMethod(IMethodSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitParameter(IParameterSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitEvent(IEventSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitAlias(IAliasSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return false;
                 }

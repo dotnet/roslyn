@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim crc32 As UInt32 = &HFFFFFFFF
 
             For Each name In names
-                crc32 = Crc32Update(crc32, Encoding.GetBytes(name.ToLowerInvariant()))
+                crc32 = Crc32Update(crc32, s_encoding.GetBytes(name.ToLowerInvariant()))
             Next
 
             Return crc32
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function Crc32Update(crc32 As UInt32, bytes() As Byte) As UInt32
             For Each b In bytes
-                crc32 = CRC32_LOOKUP_TABLE(CByte(crc32) Xor b) Xor (crc32 >> 8)
+                crc32 = s_CRC32_LOOKUP_TABLE(CByte(crc32) Xor b) Xor (crc32 >> 8)
             Next
             Return crc32
         End Function
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CalcEntry(crc As UInt32) As UInt32
             For i = 0 To 7
                 If (crc And 1) <> 0 Then
-                    crc = (crc >> 1) Xor CRC32_poly
+                    crc = (crc >> 1) Xor s_CRC32_poly
                 Else
                     crc >>= 1
                 End If
@@ -52,9 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return table
         End Function
 
-        Private ReadOnly CRC32_LOOKUP_TABLE As UInt32() = InitCrc32Table()
-        Private Const CRC32_poly As UInt32 = &HEDB88320
-        Private ReadOnly Encoding As New System.Text.UnicodeEncoding(False, False)
+        Private ReadOnly s_CRC32_LOOKUP_TABLE As UInt32() = InitCrc32Table()
+        Private Const s_CRC32_poly As UInt32 = &HEDB88320
+        Private ReadOnly s_encoding As New System.Text.UnicodeEncoding(False, False)
 
     End Module
 

@@ -134,9 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _sealed = 0 Then
 #End If
 
-                Debug.Assert(symbol.IsDefinition)
-                Debug.Assert(symbol.IsEmbedded)
-                AddReferencedSymbolWithDependents(symbol, allSymbols)
+            Debug.Assert(symbol.IsDefinition)
+            Debug.Assert(symbol.IsEmbedded)
+            AddReferencedSymbolWithDependents(symbol, allSymbols)
 
 #If Not Debug Then
             End If
@@ -185,13 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''          T1.M1 -> { T1,  T1..ctor, Attr1, Attr1..ctor, ... }
         ''' 
         ''' we cannot just check if T1.M1 exists in the collection of referenced symbols and not 
-        ''' add dependant symbols if it does; the reason is that T1.M1 may be added by a concurrent 
+        ''' add dependent symbols if it does; the reason is that T1.M1 may be added by a concurrent 
         ''' thread, but its dependencies may not be added by that thread yet. So we need to 
         ''' calculate all dependencies and try add all the symbols together.
         ''' 
         ''' On the other hand it should be avoided that the method *always* goes through all
         ''' the dependencies for each symbol even though it may be definitely known that the symbol
-        ''' is added in one of the previous operatinos by *the same thread*. To serve this purpose 
+        ''' is added in one of the previous operations by *the same thread*. To serve this purpose 
         ''' the method uses 'allSymbols' collection to actually check whether or not the symbol 
         ''' is added to the collection. This makes possible to reuse the same collection in several 
         ''' consequent calls to AddReferencedSymbolWithDependents from the same thread; for example 
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Case Else
                         ' No other symbol kinds are allowed
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(member.Kind)
 
                 End Select
 

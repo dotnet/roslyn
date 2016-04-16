@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             // load project file async
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(loadedProject);
         }
 
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             properties["DesignTimeBuild"] = "true"; // this will tell msbuild to not build the dependent projects
             properties["BuildingInsideVisualStudio"] = "true"; // this will force CoreCompile task to execute even if all inputs and outputs are up to date
 
-            var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), XmlSettings);
+            var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
             var collection = new MSB.Evaluation.ProjectCollection();
             var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return new MSB.Evaluation.Project(
                 xml,
-                globalProperties,
+                properties,
                 toolsVersion: null,
                 projectCollection: collection);
         }

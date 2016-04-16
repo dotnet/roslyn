@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,12 +11,12 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -25,6 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [Fact]
+        public void PublicSignWithRelativeKeyPath()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithPublicSign(true).WithCryptoKeyFile("test.snk");
+            var comp = CSharpCompilation.Create("test", options: options);
+            comp.VerifyDiagnostics(
+    // error CS7088: Invalid 'CryptoKeyFile' value: 'test.snk'.
+    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoKeyFile", "test.snk").WithLocation(1, 1),
+    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+        }
+
         [Fact]
         public void CompilationName()
         {
@@ -84,7 +99,7 @@ namespace A.B {
             Assert.Equal(1, comp.ExternalReferences.Length);
             var ref1 = comp.ExternalReferences[0];
             Assert.True(ref1.Properties.EmbedInteropTypes);
-            Assert.True(ref1.Properties.Aliases.IsDefault);
+            Assert.True(ref1.Properties.Aliases.IsEmpty);
 
             // Create Compilation with PreProcessorSymbols of Option is empty
             var ops1 = TestOptions.DebugExe;
@@ -95,7 +110,7 @@ namespace A.B {
             var comp1 = CSharpCompilation.Create(asmname, listSyntaxTree, listRef, null);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToMemoryStreams()
         {
             var comp = CSharpCompilation.Create("Compilation", options: TestOptions.ReleaseDll);
@@ -143,7 +158,7 @@ namespace A.B {
             }
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToBoundedStreams()
         {
             var pdbArray = new byte[100000];
@@ -160,7 +175,7 @@ namespace A.B {
             r.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToStreamWithNonZeroPosition()
         {
             var pdbStream = new MemoryStream();
@@ -179,7 +194,7 @@ namespace A.B {
             AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'Z' }, peStream.GetBuffer().Take(3).ToArray());
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void EmitToNonSeekableStreams()
         {
             var peStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
@@ -234,7 +249,7 @@ namespace A.B {
             Assert.False(result.Success);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void NegEmit()
         {
             var ops = TestOptions.ReleaseDll;
@@ -326,7 +341,60 @@ namespace A.B {
             Assert.Equal(0, compCollection.ExternalReferences.Length);
         }
 
-        [Fact, WorkItem(530131, "DevDiv")]
+        [Fact]
+        public void ReferenceDirectiveTests()
+        {
+            var t1 = Parse(@"
+#r ""a.dll"" 
+#r ""a.dll""
+", filename: "1.csx", options: TestOptions.Script);
+
+            var rd1 = t1.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(2, rd1.Length);
+
+            var t2 = Parse(@"
+#r ""a.dll""
+#r ""b.dll""
+", options: TestOptions.Script);
+
+            var rd2 = t2.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(2, rd2.Length);
+
+            var t3 = Parse(@"
+#r ""a.dll""
+", filename: "1.csx", options: TestOptions.Script);
+
+            var rd3 = t3.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(1, rd3.Length);
+
+            var t4 = Parse(@"
+#r ""a.dll""
+", filename: "4.csx", options: TestOptions.Script);
+
+            var rd4 = t4.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
+            Assert.Equal(1, rd4.Length);
+
+            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
+                {
+                    { @"a.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
+                    { @"b.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                })));
+
+            c.VerifyDiagnostics();
+
+            // same containing script file name and directive string
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0]));
+
+            // different script name or directive string:
+            Assert.Null(c.GetDirectiveReference(rd4[0]));
+        }
+
+        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
         public void MetadataReferenceWithInvalidAlias()
         {
             var refcomp = CSharpCompilation.Create("DLL",
@@ -347,7 +415,7 @@ namespace A.B {
 
             Assert.Empty(comp.GetDiagnostics());
 
-            // use exported type witl partial alias
+            // use exported type with partial alias
             comp = CSharpCompilation.Create("APP1",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
@@ -383,7 +451,6 @@ namespace A.B {
                 // (1,1): info CS8020: Unused extern alias.
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias")
                 );
-
         }
 
         [Fact]
@@ -452,6 +519,9 @@ class D
 
             // add again and verify that it throws
             Assert.Throws<ArgumentException>(() => comp.AddSyntaxTrees(t1));
+
+            // replace with existing and verify that it throws
+            Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees[0]));
 
             // SyntaxTrees have reference equality. This removal should fail.
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1)));
@@ -605,8 +675,8 @@ class D
             Assert.Equal(1, comp1.SyntaxTrees.Length);
         }
 
-        [WorkItem(713356, "DevDiv")]
-        [Fact]
+        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
+        [ClrOnlyFact]
         public void MissedModuleA()
         {
             var netModule1 = CreateCompilationWithMscorlib(
@@ -657,10 +727,10 @@ var a = new C2();
 }"
             });
             assembly.VerifyEmitDiagnostics();
-            CompileAndVerify(assembly, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(assembly);
         }
 
-        [WorkItem(713356, "DevDiv")]
+        [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]
         [Fact]
         public void MissedModuleB_OneError()
         {
@@ -714,8 +784,8 @@ var a = new C2();
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("a1.netmodule"));
         }
 
-        [WorkItem(718500, "DevDiv")]
-        [WorkItem(716762, "DevDiv")]
+        [WorkItem(718500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718500")]
+        [WorkItem(716762, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716762")]
         [Fact]
         public void MissedModuleB_NoErrorForUnmanagedModules()
         {
@@ -749,7 +819,7 @@ var a = new C2();
             assembly.VerifyEmitDiagnostics();
         }
 
-        [WorkItem(715872, "DevDiv")]
+        [WorkItem(715872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715872")]
         [Fact()]
         public void MissedModuleC()
         {
@@ -848,7 +918,7 @@ var a = new C2();
 
             // Add Module file reference
             comp = comp.AddReferences(modRef1);
-            // Not implemente code
+            // Not implemented code
             //var modSmb = comp.GetReferencedModuleSymbol(modRef1);
             //Assert.Equal("ModuleCS00.mod", modSmb.Name);
             //Assert.Equal(4, comp.References.Count);
@@ -959,7 +1029,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537623, "DevDiv")]
+        [WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")]
         [Fact]
         public void NegCreateCompilation()
         {
@@ -967,7 +1037,7 @@ var a = new C2();
             Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("foo", references: new MetadataReference[] { null }));
         }
 
-        [WorkItem(537637, "DevDiv")]
+        [WorkItem(537637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537637")]
         [Fact]
         public void NegGetSymbol()
         {
@@ -994,7 +1064,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537778, "DevDiv")]
+        [WorkItem(537778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537778")]
         // Throw exception when the parameter of the parameter type of GetReferencedAssemblySymbol is VB.CompilationReference
         [Fact]
         public void NegGetSymbol1()
@@ -1029,7 +1099,7 @@ var a = new C2();
         }
 
         // Add already existing item 
-        [Fact, WorkItem(537574, "DevDiv")]
+        [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1054,7 +1124,7 @@ var a = new C2();
         }
 
         // Add a new invalid item 
-        [Fact, WorkItem(537575, "DevDiv")]
+        [Fact, WorkItem(537575, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537575")]
         public void NegReference3()
         {
             var ref1 = InvalidRef;
@@ -1070,7 +1140,7 @@ var a = new C2();
         }
 
         // Replace an non-existing item with null
-        [Fact, WorkItem(537567, "DevDiv")]
+        [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1091,7 +1161,7 @@ var a = new C2();
         }
 
         // Replace a non-existing item with another valid item
-        [Fact, WorkItem(537566, "DevDiv")]
+        [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
             var ref1 = TestReferences.NetFx.v4_0_30319.mscorlib;
@@ -1116,7 +1186,7 @@ var a = new C2();
             Assert.Equal(0, comp.SyntaxTrees.Length);
         }
 
-        [WorkItem(527256, "DevDiv")]
+        [WorkItem(527256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527256")]
         // Throw exception when the parameter of SyntaxTrees.Contains is null
         [Fact]
         public void NegSyntaxTreesContains()
@@ -1125,7 +1195,7 @@ var a = new C2();
             Assert.False(comp.SyntaxTrees.Contains(null));
         }
 
-        [WorkItem(537784, "DevDiv")]
+        [WorkItem(537784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537784")]
         // Throw exception when the parameter of GetSpecialType() is out of range
         [Fact]
         public void NegGetSpecialType()
@@ -1158,7 +1228,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(538168, "DevDiv")]
+        [WorkItem(538168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
         // Replace an non-existing item with another valid item and disorder the args
         [Fact]
         public void NegTree2()
@@ -1172,7 +1242,7 @@ var a = new C2();
             });
         }
 
-        [WorkItem(537576, "DevDiv")]
+        [WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
         // Add already existing item
         [Fact]
         public void NegSynTree1()
@@ -1337,8 +1407,25 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
+        [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
         [Fact]
         public void GetEntryPoint_Script()
+        {
+            var source = @"System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+        }
+
+        [Fact]
+        public void GetEntryPoint_Script_MainIgnored()
         {
             var source = @"
 class A
@@ -1346,32 +1433,70 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
-            compilation.VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [Fact]
         public void GetEntryPoint_Submission()
         {
+            var source = @"1 + 1";
+            var compilation = CSharpCompilation.CreateScriptCompilation("sub",
+                references: new[] { MscorlibRef },
+                syntaxTree: Parse(source, options: TestOptions.Script));
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void GetEntryPoint_Submission_MainIgnored()
+        {
             var source = @"
 class A
 {
     static void Main() { }
 }
 ";
-            var compilation = CSharpCompilation.CreateSubmission("sub",
+            var compilation = CSharpCompilation.CreateScriptCompilation("sub",
                 references: new[] { MscorlibRef },
-                syntaxTree: Parse(source, options: TestOptions.Interactive));
-
-            compilation.VerifyDiagnostics();
+                syntaxTree: Parse(source, options: TestOptions.Script));
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
             Assert.True(compilation.IsSubmission);
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [Fact]
@@ -1410,7 +1535,7 @@ class B
             Assert.Equal(2, list.Count);
         }
 
-        [Fact, WorkItem(750437, "DevDiv")]
+        [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
             var alias = TestReferences.NetFx.v4_0_30319.System.WithAliases(new[] { "alias" });
@@ -1433,7 +1558,7 @@ class myClass : alias::Uri
                 Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
         }
 
-        [WorkItem(546088, "DevDiv")]
+        [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
         [Fact]
         public void CompilationDiagsIncorrectResult()
         {
@@ -1462,7 +1587,7 @@ public class TestClass
                 compilation.GetDiagnostics().Verify(
                     // (8,2): error CS1614: 'MyAttribute' is ambiguous between 'MyAttribute2Attribute' and 'MyAttributeAttribute'; use either '@MyAttribute' or 'MyAttributeAttribute'
                     // [MyAttribute]
-                    Diagnostic(ErrorCode.ERR_AmbigousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
+                    Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
             }
 
             // Ask for compilation diagnostics first.
@@ -1475,7 +1600,7 @@ public class TestClass
                 compilation.GetDiagnostics().Verify(
                     // (10,2): error CS1614: 'MyAttribute' is ambiguous between 'MyAttribute2Attribute' and 'MyAttributeAttribute'; use either '@MyAttribute' or 'MyAttributeAttribute'
                     // [MyAttribute]
-                    Diagnostic(ErrorCode.ERR_AmbigousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
+                    Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
                 model2.GetDiagnostics().Verify(); // None, since the file is empty.
             }
         }
@@ -1514,22 +1639,11 @@ public class TestClass
         }
 
         [Fact]
-        public void ReferenceManagerReuse_WithPreviousSubmission()
-        {
-            var s1 = CSharpCompilation.CreateSubmission("s1");
-            var s2 = CSharpCompilation.CreateSubmission("s2");
-
-            var s3 = s2.WithPreviousSubmission(s1);
-            Assert.True(s2.ReferenceManagerEquals(s3));
-        }
-
-        [Fact]
         public void ReferenceManagerReuse_WithMetadataReferenceResolver()
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
 
-            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(
-                new AssemblyReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray.Create<string>(), null), MetadataFileReferenceProvider.Default)));
+            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(new TestMetadataReferenceResolver()));
 
             Assert.False(c1.ReferenceManagerEquals(c2));
 
@@ -1657,23 +1771,17 @@ class C { }", options: TestOptions.Script);
 
             var ars = arc.ReplaceSyntaxTree(tc, ts);
             Assert.False(arc.ReferenceManagerEquals(ars));
-
-            var ar3 = arc.ReplaceSyntaxTree(tc, ta);
-            Assert.True(arc.ReferenceManagerEquals(ar3));
-
-            var as1 = ars.ReplaceSyntaxTree(tr, ts);
-            Assert.False(ars.ReferenceManagerEquals(as1));
         }
 
         private sealed class EvolvingTestReference : PortableExecutableReference
         {
-            private readonly IEnumerator<Metadata> metadataSequence;
+            private readonly IEnumerator<Metadata> _metadataSequence;
             public int QueryCount;
 
             public EvolvingTestReference(IEnumerable<Metadata> metadataSequence)
                 : base(MetadataReferenceProperties.Assembly)
             {
-                this.metadataSequence = metadataSequence.GetEnumerator();
+                _metadataSequence = metadataSequence.GetEnumerator();
             }
 
             protected override DocumentationProvider CreateDocumentationProvider()
@@ -1684,8 +1792,8 @@ class C { }", options: TestOptions.Script);
             protected override Metadata GetMetadataImpl()
             {
                 QueryCount++;
-                metadataSequence.MoveNext();
-                return metadataSequence.Current;
+                _metadataSequence.MoveNext();
+                return _metadataSequence.Current;
             }
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
@@ -1842,7 +1950,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact]
-        [WorkItem(797640, "DevDiv")]
+        [WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")]
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");
@@ -1859,60 +1967,6 @@ public class C { public static FrameworkName Foo() { return null; }}";
         }
 
         [Fact]
-        public void EmitDebugInfoForSourceTextWithoutEncoding1()
-        {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class C { }", encoding: null), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree("class D { }", encoding: Encoding.UTF8, path: "Baz.cs");
-
-            var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
-
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
-            result.Diagnostics.Verify(
-                // Foo.cs(1,1): error CS8055: Cannot emit debug information for a source text without encoding.
-                Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, "class A { }").WithLocation(1, 1),
-                // Bar.cs(1,1): error CS8055: Cannot emit debug information for a source text without encoding.
-                Diagnostic(ErrorCode.ERR_EncodinglessSyntaxTree, "class C { }").WithLocation(1, 1));
-
-            Assert.False(result.Success);
-        }
-
-        [Fact]
-        public void EmitDebugInfoForSourceTextWithoutEncoding2()
-        {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class B { public void F() { } }", encoding: null, path: "");
-            var tree3 = SyntaxFactory.ParseSyntaxTree("class C { public void F() { } }", encoding: new UTF8Encoding(true, false), path: "Bar.cs");
-            var tree4 = SyntaxFactory.ParseSyntaxTree(SourceText.From("class D { public void F() { } }", new UTF8Encoding(false, false)), path: "Baz.cs");
-
-            var comp = CSharpCompilation.Create("Compilation", new[] { tree1, tree2, tree3, tree4 }, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
-
-            var result = comp.Emit(new MemoryStream(), pdbStream: new MemoryStream());
-            result.Diagnostics.Verify();
-            Assert.True(result.Success);
-
-            var hash1 = CryptographicHashProvider.ComputeSha1(Encoding.Unicode.GetBytesWithPreamble(tree1.ToString()));
-            var hash3 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(true, false).GetBytesWithPreamble(tree3.ToString()));
-            var hash4 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(false, false).GetBytesWithPreamble(tree4.ToString()));
-
-            var checksum1 = string.Concat(hash1.Select(b => string.Format("{0,2:X}", b) + ", "));
-            var checksum3 = string.Concat(hash3.Select(b => string.Format("{0,2:X}", b) + ", "));
-            var checksum4 = string.Concat(hash4.Select(b => string.Format("{0,2:X}", b) + ", "));
-
-            var actual = string.Join("\r\n", GetPdbXml(comp).Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Skip(2).Take(5));
-
-            string expected = @"
-<files>
-    <file id=""1"" name=""Foo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum1 + @""" />
-    <file id=""2"" name=""Bar.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum3 + @""" />
-    <file id=""3"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
-</files>";
-
-            AssertXmlEqual(expected, actual);
-        }
-
-        [Fact]
         public void ConsistentParseOptions()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -1920,12 +1974,325 @@ public class C { public static FrameworkName Foo() { return null; }}";
             var tree3 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
             var assemblyName = GetUniqueName();
-            var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
+            var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
             Assert.Throws(typeof(ArgumentException), () =>
             {
-                CSharp.CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
+                CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
             });
         }
+
+        [Fact]
+        public void SubmissionCompilation_Errors()
+        {
+            var genericParameter = typeof(List<>).GetGenericArguments()[0];
+            var open = typeof(Dictionary<,>).MakeGenericType(typeof(int), genericParameter);
+            var ptr = typeof(int).MakePointerType();
+            var byref = typeof(int).MakeByRefType();
+
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: byref));
+
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: typeof(int)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: ptr));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: byref));
+
+            var s0 = CSharpCompilation.CreateScriptCompilation("a0", globalsType: typeof(List<int>));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a1", previousScriptCompilation: s0, globalsType: typeof(List<bool>)));
+
+            // invalid options:
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseExe));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(true)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
+        }
+
+        [Fact]
+        public void HasSubmissionResult()
+        {
+            Assert.False(CSharpCompilation.CreateScriptCompilation("sub").HasSubmissionResult());
+            Assert.True(CreateSubmission("1", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("1;", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("void foo() { }", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("using System;", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("int i;", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.False(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.True(CreateSubmission("null", parseOptions: TestOptions.Script).HasSubmissionResult());
+            Assert.True(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Script).HasSubmissionResult());
+        }
+
+        /// <summary>
+        /// Previous submission has to have no errors.
+        /// </summary>
+        [Fact]
+        public void PreviousSubmissionWithError()
+        {
+            var s0 = CreateSubmission("int a = \"x\";");
+            s0.VerifyDiagnostics(
+                // (1,9): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "int"));
+
+            Assert.Throws<InvalidOperationException>(() => CreateSubmission("a + 1", previous: s0));
+        }
+
+        #region Script return values
+
+        [Fact]
+        public void ReturnNullAsObject()
+        {
+            var script = CreateSubmission("return null;", returnType: typeof(object));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnStringAsObject()
+        {
+            var script = CreateSubmission("return \"¡Hola!\";", returnType: typeof(object));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnIntAsObject()
+        {
+            var script = CreateSubmission("return 42;", returnType: typeof(object));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void TrailingReturnVoidAsObject()
+        {
+            var script = CreateSubmission("return", returnType: typeof(object));
+            script.VerifyDiagnostics(
+                // (1,7): error CS1733: Expected expression
+                // return
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 7),
+                // (1,7): error CS1002: ; expected
+                // return
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 7));
+            Assert.False(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnIntAsInt()
+        {
+            var script = CreateSubmission("return 42;", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnNullResultType()
+        {
+            // test that passing null is the same as passing typeof(object)
+            var script = CreateSubmission("return 42;", returnType: null);
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnNoSemicolon()
+        {
+            var script = CreateSubmission("return 42", returnType: typeof(uint));
+            script.VerifyDiagnostics(
+                // (1,10): error CS1002: ; expected
+                // return 42
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10));
+            Assert.False(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnAwait()
+        {
+            var script = CreateSubmission("return await System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+
+            script = CreateSubmission("return await System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(Task<int>));
+            script.VerifyDiagnostics(
+                // (1,8): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
+                // return await System.Threading.Tasks.Task.FromResult(42);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "await System.Threading.Tasks.Task.FromResult(42)").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(1, 8));
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnTaskNoAwait()
+        {
+            var script = CreateSubmission("return System.Threading.Tasks.Task.FromResult(42);", returnType: typeof(int));
+            script.VerifyDiagnostics(
+                // (1,8): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
+                // return System.Threading.Tasks.Task.FromResult(42);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "System.Threading.Tasks.Task.FromResult(42)").WithArguments("int").WithLocation(1, 8));
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedScopes()
+        {
+            var script = CreateSubmission(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+else
+{
+    return -1;
+}", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedScopeWithTrailingExpression()
+        {
+            var script = CreateSubmission(@"
+if (true)
+{
+    return 1;
+}
+System.Console.WriteLine();", returnType: typeof(object));
+            script.VerifyDiagnostics(
+                // (6,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(6, 1));
+            Assert.True(script.HasSubmissionResult());
+
+            script = CreateSubmission(@"
+if (true)
+{
+    return 1;
+}
+System.Console.WriteLine()", returnType: typeof(object));
+            script.VerifyDiagnostics(
+                // (6,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(6, 1));
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedScopeNoTrailingExpression()
+        {
+            var script = CreateSubmission(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+System.Console.WriteLine();", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedMethod()
+        {
+            var script = CreateSubmission(@"
+int TopMethod()
+{
+    return 42;
+}", returnType: typeof(string));
+            script.VerifyDiagnostics();
+            Assert.False(script.HasSubmissionResult());
+
+            script = CreateSubmission(@"
+object TopMethod()
+{
+    return new System.Exception();
+}
+TopMethod().ToString()", returnType: typeof(string));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedLambda()
+        {
+            var script = CreateSubmission(@"
+System.Func<object> f = () =>
+{
+    return new System.Exception();
+};
+42", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+
+            script = CreateSubmission(@"
+System.Func<object> f = () => new System.Exception();
+42", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnInNestedAnonymousMethod()
+        {
+            var script = CreateSubmission(@"
+System.Func<object> f = delegate ()
+{
+    return new System.Exception();
+};
+42", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void LoadedFileWithWrongReturnType()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "return \"Who returns a string?\";"));
+            var script = CreateSubmission(@"
+#load ""a.csx""
+42", returnType: typeof(int), options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver));
+            script.VerifyDiagnostics(
+                // a.csx(1,8): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // return "Who returns a string?"
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""Who returns a string?""").WithArguments("string", "int").WithLocation(1, 8),
+                // (3,1): warning CS0162: Unreachable code detected
+                // 42
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "42").WithLocation(3, 1));
+            Assert.True(script.HasSubmissionResult());
+        }
+
+        [Fact]
+        public void ReturnVoidInNestedMethodOrLambda()
+        {
+            var script = CreateSubmission(@"
+void M1()
+{
+    return;
+}
+System.Action a = () => { return; };
+42", returnType: typeof(int));
+            script.VerifyDiagnostics();
+            Assert.True(script.HasSubmissionResult());
+
+            var compilation = CreateCompilationWithMscorlib45(@"
+void M1()
+{
+    return;
+}
+System.Action a = () => { return; };
+42", parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+        }
+
+        #endregion
     }
 }

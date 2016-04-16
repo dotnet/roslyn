@@ -13,12 +13,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol>
         {
-            private readonly SymbolEquivalenceComparer symbolEqualityComparer;
+            private readonly SymbolEquivalenceComparer _symbolEqualityComparer;
+            private readonly bool _distinguishRefFromOut;
 
             public ParameterSymbolEqualityComparer(
-                SymbolEquivalenceComparer symbolEqualityComparer)
+                SymbolEquivalenceComparer symbolEqualityComparer,
+                bool distinguishRefFromOut)
             {
-                this.symbolEqualityComparer = symbolEqualityComparer;
+                _symbolEqualityComparer = symbolEqualityComparer;
+                _distinguishRefFromOut = distinguishRefFromOut;
             }
 
             public bool Equals(
@@ -50,9 +53,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // equality, then we want to consider method type parameters by index only.
 
                 return
-                    x.RefKind == y.RefKind &&
+                    AreRefKindsEquivalent(x.RefKind, y.RefKind, _distinguishRefFromOut) &&
                     nameComparisonCheck &&
-                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
+                    _symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
+                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
             }
 
             public bool Equals(IParameterSymbol x, IParameterSymbol y)
@@ -74,8 +78,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return
                     Hash.Combine(x.IsRefOrOut(),
-                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
+                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
             }
+        }
+
+        public static bool AreRefKindsEquivalent(RefKind rk1, RefKind rk2, bool distinguishRefFromOut)
+        {
+            return distinguishRefFromOut
+                ? rk1 == rk2
+                : (rk1 == RefKind.None) == (rk2 == RefKind.None);
         }
     }
 }

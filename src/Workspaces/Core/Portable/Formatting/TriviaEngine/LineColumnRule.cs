@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             };
         }
 
-        public static LineColumnRule PreserveLinesWithFollowingPreceedingIndentation()
+        public static LineColumnRule PreserveLinesWithFollowingPrecedingIndentation()
         {
             return new LineColumnRule
             {

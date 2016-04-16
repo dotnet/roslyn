@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Dot,
             CompoundPunctStart,
             DoneAfterNext,
+            // we are relying on Bad state immediately following Done 
+            // to be able to detect exiting conditions in one "state >= Done" test.
+            // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad
+            Bad = Done + 1    
         }
 
         private enum CharFlags : byte
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Letter,     // letter
             Digit,      // digit 0-9
             Punct,      // some simple punctuation (parens, braces, comma, equals, question)
-            Dot,        // dot is different from other punctuation when foillowed by a digit (Ex: .9 )
+            Dot,        // dot is different from other punctuation when followed by a digit (Ex: .9 )
             CompoundPunctStart, // may be a part of compound punctuation. will be used only if followed by (not white) && (not punct)
             Slash,      // /
             Complex,    // complex - causes scanning to abort
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         // PERF: Use byte instead of QuickScanState so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[,] stateTransitions = new byte[,]
+        private static readonly byte[,] s_stateTransitions = new byte[,]
         {
             // Initial
             {
@@ -199,17 +202,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             //localize frequently accessed fields
             var charWindow = TextWindow.CharacterWindow;
-            var charPropLength = charProperties.Length;
+            var charPropLength = s_charProperties.Length;
 
             for (; i < n; i++)
             {
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)charProperties[uc] : CharFlags.Complex;
+                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
-                state = (QuickScanState)stateTransitions[(int)state, (int)flags];
-                if (state == QuickScanState.Done || state == QuickScanState.Bad)
+                state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
+                // NOTE: that Bad > Done and it is the only state like that
+                // as a result, we will exit the loop on either Bad or Done.
+                // the assert below will validate that these are the only states on which we exit
+                // Also note that we must exit on Done or Bad
+                // since the state machine does not have transitions for these states 
+                // and will promptly fail if we do not exit.
+                if (state >= QuickScanState.Done)
                 {
                     goto exitWhile;
                 }
@@ -221,17 +230,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
-            Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done);
+            Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
-                var token = this.cache.LookupToken(
+                var token = _cache.LookupToken(
                     TextWindow.CharacterWindow,
                     TextWindow.LexemeRelativeStart,
                     i - TextWindow.LexemeRelativeStart,
                     hashCode,
-                    createQuickTokenFunction);
+                    _createQuickTokenFunction);
                 return token;
             }
             else
@@ -241,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private Func<SyntaxToken> createQuickTokenFunction;
+        private readonly Func<SyntaxToken> _createQuickTokenFunction;
 
         private SyntaxToken CreateQuickToken()
         {
@@ -260,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // # is marked complex as it may start directives.
         // PERF: Use byte instead of CharFlags so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[] charProperties = new[]
+        private static readonly byte[] s_charProperties = new[]
         {
             // 0 .. 31
             (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex,

@@ -6,33 +6,33 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class IteratorMethodToStateMachineRewriter
+    internal partial class IteratorMethodToStateMachineRewriter
     {
         /// <summary>
-        /// Analyses method body for yields in try blocks and labels that they contain.
+        /// Analyzes method body for yields in try blocks and labels that they contain.
         /// </summary>
-        private class YieldsInTryAnalysis : LabelCollector
+        private sealed class YieldsInTryAnalysis : LabelCollector
         {
-            // all try blocks with yields in them and complete set of lables inside those trys
-            // NOTE: non-yielding Trys are transparently ignored - i.e. their labels are included
+            // all try blocks with yields in them and complete set of labels inside those try blocks
+            // NOTE: non-yielding try blocks are transparently ignored - i.e. their labels are included
             //       in the label set of the nearest yielding-try parent  
-            private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> labelsInYieldingTrys;
+            private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> _labelsInYieldingTrys;
 
             // transient accumulators.
-            private bool seenYield;
+            private bool _seenYield;
 
             public YieldsInTryAnalysis(BoundStatement body)
             {
-                this.seenYield = false;
+                _seenYield = false;
                 this.Visit(body);
             }
 
             /// <summary>
-            /// Returns true if given try or any of its nested trys contain yields
+            /// Returns true if given try or any of its nested try blocks contain yields
             /// </summary>
             public bool ContainsYields(BoundTryStatement statement)
             {
-                return labelsInYieldingTrys != null && labelsInYieldingTrys.ContainsKey(statement);
+                return _labelsInYieldingTrys != null && _labelsInYieldingTrys.ContainsKey(statement);
             }
 
             /// <summary>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public bool ContainsYieldsInTrys()
             {
-                return labelsInYieldingTrys != null;
+                return _labelsInYieldingTrys != null;
             }
 
             /// <summary>
@@ -49,28 +49,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal HashSet<LabelSymbol> Labels(BoundTryStatement statement)
             {
-                return labelsInYieldingTrys[statement];
+                return _labelsInYieldingTrys[statement];
             }
 
             public override BoundNode VisitTryStatement(BoundTryStatement node)
             {
-                var origSeenYield = this.seenYield;
+                var origSeenYield = _seenYield;
                 var origLabels = this.currentLabels;
 
-                // sibling Trys do not see each other's yields
-                this.seenYield = false;
+                // sibling try blocks do not see each other's yields
+                _seenYield = false;
                 this.currentLabels = null;
 
                 base.VisitTryStatement(node);
 
-                if (this.seenYield)
+                if (_seenYield)
                 {
                     // this try yields !
 
-                    var yieldingTryLabels = this.labelsInYieldingTrys;
+                    var yieldingTryLabels = _labelsInYieldingTrys;
                     if (yieldingTryLabels == null)
                     {
-                        this.labelsInYieldingTrys = yieldingTryLabels = new Dictionary<BoundTryStatement, HashSet<LabelSymbol>>();
+                        _labelsInYieldingTrys = yieldingTryLabels = new Dictionary<BoundTryStatement, HashSet<LabelSymbol>>();
                     }
 
                     yieldingTryLabels.Add(node, currentLabels);
@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                this.seenYield = this.seenYield | origSeenYield;
+                _seenYield = _seenYield | origSeenYield;
                 return null;
             }
 
             public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
             {
-                this.seenYield = true;
+                _seenYield = true;
                 return base.VisitYieldReturnStatement(node);
             }
 
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Analyses method body for labels.
+    /// Analyzes method body for labels.
     /// </summary>
-    internal abstract class LabelCollector : BoundTreeWalker
+    internal abstract class LabelCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         // transient accumulator.
         protected HashSet<LabelSymbol> currentLabels;

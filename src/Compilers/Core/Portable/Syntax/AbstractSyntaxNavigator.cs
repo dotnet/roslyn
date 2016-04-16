@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,12 +13,12 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract Func<SyntaxTrivia, bool> GetStepIntoFunction(bool skipped, bool directives, bool docComments);
 
-        private Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
+        private static Func<SyntaxToken, bool> GetPredicateFunction(bool includeZeroWidth)
         {
             return includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
         }
 
-        private bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
+        private static bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
         {
             return predicate == null || ReferenceEquals(predicate, SyntaxToken.Any) || predicate(token);
         }
@@ -54,38 +53,95 @@ namespace Microsoft.CodeAnalysis
             return GetNextToken(current, predicate, stepInto != null, stepInto);
         }
 
+        private static readonly ObjectPool<Stack<ChildSyntaxList.Enumerator>> s_childEnumeratorStackPool
+            = new ObjectPool<Stack<ChildSyntaxList.Enumerator>>(() => new Stack<ChildSyntaxList.Enumerator>(), 10);
+
         internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
         {
-            foreach (var child in current.ChildNodesAndTokens())
+            var stack = s_childEnumeratorStackPool.Allocate();
+            try
             {
-                var token = child.IsToken
-                    ? GetFirstToken(child.AsToken(), predicate, stepInto)
-                    : GetFirstToken(child.AsNode(), predicate, stepInto);
+                stack.Push(current.ChildNodesAndTokens().GetEnumerator());
 
-                if (token.RawKind != None)
+                while (stack.Count > 0)
                 {
-                    return token;
-                }
-            }
+                    var en = stack.Pop();
+                    if (en.MoveNext())
+                    {
+                        var child = en.Current;
 
-            return default(SyntaxToken);
+                        if (child.IsToken)
+                        {
+                            var token = GetFirstToken(child.AsToken(), predicate, stepInto);
+                            if (token.RawKind != None)
+                            {
+                                return token;
+                            }
+                        }
+
+                        // push this enumerator back, not done yet
+                        stack.Push(en);
+
+                        if (child.IsNode)
+                        {
+                            stack.Push(child.AsNode().ChildNodesAndTokens().GetEnumerator());
+                        }
+                    }
+                }
+
+                return default(SyntaxToken);
+            }
+            finally
+            {
+                stack.Clear();
+                s_childEnumeratorStackPool.Free(stack);
+            }
         }
+
+        private static readonly ObjectPool<Stack<ChildSyntaxList.Reversed.Enumerator>> s_childReversedEnumeratorStackPool
+            = new ObjectPool<Stack<ChildSyntaxList.Reversed.Enumerator>>(() => new Stack<ChildSyntaxList.Reversed.Enumerator>(), 10);
 
         internal SyntaxToken GetLastToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto)
         {
-            foreach (var child in current.ChildNodesAndTokens().Reverse())
+            var stack = s_childReversedEnumeratorStackPool.Allocate();
+            try
             {
-                var token = child.IsToken
-                    ? GetLastToken(child.AsToken(), predicate, stepInto)
-                    : GetLastToken(child.AsNode(), predicate, stepInto);
+                stack.Push(current.ChildNodesAndTokens().Reverse().GetEnumerator());
 
-                if (token.RawKind != None)
+                while (stack.Count > 0)
                 {
-                    return token;
-                }
-            }
+                    var en = stack.Pop();
 
-            return default(SyntaxToken);
+                    if (en.MoveNext())
+                    {
+                        var child = en.Current;
+
+                        if (child.IsToken)
+                        {
+                            var token = GetLastToken(child.AsToken(), predicate, stepInto);
+                            if (token.RawKind != None)
+                            {
+                                return token;
+                            }
+                        }
+
+                        // push this enumerator back, not done yet
+                        stack.Push(en);
+
+                        if (child.IsNode)
+                        {
+                            stack.Push(child.AsNode().ChildNodesAndTokens().Reverse().GetEnumerator());
+                        }
+                    }
+                }
+
+                return default(SyntaxToken);
+            }
+            finally
+            {
+                stack.Clear();
+                s_childReversedEnumeratorStackPool.Free(stack);
+            }
         }
 
         private SyntaxToken GetFirstToken(
@@ -116,10 +172,10 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
-            var token = default(SyntaxToken);
 
             foreach (var trivia in list.Reverse())
             {
+                SyntaxToken token;
                 if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                 {
                     return token;
@@ -316,12 +372,11 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxTrivia, bool> stepInto,
             ref bool returnPrevious)
         {
-            var token = default(SyntaxToken);
-
             foreach (var trivia in list.Reverse())
             {
                 if (returnPrevious)
                 {
+                    SyntaxToken token;
                     if (TryGetLastTokenForStructuredTrivia(trivia, predicate, stepInto, out token))
                     {
                         return token;

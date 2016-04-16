@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly LocalSlotDebugInfo SlotInfo;
         public readonly Cci.ITypeReference Type;
 
-        public EncHoistedLocalInfo()
+        public EncHoistedLocalInfo(bool ignored)
         {
             SlotInfo = new LocalSlotDebugInfo(SynthesizedLocalKind.EmitterTemp, LocalDebugId.None);
             Type = null;

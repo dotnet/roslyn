@@ -40,7 +40,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 var result = default(AnalysisResult);
 
-                Analyze(token1.TrailingTrivia, ref result);
+                if (token1.IsMissing && token1.FullWidth() == 0)
+                {
+                    // Consider the following case:
+                    //
+                    //          return // <- note the missing semicolon
+                    //      }
+                    //
+                    // in this case, the compiler will insert a missing semicolon token at the 
+                    // start of the line containing the close curly.  This is problematic as it
+                    // means that if we're looking at the token-pair for the semicolon and close-
+                    // curly, then we'll think there is no newline here.  Because we think there
+                    // is no newline, we won't attempt to indent in a manner that preserves tabs
+                    // (if the user has 'use tabs for indent' enabled).
+                    //
+                    // Here we detect if our previous token is an empty missing token.  If so,
+                    // we look back to the previous non-missing token to see if it ends with a
+                    // newline.  If so, we keep track of that so we'll appropriately indent later
+                    // on. 
+
+                    // Keep walking backward until we hit a token whose *full width* is greater than
+                    // 0.  See if this token has an end of line trivia at the end of it.  Note:
+                    // we need to "includeZeroWidth" tokens because we can have zero width tokens
+                    // that still have a full width that is non-zero.  i.e. a missing token that
+                    // still has trailing trivia on it.
+
+                    for (var currentToken = token1; !currentToken.IsKind(SyntaxKind.None);)
+                    {
+                        var previousToken = currentToken.GetPreviousToken(includeSkipped: false, includeZeroWidth: true);
+                        if (previousToken.FullWidth() == 0)
+                        {
+                            currentToken = previousToken;
+                            continue;
+                        }
+
+                        // Finally hit the first previous token with non-zero full width.
+                        if (previousToken.TrailingTrivia.Count > 0 &&
+                            previousToken.TrailingTrivia.Last().Kind() == SyntaxKind.EndOfLineTrivia)
+                        {
+                            result.LineBreaks = 1;
+                        }
+
+                        break;
+                    }
+                }
+                else
+                {
+                    Analyze(token1.TrailingTrivia, ref result);
+                }
+
                 Analyze(token2.LeadingTrivia, ref result);
 
                 return result;

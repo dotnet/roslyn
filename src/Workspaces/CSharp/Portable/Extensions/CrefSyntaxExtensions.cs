@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (memberCref.Kind() == SyntaxKind.NameMemberCref))
             {
                 var nameMemberCref = ((NameMemberCrefSyntax)memberCref).Name;
-                var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref);
+                var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref, cancellationToken);
                 var symbol = symbolInfo.Symbol;
 
                 if (symbol == null)

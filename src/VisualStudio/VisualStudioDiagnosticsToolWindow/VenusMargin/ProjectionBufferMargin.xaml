@@ -1,0 +1,58 @@
+﻿<UserControl
+    x:Class="Roslyn.Hosting.Diagnostics.VenusMargin.ProjectionBufferMargin"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    d:DesignHeight="20"
+    d:DesignWidth="500">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition
+                Width="auto" />
+            <ColumnDefinition
+                Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Menu VerticalAlignment="Center">
+            <MenuItem
+                Header="buffers"
+                ItemsSource="{Binding SourceBuffers}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Content="{Binding ContentType}"
+                            Click="Button_Click"
+                            Tag="{Binding}" />
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+        </Menu>
+
+        <ListView
+            Grid.Column="1"
+            ItemsSource="{Binding SourceSpans}"
+            SelectionChanged="ListView_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        Padding="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Path=Snapshot.ContentType.DisplayName}" />
+                            <TextBlock Text="{Binding Path=Span}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -421,6 +422,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree2 = SyntaxFactory.ParseSyntaxTree(text.Replace("abc", "hello"));
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUpdateInterpolatedString()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { Console.Write($\"Hello{123:N1}\"); } } }");
+            var tree2 = tree1.WithReplaceFirst("N1", "N2");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+
+            tree2 = tree1.WithReplaceFirst("Hello", "World");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem(7380, "https://github.com/dotnet/roslyn/issues/7380")]
+        public void TestExpressionBodiedMethod()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 1; }");
+            var tree2 = SyntaxFactory.ParseSyntaxTree("class C { void M() => 2; }");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
         }
     }
 }

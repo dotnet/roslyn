@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
-    Module InstantiatingGenericsExtensions
+    Friend Module InstantiatingGenericsExtensions
 
         ' Check generic instantiation invariants.
         <Extension()>
@@ -213,10 +213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
     Public Class InstantiatingGenerics
         Inherits BasicTestBase
 
-        <Fact, WorkItem(910574, "DevDiv")>
+        <Fact, WorkItem(910574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910574")>
         Public Sub Test1()
 
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib1)
             Dim module0 = assembly.Modules(0)
 
             Dim C1 = module0.GlobalNamespace.GetTypeMembers("C1").Single()

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ImmutableArray<Cci.IMetadataExpression> Cci.ICustomAttribute.GetArguments(EmitContext context)
         {
             var commonArgs = this.CommonConstructorArguments;
-            if(commonArgs.IsEmpty)
+            if (commonArgs.IsEmpty)
             {
                 return ImmutableArray<Cci.IMetadataExpression>.Empty;
             }

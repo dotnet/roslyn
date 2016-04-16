@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -309,7 +310,7 @@ class Res
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
-                //         lock (Res d = new Res ())// Invalid
+                                                                    //         lock (Res d = new Res ())// Invalid
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
                 // (6,33): error CS1002: ; expected
                 //         lock (Res d = new Res ())// Invalid
@@ -355,7 +356,7 @@ class Test
 
         // malformed 'lock' statement
         [Fact]
-        public void MalfomedLock()
+        public void MalformedLock()
         {
             var source = @"
 using System.Collections.Generic;
@@ -425,9 +426,9 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
         }
 
-        [WorkItem(543168, "DevDiv")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact()]
-        public void MalfomedLock_1()
+        public void MalformedLock_1()
         {
             var source = @"
 class D
@@ -710,7 +711,7 @@ class Test
 
         #endregion
 
-        [WorkItem(543168, "DevDiv")]
+        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
         [Fact]
         public void EmbeddedDeclaration()
         {
@@ -729,26 +730,60 @@ class C
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
         }
 
-        [WorkItem(529001, "DevDiv")]
+        [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
+        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
         [Fact]
         public void LockTypeGenericTypeParam()
         {
             var source = @"
-class Gen<T>
+class Gen1<T>
 {
-    public static void Consumer(T monitor)
+    public static void Consumer(T monitor1)
     {
-        lock (monitor)
+        lock (monitor1)
+        {
+        }
+        lock (null) {}
+    }
+}
+class Gen2<T> where T : struct
+{
+    public static void Consumer(T monitor2)
+    {
+        lock (monitor2)
+        {
+        }
+    }
+}
+class Gen3<T> where T : class
+{
+    public static void Consumer(T monitor3)
+    {
+        lock (monitor3)
         {
         }
     }
 }
 ";
+            var regularCompilation = CreateCompilationWithMscorlib(source);
+            var strictCompilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            regularCompilation.VerifyDiagnostics(
+                // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
+                //         lock (monitor2)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15)
+                );
+            strictCompilation.VerifyDiagnostics(
+                // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
+                //         lock (monitor2)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15),
                 // (6,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (monitor)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor").WithArguments("T"));
+                //         lock (monitor1)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor1").WithArguments("T").WithLocation(6, 15),
+                // (9,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+                //         lock (null) {}
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(9, 15)
+                );
         }
     }
 }

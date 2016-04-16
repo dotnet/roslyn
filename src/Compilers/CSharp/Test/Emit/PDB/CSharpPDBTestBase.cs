@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Xml;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
-            var pdb = GetPdbXml(compilation, methodName);
+            var pdb = PdbValidation.GetPdbXml(compilation, qualifiedMethodName: methodName);
             bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.GetValueOrDefault(), source, pdb);
 
             Assert.True(hasBreakpoint);

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -21,32 +20,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Owning assembly.
         /// </summary>
-        private readonly SourceAssemblySymbol assemblySymbol;
+        private readonly SourceAssemblySymbol _assemblySymbol;
 
-        private ImmutableArray<AssemblySymbol> lazyAssembliesToEmbedTypesFrom;
+        private ImmutableArray<AssemblySymbol> _lazyAssembliesToEmbedTypesFrom;
 
-        private ThreeState lazyContainsExplicitDefinitionOfNoPiaLocalTypes = ThreeState.Unknown;
+        private ThreeState _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = ThreeState.Unknown;
 
         /// <summary>
         /// The declarations corresponding to the source files of this module.
         /// </summary>
-        private readonly DeclarationTable sources;
+        private readonly DeclarationTable _sources;
 
-        private SymbolCompletionState state;
-        private CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag;
-        private ImmutableArray<Location> locations;
-        private NamespaceSymbol globalNamespace;
+        private SymbolCompletionState _state;
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private ImmutableArray<Location> _locations;
+        private NamespaceSymbol _globalNamespace;
+
+        private bool _hasBadAttributes;
 
         internal SourceModuleSymbol(
             SourceAssemblySymbol assemblySymbol,
             DeclarationTable declarations,
-            string nameWithExtension)
+            string moduleName)
         {
             Debug.Assert((object)assemblySymbol != null);
 
-            this.assemblySymbol = assemblySymbol;
-            this.sources = declarations;
-            this.name = nameWithExtension;
+            _assemblySymbol = assemblySymbol;
+            _sources = declarations;
+            _name = moduleName;
+        }
+
+        internal void RecordPresenceOfBadAttributes()
+        {
+            _hasBadAttributes = true;
+        }
+
+        internal bool HasBadAttributes
+        {
+            get
+            {
+                return _hasBadAttributes;
+            }
         }
 
         internal override int Ordinal
@@ -99,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<AssemblySymbol> GetAssembliesToEmbedTypesFrom()
         {
-            if (lazyAssembliesToEmbedTypesFrom.IsDefault)
+            if (_lazyAssembliesToEmbedTypesFrom.IsDefault)
             {
                 AssertReferencesInitialized();
                 var buffer = ArrayBuilder<AssemblySymbol>.GetInstance();
@@ -112,30 +126,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                ImmutableInterlocked.InterlockedCompareExchange(ref lazyAssembliesToEmbedTypesFrom,
+                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyAssembliesToEmbedTypesFrom,
                                                     buffer.ToImmutableAndFree(),
                                                     default(ImmutableArray<AssemblySymbol>));
             }
 
-            Debug.Assert(!lazyAssembliesToEmbedTypesFrom.IsDefault);
-            return lazyAssembliesToEmbedTypesFrom;
+            Debug.Assert(!_lazyAssembliesToEmbedTypesFrom.IsDefault);
+            return _lazyAssembliesToEmbedTypesFrom;
         }
 
         internal bool ContainsExplicitDefinitionOfNoPiaLocalTypes
         {
             get
             {
-                if (lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.Unknown)
+                if (_lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.Unknown)
                 {
                     // TODO: This will recursively visit all top level types and bind attributes on them.
                     //       This might be very expensive to do, but explicitly declared local types are 
                     //       very uncommon. We should consider optimizing this by analyzing syntax first, 
                     //       for example, the way VB handles ExtensionAttribute, etc.
-                    lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState();
+                    _lazyContainsExplicitDefinitionOfNoPiaLocalTypes = NamespaceContainsExplicitDefinitionOfNoPiaLocalTypes(GlobalNamespace).ToThreeState();
                 }
 
-                Debug.Assert(lazyContainsExplicitDefinitionOfNoPiaLocalTypes != ThreeState.Unknown);
-                return lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.True;
+                Debug.Assert(_lazyContainsExplicitDefinitionOfNoPiaLocalTypes != ThreeState.Unknown);
+                return _lazyContainsExplicitDefinitionOfNoPiaLocalTypes == ThreeState.True;
             }
         }
 
@@ -170,18 +184,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)this.globalNamespace == null)
+                if ((object)_globalNamespace == null)
                 {
-                    Interlocked.CompareExchange(ref globalNamespace, MakeGlobalNamespace(), null);
+                    Interlocked.CompareExchange(ref _globalNamespace, MakeGlobalNamespace(), null);
                 }
 
-                return globalNamespace;
+                return _globalNamespace;
             }
         }
 
         private SourceNamespaceSymbol MakeGlobalNamespace()
         {
-            return new SourceNamespaceSymbol(this, this, sources.MergedRoot);
+            return new SourceNamespaceSymbol(this, this, _sources.MergedRoot);
         }
 
         internal sealed override bool RequiresCompletion
@@ -191,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasComplete(CompletionPart part)
         {
-            return state.HasComplete(part);
+            return _state.HasComplete(part);
         }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
@@ -199,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var incompletePart = state.NextIncompletePart;
+                var incompletePart = _state.NextIncompletePart;
                 switch (incompletePart)
                 {
                     case CompletionPart.Attributes:
@@ -216,14 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
-                            if (state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
+                            if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)
                                 {
-                                    this.assemblySymbol.DeclaringCompilation.SemanticDiagnostics.AddRange(diagnostics);
+                                    _assemblySymbol.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
                                 }
 
-                                state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
+                                _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
                             }
 
                             if (diagnostics != null)
@@ -236,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishValidatingReferencedAssemblies:
                         // some other thread has started validating references (otherwise we would be in the case above) so
                         // we just wait for it to both finish and report the diagnostics.
-                        Debug.Assert(state.HasComplete(CompletionPart.StartValidatingReferencedAssemblies));
-                        state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
+                        Debug.Assert(_state.HasComplete(CompletionPart.StartValidatingReferencedAssemblies));
+                        _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
                         break;
 
                     case CompletionPart.MembersCompleted:
@@ -245,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
-                            state.NotePartComplete(CompletionPart.MembersCompleted);
+                            _state.NotePartComplete(CompletionPart.MembersCompleted);
                         }
                         else
                         {
@@ -260,11 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     default:
                         // any other values are completion parts intended for other kinds of symbols
-                        state.NotePartComplete(incompletePart);
+                        _state.NotePartComplete(incompletePart);
                         break;
                 }
 
-                state.SpinWaitComplete(incompletePart, cancellationToken);
+                _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
 
@@ -327,36 +341,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal IEnumerable<Diagnostic> Diagnostics
-        {
-            get { return sources.Diagnostics; }
-        }
-
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                if (locations.IsDefault)
+                if (_locations.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref locations,
-                        sources.AllRootNamespacesUnordered().Select(n => n.Location).AsImmutable<Location>(),
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
+                        _sources.AllRootNamespacesUnordered().Select(n => n.Location).AsImmutable<Location>(),
                         default(ImmutableArray<Location>));
                 }
 
-                return locations;
+                return _locations;
             }
         }
 
         /// <summary>
         /// The name (contains extension)
         /// </summary>
-        private readonly string name;
+        private readonly string _name;
 
         public override string Name
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -364,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return assemblySymbol;
+                return _assemblySymbol;
             }
         }
 
@@ -372,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return assemblySymbol;
+                return _assemblySymbol;
             }
         }
 
@@ -380,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return assemblySymbol;
+                return _assemblySymbol;
             }
         }
 
@@ -391,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return assemblySymbol.DeclaringCompilation;
+                return _assemblySymbol.DeclaringCompilation;
             }
         }
 
@@ -399,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return sources.TypeNames;
+                return _sources.TypeNames;
             }
         }
 
@@ -407,13 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return sources.NamespaceNames;
+                return _sources.NamespaceNames;
             }
         }
 
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
         {
-            get { return this.assemblySymbol; }
+            get { return _assemblySymbol; }
         }
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation
@@ -437,17 +446,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            if (lazyCustomAttributesBag == null || !lazyCustomAttributesBag.IsSealed)
+            if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
                 var mergedAttributes = ((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations();
-                if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref lazyCustomAttributesBag))
+                if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref _lazyCustomAttributesBag))
                 {
-                    var completed = state.NotePartComplete(CompletionPart.Attributes);
+                    var completed = _state.NotePartComplete(CompletionPart.Attributes);
                     Debug.Assert(completed);
                 }
             }
 
-            return lazyCustomAttributesBag;
+            return _lazyCustomAttributesBag;
         }
 
         /// <summary>
@@ -471,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = this.lazyCustomAttributesBag;
+            var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -507,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            var compilation = this.assemblySymbol.DeclaringCompilation;
+            var compilation = _assemblySymbol.DeclaringCompilation;
             if (compilation.Options.AllowUnsafe)
             {
                 // NOTE: GlobalAttrBind::EmitCompilerGeneratedAttrs skips attribute if the well-known type isn't available.
@@ -545,5 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasDefaultCharSetAttribute ? data.DefaultCharacterSet : (CharSet?)null;
             }
         }
+
+        public override ModuleMetadata GetMetadata() => null;
     }
 }

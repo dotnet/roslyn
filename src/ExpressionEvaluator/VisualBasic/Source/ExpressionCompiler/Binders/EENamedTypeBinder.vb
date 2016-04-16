@@ -1,0 +1,80 @@
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+
+Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+    Friend NotInheritable Class EENamedTypeBinder
+        Inherits Binder
+
+        Private ReadOnly _sourceBinder As Binder
+
+        Public Sub New(substitutedSourceType As NamedTypeSymbol, containingBinder As Binder)
+            MyBase.New(containingBinder)
+
+            _sourceBinder = New NamedTypeBinder(CompilationContext.BackstopBinder, substitutedSourceType)
+        End Sub
+
+        Public Overrides ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol
+            Get
+                Return _sourceBinder.ContainingNamespaceOrType
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
+            Get
+                Return _sourceBinder.ContainingType
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ContainingMember As Symbol
+            Get
+                Return _sourceBinder.ContainingMember
+            End Get
+        End Property
+
+        Friend Overrides Sub LookupInSingleBinder(
+                lookupResult As LookupResult,
+                name As String, arity As Integer,
+                options As LookupOptions,
+                originalBinder As Binder,
+                <[In]> <Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+
+            Debug.Assert(lookupResult.IsClear) ' We don't require this - it just indicates that we're not wasting effort re-mapping results from other binders.
+
+            _sourceBinder.LookupInSingleBinder(lookupResult, name, arity, options, originalBinder, useSiteDiagnostics)
+
+            Dim substitutedSourceType = Me.ContainingType
+
+            If substitutedSourceType.Arity > 0 Then
+                Dim symbols = lookupResult.Symbols
+                For i As Integer = 0 To symbols.Count - 1
+                    Dim symbol = symbols(i)
+                    If symbol.Kind = SymbolKind.TypeParameter Then
+                        Debug.Assert(symbol.OriginalDefinition.ContainingSymbol = substitutedSourceType.OriginalDefinition)
+                        Dim ordinal = DirectCast(symbol, TypeParameterSymbol).Ordinal
+                        symbols(i) = substitutedSourceType.TypeArguments(ordinal)
+                        Debug.Assert(symbols(i).Kind = SymbolKind.TypeParameter)
+                    End If
+                Next
+            End If
+        End Sub
+
+        Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(
+                nameSet As LookupSymbolsInfo,
+                options As LookupOptions,
+                originalBinder As Binder)
+
+            Throw New NotImplementedException()
+        End Sub
+
+        Protected Overrides Sub CollectProbableExtensionMethodsInSingleBinder(
+                name As String,
+                methods As ArrayBuilder(Of MethodSymbol),
+                originalBinder As Binder)
+
+            Debug.Assert(methods.Count = 0)
+            _sourceBinder.ContainingType.AppendProbableExtensionMethods(name, methods)
+        End Sub
+    End Class
+End Namespace

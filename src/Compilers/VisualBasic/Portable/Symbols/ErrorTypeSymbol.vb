@@ -189,6 +189,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Get
+                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
                 Return ImmutableArray(Of TypeParameterSymbol).Empty
@@ -293,8 +305,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
-            Return Me
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Return New TypeWithModifiers(Me)
         End Function
 
         Friend Overrides ReadOnly Property TypeSubstitution As TypeSubstitution

@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.Host
             private const int LargeFileMaxBytes = 1024 * 32;
             private const int HugeFileMaxBytes = 1024 * 256;
 
-            private readonly List<MemoryMappedFileArena> smallFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> mediumFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> largeFileStorage = new List<MemoryMappedFileArena>();
-            private readonly List<MemoryMappedFileArena> hugeFileStorage = new List<MemoryMappedFileArena>();
+            private readonly List<MemoryMappedFileArena> _smallFileStorage = new List<MemoryMappedFileArena>();
+            private readonly List<MemoryMappedFileArena> _mediumFileStorage = new List<MemoryMappedFileArena>();
+            private readonly List<MemoryMappedFileArena> _largeFileStorage = new List<MemoryMappedFileArena>();
+            private readonly List<MemoryMappedFileArena> _hugeFileStorage = new List<MemoryMappedFileArena>();
 
             // Ugh.  We need to keep a strong reference to our allocated arenas.  Otherwise, when we remove instances
             // from the storage lists above, the only references left are MemoryMappedInfo instances.  If 
             // these all happen to end up on the finalizer thread, the underlying MemoryMappedFile SafeHandle will also
             // be finalized.  This invalidates the handle and when we try to reuse this arena by putting it back on a 
             // storage list, we'll hit an exception trying to access an invalid handle.
-            private readonly List<MemoryMappedFileArena> allocatedArenas = new List<MemoryMappedFileArena>();
+            private readonly List<MemoryMappedFileArena> _allocatedArenas = new List<MemoryMappedFileArena>();
 
             public MemoryMappedFileManager()
             {
@@ -64,22 +64,22 @@ namespace Microsoft.CodeAnalysis.Host
 
                 if (size <= SmallFileMaxBytes)
                 {
-                    storage = smallFileStorage;
+                    storage = _smallFileStorage;
                     allocationSize = SmallFileMaxBytes;
                 }
                 else if (size <= MediumFileMaxBytes)
                 {
-                    storage = mediumFileStorage;
+                    storage = _mediumFileStorage;
                     allocationSize = MediumFileMaxBytes;
                 }
                 else if (size <= LargeFileMaxBytes)
                 {
-                    storage = largeFileStorage;
+                    storage = _largeFileStorage;
                     allocationSize = LargeFileMaxBytes;
                 }
                 else if (size <= HugeFileMaxBytes)
                 {
-                    storage = hugeFileStorage;
+                    storage = _hugeFileStorage;
                     allocationSize = HugeFileMaxBytes;
                 }
                 else
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         var arena = new MemoryMappedFileArena(this, storage, allocationSize);
                         storage.Add(arena);
-                        lock (allocatedArenas)
+                        lock (_allocatedArenas)
                         {
-                            allocatedArenas.Add(arena);
+                            _allocatedArenas.Add(arena);
                         }
                     }
 
@@ -114,41 +114,41 @@ namespace Microsoft.CodeAnalysis.Host
 
             public void FreeArena(MemoryMappedFileArena memoryMappedFileArena)
             {
-                lock (allocatedArenas)
+                lock (_allocatedArenas)
                 {
-                    allocatedArenas.Remove(memoryMappedFileArena);
+                    _allocatedArenas.Remove(memoryMappedFileArena);
                 }
             }
         }
 
         internal sealed class MemoryMappedInfo : IDisposable
         {
-            private readonly MemoryMappedFile memoryMappedFile;
-            private readonly long offset;
-            private readonly long size;
-            private readonly MemoryMappedFileArena containingArena;
+            private readonly MemoryMappedFile _memoryMappedFile;
+            private readonly long _offset;
+            private readonly long _size;
+            private readonly MemoryMappedFileArena _containingArena;
 
             /// <summary>
             /// ref count of stream given out
             /// </summary>
-            private int streamCount;
+            private int _streamCount;
 
             /// <summary>
             /// actual memory accessor that owns the VM
             /// </summary>
-            private MemoryMappedViewAccessor accessor;
+            private MemoryMappedViewAccessor _accessor;
 
             public MemoryMappedInfo(MemoryMappedFile memoryMappedFile, long size) : this(memoryMappedFile, 0, size, null) { }
 
             public MemoryMappedInfo(MemoryMappedFile memoryMappedFile, long offset, long size, MemoryMappedFileArena containingArena)
             {
-                this.memoryMappedFile = memoryMappedFile;
-                this.offset = offset;
-                this.size = size;
-                this.containingArena = containingArena;
+                _memoryMappedFile = memoryMappedFile;
+                _offset = offset;
+                _size = size;
+                _containingArena = containingArena;
 
-                this.streamCount = 0;
-                this.accessor = null;
+                _streamCount = 0;
+                _accessor = null;
             }
 
             /// <summary>
@@ -158,15 +158,15 @@ namespace Microsoft.CodeAnalysis.Host
             public Stream CreateReadableStream()
             {
                 // CreateViewStream is not guaranteed to be thread-safe
-                lock (this.memoryMappedFile)
+                lock (_memoryMappedFile)
                 {
-                    if (this.streamCount == 0)
+                    if (_streamCount == 0)
                     {
-                        this.accessor = memoryMappedFile.CreateViewAccessor(offset, size, MemoryMappedFileAccess.Read);
+                        _accessor = _memoryMappedFile.CreateViewAccessor(_offset, _size, MemoryMappedFileAccess.Read);
                     }
 
-                    this.streamCount++;
-                    return new SharedReadableStream(this, this.accessor, this.size);
+                    _streamCount++;
+                    return new SharedReadableStream(this, _accessor, _size);
                 }
             }
 
@@ -177,21 +177,21 @@ namespace Microsoft.CodeAnalysis.Host
             public Stream CreateWritableStream()
             {
                 // CreateViewStream is not guaranteed to be thread-safe
-                lock (this.memoryMappedFile)
+                lock (_memoryMappedFile)
                 {
-                    return memoryMappedFile.CreateViewStream(offset, size, MemoryMappedFileAccess.Write);
+                    return _memoryMappedFile.CreateViewStream(_offset, _size, MemoryMappedFileAccess.Write);
                 }
             }
 
             private void StreamDisposed()
             {
-                lock (this.memoryMappedFile)
+                lock (_memoryMappedFile)
                 {
-                    this.streamCount--;
-                    if (this.streamCount == 0 && this.accessor != null)
+                    _streamCount--;
+                    if (_streamCount == 0 && _accessor != null)
                     {
-                        this.accessor.Dispose();
-                        this.accessor = null;
+                        _accessor.Dispose();
+                        _accessor = null;
                     }
                 }
             }
@@ -209,56 +209,56 @@ namespace Microsoft.CodeAnalysis.Host
 
             private void Dispose(bool disposing)
             {
-                if (this.accessor != null)
+                if (_accessor != null)
                 {
                     // dispose accessor it owns.
                     // if someone explicitly called Dispose when streams given out are not
                     // disposed yet, the accessor each stream has will simply stop working.
                     //
                     // it is caller's responsibility to make sure all streams it got from
-                    // the temporary storage are disposed before calling dispose on the stroage.
+                    // the temporary storage are disposed before calling dispose on the storage.
                     //
                     // otherwise, finalizer will take care of disposing stuff as we used to be.
-                    this.accessor.Dispose();
-                    this.accessor = null;
+                    _accessor.Dispose();
+                    _accessor = null;
                 }
 
                 // Dispose the memoryMappedFile if we own it, otherwise 
                 // notify our containingArena that this offset is available
                 // for someone else 
-                if (this.containingArena == null)
+                if (_containingArena == null)
                 {
-                    this.memoryMappedFile.Dispose();
+                    _memoryMappedFile.Dispose();
                 }
                 else
                 {
-                    this.containingArena.FreeSegment(this.offset);
+                    _containingArena.FreeSegment(_offset);
                 }
             }
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
-                private readonly MemoryMappedViewAccessor accessor;
+                private readonly MemoryMappedViewAccessor _accessor;
 
-                private MemoryMappedInfo owner;
-                private byte* start;
-                private byte* current;
-                private readonly byte* end;
+                private MemoryMappedInfo _owner;
+                private byte* _start;
+                private byte* _current;
+                private readonly byte* _end;
 
                 public SharedReadableStream(MemoryMappedInfo owner, MemoryMappedViewAccessor accessor, long length)
                 {
                     Contract.Assert(accessor.CanRead);
 
-                    this.owner = owner;
-                    this.accessor = accessor;
-                    this.current = this.start = AcquirePointer(accessor);
-                    this.end = checked(this.start + length);
+                    _owner = owner;
+                    _accessor = accessor;
+                    _current = _start = AcquirePointer(accessor);
+                    _end = checked(_start + length);
                 }
 
                 ~SharedReadableStream()
                 {
                     // we don't have control on stream we give out to others such as
-                    // compiler (ImageOnlyMetdataReferece), make sure we dispose resource 
+                    // compiler (ImageOnlyMetadataReference), make sure we dispose resource 
                     // at the end if Disposed is not called explicitly.
                     Dispose(false);
                 }
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     get
                     {
-                        return this.end - this.start;
+                        return _end - _start;
                     }
                 }
 
@@ -299,43 +299,43 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     get
                     {
-                        return this.current - this.start;
+                        return _current - _start;
                     }
 
                     set
                     {
-                        var target = this.start + value;
-                        if (target < this.start || target >= this.end)
+                        var target = _start + value;
+                        if (target < _start || target >= _end)
                         {
-                            throw new ArgumentOutOfRangeException("value");
+                            throw new ArgumentOutOfRangeException(nameof(value));
                         }
 
-                        this.current = target;
+                        _current = target;
                     }
                 }
 
                 public override int ReadByte()
                 {
                     // PERF: Keeping this as simple as possible since it's on the hot path
-                    if (this.current >= this.end)
+                    if (_current >= _end)
                     {
                         return -1;
                     }
 
-                    return *this.current++;
+                    return *_current++;
                 }
 
                 public override int Read(byte[] buffer, int offset, int count)
                 {
-                    if (this.current >= this.end)
+                    if (_current >= _end)
                     {
                         return 0;
                     }
 
-                    int adjustedCount = Math.Min(count, (int)(this.end - this.current));
-                    Marshal.Copy((IntPtr)this.current, buffer, offset, adjustedCount);
+                    int adjustedCount = Math.Min(count, (int)(_end - _current));
+                    Marshal.Copy((IntPtr)_current, buffer, offset, adjustedCount);
 
-                    this.current += adjustedCount;
+                    _current += adjustedCount;
                     return adjustedCount;
                 }
 
@@ -347,33 +347,33 @@ namespace Microsoft.CodeAnalysis.Host
                         switch (origin)
                         {
                             case SeekOrigin.Begin:
-                                target = checked(this.start + offset);
+                                target = checked(_start + offset);
                                 break;
 
                             case SeekOrigin.Current:
-                                target = checked(this.current + offset);
+                                target = checked(_current + offset);
                                 break;
 
                             case SeekOrigin.End:
-                                target = checked(this.end + offset);
+                                target = checked(_end + offset);
                                 break;
 
                             default:
-                                throw new ArgumentOutOfRangeException("origin");
+                                throw new ArgumentOutOfRangeException(nameof(origin));
                         }
                     }
                     catch (OverflowException)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
-                    if (target < this.start || target >= this.end)
+                    if (target < _start || target >= _end)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
-                    this.current = target;
-                    return this.current - this.start;
+                    _current = target;
+                    return _current - _start;
                 }
 
                 public override void Flush()
@@ -395,16 +395,16 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     base.Dispose(disposing);
 
-                    if (this.start != null)
+                    if (_start != null)
                     {
-                        this.accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-                        this.start = null;
+                        _accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                        _start = null;
                     }
 
-                    if (this.owner != null)
+                    if (_owner != null)
                     {
-                        this.owner.StreamDisposed();
-                        this.owner = null;
+                        _owner.StreamDisposed();
+                        _owner = null;
                     }
                 }
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Host
                 /// </summary>
                 public IntPtr GetPointer()
                 {
-                    return (IntPtr)this.start;
+                    return (IntPtr)_start;
                 }
 
                 /// <summary>
@@ -425,17 +425,8 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     byte* ptr = null;
                     accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-                    ptr += GetPrivateOffset(accessor);
+                    ptr += accessor.PointerOffset;
                     return ptr;
-                }
-
-                // this is a copy from compiler's MemoryMappedFileBlock. see MemoryMappedFileBlock for more information on why this is needed.
-                private static long GetPrivateOffset(MemoryMappedViewAccessor stream)
-                {
-                    System.Reflection.FieldInfo unmanagedMemoryStreamOffset = typeof(MemoryMappedViewAccessor).GetField("m_view", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetField);
-                    object memoryMappedView = unmanagedMemoryStreamOffset.GetValue(stream);
-                    System.Reflection.PropertyInfo memoryMappedViewPointerOffset = memoryMappedView.GetType().GetProperty("PointerOffset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetProperty);
-                    return (long)memoryMappedViewPointerOffset.GetValue(memoryMappedView);
                 }
             }
         }
@@ -446,54 +437,54 @@ namespace Microsoft.CodeAnalysis.Host
             // mapped into our address space at any given time.
             public const int MemoryMappedFileArenaSize = 4 * 1024 * 1024;
 
-            private readonly MemoryMappedFileManager manager;
-            private readonly List<MemoryMappedFileArena> containingList;
-            private readonly MemoryMappedFile memoryMappedFile;
+            private readonly MemoryMappedFileManager _manager;
+            private readonly List<MemoryMappedFileArena> _containingList;
+            private readonly MemoryMappedFile _memoryMappedFile;
 
             // The byte offsets into memoryMappedFile that are available for allocations
-            private readonly Stack<long> freeSegmentOffsets;
-            private readonly int segmentCount;
-            private readonly object gate = new object();
+            private readonly Stack<long> _freeSegmentOffsets;
+            private readonly int _segmentCount;
+            private readonly object _gate = new object();
 
             public MemoryMappedFileArena(MemoryMappedFileManager manager, List<MemoryMappedFileArena> containingList, int allocationSize)
             {
                 Contract.Assert(containingList.Count == 0, "should only create a new arena when the containing list is empty");
-                this.manager = manager;
-                this.containingList = containingList;
-                this.memoryMappedFile = MemoryMappedFile.CreateNew(MemoryMappedFileManager.CreateUniqueName(allocationSize), MemoryMappedFileArenaSize, MemoryMappedFileAccess.ReadWrite);
-                this.freeSegmentOffsets = new Stack<long>(Enumerable.Range(0, MemoryMappedFileArenaSize / allocationSize).Select(x => (long)x * allocationSize));
-                this.segmentCount = freeSegmentOffsets.Count;
+                _manager = manager;
+                _containingList = containingList;
+                _memoryMappedFile = MemoryMappedFile.CreateNew(MemoryMappedFileManager.CreateUniqueName(allocationSize), MemoryMappedFileArenaSize, MemoryMappedFileAccess.ReadWrite);
+                _freeSegmentOffsets = new Stack<long>(Enumerable.Range(0, MemoryMappedFileArenaSize / allocationSize).Select(x => (long)x * allocationSize));
+                _segmentCount = _freeSegmentOffsets.Count;
             }
 
             public void FreeSegment(long offset)
             {
                 int count;
-                lock (gate)
+                lock (_gate)
                 {
-                    freeSegmentOffsets.Push(offset);
-                    count = freeSegmentOffsets.Count;
+                    _freeSegmentOffsets.Push(offset);
+                    count = _freeSegmentOffsets.Count;
                 }
 
                 if (count == 1)
                 {
                     // This arena has room for allocations now, so add it back to the list.
-                    lock (containingList)
+                    lock (_containingList)
                     {
-                        containingList.Add(this);
+                        _containingList.Add(this);
                     }
                 }
-                else if (count == segmentCount)
+                else if (count == _segmentCount)
                 {
                     // this arena is no longer in use.
-                    lock (containingList)
+                    lock (_containingList)
                     {
-                        lock (gate)
+                        lock (_gate)
                         {
-                            // re-check to make sure no one allocated after we released the lock
-                            if (freeSegmentOffsets.Count == segmentCount)
+                            // re-check to make sure no-one allocated after we released the lock
+                            if (_freeSegmentOffsets.Count == _segmentCount)
                             {
-                                containingList.Remove(this);
-                                manager.FreeArena(this);
+                                _containingList.Remove(this);
+                                _manager.FreeArena(this);
                             }
                         }
                     }
@@ -502,13 +493,13 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal MemoryMappedInfo CreateMemoryMappedViewInfo(long size)
             {
-                lock (gate)
+                lock (_gate)
                 {
-                    var result = new MemoryMappedInfo(this.memoryMappedFile, freeSegmentOffsets.Pop(), size, this);
-                    if (freeSegmentOffsets.IsEmpty())
+                    var result = new MemoryMappedInfo(_memoryMappedFile, _freeSegmentOffsets.Pop(), size, this);
+                    if (_freeSegmentOffsets.IsEmpty())
                     {
                         // containingList should already be locked by our caller. 
-                        this.containingList.Remove(this);
+                        _containingList.Remove(this);
                     }
 
                     return result;

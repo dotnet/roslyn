@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenConditionalOperatorTests : CSharpTestBase
     {
-        [Fact, WorkItem(638289, "DevDiv")]
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification1()
         {
             var src =
@@ -103,7 +103,7 @@ class C : I
 ");
         }
 
-        [Fact, WorkItem(638289, "DevDiv")]
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification2()
         {
             var src =
@@ -229,7 +229,7 @@ class C : I
 ");
         }
 
-        [Fact, WorkItem(638289, "DevDiv")]
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification3()
         {
             var src =
@@ -354,7 +354,7 @@ class C : I
 }");
         }
 
-        [Fact, WorkItem(638289, "DevDiv")]
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void ConditionalDelegateInterfaceUnification4()
         {
             var src =
@@ -510,7 +510,7 @@ class C : I
 ");
         }
 
-        [Fact(), WorkItem(638289, "DevDiv")]
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional1()
         {
             var src =
@@ -544,7 +544,8 @@ public class C : I
 {
   // Code size       37 (0x25)
   .maxstack  1
-  .locals init (I V_0)
+  .locals init (I V_0,
+                I V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  brfalse.s  IL_000d
@@ -561,9 +562,9 @@ public class C : I
   IL_0019:  newobj     ""A..ctor()""
   IL_001e:  stloc.0
   IL_001f:  ldloc.0
-  IL_0020:  stloc.0
+  IL_0020:  stloc.1
   IL_0021:  br.s       IL_0023
-  IL_0023:  ldloc.0
+  IL_0023:  ldloc.1
   IL_0024:  ret
 }");
             // Optimized
@@ -593,7 +594,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "DevDiv")]
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional2()
         {
             var src =
@@ -627,7 +628,8 @@ public class C : I
 {
   // Code size       39 (0x27)
   .maxstack  2
-  .locals init (I V_0)
+  .locals init (I V_0,
+                I V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
@@ -646,9 +648,9 @@ public class C : I
   IL_001b:  newobj     ""C..ctor()""
   IL_0020:  stloc.0
   IL_0021:  ldloc.0
-  IL_0022:  stloc.0
+  IL_0022:  stloc.1
   IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.0
+  IL_0025:  ldloc.1
   IL_0026:  ret
 }");
             // Optimized
@@ -680,7 +682,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "DevDiv")]
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional3()
         {
             var src =
@@ -716,7 +718,8 @@ public class C : I
 {
   // Code size       51 (0x33)
   .maxstack  2
-  .locals init (I V_0)
+  .locals init (I V_0,
+                I V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
@@ -741,9 +744,9 @@ public class C : I
   IL_0027:  newobj     ""A..ctor()""
   IL_002c:  stloc.0
   IL_002d:  ldloc.0
-  IL_002e:  stloc.0
+  IL_002e:  stloc.1
   IL_002f:  br.s       IL_0031
-  IL_0031:  ldloc.0
+  IL_0031:  ldloc.1
   IL_0032:  ret
 }");
             // Optimized
@@ -781,7 +784,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(638289, "DevDiv")]
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void NestedConditional4()
         {
             var src =
@@ -821,7 +824,8 @@ public class C : I
 {
   // Code size       52 (0x34)
   .maxstack  2
-  .locals init (I V_0)
+  .locals init (I V_0,
+                I V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
@@ -847,9 +851,9 @@ public class C : I
   IL_0028:  newobj     ""A..ctor()""
   IL_002d:  stloc.0
   IL_002e:  ldloc.0
-  IL_002f:  stloc.0
+  IL_002f:  stloc.1
   IL_0030:  br.s       IL_0032
-  IL_0032:  ldloc.0
+  IL_0032:  ldloc.1
   IL_0033:  ret
 }");
             // Optimized
@@ -1527,7 +1531,7 @@ class Program
 }
 ";
             string expectedOutput = @"100";
-            CompileAndVerify(source, additionalRefs: new [] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1558,7 +1562,7 @@ public struct TestStruct
 }
 ";
             string expectedOutput = @"10";
-            CompileAndVerify(source, additionalRefs: new [] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1584,7 +1588,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [WorkItem(528275, "DevDiv")]
+        [WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
         [Fact]
         public void TestConditionalOperatorForImplicitConv()
         {
@@ -1666,7 +1670,7 @@ class Program
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact, WorkItem(530071, "DevDiv")]
+        [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
         public void TestConditionalOperatorForImplicitlyTypedArrays()
         {
             var source = @"
@@ -2084,7 +2088,7 @@ public static class Program
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(543609, "DevDiv")]
+        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
         public void SeveralAdjacentIfsWithConditionalExpressions()
         {
             var source = @"
@@ -2101,7 +2105,7 @@ class Class1
     }
 }
 ";
-   
+
             string expectedOutput = @"";
             string expectedIL = @"
 {
@@ -2137,7 +2141,7 @@ class Class1
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
-        [Fact(), WorkItem(638289, "DevDiv")]
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void TestNestedConditionalAndNullOperators()
         {
             var src =
@@ -2167,11 +2171,12 @@ public class C : I
             var verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
-            verify.VerifyIL("C.Tester",@"
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       32 (0x20)
   .maxstack  2
-  .locals init (I V_0)
+  .locals init (I V_0,
+                I V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
@@ -2188,9 +2193,9 @@ public class C : I
   IL_0014:  newobj     ""B..ctor()""
   IL_0019:  stloc.0
   IL_001a:  ldloc.0
-  IL_001b:  stloc.0
+  IL_001b:  stloc.1
   IL_001c:  br.s       IL_001e
-  IL_001e:  ldloc.0
+  IL_001e:  ldloc.1
   IL_001f:  ret
 }");
             // Optimized
@@ -2221,7 +2226,7 @@ public class C : I
 }");
         }
 
-        [Fact(), WorkItem(543609, "DevDiv")]
+        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
         public void UnreachableLabelInUnreachableCode()
         {
             var source = @"
@@ -2267,6 +2272,5 @@ class Class1
 ";
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
-
     }
 }

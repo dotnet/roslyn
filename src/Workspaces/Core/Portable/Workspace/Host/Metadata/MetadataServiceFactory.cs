@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -17,39 +15,17 @@ namespace Microsoft.CodeAnalysis.Host
 
         private sealed class Service : IMetadataService
         {
-            private readonly IDocumentationProviderService documentationService;
-            private readonly Provider provider;
+            private readonly MetadataReferenceCache _metadataCache;
 
             public Service(IDocumentationProviderService documentationService)
             {
-                this.documentationService = documentationService;
-                this.provider = new Provider(this);
-            }
-
-            public MetadataFileReferenceProvider GetProvider()
-            {
-                return provider;
+                _metadataCache = new MetadataReferenceCache((path, properties) =>
+                    MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {
-                return MetadataReference.CreateFromFile(resolvedPath, properties, this.documentationService.GetDocumentationProvider(resolvedPath));
-            }
-        }
-
-        private sealed class Provider : MetadataFileReferenceProvider
-        {
-            private readonly Service service;
-
-            internal Provider(Service service)
-            {
-                Debug.Assert(service != null);
-                this.service = service;
-            }
-
-            public override PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return service.GetReference(resolvedPath, properties);
+                return (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
             }
         }
     }

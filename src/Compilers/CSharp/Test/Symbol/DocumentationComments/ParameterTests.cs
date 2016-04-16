@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -398,10 +399,10 @@ class C<T>
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
@@ -425,10 +426,10 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
@@ -452,10 +453,10 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 value");
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 value");
@@ -479,10 +480,10 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString));
@@ -506,10 +507,10 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x", "System.Int32 value");
@@ -533,10 +534,10 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
             AssertEx.SetEqual(model.LookupSymbols(pos2).Select(SymbolUtilities.ToTestDisplayString), "System.Int32 x");
@@ -560,10 +561,10 @@ class C<T>
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             // As in Dev11, we do not consider the value parameter.
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
@@ -588,10 +589,10 @@ class C<T>
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
-            int pos1 = source.IndexOf("pos1");
-            int pos2 = source.IndexOf("pos2");
-            int pos3 = source.IndexOf("pos3");
-            int pos4 = source.IndexOf("pos4");
+            int pos1 = source.IndexOf("pos1", StringComparison.Ordinal);
+            int pos2 = source.IndexOf("pos2", StringComparison.Ordinal);
+            int pos3 = source.IndexOf("pos3", StringComparison.Ordinal);
+            int pos4 = source.IndexOf("pos4", StringComparison.Ordinal);
 
             // As in Dev11, we do not consider the value parameter.
             AssertEx.SetEqual(model.LookupSymbols(pos1).Select(SymbolUtilities.ToTestDisplayString));
@@ -639,15 +640,15 @@ class C
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            int start = source.IndexOf("param");
-            int end = source.LastIndexOf("param");
-            for (int position = start; position < end; position++) 
+            int start = source.IndexOf("param", StringComparison.Ordinal);
+            int end = source.LastIndexOf("param", StringComparison.Ordinal);
+            for (int position = start; position < end; position++)
             {
                 Assert.Equal(type, model.GetEnclosingSymbol(position));
             }
         }
 
-        [WorkItem(531161, "DevDiv")]
+        [WorkItem(531161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531161")]
         [Fact]
         public void AttributeNameHasPrefix()
         {
@@ -664,7 +665,7 @@ class Program
             Assert.Equal(0, GetNameAttributeValues(compilation).Count());
         }
 
-        [WorkItem(531160, "DevDiv")]
+        [WorkItem(531160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531160")]
         [Fact]
         public void DuplicateAttribute()
         {
@@ -691,7 +692,7 @@ class Program
             Assert.Equal(method.Parameters[1], model.GetSymbolInfo(nameSyntaxes[1]).Symbol);
         }
 
-        [WorkItem(531233, "DevDiv")]
+        [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
         [Fact]
         public void NameInOtherElement()
         {
@@ -709,7 +710,7 @@ class C
             Assert.Equal(0, GetNameAttributeValues(compilation).Count());
         }
 
-        [WorkItem(531337, "DevDiv")]
+        [WorkItem(531337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531337")]
         [Fact]
         public void NamesInMethodBody()
         {
@@ -750,7 +751,7 @@ class C
 
         // Accessor declarations aren't MemberDeclarationSyntaxes, so we don't have to worry about finding
         // the parameters of an accessor (i.e. all the lookups will start from the property/indexer).
-        [WorkItem(531337, "DevDiv")]
+        [WorkItem(531337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531337")]
         [Fact]
         public void NamesOnAccessor()
         {

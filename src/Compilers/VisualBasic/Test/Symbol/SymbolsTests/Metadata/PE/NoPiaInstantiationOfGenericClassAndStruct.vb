@@ -107,12 +107,12 @@ end class
             'Test class that inherits Generic(Of NoPIAType) used as method return or arguments
             Dim localTypeSource1 = <text>
 public class NoPIAGenerics 
-     Dim inhertsMethods As InheritsMethods = Nothing
+     Dim inheritsMethods As InheritsMethods = Nothing
 end class
 </text>.Value
             Dim localConsumer = CreateCompilation(localTypeSource1)
             Dim classLocalType As NamedTypeSymbol = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").[Single]()
-            Dim localField = classLocalType.GetMembers("inhertsMethods").OfType(Of FieldSymbol)().[Single]()
+            Dim localField = classLocalType.GetMembers("inheritsMethods").OfType(Of FieldSymbol)().[Single]()
             For Each m In localField.[Type].GetMembers("Method1").OfType(Of MethodSymbol)()
                 If m.Parameters.Length > 0 Then
                     Assert.Equal(SymbolKind.ErrorType, m.Parameters.[Where](Function(arg) arg.Name = "c1").[Select](Function(arg) arg).[Single]().[Type].BaseType.Kind)
@@ -415,7 +415,7 @@ End Structure
             Dim nestedType = localConsumerRefsAsm(1).GlobalNamespace.GetTypeMembers("NestedConstructs").[Single]()
             Dim localField = nestedType.GetMembers("field1").OfType(Of FieldSymbol)().[Single]()
             Assert.Equal(SymbolKind.ArrayType, localField.[Type].Kind)
-            Assert.IsType(Of ArrayTypeSymbol)(localField.[Type])
+            Assert.True(TypeOf localField.[Type] Is ArrayTypeSymbol)
         End Sub
 
         <Fact>

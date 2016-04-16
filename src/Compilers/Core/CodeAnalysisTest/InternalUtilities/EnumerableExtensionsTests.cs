@@ -14,7 +14,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             Assert.True(EnumerableExtensions.SequenceEqual(null, null, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(new[] { 1 }, null, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(null, new[] { 1 }, comparer));
-            
+
             Assert.True(EnumerableExtensions.SequenceEqual(new[] { 1 }, new[] { 1 }, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(new int[0], new[] { 1 }, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(new[] { 1 }, new int[0], comparer));
@@ -25,4 +25,4 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
 }
 
 
-        
+

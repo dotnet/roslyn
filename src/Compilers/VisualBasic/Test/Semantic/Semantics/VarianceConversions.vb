@@ -2739,7 +2739,7 @@ Module Module1
 
         Shared Sub Main()
             Dim btnList As IEnumerable(Of B2) = New List(Of B2)()
-            ‘This is allowed because it satisfies the constraint IEnumerable(Of B1) AS IEnumerable(Of B2)
+            'This is allowed because it satisfies the constraint IEnumerable(Of B1) AS IEnumerable(Of B2)
             Dim _ctrlCol As IEnumerable(Of B1) = Foo(Of IEnumerable(Of B2), IEnumerable(Of B1))(btnList)
         End Sub
     End Class
@@ -2827,7 +2827,7 @@ Module Module1
     End Class
 
     Sub Main()
-        ‘The conversion will succeed using Variance->Func(Of B)-[Covariance]-Func(Of A)
+        'The conversion will succeed using Variance->Func(Of B)-[Covariance]-Func(Of A)
         Dim _func As Func(Of A) = New C()
     End Sub
 End Module
@@ -2846,7 +2846,7 @@ T1->Func(Of B)
 </expected>)
         End Sub
 
-        <WorkItem(545815, "DevDiv")>
+        <WorkItem(545815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545815")>
         <Fact>
         Public Sub Bug14483()
             Dim compilationDef =
@@ -2874,7 +2874,7 @@ Module Module1
         Console.WriteLine(fac_1.GetType)
  
         ' ContraVariance nested in ContraVariance
-        ' We only test this with Stric off, 
+        ' We only test this with Strict off, 
         ' since Dim aad As Action(Of Action(Of D)) = aao is narrowing conversion
  
         Dim aao As Action(Of Action(Of Object)) = ao

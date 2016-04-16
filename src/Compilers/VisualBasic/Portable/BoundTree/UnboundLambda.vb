@@ -133,14 +133,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class TargetSignature
             Public ReadOnly ParameterTypes As ImmutableArray(Of TypeSymbol)
             Public ReadOnly ReturnType As TypeSymbol
-            Private ReadOnly m_isByRef As BitArray
+            Private ReadOnly _isByRef As BitVector
 
-            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), isByRef As BitArray, returnType As TypeSymbol)
+            Public Sub New(parameterTypes As ImmutableArray(Of TypeSymbol), isByRef As BitVector, returnType As TypeSymbol)
                 Debug.Assert(Not parameterTypes.IsDefault)
                 Debug.Assert(Not isByRef.IsNull)
                 Debug.Assert(returnType IsNot Nothing)
                 Me.ParameterTypes = parameterTypes
-                Me.m_isByRef = isByRef
+                Me._isByRef = isByRef
                 Me.ReturnType = returnType
             End Sub
 
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not params.IsDefault)
                 Debug.Assert(returnType IsNot Nothing)
 
-                Dim isByRef = BitArray.Empty
+                Dim isByRef = BitVector.Empty
 
                 If params.Length = 0 Then
                     Me.ParameterTypes = ImmutableArray(Of TypeSymbol).Empty
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.ParameterTypes = types.AsImmutableOrNull
                 End If
 
-                Me.m_isByRef = isByRef
+                Me._isByRef = isByRef
                 Me.ReturnType = returnType
             End Sub
 
@@ -174,9 +174,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.New(method.Parameters, method.ReturnType)
             End Sub
 
-            Public ReadOnly Property IsByRef As BitArray
+            Public ReadOnly Property IsByRef As BitVector
                 Get
-                    Return m_isByRef
+                    Return _isByRef
                 End Get
             End Property
 
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For i As Integer = 0 To ParameterTypes.Length - 1
                     If Me.ParameterTypes(i) <> other.ParameterTypes(i) OrElse
-                       Me.m_isByRef(i) <> other.m_isByRef(i) Then
+                       Me._isByRef(i) <> other._isByRef(i) Then
                         Return False
                     End If
                 Next
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' containing the lambda. Even though the members are public, they shouldn't be accessed directly by any code
         ''' outside of the UnboundLambda class.
         ''' </summary>
-        Class UnboundLambdaBindingCache
+        Public Class UnboundLambdaBindingCache
             Public AnonymousDelegate As Tuple(Of NamedTypeSymbol, ImmutableArray(Of Diagnostic))
             Public ReadOnly InferredReturnType As New ConcurrentDictionary(Of TargetSignature, KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)))()
             Public ReadOnly BoundLambdas As New ConcurrentDictionary(Of TargetSignature, BoundLambda)()

@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
         {
-            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment();
+            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment() || trivia.IsShebangDirective();
         }
 
         public static bool IsRegularOrDocComment(this SyntaxTrivia trivia)
         {
-            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment() || trivia.IsDocComment();
+            return trivia.IsRegularComment() || trivia.IsDocComment();
         }
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
         {
             return trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
+        }
+
+        public static bool IsShebangDirective(this SyntaxTrivia trivia)
+        {
+            return trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
         }
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var commentText = trivia.ToString();
             if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
-                if (commentText.StartsWith("//"))
+                if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(2);
                 }
@@ -94,12 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var textBuilder = new StringBuilder();
 
-                if (commentText.EndsWith("*/"))
+                if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(0, commentText.Length - 2);
                 }
 
-                if (commentText.StartsWith("/*"))
+                if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
                     commentText = commentText.Substring(2);
                 }
@@ -114,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     // Note: we trim leading '*' characters in multi-line comments.
                     // If the '*' was intentional, sorry, it's gone.
-                    if (trimmedLine.StartsWith("*"))
+                    if (trimmedLine.StartsWith("*", StringComparison.Ordinal))
                     {
                         trimmedLine = trimmedLine.TrimStart('*');
                         trimmedLine = trimmedLine.TrimStart(null);

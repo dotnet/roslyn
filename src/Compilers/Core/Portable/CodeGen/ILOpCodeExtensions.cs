@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -234,7 +235,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ILOpCode.Blt_un:
                 case ILOpCode.Blt_un_s:
                     return true;
-
                     // these are not conditional
 
                     //case ILOpCode.Br:

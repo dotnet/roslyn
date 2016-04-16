@@ -29,7 +29,7 @@ Public Class Attributes
         ]]>.Value, isFullWidth:=False)
     End Sub
 
-    <WorkItem(570756, "DevDiv")>
+    <WorkItem(570756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570756")>
     <Fact()>
     Public Sub ParseFullWidthModuleAndAssemblyAttributes()
         ParseModuleOrAssemblyAttribute("<Assembly:A>".ToFullWidth(), isFullWidth:=True)
@@ -208,7 +208,7 @@ A>
              Diagnostic(ERRID.ERR_ExpectedGreater, ""))
     End Sub
 
-    <WorkItem(527027, "DevDiv")>
+    <WorkItem(527027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527027")>
     <Fact>
     Public Sub BC30203_ParseMoreErrorStandaloneAttribute()
         ParseAndVerify(<![CDATA[
@@ -235,7 +235,7 @@ A>
             </errors>)
     End Sub
 
-    <WorkItem(537226, "DevDiv")>
+    <WorkItem(537226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537226")>
     <Fact>
     Public Sub BC40008WRN_UseOfObsoleteSymbolNoMessage1()
         Dim code = <![CDATA[
@@ -258,7 +258,7 @@ End Module
         ParseAndVerify(code).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
-    <WorkItem(537226, "DevDiv")>
+    <WorkItem(537226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537226")>
     <Fact>
     Public Sub ParseAttributeBeforeStatic()
         ParseAndVerify(<![CDATA[
@@ -288,7 +288,7 @@ End Module
              </errors>)
     End Sub
 
-    <WorkItem(569310, "DevDiv")>
+    <WorkItem(569310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569310")>
     <Fact()>
     Public Sub ParseFileLevelAttributesWithExtraColon()
         ParseAndVerify(<![CDATA[
@@ -317,26 +317,40 @@ End Module
             </errors>)
     End Sub
 
-    <WorkItem(638911, "DevDiv")>
-    <Fact(Skip:="638911")>
+    <WorkItem(638911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638911")>
+    <WorkItem(108689, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=108689")>
+    <Fact>
     Public Sub ParseFileLevelAttributesWithExtraColon_2()
-        ParseAndVerify(<![CDATA[
+        Const bug108689IsFixed = False
+
+        Dim source1 = <![CDATA[
 <Assembly::A>
-]]>,
-            <errors>
-                <error id="30203" message="Identifier expected."/>
-                <error id="30636" message="'>' expected."/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>
+
+        Dim source2 = <![CDATA[
 <Module : : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COLON),
+]]>.Value.Replace(":"c, FULLWIDTH_COLON)
+
+        If bug108689IsFixed Then
+            ParseAndVerify(source1,
             <errors>
                 <error id="30203" message="Identifier expected."/>
                 <error id="30636" message="'>' expected."/>
             </errors>)
+
+            ParseAndVerify(source2,
+            <errors>
+                <error id="30203" message="Identifier expected."/>
+                <error id="30636" message="'>' expected."/>
+            </errors>)
+        Else
+            ParseAndVerify(source1)
+            ParseAndVerify(source2)
+        End If
+
     End Sub
 
-    <WorkItem(570808, "DevDiv")>
+    <WorkItem(570808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570808")>
     <Fact()>
     Public Sub ParseAttributeTargetOtherContextualKeyword()
         ParseAndVerify(<![CDATA[
@@ -366,7 +380,7 @@ End Module
     ''' <summary>
     ''' &lt;&gt; should be treated as an empty attributes list.
     ''' </summary>
-    <WorkItem(668159, "DevDiv")>
+    <WorkItem(668159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/668159")>
     <Fact()>
     Public Sub EmptyAttributesList()
         ParseAndVerify(<![CDATA[

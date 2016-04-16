@@ -3,15 +3,15 @@
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
-Public Class VBParser : Implements IParser
-    Private m_Options As VisualBasicParseOptions
+Public Class VBParser
+    Private ReadOnly _options As VisualBasicParseOptions
 
     Public Sub New(Optional options As VisualBasicParseOptions = Nothing)
-        m_Options = options
+        _options = options
     End Sub
 
-    Public Function Parse(code As String) As SyntaxTree Implements IParser.Parse
-        Dim tree = VisualBasicSyntaxTree.ParseText(code, m_Options, "", Encoding.UTF8)
+    Public Function Parse(code As String) As SyntaxTree
+        Dim tree = VisualBasicSyntaxTree.ParseText(code, _options, "", Encoding.UTF8)
         Return tree
     End Function
 End Class

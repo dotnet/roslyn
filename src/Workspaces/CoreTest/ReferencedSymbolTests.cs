@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class StubSymbol : ISymbol
         {
-            private readonly string name;
+            private readonly string _name;
 
             public StubSymbol(string name)
             {
-                this.name = name;
+                _name = name;
             }
 
             public bool CanBeReferencedByName
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 get
                 {
-                    return this.name;
+                    return _name;
                 }
             }
 

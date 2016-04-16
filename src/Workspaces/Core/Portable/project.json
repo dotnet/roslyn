@@ -1,0 +1,8 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Composition": "1.0.27"
+  },
+  "frameworks": {
+    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+  }
+}

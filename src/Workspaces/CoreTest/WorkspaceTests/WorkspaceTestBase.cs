@@ -162,6 +162,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
+        protected FileSet GetSolutionWithCircularProjectReferences()
+        {
+            return new FileSet(new Dictionary<string, object>
+            {
+                { @"CircularSolution.sln", GetResourceText("CircularProjectReferences.CircularSolution.sln") },
+                { @"CircularCSharpProject1.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject1.csproj") },
+                { @"CircularCSharpProject2.csproj", GetResourceText("CircularProjectReferences.CircularCSharpProject2.csproj") },
+            });
+        }
+
         public static byte[] GetResourceBytes(string fileName)
         {
             var fullName = @"Microsoft.CodeAnalysis.UnitTests.TestFiles." + fileName;
@@ -219,11 +229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 Assert.Equal(typeof(TException), e.GetType());
-
-                if (checker != null)
-                {
-                    checker((TException)e);
-                }
+                checker?.Invoke((TException)e);
             }
         }
 
@@ -239,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             else
             {
-                return cb.Begin.FullSpan.End;
+                return cb.BlockStatement.FullSpan.End;
             }
         }
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A region analysis walker that records jumps into the region.  Works by overriding NoteBranch, which is
     /// invoked by a superclass when the two endpoints of a jump have been identified.
     /// </summary>
-    class EntryPointsWalker : AbstractRegionControlFlowPass
+    internal class EntryPointsWalker : AbstractRegionControlFlowPass
     {
         internal static IEnumerable<LabeledStatementSyntax> Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, out bool? succeeded)
         {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 walker.Analyze(ref badRegion);
-                var result = walker.entryPoints;
+                var result = walker._entryPoints;
                 succeeded = !badRegion;
                 return badRegion ? SpecializedCollections.EmptyEnumerable<LabeledStatementSyntax>() : result;
             }
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<LabeledStatementSyntax> entryPoints = new HashSet<LabeledStatementSyntax>();
+        private readonly HashSet<LabeledStatementSyntax> _entryPoints = new HashSet<LabeledStatementSyntax>();
 
-        new void Analyze(ref bool badRegion)
+        private new void Analyze(ref bool badRegion)
         {
             // We only need to scan in a single pass.
             Scan(ref badRegion);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             targetStmt.AssertIsLabeledStatement();
             if (!gotoStmt.WasCompilerGenerated && !targetStmt.WasCompilerGenerated && RegionContains(targetStmt.Syntax.Span) && !RegionContains(gotoStmt.Syntax.Span))
-                entryPoints.Add((LabeledStatementSyntax)targetStmt.Syntax);
+                _entryPoints.Add((LabeledStatementSyntax)targetStmt.Syntax);
         }
     }
 }

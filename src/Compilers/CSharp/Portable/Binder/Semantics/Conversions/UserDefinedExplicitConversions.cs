@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class ConversionsBase
+    internal partial class ConversionsBase
     {
         private UserDefinedConversionResult AnalyzeExplicitUserDefinedConversions(
            BoundExpression sourceExpression,
@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-
                         // There is an additional spec violation in the native compiler. Suppose
                         // we have a conversion from X-->Y and are asked to do "Y? y = new X();"  Clearly
                         // the intention is to convert from X-->Y via the implicit conversion, and then

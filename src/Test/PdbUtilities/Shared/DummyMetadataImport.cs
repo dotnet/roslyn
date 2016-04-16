@@ -1,14 +1,152 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Generic;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using Microsoft.DiaSymReader.PortablePdb;
+using System.Reflection;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    internal sealed class DummyMetadataImport : IMetadataImport
+    internal sealed class DummyMetadataImport : IMetadataImport, IDisposable
     {
-        internal static readonly DummyMetadataImport Instance = new DummyMetadataImport();
+        private readonly MetadataReader _metadataReaderOpt;
+        private readonly IDisposable _metadataOwnerOpt;
+        private readonly List<GCHandle> _pinnedBuffers;
+
+        public DummyMetadataImport(MetadataReader metadataReaderOpt, IDisposable metadataOwnerOpt)
+        {
+            _metadataReaderOpt = metadataReaderOpt;
+            _pinnedBuffers = new List<GCHandle>();
+            _metadataOwnerOpt = metadataOwnerOpt;
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            _metadataOwnerOpt?.Dispose();
+
+            foreach (var pinnedBuffer in _pinnedBuffers)
+            {
+                pinnedBuffer.Free();
+            }
+        }
+
+        ~DummyMetadataImport()
+        {
+            Dispose(false);
+        }
+
+        [PreserveSig]
+        public unsafe int GetSigFromToken(
+            int tkSignature,    // Signature token.
+            out byte* ppvSig,   // return pointer to signature blob
+            out int pcbSig)     // return size of signature
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var sig = _metadataReaderOpt.GetStandaloneSignature((StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature));
+            var signature = _metadataReaderOpt.GetBlobBytes(sig.Signature);
+
+            GCHandle pinnedBuffer = GCHandle.Alloc(signature, GCHandleType.Pinned);
+            ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
+            pcbSig = signature.Length;
+
+            _pinnedBuffers.Add(pinnedBuffer);
+            return 0;
+        }
+
+        public void GetTypeDefProps(
+            int typeDefinition,
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength,
+            [MarshalAs(UnmanagedType.U4)]out TypeAttributes attributes,
+            out int baseType)
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var handle = (TypeDefinitionHandle)MetadataTokens.Handle(typeDefinition);
+            var typeDef = _metadataReaderOpt.GetTypeDefinition(handle);
+
+            if (qualifiedName != null)
+            {
+                qualifiedName.Clear();
+
+                if (!typeDef.Namespace.IsNil)
+                {
+                    qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Namespace));
+                    qualifiedName.Append('.');
+                }
+
+                qualifiedName.Append(_metadataReaderOpt.GetString(typeDef.Name));
+                qualifiedNameLength = qualifiedName.Length;
+            }
+            else
+            {
+                qualifiedNameLength =
+                    (typeDef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeDef.Namespace).Length + 1) +
+                    _metadataReaderOpt.GetString(typeDef.Name).Length;
+            }
+
+            baseType = MetadataTokens.GetToken(typeDef.BaseType);
+            attributes = typeDef.Attributes;
+        }
+
+        public void GetTypeRefProps(
+            int typeReference,
+            out int resolutionScope,
+            [MarshalAs(UnmanagedType.LPWStr), Out]StringBuilder qualifiedName,
+            int qualifiedNameBufferLength,
+            out int qualifiedNameLength)
+        {
+            if (_metadataReaderOpt == null)
+            {
+                throw new NotSupportedException("Metadata not available");
+            }
+
+            var handle = (TypeReferenceHandle)MetadataTokens.Handle(typeReference);
+            var typeRef = _metadataReaderOpt.GetTypeReference(handle);
+
+            if (qualifiedName != null)
+            {
+                qualifiedName.Clear();
+
+                if (!typeRef.Namespace.IsNil)
+                {
+                    qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Namespace));
+                    qualifiedName.Append('.');
+                }
+
+                qualifiedName.Append(_metadataReaderOpt.GetString(typeRef.Name));
+                qualifiedNameLength = qualifiedName.Length;
+            }
+            else
+            {
+                qualifiedNameLength =
+                    (typeRef.Namespace.IsNil ? 0 : _metadataReaderOpt.GetString(typeRef.Namespace).Length + 1) +
+                    _metadataReaderOpt.GetString(typeRef.Name).Length;
+            }
+
+            resolutionScope = MetadataTokens.GetToken(typeRef.ResolutionScope);
+        }
+
+        #region Not Implemented
 
         public void CloseEnum(uint handleEnum)
         {
@@ -160,7 +298,7 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]COR_FIELD_OFFSET[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
+        public uint GetClassLayout(uint td, out uint pdwPackSize, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)]ulong[] arrayFieldOffset, uint countMax, out uint countPointerFieldOffset)
         {
             throw new NotImplementedException();
         }
@@ -275,21 +413,6 @@ namespace Roslyn.Test.PdbUtilities
             throw new NotImplementedException();
         }
 
-        public unsafe uint GetSigFromToken(uint memberDefSig, out byte* ppvSig)
-        {
-            throw new NotImplementedException();
-        }
-
-        public uint GetTypeDefProps(uint td, IntPtr stringTypeDef, uint cchTypeDef, out uint pchTypeDef, IntPtr pdwTypeDefFlags)
-        {
-            throw new NotImplementedException();
-        }
-
-        public uint GetTypeRefProps(uint tr, out uint ptkResolutionScope, StringBuilder stringName, uint cchName)
-        {
-            throw new NotImplementedException();
-        }
-
         public unsafe uint GetTypeSpecFromToken(uint typespec, out byte* ppvSig)
         {
             throw new NotImplementedException();
@@ -320,5 +443,7 @@ namespace Roslyn.Test.PdbUtilities
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
 }

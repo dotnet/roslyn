@@ -28,42 +28,42 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Major subsystem version
         /// </summary>
-        public readonly int Major;
+        public int Major { get; }
 
         /// <summary>
         /// Minor subsystem version
         /// </summary>
-        public readonly int Minor;
+        public int Minor { get; }
 
         /// <summary>
         /// Subsystem version not specified
         /// </summary>
-        public static readonly SubsystemVersion None = new SubsystemVersion();
+        public static SubsystemVersion None => new SubsystemVersion();
 
         /// <summary>
         /// Subsystem version: Windows 2000
         /// </summary>
-        public static readonly SubsystemVersion Windows2000 = new SubsystemVersion(5, 0);
+        public static SubsystemVersion Windows2000 => new SubsystemVersion(5, 0);
 
         /// <summary>
         /// Subsystem version: Windows XP 
         /// </summary>
-        public static readonly SubsystemVersion WindowsXP = new SubsystemVersion(5, 1);
+        public static SubsystemVersion WindowsXP => new SubsystemVersion(5, 1);
 
         /// <summary>
         /// Subsystem version: Windows Vista
         /// </summary>
-        public static readonly SubsystemVersion WindowsVista = new SubsystemVersion(6, 0);
+        public static SubsystemVersion WindowsVista => new SubsystemVersion(6, 0);
 
         /// <summary>
         /// Subsystem version: Windows 7
         /// </summary>
-        public static readonly SubsystemVersion Windows7 = new SubsystemVersion(6, 1);
+        public static SubsystemVersion Windows7 => new SubsystemVersion(6, 1);
 
         /// <summary>
         /// Subsystem version: Windows 8
         /// </summary>
-        public static readonly SubsystemVersion Windows8 = new SubsystemVersion(6, 2);
+        public static SubsystemVersion Windows8 => new SubsystemVersion(6, 2);
 
         private SubsystemVersion(int major, int minor)
         {

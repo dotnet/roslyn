@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -243,7 +244,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(542466, "DevDiv")]
+        [WorkItem(542466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542466")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_Enum()
         {
@@ -262,8 +263,8 @@ enum color
 
             var comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
-                // (6,17): warning CS0184: The given expression is never of the provided ('color') type
-                //         var b = 1 is color;
+            // (6,17): warning CS0184: The given expression is never of the provided ('color') type
+            //         var b = 1 is color;
             Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is color").WithArguments("color"));
             comp.VerifyIL("IsTest.Main", @"
 {
@@ -273,10 +274,9 @@ enum color
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
-        [WorkItem(542466, "DevDiv")]
+        [WorkItem(542466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542466")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_ExplicitEnumeration()
         {
@@ -306,10 +306,9 @@ enum color
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
-        [WorkItem(542466, "DevDiv")]
+        [WorkItem(542466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542466")]
         [Fact]
         public void CS0184WRN_IsAlwaysFalse_ImplicitNumeric()
         {
@@ -337,10 +336,9 @@ class IsTest
   IL_0001:  call       ""void System.Console.WriteLine(bool)""
   IL_0006:  ret
 }");
-
         }
 
-        [Fact, WorkItem(542466, "DevDiv")]
+        [Fact, WorkItem(542466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542466")]
         public void CS0184WRN_IsAlwaysFalse_ExplicitNumeric()
         {
             var text = @"
@@ -383,10 +381,9 @@ False");
   IL_000d:  call       ""void System.Console.WriteLine(bool)""
   IL_0012:  ret
 }");
-
         }
 
-        [Fact, WorkItem(546371, "DevDiv")]
+        [Fact, WorkItem(546371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546371")]
         public void CS0184WRN_IsAlwaysFalse_NumericIsNullable()
         {
             #region src
@@ -487,7 +484,6 @@ public class Test
   IL_003c:  ret
 }
 ");
-
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -638,7 +634,7 @@ public class TestAsOperatorGeneric
 }");
         }
 
-        [Fact, WorkItem(754408, "DevDiv")]
+        [Fact, WorkItem(754408, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754408")]
         public void TestNullCoalesce_DynamicAndObject()
         {
             var source = @"using System;
@@ -660,7 +656,7 @@ public class C
             var comp = CompileAndVerify(source,
                 additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
                 expectedOutput: string.Empty);
-            comp.VerifyIL("C.Get", 
+            comp.VerifyIL("C.Get",
 @"{
   // Code size       17 (0x11)
   .maxstack  2
@@ -1027,7 +1023,7 @@ public class C
 ");
         }
 
-        [WorkItem(541337, "DevDiv")]
+        [WorkItem(541337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541337")]
         [Fact]
         public void TestNullCoalesce_TypeParameter_Bug8008()
         {
@@ -1090,7 +1086,7 @@ public class Test
 ");
         }
 
-        [WorkItem(541232, "DevDiv")]
+        [WorkItem(541232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541232")]
         [Fact]
         public void TestNullCoalesce_MethodGroups()
         {
@@ -1349,7 +1345,7 @@ class MainClass
 }");
         }
 
-        [Fact, WorkItem(638289, "DevDiv")]
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
         public void TestNullCoalesce_Nested()
         {
             var src =
@@ -1376,14 +1372,15 @@ class C : I
         System.Console.Write(Tester(null, null).GetType());
     }
 }";
-            var verify = CompileAndVerify(src, 
+            var verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe, expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
   // Code size       86 (0x56)
   .maxstack  2
   .locals init (I V_0, //i
-                I V_1)
+                I V_1,
+                I V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
@@ -1435,9 +1432,9 @@ class C : I
   IL_004a:  callvirt   ""void I.DoNothing()""
   IL_004f:  nop
   IL_0050:  ldloc.0
-  IL_0051:  stloc.1
+  IL_0051:  stloc.2
   IL_0052:  br.s       IL_0054
-  IL_0054:  ldloc.1
+  IL_0054:  ldloc.2
   IL_0055:  ret
 }");
             // Optimized
@@ -1742,7 +1739,7 @@ using System.Collections.Generic;
 ");
         }
 
-        [WorkItem(543074, "DevDiv")]
+        [WorkItem(543074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543074")]
         [Fact]
         public void TestEqualEqualOnNestedStructGuid()
         {
@@ -1767,7 +1764,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-        [WorkItem(543092, "DevDiv")]
+        [WorkItem(543092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543092")]
         [Fact]
         public void ShortCircuitConditionalOperator()
         {
@@ -1801,11 +1798,23 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
+            // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
+            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithFeature("strict", "true")).VerifyDiagnostics(
+                // (23,26): error CS1525: Invalid expression term 'from'
+                //         var b = false && from x in src select x; // WRN CS0429
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
+                );
             CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
 
-        [WorkItem(543109, "DevDiv")]
+        [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]
         [Fact()]
         public void ShortCircuitConditionalOperator02()
         {
@@ -1827,7 +1836,7 @@ class P
                 expectedOutput: "0");
         }
 
-        [WorkItem(543377, "DevDiv")]
+        [WorkItem(543377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543377")]
         [Fact]
         public void DecimalComparison()
         {
@@ -1861,7 +1870,7 @@ VerifyIL("Program.Main", @"
 }");
         }
 
-        [WorkItem(543453, "DevDiv")]
+        [WorkItem(543453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543453")]
         [Fact]
         public void TestIncrementDecrementOperator_Generic()
         {
@@ -1891,7 +1900,7 @@ class DrivedType : BaseType<DrivedType>
             CompileAndVerify(source);
         }
 
-        [WorkItem(543474, "DevDiv")]
+        [WorkItem(543474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543474")]
         [Fact]
         public void LogicalComplementOperator()
         {
@@ -1911,7 +1920,7 @@ class Program
                 expectedOutput: "1");
         }
 
-        [WorkItem(543500, "DevDiv")]
+        [WorkItem(543500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543500")]
         [Fact]
         public void BuiltInLeftShiftOperators()
         {
@@ -1976,7 +1985,7 @@ class Program
 ");
         }
 
-        [WorkItem(543500, "DevDiv")]
+        [WorkItem(543500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543500")]
         [Fact]
         public void BuiltInRightShiftOperators()
         {
@@ -2041,7 +2050,7 @@ class Program
 ");
         }
 
-        [WorkItem(543500, "DevDiv")]
+        [WorkItem(543500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543500")]
         [Fact]
         public void BuiltInShiftOperators()
         {
@@ -2143,7 +2152,7 @@ class Program
 ");
         }
 
-        [Fact, WorkItem(543993, "DevDiv")]
+        [Fact, WorkItem(543993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
         public void BuiltInShiftOperators01()
         {
             var source = @"
@@ -2224,7 +2233,7 @@ public class Test
 ");
         }
 
-        [Fact, WorkItem(543993, "DevDiv")]
+        [Fact, WorkItem(543993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543993")]
         public void BuiltInShiftOperators02()
         {
             var source = @"
@@ -2244,7 +2253,7 @@ class Program
 65536");
         }
 
-        [WorkItem(543568, "DevDiv")]
+        [WorkItem(543568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543568")]
         [Fact]
         public void ImplicitConversionOperatorWithOptionalParam()
         {
@@ -2273,7 +2282,7 @@ class TestFunction
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543569, "DevDiv")]
+        [WorkItem(543569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543569")]
         [Fact()]
         public void AssignmentInOperandOfIsAlwaysFalse()
         {
@@ -2300,7 +2309,7 @@ public class Program
             var verifier = CompileAndVerify(source, expectedOutput: @"PASS");
         }
 
-        [WorkItem(543577, "DevDiv")]
+        [WorkItem(543577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543577")]
         [Fact()]
         public void IsOperatorAlwaysFalseInLambda()
         {
@@ -2325,7 +2334,7 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543446, "DevDiv"), WorkItem(543446, "DevDiv")]
+        [WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446"), WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
         [Fact]
         public void ThrowExceptionByConversion()
         {
@@ -2363,7 +2372,7 @@ namespace Test
             var verifier = CompileAndVerify(source, expectedOutput: @"01");
         }
 
-        [WorkItem(543586, "DevDiv")]
+        [WorkItem(543586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543586")]
         [Fact]
         public void ImplicitVsExplicitOverloadOperators()
         {
@@ -2398,8 +2407,8 @@ struct Str
             var verifier = CompileAndVerify(source, expectedOutput: @"10");
         }
 
-        [WorkItem(543602, "DevDiv")]
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact]
         public void SwitchExpressionWithImplicitConversion()
         {
@@ -2434,7 +2443,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543498, "DevDiv")]
+        [WorkItem(543498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543498")]
         [Fact]
         public void UserDefinedConversionAfterUserDefinedIncrement()
         {
@@ -2637,7 +2646,7 @@ class MyClass
 }");
         }
 
-        [Fact, WorkItem(543446, "DevDiv")]
+        [Fact, WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
         public void UserDefinedConversionAfterUserDefinedConvert()
         {
             var source =
@@ -2711,7 +2720,7 @@ class C
 ");
         }
 
-        [Fact, WorkItem(529248, "DevDiv")]
+        [Fact, WorkItem(529248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529248")]
         public void TestNullCoalescingOperatorWithNullableConversions()
         {
             // Native compiler violates the language specification while binding the type for the null coalescing operator (??).
@@ -2724,7 +2733,7 @@ class C
             // Note that for this test there is no implicit conversion from 's' -> int (SnapshotPoint? -> int), but there is an implicit conversion
             // from stripped type SnapshotPoint -> int.
 
-            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain comptability with the native compiler:
+            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain compatibility with the native compiler:
 
             // SPEC PROPOSAL:    Otherwise, if A exists and is a nullable type and if b has a type B and an implicit  conversion exists from A0 to B,
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is unwrapped to type A0 and converted to type B,
@@ -2755,7 +2764,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, emitOptions: TestEmitters.CCI, expectedOutput: "Pass");
+            var verifier = CompileAndVerify(source: source, expectedOutput: "Pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -2790,7 +2799,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(543980, "DevDiv")]
+        [Fact, WorkItem(543980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543980")]
         public void IsOperatorOnEnumAndTypeParameterConstraintToStruct()
         {
             string source = @"using System;
@@ -2821,7 +2830,7 @@ One";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(543982, "DevDiv")]
+        [Fact, WorkItem(543982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543982")]
         public void OverloadAdditionOperatorOnGenericClass()
         {
             var source = @"
@@ -2865,7 +2874,7 @@ G<System.Int32> binary addition";
                 expectedOutput: expected);
         }
 
-        [Fact, WorkItem(544539, "DevDiv"), WorkItem(544540, "DevDiv")]
+        [Fact, WorkItem(544539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544539"), WorkItem(544540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544540")]
         public void NonShortCircuitBoolean()
         {
             var source = @"using System;
@@ -3028,7 +3037,7 @@ True
 ", sequencePoints: "MyClass.Test1");
         }
 
-        [WorkItem(543893, "DevDiv")]
+        [WorkItem(543893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543893")]
         [Fact]
         public void EnumBitwiseComplement()
         {
@@ -3233,10 +3242,9 @@ public static class Test
   IL_002a:  ret
 }
 ");
-
         }
 
-        [WorkItem(544452, "DevDiv")]
+        [WorkItem(544452, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544452")]
         [Fact]
         public void LiftedByteEnumAddition()
         {
@@ -3303,7 +3311,51 @@ public class Program
             comp.VerifyIL("Program.M", il);
         }
 
-        [WorkItem(544943, "DevDiv")]
+        [WorkItem(7091, "https://github.com/dotnet/roslyn/issues/7091")]
+        [Fact]
+        public void LiftedBitwiseOr()
+        {
+            var text =
+@"using System;
+public class Program
+{
+    static void Main()
+    {
+        var res = XX() | YY();
+    }
+
+    static bool XX()
+    {
+        Console.WriteLine (""XX"");
+        return true;
+    }
+
+    static bool? YY()
+    {
+        Console.WriteLine(""YY"");
+        return true;
+    }
+}
+";
+            var expectedOutput =
+@"XX
+YY";
+            var comp = CompileAndVerify(text, expectedOutput: expectedOutput);
+            string il = @"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (bool? V_0)
+  IL_0000:  call       ""bool Program.XX()""
+  IL_0005:  call       ""bool? Program.YY()""
+  IL_000a:  stloc.0
+  IL_000b:  pop
+  IL_000c:  ret
+}
+";
+            comp.VerifyIL("Program.Main", il);
+        }
+
+        [WorkItem(544943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544943")]
         [Fact]
         public void OptimizedXor()
         {
@@ -3342,7 +3394,7 @@ class C
 }");
         }
 
-        [WorkItem(544943, "DevDiv")]
+        [WorkItem(544943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544943")]
         [Fact]
         public void XorMalformedTrue()
         {
@@ -3366,9 +3418,9 @@ class C
 False");
         }
 
-        [WorkItem(539398, "DevDiv")]
+        [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip= "1043494")]
+        [Fact]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3402,9 +3454,9 @@ Infinity
 Infinity");
         }
 
-        [WorkItem(539398, "DevDiv")]
+        [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3439,9 +3491,9 @@ Infinity");
         }
 
         // NOTE: decimal doesn't have infinity, so we convert to double.
-        [WorkItem(539398, "DevDiv")]
+        [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -3475,7 +3527,7 @@ Infinity
 Infinity");
         }
 
-        [WorkItem(545239, "DevDiv")]
+        [WorkItem(545239, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545239")]
         [Fact()]
         public void IncrementPropertyOfTypeParameterReturnValue()
         {
@@ -3562,7 +3614,7 @@ public class Test
 ");
         }
 
-        [WorkItem(546750, "DevDiv")]
+        [WorkItem(546750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546750")]
         [Fact()]
         public void IncrementStructFieldWithReceiverThis()
         {
@@ -3734,15 +3786,15 @@ public class Test
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int[] V_0, //a
-  System.Collections.Generic.IEnumerable<int> V_1, //b
-  System.Collections.Generic.IEnumerable<int> V_2)
+                System.Collections.Generic.IEnumerable<int> V_1, //b
+                System.Collections.Generic.IEnumerable<int> V_2)
   IL_0000:  ldc.i4.0
   IL_0001:  newarr     ""int""
   IL_0006:  stloc.0
   IL_0007:  newobj     ""System.Collections.Generic.List<int>..ctor()""
   IL_000c:  stloc.1
   IL_000d:  ldloc.1
-  IL_000e:  dup
+  IL_000e:  ldloc.1
   IL_000f:  brtrue.s   IL_0016
   IL_0011:  ldloc.0
   IL_0012:  stloc.2
@@ -3751,7 +3803,8 @@ public class Test
   IL_0016:  ldloc.1
   IL_0017:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
   IL_001c:  ret
-}");
+}
+");
         }
 
 
@@ -4021,7 +4074,7 @@ using System.Security;
 ";
 
             var comp = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"");
-//            var comp = CompileAndVerify(source);
+            //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4185,7 +4238,7 @@ using System.Security;
 ");
         }
 
-        [WorkItem(634407, "DevDiv")]
+        [WorkItem(634407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634407")]
         [Fact]
         public void TestTernary_Null()
         {
@@ -4243,7 +4296,7 @@ using System.Security;
 }");
         }
 
-        [WorkItem(634406, "DevDiv")]
+        [WorkItem(634406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634406")]
         [Fact]
         public void TestBinary_Implicit()
         {
@@ -4296,7 +4349,7 @@ class Program
 ");
         }
 
-        [WorkItem(656807, "DevDiv")]
+        [WorkItem(656807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/656807")]
         [Fact]
         public void DelegateEqualsNull()
         {
@@ -4343,7 +4396,7 @@ public class Program
 }");
         }
 
-        [WorkItem(717072, "DevDiv")]
+        [WorkItem(717072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717072")]
         [Fact]
         public void DecimalOperators()
         {
@@ -4399,23 +4452,23 @@ class Program
   IL_002c:  call       ""bool decimal.op_Inequality(decimal, decimal)""
   IL_0031:  pop
   IL_0032:  ldloc.0
-  IL_0033:  dup
+  IL_0033:  ldloc.0
   IL_0034:  call       ""decimal decimal.op_Addition(decimal, decimal)""
   IL_0039:  pop
   IL_003a:  ldloc.0
-  IL_003b:  dup
+  IL_003b:  ldloc.0
   IL_003c:  call       ""decimal decimal.op_Subtraction(decimal, decimal)""
   IL_0041:  pop
   IL_0042:  ldloc.0
-  IL_0043:  dup
+  IL_0043:  ldloc.0
   IL_0044:  call       ""decimal decimal.op_Multiply(decimal, decimal)""
   IL_0049:  pop
   IL_004a:  ldloc.0
-  IL_004b:  dup
+  IL_004b:  ldloc.0
   IL_004c:  call       ""decimal decimal.op_Division(decimal, decimal)""
   IL_0051:  pop
   IL_0052:  ldloc.0
-  IL_0053:  dup
+  IL_0053:  ldloc.0
   IL_0054:  call       ""decimal decimal.op_Modulus(decimal, decimal)""
   IL_0059:  pop
   IL_005a:  ldloc.0
@@ -4436,7 +4489,7 @@ class Program
 ");
         }
 
-        [WorkItem(732269, "DevDiv")]
+        [WorkItem(732269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/732269")]
         [Fact]
         public void NullCoalesce()
         {
@@ -4584,6 +4637,348 @@ class test<T> where T : c0
   IL_002c:  ret
 }
 ");
+        }
+
+        [Fact()]
+        [WorkItem(4828, "https://github.com/dotnet/roslyn/issues/4828")]
+        public void OptimizeOutLocals_01()
+        {
+            const string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int a = 0;
+            int b = a + a / 1;
+        }
+    }";
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe);
+
+            result.VerifyIL("Program.Main",
+@"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  div
+  IL_0003:  pop
+  IL_0004:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_01()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new long[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine((Calculate1(f) == Calculate2(f)) ? ""True"" : ""False"");
+    }
+
+    public static long Calculate1(long[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+    }
+
+    public static long Calculate2(long[] f)
+    {
+        long result = 0;
+        int i;
+
+        for (i = 0; i < f.Length; i++)
+        {
+            result+=(i + 1)*f[i];
+        }
+
+        return result + (i + 1);
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
+        }
+
+        private static string BuildSequenceOfBinaryExpressions_01(int count = 4096)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count; i++)
+            {
+                builder.Append(i + 1);
+                builder.Append(" * ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] + ");
+            }
+
+            builder.Append(i + 1);
+
+            return builder.ToString();
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_02()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new long[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+    public static double Calculate(long[] f)
+    {
+" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+        }
+
+        [Fact]
+        [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_03()
+        {
+            var diagnostics = ImmutableArray<Diagnostic>.Empty;
+
+            const int start = 8192;
+            const int step = 4096;
+            const int limit = start * 4;
+
+            for (int count = start; count <= limit && diagnostics.IsEmpty; count += step)
+            {
+                var source =
+    @"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(bool[] a, bool[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
+    }
+}
+";
+
+                var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+                diagnostics = compilation.GetEmitDiagnostics();
+            }
+
+            diagnostics.Verify(
+    // (10,16): error CS8078: An expression is too long or complex to compile
+    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                );
+        }
+
+        private static string BuildSequenceOfBinaryExpressions_03(int count = 8192)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count; i++)
+            {
+                builder.Append("a[");
+                builder.Append(i);
+                builder.Append("]");
+                builder.Append(" && ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] || ");
+            }
+
+            builder.Append("a[");
+            builder.Append(i);
+            builder.Append("]");
+
+            return builder.ToString();
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_04()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new float?[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+    public static double? Calculate(float?[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics(
+    // (17,16): error CS8078: An expression is too long or complex to compile
+    //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "1").WithLocation(17, 16)
+                );
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_05()
+        {
+            int count = 50;
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var f = new double?[" + $"{count}" + @"];
+        for (int i = 0; i < " + $"{count}" + @" ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+    public static double? Calculate(double?[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+    }
+
+    static void Test2()
+    {
+        var f = new double[" + $"{count}" + @"];
+        for (int i = 0; i < " + $"{count}" + @" ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+    public static double Calculate(double[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
+5180801");
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_06()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(S1[] a, S1[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+    }
+}
+
+struct S1
+{
+    public static S1 operator & (S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static S1 operator |(S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static bool operator true(S1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(S1 x)
+    {
+        return true;
+    }
+
+    public static implicit operator bool (S1 x)
+    {
+        return true;
+    } 
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics(
+    // (10,16): error CS8078: An expression is too long or complex to compile
+    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                );
+        }
+
+        [Fact, WorkItem(7262, "https://github.com/dotnet/roslyn/issues/7262")]
+        public void TruncatePrecisionOnCast()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        float temp1 = (float)(23334800f / 5.5f);
+        System.Console.WriteLine((int)temp1);
+
+        const float temp2 = (float)(23334800f / 5.5f);
+        System.Console.WriteLine((int)temp2);
+
+        System.Console.WriteLine((int)(23334800f / 5.5f));
+}
+}
+";
+            var expectedOutput =
+@"4242691
+4242691
+4242691";
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
     }
 }

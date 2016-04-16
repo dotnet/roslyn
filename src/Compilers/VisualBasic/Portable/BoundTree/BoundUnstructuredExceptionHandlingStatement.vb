@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundUnstructuredExceptionHandlingStatement
+    Friend Partial Class BoundUnstructuredExceptionHandlingStatement
 
 #If DEBUG Then
         Private Sub Validate()

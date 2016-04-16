@@ -4,12 +4,12 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    using System.Threading;
-
-    partial class DiagnosticTest
+    public partial class DiagnosticTest
     {
         internal class MockSyntaxTree : CSharpSyntaxTree
         {
@@ -29,6 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public override bool TryGetText(out SourceText text)
             {
                 throw new NotImplementedException();
+            }
+
+            public override Encoding Encoding
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
             }
 
             public override int Length

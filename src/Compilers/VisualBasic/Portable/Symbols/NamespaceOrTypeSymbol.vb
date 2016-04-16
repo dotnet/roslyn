@@ -71,7 +71,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get all the members of this symbol that have a particular name.
         ''' </summary>
         ''' <returns>An ImmutableArray containing all the members of this symbol with the given name. If there are
-        ''' no members with this name, returns an empty ImmutableArray. Never returns Nothing.</returns>
+        ''' no members with this name, returns an empty ImmutableArray. The result is deterministic (i.e. the same
+        ''' from call to call and from compilation to compilation). Members of the same kind appear in the result
+        ''' in the same order in which they appeared at their origin (metadata or source).
+        ''' Never returns Nothing.</returns>
         Public MustOverride Function GetMembers(name As String) As ImmutableArray(Of Symbol)
 
         ''' <summary>
@@ -185,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 
         ''' Its purpose is to add names of probable extension methods found in membersByName parameter
         ''' to nameSet parameter. Method's viability check is delegated to overridable method
-        ''' AddExtensionMethodLookupSymbolsInfoViabilityCheck, which is overriden by RetargetingNamedtypeSymbol
+        ''' AddExtensionMethodLookupSymbolsInfoViabilityCheck, which is overridden by RetargetingNamedtypeSymbol
         ''' and RetargetingNamespaceSymbol in order to perform the check on corresponding RetargetingMethodSymbol.
         ''' 
         ''' Returns true if there were extension methods among the members, 
@@ -228,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Perform extension method viability check within AppendExtensionMethodNames method above.
-        ''' This method is overriden by RetargetingNamedtypeSymbol and RetargetingNamespaceSymbol in order to 
+        ''' This method is overridden by RetargetingNamedtypeSymbol and RetargetingNamespaceSymbol in order to 
         ''' perform the check on corresponding RetargetingMethodSymbol.
         ''' 
         ''' Returns true if the method is viable. 

@@ -13,24 +13,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class ConstantFieldsInProgressBinder
         Inherits Binder
 
-        Private ReadOnly inProgress As SymbolsInProgress(Of FieldSymbol)
-        Private ReadOnly field As FieldSymbol
+        Private ReadOnly _inProgress As SymbolsInProgress(Of FieldSymbol)
+        Private ReadOnly _field As FieldSymbol
 
         Friend Sub New(inProgress As SymbolsInProgress(Of FieldSymbol), [next] As Binder, field As FieldSymbol)
             MyBase.New([next])
-            Me.inProgress = inProgress
-            Me.field = field
+            Me._inProgress = inProgress
+            Me._field = field
         End Sub
 
         Friend Overrides ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
             Get
-                Return inProgress
+                Return _inProgress
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return field
+                Return _field
             End Get
         End Property
     End Class

@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed partial class AnonymousTypeEqualsMethodSymbol : SynthesizedMethodBase
         {
-            private readonly ImmutableArray<ParameterSymbol> parameters;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
 
             internal AnonymousTypeEqualsMethodSymbol(NamedTypeSymbol container)
                 : base(container, WellKnownMemberNames.ObjectEquals)
             {
-                this.parameters = ImmutableArray.Create<ParameterSymbol>(
+                _parameters = ImmutableArray.Create<ParameterSymbol>(
                                       new SynthesizedParameterSymbol(this, this.Manager.System_Object, 0, RefKind.None, "value")
                                   );
             }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters
             {
-                get { return this.parameters; }
+                get { return _parameters; }
             }
 
             public override bool IsOverride

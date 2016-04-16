@@ -207,7 +207,7 @@ namespace Roslyn.Utilities
                 {
                     if (value < 0 || value >= length)
                     {
-                        throw new ArgumentOutOfRangeException("value");
+                        throw new ArgumentOutOfRangeException(nameof(value));
                     }
 
                     this.position = value;
@@ -234,17 +234,17 @@ namespace Roslyn.Utilities
                             break;
 
                         default:
-                            throw new ArgumentOutOfRangeException("origin");
+                            throw new ArgumentOutOfRangeException(nameof(origin));
                     }
                 }
                 catch (OverflowException)
                 {
-                    throw new ArgumentOutOfRangeException("offset");
+                    throw new ArgumentOutOfRangeException(nameof(offset));
                 }
 
-                if (target < 0 || target >= length)
+                if (target < 0)
                 {
-                    throw new ArgumentOutOfRangeException("offset");
+                    throw new ArgumentOutOfRangeException(nameof(offset));
                 }
 
                 position = target;
@@ -278,7 +278,7 @@ namespace Roslyn.Utilities
                 var totalCopyCount = Read(this.chunks, this.position, this.length, buffer, index, count);
                 this.position += totalCopyCount;
 
-                return (int)totalCopyCount;
+                return totalCopyCount;
             }
 
             private static int Read(List<byte[]> chunks, long position, long length, byte[] buffer, int index, int count)
@@ -378,7 +378,7 @@ namespace Roslyn.Utilities
                 {
                     if (value < 0)
                     {
-                        throw new ArgumentOutOfRangeException("value");
+                        throw new ArgumentOutOfRangeException(nameof(value));
                     }
 
                     this.position = value;

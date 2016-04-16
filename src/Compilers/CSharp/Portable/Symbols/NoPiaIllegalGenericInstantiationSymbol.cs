@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class NoPiaIllegalGenericInstantiationSymbol : ErrorTypeSymbol
     {
-        private readonly ModuleSymbol exposingModule;
-        private readonly NamedTypeSymbol underlyingSymbol;
+        private readonly ModuleSymbol _exposingModule;
+        private readonly NamedTypeSymbol _underlyingSymbol;
 
         public NoPiaIllegalGenericInstantiationSymbol(ModuleSymbol exposingModule, NamedTypeSymbol underlyingSymbol)
         {
-            this.exposingModule = exposingModule;
-            this.underlyingSymbol = underlyingSymbol;
+            _exposingModule = exposingModule;
+            _underlyingSymbol = underlyingSymbol;
         }
 
         internal override bool MangleName
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.underlyingSymbol;
+                return _underlyingSymbol;
             }
         }
 
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (underlyingSymbol.IsErrorType())
+                if (_underlyingSymbol.IsErrorType())
                 {
-                    DiagnosticInfo underlyingInfo = ((ErrorTypeSymbol)underlyingSymbol).ErrorInfo;
+                    DiagnosticInfo underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
 
                     if ((object)underlyingInfo != null)
                     {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, underlyingSymbol, exposingModule.ContainingAssembly);
+                return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, _underlyingSymbol, _exposingModule.ContainingAssembly);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             return ReferenceEquals(this, t2);
         }

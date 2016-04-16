@@ -12,7 +12,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Partial Public Class DiagnosticAnalyzerTests
-        <WorkItem(897137, "DevDiv")>
+        <WorkItem(897137, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897137")>
         <Fact>
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()
         End Sub
 
-        <WorkItem(896273, "DevDiv")>
+        <WorkItem(896273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896273")>
         <Fact>
         Public Sub DiagnosticAnalyzerEnumBlock()
             Dim source =
@@ -39,10 +39,11 @@ End Enum
         End Sub
 
         <Fact>
+        <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, Nothing, DiagnosticExtensions.AlwaysCatchAnalyzerExceptions), AnalyzerDriverHelper.DiagnosticId)
+                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, logAnalyzerExceptionAsDiagnostics:=True))
         End Sub
 
         <Fact>
@@ -60,8 +61,8 @@ End Enum
         Private NotInheritable Class TestAdditionalText
             Inherits AdditionalText
 
-            Private _path As String
-            Private _text As SourceText
+            Private ReadOnly _path As String
+            Private ReadOnly _text As SourceText
 
             Public Sub New(path As String, text As SourceText)
                 _path = path

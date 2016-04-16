@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis
             // 3) The SymbolId for a module symbol if this is the global namespace for a module.
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
-            private readonly SymbolKey containerKeyOpt;
-            private readonly string metadataName;
+            private readonly SymbolKey _containerKeyOpt;
+            private readonly string _metadataName;
 
             internal NamespaceSymbolKey(INamespaceSymbol symbol, Visitor visitor)
             {
-                this.containerKeyOpt = DetermineContainerKey(symbol, visitor);
-                this.metadataName = symbol.MetadataName;
+                _containerKeyOpt = DetermineContainerKey(symbol, visitor);
+                _metadataName = symbol.MetadataName;
             }
 
             private SymbolKey DetermineContainerKey(INamespaceSymbol symbol, Visitor visitor)
@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                if (ReferenceEquals(this.containerKeyOpt, null))
+                if (ReferenceEquals(_containerKeyOpt, null))
                 {
                     return new SymbolKeyResolution(compilation.GlobalNamespace);
                 }
 
-                var container = containerKeyOpt.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var container = _containerKeyOpt.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
                 var namespaces = GetAllSymbols(container).SelectMany(s => Resolve(compilation, s, ignoreAssemblyKey));
 
                 return CreateSymbolInfo(namespaces);
@@ -72,17 +72,17 @@ namespace Microsoft.CodeAnalysis
             {
                 if (container is IAssemblySymbol)
                 {
-                    Debug.Assert(metadataName == string.Empty);
+                    Debug.Assert(_metadataName == string.Empty);
                     return SpecializedCollections.SingletonEnumerable(((IAssemblySymbol)container).GlobalNamespace);
                 }
                 else if (container is IModuleSymbol)
                 {
-                    Debug.Assert(metadataName == string.Empty);
+                    Debug.Assert(_metadataName == string.Empty);
                     return SpecializedCollections.SingletonEnumerable(((IModuleSymbol)container).GlobalNamespace);
                 }
                 else if (container is INamespaceSymbol)
                 {
-                    return ((INamespaceSymbol)container).GetMembers(this.metadataName).OfType<INamespaceSymbol>();
+                    return ((INamespaceSymbol)container).GetMembers(_metadataName).OfType<INamespaceSymbol>();
                 }
                 else
                 {
@@ -94,16 +94,16 @@ namespace Microsoft.CodeAnalysis
             {
                 var comparer = SymbolKeyComparer.GetComparer(options);
                 return
-                    Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    comparer.Equals(other.containerKeyOpt, this.containerKeyOpt);
+                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    comparer.Equals(other._containerKeyOpt, _containerKeyOpt);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 var comparer = SymbolKeyComparer.GetComparer(options);
                 return Hash.Combine(
-                    GetHashCode(options.IgnoreCase, this.metadataName),
-                    comparer.GetHashCode(this.containerKeyOpt));
+                    GetHashCode(options.IgnoreCase, _metadataName),
+                    comparer.GetHashCode(_containerKeyOpt));
             }
         }
     }

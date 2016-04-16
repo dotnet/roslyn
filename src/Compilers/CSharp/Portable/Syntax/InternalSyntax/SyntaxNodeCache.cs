@@ -9,7 +9,6 @@ using Roslyn.Utilities;
 #if STATS
 using System.Threading;
 #endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     /// <summary>
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static readonly Entry[] cache = new Entry[CacheSize];
+        private static readonly Entry[] s_cache = new Entry[CacheSize];
 
         internal static void AddNode(GreenNode node, int hash)
         {
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(node.GetCacheHash() == hash);
 
                 var idx = hash & CacheMask;
-                cache[idx] = new Entry(hash, node);
+                s_cache[idx] = new Entry(hash, node);
             }
         }
 
@@ -158,13 +157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool ChildInCache(GreenNode child)
         {
             // for the purpose of this function consider that 
-            // null nodes, tokens and trivias are cached somwhere else.
+            // null nodes, tokens and trivias are cached somewhere else.
             // TODO: should use slotCount
             if (child == null || child.SlotCount == 0) return true;
 
             int hash = child.GetCacheHash();
             int idx = hash & CacheMask;
-            return cache[idx].node == child;
+            return s_cache[idx].node == child;
         }
 
         private static bool AllChildrenInCache(GreenNode node)
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1);
                 int idx = h & CacheMask;
-                var e = cache[idx];
+                var e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1))
                 {
                     GreenStats.CacheHit();
@@ -233,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2);
                 int idx = h & CacheMask;
-                var e = cache[idx];
+                var e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2))
                 {
                     GreenStats.CacheHit();
@@ -266,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 int h = hash = GetCacheHash(kind, flags, child1, child2, child3);
                 int idx = h & CacheMask;
-                var e = cache[idx];
+                var e = s_cache[idx];
                 if (e.hash == h && e.node != null && e.node.IsCacheEquivalent(kind, flags, child1, child2, child3))
                 {
                     GreenStats.CacheHit();

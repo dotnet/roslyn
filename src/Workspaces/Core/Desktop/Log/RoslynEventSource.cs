@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // might not "enabled" but we always have this singleton alive
         public static readonly RoslynEventSource Instance = new RoslynEventSource();
 
-        private readonly bool initialized = false;
+        private readonly bool _initialized;
         private RoslynEventSource()
         {
-            this.initialized = true;
+            _initialized = true;
         }
 
         // Do not change the parameter order for this method: it must match the parameter order
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 command.Command != EventCommand.Disable ||
                 FunctionDefinitionRequested(command))
             {
-                if (!initialized)
+                if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
                     Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);

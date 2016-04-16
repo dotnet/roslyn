@@ -128,5 +128,4 @@ namespace Microsoft.CodeAnalysis
             }
         }
     }
-
 }

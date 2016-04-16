@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (comparer == null)
             {
-                throw new ArgumentNullException("comparer");
+                throw new ArgumentNullException(nameof(comparer));
             }
 
             return new InverseComparer<T>(comparer);
@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private class InverseComparer<T> : IComparer<T>
         {
-            private readonly IComparer<T> comparer;
+            private readonly IComparer<T> _comparer;
 
             internal InverseComparer(IComparer<T> comparer)
             {
-                this.comparer = comparer;
+                _comparer = comparer;
             }
 
             public int Compare(T x, T y)
             {
-                return comparer.Compare(y, x);
+                return _comparer.Compare(y, x);
             }
         }
     }

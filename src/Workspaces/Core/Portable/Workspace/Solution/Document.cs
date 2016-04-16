@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Document : TextDocument
     {
-        private readonly DocumentState state;
+        private readonly DocumentState _state;
 
-        private WeakReference<SemanticModel> model;
-        private Task<SyntaxTree> syntaxTreeResultTask;
+        private WeakReference<SemanticModel> _model;
+        private Task<SyntaxTree> _syntaxTreeResultTask;
 
         internal Document(Project project, DocumentState state)
         {
@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfNull(state);
 
             this.Project = project;
-            this.state = state;
+            _state = state;
         }
 
         internal DocumentState State
         {
             get
             {
-                return this.state;
+                return _state;
             }
         }
 
         internal override TextDocumentState GetDocumentState()
         {
-            return this.state;
+            return _state;
         }
 
         /// <summary>
@@ -55,32 +55,33 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.state.SourceCodeKind;
+                return _state.SourceCodeKind;
             }
         }
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
-        /// Returns true if the syntax tree is already available, or false if getting the syntax tree would have incurred additional work.
+        /// In almost all cases, you should call <see cref="GetSyntaxTreeAsync"/> to fetch the tree, which will parse the tree
+        /// if it's not already parsed.
         /// </summary>
         public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
         {
             // if we already have cache, use it
-            if (this.syntaxTreeResultTask != null)
+            if (_syntaxTreeResultTask != null)
             {
-                syntaxTree = this.syntaxTreeResultTask.Result;
+                syntaxTree = _syntaxTreeResultTask.Result;
             }
 
-            if (!this.state.TryGetSyntaxTree(out syntaxTree))
+            if (!_state.TryGetSyntaxTree(out syntaxTree))
             {
                 return false;
             }
 
             // cache the result if it is not already cached
-            if (this.syntaxTreeResultTask == null)
+            if (_syntaxTreeResultTask == null)
             {
                 var result = Task.FromResult(syntaxTree);
-                Interlocked.CompareExchange(ref syntaxTreeResultTask, result, null);
+                Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
             }
 
             return true;
@@ -88,7 +89,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get the current syntax tree version for the document if the text is already loaded and the tree is already parsed.
-        /// Returns true if the syntax tree is already available, or false if getting the syntax tree would have incurred additional work.
+        /// In almost all cases, you should call <see cref="GetSyntaxVersionAsync"/> to fetch the version, which will load the tree
+        /// if it's not already available.
         /// </summary>
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
-            return this.state.TryGetTopLevelChangeTextVersion(out version);
+            return _state.TryGetTopLevelChangeTextVersion(out version);
         }
 
         /// <summary>
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Project.LanguageServices.SyntaxTreeFactory != null;
+                return this.State.SupportsSyntaxTree;
             }
         }
 
@@ -161,12 +163,12 @@ namespace Microsoft.CodeAnalysis
             // immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return Task.FromResult<SyntaxTree>(null);
+                return SpecializedTasks.Default<SyntaxTree>();
             }
 
-            if (syntaxTreeResultTask != null)
+            if (_syntaxTreeResultTask != null)
             {
-                return syntaxTreeResultTask;
+                return _syntaxTreeResultTask;
             }
 
             // First see if we already have a semantic model computed.  If so, we can just return
@@ -176,30 +178,32 @@ namespace Microsoft.CodeAnalysis
             {
                 // PERF: This is a hot code path, so cache the result to reduce allocations
                 var result = Task.FromResult(semanticModel.SyntaxTree);
-                Interlocked.CompareExchange(ref syntaxTreeResultTask, result, null);
-                return syntaxTreeResultTask;
+                Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
+                return _syntaxTreeResultTask;
             }
 
             // second, see whether we already computed the tree, if we already did, return the cache
             SyntaxTree tree;
             if (TryGetSyntaxTree(out tree))
             {
-                if (this.syntaxTreeResultTask == null)
+                if (_syntaxTreeResultTask == null)
                 {
                     var result = Task.FromResult(tree);
-                    Interlocked.CompareExchange(ref syntaxTreeResultTask, result, null);
+                    Interlocked.CompareExchange(ref _syntaxTreeResultTask, result, null);
                 }
 
-                return syntaxTreeResultTask;
+                return _syntaxTreeResultTask;
             }
 
             // we can't cache this result, since internally it uses AsyncLazy which
             // care about cancellation token
-            return this.state.GetSyntaxTreeAsync(cancellationToken);
+            return _state.GetSyntaxTreeAsync(cancellationToken);
         }
 
         /// <summary>
-        /// Gets the root node of the current syntax tree if it is available.
+        /// Gets the root node of the current syntax tree if the syntax tree has already been parsed and the tree is still cached.
+        /// In almost all cases, you should call <see cref="GetSyntaxRootAsync"/> to fetch the root node, which will parse
+        /// the document if necessary.
         /// </summary>
         public bool TryGetSyntaxRoot(out SyntaxNode root)
         {
@@ -223,12 +227,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the current semantic model for this document if the model is already computed.
+        /// Gets the current semantic model for this document if the model is already computed and still cached.
+        /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
+        /// if necessary.
         /// </summary>
         public bool TryGetSemanticModel(out SemanticModel semanticModel)
         {
             semanticModel = null;
-            return this.model != null && this.model.TryGetTarget(out semanticModel);
+            return _model != null && _model.TryGetTarget(out semanticModel);
         }
 
         /// <summary>
@@ -256,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfNull(result);
 
                 // first try set the cache if it has not been set
-                var original = Interlocked.CompareExchange(ref this.model, new WeakReference<SemanticModel>(result), null);
+                var original = Interlocked.CompareExchange(ref _model, new WeakReference<SemanticModel>(result), null);
 
                 // okay, it is first time.
                 if (original == null)

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // lowered local declaration node is associated with declaration (not whole statement)
-            // this is done to make sure that debugger stepping is is same as before
+            // this is done to make sure that debugger stepping is same as before
             var localDeclaration = syntax as LocalDeclarationStatementSyntax;
             if (localDeclaration != null)
             {

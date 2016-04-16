@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Enum CharFlags As UShort
             White = 1 << 0   ' simple whitespace (space/tab)
             Letter = 1 << 1    ' letter, except for "R" (because of REM) and "_"
-            IdentOnly = 1 << 2  ' alowed only in identifiers (cannot start one) - letter "R" (because of REM), "_"
+            IdentOnly = 1 << 2  ' allowed only in identifiers (cannot start one) - letter "R" (because of REM), "_"
             TypeChar = 1 << 3  ' legal type character (except !, which is contextually dictionary lookup
             Punct = 1 << 4     ' some simple punctuation (parens, braces, dot, comma, equals, question)
             CompoundPunctStart = 1 << 5 ' may be a part of compound punctuation. will be used only if followed by (not white) && (not punct)
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' # is marked complex as it may start directives.
         ' PERF: Use UShort instead of CharFlags so the compiler can use array literal initialization.
         '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        Private Shared charProperties As UShort() = {
+        Private Shared ReadOnly s_charProperties As UShort() = {
             CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex,
             CharFlags.Complex, CharFlags.White, CharFlags.LF, CharFlags.Complex, CharFlags.Complex, CharFlags.CR, CharFlags.Complex, CharFlags.Complex,
             CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex, CharFlags.Complex,
@@ -130,13 +130,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter, CharFlags.Letter}
 
         ' Size of the above table.
-        Private Const CHARPROP_LENGTH = &H180
+        Private Const s_CHARPROP_LENGTH = &H180
 
         ' Maximum length of a token to scan
         Friend Const MAXTOKENSIZE = 42
 
         Shared Sub New()
-            Debug.Assert(charProperties.Length = CHARPROP_LENGTH)
+            Debug.Assert(s_charProperties.Length = s_CHARPROP_LENGTH)
         End Sub
 
         Public Structure QuickScanResult
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim offset = _lineBufferOffset
             Dim page = _curPage
             If page Is Nothing OrElse
-                page._pageStart <> (offset And NOT_PAGE_MASK) Then
+                page._pageStart <> (offset And s_NOT_PAGE_MASK) Then
 
                 page = GetPage(offset)
             End If
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim pageArr As Char() = page._arr
             Dim qtChars = pageArr
 
-            Dim index = _lineBufferOffset And PAGE_MASK
+            Dim index = _lineBufferOffset And s_PAGE_MASK
             Dim qtStart = index
 
             Dim limit = index + Math.Min(MAXTOKENSIZE, _bufferLen - offset)
@@ -196,11 +196,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Get the flags for that character.
                 unicodeValue = AscW(c)
 
-                If unicodeValue >= CHARPROP_LENGTH Then
+                If unicodeValue >= s_CHARPROP_LENGTH Then
                     Exit While
                 End If
 
-                Dim flags = charProperties(unicodeValue)
+                Dim flags = s_charProperties(unicodeValue)
 
                 ' Advance the scanner state.
                 Select Case state

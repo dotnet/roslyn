@@ -4,14 +4,13 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdEvents
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub MissingReferences_SyntehesizedAccessors()
+        Public Sub MissingReferences_SynthesizedAccessors()
             Dim source =
                 <compilation name="MissingReferences">
                     <file name="a.vb">
@@ -455,7 +454,7 @@ End Class
         ''' <remarks>
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
-        <Fact(), WorkItem(1003209)>
+        <Fact(), WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =
@@ -537,7 +536,7 @@ End Namespace
 
             Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
             Dim comp2 = CreateCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
-            CompileAndVerify(comp2, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:=<![CDATA[
+            CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A
 False
 
@@ -897,8 +896,37 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(6313, "https://github.com/dotnet/roslyn/issues/6313")>
+        Public Sub CustomEventWinMd()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Runtime.InteropServices.WindowsRuntime
+
+Class Test
+    Public Custom Event CustomEvent As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            Return Nothing		
+        End AddHandler
+
+        RemoveHandler(value As EventRegistrationToken)
+
+        End RemoveHandler
+
+        RaiseEvent()
+
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
+            Dim verifier = CompileAndVerify(comp)
+        End Sub
+
         ' Field-like and custom events are not treated differently.
-        <Fact(), WorkItem(1003209)>
+        <Fact(), WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
         Public Sub HandlesClauses_EventKinds()
 
             Dim source =

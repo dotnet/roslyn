@@ -5,7 +5,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.Editting
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Inherits AbstractFlagsEnumGenerator
 
         Public Shared ReadOnly Instance As VisualBasicFlagsEnumGenerator = New VisualBasicFlagsEnumGenerator
-        Private Shared ReadOnly SyntaxGeneratorInstance As SyntaxGenerator = New VisualBasicSyntaxGenerator
+        Private Shared ReadOnly s_syntaxGeneratorInstance As SyntaxGenerator = New VisualBasicSyntaxGenerator
 
         Private Sub New()
         End Sub
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Protected Overrides Function GetSyntaxGenerator() As SyntaxGenerator
-            Return SyntaxGeneratorInstance
+            Return s_syntaxGeneratorInstance
         End Function
 
         Protected Overrides Function IsValidName(enumType As INamedTypeSymbol, name As String) As Boolean

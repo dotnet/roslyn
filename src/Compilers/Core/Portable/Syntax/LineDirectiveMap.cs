@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// The LineDirectiveMap is created to enable translating positions, using the #line directives
     /// in a file. The basic implementation creates an ordered array of line mapping entries, one
     /// for each #line directive in the file (plus one at the beginning). If the file has no
-    /// directives, then the array has just one element in in. To map line numbers, a binary search
+    /// directives, then the array has just one element in it. To map line numbers, a binary search
     /// of the mapping entries is done and nearest line mapping is applied.
     /// </summary>
     internal abstract partial class LineDirectiveMap<TDirective>

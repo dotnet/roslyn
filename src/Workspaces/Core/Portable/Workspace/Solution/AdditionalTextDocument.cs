@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class AdditionalTextDocument : AdditionalText
     {
-        private readonly TextDocumentState document;
+        private readonly TextDocumentState _document;
 
         /// <summary>
         /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="document"/> should be non-null.
@@ -25,20 +25,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(document));
             }
 
-            this.document = document;
+            _document = document;
         }
 
         /// <summary>
         /// Resolved path of the document.
         /// </summary>
-        public override string Path => this.document.FilePath ?? this.document.Name;
+        public override string Path => _document.FilePath ?? _document.Name;
 
         /// <summary>
         /// Retrieves a <see cref="SourceText"/> with the contents of this file.
         /// </summary>
         public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = _document.GetText(cancellationToken);
             return text;
         }
     }

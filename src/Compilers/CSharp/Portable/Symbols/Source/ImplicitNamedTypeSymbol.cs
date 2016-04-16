@@ -48,11 +48,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NoLocation.Singleton;
         }
 
+        /// <summary>
+        /// Returns null for a submission class.
+        /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
+        /// </summary>
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
             {
-                return (this.TypeKind == TypeKind.Submission) ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+                return IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
             }
         }
 
@@ -95,6 +99,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
         {
             get { return ImmutableArray<TypeSymbol>.Empty; }
+        }
+
+        internal override bool HasTypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
+            }
         }
 
         internal override bool IsComImport

@@ -13,26 +13,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A region analysis walker that records jumps out of the region.
     /// </summary>
-    class ExitPointsWalker : AbstractRegionControlFlowPass
+    internal class ExitPointsWalker : AbstractRegionControlFlowPass
     {
-        private readonly ArrayBuilder<LabelSymbol> labelsInside;
-        private ArrayBuilder<StatementSyntax> branchesOutOf;
+        private readonly ArrayBuilder<LabelSymbol> _labelsInside;
+        private ArrayBuilder<StatementSyntax> _branchesOutOf;
 
         private ExitPointsWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
-            labelsInside = new ArrayBuilder<LabelSymbol>();
-            branchesOutOf = ArrayBuilder<StatementSyntax>.GetInstance();
+            _labelsInside = new ArrayBuilder<LabelSymbol>();
+            _branchesOutOf = ArrayBuilder<StatementSyntax>.GetInstance();
         }
 
         protected override void Free()
         {
-            if (branchesOutOf != null)
+            if (_branchesOutOf != null)
             {
-                branchesOutOf.Free();
+                _branchesOutOf.Free();
             }
 
-            labelsInside.Free();
+            _labelsInside.Free();
             base.Free();
         }
 
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool badRegion = false;
                 walker.Analyze(ref badRegion);
-                var result = walker.branchesOutOf.ToImmutableAndFree();
-                walker.branchesOutOf = null;
+                var result = walker._branchesOutOf.ToImmutableAndFree();
+                walker._branchesOutOf = null;
                 return badRegion ? SpecializedCollections.EmptyEnumerable<StatementSyntax>() : result;
             }
             finally
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        new void Analyze(ref bool badRegion)
+        private new void Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
         {
-            if (IsInside) labelsInside.Add(node.Label);
+            if (IsInside) _labelsInside.Add(node.Label);
             return base.VisitLabelStatement(node);
         }
 
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                labelsInside.Add(node.BreakLabel);
-                labelsInside.Add(node.ContinueLabel);
+                _labelsInside.Add(node.BreakLabel);
+                _labelsInside.Add(node.ContinueLabel);
             }
             return base.VisitDoStatement(node);
         }
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                labelsInside.Add(node.BreakLabel);
-                labelsInside.Add(node.ContinueLabel);
+                _labelsInside.Add(node.BreakLabel);
+                _labelsInside.Add(node.ContinueLabel);
             }
             return base.VisitForEachStatement(node);
         }
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                labelsInside.Add(node.BreakLabel);
-                labelsInside.Add(node.ContinueLabel);
+                _labelsInside.Add(node.BreakLabel);
+                _labelsInside.Add(node.ContinueLabel);
             }
             return base.VisitForStatement(node);
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                labelsInside.Add(node.BreakLabel);
+                _labelsInside.Add(node.BreakLabel);
             }
             return base.VisitSwitchStatement(node);
         }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                labelsInside.Add(node.BreakLabel);
+                _labelsInside.Add(node.BreakLabel);
             }
             return base.VisitWhileStatement(node);
         }
@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (pending.Branch.Kind)
                 {
                     case BoundKind.GotoStatement:
-                        if (labelsInside.Contains(((pending.Branch) as BoundGotoStatement).Label)) continue;
+                        if (_labelsInside.Contains(((pending.Branch) as BoundGotoStatement).Label)) continue;
                         break;
                     case BoundKind.BreakStatement:
-                        if (labelsInside.Contains(((pending.Branch) as BoundBreakStatement).Label)) continue;
+                        if (_labelsInside.Contains(((pending.Branch) as BoundBreakStatement).Label)) continue;
                         break;
                     case BoundKind.ContinueStatement:
-                        if (labelsInside.Contains(((pending.Branch) as BoundContinueStatement).Label)) continue;
+                        if (_labelsInside.Contains(((pending.Branch) as BoundContinueStatement).Label)) continue;
                         break;
                     case BoundKind.YieldBreakStatement:
                     case BoundKind.ReturnStatement:
@@ -143,10 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We don't do anything with yield return statements or await expressions; they are treated as if they are not jumps.
                         continue;
                     default:
-                        Debug.Assert(false); // there are no other branch statements
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);
                 }
-                branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
+                _branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
             }
 
             base.LeaveRegion();

@@ -10,15 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(binder As DeclarationInitializerBinder) As InitializerSemanticModel
-            Return New InitializerSemanticModel(binder.Root, binder)
+        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
+            Return New InitializerSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
-                            binder.BindFieldInitializer(ImmutableArray.Create(Of Symbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
+                            binder.BindFieldInitializer(ImmutableArray.Create(Of FieldSymbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
                         Else
                             binder.BindArrayFieldImplicitInitializer(fieldSymbol, boundInitializers, diagnostics)
                         End If
@@ -114,19 +114,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         boundInitializers.Free()
                     End If
 
+                    Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                    If expressionInitializer IsNot Nothing Then
+                        Return New BoundFieldInitializer(initializer, ImmutableArray.Create(DirectCast(Me.MemberSymbol, FieldSymbol)), Nothing, expressionInitializer)
+                    End If
+
                 Case SymbolKind.Property
                     '  get property symbol
-                    Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
+                    Dim propertySymbol = DirectCast(Me.MemberSymbol, PropertySymbol)
                     Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
-                    binder.BindPropertyInitializer(propertySymbol, initializer, boundInitializers, diagnostics)
+                    binder.BindPropertyInitializer(ImmutableArray.Create(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
+
+                    Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                    If expressionInitializer IsNot Nothing Then
+                        Return New BoundPropertyInitializer(initializer, ImmutableArray.Create(propertySymbol), Nothing, expressionInitializer)
+                    End If
 
                 Case SymbolKind.Parameter
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
+
+                        Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+                        If expressionInitializer IsNot Nothing Then
+                            Return New BoundParameterEqualsValue(initializer, parameterSymbol, expressionInitializer)
+                        End If
                     End If
 
                 Case Else

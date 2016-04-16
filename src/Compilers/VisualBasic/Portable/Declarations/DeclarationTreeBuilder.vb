@@ -1,18 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class DeclarationTreeBuilder
@@ -23,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _scriptClassName As String
         Private ReadOnly _isSubmission As Boolean
         Private ReadOnly _syntaxTree As SyntaxTree
-        Private _diagnostics As List(Of Diagnostic)
 
         Public Shared Function ForTree(tree As SyntaxTree, rootNamespace As ImmutableArray(Of String), scriptClassName As String, isSubmission As Boolean) As RootSingleNamespaceDeclaration
             Dim builder = New DeclarationTreeBuilder(tree, rootNamespace, scriptClassName, isSubmission)
@@ -99,20 +91,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return children
         End Function
 
-        Private Function GetReferenceDirectives(compilationUnit As CompilationUnitSyntax) As ImmutableArray(Of ReferenceDirective)
-            Dim directiveNodes = compilationUnit.GetReferenceDirectives(Function(d) Not d.File.ContainsDiagnostics AndAlso Not String.IsNullOrEmpty(d.File.ValueText))
-
+        Private Shared Function GetReferenceDirectives(compilationUnit As CompilationUnitSyntax) As ImmutableArray(Of ReferenceDirective)
+            Dim directiveNodes = compilationUnit.GetReferenceDirectives(
+                Function(d) Not d.File.ContainsDiagnostics AndAlso Not String.IsNullOrEmpty(d.File.ValueText))
             If directiveNodes.Count = 0 Then
                 Return ImmutableArray(Of ReferenceDirective).Empty
             End If
 
-            Dim directives = New ReferenceDirective(directiveNodes.Count - 1) {}
-
-            For i = 0 To directives.Length - 1
-                directives(i) = New ReferenceDirective(directiveNodes(i).File.ValueText, directiveNodes(i).GetLocation())
+            Dim directives = ArrayBuilder(Of ReferenceDirective).GetInstance(directiveNodes.Count)
+            For Each directiveNode In directiveNodes
+                directives.Add(New ReferenceDirective(directiveNode.File.ValueText, New SourceLocation(directiveNode)))
             Next
-
-            Return directives.AsImmutableOrNull()
+            Return directives.ToImmutableAndFree()
         End Function
 
         Private Function CreateImplicitClass(parent As VisualBasicSyntaxNode, memberNames As String(), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
@@ -169,8 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim syntaxRef = _syntaxTree.GetReference(node)
             Dim implicitClass As SingleNamespaceOrTypeDeclaration = Nothing
-            Dim diagnostics As ImmutableArray(Of Diagnostic)
 
+            Dim referenceDirectives As ImmutableArray(Of ReferenceDirective)
             If _syntaxTree.Options.Kind <> SourceCodeKind.Regular Then
                 Dim childrenBuilder = ArrayBuilder(Of SingleNamespaceOrTypeDeclaration).GetInstance()
                 Dim scriptChildren = ArrayBuilder(Of SingleTypeDeclaration).GetInstance()
@@ -194,14 +184,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 implicitClass = CreateScriptClass(node, scriptChildren.ToImmutableAndFree(), memberNames, declFlags)
                 children = childrenBuilder.ToImmutableAndFree()
-                diagnostics = Global.Microsoft.CodeAnalysis.ImmutableArrayExtensions.AsImmutableOrEmpty(Me._diagnostics)
+                referenceDirectives = GetReferenceDirectives(node)
             Else
                 children = VisitNamespaceChildren(node, node.Members, implicitClass).ToImmutableAndFree()
-
-                ' no diagnostics should be reported from a non-script tree:
-                Debug.Assert(_diagnostics Is Nothing)
-
-                diagnostics = GetMisplacedReferenceDirectivesDiagnostics(node)
+                referenceDirectives = ImmutableArray(Of ReferenceDirective).Empty
             End If
 
             ' Find children within NamespaceGlobal separately
@@ -213,8 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     hasImports:=True,
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=globalChildren.Concat(nonGlobal),
-                    referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
-                    diagnostics:=diagnostics,
+                    referenceDirectives:=referenceDirectives,
                     hasAssemblyAttributes:=node.Attributes.Any)
             Else
                 ' Project-level root namespace. All children without explicit global are children
@@ -229,8 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     hasImports:=True,
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=newChildren,
-                    referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
-                    diagnostics:=diagnostics,
+                    referenceDirectives:=referenceDirectives,
                     hasAssemblyAttributes:=node.Attributes.Any)
             End If
         End Function
@@ -264,19 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             nonGlobal = nonGlobalBuilder.ToImmutableAndFree()
         End Sub
 
-        Private Function GetMisplacedReferenceDirectivesDiagnostics(compilation As CompilationUnitSyntax) As ImmutableArray(Of Diagnostic)
-            ' report errors for the first #r directive - they are not allowed in regular code:
-            Dim directives = compilation.GetReferenceDirectives()
-            If directives.Count = 0 Then
-                Return ImmutableArray(Of Diagnostic).Empty
-            End If
-
-            Return ImmutableArray.Create(Of Diagnostic)(
-                New VBDiagnostic(
-                    New DiagnosticInfo(MessageProvider.Instance, DirectCast(ERRID.ERR_ReferenceDirectiveOnlyAllowedInScripts, Integer)),
-                    directives(0).GetLocation()))
-        End Function
-
         Private Function UnescapeIdentifier(identifier As String) As String
             If identifier(0) = "[" Then
                 Debug.Assert(identifier(identifier.Length - 1) = "]")
@@ -294,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim ns As SingleNamespaceDeclaration = Nothing
 
             ' The compilation node will count as a location for the innermost project level
-            ' namespace.  i.e. if the project level namspace is "Foo.Bar", then each compilation unit
+            ' namespace.  i.e. if the project level namespace is "Foo.Bar", then each compilation unit
             ' is a location for "Foo.Bar".  "Foo" still has no syntax location though. 
             '
             ' By doing this we ensure that top level type and namespace declarations will have
@@ -332,15 +303,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim nsDeclSyntax As NamespaceStatementSyntax = nsBlockSyntax.NamespaceStatement
             Dim children = VisitNamespaceChildren(nsBlockSyntax, nsBlockSyntax.Members)
             Dim name As NameSyntax = nsDeclSyntax.Name
-
-            If _syntaxTree.Options.Kind = SourceCodeKind.Interactive OrElse _syntaxTree.Options.Kind = SourceCodeKind.Script Then
-                If _diagnostics Is Nothing Then
-                    _diagnostics = New List(Of Diagnostic)()
-                End If
-
-                _diagnostics.Add(New VBDiagnostic(New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_NamespaceNotAllowedInScript),
-                                                nsBlockSyntax.NamespaceStatement.NamespaceKeyword.GetLocation()))
-            End If
 
             While TypeOf name Is QualifiedNameSyntax
                 Dim dotted = DirectCast(name, QualifiedNameSyntax)
@@ -490,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim typeBlockSyntax As TypeBlockSyntax = typeEntry.TypeBlockSyntax
-                Dim declarationSyntax As TypeStatementSyntax = typeBlockSyntax.Begin
+                Dim declarationSyntax As TypeStatementSyntax = typeBlockSyntax.BlockStatement
 
                 ' Get the arity for things that can have arity.
                 Dim typeArity As Integer = 0
@@ -517,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         modifiers:=GetModifiers(declarationSyntax.Modifiers),
                         declFlags:=declFlags,
                         syntaxReference:=_syntaxTree.GetReference(typeBlockSyntax),
-                        nameLocation:=_syntaxTree.GetLocation(typeBlockSyntax.Begin.Identifier.Span),
+                        nameLocation:=_syntaxTree.GetLocation(typeBlockSyntax.BlockStatement.Identifier.Span),
                         memberNames:=memberNames,
                         children:=children))
             End While
@@ -610,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock
                         anyNonTypeMembers = True
-                        Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).Begin
+                        Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
                         If methodDecl.AttributeLists.Any Then
                             anyMemberHasAttributes = True
                         End If
@@ -623,7 +585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             anyMemberHasAttributes = True
                         Else
                             For Each a In propertyDecl.Accessors
-                                If a.Begin.AttributeLists.Any Then
+                                If a.BlockStatement.AttributeLists.Any Then
                                     anyMemberHasAttributes = True
                                 End If
                             Next
@@ -649,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             anyMemberHasAttributes = True
                         Else
                             For Each a In eventDecl.Accessors
-                                If a.Begin.AttributeLists.Any Then
+                                If a.BlockStatement.AttributeLists.Any Then
                                     anyMemberHasAttributes = True
                                 End If
                             Next
@@ -676,9 +638,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
-            Dim result = results.ToArray()
-            results.Free()
+            ' PERF: The member names collection tends to be long-lived. Use a string array since
+            ' that uses less memory than a HashSet.
+            Dim result As String()
+            If results.Count = 0 Then
+                result = SpecializedCollections.EmptyArray(Of String)
+            Else
+                ReDim result(results.Count - 1)
+                results.CopyTo(result)
+            End If
 
+            results.Free()
             Return result
         End Function
 
@@ -821,7 +791,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.IteratorKeyword : bit = DeclarationModifiers.Iterator
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(modifier.Kind)
+                        ' It is possible to run into other tokens here, but only in error conditions.
+                        ' We are going to ignore them here.
+                        If Not modifier.GetDiagnostics().Any(Function(d) d.Severity = DiagnosticSeverity.Error) Then
+                            Throw ExceptionUtilities.UnexpectedValue(modifier.Kind)
+                        End If
                 End Select
 
                 result = result Or bit

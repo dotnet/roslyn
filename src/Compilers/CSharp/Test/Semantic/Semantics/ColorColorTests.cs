@@ -139,7 +139,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNonInitializedLocalOnLeft()
         {
@@ -282,7 +282,7 @@ class F
             );
         }
 
-        [WorkItem(542407, "DevDiv")]
+        [WorkItem(542407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542407")]
         [Fact]
         public void TestClassOnRight()
         {
@@ -580,7 +580,7 @@ class F
             var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             var model = comp.GetSemanticModel(tree);
 
-            var expr = (IdentifierNameSyntax) GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var alias = model.GetAliasInfo(expr);
             Assert.Equal(SymbolKind.Alias, alias.Kind);
             Assert.Equal("Q=E", alias.ToTestDisplayString());
@@ -595,7 +595,7 @@ class F
 
         #endregion Aliases
 
-        [WorkItem(864605, "DevDiv")]
+        [WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
         [Fact]
         public void TestTypeOrValueInMethodGroupIsExpression()
         {
@@ -720,7 +720,7 @@ class Program
             Assert.NotNull(info);
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias01()
         {
@@ -759,7 +759,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesAlias02()
         {
@@ -798,7 +798,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition01()
         {
@@ -837,7 +837,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestAliasNameCollisionMemberNameMatchesDefinition02()
         {
@@ -879,7 +879,6 @@ class F
         [Fact]
         public void TestAliasNameCollisionWithParameter1()
         {
- 
             var text = @"
 using U = C;
 
@@ -902,7 +901,7 @@ class C
 
         [Fact]
         public void TestAliasNameCollisionWithParameter2()
-        {           
+        {
             var text = @"
 using U = C;
 
@@ -924,7 +923,7 @@ class C
                 SymbolKind.Method, "void C.Static()");
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void LambdaConversion()
         {
@@ -975,7 +974,7 @@ class Program
                 );
         }
 
-        [WorkItem(543551, "DevDiv")]
+        [WorkItem(543551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543551")]
         [Fact]
         public void FieldOfEnumType()
         {
@@ -998,7 +997,7 @@ class C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(531386, "DevDiv")]
+        [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
         [Fact]
         public void AlternateTypeAndVariable()
         {
@@ -1284,7 +1283,7 @@ enum Color
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType()
         {
@@ -1317,7 +1316,7 @@ class F
 );
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionType02()
         {
@@ -1343,7 +1342,7 @@ class F
                 SymbolKind.Method, "void E.M(params System.Int32[] a)");
         }
 
-        [WorkItem(542586, "DevDiv")]
+        [WorkItem(542586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542586")]
         [Fact]
         public void TestNestedNameCollisionValue()
         {
@@ -1376,7 +1375,7 @@ class F
 );
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionType()
         {
@@ -1403,7 +1402,7 @@ class F
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E"));
         }
 
-        [WorkItem(542642, "DevDiv")]
+        [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
         [Fact]
         public void TestNameCollisionValue()
         {
@@ -1429,7 +1428,7 @@ class F
                 SymbolKind.Method, "void E.M(System.Int32 x)");
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void FieldAndMethodSameName()
         {
@@ -1453,7 +1452,7 @@ class F
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(542039, "DevDiv")]
+        [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
         [Fact]
         public void TypeAndMethodSameName()
         {
@@ -1481,7 +1480,7 @@ class F
 
         #region Regression cases
 
-        [WorkItem(546427, "DevDiv")]
+        [WorkItem(546427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546427")]
         [Fact]
         public void ExtensionMethodWithColorColorReceiver()
         {
@@ -1540,7 +1539,7 @@ static class Test
 ");
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_1()
         {
@@ -1581,7 +1580,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_2()
         {
@@ -1619,7 +1618,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_3()
         {
@@ -1660,7 +1659,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
         }
 
-        [WorkItem(938389, "DevDiv")]
+        [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
         [Fact]
         public void ShadowedTypeReceiver_4()
         {
@@ -1698,7 +1697,7 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
         }
 
-        [WorkItem(1095020, "DevDiv")]
+        [WorkItem(1095020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
         [Fact]
         public void RangeVariableColorColor()
         {
@@ -1761,6 +1760,227 @@ class X
             Assert.NotNull(parentInfo);
             Assert.Equal(parentSymbolKind, parentInfo.Symbol.Kind);
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
+        }
+
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [Fact]
+        public void Bug969006_1()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        const E E = E.A;
+        var z = E;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("E E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics(
+                // (12,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         var z = E;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(12, 13)
+                );
+        }
+
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006"), WorkItem(1112493, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1112493")]
+        [Fact]
+        public void Bug969006_2()
+        {
+            // E in "E.A" does not qualify for Color Color (and thus does not bind to the enum type) because
+            // the type of the const var E is an error due to the circular reference (and thus the name of
+            // the type cannot be the same as the name of the var).
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        const var E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics(
+                // (11,9): error CS0822: Implicitly-typed variables cannot be constant
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var E = E.A;").WithLocation(11, 9),
+                // (11,23): error CS0110: The evaluation of the constant value for 'E' involves a circular definition
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "E").WithArguments("E").WithLocation(11, 23),
+                // (11,23): error CS0841: Cannot use local variable 'E' before it is declared
+                //         const var E = E.A;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 23)
+                );
+        }
+
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [Fact]
+        public void Bug969006_3()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        E E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("E E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind);
+
+            compilation.VerifyDiagnostics();
+        }
+
+        [WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")]
+        [Fact]
+        public void Bug969006_4()
+        {
+            const string source = @"
+enum E
+{
+    A
+}
+
+class C
+{
+    void M()
+    {
+        var E = E.A;
+        var z = E;
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model1 = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("E.A", node1.ToString());
+            Assert.Equal("E", node1.Expression.ToString());
+
+            var symbolInfo = model1.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            var model2 = compilation.GetSemanticModel(tree);
+            var node2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.Text == "E" && (n.Parent is EqualsValueClauseSyntax)).Single();
+
+            Assert.Equal("= E", node2.Parent.ToString());
+
+            symbolInfo = model2.GetSymbolInfo(node2);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression);
+
+            Assert.Equal("? E", symbolInfo.Symbol.ToTestDisplayString());
+
+            compilation.VerifyDiagnostics(
+    // (11,17): error CS0841: Cannot use local variable 'E' before it is declared
+    //         var E = E.A;
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17),
+    // (11,17): error CS0165: Use of unassigned local variable 'E'
+    //         var E = E.A;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "E").WithArguments("E").WithLocation(11, 17)
+                );
         }
     }
 }

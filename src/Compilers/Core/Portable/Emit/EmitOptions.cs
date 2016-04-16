@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public DebugInformationFormat DebugInformationFormat { get; private set; }
 
         /// <summary>
-        /// Assembly name override - file name and extension. If not specified the the compilation name is used.
+        /// Assembly name override - file name and extension. If not specified the compilation name is used.
         /// </summary>
         /// <remarks>
         /// By default the name of the output assembly is <see cref="Compilation.AssemblyName"/>. Only in rare cases it is necessary
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return
-                this.EmitMetadataOnly == other.EmitMetadataOnly && 
+                this.EmitMetadataOnly == other.EmitMetadataOnly &&
                 this.BaseAddress == other.BaseAddress &&
                 this.FileAlignment == other.FileAlignment &&
                 this.HighEntropyVirtualAddressSpace == other.HighEntropyVirtualAddressSpace &&
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.DebugInformationFormat == other.DebugInformationFormat &&
                 this.PdbFilePath == other.PdbFilePath &&
                 this.OutputNameOverride == other.OutputNameOverride &&
-                this.RuntimeMetadataVersion == other.RuntimeMetadataVersion && 
+                this.RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 this.TolerateErrors == other.TolerateErrors &&
                 this.IncludePrivateMembers == other.IncludePrivateMembers;
         }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine((int)this.DebugInformationFormat,
                    Hash.Combine(this.PdbFilePath,
                    Hash.Combine(this.OutputNameOverride,
-                   Hash.Combine(this.RuntimeMetadataVersion, 
+                   Hash.Combine(this.RuntimeMetadataVersion,
                    Hash.Combine(this.TolerateErrors,
                    Hash.Combine(this.IncludePrivateMembers, 0)))))))))));
         }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal void ValidateOptions(DiagnosticBag diagnostics, CommonMessageProvider messageProvider)
         {
-            if (DebugInformationFormat != DebugInformationFormat.Pdb)
+            if (!DebugInformationFormat.IsValid())
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidDebugInformationFormat, Location.None, (int)DebugInformationFormat));
             }

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sb.ToString();
         }
 
-        int CountKind(OperatorAnalysisResultKind kind)
+        private int CountKind(OperatorAnalysisResultKind kind)
         {
             int count = 0;
             for (int i = 0, n = this.Results.Count; i < n; i++)

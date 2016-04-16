@@ -768,7 +768,7 @@ End Class
                                                     Dim constructedM1WrongArity = m1.Construct((New TypeSymbol() {compilation.GetSpecialType(SpecialType.System_String)}).AsImmutableOrNull())
                                                 End Sub)
 
-            ' Try identity substution.
+            ' Try identity substitution.
             Dim identityM1 = m1.Construct(m1.OriginalDefinition.TypeParameters.As(Of TypeSymbol)())
             Assert.NotEqual(m1, identityM1)
             Assert.Same(m1, identityM1.ConstructedFrom)
@@ -891,7 +891,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537444, "DevDiv")>
+        <WorkItem(537444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537444")>
         <Fact>
         Public Sub DeclareFunction01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -993,7 +993,7 @@ End Structure
             Assert.Equal(TypeKind.Structure, mem4.Type.TypeKind)
         End Sub
 
-        <WorkItem(537466, "DevDiv")>
+        <WorkItem(537466, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537466")>
         <Fact>
         Public Sub DefaultAccessibility01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1143,7 +1143,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub OverloadsAndOverrids01()
+        Public Sub OverloadsAndOverrides01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
     <file name="a.vb">
@@ -1680,7 +1680,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                                                </expected>)
         End Sub
 
-        <WorkItem(779441, "DevDiv")>
+        <WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")>
         <Fact>
         Public Sub UserDefinedOperatorLocation()
             Dim source = <![CDATA[
@@ -1691,8 +1691,8 @@ Public Class C
 End Class
 ]]>.Value
 
-            Dim operatorPos = source.IndexOf("+")
-            Dim parenPos = source.IndexOf("(")
+            Dim operatorPos = source.IndexOf("+"c)
+            Dim parenPos = source.IndexOf("("c)
 
             Dim comp = CreateCompilationWithMscorlib({Parse(source)})
             Dim Symbol = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single()
@@ -1701,7 +1701,7 @@ End Class
             Assert.Equal(parenPos, span.End)
         End Sub
 
-        <WorkItem(901815, "DevDiv")>
+        <WorkItem(901815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/901815")>
         <Fact>
         Public Sub UserDefinedConversionLocation()
             Dim source = <![CDATA[
@@ -1713,7 +1713,7 @@ End Class
 ]]>.Value
 
             ' Used to raise an exception.
-            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({Parse(source)}, options:=TestOptions.ReleaseDll)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC33016: Operator '+' must have either one or two parameters.
     Public Shared Operator +(Of T)

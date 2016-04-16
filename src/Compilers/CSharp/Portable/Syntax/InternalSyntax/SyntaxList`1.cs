@@ -12,20 +12,20 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal partial struct SyntaxList<TNode> :  IEquatable<SyntaxList<TNode>> where TNode : CSharpSyntaxNode
+    internal partial struct SyntaxList<TNode> : IEquatable<SyntaxList<TNode>> where TNode : CSharpSyntaxNode
     {
-        private CSharpSyntaxNode node;
+        private readonly CSharpSyntaxNode _node;
 
         internal SyntaxList(CSharpSyntaxNode node)
         {
-            this.node = node;
+            _node = node;
         }
 
         internal CSharpSyntaxNode Node
         {
             get
             {
-                return this.node;
+                return _node;
             }
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return node == null ? 0 : (node.IsList ? node.SlotCount : 1);
+                return _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1);
             }
         }
 
@@ -41,20 +41,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                if (node == null)
+                if (_node == null)
                 {
                     return null;
                 }
-                else if (node.IsList)
+                else if (_node.IsList)
                 {
                     Debug.Assert(index >= 0);
-                    Debug.Assert(index <= node.SlotCount);
+                    Debug.Assert(index <= _node.SlotCount);
 
-                    return (TNode)node.GetSlot(index);
+                    return (TNode)_node.GetSlot(index);
                 }
                 else if (index == 0)
                 {
-                    return (TNode)node;
+                    return (TNode)_node;
                 }
                 else
                 {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool Any()
         {
-            return this.node != null;
+            return _node != null;
         }
 
         public bool Any(SyntaxKind kind)
@@ -110,17 +110,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static bool operator ==(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
-            return left.node == right.node;
+            return left._node == right._node;
         }
 
         public static bool operator !=(SyntaxList<TNode> left, SyntaxList<TNode> right)
         {
-            return left.node != right.node;
+            return left._node != right._node;
         }
 
         public bool Equals(SyntaxList<TNode> other)
         {
-            return node == other.node;
+            return _node == other._node;
         }
 
         public override bool Equals(object obj)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override int GetHashCode()
         {
-            return this.node != null ? this.node.GetHashCode() : 0;
+            return _node != null ? _node.GetHashCode() : 0;
         }
 
         public SeparatedSyntaxList<TOther> AsSeparatedList<TOther>() where TOther : CSharpSyntaxNode
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public static implicit operator SyntaxList<TNode>(SyntaxList<CSharpSyntaxNode> nodes)
         {
-            return new SyntaxList<TNode>(nodes.node);
+            return new SyntaxList<TNode>(nodes._node);
         }
 
         public static implicit operator SyntaxList<CSharpSyntaxNode>(SyntaxList<TNode> nodes)

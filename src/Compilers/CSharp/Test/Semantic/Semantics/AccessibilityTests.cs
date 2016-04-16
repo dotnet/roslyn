@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AccessibilityTests : CSharpTestBase
     {
-        private static readonly SemanticModel testModel;
-        private static readonly int testPosition;
-        private static readonly Symbol testSymbol;
+        private static readonly SemanticModel s_testModel;
+        private static readonly int s_testPosition;
+        private static readonly Symbol s_testSymbol;
 
         static AccessibilityTests()
         {
@@ -27,36 +27,36 @@ class C1
 
 ");
             CSharpCompilation c = CreateCompilation(new[] { t });
-            testModel = c.GetSemanticModel(t);
-            testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-            testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
+            s_testModel = c.GetSemanticModel(t);
+            s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
         }
 
         [Fact]
         public void IsAccessibleNullArguments()
         {
             Assert.Throws(typeof(ArgumentNullException), () =>
-                testModel.IsAccessible(testPosition, null));
+                s_testModel.IsAccessible(s_testPosition, null));
         }
 
         [Fact]
         public void IsAccessibleLocationNotInSource()
         {
             Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                testModel.IsAccessible(-1, testSymbol));
+                s_testModel.IsAccessible(-1, s_testSymbol));
 
             Assert.Throws(typeof(ArgumentOutOfRangeException), () =>
-                testModel.IsAccessible(testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, testSymbol));
+                s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
         }
 
         [Fact]
         public void IsAccessibleSymbolErrorType()
         {
             Assert.True(
-                testModel.IsAccessible(testPosition, testSymbol));
+                s_testModel.IsAccessible(s_testPosition, s_testSymbol));
         }
 
-        [WorkItem(527516, "DevDiv")]
+        [WorkItem(527516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527516")]
         [Fact]
         public void IsAccessibleSymbolNotResolvable()
         {
@@ -65,10 +65,10 @@ class C1
                 references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
             Assert.True(
-                testModel.IsAccessible(testPosition, symbol));
+                s_testModel.IsAccessible(s_testPosition, symbol));
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Property1()
         {
@@ -82,7 +82,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Property2()
         {
@@ -99,7 +99,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Indexer1()
         {
@@ -113,7 +113,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Indexer2()
         {
@@ -130,7 +130,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Method1()
         {
@@ -144,7 +144,7 @@ public class G<T>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Method2()
         {
@@ -161,7 +161,7 @@ class C : G<int>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Event1()
         {
@@ -178,7 +178,7 @@ public class G<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypes_Event2()
         {
@@ -198,10 +198,10 @@ class C : G<int>
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
         }
 
-        [WorkItem(545450, "DevDiv")]
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
         [Fact]
         public void ProtectedTypesNestedInGenericTypesLegacy()
-        {          
+        {
             var source = @"
 public class Bar<T> { }               
 
@@ -264,7 +264,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F3").WithArguments("D<T>.F3"));
         }
 
-        [WorkItem(531368, "DevDiv")]
+        [WorkItem(531368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531368")]
         [Fact]
         public void TestDeepTypeAccessibilityBug18018()
         {

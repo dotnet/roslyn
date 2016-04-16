@@ -10,12 +10,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition, Optional dontIncludeNextTokenTrailingTrivia As Boolean = False)
+        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
                 Return
             End If
 
-            Dim span = GetIndentBlockSpan(startToken, endToken, dontIncludeNextTokenTrailingTrivia)
+            Dim span = GetIndentBlockSpan(startToken, endToken)
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
@@ -50,14 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return TextSpan.FromBounds(previousToken.Span.End, endToken.FullSpan.End)
         End Function
 
-        Private Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken, Optional dontIncludeNextTokenTrailingTrivia As Boolean = False) As TextSpan
+        Private Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
             ' special case for colon trivia
             Dim spanStart = startToken.GetPreviousToken(includeZeroWidth:=True).Span.End
             Dim nextToken = endToken.GetNextToken(includeZeroWidth:=True)
-
-            If dontIncludeNextTokenTrailingTrivia Then
-                Return TextSpan.FromBounds(spanStart, endToken.Span.End)
-            End If
 
             For Each trivia In nextToken.LeadingTrivia.Reverse()
                 If trivia.Kind = SyntaxKind.EndOfLineTrivia Then

@@ -34,11 +34,11 @@ namespace Roslyn.SyntaxVisualizer.Control
         }
 
         #region Private State
-        private TreeViewItem currentSelection = null;
-        private bool isNavigatingFromSourceToTree = false;
-        private bool isNavigatingFromTreeToSource = false;
-        private System.Windows.Forms.PropertyGrid propertyGrid;
-        private static readonly Thickness DefaultBorderThickness = new Thickness(1);
+        private TreeViewItem _currentSelection;
+        private bool _isNavigatingFromSourceToTree;
+        private bool _isNavigatingFromTreeToSource;
+        private readonly System.Windows.Forms.PropertyGrid _propertyGrid;
+        private static readonly Thickness s_defaultBorderThickness = new Thickness(1);
         #endregion
 
         #region Public Properties, Events
@@ -64,19 +64,19 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             InitializeComponent();
 
-            propertyGrid = new System.Windows.Forms.PropertyGrid();
-            propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            propertyGrid.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
-            propertyGrid.HelpVisible = false;
-            propertyGrid.ToolbarVisible = false;
-            propertyGrid.CommandsVisibleIfAvailable = false;
-            windowsFormsHost.Child = propertyGrid;
+            _propertyGrid = new System.Windows.Forms.PropertyGrid();
+            _propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            _propertyGrid.PropertySort = System.Windows.Forms.PropertySort.Alphabetical;
+            _propertyGrid.HelpVisible = false;
+            _propertyGrid.ToolbarVisible = false;
+            _propertyGrid.CommandsVisibleIfAvailable = false;
+            windowsFormsHost.Child = _propertyGrid;
         }
 
         public void Clear()
         {
             treeView.Items.Clear();
-            propertyGrid.SelectedObject = null;
+            _propertyGrid.SelectedObject = null;
             typeTextLabel.Visibility = Visibility.Hidden;
             kindTextLabel.Visibility = Visibility.Hidden;
             typeValueLabel.Content = string.Empty;
@@ -123,11 +123,11 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             TreeViewItem match = null;
 
-            if (treeView.HasItems && !isNavigatingFromTreeToSource)
+            if (treeView.HasItems && !_isNavigatingFromTreeToSource)
             {
-                isNavigatingFromSourceToTree = true;
+                _isNavigatingFromSourceToTree = true;
                 match = NavigateToBestMatch((TreeViewItem)treeView.Items[0], position, kind, category);
-                isNavigatingFromSourceToTree = false;
+                _isNavigatingFromSourceToTree = false;
             }
 
             var matchFound = match != null;
@@ -136,7 +136,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             {
                 match.Background = Brushes.Yellow;
                 match.BorderBrush = Brushes.Black;
-                match.BorderThickness = DefaultBorderThickness;
+                match.BorderThickness = s_defaultBorderThickness;
                 highlightLegendTextLabel.Visibility = Visibility.Visible;
                 highlightLegendDescriptionLabel.Visibility = Visibility.Visible;
                 if (!string.IsNullOrWhiteSpace(highlightLegendDescription))
@@ -163,11 +163,11 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             TreeViewItem match = null;
 
-            if (treeView.HasItems && !isNavigatingFromTreeToSource)
+            if (treeView.HasItems && !_isNavigatingFromTreeToSource)
             {
-                isNavigatingFromSourceToTree = true;
+                _isNavigatingFromSourceToTree = true;
                 match = NavigateToBestMatch((TreeViewItem)treeView.Items[0], span, kind, category);
-                isNavigatingFromSourceToTree = false;
+                _isNavigatingFromSourceToTree = false;
             }
 
             var matchFound = match != null;
@@ -176,7 +176,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             {
                 match.Background = Brushes.Yellow;
                 match.BorderBrush = Brushes.Black;
-                match.BorderThickness = DefaultBorderThickness;
+                match.BorderThickness = s_defaultBorderThickness;
                 highlightLegendTextLabel.Visibility = Visibility.Visible;
                 highlightLegendDescriptionLabel.Visibility = Visibility.Visible;
                 if (!string.IsNullOrWhiteSpace(highlightLegendDescription))
@@ -216,7 +216,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
         }
 
-        // Ensure that the supplied treeview item and all its ancsestors are expanded.
+        // Ensure that the supplied treeview item and all its ancestors are expanded.
         private void ExpandPathTo(TreeViewItem item)
         {
             if (item != null)
@@ -351,22 +351,22 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                isNavigatingFromTreeToSource = true;
+                _isNavigatingFromTreeToSource = true;
 
                 typeTextLabel.Visibility = Visibility.Visible;
                 kindTextLabel.Visibility = Visibility.Visible;
                 typeValueLabel.Content = node.GetType().Name;
                 kindValueLabel.Content = kind;
-                propertyGrid.SelectedObject = node;
+                _propertyGrid.SelectedObject = node;
 
                 item.IsExpanded = true;
 
-                if (!isNavigatingFromSourceToTree && SyntaxNodeNavigationToSourceRequested != null)
+                if (!_isNavigatingFromSourceToTree && SyntaxNodeNavigationToSourceRequested != null)
                 {
                     SyntaxNodeNavigationToSourceRequested(node);
                 }
 
-                isNavigatingFromTreeToSource = false;
+                _isNavigatingFromTreeToSource = false;
                 e.Handled = true;
             });
 
@@ -446,22 +446,22 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                isNavigatingFromTreeToSource = true;
+                _isNavigatingFromTreeToSource = true;
 
                 typeTextLabel.Visibility = Visibility.Visible;
                 kindTextLabel.Visibility = Visibility.Visible;
                 typeValueLabel.Content = token.GetType().Name;
                 kindValueLabel.Content = kind;
-                propertyGrid.SelectedObject = token;
+                _propertyGrid.SelectedObject = token;
 
                 item.IsExpanded = true;
 
-                if (!isNavigatingFromSourceToTree && SyntaxTokenNavigationToSourceRequested != null)
+                if (!_isNavigatingFromSourceToTree && SyntaxTokenNavigationToSourceRequested != null)
                 {
                     SyntaxTokenNavigationToSourceRequested(token);
                 }
 
-                isNavigatingFromTreeToSource = false;
+                _isNavigatingFromTreeToSource = false;
                 e.Handled = true;
             });
 
@@ -551,22 +551,22 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             item.Selected += new RoutedEventHandler((sender, e) =>
             {
-                isNavigatingFromTreeToSource = true;
+                _isNavigatingFromTreeToSource = true;
 
                 typeTextLabel.Visibility = Visibility.Visible;
                 kindTextLabel.Visibility = Visibility.Visible;
                 typeValueLabel.Content = trivia.GetType().Name;
                 kindValueLabel.Content = kind;
-                propertyGrid.SelectedObject = trivia;
+                _propertyGrid.SelectedObject = trivia;
 
                 item.IsExpanded = true;
 
-                if (!isNavigatingFromSourceToTree && SyntaxTriviaNavigationToSourceRequested != null)
+                if (!_isNavigatingFromSourceToTree && SyntaxTriviaNavigationToSourceRequested != null)
                 {
                     SyntaxTriviaNavigationToSourceRequested(trivia);
                 }
 
-                isNavigatingFromTreeToSource = false;
+                _isNavigatingFromTreeToSource = false;
                 e.Handled = true;
             });
 
@@ -628,7 +628,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 kindValueLabel.Content = symbol.Kind.ToString();
             }
 
-            propertyGrid.SelectedObject = symbol;
+            _propertyGrid.SelectedObject = symbol;
         }
 
         private static TreeViewItem FindTreeViewItem(DependencyObject source)
@@ -647,7 +647,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             if (treeView.SelectedItem != null)
             {
-                currentSelection = (TreeViewItem)treeView.SelectedItem;
+                _currentSelection = (TreeViewItem)treeView.SelectedItem;
             }
         }
 
@@ -670,7 +670,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             var symbolDetailsEnabled =
                 (SemanticModel != null) &&
-                (((SyntaxTag)currentSelection.Tag).Category == SyntaxCategory.SyntaxNode);
+                (((SyntaxTag)_currentSelection.Tag).Category == SyntaxCategory.SyntaxNode);
 
             if ((!directedSyntaxGraphEnabled) && (!symbolDetailsEnabled))
             {
@@ -691,9 +691,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void DirectedSyntaxGraphMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (currentSelection != null)
+            if (_currentSelection != null)
             {
-                var currentTag = (SyntaxTag)currentSelection.Tag;
+                var currentTag = (SyntaxTag)_currentSelection.Tag;
 
                 if (currentTag.Category == SyntaxCategory.SyntaxNode && SyntaxNodeDirectedGraphRequested != null)
                 {
@@ -712,7 +712,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void SymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var currentTag = (SyntaxTag)currentSelection.Tag;
+            var currentTag = (SyntaxTag)_currentSelection.Tag;
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetSymbolInfo(currentTag.SyntaxNode).Symbol;
@@ -732,7 +732,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void TypeSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var currentTag = (SyntaxTag)currentSelection.Tag;
+            var currentTag = (SyntaxTag)_currentSelection.Tag;
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).Type;
@@ -742,7 +742,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void ConvertedTypeSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var currentTag = (SyntaxTag)currentSelection.Tag;
+            var currentTag = (SyntaxTag)_currentSelection.Tag;
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).ConvertedType;
@@ -752,7 +752,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void AliasSymbolDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var currentTag = (SyntaxTag)currentSelection.Tag;
+            var currentTag = (SyntaxTag)_currentSelection.Tag;
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetAliasInfo(currentTag.SyntaxNode);
@@ -762,7 +762,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private void ConstantValueDetailsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var currentTag = (SyntaxTag)currentSelection.Tag;
+            var currentTag = (SyntaxTag)_currentSelection.Tag;
             if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var value = SemanticModel.GetConstantValue(currentTag.SyntaxNode);
@@ -773,13 +773,13 @@ namespace Roslyn.SyntaxVisualizer.Control
                 {
                     typeTextLabel.Visibility = Visibility.Hidden;
                     typeValueLabel.Content = string.Empty;
-                    propertyGrid.SelectedObject = null;
+                    _propertyGrid.SelectedObject = null;
                 }
                 else
                 {
                     typeTextLabel.Visibility = Visibility.Visible;
-                    typeValueLabel.Content = value.Value.GetType().Name;
-                    propertyGrid.SelectedObject = value;
+                    typeValueLabel.Content = value.Value?.GetType().Name ?? "<null>";
+                    _propertyGrid.SelectedObject = value;
                 }
             }
         }

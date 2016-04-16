@@ -19,26 +19,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <summary>
         /// Owning RetargetingModuleSymbol.
         /// </summary>
-        private readonly RetargetingModuleSymbol retargetingModule;
+        private readonly RetargetingModuleSymbol _retargetingModule;
 
         /// <summary>
         /// The underlying PropertySymbol, cannot be another RetargetingPropertySymbol.
         /// </summary>
-        private readonly PropertySymbol underlyingProperty;
+        private readonly PropertySymbol _underlyingProperty;
 
         //we want to compute this lazily since it may be expensive for the underlying symbol
-        private ImmutableArray<PropertySymbol> lazyExplicitInterfaceImplementations;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private ImmutableArray<CustomModifier> lazyTypeCustomModifiers;
+        private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private ImmutableArray<CustomModifier> _lazyTypeCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
         /// </summary>
-        private ImmutableArray<CSharpAttributeData> lazyCustomAttributes;
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private DiagnosticInfo lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbol lazyType;
+        private TypeSymbol _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
         {
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             Debug.Assert((object)underlyingProperty != null);
             Debug.Assert(!(underlyingProperty is RetargetingPropertySymbol));
 
-            this.retargetingModule = retargetingModule;
-            this.underlyingProperty = underlyingProperty;
+            _retargetingModule = retargetingModule;
+            _underlyingProperty = underlyingProperty;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
         {
             get
             {
-                return retargetingModule.RetargetingTranslator;
+                return _retargetingModule.RetargetingTranslator;
             }
         }
 
@@ -62,20 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty;
+                return _underlyingProperty;
             }
         }
 
         public override bool IsImplicitlyDeclared
         {
-            get { return underlyingProperty.IsImplicitlyDeclared; }
+            get { return _underlyingProperty.IsImplicitlyDeclared; }
         }
 
         public RetargetingModuleSymbol RetargetingModule
         {
             get
             {
-                return this.retargetingModule;
+                return _retargetingModule;
             }
         }
 
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if ((object)this.lazyType == null)
+                if ((object)_lazyType == null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(this.underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    this.lazyType = type.AsDynamicIfNoPia(this.ContainingType);
+                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    _lazyType = type.AsDynamicIfNoPia(this.ContainingType);
                 }
-                return this.lazyType;
+                return _lazyType;
             }
         }
 
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 return RetargetingTranslator.RetargetModifiers(
-                    underlyingProperty.TypeCustomModifiers,
-                    ref lazyTypeCustomModifiers);
+                    _underlyingProperty.TypeCustomModifiers,
+                    ref _lazyTypeCustomModifiers);
             }
         }
 
@@ -106,18 +106,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (lazyParameters.IsDefault)
+                if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
                 }
 
-                return lazyParameters;
+                return _lazyParameters;
             }
         }
 
         private ImmutableArray<ParameterSymbol> RetargetParameters()
         {
-            var list = this.underlyingProperty.Parameters;
+            var list = _underlyingProperty.Parameters;
             int count = list.Length;
 
             if (count == 0)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsIndexer;
+                return _underlyingProperty.IsIndexer;
             }
         }
 
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return (object)underlyingProperty.GetMethod == null
+                return (object)_underlyingProperty.GetMethod == null
                     ? null
-                    : this.RetargetingTranslator.Retarget(underlyingProperty.GetMethod);
+                    : this.RetargetingTranslator.Retarget(_underlyingProperty.GetMethod);
             }
         }
 
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return (object)underlyingProperty.SetMethod == null
+                return (object)_underlyingProperty.SetMethod == null
                     ? null
-                    : this.RetargetingTranslator.Retarget(underlyingProperty.SetMethod);
+                    : this.RetargetingTranslator.Retarget(_underlyingProperty.SetMethod);
             }
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty.CallingConvention;
+                return _underlyingProperty.CallingConvention;
             }
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty.IsExplicitInterfaceImplementation;
+                return _underlyingProperty.IsExplicitInterfaceImplementation;
             }
         }
 
@@ -185,20 +185,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                if (lazyExplicitInterfaceImplementations.IsDefault)
+                if (_lazyExplicitInterfaceImplementations.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(
-                        ref lazyExplicitInterfaceImplementations,
+                        ref _lazyExplicitInterfaceImplementations,
                         this.RetargetExplicitInterfaceImplementations(),
                         default(ImmutableArray<PropertySymbol>));
                 }
-                return lazyExplicitInterfaceImplementations;
+                return _lazyExplicitInterfaceImplementations;
             }
         }
 
         private ImmutableArray<PropertySymbol> RetargetExplicitInterfaceImplementations()
         {
-            var impls = this.underlyingProperty.ExplicitInterfaceImplementations;
+            var impls = _underlyingProperty.ExplicitInterfaceImplementations;
 
             if (impls.IsEmpty)
             {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.RetargetingTranslator.Retarget(this.underlyingProperty.ContainingSymbol);
+                return this.RetargetingTranslator.Retarget(_underlyingProperty.ContainingSymbol);
             }
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule.ContainingAssembly;
+                return _retargetingModule.ContainingAssembly;
             }
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule;
+                return _retargetingModule;
             }
         }
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty.Name;
+                return _underlyingProperty.Name;
             }
         }
 
@@ -258,20 +258,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty.HasSpecialName;
+                return _underlyingProperty.HasSpecialName;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return this.underlyingProperty.Locations;
+                return _underlyingProperty.Locations;
             }
         }
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingProperty.DeclaredAccessibility;
+                return _underlyingProperty.DeclaredAccessibility;
             }
         }
 
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsStatic;
+                return _underlyingProperty.IsStatic;
             }
         }
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsVirtual;
+                return _underlyingProperty.IsVirtual;
             }
         }
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsOverride;
+                return _underlyingProperty.IsOverride;
             }
         }
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsAbstract;
+                return _underlyingProperty.IsAbstract;
             }
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsSealed;
+                return _underlyingProperty.IsSealed;
             }
         }
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.IsExtern;
+                return _underlyingProperty.IsExtern;
             }
         }
 
@@ -343,38 +343,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return underlyingProperty.ObsoleteAttributeData;
+                return _underlyingProperty.ObsoleteAttributeData;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.RetargetingTranslator.GetRetargetedAttributes(this.underlyingProperty.GetAttributes(), ref this.lazyCustomAttributes);
+            return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingProperty.GetAttributes(), ref _lazyCustomAttributes);
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
-            return this.RetargetingTranslator.RetargetAttributes(this.underlyingProperty.GetCustomAttributesToEmit(compilationState));
+            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(compilationState));
         }
 
         internal override bool MustCallMethodsDirectly
         {
             get
             {
-                return underlyingProperty.MustCallMethodsDirectly;
+                return _underlyingProperty.MustCallMethodsDirectly;
             }
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            if (ReferenceEquals(lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
                 DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
-                lazyUseSiteDiagnostic = result;
+                _lazyUseSiteDiagnostic = result;
             }
 
-            return lazyUseSiteDiagnostic;
+            return _lazyUseSiteDiagnostic;
         }
 
         public override string MetadataName
@@ -387,14 +387,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             get
             {
-                return underlyingProperty.MetadataName;
+                return _underlyingProperty.MetadataName;
             }
         }
         internal override bool HasRuntimeSpecialName
         {
             get
             {
-                return underlyingProperty.HasRuntimeSpecialName;
+                return _underlyingProperty.HasRuntimeSpecialName;
             }
         }
 

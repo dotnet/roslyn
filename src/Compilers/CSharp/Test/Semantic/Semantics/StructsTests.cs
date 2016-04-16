@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class StructsTests : CompilingTestBase
     {
         // Cannot have instance field initializers in structs
-        [WorkItem(540982, "DevDiv")]
+        [WorkItem(540982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540982")]
         [Fact()]
         public void TestInitFieldStruct()
         {
@@ -38,7 +38,7 @@ public struct A
     );
         }
 
-        [WorkItem(1075325, "DevDiv"), WorkItem(343, "CodePlex")]
+        [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
         [Fact()]
         public void TestInitEventStruct()
         {
@@ -59,7 +59,7 @@ struct S {
                 );
         }
 
-        [WorkItem(1075325, "DevDiv"), WorkItem(343, "CodePlex")]
+        [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
         [Fact()]
         public void TestStaticInitInStruct()
         {
@@ -85,7 +85,7 @@ struct S {
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896, "DevDiv")]
+        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct()
         {
@@ -110,7 +110,7 @@ struct  Foo
         }
 
         // Calling struct default constructor in another constructor
-        [WorkItem(540896, "DevDiv")]
+        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct02()
         {
@@ -131,7 +131,7 @@ public struct Struct
         }
 
         // Test constructor forwarding works for structs
-        [WorkItem(540896, "DevDiv")]
+        [WorkItem(540896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540896")]
         [Fact]
         public void TestConstructorStruct03()
         {
@@ -182,8 +182,8 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
-        [WorkItem(540990, "DevDiv")]
-        [Fact]
+        [WorkItem(540990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
+        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()
         {
             var text = @"
@@ -270,7 +270,7 @@ S::ToString";
         }
 
         // Test constructor for generic struct
-        [WorkItem(540993, "DevDiv")]
+        [WorkItem(540993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540993")]
         [Fact]
         public void TestConstructorForGenericStruct()
         {
@@ -300,7 +300,7 @@ class Test
         }
 
         // Assign to decimal in struct constructor
-        [WorkItem(540994, "DevDiv")]
+        [WorkItem(540994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540994")]
         [Fact]
         public void TestAssigntoDecimalInStructConstructor()
         {
@@ -337,12 +337,12 @@ class Test
         {
             var oldMsCorLib = TestReferences.NetFx.v4_0_21006.mscorlib;
 
-            var c1 = CSharpCompilation.Create("C1", 
+            var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
                 new[] { oldMsCorLib },
                 TestOptions.ReleaseDll);
 
-            var c2 = CSharpCompilation.Create("C2", 
+            var c2 = CSharpCompilation.Create("C2",
                 new[] { Parse(@"public class C { void M() { S s = new S(); System.Console.WriteLine(s);} }") },
                 new[] { MscorlibRef, new CSharpCompilationReference(c1) },
                 TestOptions.ReleaseDll);
@@ -361,7 +361,7 @@ class Test
             Assert.True(method.IsDefaultValueTypeConstructor());
 
             //TODO (tomat)
-            CompileAndVerify(c2, emitOptions: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(c2).VerifyIL("C.M", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -441,7 +441,7 @@ public class C
             // Calls constructor (vs initobj), then initobj
             var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
             // TODO (tomat)
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(compilation).VerifyIL("C.M", @"
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -458,7 +458,7 @@ public class C
 }");
         }
 
-        [WorkItem(541309, "DevDiv")]
+        [WorkItem(541309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541309")]
         [Fact]
         public void PrivateParameterlessConstructorInMetadata()
         {
@@ -495,7 +495,7 @@ public class C
             // Shouldn't there be an error for trying to call an inaccessible ctor?
             var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug).VerifyIL("C.M", @"
+            CompileAndVerify(comp).VerifyIL("C.M", @"
 {
   // Code size       39 (0x27)
   .maxstack  1
@@ -514,7 +514,7 @@ public class C
 }");
         }
 
-        [WorkItem(543934, "DevDiv")]
+        [WorkItem(543934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543934")]
         [Fact]
         public void ObjectCreationExprStructTypeInstanceFieldAssign()
         {
@@ -538,7 +538,7 @@ public class TestClass
                 );
         }
 
-        [WorkItem(543896, "DevDiv")]
+        [WorkItem(543896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543896")]
         [Fact]
         public void ObjectCreationExprStructTypePropertyAssign()
         {
@@ -566,7 +566,7 @@ public class mem033
         }
 
 
-        [WorkItem(545498, "DevDiv")]
+        [WorkItem(545498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()
         {
@@ -584,7 +584,7 @@ public struct X
         }
 
         [Fact]
-        public void StructParameterlssCtorNotPublic()
+        public void StructParameterlessCtorNotPublic()
         {
             string source = @"
 public struct X
@@ -603,12 +603,12 @@ public struct X1
 
 ";
             CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (4,13): error CS8075: Parameterless struct constructors must be public
-    //     private X()
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X").WithLocation(4, 13),
-    // (11,5): error CS8075: Parameterless struct constructors must be public
+    // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
     //     X1()
-    Diagnostic(ErrorCode.ERR_ParameterlessStructCtorsMustBePublic, "X1").WithLocation(11, 5)
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),
+    // (4,13): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     private X()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X").WithLocation(4, 13)
                 );
         }
     }

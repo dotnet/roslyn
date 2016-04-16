@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class SequenceMatcher : Matcher<T>
         {
-            private readonly Matcher<T>[] matchers;
+            private readonly Matcher<T>[] _matchers;
 
             public SequenceMatcher(params Matcher<T>[] matchers)
             {
-                this.matchers = matchers;
+                _matchers = matchers;
             }
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
                 var currentIndex = index;
-                foreach (var matcher in matchers)
+                foreach (var matcher in _matchers)
                 {
                     if (!matcher.TryMatch(sequence, ref currentIndex))
                     {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             public override string ToString()
             {
-                return string.Format("({0})", string.Join(",", (object[])matchers));
+                return string.Format("({0})", string.Join(",", (object[])_matchers));
             }
         }
     }

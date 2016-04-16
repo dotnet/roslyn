@@ -43,8 +43,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddArrayRank(symbol As IArrayTypeSymbol)
             Dim insertStars As Boolean = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays)
             AddPunctuation(SyntaxKind.OpenParenToken)
-            If insertStars AndAlso symbol.Rank > 1 Then
-                AddPunctuation(SyntaxKind.AsteriskToken)
+            If symbol.Rank > 1 Then
+                If insertStars Then
+                    AddPunctuation(SyntaxKind.AsteriskToken)
+                End If
+            Else
+                Dim array = TryCast(symbol, ArrayTypeSymbol)
+
+                If array IsNot Nothing AndAlso Not array.IsSZArray Then
+                    ' Always add an asterisk in this case in order to distinguish between SZArray and MDArray.
+                    AddPunctuation(SyntaxKind.AsteriskToken)
+                End If
             End If
 
             Dim i As Integer = 0
@@ -242,7 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End While
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 Else
-                    AddTypeArguments(symbol.TypeArguments)
+                    ' TODO: Rewrite access to custom modifiers in terms of an interface
+                    AddTypeArguments(symbol.TypeArguments,
+                                     If(Me.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers),
+                                        TryCast(symbol, NamedTypeSymbol)?.TypeArgumentsCustomModifiers, Nothing).GetValueOrDefault())
                 End If
             End If
 
@@ -345,19 +357,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub AddTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol))
+        Private Sub AddTypeArguments(typeArguments As ImmutableArray(Of ITypeSymbol),
+                                     Optional modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing)
             AddPunctuation(SyntaxKind.OpenParenToken)
             AddKeyword(SyntaxKind.OfKeyword)
             AddSpace()
 
             Dim first As Boolean = True
-            For Each typeArg In typeArguments
+            For i As Integer = 0 To typeArguments.Length - 1
+                Dim typeArg = typeArguments(i)
+
                 If Not first Then
                     AddPunctuation(SyntaxKind.CommaToken)
                     AddSpace()
                 End If
 
                 first = False
+
                 If typeArg.Kind = SymbolKind.TypeParameter Then
                     Dim typeParam = DirectCast(typeArg, ITypeParameterSymbol)
                     AddTypeParameterVarianceIfRequired(typeParam)
@@ -368,6 +384,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     typeArg.Accept(Me.NotFirstVisitor())
+                End If
+
+                If Not modifiers.IsDefaultOrEmpty Then
+                    AddCustomModifiersIfRequired(modifiers(i))
                 End If
             Next
 

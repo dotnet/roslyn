@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ConstantValue
+    internal partial class ConstantValue
     {
         private sealed class ConstantValueBad : ConstantValue
         {
@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueString : ConstantValue
         {
-            private readonly string value;
+            private readonly string _value;
 
             public ConstantValueString(string value)
             {
                 // we should have just one Null regardless string or object.
                 System.Diagnostics.Debug.Assert(value != null, "null strings should be represented as Null constant.");
-                this.value = value;
+                _value = value;
             }
 
             public override ConstantValueTypeDiscriminator Discriminator
@@ -125,33 +125,33 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.StringValue;
+                return base.Equals(other) && _value == other.StringValue;
             }
 
             internal override string GetValueToDisplay()
             {
-                return (this.value == null) ? "null" : string.Format("\"{0}\"", this.value);
+                return (_value == null) ? "null" : string.Format("\"{0}\"", _value);
             }
         }
 
         private sealed class ConstantValueDecimal : ConstantValue
         {
-            private readonly decimal value;
+            private readonly decimal _value;
 
             public ConstantValueDecimal(decimal value)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override ConstantValueTypeDiscriminator Discriminator
@@ -171,28 +171,28 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.DecimalValue;
+                return base.Equals(other) && _value == other.DecimalValue;
             }
         }
 
         private sealed class ConstantValueDateTime : ConstantValue
         {
-            private readonly DateTime value;
+            private readonly DateTime _value;
 
             public ConstantValueDateTime(DateTime value)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override ConstantValueTypeDiscriminator Discriminator
@@ -212,18 +212,18 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.DateTimeValue;
+                return base.Equals(other) && _value == other.DateTimeValue;
             }
         }
 
@@ -231,24 +231,24 @@ namespace Microsoft.CodeAnalysis
         // constant type
         private abstract class ConstantValueDiscriminated : ConstantValue
         {
-            private readonly ConstantValueTypeDiscriminator discriminator;
+            private readonly ConstantValueTypeDiscriminator _discriminator;
 
             public ConstantValueDiscriminated(ConstantValueTypeDiscriminator discriminator)
             {
-                this.discriminator = discriminator;
+                _discriminator = discriminator;
             }
 
             public override ConstantValueTypeDiscriminator Discriminator
             {
                 get
                 {
-                    return this.discriminator;
+                    return _discriminator;
                 }
             }
 
             internal override SpecialType SpecialType
             {
-                get { return GetSpecialType(this.discriminator); }
+                get { return GetSpecialType(_discriminator); }
             }
         }
 
@@ -530,25 +530,25 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueI8 : ConstantValueDiscriminated
         {
-            private readonly byte value;
+            private readonly byte _value;
 
             public ConstantValueI8(sbyte value)
                 : base(ConstantValueTypeDiscriminator.SByte)
             {
-                this.value = unchecked((byte)value);
+                _value = unchecked((byte)value);
             }
 
             public ConstantValueI8(byte value)
                 : base(ConstantValueTypeDiscriminator.Byte)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override byte ByteValue
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
@@ -556,48 +556,48 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((sbyte)(value));
+                    return unchecked((sbyte)(_value));
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.ByteValue;
+                return base.Equals(other) && _value == other.ByteValue;
             }
         }
 
         private sealed class ConstantValueI16 : ConstantValueDiscriminated
         {
-            private readonly short value;
+            private readonly short _value;
 
             public ConstantValueI16(short value)
                 : base(ConstantValueTypeDiscriminator.Int16)
             {
-                this.value = value;
+                _value = value;
             }
 
             public ConstantValueI16(ushort value)
                 : base(ConstantValueTypeDiscriminator.UInt16)
             {
-                this.value = unchecked((short)value);
+                _value = unchecked((short)value);
             }
 
             public ConstantValueI16(char value)
                 : base(ConstantValueTypeDiscriminator.Char)
             {
-                this.value = unchecked((short)value);
+                _value = unchecked((short)value);
             }
 
             public override short Int16Value
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((ushort)value);
+                    return unchecked((ushort)_value);
                 }
             }
 
@@ -613,42 +613,42 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((char)value);
+                    return unchecked((char)_value);
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.Int16Value;
+                return base.Equals(other) && _value == other.Int16Value;
             }
         }
 
         private sealed class ConstantValueI32 : ConstantValueDiscriminated
         {
-            private readonly int value;
+            private readonly int _value;
 
             public ConstantValueI32(int value)
                 : base(ConstantValueTypeDiscriminator.Int32)
             {
-                this.value = value;
+                _value = value;
             }
 
             public ConstantValueI32(uint value)
                 : base(ConstantValueTypeDiscriminator.UInt32)
             {
-                this.value = unchecked((int)value);
+                _value = unchecked((int)value);
             }
 
             public override int Int32Value
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
@@ -656,42 +656,42 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((uint)value);
+                    return unchecked((uint)_value);
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.Int32Value;
+                return base.Equals(other) && _value == other.Int32Value;
             }
         }
 
         private sealed class ConstantValueI64 : ConstantValueDiscriminated
         {
-            private readonly long value;
+            private readonly long _value;
 
             public ConstantValueI64(long value)
                 : base(ConstantValueTypeDiscriminator.Int64)
             {
-                this.value = value;
+                _value = value;
             }
 
             public ConstantValueI64(ulong value)
                 : base(ConstantValueTypeDiscriminator.UInt64)
             {
-                this.value = unchecked((long)value);
+                _value = unchecked((long)value);
             }
 
             public override long Int64Value
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
@@ -699,68 +699,68 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((ulong)value);
+                    return unchecked((ulong)_value);
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value == other.Int64Value;
+                return base.Equals(other) && _value == other.Int64Value;
             }
         }
 
         private sealed class ConstantValueDouble : ConstantValueDiscriminated
         {
-            private readonly double value;
+            private readonly double _value;
 
             public ConstantValueDouble(double value)
                 : base(ConstantValueTypeDiscriminator.Double)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override double DoubleValue
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value.Equals(other.DoubleValue);
+                return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
         }
 
         private sealed class ConstantValueSingle : ConstantValueDiscriminated
         {
-            // C# performs constant folding on floating point values in full precesion
-            // so this class stores values in double precesion
+            // C# performs constant folding on floating point values in full precision
+            // so this class stores values in double precision
             // DoubleValue can be used to get unclipped value
-            private readonly double value;
+            private readonly double _value;
 
             public ConstantValueSingle(double value)
                 : base(ConstantValueTypeDiscriminator.Single)
             {
-                this.value = value;
+                _value = value;
             }
 
             public override double DoubleValue
             {
                 get
                 {
-                    return value;
+                    return _value;
                 }
             }
 
@@ -768,18 +768,18 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return (float)value;
+                    return (float)_value;
                 }
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(base.GetHashCode(), value.GetHashCode());
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
             }
 
             public override bool Equals(ConstantValue other)
             {
-                return base.Equals(other) && this.value.Equals(other.DoubleValue);
+                return base.Equals(other) && _value.Equals(other.DoubleValue);
             }
         }
     }

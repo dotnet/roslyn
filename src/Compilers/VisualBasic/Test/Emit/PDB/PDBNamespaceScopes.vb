@@ -1,5 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports Microsoft.CodeAnalysis.Test.Utilities
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBNamespaceScopes
         Inherits BasicTestBase
@@ -85,101 +88,96 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
-                                                                     "<xmlns=""http://NewNamespace/prjlevel"">",
-                                                                     "prjlevel=System.Collections.Generic",
-                                                                     "System.Threading",
-                                                                     "typeproj1=System.Int64",
-                                                                     "prjlevelIgnored=System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.ArrayList"})).WithRootNamespace(""))
+            Dim globalImports = GlobalImport.Parse(
+                "<xmlns:prjlevel1=""http://NewNamespace"">",
+                "<xmlns=""http://NewNamespace/prjlevel"">",
+                "prjlevel=System.Collections.Generic",
+                "System.Threading",
+                "typeproj1=System.Int64",
+                "prjlevelIgnored=System.Collections.Generic.List(Of String)",
+                "System.Collections.Generic.List(Of String)",
+                "System.Collections.ArrayList")
 
-            Dim actual = PDBTests.GetPdbXml(compilation)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                source,
+                TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace(""))
 
-            Dim expected =
-                <symbols>
-                    <files>
-                        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 26, 2D, BC, C1, 9A,  B, B7, 68, F0, ED, 8E, CA, 70, 22, 73, 78, 33, EA, C0, "/>
-                        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
-                    </files>
-                    <entryPoint declaringType="Boo.C1" methodName="Main"/>
-                    <methods>
-                        <method containingType="Boo.C1" name=".ctor">
-                            <sequencePoints>
-                                <entry offset="0x0" hidden="true" document="1"/>
-                                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
-                                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0x27">
-                                <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
-                                <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
-                                <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
-                                <alias name="typefile1" target="System.String" kind="namespace" importlevel="file"/>
-                                <alias name="C3ALIAS" target="NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
-                                <namespace name="System" importlevel="file"/>
-                                <namespace name="System.Collections.Generic" importlevel="file"/>
-                                <type name="NS1.NS2.C1.C2" importlevel="file"/>
-                                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
-                                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
-                                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
-                                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
-                                <namespace name="System.Threading" importlevel="project"/>
-                                <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name="Boo"/>
-                            </scope>
-                        </method>
-                        <method containingType="Boo.C1" name="Main">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
-                                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
-                                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
-                            </scope>
-                        </method>
-                        <method containingType="Boo.C1" name="DoStuff">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
-                                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
-                                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
-                            </scope>
-                        </method>
-                        <method containingType="C2" name="DoStuff2">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
-                                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
-                                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
-                                <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>
-                                <alias name="file2" target="System.Collections" kind="namespace" importlevel="file"/>
-                                <alias name="typefile2" target="System.Int32" kind="namespace" importlevel="file"/>
-                                <namespace name="System.Diagnostics" importlevel="file"/>
-                                <type name="System.Collections.ArrayList" importlevel="file"/>
-                                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
-                                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
-                                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
-                                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
-                                <namespace name="System.Threading" importlevel="project"/>
-                                <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name=""/>
-                            </scope>
-                        </method>
-                    </methods>
-                </symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+            compilation.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 26, 2D, BC, C1, 9A,  B, B7, 68, F0, ED, 8E, CA, 70, 22, 73, 78, 33, EA, C0, "/>
+        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+    </files>
+    <entryPoint declaringType="Boo.C1" methodName="Main"/>
+    <methods>
+        <method containingType="Boo.C1" name=".ctor">
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                <entry offset="0x17" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x28">
+                <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
+                <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
+                <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
+                <alias name="typefile1" target="System.String" kind="namespace" importlevel="file"/>
+                <alias name="C3ALIAS" target="NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <type name="NS1.NS2.C1.C2" importlevel="file"/>
+                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
+                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
+                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
+                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
+                <namespace name="System.Threading" importlevel="project"/>
+                <type name="System.Collections.ArrayList" importlevel="project"/>
+                <currentnamespace name="Boo"/>
+            </scope>
+        </method>
+        <method containingType="Boo.C1" name="Main">
+            <sequencePoints>
+                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
+                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="Boo.C1" name="DoStuff">
+            <sequencePoints>
+                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
+                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
+                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="C2" name="DoStuff2">
+            <sequencePoints>
+                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
+                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
+                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
+                <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>
+                <alias name="file2" target="System.Collections" kind="namespace" importlevel="file"/>
+                <alias name="typefile2" target="System.Int32" kind="namespace" importlevel="file"/>
+                <namespace name="System.Diagnostics" importlevel="file"/>
+                <type name="System.Collections.ArrayList" importlevel="file"/>
+                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
+                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
+                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
+                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
+                <namespace name="System.Threading" importlevel="project"/>
+                <type name="System.Collections.ArrayList" importlevel="project"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
         <Fact>
@@ -263,105 +261,301 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                    source,
-                    TestOptions.DebugExe.WithGlobalImports(GlobalImport.Parse({"<xmlns:prjlevel1=""http://NewNamespace"">",
-                                                                     "<xmlns=""http://NewNamespace/prjlevel"">",
-                                                                     "prjlevel=System.Collections.Generic",
-                                                                     "System.Threading",
-                                                                     "typeproj1=System.Int64",
-                                                                     "prjlevelIgnored=System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.ArrayList"})).WithRootNamespace("DefaultNamespace"))
+            Dim globalImports = GlobalImport.Parse(
+                "<xmlns:prjlevel1=""http://NewNamespace"">",
+                "<xmlns=""http://NewNamespace/prjlevel"">",
+                "prjlevel=System.Collections.Generic",
+                "System.Threading",
+                "typeproj1=System.Int64",
+                "prjlevelIgnored=System.Collections.Generic.List(Of String)",
+                "System.Collections.Generic.List(Of String)",
+                "System.Collections.ArrayList")
 
-            Dim actual = PDBTests.GetPdbXml(compilation)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                source,
+                TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace("DefaultNamespace"))
 
-            Dim expected =
-                <symbols>
-                    <files>
-                        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
-                        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
-                    </files>
-                    <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main"/>
-                    <methods>
-                        <method containingType="DefaultNamespace.Boo.C1" name=".ctor">
-                            <sequencePoints>
-                                <entry offset="0x0" hidden="true" document="1"/>
-                                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
-                                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0x27">
-                                <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
-                                <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
-                                <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
-                                <alias name="typefile1" target="System.String" kind="namespace" importlevel="file"/>
-                                <alias name="C3ALIAS" target="DefaultNamespace.NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
-                                <namespace name="System" importlevel="file"/>
-                                <namespace name="System.Collections.Generic" importlevel="file"/>
-                                <type name="DefaultNamespace.NS1.NS2.C1.C2" importlevel="file"/>
-                                <defaultnamespace name="DefaultNamespace"/>
-                                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
-                                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
-                                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
-                                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
-                                <namespace name="System.Threading" importlevel="project"/>
-                                <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name="DefaultNamespace.Boo"/>
-                            </scope>
-                        </method>
-                        <method containingType="DefaultNamespace.Boo.C1" name="Main">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
-                                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
-                                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
-                            </scope>
-                        </method>
-                        <method containingType="DefaultNamespace.Boo.C1" name="DoStuff">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
-                                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
-                                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
-                            </scope>
-                        </method>
-                        <method containingType="DefaultNamespace.C2" name="DoStuff2">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
-                                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
-                                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
-                            </sequencePoints>
-                            <locals/>
-                            <scope startOffset="0x0" endOffset="0xd">
-                                <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
-                                <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>
-                                <alias name="file2" target="System.Collections" kind="namespace" importlevel="file"/>
-                                <alias name="typefile2" target="System.Int32" kind="namespace" importlevel="file"/>
-                                <namespace name="System.Diagnostics" importlevel="file"/>
-                                <type name="System.Collections.ArrayList" importlevel="file"/>
-                                <defaultnamespace name="DefaultNamespace"/>
-                                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
-                                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
-                                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
-                                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
-                                <namespace name="System.Threading" importlevel="project"/>
-                                <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name="DefaultNamespace"/>
-                            </scope>
-                        </method>
-                    </methods>
-                </symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+            compilation.VerifyPdb(
+<symbols>
+    <files>
+        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
+        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+    </files>
+    <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main"/>
+    <methods>
+        <method containingType="DefaultNamespace.Boo.C1" name=".ctor">
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                <entry offset="0x17" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x28">
+                <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
+                <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
+                <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
+                <alias name="typefile1" target="System.String" kind="namespace" importlevel="file"/>
+                <alias name="C3ALIAS" target="DefaultNamespace.NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <type name="DefaultNamespace.NS1.NS2.C1.C2" importlevel="file"/>
+                <defaultnamespace name="DefaultNamespace"/>
+                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
+                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
+                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
+                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
+                <namespace name="System.Threading" importlevel="project"/>
+                <type name="System.Collections.ArrayList" importlevel="project"/>
+                <currentnamespace name="DefaultNamespace.Boo"/>
+            </scope>
+        </method>
+        <method containingType="DefaultNamespace.Boo.C1" name="Main">
+            <sequencePoints>
+                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
+                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="DefaultNamespace.Boo.C1" name="DoStuff">
+            <sequencePoints>
+                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
+                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
+                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
+            </scope>
+        </method>
+        <method containingType="DefaultNamespace.C2" name="DoStuff2">
+            <sequencePoints>
+                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
+                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
+                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0xd">
+                <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
+                <xmlnamespace prefix="" name="http://stuff/fromFile2" importlevel="file"/>
+                <alias name="file2" target="System.Collections" kind="namespace" importlevel="file"/>
+                <alias name="typefile2" target="System.Int32" kind="namespace" importlevel="file"/>
+                <namespace name="System.Diagnostics" importlevel="file"/>
+                <type name="System.Collections.ArrayList" importlevel="file"/>
+                <defaultnamespace name="DefaultNamespace"/>
+                <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
+                <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
+                <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
+                <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
+                <namespace name="System.Threading" importlevel="project"/>
+                <type name="System.Collections.ArrayList" importlevel="project"/>
+                <currentnamespace name="DefaultNamespace"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
+        <Fact>
+        Public Sub EmittingPdbVsNot()
+            Dim source =
+<compilation name="EmittingPdbVsNot">
+    <file>
+Imports System
+Imports X = System.IO.FileStream
+
+Class C
+    Dim x As Integer = 1
+    Shared y As Integer = 1
+
+    Sub New()
+        Console.WriteLine()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+
+            Dim peStream1 = New MemoryStream()
+            Dim peStream2 = New MemoryStream()
+            Dim pdbStream = New MemoryStream()
+
+            Dim emitResult1 = c.Emit(peStream:=peStream1, pdbStream:=pdbStream)
+            Dim emitResult2 = c.Emit(peStream:=peStream2)
+
+            PdbValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
+        End Sub
+
+        <Fact>
+        Public Sub ImportedNoPiaTypes()
+            Dim sourceLib =
+<compilation name="ImportedNoPiaTypesAssemblyName">
+    <file><![CDATA[
+Imports System
+Imports System.Reflection
+Imports System.Runtime.InteropServices
+
+<Assembly:Guid("11111111-1111-1111-1111-111111111111")>
+<Assembly:ImportedFromTypeLib("Foo")>
+<Assembly:TypeLibVersion(1, 0)>
+
+Namespace N
+    Public Enum E
+        Value1 = 1
+    End Enum
+
+    Public Structure S1
+        Public A1 As Integer
+        Public A2 As Integer
+    End Structure
+
+    Public Structure S2
+        Public Const Value2 As Integer = 2
+    End Structure
+
+    Public Structure SBad
+        Public A3 As Integer
+        Public Const Value3 As Integer = 3
+    End Structure
+
+    <ComImport, Guid("22222222-2222-2222-2222-222222222222")>
+    Public Interface I
+        Sub F()
+    End Interface
+
+    Public Interface IBad
+        Sub F()
+    End Interface
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports N.E
+Imports N.SBad
+Imports Z1 = N.S1
+Imports Z2 = N.S2
+Imports ZBad = N.SBad
+Imports NI = N.I
+Imports NIBad = N.IBad
+
+Class C
+    Dim i As NI 
+
+    Sub M
+        Console.WriteLine(Value1)
+        Console.WriteLine(Z2.Value2)
+        Console.WriteLine(New Z1())
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim globalImports = GlobalImport.Parse(
+                "GlobalNIBad = N.IBad",
+                "GlobalZ1 = N.S1",
+                "GlobalZ2 = N.S2",
+                "GlobalZBad = N.SBad",
+                "GlobalNI = N.I")
+
+            Dim libRef = CreateCompilationWithMscorlib(sourceLib).EmitToImageReference(embedInteropTypes:=True)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
+            Dim v = CompileAndVerify(compilation)
+
+            v.Diagnostics.Verify(
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports N.SBad"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports ZBad = N.SBad"),
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports NIBad = N.IBad"))
+
+            ' Imports of embedded types are currently omitted:
+            v.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="10"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="34"/>
+                <entry offset="0x8" startLine="15" startColumn="9" endLine="15" endColumn="37"/>
+                <entry offset="0xf" startLine="16" startColumn="9" endLine="16" endColumn="36"/>
+                <entry offset="0x23" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x24">
+                <namespace name="System" importlevel="file"/>
+                <defunct name="&amp;ImportedNoPiaTypesAssemblyName"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportedTypeWithUnknownBase()
+            Dim sourceLib1 =
+<compilation>
+    <file>
+Namespace N
+    Public Class A
+    End Class
+End Namespace
+    </file>
+</compilation>
+
+            Dim sourceLib2 =
+<compilation name="LibRef2">
+    <file>
+Namespace N
+    Public Class B
+        Inherits A
+    End Class
+End Namespace
+    </file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports X = N.B
+
+Class C
+    Sub M()
+        Console.WriteLine()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference()
+            Dim libRef2 = CreateCompilationWithMscorlibAndReferences(sourceLib2, {libRef1}).EmitToImageReference()
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef2})
+
+            Dim v = CompileAndVerify(compilation)
+
+            v.Diagnostics.Verify(
+                Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports X = N.B"))
+
+            v.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="6" startColumn="9" endLine="6" endColumn="28"/>
+                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x6">
+                <alias name="X" target="N.B" kind="namespace" importlevel="file"/>
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
     End Class
 End Namespace
 

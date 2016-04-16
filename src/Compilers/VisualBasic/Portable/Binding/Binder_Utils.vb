@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' An array consisting of just the Friend keyword.
-        Private Shared FriendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
+        Private Shared ReadOnly s_friendKeyword As SyntaxKind() = {SyntaxKind.FriendKeyword}
 
         ' Report an error on the first keyword to match one of the given kinds.
         Public Sub ReportModifierError(modifiers As SyntaxTokenList,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Special case: Report "Protected Friend" as error combination if 
             ' Protected is bad and both Protected and Friend found inside modifiers.
             If badKeyword.Kind = SyntaxKind.ProtectedKeyword Then
-                Dim friendToken = FindFirstKeyword(modifiers, FriendKeyword)
+                Dim friendToken = FindFirstKeyword(modifiers, s_friendKeyword)
                 If friendToken.Kind <> SyntaxKind.None Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Possible create the array version of type, given the element type and the array modifier syntax.
         ''' </summary>
-        Public Function ApplyArrayRankSpecifersToType(elementType As TypeSymbol,
+        Public Function ApplyArrayRankSpecifiersToType(elementType As TypeSymbol,
                                       arrayModifierSyntax As SyntaxList(Of ArrayRankSpecifierSyntax),
                                       diagnostics As DiagnosticBag) As TypeSymbol
 
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayModifier, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, arrayModifier.Rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, arrayModifier.Rank, Compilation)
             Next
 
             Return currentType
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim currentType As TypeSymbol = elementType
 
             ' Array modifiers must be handled in reverse order, that's the language syntax.
-            currentType = ApplyArrayRankSpecifersToType(elementType, arrayModifierSyntax, diagnostics)
+            currentType = ApplyArrayRankSpecifiersToType(elementType, arrayModifierSyntax, diagnostics)
 
             ' Array bounds must be handled in reverse order, that's the language syntax.
             If arrayBoundsOpt IsNot Nothing Then
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, arrayBoundsOpt, ERRID.ERR_ArrayRankLimit)
                 End If
 
-                currentType = New ArrayTypeSymbol(currentType, Nothing, rank, Compilation)
+                currentType = ArrayTypeSymbol.CreateVBArray(currentType, Nothing, rank, Compilation)
             End If
 
             Return currentType
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Flags to specify where the decoding of the modified identifier's type happens.
         ''' </summary>
         <Flags()>
-        Enum ModifiedIdentifierTypeDecoderContext
+        Public Enum ModifiedIdentifierTypeDecoderContext
             ''' <summary>
             ''' No context given (default).
             ''' </summary>
@@ -798,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SourceMemberFlags.None,
                     parametersSyntax,
                     params,
-                    CheckDelegateParameterModifierCallback,
+                    s_checkDelegateParameterModifierCallback,
                     diagBag)
 
             ' no checks for the parameters:
@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim modifierValidator As CheckParameterModifierDelegate = Nothing
 
             If methodSymbol IsNot Nothing AndAlso methodSymbol.IsUserDefinedOperator() Then
-                modifierValidator = CheckOperatorParameterModifierCallback
+                modifierValidator = s_checkOperatorParameterModifierCallback
             End If
 
             DecodeParameterList(
@@ -885,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Shared ReadOnly CheckOperatorParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckOperatorParameterModifier
+        Private Shared ReadOnly s_checkOperatorParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckOperatorParameterModifier
 
         Private Shared Function CheckOperatorParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
             If (flag And SourceParameterFlags.ByRef) <> 0 Then
@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SourceMemberFlags.None,
                     syntaxOpt.Parameters,
                     params,
-                    CheckPropertyParameterModifierCallback,
+                    s_checkPropertyParameterModifierCallback,
                     diagBag)
 
             For i = 0 To params.Count - 1
@@ -948,7 +948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Shared ReadOnly CheckPropertyParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckPropertyParameterModifier
+        Private Shared ReadOnly s_checkPropertyParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckPropertyParameterModifier
 
         Private Shared Function CheckPropertyParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
             If flag = SourceParameterFlags.ByRef Then
@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf (flags And SourceParameterFlags.Optional) <> SourceParameterFlags.Optional AndAlso
                         Not reportedError Then
 
-                        ' If one of the previous parameters is optional then then report an error if this one isn't optional.
+                        ' If one of the previous parameters is optional then report an error if this one isn't optional.
                         ReportDiagnostic(diagBag, paramSyntax.Identifier.Identifier, ERRID.ERR_ExpectedOptional)
                         reportedError = True
 
@@ -1104,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' An array consisting of just the NotInheritable keyword.
-        Private Shared NotInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
+        Private Shared ReadOnly s_notInheritableKeyword As SyntaxKind() = {SyntaxKind.NotInheritableKeyword}
 
         ''' <summary>
         ''' Modifier validation code shared between properties and methods.
@@ -1171,12 +1171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Don't allow Overridable, etc. on NotInheritable.
             If container.IsNotInheritable Then
                 If (flags And SourceMemberFlags.InvalidInNotInheritableClass) <> 0 Then
-                    ' Somewhat strangly, the old VB compiler has different behavior depending on whether the containing type DECLARATION
+                    ' Somewhat strangely, the old VB compiler has different behavior depending on whether the containing type DECLARATION
                     ' has NotInheritable, vs. any partial has NotInheritable (although they are semantically the same). If the containing declaration
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
                     Dim containingTypeBLock = GetContainingTypeBlock(modifierList.First())
-                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.Begin.Modifiers, NotInheritableKeyword).Kind = SyntaxKind.None Then
+                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.BlockStatement.Modifiers, s_notInheritableKeyword).Kind = SyntaxKind.None Then
                         ' Containing type block doesn't have a NotInheritable modifier on it. Must be from other partial declaration.
 
                         If (flags And SourceMemberFlags.InvalidInNotInheritableOtherPartialClass) <> 0 Then
@@ -1395,7 +1395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(operandType IsNot Nothing)
 
             If conversionType.IsObjectType Then
-                ' Nothing constants of reference type can always be cobnverted to System.Object
+                ' Nothing constants of reference type can always be converted to System.Object
                 If operandType.IsReferenceType AndAlso nestedConstValue.IsNothing Then
                     Return nestedConstValue
                 End If
@@ -1457,7 +1457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' It is OK to convert Nothing literal of one reference type to another 
-            ' reference type or (only in default parameter valus context) Nothing 
+            ' reference type or (only in default parameter value context) Nothing 
             ' literal of reference type to a value type,
             ' if the conversion is not correct, errors should have been reported by now
             If operandType.IsReferenceType AndAlso
@@ -1710,12 +1710,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' These are the flags that are found in the syntax.  They must correspond to the modifiers list.
         ''' </summary>
         ''' <remarks></remarks>
-        Private _foundFlags As SourceMemberFlags
+        Private ReadOnly _foundFlags As SourceMemberFlags
         ''' <summary>
         ''' These are flags that are implied or computed
         ''' </summary>
         ''' <remarks></remarks>
-        Private _computedFlags As SourceMemberFlags
+        Private ReadOnly _computedFlags As SourceMemberFlags
 
         Public Sub New(foundFlags As SourceMemberFlags, computedFlags As SourceMemberFlags)
             _foundFlags = foundFlags

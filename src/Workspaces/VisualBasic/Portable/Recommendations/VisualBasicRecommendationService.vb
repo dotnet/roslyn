@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -16,22 +17,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService
 
-        Protected Overrides Function GetRecommendedSymbolsAtPositionWorker(
+        Protected Overrides Async Function GetRecommendedSymbolsAtPositionWorkerAsync(
             workspace As Workspace,
             semanticModel As SemanticModel,
             position As Integer,
             options As OptionSet,
             cancellationToken As CancellationToken
-        ) As Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)
+        ) As Tasks.Task(Of Tuple(Of IEnumerable(Of ISymbol), AbstractSyntaxContext))
 
-            Dim visualBasicSemanticModel = DirectCast(semanticModel, SemanticModel)
-            Dim context = VisualBasicSyntaxContext.CreateContext(workspace, visualBasicSemanticModel, position, cancellationToken)
+            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
 
             Dim filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language)
             Dim symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken)
 
             Dim hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language)
-            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, visualBasicSemanticModel.Compilation)
+            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation)
 
             Return Tuple.Create(Of IEnumerable(Of ISymbol), AbstractSyntaxContext)(symbols, context)
         End Function
@@ -48,7 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim node = context.TargetToken.Parent
-            If context.IsRightOfNameSeparator Then
+            If context.IsGlobalStatementContext Then
+                Return GetSymbolsForGlobalStatementContext(context, cancellationToken)
+            ElseIf context.IsRightOfNameSeparator Then
                 If node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                     Return GetSymbolsForMemberAccessExpression(context, DirectCast(node, MemberAccessExpressionSyntax), cancellationToken)
                 ElseIf node.Kind = SyntaxKind.QualifiedName Then
@@ -69,6 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+        End Function
+
+        Private Function GetSymbolsForGlobalStatementContext(
+            context As VisualBasicSyntaxContext,
+            cancellationToken As CancellationToken
+        ) As IEnumerable(Of ISymbol)
+            Return context.SemanticModel.LookupSymbols(context.TargetToken.Span.End)
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext(
@@ -108,8 +117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             cancellationToken As CancellationToken
         ) As IEnumerable(Of ISymbol)
 
-            Return context.SemanticModel _
+            Dim symbols = context.SemanticModel _
                 .LookupNamespacesAndTypes(context.TargetToken.SpanStart)
+
+            Return FilterToValidAccessibleSymbols(symbols, context, cancellationToken)
         End Function
 
         Private Function GetUnqualifiedSymbolsForExpressionOrStatementContext(
@@ -132,9 +143,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 symbols = symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
             End If
 
-            ' Hide backing fields and events
+            ' GitHub #4428: When the user is typing a predicate (eg. "Enumerable.Range(0,10).Select($$")
+            ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
+            ' contexts, except within GetType
+            If Not context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
+                    Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
 
+                symbols = symbols.Where(Function(s) Not IsInEligibleDelegate(s))
+            End If
+
+
+            ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
+        End Function
+
+        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+            If s.IsDelegateType() Then
+                Dim typeSymbol = DirectCast(s, ITypeSymbol)
+                Return typeSymbol.SpecialType <> SpecialType.System_Delegate
+            End If
+
+            Return False
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(
@@ -143,54 +172,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             cancellationToken As CancellationToken
         ) As IEnumerable(Of ISymbol)
 
-            ' We're in a name-only context, since if we were an expression we'd be a
-            ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
-            Dim nameBinding = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
-            Dim symbol = TryCast(nameBinding.Symbol, INamespaceOrTypeSymbol)
-            Dim couldBeMergedNamepsace = CouldBeMergedNamespace(nameBinding)
-            If symbol Is Nothing AndAlso Not couldBeMergedNamepsace Then
+            ' We shouldn't show completion if we're inside of a namespace statement.
+            If context.TargetToken.Parent.FirstAncestorOrSelf(Of NamespaceStatementSyntax)() IsNot Nothing Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
-            If context.TargetToken.GetAncestor(Of NamespaceStatementSyntax)() IsNot Nothing Then
+            ' We're in a name-only context, since if we were an expression we'd be a
+            ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
+            Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
+            Dim leftHandSymbol = TryCast(leftHandSymbolInfo.Symbol, INamespaceOrTypeSymbol)
+            Dim couldBeMergedNamespace = ContainsNamespaceCandidateSymbols(leftHandSymbolInfo)
+
+            If leftHandSymbol Is Nothing AndAlso Not couldBeMergedNamespace Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
             Dim symbols As IEnumerable(Of ISymbol)
-            If couldBeMergedNamepsace Then
-                symbols = nameBinding.CandidateSymbols.OfType(Of INamespaceSymbol)() _
+            If couldBeMergedNamespace Then
+                symbols = leftHandSymbolInfo.CandidateSymbols.OfType(Of INamespaceSymbol)() _
                     .SelectMany(Function(n) context.SemanticModel.LookupNamespacesAndTypes(node.SpanStart, n))
             Else
                 symbols = context.SemanticModel _
-                .LookupNamespacesAndTypes(position:=node.SpanStart, container:=symbol)
+                    .LookupNamespacesAndTypes(position:=node.SpanStart, container:=leftHandSymbol)
             End If
 
-            Dim implementsStatement = TryCast(node.Parent, ImplementsStatementSyntax)
-            If implementsStatement IsNot Nothing Then
-                Dim couldContainInterface = Function(s As INamedTypeSymbol) s.TypeKind = TypeKind.Class OrElse s.TypeKind = TypeKind.Module OrElse s.TypeKind = TypeKind.Structure
-
-                Dim interfaces = symbols.Where(Function(s) s.Kind = SymbolKind.NamedType AndAlso DirectCast(s, INamedTypeSymbol).TypeKind = TypeKind.Interface).ToList()
-                Dim otherTypes = symbols.OfType(Of INamedTypeSymbol).Where(Function(s) s.Kind = SymbolKind.NamedType AndAlso couldContainInterface(s) AndAlso
-                                                SubclassContainsInterface(s)).ToList()
-                Return interfaces.Concat(otherTypes)
-            End If
-
-            Return symbols
-        End Function
-
-        Private Function SubclassContainsInterface(symbol As INamedTypeSymbol) As Boolean
-            Dim nestedTypes = symbol.GetTypeMembers()
-            For Each type As INamedTypeSymbol In nestedTypes
-                If type.TypeKind = TypeKind.Interface Then
-                    Return True
-                End If
-
-                If SubclassContainsInterface(type) Then
-                    Return True
-                End If
-            Next
-
-            Return False
+            Return FilterToValidAccessibleSymbols(symbols, context, cancellationToken)
         End Function
 
         Private Function GetSymbolsForMemberAccessExpression(
@@ -205,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim leftHandTypeInfo = context.SemanticModel.GetTypeInfo(leftExpression, cancellationToken)
-            Dim leftHandBinding = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
+            Dim leftHandSymbolInfo = context.SemanticModel.GetSymbolInfo(leftExpression, cancellationToken)
 
             Dim excludeInstance = False
             Dim excludeShared = True ' do not show shared members by default
@@ -213,16 +219,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
-            If leftHandTypeInfo.Type.IsErrorType AndAlso leftHandBinding.Symbol IsNot Nothing Then
+            If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
+                container = DirectCast(leftHandTypeInfo.ConvertedType, INamespaceOrTypeSymbol)
+            End If
+            If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
-                container = TryCast(leftHandBinding.Symbol.GetSymbolType(), INamespaceOrTypeSymbol)
+                container = leftHandSymbolInfo.Symbol.GetSymbolType()
             End If
 
             Dim couldBeMergedNamespace = False
 
-            If leftHandBinding.Symbol IsNot Nothing Then
+            If leftHandSymbolInfo.Symbol IsNot Nothing Then
 
-                Dim firstSymbol = leftHandBinding.Symbol
+                Dim firstSymbol = leftHandSymbolInfo.Symbol
 
                 Select Case firstSymbol.Kind
                     Case SymbolKind.TypeParameter
@@ -250,6 +259,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         End If
                 End Select
 
+                ' Check for color color
+                Dim speculativeTypeBinding = context.SemanticModel.GetSpeculativeTypeInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                Dim speculativeAliasBinding = context.SemanticModel.GetSpeculativeAliasInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                If TypeOf leftHandSymbolInfo.Symbol IsNot INamespaceOrTypeSymbol AndAlso speculativeAliasBinding Is Nothing AndAlso firstSymbol.GetSymbolType() Is speculativeTypeBinding.Type Then
+                    excludeShared = False
+                    excludeInstance = False
+                End If
+
                 If inNameOfExpression Then
                     excludeInstance = False
                 End If
@@ -259,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
 
             Else
-                couldBeMergedNamespace = VisualBasicRecommendationService.CouldBeMergedNamespace(leftHandBinding)
+                couldBeMergedNamespace = ContainsNamespaceCandidateSymbols(leftHandSymbolInfo)
             End If
 
             If container Is Nothing AndAlso Not couldBeMergedNamespace Then
@@ -278,11 +295,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 End If
             End If
 
+            ' No completion on types/namespace after conditional access
+            If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
+                (couldBeMergedNamespace OrElse leftHandSymbolInfo.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
+                Return SpecializedCollections.EmptyCollection(Of ISymbol)()
+            End If
+
             Dim position = node.SpanStart
             Dim symbols As IEnumerable(Of ISymbol)
             If couldBeMergedNamespace Then
-                symbols = leftHandBinding.CandidateSymbols.OfType(Of INamespaceSymbol) _
-                                                            .SelectMany(Function(n) LookupSymbolsInContainer(n, context.SemanticModel, position, excludeInstance))
+                symbols = leftHandSymbolInfo.CandidateSymbols _
+                    .OfType(Of INamespaceSymbol) _
+                    .SelectMany(Function(n) LookupSymbolsInContainer(n, context.SemanticModel, position, excludeInstance))
             Else
                 symbols = If(
                     useBaseReferenceAccessibility,
@@ -306,8 +330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             ' If the left expression is My.MyForms, we should filter out all non-property symbols
-            If leftHandBinding.Symbol IsNot Nothing AndAlso
-               leftHandBinding.Symbol.IsMyFormsProperty(context.SemanticModel.Compilation) Then
+            If leftHandSymbolInfo.Symbol IsNot Nothing AndAlso
+               leftHandSymbolInfo.Symbol.IsMyFormsProperty(context.SemanticModel.Compilation) Then
 
                 symbols = symbols.Where(Function(s) s.Kind = SymbolKind.Property)
             End If
@@ -318,11 +342,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' Filter events and generated members
             symbols = symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(node, s))
 
+            ' Never show the enum backing field
+            symbols = symbols.Where(Function(s) s.Kind <> SymbolKind.Field OrElse Not s.ContainingType.IsEnumType() OrElse s.Name <> WellKnownMemberNames.EnumBackingFieldName)
+
             Return symbols
         End Function
 
-        Private Shared Function CouldBeMergedNamespace(leftHandBinding As SymbolInfo) As Boolean
-            Return leftHandBinding.CandidateSymbols.Any() AndAlso leftHandBinding.CandidateSymbols.All(Function(s) s.IsNamespace())
+        Private Shared Function ContainsNamespaceCandidateSymbols(symbolInfo As SymbolInfo) As Boolean
+            Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) s.IsNamespace())
         End Function
 
         Private Function LookupSymbolsInContainer(container As INamespaceOrTypeSymbol, semanticModel As SemanticModel, position As Integer, excludeInstance As Boolean) As ImmutableArray(Of ISymbol)
@@ -350,10 +377,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return True
         End Function
 
-        Private Function GetEnclosingCtor(
+        Private Shared Function GetEnclosingCtor(
             semanticModel As SemanticModel,
             node As MemberAccessExpressionSyntax,
-            cancellationToken As CancellationToken) As IMethodSymbol
+            cancellationToken As CancellationToken
+        ) As IMethodSymbol
+
             Dim symbol = semanticModel.GetEnclosingSymbol(node.SpanStart, cancellationToken)
 
             While symbol IsNot Nothing
@@ -365,5 +394,158 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Return Nothing
         End Function
+
+        Private Function FilterToValidAccessibleSymbols(
+            symbols As IEnumerable(Of ISymbol),
+            context As VisualBasicSyntaxContext,
+            cancellationToken As CancellationToken
+        ) As IEnumerable(Of ISymbol)
+
+            ' If this is an Inherits or Implements statement, we filter out symbols which do not recursively contain accessible, valid types.
+            Dim inheritsContext = IsInheritsStatementContext(context.TargetToken)
+            Dim implementsContext = IsImplementsStatementContext(context.TargetToken)
+
+            If inheritsContext OrElse implementsContext Then
+
+                Dim typeBlock = context.TargetToken.Parent?.FirstAncestorOrSelf(Of TypeBlockSyntax)()
+                If typeBlock IsNot Nothing Then
+                    Dim typeOrAssemblySymbol As ISymbol = context.SemanticModel.GetDeclaredSymbol(typeBlock)
+                    If typeOrAssemblySymbol Is Nothing Then
+                        typeOrAssemblySymbol = context.SemanticModel.Compilation.Assembly
+                    End If
+
+                    Dim isInterface = TryCast(typeOrAssemblySymbol, ITypeSymbol)?.TypeKind = TypeKind.Interface
+
+                    If inheritsContext Then
+
+                        ' In an interface's Inherits statement, only show interfaces.
+                        If isInterface Then
+                            Return symbols.Where(Function(s) IsValidAccessibleInterfaceOrContainer(s, typeOrAssemblySymbol))
+                        End If
+
+                        Return symbols.Where(Function(s) IsValidAccessibleClassOrContainer(s, typeOrAssemblySymbol))
+
+                    Else ' implementsContext
+
+                        ' In an interface's Implements statement, show nothing.
+                        If isInterface Then
+                            Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+                        End If
+
+                        Return symbols.Where(Function(s) IsValidAccessibleInterfaceOrContainer(s, typeOrAssemblySymbol))
+                    End If
+                End If
+            End If
+
+            Return symbols
+        End Function
+
+        Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean
+            If token.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) Then
+                Return True
+            End If
+
+            Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                   token.Parent?.FirstAncestorOrSelf(Of InheritsStatementSyntax) IsNot Nothing
+        End Function
+
+        Private Shared Function IsImplementsStatementContext(token As SyntaxToken) As Boolean
+            If token.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
+                Return True
+            End If
+
+            Return token.IsChildToken(Of QualifiedNameSyntax)(Function(n) n.DotToken) AndAlso
+                   token.Parent?.FirstAncestorOrSelf(Of ImplementsStatementSyntax) IsNot Nothing
+        End Function
+
+        Private Function IsValidAccessibleInterfaceOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
+            If symbol.Kind = SymbolKind.Alias Then
+                symbol = DirectCast(symbol, IAliasSymbol).Target
+            End If
+
+            Dim namespaceSymbol = TryCast(symbol, INamespaceSymbol)
+            If namespaceSymbol IsNot Nothing Then
+                Return namespaceSymbol.GetMembers().Any(Function(m) IsValidAccessibleInterfaceOrContainer(m, within))
+            End If
+
+            Dim namedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
+            If namedTypeSymbol Is Nothing Then
+                Return False
+            End If
+
+            Return namedTypeSymbol.TypeKind = TypeKind.Interface OrElse
+                   namedTypeSymbol _
+                       .GetAccessibleMembersInThisAndBaseTypes(Of INamedTypeSymbol)(within) _
+                       .Any(Function(m) IsOrContainsValidAccessibleInterface(m, within))
+        End Function
+
+        Private Function IsOrContainsValidAccessibleInterface(namespaceOrTypeSymbol As INamespaceOrTypeSymbol, within As ISymbol) As Boolean
+            If namespaceOrTypeSymbol.Kind = SymbolKind.Namespace Then
+                Return IsValidAccessibleInterfaceOrContainer(namespaceOrTypeSymbol, within)
+            End If
+
+            Dim namedTypeSymbol = TryCast(namespaceOrTypeSymbol, INamedTypeSymbol)
+            If namedTypeSymbol Is Nothing Then
+                Return False
+            End If
+
+            If namedTypeSymbol.TypeKind = TypeKind.Interface Then
+                Return True
+            End If
+
+            Return namedTypeSymbol.GetMembers() _
+                .OfType(Of INamedTypeSymbol)() _
+                .Where(Function(m) m.IsAccessibleWithin(within)) _
+                .Any(Function(m) IsOrContainsValidAccessibleInterface(m, within))
+        End Function
+
+        Private Function IsValidAccessibleClassOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
+            If symbol.Kind = SymbolKind.Alias Then
+                symbol = DirectCast(symbol, IAliasSymbol).Target
+            End If
+
+            Dim type = TryCast(symbol, ITypeSymbol)
+
+            If type IsNot Nothing Then
+                If type.TypeKind = TypeKind.Class AndAlso Not type.IsSealed AndAlso type IsNot within Then
+                    Return True
+                End If
+
+                If type.TypeKind = TypeKind.Class OrElse
+                   type.TypeKind = TypeKind.Module OrElse
+                   type.TypeKind = TypeKind.Struct Then
+
+                    Return type.GetAccessibleMembersInThisAndBaseTypes(Of INamedTypeSymbol)(within).Any(Function(m) IsOrContainsValidAccessibleClass(m, within))
+                End If
+            End If
+
+            Dim namespaceSymbol = TryCast(symbol, INamespaceSymbol)
+            If namespaceSymbol IsNot Nothing Then
+                Return namespaceSymbol.GetMembers().Any(Function(m) IsValidAccessibleClassOrContainer(m, within))
+            End If
+
+            Return False
+        End Function
+
+        Private Function IsOrContainsValidAccessibleClass(namespaceOrTypeSymbol As INamespaceOrTypeSymbol, within As ISymbol) As Boolean
+            If namespaceOrTypeSymbol.Kind = SymbolKind.Namespace Then
+                Return IsValidAccessibleClassOrContainer(namespaceOrTypeSymbol, within)
+            End If
+
+            Dim namedTypeSymbol = TryCast(namespaceOrTypeSymbol, INamedTypeSymbol)
+            If namedTypeSymbol Is Nothing Then
+                Return False
+            End If
+
+            If namedTypeSymbol.TypeKind = TypeKind.Class AndAlso Not namedTypeSymbol.IsSealed AndAlso namedTypeSymbol IsNot within Then
+                Return True
+            End If
+
+            Return namedTypeSymbol.GetMembers() _
+                .OfType(Of INamedTypeSymbol)() _
+                .Where(Function(m) m.IsAccessibleWithin(within)) _
+                .Any(Function(m) IsOrContainsValidAccessibleClass(m, within))
+        End Function
+
     End Class
 End Namespace

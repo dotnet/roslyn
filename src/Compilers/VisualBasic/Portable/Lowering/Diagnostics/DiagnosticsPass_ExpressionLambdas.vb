@@ -8,9 +8,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class DiagnosticsPass
-        Inherits BoundTreeWalker
 
-        Private _expressionTreePlaceholders As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
+        Private ReadOnly _expressionTreePlaceholders As New HashSet(Of BoundNode)(ReferenceEqualityComparer.Instance)
 
         Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression) As BoundNode
             If Me.IsInExpressionLambda Then
@@ -55,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitAnonymousTypePropertyAccess(node As BoundAnonymousTypePropertyAccess) As BoundNode
             If Me.IsInExpressionLambda Then
-                ' we do not allow anonymous objects which use one field to initalize another one
+                ' we do not allow anonymous objects which use one field to initialize another one
                 GenerateDiagnostic(ERRID.ERR_BadAnonymousTypeForExprTree, node)
             End If
 
@@ -89,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case opKind
                     Case BinaryOperatorKind.Like,
                          BinaryOperatorKind.Concatenate
-                    'Do Nothing
+                        'Do Nothing
 
                     Case Else
                         If (node.OperatorKind And BinaryOperatorKind.Lifted) <> 0 Then
@@ -143,7 +142,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
-            If Me.IsInExpressionLambda Then
+            'COMPAT: old compiler used to allow assignments to properties
+            '        we will continue allowing that too
+            'NOTE:   native vbc also allows compound assignments like += but generates incorrect code.
+            '        we are not going to support += assuming that it is not likely to be used in real scenarios.
+            If Me.IsInExpressionLambda AndAlso
+                    Not (node.Left.Kind = BoundKind.PropertyAccess AndAlso node.LeftOnTheRightOpt Is Nothing) Then
+
                 ' Do not support explicit assignments
                 GenerateExpressionTreeNotSupportedDiagnostic(node)
             End If
@@ -161,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
             If Me.IsInExpressionLambda Then
-                If DirectCast(node.Type, ArrayTypeSymbol).Rank > 1 Then
+                If Not DirectCast(node.Type, ArrayTypeSymbol).IsSZArray Then
                     Dim initializer As BoundArrayInitialization = node.InitializerOpt
                     If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
                         GenerateDiagnostic(ERRID.ERR_ExprTreeNoMultiDimArrayCreation, node)

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Public Overrides Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundNode
-            If Me.inExpressionLambda Then
+            If Me._inExpressionLambda Then
                 ' If we are inside expression lambda we want to keep binary conditional expression
                 Return RewriteBinaryConditionalExpressionInExpressionLambda(node)
             End If
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case Else
                     '  create a temp variable
-                    tempVariableSymbol = New SynthesizedLocal(Me.currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
+                    tempVariableSymbol = New SynthesizedLocal(Me._currentMethodOrLambda, rewrittenTestExpressionType, SynthesizedLocalKind.LoweringTemp)
                     '  temp variable reference
                     placeholderSubstitute = New BoundLocal(rewrittenTestExpression.Syntax,
                                                       tempVariableSymbol,
@@ -218,20 +218,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return rewrittenRight
             End If
 
-            If rewrittenLeft.Kind = BoundKind.LoweredConditionalAccess Then
-                Dim conditional = DirectCast(rewrittenLeft, BoundLoweredConditionalAccess)
-
-                If HasNoValue(conditional.WhenNullOpt) Then
-                    If HasValue(conditional.WhenNotNull) Then
-                        Return conditional.Update(conditional.ReceiverOrCondition,
-                                              conditional.CaptureReceiver,
-                                              conditional.PlaceholderId,
-                                              MakeResultFromNonNullLeft(conditional.WhenNotNull, node.ConvertedTestExpression, node.TestExpressionPlaceholder),
-                                              rewrittenRight,
-                                              node.Type)
+            Dim whenNotNull As BoundExpression = Nothing
+            Dim whenNull As BoundExpression = Nothing
+            If IsConditionalAccess(rewrittenLeft, whenNotNull, whenNull) Then
+                If HasNoValue(whenNull) Then
+                    If HasValue(whenNotNull) Then
+                        Return UpdateConditionalAccess(rewrittenLeft,
+                                                       MakeResultFromNonNullLeft(whenNotNull, node.ConvertedTestExpression, node.TestExpressionPlaceholder),
+                                                       rewrittenRight)
 
                     Else
-                        Debug.Assert(Not HasNoValue(conditional.WhenNotNull)) ' Not optimizing for this case
+                        Debug.Assert(Not HasNoValue(whenNotNull)) ' Not optimizing for this case
 
                         ' CONSIDER: We could do inlining when rewrittenRight.IsConstant
                     End If

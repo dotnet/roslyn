@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         <Extension()>
         Public Function WithAnnotations(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray annotations() As SyntaxAnnotation) As TNode
-            If annotations Is Nothing Then Throw New ArgumentNullException("annotations")
+            If annotations Is Nothing Then Throw New ArgumentNullException(NameOf(annotations))
             Return CType(node.SetAnnotations(annotations), TNode)
         End Function
 
         <Extension()>
         Public Function WithAdditionalAnnotations(Of TNode As VisualBasicSyntaxNode)(node As TNode, ParamArray annotations() As SyntaxAnnotation) As TNode
-            If annotations Is Nothing Then Throw New ArgumentNullException("annotations")
+            If annotations Is Nothing Then Throw New ArgumentNullException(NameOf(annotations))
             Return CType(node.SetAnnotations(node.GetAnnotations().Concat(annotations).ToArray()), TNode)
         End Function
 
@@ -85,11 +85,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
 #Region "AddLeading"
-        ' Add "trivia" as a leading trivia of node. If node is not a token, traverses down to the tree to add it it to the first token.
+        ' Add "trivia" as a leading trivia of node. If node is not a token, traverses down to the tree to add it to the first token.
         <Extension()>
         Private Function AddLeadingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             If Not trivia.Any Then
@@ -186,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #End Region
 
 #Region "AddTrailing"
-        ' Add "trivia" as a trailing trivia of node. If node is not a token, traverses down to the tree to add it it to the last token.
+        ' Add "trivia" as a trailing trivia of node. If node is not a token, traverses down to the tree to add it to the last token.
         <Extension()>
         Friend Function AddTrailingTrivia(Of TSyntax As VisualBasicSyntaxNode)(node As TSyntax, trivia As SyntaxList(Of VisualBasicSyntaxNode)) As TSyntax
             If node Is Nothing Then
-                Throw New ArgumentNullException("node")
+                Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim tk = TryCast(node, SyntaxToken)
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Return the index within the trivia of what would be considered trailing
         ''' single-line trivia by the Scanner. This behavior must match ScanSingleLineTrivia.
         ''' In short, search walks backwards and stops at the second terminator
-        ''' (colon or EOL) from the end, ignoring EOLs preceeded by line continuations.
+        ''' (colon or EOL) from the end, ignoring EOLs preceded by line continuations.
         ''' </summary>
         <Extension()>
         Private Function GetIndexOfEndOfTrivia(trivia As SyntaxList(Of VisualBasicSyntaxNode)) As Integer
@@ -442,46 +442,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' as many consecutive tokens as possible into a SkippedTokens trivia node.
         Private Class SkippedTriviaBuilder
             ' Maintain the list of trivia that we're accumulating.
-            Private triviaListBuilder As SyntaxListBuilder(Of VisualBasicSyntaxNode) = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
+            Private _triviaListBuilder As SyntaxListBuilder(Of VisualBasicSyntaxNode) = SyntaxListBuilder(Of VisualBasicSyntaxNode).Create()
 
             ' Maintain a list of tokens we're accumulating to put into a SkippedNodes trivia.
-            Private skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
+            Private _skippedTokensBuilder As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
 
-            Private preserveExistingDiagnostics As Boolean
-            Private addDiagnosticsToFirstTokenOnly As Boolean
-            Private diagnosticsToAdd As IEnumerable(Of DiagnosticInfo)
+            Private ReadOnly _preserveExistingDiagnostics As Boolean
+            Private _addDiagnosticsToFirstTokenOnly As Boolean
+            Private _diagnosticsToAdd As IEnumerable(Of DiagnosticInfo)
 
             ' Add a trivia to the trivia we are accumulating.
             Private Sub AddTrivia(trivia As VisualBasicSyntaxNode)
                 FinishInProgressTokens()
-                triviaListBuilder.AddRange(trivia)
+                _triviaListBuilder.AddRange(trivia)
             End Sub
 
             ' Create a SkippedTokens trivia from any tokens currently accumulated into the skippedTokensBuilder. If not,
             ' don't do anything.
             Private Sub FinishInProgressTokens()
-                If skippedTokensBuilder.Count > 0 Then
-                    Dim skippedTokensTrivia As VisualBasicSyntaxNode = SyntaxFactory.SkippedTokensTrivia(skippedTokensBuilder.ToList())
+                If _skippedTokensBuilder.Count > 0 Then
+                    Dim skippedTokensTrivia As VisualBasicSyntaxNode = SyntaxFactory.SkippedTokensTrivia(_skippedTokensBuilder.ToList())
 
-                    If diagnosticsToAdd IsNot Nothing Then
-                        For Each d In diagnosticsToAdd
+                    If _diagnosticsToAdd IsNot Nothing Then
+                        For Each d In _diagnosticsToAdd
                             skippedTokensTrivia = skippedTokensTrivia.AddError(d)
                         Next
-                        diagnosticsToAdd = Nothing ' only add once.
+                        _diagnosticsToAdd = Nothing ' only add once.
                     End If
 
-                    triviaListBuilder.Add(skippedTokensTrivia)
+                    _triviaListBuilder.Add(skippedTokensTrivia)
 
-                    skippedTokensBuilder.Clear()
+                    _skippedTokensBuilder.Clear()
                 End If
             End Sub
 
             Public Sub New(preserveExistingDiagnostics As Boolean,
                            addDiagnosticsToFirstTokenOnly As Boolean,
                            diagnosticsToAdd As IEnumerable(Of DiagnosticInfo))
-                Me.addDiagnosticsToFirstTokenOnly = addDiagnosticsToFirstTokenOnly
-                Me.preserveExistingDiagnostics = preserveExistingDiagnostics
-                Me.diagnosticsToAdd = diagnosticsToAdd
+                Me._addDiagnosticsToFirstTokenOnly = addDiagnosticsToFirstTokenOnly
+                Me._preserveExistingDiagnostics = preserveExistingDiagnostics
+                Me._diagnosticsToAdd = diagnosticsToAdd
             End Sub
 
             ' Process a token. and add to the list of trivia/tokens we're accumulating.
@@ -494,7 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     token = DirectCast(token.WithLeadingTrivia(Nothing), SyntaxToken)
                 End If
 
-                If Not preserveExistingDiagnostics Then
+                If Not _preserveExistingDiagnostics Then
                     token = token.WithoutDiagnostics()
                 End If
 
@@ -509,15 +509,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' Don't add missing tokens to skipped tokens, but preserve their diagnostics.
                     If token.ContainsDiagnostics() Then
                         ' Move diagnostics on missing token to next token.
-                        If diagnosticsToAdd IsNot Nothing Then
-                            diagnosticsToAdd = diagnosticsToAdd.Concat(token.GetDiagnostics())
+                        If _diagnosticsToAdd IsNot Nothing Then
+                            _diagnosticsToAdd = _diagnosticsToAdd.Concat(token.GetDiagnostics())
                         Else
-                            diagnosticsToAdd = token.GetDiagnostics()
+                            _diagnosticsToAdd = token.GetDiagnostics()
                         End If
-                        addDiagnosticsToFirstTokenOnly = True
+                        _addDiagnosticsToFirstTokenOnly = True
                     End If
                 Else
-                    skippedTokensBuilder.Add(token)
+                    _skippedTokensBuilder.Add(token)
                 End If
 
                 If trailingTrivia IsNot Nothing Then
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     AddTrivia(trailingTrivia)
                 End If
 
-                If isFirst AndAlso addDiagnosticsToFirstTokenOnly Then
+                If isFirst AndAlso _addDiagnosticsToFirstTokenOnly Then
                     FinishInProgressTokens() ' implicitly adds the diagnostics.
                 End If
             End Sub
@@ -533,13 +533,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' Get the final list of trivia nodes we should attached.
             Public Function GetTriviaList() As SyntaxList(Of VisualBasicSyntaxNode)
                 FinishInProgressTokens()
-                If diagnosticsToAdd IsNot Nothing AndAlso diagnosticsToAdd.Any() Then
+                If _diagnosticsToAdd IsNot Nothing AndAlso _diagnosticsToAdd.Any() Then
                     ' Still have diagnostics. Add to the last item.
-                    If triviaListBuilder.Count > 0 Then
-                        triviaListBuilder(triviaListBuilder.Count - 1) = triviaListBuilder(triviaListBuilder.Count - 1).WithAdditionalDiagnostics(diagnosticsToAdd.ToArray())
+                    If _triviaListBuilder.Count > 0 Then
+                        _triviaListBuilder(_triviaListBuilder.Count - 1) = _triviaListBuilder(_triviaListBuilder.Count - 1).WithAdditionalDiagnostics(_diagnosticsToAdd.ToArray())
                     End If
                 End If
-                Return triviaListBuilder.ToList()
+                Return _triviaListBuilder.ToList()
             End Function
         End Class
 
@@ -616,13 +616,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 #End Region
 
+        <Extension()>
+        Friend Function ContainsCommentTrivia(this As VisualBasicSyntaxNode) As Boolean
+            If this Is Nothing Then
+                Return False
+            End If
+
+            Dim trivia = New SyntaxList(Of VisualBasicSyntaxNode)(this)
+
+            For i = 0 To trivia.Count - 1
+                Dim kind = trivia.ItemUntyped(i).RawKind
+                If kind = SyntaxKind.CommentTrivia Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         ' This was Semantics::ExtractAnonTypeMemberName in Dev 10
         <Extension()>
         Friend Function ExtractAnonymousTypeMemberName(input As ExpressionSyntax,
-                                           ByRef isNameDictinaryAccess As Boolean,
+                                           ByRef isNameDictionaryAccess As Boolean,
                                            ByRef isRejectedXmlName As Boolean) As SyntaxToken
             Dim conditionalAccessStack As ArrayBuilder(Of ConditionalAccessExpressionSyntax) = Nothing
-            Dim result As SyntaxToken = ExtractAnonymousTypeMemberName(conditionalAccessStack, input, isNameDictinaryAccess, isRejectedXmlName)
+            Dim result As SyntaxToken = ExtractAnonymousTypeMemberName(conditionalAccessStack, input, isNameDictionaryAccess, isRejectedXmlName)
 
             If conditionalAccessStack IsNot Nothing Then
                 conditionalAccessStack.Free()
@@ -635,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ExtractAnonymousTypeMemberName(
             ByRef conditionalAccessStack As ArrayBuilder(Of ConditionalAccessExpressionSyntax),
             input As ExpressionSyntax,
-            ByRef isNameDictinaryAccess As Boolean,
+            ByRef isNameDictionaryAccess As Boolean,
             ByRef isRejectedXmlName As Boolean
         ) As SyntaxToken
 TryAgain:
@@ -665,7 +683,7 @@ TryAgain:
                     Dim receiver As ExpressionSyntax = If(memberAccess.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        ' See if this is an identifier qualified with XmlElementAccessExpression or XmlDescendantAccessExpression
                         If receiver IsNot Nothing Then
                             Select Case receiver.Kind
                                 Case SyntaxKind.XmlElementAccessExpression,
@@ -679,7 +697,7 @@ TryAgain:
 
                     ClearConditionalAccessStack(conditionalAccessStack)
 
-                    isNameDictinaryAccess = input.Kind = SyntaxKind.DictionaryAccessExpression
+                    isNameDictionaryAccess = input.Kind = SyntaxKind.DictionaryAccessExpression
                     input = memberAccess.Name
                     GoTo TryAgain
 
@@ -695,14 +713,14 @@ TryAgain:
 
                 Case SyntaxKind.InvocationExpression
                     Dim invocation = DirectCast(input, InvocationExpressionSyntax)
-                    Dim terget As ExpressionSyntax = If(invocation.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
+                    Dim target As ExpressionSyntax = If(invocation.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
 
-                    If terget Is Nothing Then
+                    If target Is Nothing Then
                         Exit Select
                     End If
 
                     If invocation.ArgumentList Is Nothing OrElse invocation.ArgumentList.Arguments.Count = 0 Then
-                        input = terget
+                        input = target
                         GoTo TryAgain
                     End If
 
@@ -710,10 +728,10 @@ TryAgain:
 
                     If invocation.ArgumentList.Arguments.Count = 1 Then
                         ' See if this is an indexed XmlElementAccessExpression or XmlDescendantAccessExpression
-                        Select Case terget.Kind
+                        Select Case target.Kind
                             Case SyntaxKind.XmlElementAccessExpression,
                                 SyntaxKind.XmlDescendantAccessExpression
-                                input = terget
+                                input = target
                                 GoTo TryAgain
                         End Select
                     End If

@@ -505,7 +505,7 @@ End Class
             Assert.Equal(expectedNewSource.Value, newRoot.ToFullString())
         End Sub
 
-        <WorkItem(991474, "DevDiv")>
+        <WorkItem(991474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991474")>
         <Fact>
         Public Sub ReturnNothingFromStructuredTriviaRoot_Succeeds()
             Dim Text =
@@ -543,139 +543,139 @@ End Class
 #Region "Helper Types"
 
         Private Sub TestGreen(input As String, output As String, rewriter As GreenRewriter, isStmt As Boolean)
-                Dim red As VisualBasicSyntaxNode
-                If isStmt Then
-                    red = SyntaxFactory.ParseExecutableStatement(input)
-                Else
-                    red = SyntaxFactory.ParseCompilationUnit(input)
-                End If
+            Dim red As VisualBasicSyntaxNode
+            If isStmt Then
+                red = SyntaxFactory.ParseExecutableStatement(input)
+            Else
+                red = SyntaxFactory.ParseCompilationUnit(input)
+            End If
 
-                Dim green = red.ToGreen()
+            Dim green = red.ToGreen()
 
-                Assert.False(green.ContainsDiagnostics)
+            Assert.False(green.ContainsDiagnostics)
 
-                Dim result As InternalSyntax.VisualBasicSyntaxNode = rewriter.Visit(green)
+            Dim result As InternalSyntax.VisualBasicSyntaxNode = rewriter.Visit(green)
 
-                Assert.Equal(input = output, green Is result)
-                Assert.Equal(output.Trim(), result.ToFullString().Trim())
-            End Sub
+            Assert.Equal(input = output, green Is result)
+            Assert.Equal(output.Trim(), result.ToFullString().Trim())
+        End Sub
 
-            Private Sub TestRed(input As String, output As String, rewriter As RedRewriter, isStmt As Boolean)
-                Dim red As VisualBasicSyntaxNode
-                If isStmt Then
-                    red = SyntaxFactory.ParseExecutableStatement(input)
-                Else
-                    red = SyntaxFactory.ParseCompilationUnit(input)
-                End If
+        Private Sub TestRed(input As String, output As String, rewriter As RedRewriter, isStmt As Boolean)
+            Dim red As VisualBasicSyntaxNode
+            If isStmt Then
+                red = SyntaxFactory.ParseExecutableStatement(input)
+            Else
+                red = SyntaxFactory.ParseCompilationUnit(input)
+            End If
 
-                Assert.False(red.ContainsDiagnostics)
+            Assert.False(red.ContainsDiagnostics)
 
-                Dim result = rewriter.Visit(red)
+            Dim result = rewriter.Visit(red)
 
-                Assert.Equal(input = output, red Is result)
-                Assert.Equal(output.Trim(), result.ToFullString().Trim())
-            End Sub
+            Assert.Equal(input = output, red Is result)
+            Assert.Equal(output.Trim(), result.ToFullString().Trim())
+        End Sub
 
 #End Region ' Helper Types
 
 #Region "Helper Types"
 
-            ''' <summary>
-            ''' This Rewriter exposes delegates for the methods that would normally be overridden.
-            ''' </summary>
-            Friend Class GreenRewriter
-                Inherits InternalSyntax.VisualBasicSyntaxRewriter
+        ''' <summary>
+        ''' This Rewriter exposes delegates for the methods that would normally be overridden.
+        ''' </summary>
+        Friend Class GreenRewriter
+            Inherits InternalSyntax.VisualBasicSyntaxRewriter
 
-                Private ReadOnly rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode)
-                Private ReadOnly rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken)
-                Private ReadOnly rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia)
+            Private ReadOnly _rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode)
+            Private ReadOnly _rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken)
+            Private ReadOnly _rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia)
 
-                Friend Sub New(
-                        Optional rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode) = Nothing,
-                        Optional rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken) = Nothing,
-                        Optional rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia) = Nothing)
-                    Me.rewriteNode = rewriteNode
-                    Me.rewriteToken = rewriteToken
-                    Me.rewriteTrivia = rewriteTrivia
-                End Sub
+            Friend Sub New(
+                    Optional rewriteNode As Func(Of InternalSyntax.VisualBasicSyntaxNode, InternalSyntax.VisualBasicSyntaxNode) = Nothing,
+                    Optional rewriteToken As Func(Of InternalSyntax.SyntaxToken, InternalSyntax.SyntaxToken) = Nothing,
+                    Optional rewriteTrivia As Func(Of InternalSyntax.SyntaxTrivia, InternalSyntax.SyntaxTrivia) = Nothing)
+                Me._rewriteNode = rewriteNode
+                Me._rewriteToken = rewriteToken
+                Me._rewriteTrivia = rewriteTrivia
+            End Sub
 
-                Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
-                    Dim visited As InternalSyntax.VisualBasicSyntaxNode = MyBase.Visit(node)
-                    If rewriteNode Is Nothing OrElse visited Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteNode(visited)
-                    End If
-                End Function
+            Public Overrides Function Visit(node As InternalSyntax.VisualBasicSyntaxNode) As InternalSyntax.VisualBasicSyntaxNode
+                Dim visited As InternalSyntax.VisualBasicSyntaxNode = MyBase.Visit(node)
+                If _rewriteNode Is Nothing OrElse visited Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteNode(visited)
+                End If
+            End Function
 
-                Public Overrides Function VisitSyntaxToken(token As InternalSyntax.SyntaxToken) As InternalSyntax.SyntaxToken
-                    Dim visited = MyBase.VisitSyntaxToken(token)
-                    If rewriteToken Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteToken(visited)
-                    End If
-                End Function
+            Public Overrides Function VisitSyntaxToken(token As InternalSyntax.SyntaxToken) As InternalSyntax.SyntaxToken
+                Dim visited = MyBase.VisitSyntaxToken(token)
+                If _rewriteToken Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteToken(visited)
+                End If
+            End Function
 
-                Public Overrides Function VisitSyntaxTrivia(trivia As InternalSyntax.SyntaxTrivia) As InternalSyntax.SyntaxTrivia
-                    Dim visited As InternalSyntax.SyntaxTrivia = MyBase.VisitSyntaxTrivia(trivia)
-                    If rewriteTrivia Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteTrivia(visited)
-                    End If
-                End Function
-            End Class
+            Public Overrides Function VisitSyntaxTrivia(trivia As InternalSyntax.SyntaxTrivia) As InternalSyntax.SyntaxTrivia
+                Dim visited As InternalSyntax.SyntaxTrivia = MyBase.VisitSyntaxTrivia(trivia)
+                If _rewriteTrivia Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteTrivia(visited)
+                End If
+            End Function
+        End Class
 
 
-            ''' <summary>
-            ''' This Rewriter exposes delegates for the methods that would normally be overridden.
-            ''' </summary>
-            Friend Class RedRewriter
-                Inherits VisualBasicSyntaxRewriter
+        ''' <summary>
+        ''' This Rewriter exposes delegates for the methods that would normally be overridden.
+        ''' </summary>
+        Friend Class RedRewriter
+            Inherits VisualBasicSyntaxRewriter
 
-                Private ReadOnly rewriteNode As Func(Of SyntaxNode, SyntaxNode)
-                Private ReadOnly rewriteToken As Func(Of SyntaxToken, SyntaxToken)
-                Private ReadOnly rewriteTrivia As Func(Of SyntaxTrivia, SyntaxTrivia)
+            Private ReadOnly _rewriteNode As Func(Of SyntaxNode, SyntaxNode)
+            Private ReadOnly _rewriteToken As Func(Of SyntaxToken, SyntaxToken)
+            Private ReadOnly _rewriteTrivia As Func(Of SyntaxTrivia, SyntaxTrivia)
 
-                Friend Sub New(
-                        Optional rewriteNode As Func(Of SyntaxNode, SyntaxNode) = Nothing,
-                        Optional rewriteToken As Func(Of SyntaxToken, SyntaxToken) = Nothing,
-                        Optional rewriteTrivia As Func(Of SyntaxTrivia, SyntaxTrivia) = Nothing)
-                    Me.rewriteNode = rewriteNode
-                    Me.rewriteToken = rewriteToken
-                    Me.rewriteTrivia = rewriteTrivia
-                End Sub
+            Friend Sub New(
+                    Optional rewriteNode As Func(Of SyntaxNode, SyntaxNode) = Nothing,
+                    Optional rewriteToken As Func(Of SyntaxToken, SyntaxToken) = Nothing,
+                    Optional rewriteTrivia As Func(Of SyntaxTrivia, SyntaxTrivia) = Nothing)
+                Me._rewriteNode = rewriteNode
+                Me._rewriteToken = rewriteToken
+                Me._rewriteTrivia = rewriteTrivia
+            End Sub
 
-                Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
-                    Dim visited = MyBase.Visit(node)
-                    If rewriteNode Is Nothing OrElse visited Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteNode(visited)
-                    End If
-                End Function
+            Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
+                Dim visited = MyBase.Visit(node)
+                If _rewriteNode Is Nothing OrElse visited Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteNode(visited)
+                End If
+            End Function
 
-                Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                    Dim visited As SyntaxToken = MyBase.VisitToken(token)
-                    If rewriteToken Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteToken(visited)
-                    End If
-                End Function
+            Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
+                Dim visited As SyntaxToken = MyBase.VisitToken(token)
+                If _rewriteToken Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteToken(visited)
+                End If
+            End Function
 
-                Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                    Dim visited As SyntaxTrivia = MyBase.VisitTrivia(trivia)
-                    If rewriteTrivia Is Nothing Then
-                        Return visited
-                    Else
-                        Return rewriteTrivia(visited)
-                    End If
-                End Function
-            End Class
+            Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
+                Dim visited As SyntaxTrivia = MyBase.VisitTrivia(trivia)
+                If _rewriteTrivia Is Nothing Then
+                    Return visited
+                Else
+                    Return _rewriteTrivia(visited)
+                End If
+            End Function
+        End Class
 
 #End Region ' Helper Types
-        End Class
+    End Class
 
 End Namespace

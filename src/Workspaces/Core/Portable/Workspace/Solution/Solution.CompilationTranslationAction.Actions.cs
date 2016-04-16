@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis
         {
             internal class TouchDocumentAction : CompilationTranslationAction
             {
-                private readonly DocumentState oldState;
-                private readonly DocumentState newState;
+                private readonly DocumentState _oldState;
+                private readonly DocumentState _newState;
 
                 public TouchDocumentAction(DocumentState oldState, DocumentState newState)
                 {
-                    this.oldState = oldState;
-                    this.newState = newState;
+                    _oldState = oldState;
+                    _newState = newState;
                 }
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return UpdateDocumentInCompilationAsync(oldCompilation, this.oldState, this.newState, cancellationToken);
+                    return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
-                public DocumentId DocumentId { get { return this.newState.Info.Id; } }
+                public DocumentId DocumentId { get { return _newState.Info.Id; } }
             }
 
             private class RemoveAllDocumentsAction : CompilationTranslationAction
@@ -40,12 +40,11 @@ namespace Microsoft.CodeAnalysis
 
             private class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
-                [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
-                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> action =
+                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.RemoveSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
 
                 public RemoveDocumentAction(DocumentState document)
-                    : base(document, action)
+                    : base(document, s_action)
                 {
                 }
             }
@@ -53,62 +52,62 @@ namespace Microsoft.CodeAnalysis
             private class AddDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
                 [SuppressMessage("Microsoft.StyleCop.CSharp.SpacingRules", "SA1008:OpeningParenthesisMustBeSpacedCorrectly", Justification = "Working around StyleCop bug 7080")]
-                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> action =
+                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.AddSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
 
                 public AddDocumentAction(DocumentState document)
-                    : base(document, action)
+                    : base(document, s_action)
                 {
                 }
             }
 
             private class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
             {
-                private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> action =
+                private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.Run(async () => await ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c).ConfigureAwait(false), c);
 
                 public ProjectParseOptionsAction(ProjectState state)
-                    : base(state, action)
+                    : base(state, s_action)
                 {
                 }
             }
 
             private class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
             {
-                private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> action =
+                private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithOptions(d));
 
                 public ProjectCompilationOptionsAction(CompilationOptions option)
-                    : base(option, action)
+                    : base(option, s_action)
                 {
                 }
             }
 
             private class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
             {
-                private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> action =
+                private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithAssemblyName(d));
 
                 public ProjectAssemblyNameAction(string assemblyName)
-                    : base(assemblyName, action)
+                    : base(assemblyName, s_action)
                 {
                 }
             }
 
             private class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
             {
-                private readonly T data;
-                private readonly Func<Compilation, T, CancellationToken, Task<Compilation>> action;
+                private readonly T _data;
+                private readonly Func<Compilation, T, CancellationToken, Task<Compilation>> _action;
 
                 public SimpleCompilationTranslationAction(T data, Func<Compilation, T, CancellationToken, Task<Compilation>> action)
                 {
-                    this.data = data;
-                    this.action = action;
+                    _data = data;
+                    _action = action;
                 }
 
                 public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return action(oldCompilation, this.data, cancellationToken);
+                    return _action(oldCompilation, _data, cancellationToken);
                 }
             }
         }

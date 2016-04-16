@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return SymbolKey.Null;
+                    return SymbolKey.s_null;
                 }
             }
 

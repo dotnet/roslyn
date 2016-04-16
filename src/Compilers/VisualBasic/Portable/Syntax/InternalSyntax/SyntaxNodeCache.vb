@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     '''     
     ''' </summary>
     Friend Class GreenStats
-        Private Shared stats As GreenStats = New GreenStats()
+        Private Shared s_stats As GreenStats = New GreenStats()
 
         ' TODO: remove when done tweaking this cache.
 #If STATS Then
@@ -97,9 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     Friend Class SyntaxNodeCache
-        Private Const CacheSizeBits As Integer = 16
-        Private Const CacheSize As Integer = 1 << CacheSizeBits
-        Private Const CacheMask As Integer = CacheSize - 1
+        Private Const s_cacheSizeBits As Integer = 16
+        Private Const s_cacheSize As Integer = 1 << s_cacheSizeBits
+        Private Const s_cacheMask As Integer = s_cacheSize - 1
 
         Private Structure Entry
             Public ReadOnly hash As Integer
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Sub
         End Structure
 
-        Private Shared ReadOnly cache As Entry() = New Entry(CacheSize - 1) {}
+        Private Shared ReadOnly s_cache As Entry() = New Entry(s_cacheSize - 1) {}
 
         Friend Shared Sub AddNode(node As GreenNode, hash As Integer)
             If (AllChildrenInCache(node) AndAlso Not node.IsMissing) Then
@@ -119,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Debug.Assert(node.GetCacheHash() = hash)
 
-                Dim idx As Integer = hash And CacheMask
-                cache(idx) = New Entry(hash, node)
+                Dim idx As Integer = hash And s_cacheMask
+                s_cache(idx) = New Entry(hash, node)
             End If
         End Sub
 
@@ -138,14 +138,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function ChildInCache(child As GreenNode) As Boolean
             ' for the purpose of this function consider that 
-            ' null nodes, tokens and trivias are cached somwhere else.
+            ' null nodes, tokens and trivias are cached somewhere else.
             If (child Is Nothing OrElse child.SlotCount = 0) Then
                 Return True
             End If
 
             Dim hash = child.GetCacheHash()
-            Dim idx = hash And CacheMask
-            Return cache(idx).node Is child
+            Dim idx = hash And s_cacheMask
+            Return s_cache(idx).node Is child
         End Function
 
         Private Shared Function AllChildrenInCache(node As GreenNode) As Boolean
@@ -172,8 +172,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim h As Integer = GetCacheHash(kind, flags, child1)
                 hash = h
-                Dim idx As Integer = h And CacheMask
-                Dim e = cache(idx)
+                Dim idx As Integer = h And s_cacheMask
+                Dim e = s_cache(idx)
                 If (e.hash = h AndAlso e.node IsNot Nothing AndAlso e.node.IsCacheEquivalent(kind, flags, child1)) Then
                     GreenStats.CacheHit()
                     Return e.node
@@ -199,8 +199,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim h As Integer = GetCacheHash(kind, flags, child1, child2)
                 hash = h
-                Dim idx As Integer = h And CacheMask
-                Dim e = cache(idx)
+                Dim idx As Integer = h And s_cacheMask
+                Dim e = s_cache(idx)
                 If (e.hash = h AndAlso e.node IsNot Nothing AndAlso e.node.IsCacheEquivalent(kind, flags, child1, child2)) Then
                     GreenStats.CacheHit()
                     Return e.node
@@ -225,8 +225,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim h As Integer = GetCacheHash(kind, flags, child1, child2, child3)
                 hash = h
-                Dim idx As Integer = h And CacheMask
-                Dim e = cache(idx)
+                Dim idx As Integer = h And s_cacheMask
+                Dim e = s_cache(idx)
                 If (e.hash = h AndAlso e.node IsNot Nothing AndAlso e.node.IsCacheEquivalent(kind, flags, child1, child2, child3)) Then
                     GreenStats.CacheHit()
                     Return e.node

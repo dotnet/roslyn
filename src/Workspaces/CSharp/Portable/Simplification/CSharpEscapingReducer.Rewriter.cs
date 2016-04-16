@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public Rewriter(CSharpEscapingReducer escapingSimplifierService, OptionSet optionSet, CancellationToken cancellationToken)
                 : base(optionSet, cancellationToken)
             {
-                this.escapingSimplifierService = escapingSimplifierService;
+                _escapingSimplifierService = escapingSimplifierService;
             }
 
-            private readonly CSharpEscapingReducer escapingSimplifierService;
+            private readonly CSharpEscapingReducer _escapingSimplifierService;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var newToken = base.VisitToken(token);
-                return SimplifyToken(newToken, escapingSimplifierService.SimplifyIdentifierToken);
+                return SimplifyToken(newToken, _escapingSimplifierService.SimplifyIdentifierToken);
             }
         }
     }

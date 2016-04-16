@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class SwitchTests : EmitMetadataTestBase
     {
         #region Functionality tests
-        
+
         [Fact]
         public void DefaultOnlySwitch()
         {
@@ -52,7 +53,7 @@ public class Test
             );
         }
 
-        [WorkItem(542298, "DevDiv")]
+        [WorkItem(542298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542298")]
         [Fact]
         public void DefaultOnlySwitch_02()
         {
@@ -550,7 +551,7 @@ public class Test
             );
         }
 
-        [WorkItem(740058, "DevDiv")]
+        [WorkItem(740058, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/740058")]
         [Fact]
         public void LongTypeSwitchArgumentExpressionOverflow()
         {
@@ -863,7 +864,7 @@ public class Test
 	}
 }";
 
-            var compVerifier = CompileAndVerify(text, emitOptions: TestEmitters.CCI, expectedOutput: "0");
+            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      127 (0x7f)
@@ -1213,11 +1214,14 @@ class Class1
                 {
                     i = 1;
                 }
-                finally {}
+                finally
+                {
+                    j = 2;
+                }
                 break;
 
             default:
-                i = 2;                
+                i = 2;
                 break;
         }
 
@@ -1228,45 +1232,46 @@ class Class1
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Class1.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  1
   .locals init (int V_0, //j
-  int V_1) //i
+                int V_1) //i
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.3
   IL_0003:  stloc.1
   IL_0004:  ldloc.0
-  IL_0005:  brtrue.s   IL_0012
+  IL_0005:  brtrue.s   IL_0014
   IL_0007:  nop
   .try
-{
-  .try
-{
-  IL_0008:  ldc.i4.0
-  IL_0009:  stloc.1
-  IL_000a:  leave.s    IL_0014
-}
-  catch object
-{
-  IL_000c:  pop
-  IL_000d:  ldc.i4.1
-  IL_000e:  stloc.1
-  IL_000f:  leave.s    IL_0014
-}
-}
+  {
+    .try
+    {
+      IL_0008:  ldc.i4.0
+      IL_0009:  stloc.1
+      IL_000a:  leave.s    IL_0016
+    }
+    catch object
+    {
+      IL_000c:  pop
+      IL_000d:  ldc.i4.1
+      IL_000e:  stloc.1
+      IL_000f:  leave.s    IL_0016
+    }
+  }
   finally
-{
-  IL_0011:  endfinally
-}
-  IL_0012:  ldc.i4.2
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""void System.Console.Write(int)""
-  IL_001a:  ldloc.1
-  IL_001b:  ret
-}
-"
+  {
+    IL_0011:  ldc.i4.2
+    IL_0012:  stloc.0
+    IL_0013:  endfinally
+  }
+  IL_0014:  ldc.i4.2
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloc.1
+  IL_001d:  ret
+}"
             );
         }
 
@@ -1618,7 +1623,7 @@ public class Test
             );
         }
 
-        [WorkItem(542398, "DevDiv")]
+        [WorkItem(542398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542398")]
         [Fact]
         public void MaxValueGotoCaseExpression()
         {
@@ -1641,7 +1646,7 @@ class Program
             CompileAndVerify(text, expectedOutput: "");
         }
 
-        [WorkItem(543967, "DevDiv")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression()
         {
@@ -1710,7 +1715,7 @@ class Program
 }");
         }
 
-        [WorkItem(543967, "DevDiv")]
+        [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
         [Fact()]
         public void NullableAsSwitchExpression_02()
         {
@@ -1942,6 +1947,163 @@ class Program
 ");
         }
 
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableInt64WithInt32Label()
+        {
+            var text = @"public static class C
+{
+    public static bool F(long? x)
+    {
+        switch (x)
+        {
+            case 1:
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            compVerifier.VerifyIL("C.F(long?)",
+@"
+{
+        // Code size       28 (0x1c)
+        .maxstack  2
+        .locals init (long? V_0,
+                      long V_1)
+        IL_0000:  ldarg.0
+        IL_0001:  stloc.0
+        IL_0002:  ldloca.s   V_0
+        IL_0004:  call       ""bool long?.HasValue.get""
+        IL_0009:  brfalse.s  IL_001a
+        IL_000b:  ldloca.s   V_0
+        IL_000d:  call       ""long long?.GetValueOrDefault()""
+        IL_0012:  stloc.1
+        IL_0013:  ldloc.1
+        IL_0014:  ldc.i4.1
+        IL_0015:  conv.i8
+        IL_0016:  bne.un.s   IL_001a
+        IL_0018:  ldc.i4.1
+        IL_0019:  ret
+        IL_001a:  ldc.i4.0
+        IL_001b:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableWithNonConstant()
+        {
+            var text = @"public static class C
+{
+    public static bool F(int? x)
+    {
+        int i = 4;
+        switch (x)
+        {
+            case i:
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compilation = base.CreateCSharpCompilation(text);
+            // (8,13): error CS0150: A constant value is expected
+            //             case i:
+            var expected = Diagnostic(ErrorCode.ERR_ConstantExpected, "case i:");
+
+            compilation.VerifyDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(7625, "https://github.com/dotnet/roslyn/issues/7625")]
+        public void SwitchOnNullableWithNonCompatibleType()
+        {
+            var text = @"public static class C
+{
+    public static bool F(int? x)
+    {
+        switch (x)
+        {
+            case default(System.DateTime):
+                return true;
+            default:
+                return false;
+        }
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compilation = base.CreateCSharpCompilation(text);
+
+            // (7,18): error CS0029: Cannot implicitly convert type 'System.DateTime' to 'int?'
+            //             case default(System.DateTime):
+            var expected = Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(System.DateTime)").WithArguments("System.DateTime", "int?");
+
+            compilation.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void SwitchOnNullableInt64WithInt32LabelWithEnum()
+        {
+            var text = @"public static class C
+{
+    public static bool F(long? x)
+    {
+        switch (x)
+        {
+            case (int)Foo.X:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public enum Foo : int { X  = 1 }
+
+    static void Main()
+    {
+        System.Console.WriteLine(F(1));
+    }
+}";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            compVerifier.VerifyIL("C.F(long?)",
+@"
+{
+        // Code size       28 (0x1c)
+        .maxstack  2
+        .locals init (long? V_0,
+                      long V_1)
+        IL_0000:  ldarg.0
+        IL_0001:  stloc.0
+        IL_0002:  ldloca.s   V_0
+        IL_0004:  call       ""bool long?.HasValue.get""
+        IL_0009:  brfalse.s  IL_001a
+        IL_000b:  ldloca.s   V_0
+        IL_000d:  call       ""long long?.GetValueOrDefault()""
+        IL_0012:  stloc.1
+        IL_0013:  ldloc.1
+        IL_0014:  ldc.i4.1
+        IL_0015:  conv.i8
+        IL_0016:  bne.un.s   IL_001a
+        IL_0018:  ldc.i4.1
+        IL_0019:  ret
+        IL_001a:  ldc.i4.0
+        IL_001b:  ret
+}"
+            );
+        }
+
         // TODO: Add more targeted tests for verifying switch bucketing
 
         #region "String tests"
@@ -2076,7 +2238,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(546632, "DevDiv")]
+        [WorkItem(546632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546632")]
         public void StringSwitch_HashTableSwitch_01()
         {
             var text = @"using System;
@@ -2136,7 +2298,7 @@ class Test
 		Console.WriteLine(success);
 	}
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "True");
 
             compVerifier.VerifyIL("Test.M", @"
 {
@@ -2159,7 +2321,7 @@ class Test
   IL_001a:  callvirt   ""string string.Remove(int, int)""
   IL_001f:  starg.s    V_0
   IL_0021:  ldarg.0   
-  IL_0022:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0022:  call       ""ComputeStringHash""
   IL_0027:  stloc.1   
   IL_0028:  ldloc.1   
   IL_0029:  ldc.i4     0xc60bf9f2
@@ -2282,7 +2444,7 @@ class Test
             var reference = compVerifier.Compilation.EmitToImageReference();
             var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>")).Single());
+            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
             var member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single();
             Assert.Equal(Accessibility.Internal, member.DeclaredAccessibility);
         }
@@ -2486,7 +2648,7 @@ class Test
 		Console.Write(status);
 	}
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "PASS");
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
@@ -2507,7 +2669,7 @@ class Test
   IL_0017:  callvirt   ""string string.Remove(int, int)""
   IL_001c:  starg.s    V_0
   IL_001e:  ldarg.0   
-  IL_001f:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_001f:  call       ""ComputeStringHash""
   IL_0024:  stloc.1   
   IL_0025:  ldloc.1   
   IL_0026:  ldc.i4     0xb2f29419
@@ -2812,7 +2974,7 @@ class Test
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
         }
 
-        [WorkItem(544322, "DevDiv")]
+        [WorkItem(544322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544322")]
         [Fact]
         public void StringSwitch_HashTableSwitch_03()
         {
@@ -2873,7 +3035,7 @@ class Foo
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
         }
 
-        static void VerifySynthesizedStringHashMethod(CompilationVerifier compVerifier, bool expected)
+        private static void VerifySynthesizedStringHashMethod(CompilationVerifier compVerifier, bool expected)
         {
             compVerifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName, expected);
 
@@ -2920,8 +3082,8 @@ class Foo
 
         #region "Implicit user defined conversion tests"
 
-        [WorkItem(543602, "DevDiv")]
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_01()
         {
@@ -2961,7 +3123,7 @@ public class Test
             var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_02()
         {
@@ -3002,7 +3164,7 @@ class Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543660, "DevDiv")]
+        [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_03()
         {
@@ -3136,7 +3298,7 @@ struct Conv
             CompileAndVerify(text, expectedOutput: "Pass");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_3()
         {
@@ -3173,7 +3335,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "0");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_4()
         {
@@ -3210,103 +3372,7 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_5()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
-        [Fact()]
-        public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_2_6()
-        {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
-            // Roslyn behavior: 2nd switch expression: No ambiguity, binds to "implicit operator int?(A a)"
-
-            var text =
-@"using System;
- 
-struct A
-{
-    public static implicit operator int?(A a)
-    {
-        Console.WriteLine(""0"");
-        return 0;
-    }
- 
-    public static implicit operator int?(A? a)
-    {
-        Console.WriteLine(""1"");
-        return 0;
-    }
- 
-    class B
-    {
-        static void Main()
-        {
-            A? aNullable = new A();
-            switch(aNullable)
-            {
-                default: break;
-            }
-
-            A a = new A();
-            switch(a)
-            {
-                default: break;
-            }
-        }
-    }
-}
-";
-            CompileAndVerify(text, expectedOutput: @"1
-0");
-        }
-
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_1()
         {
@@ -3349,12 +3415,10 @@ struct A
             CompileAndVerify(text, expectedOutput: "1");
         }
 
-        [WorkItem(543673, "DevDiv")]
+        [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
         [Fact()]
         public void ImplicitUserDefinedConversionToSwitchGoverningType_11564_3_3()
         {
-            // Dev10 behavior: 2nd switch expression is an ambiguous user defined conversion
-
             var text =
 @"using System;
  
@@ -3396,7 +3460,7 @@ struct A
 
         #endregion
 
-        [WorkItem(634404, "DevDiv")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
         [Fact()]
         public void MissingCharsProperty()
         {
@@ -3448,7 +3512,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false, emitOptions: TestEmitters.RefEmitUnsupported);
+            var verifier = CompileAndVerify(comp, verify: false);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)
@@ -3524,7 +3588,7 @@ class Program
 ");
         }
 
-        [WorkItem(642186, "DevDiv")]
+        [WorkItem(642186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642186")]
         [Fact()]
         public void IsWarningSwitchEmit()
         {
@@ -4139,7 +4203,7 @@ namespace ConsoleApplication24
             ERR_BadBinaryOperatorSignature = 563,
             ERR_BadShiftOperatorSignature = 564,
             ERR_InterfacesCantContainOperators = 567,
-            ERR_StructsCantContainDefaultContructor = 568,
+            ERR_StructsCantContainDefaultConstructor = 568,
             ERR_CantOverrideBogusMethod = 569,
             ERR_BindToBogus = 570,
             ERR_CantCallSpecialMethod = 571,
@@ -4520,7 +4584,7 @@ namespace ConsoleApplication24
             ERR_ParamsCantBeRefOut = 1611,
             ERR_ReturnNotLValue = 1612,
             ERR_MissingCoClass = 1613,
-            ERR_AmbigousAttribute = 1614,
+            ERR_AmbiguousAttribute = 1614,
             ERR_BadArgExtraRef = 1615,
             WRN_CmdOptionConflictsSource = 1616,
             ERR_BadCompatMode = 1617,
@@ -4889,7 +4953,7 @@ namespace ConsoleApplication24
             ERR_ExternAliasNotAllowed = 7015,
             ERR_ConflictingAliasAndDefinition = 7016,
             ERR_GlobalDefinitionOrStatementExpected = 7017,
-            ERR_NoScriptsSpecified = 7018,
+            ERR_ExpectedSingleScript = 7018,
             ERR_RecursivelyTypedVariable = 7019,
             ERR_ReturnNotAllowedInScript = 7020,
             ERR_NamespaceNotAllowedInScript = 7021,
@@ -5599,7 +5663,6 @@ namespace ConsoleApplication24
   IL_0816:  ldc.i4.0
   IL_0817:  ret
 }");
-
         }
 
 
@@ -6128,7 +6191,7 @@ public class Test
             );
         }
 
-        [WorkItem(913556, "DevDiv")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void DifferentStrategiesForDifferentSwitches()
         {
@@ -6159,7 +6222,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size      328 (0x148)
@@ -6181,7 +6244,7 @@ public class Test
   IL_0019:  ldelem.ref
   IL_001a:  stloc.0
   IL_001b:  ldloc.0
-  IL_001c:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_001c:  call       ""ComputeStringHash""
   IL_0021:  stloc.1
   IL_0022:  ldloc.1
   IL_0023:  ldc.i4     0xc30bf539
@@ -6299,8 +6362,8 @@ public class Test
 ");
         }
 
-        [WorkItem(634404, "DevDiv")]
-        [WorkItem(913556, "DevDiv")]
+        [WorkItem(634404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634404")]
+        [WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")]
         [Fact]
         public void LargeStringSwitchWithoutStringChars()
         {
@@ -6326,7 +6389,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             // With special members available, we use a hashtable approach.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
@@ -6340,7 +6403,7 @@ public class Test
   IL_0002:  ldelem.ref
   IL_0003:  stloc.0
   IL_0004:  ldloc.0
-  IL_0005:  call       ""$$method0x6000001-ComputeStringHash""
+  IL_0005:  call       ""ComputeStringHash""
   IL_000a:  stloc.1
   IL_000b:  ldloc.1
   IL_000c:  ldc.i4     0xc30bf539
@@ -6538,7 +6601,7 @@ public class Test
 ");
         }
 
-        [WorkItem(947580, "DevDiv")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580()
         {
@@ -6588,7 +6651,7 @@ class Program {
             );
         }
 
-        [WorkItem(947580, "DevDiv")]
+        [WorkItem(947580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947580")]
         [Fact]
         public void Regress947580a()
         {
@@ -6632,8 +6695,8 @@ class Program {
 "
             );
         }
-        
-        [WorkItem(1035228, "DevDiv")]
+
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228()
         {
@@ -6688,7 +6751,7 @@ class Program {
             );
         }
 
-        [WorkItem(1035228, "DevDiv")]
+        [WorkItem(1035228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1035228")]
         [Fact]
         public void Regress1035228a()
         {
@@ -6741,7 +6804,152 @@ class Program {
             );
         }
 
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701()
+        {
+            var text = @"
+using System;
 
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            int? i;
+
+            i = 1;
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    i = 1;
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    i = i + 2;
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       94 (0x5e)
+  .maxstack  2
+  .locals init (int? V_0, //i
+                int V_1,
+                int? V_2,
+                int? V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""int?..ctor(int)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""bool int?.HasValue.get""
+  IL_000f:  brfalse.s  IL_001b
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int int?.GetValueOrDefault()""
+  IL_0018:  stloc.1
+  IL_0019:  br.s       IL_002e
+  IL_001b:  ldstr      ""In Null case""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       ""int?..ctor(int)""
+  IL_002d:  ret
+  IL_002e:  ldstr      ""In DEFAULT case""
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ldloc.0
+  IL_0039:  stloc.2
+  IL_003a:  ldloca.s   V_2
+  IL_003c:  call       ""bool int?.HasValue.get""
+  IL_0041:  brtrue.s   IL_004e
+  IL_0043:  ldloca.s   V_3
+  IL_0045:  initobj    ""int?""
+  IL_004b:  ldloc.3
+  IL_004c:  br.s       IL_005c
+  IL_004e:  ldloca.s   V_2
+  IL_0050:  call       ""int int?.GetValueOrDefault()""
+  IL_0055:  ldc.i4.2
+  IL_0056:  add
+  IL_0057:  newobj     ""int?..ctor(int)""
+  IL_005c:  stloc.0
+  IL_005d:  ret
+}
+"
+            );
+        }
+
+        [WorkItem(4701, "https://github.com/dotnet/roslyn/issues/4701")]
+        [Fact]
+        public void Regress4701a()
+        {
+            var text = @"
+using System;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        private void SwtchTest()
+        {
+            string i = null;
+
+            i = ""1"";
+            switch (i)
+            {
+                case null:
+                    Console.WriteLine(""In Null case"");
+                    break;
+                default:
+                    Console.WriteLine(""In DEFAULT case"");
+                    break;
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var p = new Program();
+        p.SwtchTest();
+    }
+}
+}
+
+";
+            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (string V_0) //i
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldstr      ""1""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldstr      ""In Null case""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+  IL_0016:  ldstr      ""In DEFAULT case""
+  IL_001b:  call       ""void System.Console.WriteLine(string)""
+  IL_0020:  ret
+}
+"
+            );
+        }
 
         #endregion
     }

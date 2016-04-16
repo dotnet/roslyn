@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a compiler generated field of given type and name.
     /// </summary>
-    internal class SynthesizedFieldSymbol : SynthesizedFieldSymbolBase
+    internal sealed class SynthesizedFieldSymbol : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol type;
+        private readonly TypeSymbol _type;
 
         public SynthesizedFieldSymbol(
             NamedTypeSymbol containingType,
@@ -25,12 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, isPublic, isReadOnly, isStatic)
         {
             Debug.Assert((object)type != null);
-            this.type = type;
+            _type = type;
+        }
+
+        internal override bool SuppressDynamicAttribute
+        {
+            get { return true; }
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            return this.type;
+            return _type;
         }
     }
 }

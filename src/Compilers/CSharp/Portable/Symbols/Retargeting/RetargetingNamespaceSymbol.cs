@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <summary>
         /// Owning RetargetingModuleSymbol.
         /// </summary>
-        private readonly RetargetingModuleSymbol retargetingModule;
+        private readonly RetargetingModuleSymbol _retargetingModule;
 
         /// <summary>
         /// The underlying NamespaceSymbol, cannot be another RetargetingNamespaceSymbol.
         /// </summary>
-        private readonly NamespaceSymbol underlyingNamespace;
+        private readonly NamespaceSymbol _underlyingNamespace;
 
         public RetargetingNamespaceSymbol(RetargetingModuleSymbol retargetingModule, NamespaceSymbol underlyingNamespace)
         {
@@ -37,15 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             Debug.Assert((object)underlyingNamespace != null);
             Debug.Assert(!(underlyingNamespace is RetargetingNamespaceSymbol));
 
-            this.retargetingModule = retargetingModule;
-            this.underlyingNamespace = underlyingNamespace;
+            _retargetingModule = retargetingModule;
+            _underlyingNamespace = underlyingNamespace;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
         {
             get
             {
-                return retargetingModule.RetargetingTranslator;
+                return _retargetingModule.RetargetingTranslator;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingNamespace;
+                return _underlyingNamespace;
             }
         }
 
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return new NamespaceExtent(this.retargetingModule);
+                return new NamespaceExtent(_retargetingModule);
             }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return RetargetMembers(this.underlyingNamespace.GetMembers());
+            return RetargetMembers(_underlyingNamespace.GetMembers());
         }
 
         private ImmutableArray<Symbol> RetargetMembers(ImmutableArray<Symbol> underlyingMembers)
@@ -90,22 +90,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
-            return RetargetMembers(this.underlyingNamespace.GetMembersUnordered());
+            return RetargetMembers(_underlyingNamespace.GetMembersUnordered());
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return RetargetMembers(this.underlyingNamespace.GetMembers(name));
+            return RetargetMembers(_underlyingNamespace.GetMembers(name));
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            return RetargetTypeMembers(this.underlyingNamespace.GetTypeMembersUnordered());
+            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembersUnordered());
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return RetargetTypeMembers(this.underlyingNamespace.GetTypeMembers());
+            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers());
         }
 
         private ImmutableArray<NamedTypeSymbol> RetargetTypeMembers(ImmutableArray<NamedTypeSymbol> underlyingMembers)
@@ -129,19 +129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
-            return RetargetTypeMembers(this.underlyingNamespace.GetTypeMembers(name));
+            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name));
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return RetargetTypeMembers(this.underlyingNamespace.GetTypeMembers(name, arity));
+            return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name, arity));
         }
 
         public override Symbol ContainingSymbol
         {
             get
             {
-                return this.RetargetingTranslator.Retarget(this.underlyingNamespace.ContainingSymbol);
+                return this.RetargetingTranslator.Retarget(_underlyingNamespace.ContainingSymbol);
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule.Locations;
+                return _retargetingModule.Locations;
             }
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingNamespace.DeclaringSyntaxReferences;
+                return _underlyingNamespace.DeclaringSyntaxReferences;
             }
         }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule.ContainingAssembly;
+                return _retargetingModule.ContainingAssembly;
             }
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.retargetingModule;
+                return _retargetingModule;
             }
         }
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingNamespace.IsGlobalNamespace;
+                return _underlyingNamespace.IsGlobalNamespace;
             }
         }
 
@@ -189,13 +189,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                return this.underlyingNamespace.Name;
+                return _underlyingNamespace.Name;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.underlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _underlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         internal override NamedTypeSymbol LookupMetadataType(ref MetadataTypeName typeName)
@@ -203,14 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             // This method is invoked when looking up a type by metadata type
             // name through a RetargetingAssemblySymbol. For instance, in
             // UnitTests.Symbols.Metadata.PE.NoPia.LocalTypeSubstitution2.
-            NamedTypeSymbol underlying = this.underlyingNamespace.LookupMetadataType(ref typeName);
+            NamedTypeSymbol underlying = _underlyingNamespace.LookupMetadataType(ref typeName);
 
-            Debug.Assert((object)underlying.ContainingModule == (object)retargetingModule.UnderlyingModule);
+            Debug.Assert((object)underlying.ContainingModule == (object)_retargetingModule.UnderlyingModule);
 
             if (!underlying.IsErrorType() && underlying.IsExplicitDefinitionOfNoPiaLocalType)
             {
                 // Explicitly defined local types should be hidden.
-                return new MissingMetadataTypeSymbol.TopLevel(retargetingModule, ref typeName);
+                return new MissingMetadataTypeSymbol.TopLevel(_retargetingModule, ref typeName);
             }
 
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            this.underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
+            _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
             foreach (var underlyingMethod in underlyingMethods)
             {
                 methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));

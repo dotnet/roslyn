@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
             Public OldMsCorLib_systemType As NamedTypeSymbol
             Public NewMsCorLib_systemType As NamedTypeSymbol
 
-            Private Shared ReadOnly attribute As AttributeDescription = New AttributeDescription(
+            Private Shared ReadOnly s_attribute As AttributeDescription = New AttributeDescription(
                 "System.Diagnostics",
                 "DebuggerTypeProxyAttribute",
                 {New Byte() {CByte(SignatureAttributes.Instance), 1, CByte(SignatureTypeCode.Void), CByte(SignatureTypeCode.TypeHandle), CByte(AttributeDescription.TypeHandleTarget.SystemType)}})
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 Assert.Empty(symbol.GetAttributes(OldMsCorLib_debuggerTypeProxyAttributeCtor))
 
                 ' Verify GetAttributes(namespaceName, typeName, ctorSignature)
-                TestAttributeRetargeting(symbol.GetAttributes(attribute).AsEnumerable())
+                TestAttributeRetargeting(symbol.GetAttributes(s_attribute).AsEnumerable())
             End Sub
 
             Public Sub TestAttributeRetargeting_ReturnTypeAttributes(symbol As MethodSymbol)
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
         End Sub
 
         <Fact>
-        <WorkItem(569089, "DevDiv")>
+        <WorkItem(569089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/569089")>
         Public Sub NullArrays()
             Dim source1 =
 <compilation>

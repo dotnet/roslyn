@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Shared ReadOnly Instance As New PartVisitor(inParameterOrReturnType:=False)
 
-            Private Shared ReadOnly ParameterOrReturnTypeInstance As New PartVisitor(inParameterOrReturnType:=True)
+            Private Shared ReadOnly s_parameterOrReturnTypeInstance As New PartVisitor(inParameterOrReturnType:=True)
 
             Private ReadOnly _inParameterOrReturnType As Boolean
 
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Visit(symbol.ElementType, builder)
 
                 ' Rank-one arrays are displayed different than rectangular arrays
-                If symbol.Rank = 1 Then
+                If symbol.IsSZArray Then
                     builder.Append("[]")
                 Else
                     builder.Append("[0:")
@@ -78,12 +78,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If symbol.Parameters.Any() Then
-                    ParameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, builder)
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, builder)
                 End If
 
                 If symbol.MethodKind = MethodKind.Conversion Then
                     builder.Append("~"c)
-                    ParameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder)
+                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder)
                 End If
 
                 Return Nothing
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.Append(symbol.MetadataName)
 
                 If symbol.Parameters.Any() Then
-                    ParameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, builder)
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, builder)
                 End If
 
                 Return Nothing

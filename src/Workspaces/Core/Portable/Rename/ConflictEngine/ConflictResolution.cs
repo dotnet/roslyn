@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,19 +20,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     internal sealed class ConflictResolution
     {
         // Used to map spans from oldSolution to the newSolution
-        private readonly RenamedSpansTracker renamedSpansTracker;
+        private readonly RenamedSpansTracker _renamedSpansTracker;
 
         // List of All the Locations that were renamed and conflict-complexified
-        private readonly List<RelatedLocation> relatedLocations;
-        private readonly Solution oldSolution;
-        private Solution newSolution;
+        private readonly List<RelatedLocation> _relatedLocations;
+        private readonly Solution _oldSolution;
+        private Solution _newSolution;
 
         // This solution is updated after we finish processing each project.  It will only contain
         // documents that were modified with text changes (not the ones that were only annotated)
-        private Solution intermediateSolutionContainingOnlyModifiedDocuments;
+        private Solution _intermediateSolutionContainingOnlyModifiedDocuments;
 
         // This is Lazy Initialized when it is first used
-        private ILookup<DocumentId, RelatedLocation> relatedLocationsByDocumentId = null;
+        private ILookup<DocumentId, RelatedLocation> _relatedLocationsByDocumentId;
 
         public ConflictResolution(
             Solution oldSolution,
@@ -39,47 +40,50 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             string replacementText,
             bool replacementTextValid)
         {
-            this.oldSolution = oldSolution;
-            this.newSolution = oldSolution;
-            this.intermediateSolutionContainingOnlyModifiedDocuments = oldSolution;
-            this.renamedSpansTracker = renamedSpansTracker;
+            _oldSolution = oldSolution;
+            _newSolution = oldSolution;
+            _intermediateSolutionContainingOnlyModifiedDocuments = oldSolution;
+            _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
             ReplacementTextValid = replacementTextValid;
-            relatedLocations = new List<RelatedLocation>();
+            _relatedLocations = new List<RelatedLocation>();
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
         {
-            this.relatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
-            this.renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
+            _relatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
+            _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
 
         internal void UpdateCurrentSolution(Solution solution)
         {
-            this.newSolution = solution;
+            _newSolution = solution;
         }
 
-        internal void RemoveAllRenameAnnotations(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
+        internal async Task RemoveAllRenameAnnotationsAsync(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
         {
             foreach (var documentId in documentWithRenameAnnotations)
             {
-                if (this.renamedSpansTracker.IsDocumentChanged(documentId))
+                if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
-                    var document = newSolution.GetDocument(documentId);
-                    var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var document = _newSolution.GetDocument(documentId);
+                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    // For the computeReplacementToken and computeReplacementNode functions, use 
+                    // the "updated" node to maintain any annotation removals from descendants.
                     var newRoot = root.ReplaceSyntax(
-                        annotationSet.GetAnnotatedNodes(root),
-                        (original, dummy) => annotationSet.WithoutAnnotations(original, annotationSet.GetAnnotations(original).ToArray()),
-                        annotationSet.GetAnnotatedTokens(root),
-                        (original, dummy) => annotationSet.WithoutAnnotations(original, annotationSet.GetAnnotations(original).ToArray()),
-                        SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
+                        nodes: annotationSet.GetAnnotatedNodes(root),
+                        computeReplacementNode: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                        tokens: annotationSet.GetAnnotatedTokens(root),
+                        computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                        trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
                         computeReplacementTrivia: null);
 
-                    this.intermediateSolutionContainingOnlyModifiedDocuments = this.intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
+                    _intermediateSolutionContainingOnlyModifiedDocuments = _intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
                 }
             }
 
-            this.newSolution = this.intermediateSolutionContainingOnlyModifiedDocuments;
+            _newSolution = _intermediateSolutionContainingOnlyModifiedDocuments;
         }
 
         /// <summary>
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             get
             {
-                return new ReadOnlyCollection<RelatedLocation>(relatedLocations);
+                return new ReadOnlyCollection<RelatedLocation>(_relatedLocations);
             }
         }
 
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             get
             {
-                return this.renamedSpansTracker;
+                return _renamedSpansTracker;
             }
         }
 
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             int startingPosition,
             DocumentId documentId)
         {
-            return renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
+            return _renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
         }
 
         // test hook only
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             TextSpan originalSpan,
             DocumentId documentId)
         {
-            return renamedSpansTracker.GetResolutionTextSpan(originalSpan, documentId);
+            return _renamedSpansTracker.GetResolutionTextSpan(originalSpan, documentId);
         }
 
         /// <summary>
@@ -124,20 +128,20 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             get
             {
-                return this.renamedSpansTracker.DocumentIds;
+                return _renamedSpansTracker.DocumentIds;
             }
         }
 
         public IEnumerable<RelatedLocation> GetRelatedLocationsForDocument(DocumentId documentId)
         {
-            if (this.relatedLocationsByDocumentId == null)
+            if (_relatedLocationsByDocumentId == null)
             {
-                this.relatedLocationsByDocumentId = this.relatedLocations.ToLookup(r => r.DocumentId);
+                _relatedLocationsByDocumentId = _relatedLocations.ToLookup(r => r.DocumentId);
             }
 
-            if (this.relatedLocationsByDocumentId.Contains(documentId))
+            if (_relatedLocationsByDocumentId.Contains(documentId))
             {
-                return this.relatedLocationsByDocumentId[documentId];
+                return _relatedLocationsByDocumentId[documentId];
             }
             else
             {
@@ -147,15 +151,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal void AddRelatedLocation(RelatedLocation location)
         {
-            relatedLocations.Add(location);
+            _relatedLocations.Add(location);
         }
 
         internal void AddOrReplaceRelatedLocation(RelatedLocation location)
         {
-            var existingRelatedLocation = relatedLocations.Where(rl => rl.ConflictCheckSpan == location.ConflictCheckSpan && rl.DocumentId == location.DocumentId).FirstOrDefault();
+            var existingRelatedLocation = _relatedLocations.Where(rl => rl.ConflictCheckSpan == location.ConflictCheckSpan && rl.DocumentId == location.DocumentId).FirstOrDefault();
             if (existingRelatedLocation != null)
             {
-                relatedLocations.Remove(existingRelatedLocation);
+                _relatedLocations.Remove(existingRelatedLocation);
             }
 
             AddRelatedLocation(location);
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             get
             {
-                return newSolution;
+                return _newSolution;
             }
         }
 
@@ -179,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             get
             {
-                return oldSolution;
+                return _oldSolution;
             }
         }
 
@@ -187,11 +191,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Whether the text that was resolved with was even valid. This may be false if the
         /// identifier was not valid in some language that was involved in the rename.
         /// </summary>
-        public bool ReplacementTextValid { get; private set; }
+        public bool ReplacementTextValid { get; }
 
         /// <summary>
         /// The original text that is the rename replacement.
         /// </summary>
-        public string ReplacementText { get; private set; }
+        public string ReplacementText { get; }
     }
 }

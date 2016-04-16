@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
     [ExportWorkspaceServiceFactory(typeof(IGeneratedCodeRecognitionService), ServiceLayer.Default), Shared]
     internal class GeneratedCodeRecognitionServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly IGeneratedCodeRecognitionService Singleton = new GeneratedCodeRecognitionService();
+        private static readonly IGeneratedCodeRecognitionService s_singleton = new GeneratedCodeRecognitionService();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return Singleton;
+            return s_singleton;
         }
 
         private class GeneratedCodeRecognitionService : IGeneratedCodeRecognitionService
@@ -37,12 +37,10 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
                 {
                     fileName = Path.GetFileNameWithoutExtension(fileName);
 
-                    if (fileName.EndsWith("AssemblyInfo", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".designer", StringComparison.OrdinalIgnoreCase) ||
+                    if (fileName.EndsWith(".designer", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".generated", StringComparison.OrdinalIgnoreCase) ||
                         fileName.EndsWith(".g", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".g.i", StringComparison.OrdinalIgnoreCase) ||
-                        fileName.EndsWith(".AssemblyAttributes", StringComparison.OrdinalIgnoreCase))
+                        fileName.EndsWith(".g.i", StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }

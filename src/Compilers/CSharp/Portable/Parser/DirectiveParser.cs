@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -9,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         private const int MAX_DIRECTIVE_IDENTIFIER_WIDTH = 128;
 
-        private readonly DirectiveStack context;
+        private readonly DirectiveStack _context;
 
         internal DirectiveParser(Lexer lexer, DirectiveStack context)
             : base(lexer, LexerMode.Directive, null, null, false)
         {
-            this.context = context;
+            _context = context;
         }
 
         public CSharpSyntaxNode ParseDirective(
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isAfterFirstTokenInFile,
             bool isAfterNonWhitespaceOnLine)
         {
-            CSharpSyntaxNode result;
+            var hashPosition = lexer.TextWindow.Position;
             var hash = this.EatToken(SyntaxKind.HashToken, false);
             if (isAfterNonWhitespaceOnLine)
             {
@@ -37,9 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //   1) #error, #warning, #line, and #pragma have no effect and produce no diagnostics.
             //   2) #if, #else, #elif, #endif, #region, and #endregion must still nest correctly.
             //   3) #define and #undef produce diagnostics but have no effect.
-            // #reference is new, but it does not require nesting behavior, so we'll ignore its 
-            // diagnostics (as in (1) above).
+            // #reference, #load and #! are new, but they do not require nesting behavior, so we'll
+            // ignore their diagnostics (as in (1) above).
 
+            CSharpSyntaxNode result;
             SyntaxKind contextualKind = this.CurrentToken.ContextualKind;
             switch (contextualKind)
             {
@@ -89,22 +91,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     result = this.ParseReferenceDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
                     break;
 
+                case SyntaxKind.LoadKeyword:
+                    result = this.ParseLoadDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
+                    break;
+
                 default:
-                    var id = this.EatToken(SyntaxKind.IdentifierToken, false);
-                    var end = this.ParseEndOfDirective(ignoreErrors: true);
-                    if (!isAfterNonWhitespaceOnLine)
+                    if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
                     {
-                        if (!id.IsMissing)
+                        result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
+                    }
+                    else
+                    {
+                        var id = this.EatToken(SyntaxKind.IdentifierToken, false);
+                        var end = this.ParseEndOfDirective(ignoreErrors: true);
+                        if (!isAfterNonWhitespaceOnLine)
                         {
-                            id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
+                            if (!id.IsMissing)
+                            {
+                                id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
+                            }
+                            else
+                            {
+                                hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
+                            }
                         }
-                        else
-                        {
-                            hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
-                        }
+
+                        result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
                     }
 
-                    result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
                     break;
             }
 
@@ -124,20 +138,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var expr = this.ParseExpression();
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasPreviousIfOrElif())
+            if (_context.HasPreviousIfOrElif())
             {
                 var isTrue = this.EvaluateBool(expr);
-                var branchTaken = endIsActive && isTrue && !this.context.PreviousBranchTaken();
+                var branchTaken = endIsActive && isTrue && !_context.PreviousBranchTaken();
                 return SyntaxFactory.ElifDirectiveTrivia(hash, keyword, expr, eod, endIsActive, branchTaken, isTrue);
             }
             else
             {
                 eod = eod.WithLeadingTrivia(SyntaxList.Concat(SyntaxFactory.DisabledText(expr.ToFullString()), eod.GetLeadingTrivia()));
-                if (this.context.HasUnfinishedRegion())
+                if (_context.HasUnfinishedRegion())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
                 }
-                else if (this.context.HasUnfinishedIf())
+                else if (_context.HasUnfinishedIf())
                 {
                     return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
                 }
@@ -151,16 +165,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseElseDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool endIsActive)
         {
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasPreviousIfOrElif())
+            if (_context.HasPreviousIfOrElif())
             {
-                var branchTaken = endIsActive && !this.context.PreviousBranchTaken();
+                var branchTaken = endIsActive && !_context.PreviousBranchTaken();
                 return SyntaxFactory.ElseDirectiveTrivia(hash, keyword, eod, endIsActive, branchTaken);
             }
-            else if (this.context.HasUnfinishedRegion())
+            else if (_context.HasUnfinishedRegion())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndRegionDirectiveExpected);
             }
-            else if (this.context.HasUnfinishedIf())
+            else if (_context.HasUnfinishedIf())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
             }
@@ -173,11 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseEndIfDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool endIsActive)
         {
             var eod = this.ParseEndOfDirective(ignoreErrors: false);
-            if (this.context.HasUnfinishedIf())
+            if (_context.HasUnfinishedIf())
             {
                 return SyntaxFactory.EndIfDirectiveTrivia(hash, keyword, eod, endIsActive);
             }
-            else if (this.context.HasUnfinishedRegion())
+            else if (_context.HasUnfinishedRegion())
             {
                 // CONSIDER: dev10 actually pops the region off the directive stack here.
                 // See if (tok == PPT_ENDIF) in CSourceData::CPreprocessor::ScanPreprocessorIfSection.
@@ -197,11 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveTriviaSyntax ParseEndRegionDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive)
         {
             var eod = this.ParseEndOfDirectiveWithOptionalPreprocessingMessage();
-            if (this.context.HasUnfinishedRegion())
+            if (_context.HasUnfinishedRegion())
             {
                 return SyntaxFactory.EndRegionDirectiveTrivia(hash, keyword, eod, isActive);
             }
-            else if (this.context.HasUnfinishedIf())
+            else if (_context.HasUnfinishedIf())
             {
                 return this.AddError(SyntaxFactory.BadDirectiveTrivia(hash, keyword, eod, isActive), ErrorCode.ERR_EndifDirectiveExpected);
             }
@@ -347,15 +361,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseReferenceDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
         {
-            if (isActive && isFollowingToken)
+            if (isActive)
             {
-                keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                if (Options.Kind == SourceCodeKind.Regular)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts);
+                }
+                else if (isFollowingToken)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                }
             }
 
             SyntaxToken file = this.EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_ExpectedPPFile, reportError: isActive);
 
-            var end = this.ParseEndOfDirective(ignoreErrors: file.IsMissing || !isActive, afterPragma: false, afterLineNumber: false, afterReference: true);
+            var end = this.ParseEndOfDirective(ignoreErrors: file.IsMissing || !isActive);
             return SyntaxFactory.ReferenceDirectiveTrivia(hash, keyword, file, end, isActive);
+        }
+
+        private DirectiveTriviaSyntax ParseLoadDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
+        {
+            if (isActive)
+            {
+                if (Options.Kind == SourceCodeKind.Regular)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_LoadDirectiveOnlyAllowedInScripts);
+                }
+                else if (isFollowingToken)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_PPLoadFollowsToken);
+                }
+            }
+
+            SyntaxToken file = this.EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_ExpectedPPFile, reportError: isActive);
+
+            var end = this.ParseEndOfDirective(ignoreErrors: file.IsMissing || !isActive);
+            return SyntaxFactory.LoadDirectiveTrivia(hash, keyword, file, end, isActive);
         }
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
@@ -382,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // whenever an unrecognized warning code was supplied in a #pragma directive
                             // (or via /nowarn /warnaserror flags on the command line).
                             // Going forward, we won't generate any warning in such cases. This will make
-                            // maintainance of backwards compatibility easier (we no longer need to worry
+                            // maintenance of backwards compatibility easier (we no longer need to worry
                             // about breaking existing projects / command lines if we deprecate / remove
                             // an old warning code).
                             id = this.EatToken();
@@ -394,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // to that inside #define directives except that very long identifiers inside #define
                             // are truncated to 128 characters to maintain backwards compatibility with previous
                             // versions of the compiler. (See TruncateIdentifier() below.)
-                            // Since support for identifiers inside #pragma warning directivess is new, 
+                            // Since support for identifiers inside #pragma warning directives is new, 
                             // we don't have any backwards compatibility constraints. So we can preserve the
                             // identifier exactly as it appears in source.
                             id = this.EatToken();
@@ -474,6 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
+        {
+            // Shebang directives must appear at the first position in the file
+            // (before all other directives), so they should always be active.
+            Debug.Assert(isActive);
+            return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
+        }
+
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()
         {
             StringBuilder builder = null;
@@ -504,11 +553,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return endOfDirective;
         }
 
-        private SyntaxToken ParseEndOfDirective(bool ignoreErrors, bool afterPragma = false, bool afterLineNumber = false, bool afterReference = false)
+        private SyntaxToken ParseEndOfDirective(bool ignoreErrors, bool afterPragma = false, bool afterLineNumber = false)
         {
             var skippedTokens = new SyntaxListBuilder<SyntaxToken>();
 
-            // Consume all extranous tokens as leading SkippedTokens trivia.
+            // Consume all extraneous tokens as leading SkippedTokens trivia.
             if (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
                 this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {
@@ -516,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (!ignoreErrors)
                 {
-                    ErrorCode errorCode = ErrorCode.ERR_EndOfPPLineExpected;
+                    var errorCode = ErrorCode.ERR_EndOfPPLineExpected;
                     if (afterPragma)
                     {
                         errorCode = ErrorCode.WRN_EndOfPPLineExpected;
@@ -524,10 +573,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else if (afterLineNumber)
                     {
                         errorCode = ErrorCode.ERR_MissingPPFile;
-                    }
-                    else if (afterReference)
-                    {
-                        errorCode = ErrorCode.ERR_ExpectedPPFile;
                     }
 
                     skippedTokens.Add(this.AddError(this.EatToken().WithoutDiagnosticsGreen(), errorCode));
@@ -699,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsDefined(string id)
         {
-            var defState = this.context.IsDefined(id);
+            var defState = _context.IsDefined(id);
             switch (defState)
             {
                 default:

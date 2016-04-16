@@ -116,7 +116,7 @@ namespace CSharpSyntaxGenerator
 
                     if (IsOptional(field))
                     {
-                        if(isGreen)
+                        if (isGreen)
                         {
                             Write("null");
                         }

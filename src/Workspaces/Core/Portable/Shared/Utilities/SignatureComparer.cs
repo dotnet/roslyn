@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static readonly SignatureComparer Instance = new SignatureComparer(SymbolEquivalenceComparer.Instance);
         public static readonly SignatureComparer IgnoreAssembliesInstance = new SignatureComparer(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
 
-        private readonly SymbolEquivalenceComparer symbolEquivalenceComparer;
+        private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
         private SignatureComparer(SymbolEquivalenceComparer symbolEquivalenceComparer)
         {
-            this.symbolEquivalenceComparer = symbolEquivalenceComparer;
+            _symbolEquivalenceComparer = symbolEquivalenceComparer;
         }
 
         private IEqualityComparer<IParameterSymbol> ParameterEquivalenceComparer
         {
             get
             {
-                return this.symbolEquivalenceComparer.ParameterEquivalenceComparer;
+                return _symbolEquivalenceComparer.ParameterEquivalenceComparer;
             }
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             get
             {
-                return this.symbolEquivalenceComparer.SignatureTypeEquivalenceComparer;
+                return _symbolEquivalenceComparer.SignatureTypeEquivalenceComparer;
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             for (int i = 0; i < parameters1.Count; ++i)
             {
-                if (!this.symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
+                if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
                 {
                     return false;
                 }

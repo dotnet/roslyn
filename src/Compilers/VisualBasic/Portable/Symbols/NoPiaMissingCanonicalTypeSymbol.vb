@@ -10,16 +10,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' A NoPiaMissingCanonicalTypeSymbol is a special kind of ErrorSymbol that represents
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
-    ''' but the canonocal type couldn't be found.
+    ''' but the canonical type couldn't be found.
     ''' </summary>
     Friend Class NoPiaMissingCanonicalTypeSymbol
         Inherits ErrorTypeSymbol ' TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.
 
-        Private ReadOnly m_EmbeddingAssembly As AssemblySymbol
-        Private ReadOnly m_Guid As String
-        Private ReadOnly m_Scope As String
-        Private ReadOnly m_Identifier As String
-        Private ReadOnly m_FullTypeName As String
+        Private ReadOnly _embeddingAssembly As AssemblySymbol
+        Private ReadOnly _guid As String
+        Private ReadOnly _scope As String
+        Private ReadOnly _identifier As String
+        Private ReadOnly _fullTypeName As String
 
         Public Sub New(
             embeddingAssembly As AssemblySymbol,
@@ -28,28 +28,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             scope As String,
             identifier As String
         )
-            m_FullTypeName = fullTypeName
-            m_EmbeddingAssembly = embeddingAssembly
-            m_Guid = guid
-            m_Scope = scope
-            m_Identifier = identifier
+            _fullTypeName = fullTypeName
+            _embeddingAssembly = embeddingAssembly
+            _guid = guid
+            _scope = scope
+            _identifier = identifier
         End Sub
 
         Public ReadOnly Property EmbeddingAssembly As AssemblySymbol
             Get
-                Return m_EmbeddingAssembly
+                Return _embeddingAssembly
             End Get
         End Property
 
         Public ReadOnly Property FullTypeName As String
             Get
-                Return m_FullTypeName
+                Return _fullTypeName
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_FullTypeName
+                Return _fullTypeName
             End Get
         End Property
 
@@ -63,19 +63,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property Guid As String
             Get
-                Return m_Guid
+                Return _guid
             End Get
         End Property
 
         Public ReadOnly Property Scope As String
             Get
-                Return m_Scope
+                Return _scope
             End Get
         End Property
 
         Public ReadOnly Property Identifier As String
             Get
-                Return m_Identifier
+                Return _identifier
             End Get
         End Property
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
             Get
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_AbsentReferenceToPIA1, m_FullTypeName)
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_AbsentReferenceToPIA1, _fullTypeName)
             End Get
         End Property
     End Class

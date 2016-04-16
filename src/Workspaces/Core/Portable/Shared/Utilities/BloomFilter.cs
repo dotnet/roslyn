@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class BloomFilter
     {
-        private readonly BitArray bitArray;
-        private readonly int hashFunctionCount;
-        private readonly bool isCaseSensitive;
+        private readonly BitArray _bitArray;
+        private readonly int _hashFunctionCount;
+        private readonly bool _isCaseSensitive;
 
         /// <summary><![CDATA[
         /// 1) n  = Number of items in the filter
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // The count is used by the hash functions.
             int sizeInEvenBytes = (m + 7) & ~7;
 
-            this.bitArray = new BitArray(length: sizeInEvenBytes);
-            this.hashFunctionCount = k;
-            this.isCaseSensitive = isCaseSensitive;
+            _bitArray = new BitArray(length: sizeInEvenBytes);
+            _hashFunctionCount = k;
+            _isCaseSensitive = isCaseSensitive;
         }
 
         public BloomFilter(double falsePositiveProbability, bool isCaseSensitive, ICollection<string> values)
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (bitArray == null)
             {
-                throw new ArgumentNullException("bitArray");
+                throw new ArgumentNullException(nameof(bitArray));
             }
 
-            this.bitArray = bitArray;
-            this.hashFunctionCount = hashFunctionCount;
-            this.isCaseSensitive = isCaseSensitive;
+            _bitArray = bitArray;
+            _hashFunctionCount = hashFunctionCount;
+            _isCaseSensitive = isCaseSensitive;
         }
 
         // m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     var c1 = GetCharacter(key, index);
                     var c2 = GetCharacter(key, index + 1);
 
-                    var k = (uint)(c1 | (c2 << 16));
+                    var k = c1 | (c2 << 16);
 
                     k *= m;
                     k ^= k >> r;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private uint GetCharacter(string key, int index)
         {
             var c = key[index];
-            return isCaseSensitive ? c : char.ToLowerInvariant(c);
+            return _isCaseSensitive ? c : char.ToLowerInvariant(c);
         }
 
 #if false
@@ -231,21 +231,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public void Add(string value)
         {
-            for (var i = 0; i < hashFunctionCount; i++)
+            for (var i = 0; i < _hashFunctionCount; i++)
             {
                 var hash = ComputeHash(value, i);
-                hash = hash % bitArray.Length;
-                bitArray[Math.Abs(hash)] = true;
+                hash = hash % _bitArray.Length;
+                _bitArray[Math.Abs(hash)] = true;
             }
         }
 
         public bool ProbablyContains(string value)
         {
-            for (var i = 0; i < hashFunctionCount; i++)
+            for (var i = 0; i < _hashFunctionCount; i++)
             {
                 var hash = ComputeHash(value, i);
-                hash = hash % bitArray.Length;
-                if (!bitArray[Math.Abs(hash)])
+                hash = hash % _bitArray.Length;
+                if (!_bitArray[Math.Abs(hash)])
                 {
                     return false;
                 }
@@ -256,9 +256,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public bool IsEquivalent(BloomFilter filter)
         {
-            return IsEquivalent(this.bitArray, filter.bitArray)
-                && this.hashFunctionCount == filter.hashFunctionCount
-                && this.isCaseSensitive == filter.isCaseSensitive;
+            return IsEquivalent(_bitArray, filter._bitArray)
+                && _hashFunctionCount == filter._hashFunctionCount
+                && _isCaseSensitive == filter._isCaseSensitive;
         }
 
         private bool IsEquivalent(BitArray array1, BitArray array2)

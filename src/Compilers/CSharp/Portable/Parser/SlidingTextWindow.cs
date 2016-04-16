@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private const int DefaultWindowLength = 2048;
 
-        private readonly SourceText text;                 // Source of text to parse.
-        private int basis;                                // Offset of the window relative to the SourceText start.
-        private int offset;                               // Offset from the start of the window.
-        private readonly int textEnd;                     // Absolute end position
-        private char[] characterWindow;                   // Moveable window of chars from source text
-        private int characterWindowCount;                 // # of valid characters in chars buffer
+        private readonly SourceText _text;                 // Source of text to parse.
+        private int _basis;                                // Offset of the window relative to the SourceText start.
+        private int _offset;                               // Offset from the start of the window.
+        private readonly int _textEnd;                     // Absolute end position
+        private char[] _characterWindow;                   // Moveable window of chars from source text
+        private int _characterWindowCount;                 // # of valid characters in chars buffer
 
-        private int lexemeStart;                          // Start of current lexeme relative to the window start.
+        private int _lexemeStart;                          // Start of current lexeme relative to the window start.
 
         // Example for the above variables:
         // The text starts at 0.
@@ -53,28 +53,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // The current lexeme started at (basis + lexemeStart), which is <= (basis + offset)
         // The current lexeme is the characters between the lexemeStart and the offset.
 
-        private readonly StringTable strings;
+        private readonly StringTable _strings;
 
-        private static readonly ObjectPool<char[]> windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength]);
+        private static readonly ObjectPool<char[]> s_windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength]);
 
         public SlidingTextWindow(SourceText text)
         {
-            this.text = text;
-            this.basis = 0;
-            this.offset = 0;
-            this.textEnd = text.Length;
-            this.strings = StringTable.GetInstance();
-            this.characterWindow = windowPool.Allocate();
-            this.lexemeStart = 0;
+            _text = text;
+            _basis = 0;
+            _offset = 0;
+            _textEnd = text.Length;
+            _strings = StringTable.GetInstance();
+            _characterWindow = s_windowPool.Allocate();
+            _lexemeStart = 0;
         }
 
         public void Dispose()
         {
-            if (this.characterWindow != null)
+            if (_characterWindow != null)
             {
-                windowPool.Free(this.characterWindow);
-                this.characterWindow = null;
-                this.strings.Free();
+                s_windowPool.Free(_characterWindow);
+                _characterWindow = null;
+                _strings.Free();
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.text;
+                return _text;
             }
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.basis + this.offset;
+                return _basis + _offset;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.offset;
+                return _offset;
             }
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.characterWindow;
+                return _characterWindow;
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.lexemeStart;
+                return _lexemeStart;
             }
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.characterWindowCount;
+                return _characterWindowCount;
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.basis + this.lexemeStart;
+                return _basis + _lexemeStart;
             }
         }
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.offset - this.lexemeStart;
+                return _offset - _lexemeStart;
             }
         }
 
@@ -169,75 +169,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public void Start()
         {
-            this.lexemeStart = this.offset;
+            _lexemeStart = _offset;
         }
 
         public void Reset(int position)
         {
             // if position is within already read character range then just use what we have
-            int relative = position - this.basis;
-            if (relative >= 0 && relative <= this.characterWindowCount)
+            int relative = position - _basis;
+            if (relative >= 0 && relative <= _characterWindowCount)
             {
-                this.offset = relative;
+                _offset = relative;
             }
             else
             {
                 // we need to reread text buffer
-                int amountToRead = Math.Min(this.text.Length, position + this.characterWindow.Length) - position;
+                int amountToRead = Math.Min(_text.Length, position + _characterWindow.Length) - position;
                 amountToRead = Math.Max(amountToRead, 0);
                 if (amountToRead > 0)
                 {
-                    this.text.CopyTo(position, this.characterWindow, 0, amountToRead);
+                    _text.CopyTo(position, _characterWindow, 0, amountToRead);
                 }
 
-                this.lexemeStart = 0;
-                this.offset = 0;
-                this.basis = position;
-                this.characterWindowCount = amountToRead;
+                _lexemeStart = 0;
+                _offset = 0;
+                _basis = position;
+                _characterWindowCount = amountToRead;
             }
         }
 
         private bool MoreChars()
         {
-            if (this.offset >= this.characterWindowCount)
+            if (_offset >= _characterWindowCount)
             {
-                if (this.Position >= this.textEnd)
+                if (this.Position >= _textEnd)
                 {
                     return false;
                 }
 
                 // if lexeme scanning is sufficiently into the char buffer, 
                 // then refocus the window onto the lexeme
-                if (this.lexemeStart > (this.characterWindowCount / 4))
+                if (_lexemeStart > (_characterWindowCount / 4))
                 {
-                    Array.Copy(this.characterWindow,
-                        this.lexemeStart,
-                        this.characterWindow,
+                    Array.Copy(_characterWindow,
+                        _lexemeStart,
+                        _characterWindow,
                         0,
-                        characterWindowCount - lexemeStart);
-                    this.characterWindowCount -= lexemeStart;
-                    this.offset -= lexemeStart;
-                    this.basis += this.lexemeStart;
-                    this.lexemeStart = 0;
+                        _characterWindowCount - _lexemeStart);
+                    _characterWindowCount -= _lexemeStart;
+                    _offset -= _lexemeStart;
+                    _basis += _lexemeStart;
+                    _lexemeStart = 0;
                 }
 
-                if (this.characterWindowCount >= this.characterWindow.Length)
+                if (_characterWindowCount >= _characterWindow.Length)
                 {
                     // grow char array, since we need more contiguous space
-                    char[] oldWindow = this.characterWindow;
-                    char[] newWindow = new char[this.characterWindow.Length * 2];
-                    Array.Copy(oldWindow, 0, newWindow, 0, this.characterWindowCount);
-                    windowPool.ForgetTrackedObject(oldWindow, newWindow);
-                    this.characterWindow = newWindow;
+                    char[] oldWindow = _characterWindow;
+                    char[] newWindow = new char[_characterWindow.Length * 2];
+                    Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
+                    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
+                    _characterWindow = newWindow;
                 }
 
-                int amountToRead = Math.Min(this.textEnd - (this.basis + this.characterWindowCount),
-                    this.characterWindow.Length - this.characterWindowCount);
-                this.text.CopyTo(this.basis + this.characterWindowCount,
-                    this.characterWindow,
-                    this.characterWindowCount,
+                int amountToRead = Math.Min(_textEnd - (_basis + _characterWindowCount),
+                    _characterWindow.Length - _characterWindowCount);
+                _text.CopyTo(_basis + _characterWindowCount,
+                    _characterWindow,
+                    _characterWindowCount,
                     amountToRead);
-                this.characterWindowCount += amountToRead;
+                _characterWindowCount += amountToRead;
                 return amountToRead > 0;
             }
 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <returns></returns>
         internal bool IsReallyAtEnd()
         {
-            return offset >= characterWindowCount && Position >= textEnd;
+            return _offset >= _characterWindowCount && Position >= _textEnd;
         }
 
         /// <summary>
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public void AdvanceChar()
         {
-            this.offset++;
+            _offset++;
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public void AdvanceChar(int n)
         {
-            this.offset += n;
+            _offset += n;
         }
 
         /// <summary>
@@ -296,18 +296,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// SourceText. May advance the window if we are at the end.
         /// </summary>
         /// <returns>
-        /// The next character if any are available. InvalidCharacterSentinal otherwise.
+        /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar()
         {
-            if (this.offset >= this.characterWindowCount
+            if (_offset >= _characterWindowCount
                 && !MoreChars())
             {
                 return InvalidCharacter;
             }
 
             // N.B. MoreChars may update the offset.
-            return this.characterWindow[this.offset];
+            return _characterWindow[_offset];
         }
 
         /// <summary>
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// the position is valid within the SourceText.
         /// </summary>
         /// <returns>
-        /// The next character if any are available. InvalidCharacterSentinal otherwise.
+        /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar(int delta)
         {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.AdvanceChar(delta);
 
             char ch;
-            if (this.offset >= this.characterWindowCount
+            if (_offset >= _characterWindowCount
                 && !MoreChars())
             {
                 ch = InvalidCharacter;
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 // N.B. MoreChars may update the offset.
-                ch = this.characterWindow[this.offset];
+                ch = _characterWindow[_offset];
             }
 
             this.Reset(position);
@@ -639,17 +639,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string Intern(StringBuilder text)
         {
-            return this.strings.Add(text);
+            return _strings.Add(text);
         }
 
         public string Intern(char[] array, int start, int length)
         {
-            return this.strings.Add(array, start, length);
+            return _strings.Add(array, start, length);
         }
 
         public string GetInternedText()
         {
-            return this.Intern(this.characterWindow, this.lexemeStart, this.Width);
+            return this.Intern(_characterWindow, _lexemeStart, this.Width);
         }
 
         public string GetText(bool intern)
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
-            int offset = position - this.basis;
+            int offset = position - _basis;
 
             // PERF: Whether interning or not, there are some frequently occurring
             // easy cases we can pick off easily.
@@ -669,26 +669,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return string.Empty;
 
                 case 1:
-                    if (this.characterWindow[offset] == ' ')
+                    if (_characterWindow[offset] == ' ')
                     {
                         return " ";
                     }
                     break;
 
                 case 2:
-                    char firstChar = this.characterWindow[offset];
-                    if (firstChar == '\r' && this.characterWindow[offset + 1] == '\n')
+                    char firstChar = _characterWindow[offset];
+                    if (firstChar == '\r' && _characterWindow[offset + 1] == '\n')
                     {
                         return "\r\n";
                     }
-                    if (firstChar == '/' && this.characterWindow[offset + 1] == '/')
+                    if (firstChar == '/' && _characterWindow[offset + 1] == '/')
                     {
                         return "//";
                     }
                     break;
 
                 case 3:
-                    if (this.characterWindow[offset] == '/' && this.characterWindow[offset + 1] == '/' && this.characterWindow[offset + 2] == ' ')
+                    if (_characterWindow[offset] == '/' && _characterWindow[offset + 1] == '/' && _characterWindow[offset + 2] == ' ')
                     {
                         return "// ";
                     }
@@ -697,11 +697,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (intern)
             {
-                return this.Intern(this.characterWindow, offset, length);
+                return this.Intern(_characterWindow, offset, length);
             }
             else
             {
-                return new string(this.characterWindow, offset, length);
+                return new string(_characterWindow, offset, length);
             }
         }
 

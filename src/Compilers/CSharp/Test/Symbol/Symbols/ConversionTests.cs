@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -77,52 +78,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             const ConversionKind Xnl = ConversionKind.ExplicitNullable;
             const ConversionKind Xnm = ConversionKind.ExplicitNumeric;
 
-            ConversionKind[,] conversions = 
+            ConversionKind[,] conversions =
             {
                 // from   obj  str  arr  i64  u64  i32  u32  i16  u16  i08  u08  r64  r32  dec  chr ni64 nu64 ni32 nu32 ni16 nu16  ni8  nu8 nr64 nr32  ndc  nch  exc  ien  ieo  ies  iec  ars  aro  ils  ilo  aex  del  fee  fao  ser  cmp
                 // to:    
-                /*obj*/ { Idn, Irf, Irf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf }, 
-                /*str*/ { Xrf, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Non, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf }, 
-                /*arr*/ { Xrf, Non, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Xrf, Non, Non, Non, Non, Xrf, Xrf }, 
-                /*i64*/ { Ubx, Non, Non, Idn, Xnm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u64*/ { Ubx, Non, Non, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i32*/ { Ubx, Non, Non, Xnm, Xnm, Idn, Xnm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u32*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i16*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Inm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u16*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*i08*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*u08*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*r64*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Idn, Inm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*r32*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Idn, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*dec*/ { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Idn, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*chr*/ { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni64*/ { Ubx, Non, Non, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Idn, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu64*/ { Ubx, Non, Non, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni32*/ { Ubx, Non, Non, Xnl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu32*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*ni16*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nu16*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*ni8*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*nu8*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nr64*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Idn, Inl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-               /*nr32*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Idn, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*ndc*/ { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Idn, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*nch*/ { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx }, 
-                /*exc*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Idn, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Non, Non, Non, Xrf, Xrf }, 
-                /*ien*/ { Xrf, Irf, Irf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ieo*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Idn, Irf, Xrf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ies*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Idn, Xrf, Irf, Xrf, Irf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*iec*/ { Xrf, Irf, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Idn, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ars*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Idn, Xrf, Xrf, Xrf, Non, Non, Non, Non, Non, Non }, 
-                /*aro*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Irf, Idn, Xrf, Xrf, Non, Non, Non, Non, Non, Non }, 
-                /*ils*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Xrf, Idn, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*ilo*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Idn, Xrf, Xrf, Non, Non, Xrf, Xrf }, 
-                /*aex*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Idn, Non, Non, Non, Xrf, Xrf }, 
-                /*del*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Non, Idn, Irf, Irf, Xrf, Xrf }, 
-                /*fee*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Xrf, Xrf, Non }, 
-                /*fao*/ { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Irf, Idn, Xrf, Non }, 
-                /*ser*/ { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Irf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Irf, Irf, Irf, Idn, Xrf }, 
-                /*cmp*/ { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
+                /*obj*/ { Idn, Irf, Irf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Irf },
+                /*str*/
+                        { Xrf, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Non, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf },
+                /*arr*/
+                        { Xrf, Non, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Xrf, Non, Non, Non, Non, Xrf, Xrf },
+                /*i64*/
+                        { Ubx, Non, Non, Idn, Xnm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u64*/
+                        { Ubx, Non, Non, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i32*/
+                        { Ubx, Non, Non, Xnm, Xnm, Idn, Xnm, Inm, Inm, Inm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u32*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i16*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Inm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u16*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Inm, Xnm, Xnm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*i08*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*u08*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnm, Xnm, Xnm, Xnm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*r64*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Idn, Inm, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*r32*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Idn, Xnm, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*dec*/
+                        { Ubx, Non, Non, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Inm, Xnm, Xnm, Idn, Inm, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*chr*/
+                        { Ubx, Non, Non, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Xnm, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni64*/
+                        { Ubx, Non, Non, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Idn, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu64*/
+                        { Ubx, Non, Non, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni32*/
+                        { Ubx, Non, Non, Xnl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Inl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu32*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni16*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Inl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu16*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Inl, Xnl, Xnl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ni8*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nu8*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Xnl, Xnl, Xnl, Xnl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nr64*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Idn, Inl, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nr32*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Inl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Idn, Xnl, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*ndc*/
+                        { Ubx, Non, Non, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Inl, Xnl, Xnl, Idn, Inl, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*nch*/
+                        { Ubx, Non, Non, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Inl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Xnl, Idn, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Ubx },
+                /*exc*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Idn, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Non, Non, Non, Xrf, Xrf },
+                /*ien*/
+                        { Xrf, Irf, Irf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Irf, Irf, Irf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ieo*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Idn, Irf, Xrf, Irf, Irf, Irf, Irf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ies*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Idn, Xrf, Irf, Xrf, Irf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*iec*/
+                        { Xrf, Irf, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Idn, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ars*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Idn, Xrf, Xrf, Xrf, Non, Non, Non, Non, Non, Non },
+                /*aro*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Non, Irf, Idn, Xrf, Xrf, Non, Non, Non, Non, Non, Non },
+                /*ils*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Xrf, Idn, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*ilo*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Irf, Irf, Xrf, Idn, Xrf, Xrf, Non, Non, Xrf, Xrf },
+                /*aex*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Idn, Non, Non, Non, Xrf, Xrf },
+                /*del*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Non, Idn, Irf, Irf, Xrf, Xrf },
+                /*fee*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Idn, Xrf, Xrf, Non },
+                /*fao*/
+                        { Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Xrf, Irf, Idn, Xrf, Non },
+                /*ser*/
+                        { Xrf, Non, Xrf, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Non, Irf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Irf, Irf, Irf, Irf, Idn, Xrf },
+                /*cmp*/
+                        { Xrf, Irf, Xrf, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Box, Xrf, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Xrf, Xrf, Xrf, Non, Non, Xrf, Idn },
             };
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -198,41 +240,41 @@ class X {
             string s = f7Type.ToTestDisplayString();
 
             Assert.False(f1Type.Equals(f2Type));
-            Assert.True(f1Type.Equals(f2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f2Type.Equals(f1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f1Type.Equals(f1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f2Type.Equals(f2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f1Type.Equals(f2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f2Type.Equals(f1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f1Type.Equals(f1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f2Type.Equals(f2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(f3Type.Equals(f4Type));
-            Assert.True(f3Type.Equals(f4Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f4Type.Equals(f3Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f4Type.Equals(f5Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f5Type.Equals(f4Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f3Type.Equals(f4Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f4Type.Equals(f3Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f4Type.Equals(f5Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f5Type.Equals(f4Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(f6Type.Equals(f7Type));
             Assert.False(f6Type.Equals(f8Type));
             Assert.False(f7Type.Equals(f8Type));
-            Assert.True(f6Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f7Type.Equals(f7Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f8Type.Equals(f8Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(f6Type.Equals(f6Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
-            Assert.False(f9Type.Equals(f10Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.False(f10Type.Equals(f9Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.False(f9Type.Equals(f10Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.False(f10Type.Equals(f9Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
 
             Assert.False(g1Type.Equals(g2Type));
-            Assert.True(g1Type.Equals(g2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g2Type.Equals(g1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g1Type.Equals(g1Type, ignoreCustomModifiers: true, ignoreDynamic: true));
-            Assert.True(g2Type.Equals(g2Type, ignoreCustomModifiers: true, ignoreDynamic: true));
+            Assert.True(g1Type.Equals(g2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g2Type.Equals(g1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g1Type.Equals(g1Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+            Assert.True(g2Type.Equals(g2Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
         }
 
         /// <summary>
@@ -264,7 +306,7 @@ class C
             var interfaceI3 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
             var typeIntArrayWithCustomModifiers = interfaceI3.GetMember<MethodSymbol>("M1").Parameters.Single().Type;
 
-            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers());
+            Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
             var conv = new BuckStopsHereBinder(compilation).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -279,8 +321,8 @@ class C
             Assert.Equal(ConversionKind.Identity, conv.ClassifyConversion(typeIntArrayWithCustomModifiers, typeIntArrayWithCustomModifiers, ref useSiteDiagnostics).Kind);
         }
 
-        [WorkItem(529056, "DevDiv")]
-        [WorkItem(529056, "DevDiv")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
+        [WorkItem(529056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529056")]
         [Fact()]
         public void TestConversion_ParenthesizedExpression()
         {
@@ -304,7 +346,7 @@ public class Program
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
 
-        [WorkItem(544571, "DevDiv")]
+        [WorkItem(544571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544571")]
         [Fact]
         public void TestClassifyConversion()
         {
@@ -345,27 +387,27 @@ class Program
 
             // Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
             var variableDeclarator = (VariableDeclaratorSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("ii")).Parent;
+                .FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent;
 
             // Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             TypeSymbol targetType = ((LocalSymbol)model.GetDeclaredSymbol(variableDeclarator)).Type;
 
             // Perform ClassifyConversion for expressions from within the above SyntaxTree.
             var sourceExpression1 = (ExpressionSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("jj)")).Parent;
+                .FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent;
             Conversion conversion = model.ClassifyConversion(sourceExpression1, targetType);
             Assert.True(conversion.IsImplicit);
             Assert.True(conversion.IsNumeric);
 
             var sourceExpression2 = (ExpressionSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("ss)")).Parent;
+                .FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent;
             conversion = model.ClassifyConversion(sourceExpression2, targetType);
             Assert.False(conversion.Exists);
 
             // Perform ClassifyConversion for constructed expressions
             // at the position identified by the comment '// Perform ...' above.
             ExpressionSyntax sourceExpression3 = SyntaxFactory.IdentifierName("jj");
-            var position = source.IndexOf("//");
+            var position = source.IndexOf("//", StringComparison.Ordinal);
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType);
             Assert.True(conversion.IsImplicit);
             Assert.True(conversion.IsNumeric);
@@ -514,7 +556,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542540, "DevDiv")]
+        [WorkItem(542540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542540")]
         [Fact]
         public void TestMethodGroupConversionWithOptionalParameter()
         {
@@ -533,7 +575,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "foo").WithArguments("foo", "System.Action"));
         }
 
-        [WorkItem(543119, "DevDiv")]
+        [WorkItem(543119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543119")]
         [Fact]
         public void TestConversion_IntToNullableShort()
         {
@@ -552,7 +594,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(543450, "DevDiv")]
+        [WorkItem(543450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543450")]
         [Fact()]
         public void TestConversion_IntToByte()
         {
@@ -1159,10 +1201,10 @@ class C
                 );
         }
 
-        [WorkItem(529568, "DevDiv")]
+        [WorkItem(529568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529568")]
         [Fact()]
         public void AmbiguousConversions()
-        {        
+        {
             var source = @"
 // Tests conversions of generic constructed types - both open and closed.
 using System;
@@ -1474,8 +1516,8 @@ public class Test {
                 );
         }
 
-        [WorkItem(545361, "DevDiv")]
-        [Fact]
+        [WorkItem(545361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545361")]
+        [ClrOnlyFact]
         public void NullableIntToStructViaDecimal()
         {
             var source = @"
@@ -1573,8 +1615,8 @@ public struct S
             CompileAndVerify(source, expectedOutput: @"1ttt");
         }
 
-        [WorkItem(545471, "DevDiv")]
-        [Fact]
+        [WorkItem(545471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545471")]
+        [ClrOnlyFact]
         public void CheckedConversionsInExpressionTrees()
         {
             var source = @"
@@ -1622,7 +1664,7 @@ namespace ExpressionTest
 ");
         }
 
-        [WorkItem(647055, "DevDiv")]
+        [WorkItem(647055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647055")]
         [Fact]
         public void AmbiguousImplicitExplicitUserDefined()
         {
@@ -1675,8 +1717,8 @@ class C<T>
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions, conversionSymbols);
         }
 
-        [WorkItem(715207, "DevDiv")]
-        [Fact]
+        [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]
+        [ClrOnlyFact]
         public void LiftingReturnTypeOfExplicitUserDefinedConversion()
         {
             var source = @"
@@ -1706,7 +1748,7 @@ struct BigInteger
 ");
         }
 
-        [WorkItem(737732, "DevDiv")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void ConsiderSourceExpressionWhenDeterminingBestUserDefinedConversion()
         {
@@ -1740,7 +1782,7 @@ public class Test
             Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
         }
 
-        [WorkItem(737732, "DevDiv")]
+        [WorkItem(737732, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737732")]
         [Fact]
         public void Repro737732()
         {
@@ -1774,8 +1816,8 @@ public struct C
             Assert.Equal(SpecialType.System_Byte, method.ParameterTypes.Single().SpecialType);
         }
 
-        [WorkItem(742345, "DevDiv")]
-        [Fact]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
+        [ClrOnlyFact]
         public void MethodGroupConversion_ContravarianceAndDynamic()
         {
             var source = @"
@@ -1797,7 +1839,7 @@ public class C
             CompileAndVerify(source, new[] { SystemCoreRef }, expectedOutput: "B");
         }
 
-        [WorkItem(742345, "DevDiv")]
+        [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]
         [Fact]
         public void MethodGroupConversion_CovarianceAndDynamic()
         {
@@ -1827,7 +1869,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("C.F()", "dynamic"));
         }
 
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         [Fact]
         public void ConversionsFromExpressions()
         {
@@ -1936,7 +1978,6 @@ public class Test
                 //             r = 0; //CS0029
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R"));
         }
-
 
         #endregion
     }

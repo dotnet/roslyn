@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ImplicitClassTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact, WorkItem(6040, "https://github.com/dotnet/roslyn/issues/6040")>
         Public Sub ImplicitClassSymbol()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="C">
@@ -39,6 +39,14 @@ End Namespace
             Assert.Equal(SyntaxKind.NamespaceStatement, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind)
             Assert.False(implicitClass.IsSubmissionClass)
             Assert.False(implicitClass.IsScriptClass)
+
+            Dim c2 = CreateCompilationWithMscorlib45({}, {c.ToMetadataReference()})
+
+            n = DirectCast(c2.GlobalNamespace.GetMembers("N").Single(), NamespaceSymbol)
+            implicitClass = DirectCast(n.GetMembers().Single(), NamedTypeSymbol)
+            Assert.IsType(Of Retargeting.RetargetingNamedTypeSymbol)(implicitClass)
+            Assert.Equal(0, implicitClass.Interfaces.Length)
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType)
         End Sub
 
         <Fact>

@@ -10,31 +10,31 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     public static class DesktopMefHostServices
     {
-        private static MefHostServices defaultServices;
+        private static MefHostServices s_defaultServices;
         public static MefHostServices DefaultServices
         {
             get
             {
-                if (defaultServices == null)
+                if (s_defaultServices == null)
                 {
-                    Interlocked.CompareExchange(ref defaultServices, MefHostServices.Create(DefaultAssemblies), null);
+                    Interlocked.CompareExchange(ref s_defaultServices, MefHostServices.Create(DefaultAssemblies), null);
                 }
 
-                return defaultServices;
+                return s_defaultServices;
             }
         }
 
-        private static ImmutableArray<Assembly> defaultAssemblies;
+        private static ImmutableArray<Assembly> s_defaultAssemblies;
         private static ImmutableArray<Assembly> DefaultAssemblies
         {
             get
             {
-                if (defaultAssemblies == null)
+                if (s_defaultAssemblies == null)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref defaultAssemblies, CreateDefaultAssemblies(), default(ImmutableArray<Assembly>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default(ImmutableArray<Assembly>));
                 }
 
-                return defaultAssemblies;
+                return s_defaultAssemblies;
             }
         }
 
@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var assemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop",
-                "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
             };
 
             return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));

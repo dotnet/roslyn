@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This pass detects and reports diagnostics that do not affect lambda convertability.
+    /// This pass detects and reports diagnostics that do not affect lambda convertibility.
     /// This part of the partial class focuses on expression and operator warnings.
     /// </summary>
-    internal sealed partial class DiagnosticsPass : BoundTreeWalker
+    internal sealed partial class DiagnosticsPass : BoundTreeWalkerWithStackGuard
     {
         private void CheckArguments(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<BoundExpression> arguments, Symbol method)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.WRN_VolatileByRef, fieldAccess, fieldSymbol);
             }
 
-            if (IsNonAgileFieldAccess(fieldAccess, this.compilation))
+            if (IsNonAgileFieldAccess(fieldAccess, _compilation))
             {
                 Error(ErrorCode.WRN_ByRefNonAgileField, fieldAccess, fieldSymbol);
             }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
-            if (IsNonAgileFieldAccess(fieldAccess, this.compilation) && !fieldSymbol.Type.IsReferenceType)
+            if (IsNonAgileFieldAccess(fieldAccess, _compilation) && !fieldSymbol.Type.IsReferenceType)
             {
                 Error(ErrorCode.WRN_CallOnNonAgileField, fieldAccess, fieldSymbol);
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsInterlockedAPI(Symbol method)
         {
-            var interlocked = this.compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
+            var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
             if ((object)interlocked != null && interlocked == method.ContainingType)
                 return true;
 
@@ -207,13 +207,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     return false;
-
             }
         }
 
         private static bool IsComCallWithRefOmitted(MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            if ((object)method.ContainingType == null || !method.ContainingType.IsComImport) return false;
+            if (method.ParameterCount != arguments.Length ||
+                (object)method.ContainingType == null ||
+                !method.ContainingType.IsComImport)
+                return false;
+
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None)) return true;
@@ -230,11 +233,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckUnsafeType(node.Right);
             }
 
-            CheckOr(node);
+            CheckForBitwiseOrSignExtend(node, node.OperatorKind, node.Left, node.Right);
             CheckNullableNullBinOp(node);
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+        }
+
+        private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            BoundExpression left = node.Left;
+
+            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            {
+                // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
+                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                                           explicitCastInCode: false, constantValueOpt: null, type: node.Operator.LeftType);
+            }
+
+            CheckForBitwiseOrSignExtend(node, node.Operator.Kind, left, node.Right);
+            CheckLiftedCompoundAssignment(node);
+
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
+            }
         }
 
         private void CheckRelationals(BoundBinaryOperator node)
@@ -266,12 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Left.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Left) && !(node.Left.ConstantValue != null && node.Left.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Right, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the left hand side to type '{0}'
-                    diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
+                    _diagnostics.Add(ErrorCode.WRN_BadRefCompareLeft, node.Syntax.Location, t);
                 }
                 else if (node.Right.Type.SpecialType == SpecialType.System_Object && !IsExplicitCast(node.Right) && !(node.Right.ConstantValue != null && node.Right.ConstantValue.IsNull) && ConvertedHasEqual(node.OperatorKind, node.Left, out t))
                 {
                     // Possible unintended reference comparison; to get a value comparison, cast the right hand side to type '{0}'
-                    diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
+                    _diagnostics.Add(ErrorCode.WRN_BadRefCompareRight, node.Syntax.Location, t);
                 }
             }
 
@@ -389,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckOr(BoundBinaryOperator node)
+        private void CheckForBitwiseOrSignExtend(BoundExpression node, BinaryOperatorKind operatorKind, BoundExpression leftOperand, BoundExpression rightOperand)
         {
             // We wish to give a warning for situations where an unexpected sign extension wipes
             // out some bits. For example:
@@ -436,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on are either all zero, or all one.*  Therefore that is the heuristic we will *actually* implement here.
             //
 
-            switch (node.OperatorKind)
+            switch (operatorKind)
             {
                 case BinaryOperatorKind.LiftedUIntOr:
                 case BinaryOperatorKind.LiftedIntOr:
@@ -464,8 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Start by determining *which bits on each side are going to be unexpectedly turned on*.
 
-            ulong left = FindSurprisingSignExtensionBits(node.Left);
-            ulong right = FindSurprisingSignExtensionBits(node.Right);
+            ulong left = FindSurprisingSignExtensionBits(leftOperand);
+            ulong right = FindSurprisingSignExtensionBits(rightOperand);
 
             // If they are all the same then there's no warning to give.
 
@@ -477,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Suppress the warning if one side is a constant, and either all the unexpected
             // bits are already off, or all the unexpected bits are already on.
 
-            ConstantValue constVal = GetConstantValueForBitwiseOrCheck(node.Left);
+            ConstantValue constVal = GetConstantValueForBitwiseOrCheck(leftOperand);
             if (constVal != null)
             {
                 ulong val = constVal.UInt64Value;
@@ -487,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            constVal = GetConstantValueForBitwiseOrCheck(node.Right);
+            constVal = GetConstantValueForBitwiseOrCheck(rightOperand);
             if (constVal != null)
             {
                 ulong val = constVal.UInt64Value;
@@ -745,13 +768,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
+                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
                     {
-                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
-                    }
-                    else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
-                    {
-                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
+                        if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
+                        {
+                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
+                        }
+                        else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
+                        {
+                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
+                        }
                     }
                     break;
                 case BinaryOperatorKind.Or:

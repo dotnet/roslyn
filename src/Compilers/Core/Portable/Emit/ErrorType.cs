@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// For the name we will use a word "Error" followed by a guid, generated on the spot.
         /// </summary>
-        private static readonly string name = "Error" + Guid.NewGuid().ToString("B");
+        private static readonly string s_name = "Error" + Guid.NewGuid().ToString("B");
 
         Cci.IUnitReference Cci.INamespaceTypeReference.GetUnit(EmitContext context)
         {
@@ -167,60 +167,31 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             get
             {
-                return name;
+                return s_name;
             }
         }
 
         /// <summary>
         /// A fake containing assembly for an ErrorType object.
         /// </summary>
-        private class ErrorAssembly : Cci.IAssemblyReference
+        private sealed class ErrorAssembly : Cci.IAssemblyReference
         {
             public static readonly ErrorAssembly Singleton = new ErrorAssembly();
+            
             /// <summary>
             /// For the name we will use a word "Error" followed by a guid, generated on the spot.
             /// </summary>
-            private static readonly string name = "Error" + Guid.NewGuid().ToString("B");
+            private static readonly AssemblyIdentity s_identity = new AssemblyIdentity(
+                name: "Error" + Guid.NewGuid().ToString("B"),
+                version: AssemblyIdentity.NullVersion,
+                cultureName: "",
+                publicKeyOrToken: ImmutableArray<byte>.Empty,
+                hasPublicKey: false,
+                isRetargetable: false,
+                contentType: AssemblyContentType.Default);
 
-            string Cci.IAssemblyReference.Culture
-            {
-                get
-                {
-                    return "";
-                }
-            }
-
-            bool Cci.IAssemblyReference.IsRetargetable
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            AssemblyContentType Cci.IAssemblyReference.ContentType
-            {
-                get
-                {
-                    return AssemblyContentType.Default;
-                }
-            }
-
-            ImmutableArray<byte> Cci.IAssemblyReference.PublicKeyToken
-            {
-                get
-                {
-                    return ImmutableArray<byte>.Empty;
-                }
-            }
-
-            Version Cci.IAssemblyReference.Version
-            {
-                get
-                {
-                    return AssemblyIdentity.NullVersion;
-                }
-            }
+            AssemblyIdentity Cci.IAssemblyReference.Identity => s_identity;
+            Version Cci.IAssemblyReference.AssemblyVersionPattern => null;
 
             Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
             {
@@ -242,13 +213,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            string Cci.INamedEntity.Name
-            {
-                get
-                {
-                    return name;
-                }
-            }
+            string Cci.INamedEntity.Name => s_identity.Name;
         }
     }
 }

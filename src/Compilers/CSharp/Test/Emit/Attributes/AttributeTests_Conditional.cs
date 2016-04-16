@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Common Helpers
 
-        private static readonly string CommonTestSource_ConditionalAttrDefs = @"
+        private static readonly string s_commonTestSource_ConditionalAttrDefs = @"
 using System;
 using System.Diagnostics;
 
@@ -59,7 +59,7 @@ public class BaseOmittedMultipleAttribute : Attribute { }
 public class OmittedMultipleAttribute : BaseOmittedMultipleAttribute { }
 ";
 
-        private static readonly string CommonTestSource_ConditionalAttributesApplied = @"
+        private static readonly string s_commonTestSource_ConditionalAttributesApplied = @"
 [PreservedAppliedAttribute, OmittedAppliedAttribute, PreservedInheritedAttribute, OmittedInheritedAttribute, PreservedMultipleAttribute, OmittedMultipleAttribute]
 public class Z<[PreservedAppliedAttribute, OmittedAppliedAttribute, PreservedInheritedAttribute, OmittedInheritedAttribute, PreservedMultipleAttribute, OmittedMultipleAttribute] T>
 {
@@ -136,11 +136,11 @@ public class Test
         private void CommonValidatorForCondAttrType(ModuleSymbol module, bool isFromSource)
         {
             var attributesArrayBuilder = new List<ImmutableArray<CSharpAttributeData>>();
-            
+
             var classZ = module.GlobalNamespace.GetTypeMember("Z");
             attributesArrayBuilder.Add(classZ.GetAttributes());
             attributesArrayBuilder.Add(classZ.TypeParameters[0].GetAttributes());
-            
+
             var methodM = classZ.GetMember<MethodSymbol>("m");
             attributesArrayBuilder.Add(methodM.GetAttributes());
             attributesArrayBuilder.Add(methodM.GetReturnTypeAttributes());
@@ -149,7 +149,7 @@ public class Test
 
             var fieldF = classZ.GetMember<FieldSymbol>("f");
             attributesArrayBuilder.Add(fieldF.GetAttributes());
-            
+
             var propP1 = classZ.GetMember<PropertySymbol>("p1");
             attributesArrayBuilder.Add(propP1.GetAttributes());
             var propGetMethod = propP1.GetMethod;
@@ -158,13 +158,13 @@ public class Test
             var propSetMethod = propP1.SetMethod;
             attributesArrayBuilder.Add(propSetMethod.GetAttributes());
             attributesArrayBuilder.Add(propSetMethod.Parameters[0].GetAttributes());
-            
+
             var propP2 = classZ.GetMember<PropertySymbol>("p2");
             attributesArrayBuilder.Add(propP2.GetAttributes());
             propGetMethod = propP2.GetMethod;
             attributesArrayBuilder.Add(propGetMethod.GetAttributes());
             attributesArrayBuilder.Add(propGetMethod.GetReturnTypeAttributes());
-            
+
             var propP3 = classZ.GetMember<PropertySymbol>("p3");
             attributesArrayBuilder.Add(propP3.GetAttributes());
             propGetMethod = propP3.GetMethod;
@@ -173,7 +173,7 @@ public class Test
             propSetMethod = propP3.SetMethod;
             attributesArrayBuilder.Add(propSetMethod.GetAttributes());
             attributesArrayBuilder.Add(propSetMethod.Parameters[0].GetAttributes());
-            
+
             var eventE = classZ.GetMember<EventSymbol>("e");
             attributesArrayBuilder.Add(eventE.GetAttributes());
             attributesArrayBuilder.Add(eventE.AddMethod.GetAttributes());
@@ -214,9 +214,9 @@ public class Test
                 {
                     // All attributes should be present for source symbols
                     AssertEx.SetEqual(
-                        new[] 
+                        new[]
                         {   "PreservedAppliedAttribute",
-                            "OmittedAppliedAttribute", 
+                            "OmittedAppliedAttribute",
                             "PreservedInheritedAttribute",
                             "OmittedInheritedAttribute",
                             "PreservedMultipleAttribute",
@@ -228,9 +228,9 @@ public class Test
                 {
                     // Only PreservedAppliedAttribute, PreservedInheritedAttribute, PreservedMultipleAttribute should be emitted in metadata
                     AssertEx.SetEqual(
-                        new[] 
+                        new[]
                         {
-                            "PreservedAppliedAttribute", 
+                            "PreservedAppliedAttribute",
                             "PreservedInheritedAttribute",
                             "PreservedMultipleAttribute",
                         },
@@ -242,30 +242,30 @@ public class Test
         private void TestConditionAttributeType_SameSource(string condDefs)
         {
             // Same source file
-            string testSource = condDefs + CommonTestSource_ConditionalAttrDefs + CommonTestSource_ConditionalAttributesApplied;
-            CompileAndVerify(testSource, emitOptions: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            string testSource = condDefs + s_commonTestSource_ConditionalAttrDefs + s_commonTestSource_ConditionalAttributesApplied;
+            CompileAndVerify(testSource, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
             var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(compilation, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
         private void TestConditionAttributeType_DifferentSource(string condDefsSrcFile1, string condDefsSrcFile2)
         {
-            string source1 = condDefsSrcFile1 + CommonTestSource_ConditionalAttrDefs;
+            string source1 = condDefsSrcFile1 + s_commonTestSource_ConditionalAttrDefs;
             string source2 = condDefsSrcFile2 + @"
 using System;
-" + CommonTestSource_ConditionalAttributesApplied;
+" + s_commonTestSource_ConditionalAttributesApplied;
 
             // Different source files, same compilation
             var testSources = new[] { source1, source2 };
-            CompileAndVerify(testSources, emitOptions: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(testSources, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Different source files, different compilation
             var comp1 = CreateCompilationWithMscorlib(source1);
-            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, emitOptions: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
         #endregion
@@ -399,7 +399,7 @@ using System;
 
         #region Common Helpers
 
-        private static readonly string CommonTestSource_ConditionalMethodDefs = @"
+        private static readonly string s_commonTestSource_ConditionalMethodDefs = @"
 using System;
 using System.Diagnostics;
 
@@ -431,7 +431,7 @@ public class Z: BaseZ
     public void OmittedCalls_MultipleConditional_Method() { System.Console.WriteLine(""Z.OmittedCalls_MultipleConditional_Method""); }
 }";
 
-        private static readonly string CommonTestSource_ConditionalMethodCalls = @"
+        private static readonly string s_commonTestSource_ConditionalMethodCalls = @"
 public class Test
 {
     public static void Main()
@@ -446,37 +446,37 @@ public class Test
     }
 }
 ";
-        private static readonly string CommonExpectedOutput_ConditionalMethodsTest = @"Z.PreservedCalls_AppliedConditional_Method
+        private static readonly string s_commonExpectedOutput_ConditionalMethodsTest = @"Z.PreservedCalls_AppliedConditional_Method
 Z.PreservedCalls_InheritedConditional_Method
 Z.PreservedCalls_MultipleConditional_Method";
 
         private void TestConditionMethods_SameSource(string condDefs)
         {
             // Same source file
-            string testSource = condDefs + CommonTestSource_ConditionalMethodDefs + CommonTestSource_ConditionalMethodCalls;
-            CompileAndVerify(testSource, emitOptions: TestEmitters.CCI, expectedOutput: CommonExpectedOutput_ConditionalMethodsTest);
+            string testSource = condDefs + s_commonTestSource_ConditionalMethodDefs + s_commonTestSource_ConditionalMethodCalls;
+            CompileAndVerify(testSource, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
             var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, expectedOutput: CommonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(compilation, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
         private void TestConditionMethods_DifferentSource(string condDefsSrcFile1, string condDefsSrcFile2)
         {
-            string source1 = condDefsSrcFile1 + CommonTestSource_ConditionalMethodDefs;
+            string source1 = condDefsSrcFile1 + s_commonTestSource_ConditionalMethodDefs;
             string source2 = condDefsSrcFile2 + @"
 using System;
-" + CommonTestSource_ConditionalMethodCalls;
+" + s_commonTestSource_ConditionalMethodCalls;
 
             // Different source files, same compilation
             var testSources = new[] { source1, source2 };
-            CompileAndVerify(testSources, emitOptions: TestEmitters.CCI, expectedOutput: CommonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(testSources, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Different source files, different compilation
             var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: Guid.NewGuid().ToString());
-            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, emitOptions: TestEmitters.CCI, expectedOutput: CommonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
         #endregion
@@ -551,7 +551,7 @@ using System;
             TestConditionMethods_DifferentSource(conditionalDefsDummy, conditionalDefs);
         }
 
-        [Fact, WorkItem(529683, "DevDiv")]
+        [Fact, WorkItem(529683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529683")]
         public void CondMethodInDelegateCreationExpr()
         {
             var compilation = CreateCompilationWithMscorlib(@"
@@ -627,7 +627,7 @@ class Bar
 
                 var fooCtor = classFoo.InstanceConstructors.First();
                 Assert.Equal(1, fooCtor.ParameterCount);
-                
+
                 var paramY = fooCtor.Parameters[0];
                 Assert.True(paramY.IsOptional);
                 var attributes = paramY.GetAttributes();
@@ -641,7 +641,7 @@ class Bar
                 }
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: "");
+            CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: "");
         }
 
         [Fact]

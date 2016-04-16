@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         public static readonly IComparer<SyntaxNode> Instance = new CSharpDeclarationComparer();
 
-        private static readonly Dictionary<SyntaxKind, int> kindPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
+        private static readonly Dictionary<SyntaxKind, int> s_kindPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.FieldDeclaration, 0 },
             { SyntaxKind.ConstructorDeclaration, 1 },
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.DelegateDeclaration, 14 }
         };
 
-        private static readonly Dictionary<SyntaxKind, int> operatorPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
+        private static readonly Dictionary<SyntaxKind, int> s_operatorPrecedenceMap = new Dictionary<SyntaxKind, int>(SyntaxFacts.EqualityComparer)
         {
             { SyntaxKind.PlusToken, 0 },
             { SyntaxKind.MinusToken, 1 },
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (x.Kind() != y.Kind())
             {
                 int xPrecedence, yPrecedence;
-                if (!kindPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence) ||
-                    !kindPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence))
+                if (!s_kindPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence) ||
+                    !s_kindPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence))
                 {
                     // The containing declaration is malformed and contains a node kind we did not expect.
                     // Ignore comparisons with those unexpected nodes and sort them to the end of the declaration.
@@ -423,8 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 int xPrecedence = 0;
                 int yPrecedence = 0;
-                operatorPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence);
-                operatorPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence);
+                s_operatorPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence);
+                s_operatorPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence);
 
                 comparisonResult = xPrecedence - yPrecedence;
             }

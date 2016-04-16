@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             Assert.Throws<ArgumentOutOfRangeException>(() => new CSharpParseOptions(languageVersion: (LanguageVersion)1000));
         }
 
-        [Fact(), WorkItem(546206, "DevDiv")]
+        [Fact(), WorkItem(546206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546206")]
         public void InvalidDefineSymbols()
         {
             // command line gives CS2029: Invalid value for '/define'; 'xxx' is not a valid identifier
@@ -70,16 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols");
-        }
-
-        [Fact]
-        public void Serializability()
-        {
-            VerifySerializability(new CSharpSerializableParseOptions(new CSharpParseOptions(
-                languageVersion: LanguageVersion.CSharp6,
-                documentationMode: DocumentationMode.None,
-                kind: SourceCodeKind.Interactive,
-                preprocessorSymbols: new[] { "A", "B" })));
         }
     }
 }

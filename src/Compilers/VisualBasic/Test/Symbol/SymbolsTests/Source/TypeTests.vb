@@ -133,9 +133,10 @@ End Namespace
             Assert.Same(delegateB, delegateB.TypeParameters(0).ContainingSymbol)
             Assert.Equal(1, delegateB.Locations.Length())
             Assert.Equal("System.MulticastDelegate", delegateB.BaseType.ToTestDisplayString())
-            Assert.NotEqual(0, IdentifierComparison.GetHashCode("B"))
-            Assert.NotEqual(0, IdentifierComparison.GetHashCode("A"))
+
+#If Not DISABLE_GOOD_HASH_TESTS Then
             Assert.NotEqual(IdentifierComparison.GetHashCode("A"), IdentifierComparison.GetHashCode("B"))
+#End If
             Dim enumE = DirectCast(membersOfN(2), NamedTypeSymbol)
             Assert.Equal(nsN.GetTypeMembers("E", 0).First(), enumE)
             Assert.Equal(nsN, enumE.ContainingSymbol)
@@ -375,8 +376,8 @@ End Class
 
         End Sub
 
-        <WorkItem(537281, "DevDiv")>
-        <WorkItem(537300, "DevDiv")>
+        <WorkItem(537281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537281")>
+        <WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300")>
         <WorkItem(932303, "DevDiv/Personal")>
         <Fact>
         Public Sub ArrayTypeInterfaces()
@@ -418,8 +419,8 @@ End Class
             Assert.Throws(Of ArgumentNullException)(Sub() compilation.CreateArrayTypeSymbol(Nothing))
         End Sub
 
-        <WorkItem(537420, "DevDiv")>
-        <WorkItem(537515, "DevDiv")>
+        <WorkItem(537420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537420")>
+        <WorkItem(537515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537515")>
         <Fact>
         Public Sub ArrayTypeGetFullNameAndHashCode()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -524,7 +525,7 @@ End Class
             Assert.Equal("A.Cbc As System.Object()()", sym73.ToTestDisplayString())
         End Sub
 
-        <Fact(), WorkItem(537187, "DevDiv"), WorkItem(529941, "DevDiv")>
+        <Fact(), WorkItem(537187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537187"), WorkItem(529941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529941")>
         Public Sub EnumFields()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation name="EnumFields">
@@ -666,7 +667,7 @@ End Namespace
             CompilationUtils.AssertNoDeclarationDiagnostics(compilation)
         End Sub
 
-        <WorkItem(537199, "DevDiv")>
+        <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
             Dim mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib
@@ -756,7 +757,7 @@ End Namespace
             Assert.Equal("System.DateTime", ary.ElementType.ToTestDisplayString())
         End Sub
 
-        <WorkItem(537461, "DevDiv")>
+        <WorkItem(537461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537461")>
         <Fact>
         Public Sub SourceTypeUndefinedBaseType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -771,7 +772,7 @@ End Class
             Assert.Equal(SymbolKind.ErrorType, baseType.Kind)
         End Sub
 
-        <WorkItem(537467, "DevDiv")>
+        <WorkItem(537467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537467")>
         <Fact>
         Public Sub TopLevelPrivateTypes()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -824,7 +825,7 @@ BC31047: Protected types can only be declared inside of a class.
 
         End Sub
 
-        <WorkItem(527185, "DevDiv")>
+        <WorkItem(527185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527185")>
         <Fact>
         Public Sub InheritTypeFromMetadata01()
 
@@ -879,7 +880,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537753, "DevDiv")>
+        <WorkItem(537753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537753")>
         <Fact>
         Public Sub ImplementTypeCrossComps()
 
@@ -927,7 +928,7 @@ End Namespace
 
         End Sub
 
-        <WorkItem(537492, "DevDiv")>
+        <WorkItem(537492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537492")>
         <Fact>
         Public Sub PartialClassImplInterface()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2371,7 +2372,7 @@ BC30270: 'Public' is not valid on an interface method declaration.
 
         ' Constructor initializers don't bind yet
         <WorkItem(7926, "DevDiv_Projects/Roslyn")>
-        <WorkItem(541123, "DevDiv")>
+        <WorkItem(541123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541123")>
         <Fact>
         Public Sub StructDefaultConstructorInitializer()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
@@ -2497,10 +2498,12 @@ End Structure
             Dim s2 = compilation.GlobalNamespace.GetTypeMembers("s2")(0)
             Assert.Equal(2, s2.InstanceConstructors.Length)
 
-            compilation.VerifyDiagnostics()
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_NewInStruct, "new").WithLocation(2, 9)
+)
         End Sub
 
-        <Fact, WorkItem(530171, "DevDiv")>
+        <Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")>
         Public Sub ErrorTypeTest01()
             Dim compilation = CreateCompilationWithMscorlib(
     <compilation name="Err">
@@ -2915,7 +2918,7 @@ Friend Class c2
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -2981,7 +2984,7 @@ BC37211: Type 'ITest20(Of T)' exported from module 'ITest20Mod.netmodule' confli
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -3087,21 +3090,21 @@ End Class
 ]]>.Value
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module1_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module1_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
             Dim module1_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module2_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module2_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
             Dim module2_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module3_FT2").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes2"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module3_FT2").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes2"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
@@ -3133,7 +3136,7 @@ End Class
 // Image base: 0x01100000
 ]]>.Value
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(module4_FT1_source, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(module4_FT1_source, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -3193,7 +3196,7 @@ BC37218: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, 
                 }, TestOptions.ReleaseDll)
 
             ' Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False).VerifyDiagnostics()
+            CompileAndVerify(compilation, verify:=False).VerifyDiagnostics()
 
             compilation = CreateCompilationWithMscorlibAndReferences(emptySource,
                 {
@@ -3344,6 +3347,56 @@ expectedOutput:="FalseTrue112")
 
         End Sub
 
+        <Fact, WorkItem(8400, "https://github.com/dotnet/roslyn/issues/8400")>
+        Public Sub WrongModifier()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+    public class AAA : IBBB
+    {
+        public static AAA MMM(Stream xamlStream)
+        {
+            // Note: create custom module catalog 
+    ]]></file>
+</compilation>)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30481: 'Class' statement must end with a matching 'End Class'.
+public class AAA : IBBB
+~~~~~~~~~~~~~~~~
+BC30188: Declaration expected.
+public class AAA : IBBB
+                   ~~~~
+BC30035: Syntax error.
+    {
+    ~
+BC30235: 'static' is not valid on a member variable declaration.
+        public static AAA MMM(Stream xamlStream)
+               ~~~~~~
+BC30205: End of statement expected.
+        public static AAA MMM(Stream xamlStream)
+                          ~~~
+BC30035: Syntax error.
+        {
+        ~
+BC30035: Syntax error.
+            // Note: create custom module catalog
+            ~
+BC30188: Declaration expected.
+            // Note: create custom module catalog
+                     ~~~~~~
+BC31140: 'Custom' modifier can only be used immediately before an 'Event' declaration.
+            // Note: create custom module catalog
+                            ~~~~~~
+BC30617: 'Module' statements can occur only at file or namespace level.
+            // Note: create custom module catalog
+                            ~~~~~~~~~~~~~~~~~~~~~
+BC30625: 'Module' statement must end with a matching 'End Module'.
+            // Note: create custom module catalog
+                            ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
     End Class
 
 End Namespace

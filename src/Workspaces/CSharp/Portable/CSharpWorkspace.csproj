@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -14,38 +13,12 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -60,25 +33,22 @@
       <Name>Workspaces</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +74,7 @@
     <Compile Include="CodeGeneration\CSharpCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\CSharpCodeGenerationServiceFactory.cs" />
     <Compile Include="CodeGeneration\CSharpDeclarationComparer.cs" />
-    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\DestructorGenerator.cs" />
     <Compile Include="CodeGeneration\EnumMemberGenerator.cs" />
     <Compile Include="CodeGeneration\EventGenerator.cs" />
@@ -123,17 +91,17 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.cs" />
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpWorkspaceResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Editing\CSharpImportAdder.cs" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />
-    <Compile Include="Extensions\BreakpointSpans.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
     <Compile Include="Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\CSharpSyntaxContext.cs" />
@@ -149,8 +117,6 @@
     <Compile Include="Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\ForEachStatementSyntaxExtensions.cs" />
-    <Compile Include="Extensions\IDocumentExtensions.cs" />
-    <Compile Include="Extensions\ISemanticModelExtensions.cs" />
     <Compile Include="Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs" />
@@ -199,9 +165,7 @@
     <Compile Include="Formatting\FormattingHelpers.cs" />
     <Compile Include="Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="Formatting\Rules\BaseFormattingRule.cs" />
-    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs" />
     <Compile Include="Formatting\Rules\EndOfFileTokenFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentBlockFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentUserSettingsFormattingRule.cs" />
@@ -215,18 +179,14 @@
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
-    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactory.PathSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.NullSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.PositionalSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
-    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
     <Compile Include="LinkedFiles\CSharpLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Recommendations\CSharpRecommendationService.cs" />
     <Compile Include="Rename\CSharpRenameRewriterLanguageService.cs" />
@@ -273,11 +233,11 @@
     <Compile Include="Formatting\Engine\Trivia\CSharpTriviaFormatter.DocumentationCommentExteriorCommentRewriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
 </Project>

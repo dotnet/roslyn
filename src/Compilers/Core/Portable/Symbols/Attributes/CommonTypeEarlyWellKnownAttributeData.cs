@@ -15,51 +15,50 @@ namespace Microsoft.CodeAnalysis
     internal class CommonTypeEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region AttributeUsageAttribute
-        private AttributeUsageInfo attributeUsageInfo = AttributeUsageInfo.Null;
+        private AttributeUsageInfo _attributeUsageInfo = AttributeUsageInfo.Null;
         public AttributeUsageInfo AttributeUsageInfo
         {
             get
             {
-                return this.attributeUsageInfo;
+                return _attributeUsageInfo;
             }
             set
             {
                 VerifySealed(expected: false);
-                Debug.Assert(attributeUsageInfo.IsNull);
+                Debug.Assert(_attributeUsageInfo.IsNull);
                 Debug.Assert(!value.IsNull);
-                this.attributeUsageInfo = value;
+                _attributeUsageInfo = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region ComImportAttribute
-        private bool hasComImportAttribute;
+        private bool _hasComImportAttribute;
         public bool HasComImportAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasComImportAttribute;
+                return _hasComImportAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasComImportAttribute = value;
+                _hasComImportAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region ConditionalAttribute
-        private ImmutableArray<string> lazyConditionalSymbols = ImmutableArray<string>.Empty;
+        private ImmutableArray<string> _lazyConditionalSymbols = ImmutableArray<string>.Empty;
 
         public void AddConditionalSymbol(string name)
         {
             VerifySealed(expected: false);
-            lazyConditionalSymbols = lazyConditionalSymbols.Add(name);
+            _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
             SetDataStored();
-
         }
 
         public ImmutableArray<string> ConditionalSymbols
@@ -67,19 +66,19 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazyConditionalSymbols;
+                return _lazyConditionalSymbols;
             }
         }
         #endregion
 
         #region ObsoleteAttribute
-        private ObsoleteAttributeData obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
         public ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.obsoleteAttributeData.IsUninitialized ? null : this.obsoleteAttributeData;
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
             }
             set
             {
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
-                this.obsoleteAttributeData = value;
+                _obsoleteAttributeData = value;
                 SetDataStored();
             }
         }

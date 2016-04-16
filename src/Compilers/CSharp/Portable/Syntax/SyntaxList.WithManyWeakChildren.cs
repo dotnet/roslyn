@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         internal class WithManyWeakChildren : SyntaxList
         {
-            private readonly ArrayElement<WeakReference<SyntaxNode>>[] children;
+            private readonly ArrayElement<WeakReference<SyntaxNode>>[] _children;
 
             // We calculate and store the positions of all children here. This way, getting the position
             // of all children is O(N) [N being the list size], otherwise it is O(N^2) because getting
             // the position of a child later requires traversing all previous siblings.
-            private readonly int[] childPositions;
+            private readonly int[] _childPositions;
 
             internal WithManyWeakChildren(Syntax.InternalSyntax.SyntaxList.WithManyChildrenBase green, SyntaxNode parent, int position)
                 : base(green, parent, position)
             {
                 int count = green.SlotCount;
-                this.children = new ArrayElement<WeakReference<SyntaxNode>>[count];
+                _children = new ArrayElement<WeakReference<SyntaxNode>>[count];
 
                 var childOffsets = new int[count];
 
@@ -32,23 +32,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     childPosition += greenChildren[i].Value.FullWidth;
                 }
 
-                this.childPositions = childOffsets;
+                _childPositions = childOffsets;
             }
 
             internal override int GetChildPosition(int index)
             {
-                return childPositions[index];
+                return _childPositions[index];
             }
 
             internal override SyntaxNode GetNodeSlot(int index)
             {
-                return GetWeakRedElement(ref this.children[index].Value, index);
+                return GetWeakRedElement(ref _children[index].Value, index);
             }
 
             internal override SyntaxNode GetCachedSlot(int index)
             {
                 SyntaxNode value = null;
-                this.children[index].Value?.TryGetTarget(out value);
+                _children[index].Value?.TryGetTarget(out value);
                 return value;
             }
 

@@ -4,21 +4,21 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
-        public ITypeSymbol Type { get; private set; }
-        public bool IsIndexer { get; private set; }
+        public ITypeSymbol Type { get; }
+        public bool IsIndexer { get; }
 
-        public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
-        public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; private set; }
+        public ImmutableArray<IParameterSymbol> Parameters { get; }
+        public ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
 
-        public IMethodSymbol GetMethod { get; private set; }
-        public IMethodSymbol SetMethod { get; private set; }
+        public IMethodSymbol GetMethod { get; }
+        public IMethodSymbol SetMethod { get; }
 
         public CodeGenerationPropertySymbol(
             INamedTypeSymbol containingType,

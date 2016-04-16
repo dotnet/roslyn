@@ -14,45 +14,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SubstitutedFieldSymbol : FieldSymbol
     {
-        private readonly SubstitutedNamedTypeSymbol containingType;
-        private readonly FieldSymbol originalDefinition;
+        private readonly SubstitutedNamedTypeSymbol _containingType;
+        private readonly FieldSymbol _originalDefinition;
 
-        private TypeSymbol lazyType;
+        private TypeSymbol _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
         {
-            this.containingType = containingType;
-            this.originalDefinition = substitutedFrom.OriginalDefinition as FieldSymbol;
+            _containingType = containingType;
+            _originalDefinition = substitutedFrom.OriginalDefinition as FieldSymbol;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            if ((object)this.lazyType == null)
+            if ((object)_lazyType == null)
             {
-                Interlocked.CompareExchange(ref this.lazyType, containingType.TypeSubstitution.SubstituteType(originalDefinition.GetFieldType(fieldsBeingBound)), null);
+                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.GetFieldType(fieldsBeingBound)).Type, null);
             }
 
-            return this.lazyType;
+            return _lazyType;
         }
 
         public override string Name
         {
             get
             {
-                return originalDefinition.Name;
+                return _originalDefinition.Name;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         internal override bool HasSpecialName
         {
             get
             {
-                return originalDefinition.HasSpecialName;
+                return _originalDefinition.HasSpecialName;
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.HasRuntimeSpecialName;
+                return _originalDefinition.HasRuntimeSpecialName;
             }
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.IsNotSerialized;
+                return _originalDefinition.IsNotSerialized;
             }
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.MarshallingInformation;
+                return _originalDefinition.MarshallingInformation;
             }
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.TypeLayoutOffset;
+                return _originalDefinition.TypeLayoutOffset;
             }
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingType;
+                return _containingType;
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return containingType;
+                return _containingType;
             }
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.OriginalDefinition;
+                return _originalDefinition.OriginalDefinition;
             }
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.Locations;
+                return _originalDefinition.Locations;
             }
         }
 
@@ -124,22 +124,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.DeclaringSyntaxReferences;
+                return _originalDefinition.DeclaringSyntaxReferences;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.originalDefinition.GetAttributes();
+            return _originalDefinition.GetAttributes();
         }
 
         public override Symbol AssociatedSymbol
         {
             get
             {
-                Symbol underlying = originalDefinition.AssociatedSymbol;
+                Symbol underlying = _originalDefinition.AssociatedSymbol;
 
-                if ((object) underlying == null)
+                if ((object)underlying == null)
                 {
                     return null;
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.IsStatic;
+                return _originalDefinition.IsStatic;
             }
         }
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.IsReadOnly;
+                return _originalDefinition.IsReadOnly;
             }
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.IsConst;
+                return _originalDefinition.IsConst;
             }
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.ObsoleteAttributeData;
+                return _originalDefinition.ObsoleteAttributeData;
             }
         }
 
@@ -184,20 +184,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.ConstantValue;
+                return _originalDefinition.ConstantValue;
             }
         }
 
         internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
-            return originalDefinition.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
+            return _originalDefinition.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
         }
 
         public override bool IsVolatile
         {
             get
             {
-                return originalDefinition.IsVolatile;
+                return _originalDefinition.IsVolatile;
             }
         }
 
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.originalDefinition.IsImplicitlyDeclared;
+                return _originalDefinition.IsImplicitlyDeclared;
             }
         }
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.DeclaredAccessibility;
+                return _originalDefinition.DeclaredAccessibility;
             }
         }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return originalDefinition.CustomModifiers;
+                return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.CustomModifiers);
             }
         }
 
@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct
             // containing a fixed-size buffer.  Given the rarity there would be little
-            // benefit to "optimizing" the performance of this by cacheing the
+            // benefit to "optimizing" the performance of this by caching the
             // translated implementation type.
-            return (NamedTypeSymbol)containingType.TypeSubstitution.SubstituteType(originalDefinition.FixedImplementationType(emitModule));
+            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(_originalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
         public override bool Equals(object obj)
@@ -242,12 +242,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && this.containingType == other.containingType && this.originalDefinition == other.originalDefinition;
+            return (object)other != null && _containingType == other._containingType && _originalDefinition == other._originalDefinition;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(containingType, originalDefinition.GetHashCode());
+            return Hash.Combine(_containingType, _originalDefinition.GetHashCode());
         }
     }
 }

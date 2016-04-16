@@ -13,25 +13,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         private struct Reader
         {
-            private readonly Lexer lexer;
-            private Cursor oldTreeCursor;
-            private ImmutableStack<TextChangeRange> changes;
-            private int newPosition;
-            private int changeDelta;
-            private DirectiveStack newDirectives;
-            private DirectiveStack oldDirectives;
-            private LexerMode newLexerDrivenMode;
+            private readonly Lexer _lexer;
+            private Cursor _oldTreeCursor;
+            private ImmutableStack<TextChangeRange> _changes;
+            private int _newPosition;
+            private int _changeDelta;
+            private DirectiveStack _newDirectives;
+            private DirectiveStack _oldDirectives;
+            private LexerMode _newLexerDrivenMode;
 
             public Reader(Blender blender)
             {
-                this.lexer = blender.lexer;
-                this.oldTreeCursor = blender.oldTreeCursor;
-                this.changes = blender.changes;
-                this.newPosition = blender.newPosition;
-                this.changeDelta = blender.changeDelta;
-                this.newDirectives = blender.newDirectives;
-                this.oldDirectives = blender.oldDirectives;
-                this.newLexerDrivenMode = blender.newLexerDrivenMode;
+                _lexer = blender._lexer;
+                _oldTreeCursor = blender._oldTreeCursor;
+                _changes = blender._changes;
+                _newPosition = blender._newPosition;
+                _changeDelta = blender._changeDelta;
+                _newDirectives = blender._newDirectives;
+                _oldDirectives = blender._oldDirectives;
+                _newLexerDrivenMode = blender._newLexerDrivenMode;
             }
 
             internal BlendedNode ReadNodeOrToken(LexerMode mode, bool asToken)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     // If the cursor in the old tree is finished, then our choice is easy.  We just
                     // read from the new text.
-                    if (this.oldTreeCursor.IsFinished)
+                    if (_oldTreeCursor.IsFinished)
                     {
                         return this.ReadNewToken(mode);
                     }
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     //      This can happen when we are skipping over portions of the old tree because
                     //      it overlapped with changed text spans. In this case, we want to read a
                     //      token to try to consume that changed text and ensure that we get synced up.
-                    if (this.changeDelta < 0)
+                    if (_changeDelta < 0)
                     {
                         // Case '1' above.  We're behind in the old text, so move forward a token.
                         // And try again.
                         this.SkipOldToken();
                     }
-                    else if (this.changeDelta > 0)
+                    else if (_changeDelta > 0)
                     {
                         // Case '2' above.  We're behind in the new text, so read a token to try to
                         // catch up.
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         // Couldn't take the current node or token.  Figure out the next node or
                         // token to reconsider and try again.
-                        if (this.oldTreeCursor.CurrentNodeOrToken.IsNode)
+                        if (_oldTreeCursor.CurrentNodeOrToken.IsNode)
                         {
                             // It was a node.  Just move to its first token and try again.
-                            this.oldTreeCursor = this.oldTreeCursor.MoveToFirstChild();
+                            _oldTreeCursor = _oldTreeCursor.MoveToFirstChild();
                         }
                         else
                         {
@@ -104,17 +104,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void SkipOldToken()
             {
-                Debug.Assert(!this.oldTreeCursor.IsFinished);
+                Debug.Assert(!_oldTreeCursor.IsFinished);
 
                 // First, move down so that we're actually pointing at a token.  If we're already
                 // pointing at a token, then we'll just stay there.
-                this.oldTreeCursor = this.oldTreeCursor.MoveToFirstToken();
-                var node = this.oldTreeCursor.CurrentNodeOrToken;
+                _oldTreeCursor = _oldTreeCursor.MoveToFirstToken();
+                var node = _oldTreeCursor.CurrentNodeOrToken;
 
                 // Now, skip past it.
-                this.changeDelta += node.FullWidth;
-                this.oldDirectives = node.ApplyDirectives(this.oldDirectives);
-                this.oldTreeCursor = this.oldTreeCursor.MoveToNextSibling();
+                _changeDelta += node.FullWidth;
+                _oldDirectives = node.ApplyDirectives(_oldDirectives);
+                _oldTreeCursor = _oldTreeCursor.MoveToNextSibling();
 
                 // If our cursor is now after any changes, then just skip past them while upping
                 // the changeDelta length.  This will let us know that we need to read tokens
@@ -124,19 +124,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void SkipPastChanges()
             {
-                var oldPosition = this.oldTreeCursor.CurrentNodeOrToken.Position;
-                while (!this.changes.IsEmpty && oldPosition >= this.changes.Peek().Span.End)
+                var oldPosition = _oldTreeCursor.CurrentNodeOrToken.Position;
+                while (!_changes.IsEmpty && oldPosition >= _changes.Peek().Span.End)
                 {
-                    var change = this.changes.Peek();
+                    var change = _changes.Peek();
 
-                    this.changes = this.changes.Pop();
-                    this.changeDelta += change.NewLength - change.Span.Length;
+                    _changes = _changes.Pop();
+                    _changeDelta += change.NewLength - change.Span.Length;
                 }
             }
 
             private BlendedNode ReadNewToken(LexerMode mode)
             {
-                Debug.Assert(this.changeDelta > 0 || this.oldTreeCursor.IsFinished);
+                Debug.Assert(_changeDelta > 0 || _oldTreeCursor.IsFinished);
 
                 // The new text is either behind the cursor, or the cursor is done.  In either event,
                 // we need to lex a real token from the stream.
@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // oldTreeCursor wasn't finished then we need to update our state based on the token
                 // we just read.
                 var width = token.FullWidth;
-                this.newPosition += width;
-                this.changeDelta -= width;
+                _newPosition += width;
+                _changeDelta -= width;
 
                 // By reading a token we may either have read into, or past, change ranges.  Skip
                 // past them.  This will increase changeDelta which will indicate to us that we need
@@ -161,19 +161,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private SyntaxToken LexNewToken(LexerMode mode)
             {
-                if (this.lexer.TextWindow.Position != this.newPosition)
+                if (_lexer.TextWindow.Position != _newPosition)
                 {
-                    this.lexer.Reset(this.newPosition, this.newDirectives);
+                    _lexer.Reset(_newPosition, _newDirectives);
                 }
 
                 if (mode >= LexerMode.XmlDocComment)
                 {
-                    mode |= this.newLexerDrivenMode;
+                    mode |= _newLexerDrivenMode;
                 }
 
-                var token = this.lexer.Lex(ref mode);
-                this.newDirectives = this.lexer.Directives;
-                this.newLexerDrivenMode = mode & (LexerMode.MaskXmlDocCommentLocation | LexerMode.MaskXmlDocCommentStyle);
+                var token = _lexer.Lex(ref mode);
+                _newDirectives = _lexer.Directives;
+                _newLexerDrivenMode = mode & (LexerMode.MaskXmlDocCommentLocation | LexerMode.MaskXmlDocCommentStyle);
                 return token;
             }
 
@@ -185,12 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // already at a token, then this won't do anything).
                 if (asToken)
                 {
-                    this.oldTreeCursor = this.oldTreeCursor.MoveToFirstToken();
+                    _oldTreeCursor = _oldTreeCursor.MoveToFirstToken();
                 }
 
                 // See if we're actually able to reuse this node or token.  If not, our caller will
                 // move the cursor to the next appropriate position and will try again.
-                var currentNodeOrToken = this.oldTreeCursor.CurrentNodeOrToken;
+                var currentNodeOrToken = _oldTreeCursor.CurrentNodeOrToken;
                 if (!CanReuse(currentNodeOrToken))
                 {
                     blendedNode = default(BlendedNode);
@@ -199,11 +199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // We can reuse this node or token.  Move us forward in the new text, and move to the
                 // next sibling.
-                this.newPosition += currentNodeOrToken.FullWidth;
-                this.oldTreeCursor = this.oldTreeCursor.MoveToNextSibling();
+                _newPosition += currentNodeOrToken.FullWidth;
+                _oldTreeCursor = _oldTreeCursor.MoveToNextSibling();
 
-                this.newDirectives = currentNodeOrToken.ApplyDirectives(this.newDirectives);
-                this.oldDirectives = currentNodeOrToken.ApplyDirectives(this.oldDirectives);
+                _newDirectives = currentNodeOrToken.ApplyDirectives(_newDirectives);
+                _oldDirectives = currentNodeOrToken.ApplyDirectives(_oldDirectives);
 
                 blendedNode = CreateBlendedNode(
                     node: (CSharp.CSharpSyntaxNode)currentNodeOrToken.AsNode(),
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // As of 2013/03/14, the compiler never attempts to incrementally parse a tree containing
                 // annotations.  Our goal in instituting this restriction is to prevent API clients from
-                // taking a depedency on the survival of annotations.
+                // taking a dependency on the survival of annotations.
                 if (nodeOrToken.ContainsAnnotations)
                 {
                     return false;
@@ -270,18 +270,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
-                return this.newDirectives.IncrementallyEquivalent(this.oldDirectives);
+                return _newDirectives.IncrementallyEquivalent(_oldDirectives);
             }
 
             private bool IntersectsNextChange(SyntaxNodeOrToken nodeOrToken)
             {
-                if (this.changes.IsEmpty)
+                if (_changes.IsEmpty)
                 {
                     return false;
                 }
 
                 var oldSpan = nodeOrToken.FullSpan;
-                var changeSpan = this.changes.Peek().Span;
+                var changeSpan = _changes.Peek().Span;
 
                 // if old node intersects effective range of the change, we cannot use it
                 return oldSpan.IntersectsWith(changeSpan);
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private BlendedNode CreateBlendedNode(CSharp.CSharpSyntaxNode node, SyntaxToken token)
             {
                 return new BlendedNode(node, token,
-                    new Blender(lexer, oldTreeCursor, changes, newPosition, changeDelta, newDirectives, oldDirectives, newLexerDrivenMode));
+                    new Blender(_lexer, _oldTreeCursor, _changes, _newPosition, _changeDelta, _newDirectives, _oldDirectives, _newLexerDrivenMode));
             }
         }
     }

@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private class WorkspaceTaskScheduler : IWorkspaceTaskScheduler
         {
-            private readonly WorkspaceTaskSchedulerFactory factory;
-            private readonly TaskScheduler taskScheduler;
+            private readonly WorkspaceTaskSchedulerFactory _factory;
+            private readonly TaskScheduler _taskScheduler;
 
             public WorkspaceTaskScheduler(WorkspaceTaskSchedulerFactory factory, TaskScheduler taskScheduler)
             {
-                this.factory = factory;
-                this.taskScheduler = taskScheduler;
+                _factory = factory;
+                _taskScheduler = taskScheduler;
             }
 
             private TTask ScheduleTaskWorker<TTask>(
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Host
                 where TTask : Task
             {
                 taskName = taskName ?? GetType().Name + ".ScheduleTask";
-                var asyncToken = factory.BeginAsyncOperation(taskName);
+                var asyncToken = _factory.BeginAsyncOperation(taskName);
 
                 var task = taskCreator();
 
-                factory.CompleteAsyncOperation(asyncToken, task);
+                _factory.CompleteAsyncOperation(asyncToken, task);
                 return task;
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return ScheduleTaskWorker<Task>(
                     taskName, () => Task.Factory.SafeStartNew(
-    taskAction, cancellationToken, this.taskScheduler),
+    taskAction, cancellationToken, _taskScheduler),
                     cancellationToken);
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return ScheduleTaskWorker<Task<T>>(
                     taskName, () => Task.Factory.SafeStartNew(
-    taskFunc, cancellationToken, this.taskScheduler),
+    taskFunc, cancellationToken, _taskScheduler),
                     cancellationToken);
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return ScheduleTaskWorker<Task>(
                     taskName, () => Task.Factory.SafeStartNewFromAsync(
-    taskFunc, cancellationToken, this.taskScheduler),
+    taskFunc, cancellationToken, _taskScheduler),
                     cancellationToken);
             }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 return ScheduleTaskWorker<Task<T>>(
                     taskName, () => Task.Factory.SafeStartNewFromAsync(
-    taskFunc, cancellationToken, this.taskScheduler),
+    taskFunc, cancellationToken, _taskScheduler),
                     cancellationToken);
             }
         }

@@ -11,7 +11,6 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.InternalUtilities
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -55,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' value and assigns it, several threads must not perform duplicate "calculation"
         ''' simultaneously.
         ''' </summary>
-        Private m_lazyAssemblySymbol As SourceAssemblySymbol
+        Private _lazyAssemblySymbol As SourceAssemblySymbol
 
         ''' <summary>
         ''' Holds onto data related to reference binding.
@@ -64,34 +63,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' metadata reference (a metadata reference that refers back to the compilation) we need to avoid sharing of the binding results.
         ''' We do so by creating a new reference manager for such compilation. 
         ''' </summary>
-        Private m_referenceManager As ReferenceManager
+        Private _referenceManager As ReferenceManager
 
         ''' <summary>
         ''' The options passed to the constructor of the Compilation
         ''' </summary>
-        Private ReadOnly m_Options As VisualBasicCompilationOptions
+        Private ReadOnly _options As VisualBasicCompilationOptions
 
         ''' <summary>
         ''' The global namespace symbol. Lazily populated on first access.
         ''' </summary>
-        Private m_lazyGlobalNamespace As NamespaceSymbol
+        Private _lazyGlobalNamespace As NamespaceSymbol
 
         ''' <summary>
         ''' The syntax trees explicitly given to the compilation at creation, in ordinal order.
         ''' </summary>
-        Private ReadOnly m_syntaxTrees As ImmutableArray(Of SyntaxTree)
+        Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
+
+        Private ReadOnly _syntaxTreeOrdinalMap As ImmutableDictionary(Of SyntaxTree, Integer)
 
         ''' <summary>
         ''' The syntax trees of this compilation plus all 'hidden' trees 
         ''' added to the compilation by compiler, e.g. Vb Core Runtime.
         ''' </summary>
-        Private m_lazyAllSyntaxTrees As ImmutableArray(Of SyntaxTree)
+        Private _lazyAllSyntaxTrees As ImmutableArray(Of SyntaxTree)
 
         ''' <summary>
         ''' A map between syntax trees and the root declarations in the declaration table.
         ''' Incrementally updated between compilation versions when source changes are made.
         ''' </summary>
-        Private ReadOnly m_rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry)
+        Private ReadOnly _rootNamespaces As ImmutableDictionary(Of SyntaxTree, DeclarationTableEntry)
 
         ''' <summary>
         ''' Imports appearing in <see cref="SyntaxTree"/>s in this compilation.
@@ -100,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Unlike in C#, we don't need to use a set because the <see cref="SourceFile"/> objects
         ''' that record the imports are persisted.
         ''' </remarks>
-        Private m_lazyImportInfos As ConcurrentQueue(Of ImportInfo)
+        Private _lazyImportInfos As ConcurrentQueue(Of ImportInfo)
 
         ''' <summary>
         ''' Cache the CLS diagnostics for the whole compilation so they aren't computed repeatedly.
@@ -108,12 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' NOTE: Presently, we do not cache the per-tree diagnostics.
         ''' </remarks>
-        Private m_lazyClsComplianceDiagnostics As ImmutableArray(Of Diagnostic)
-
-        ''' <summary>
-        ''' Used for test purposes only to emulate missing members.
-        ''' </summary>
-        Private m_lazyMakeMemberMissingMap As SmallDictionary(Of Integer, Boolean)
+        Private _lazyClsComplianceDiagnostics As ImmutableArray(Of Diagnostic)
 
         ''' <summary>
         ''' A SyntaxTree and the associated RootSingleNamespaceDeclaration for an embedded
@@ -132,24 +128,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
         End Structure
 
-        Private ReadOnly m_embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration)
+        Private ReadOnly _embeddedTrees As ImmutableArray(Of EmbeddedTreeAndDeclaration)
 
         ''' <summary>
         ''' The declaration table that holds onto declarations from source. Incrementally updated
         ''' between compilation versions when source changes are made.
         ''' </summary>
         ''' <remarks></remarks>
-        Private ReadOnly m_declarationTable As DeclarationTable
+        Private ReadOnly _declarationTable As DeclarationTable
 
         ''' <summary>
         ''' Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         ''' </summary>
-        Private ReadOnly m_anonymousTypeManager As AnonymousTypeManager
+        Private ReadOnly _anonymousTypeManager As AnonymousTypeManager
 
         ''' <summary>
         ''' Manages automatically embedded content.
         ''' </summary>
-        Private m_lazyEmbeddedSymbolManager As EmbeddedSymbolManager
+        Private _lazyEmbeddedSymbolManager As EmbeddedSymbolManager
 
         ''' <summary>
         ''' MyTemplate automatically embedded from resource in the compiler.
@@ -159,25 +155,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' SyntaxTree.Dummy means uninitialized.
         ''' </summary>
-        Private m_lazyMyTemplate As SyntaxTree = VisualBasicSyntaxTree.Dummy
+        Private _lazyMyTemplate As SyntaxTree = VisualBasicSyntaxTree.Dummy
 
-        Private ReadOnly m_scriptClass As Lazy(Of ImplicitNamedTypeSymbol)
-        Private ReadOnly m_previousSubmission As VisualBasicCompilation
+        Private ReadOnly _scriptClass As Lazy(Of ImplicitNamedTypeSymbol)
 
         ''' <summary>
         ''' Contains the main method of this assembly, if there is one.
         ''' </summary>
-        Private m_lazyEntryPoint As EntryPoint
+        Private _lazyEntryPoint As EntryPoint
 
         ''' <summary>
         ''' The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         ''' </summary>
-        Private lazyCompilationUnitCompletedTrees As HashSet(Of SyntaxTree)
+        Private _lazyCompilationUnitCompletedTrees As HashSet(Of SyntaxTree)
 
         ''' <summary>
         ''' The common language version among the trees of the compilation.
         ''' </summary>
-        Private m_LanguageVersion As LanguageVersion
+        Private ReadOnly _languageVersion As LanguageVersion
 
         Public Overrides ReadOnly Property Language As String
             Get
@@ -193,13 +188,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property Declarations As DeclarationTable
             Get
-                Return m_declarationTable
+                Return _declarationTable
             End Get
         End Property
 
         Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
             Get
-                Return m_Options
+                Return _options
             End Get
         End Property
 
@@ -208,19 +203,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property LanguageVersion As LanguageVersion
             Get
-                Return m_LanguageVersion
+                Return _languageVersion
             End Get
         End Property
 
         Friend ReadOnly Property AnonymousTypeManager As AnonymousTypeManager
             Get
-                Return Me.m_anonymousTypeManager
+                Return Me._anonymousTypeManager
             End Get
         End Property
 
         Friend Overrides ReadOnly Property CommonAnonymousTypeManager As CommonAnonymousTypeManager
             Get
-                Return Me.m_anonymousTypeManager
+                Return Me._anonymousTypeManager
             End Get
         End Property
 
@@ -229,12 +224,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Property MyTemplate As SyntaxTree
             Get
-                If m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy Then
-                    If Me.Options.EmbedVbCoreRuntime Then
-                        m_lazyMyTemplate = Nothing
+                If _lazyMyTemplate Is VisualBasicSyntaxTree.Dummy Then
+                    Dim compilationOptions = Me.Options
+                    If compilationOptions.EmbedVbCoreRuntime OrElse compilationOptions.SuppressEmbeddedDeclarations Then
+                        _lazyMyTemplate = Nothing
                     Else
                         ' first see whether we can use one from global cache
-                        Dim parseOptions = If(Me.Options.ParseOptions, VisualBasicParseOptions.Default)
+                        Dim parseOptions = If(compilationOptions.ParseOptions, VisualBasicParseOptions.Default)
 
                         Dim tree As SyntaxTree = Nothing
                         If s_myTemplateCache.TryGetValue(parseOptions, tree) Then
@@ -242,44 +238,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(tree IsNot VisualBasicSyntaxTree.Dummy)
                             Debug.Assert(tree.IsMyTemplate)
 
-                            m_lazyMyTemplate = tree
+                            _lazyMyTemplate = tree
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=parseOptions, isMyTemplate:=True)
+
+                            ' The My template regularly makes use of more recent language features.  Care is
+                            ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
+                            ' with allowing the newer syntax here.
+                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic14)
+                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+
+                            If tree.GetDiagnostics().Any() Then
+                                Throw ExceptionUtilities.Unreachable
+                            End If
 
                             ' set global cache
                             s_myTemplateCache(parseOptions) = tree
 
-                            m_lazyMyTemplate = tree
+                            _lazyMyTemplate = tree
                         End If
                     End If
 
-                    Debug.Assert(m_lazyMyTemplate Is Nothing OrElse m_lazyMyTemplate.IsMyTemplate)
+                    Debug.Assert(_lazyMyTemplate Is Nothing OrElse _lazyMyTemplate.IsMyTemplate)
                 End If
 
-                Return m_lazyMyTemplate
+                Return _lazyMyTemplate
             End Get
             Set(value As SyntaxTree)
-                Debug.Assert(m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy)
+                Debug.Assert(_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy)
                 Debug.Assert(value IsNot VisualBasicSyntaxTree.Dummy)
                 Debug.Assert(value Is Nothing OrElse value.IsMyTemplate)
 
-                m_lazyMyTemplate = value
+                If value?.GetDiagnostics().Any() Then
+                    Throw ExceptionUtilities.Unreachable
+                End If
+
+                _lazyMyTemplate = value
             End Set
         End Property
 
         Friend ReadOnly Property EmbeddedSymbolManager As EmbeddedSymbolManager
             Get
-                If m_lazyEmbeddedSymbolManager Is Nothing Then
+                If _lazyEmbeddedSymbolManager Is Nothing Then
                     Dim embedded = If(Options.EmbedVbCoreRuntime, EmbeddedSymbolKind.VbCore, EmbeddedSymbolKind.None) Or
                                         If(IncludeInternalXmlHelper(), EmbeddedSymbolKind.XmlHelper, EmbeddedSymbolKind.None)
                     If embedded <> EmbeddedSymbolKind.None Then
                         embedded = embedded Or EmbeddedSymbolKind.EmbeddedAttribute
                     End If
-                    Interlocked.CompareExchange(m_lazyEmbeddedSymbolManager, New EmbeddedSymbolManager(embedded), Nothing)
+                    Interlocked.CompareExchange(_lazyEmbeddedSymbolManager, New EmbeddedSymbolManager(embedded), Nothing)
                 End If
-                Return m_lazyEmbeddedSymbolManager
+                Return _lazyEmbeddedSymbolManager
             End Get
         End Property
 
@@ -312,28 +321,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Public Shared Function CreateSubmission(
+        Friend Shared Function CreateScriptCompilation(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
             Optional options As VisualBasicCompilationOptions = Nothing,
-            Optional previousSubmission As Compilation = Nothing,
+            Optional previousScriptCompilation As VisualBasicCompilation = Nothing,
             Optional returnType As Type = Nothing,
-            Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
+            Optional globalsType As Type = Nothing) As VisualBasicCompilation
 
             CheckSubmissionOptions(options)
-
-            Dim vbTree = syntaxTree
-            Dim vbPrevious = DirectCast(previousSubmission, VisualBasicCompilation)
+            ValidateScriptCompilationParameters(previousScriptCompilation, returnType, globalsType)
 
             Return Create(
                 assemblyName,
-                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
-                If((syntaxTree IsNot Nothing), {vbTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
+                If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithReferencesSupersedeLowerVersions(True),
+                If((syntaxTree IsNot Nothing), {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
-                vbPrevious,
+                previousScriptCompilation,
                 returnType,
-                hostObjectType,
+                globalsType,
                 isSubmission:=True)
         End Function
 
@@ -347,6 +354,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hostObjectType As Type,
             isSubmission As Boolean
         ) As VisualBasicCompilation
+            Debug.Assert(Not isSubmission OrElse options.ReferencesSupersedeLowerVersions)
+
             If options Is Nothing Then
                 options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             End If
@@ -354,7 +363,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             CheckAssemblyName(assemblyName)
 
             Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
-            ValidateSubmissionParameters(previousSubmission, returnType, hostObjectType)
 
             Dim c As VisualBasicCompilation = Nothing
             Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
@@ -381,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 c = c.AddSyntaxTrees(syntaxTrees)
             End If
 
-            Debug.Assert(c.m_lazyAssemblySymbol Is Nothing)
+            Debug.Assert(c._lazyAssemblySymbol Is Nothing)
 
             Return c
         End Function
@@ -403,46 +411,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             reuseReferenceManager As Boolean,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, submissionReturnType, hostObjectType, isSubmission, syntaxTreeOrdinalMap, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
 
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_Create, message:=assemblyName)
-                Debug.Assert(rootNamespaces IsNot Nothing)
-                Debug.Assert(declarationTable IsNot Nothing)
+            Debug.Assert(rootNamespaces IsNot Nothing)
+            Debug.Assert(declarationTable IsNot Nothing)
 
-                Debug.Assert(syntaxTrees.All(Function(tree) syntaxTrees(syntaxTreeOrdinalMap(tree)) Is tree))
-                Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer(Of SyntaxTree).Default))
+            Debug.Assert(syntaxTrees.All(Function(tree) syntaxTrees(syntaxTreeOrdinalMap(tree)) Is tree))
+            Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer(Of SyntaxTree).Default))
 
-                m_Options = options
-                m_syntaxTrees = syntaxTrees
-                m_rootNamespaces = rootNamespaces
-                m_embeddedTrees = embeddedTrees
-                m_declarationTable = declarationTable
-                m_anonymousTypeManager = New AnonymousTypeManager(Me)
-                m_LanguageVersion = CommonLanguageVersion(syntaxTrees)
+            _options = options
+            _syntaxTrees = syntaxTrees
+            _syntaxTreeOrdinalMap = syntaxTreeOrdinalMap
+            _rootNamespaces = rootNamespaces
+            _embeddedTrees = embeddedTrees
+            _declarationTable = declarationTable
+            _anonymousTypeManager = New AnonymousTypeManager(Me)
+            _languageVersion = CommonLanguageVersion(syntaxTrees)
 
-                m_scriptClass = New Lazy(Of ImplicitNamedTypeSymbol)(AddressOf BindScriptClass)
+            _scriptClass = New Lazy(Of ImplicitNamedTypeSymbol)(AddressOf BindScriptClass)
 
-                If isSubmission Then
-                    Debug.Assert(previousSubmission Is Nothing OrElse previousSubmission.HostObjectType Is hostObjectType)
-                    m_previousSubmission = previousSubmission
-                Else
-                    Debug.Assert(previousSubmission Is Nothing AndAlso submissionReturnType Is Nothing AndAlso hostObjectType Is Nothing)
-                End If
+            If isSubmission Then
+                Debug.Assert(previousSubmission Is Nothing OrElse previousSubmission.HostObjectType Is hostObjectType)
+                Me.ScriptCompilationInfo = New VisualBasicScriptCompilationInfo(previousSubmission, submissionReturnType, hostObjectType)
+            Else
+                Debug.Assert(previousSubmission Is Nothing AndAlso submissionReturnType Is Nothing AndAlso hostObjectType Is Nothing)
+            End If
 
-                If reuseReferenceManager Then
-                    referenceManager.AssertCanReuseForCompilation(Me)
-                    m_referenceManager = referenceManager
-                Else
-                    m_referenceManager = New ReferenceManager(MakeSourceAssemblySimpleName(),
+            If reuseReferenceManager Then
+                referenceManager.AssertCanReuseForCompilation(Me)
+                _referenceManager = referenceManager
+            Else
+                _referenceManager = New ReferenceManager(MakeSourceAssemblySimpleName(),
                                                               options.AssemblyIdentityComparer,
                                                               If(referenceManager IsNot Nothing, referenceManager.ObservedMetadata, Nothing))
-                End If
+            End If
 
-                Debug.Assert(m_lazyAssemblySymbol Is Nothing)
-                If Me.EventQueue IsNot Nothing Then
-                    Me.EventQueue.Enqueue(New CompilationStartedEvent(Me))
-                End If
-            End Using
+            Debug.Assert(_lazyAssemblySymbol Is Nothing)
+            If Me.EventQueue IsNot Nothing Then
+                Me.EventQueue.TryEnqueue(New CompilationStartedEvent(Me))
+            End If
+        End Sub
+
+        Friend Overrides Sub ValidateDebugEntryPoint(debugEntryPoint As IMethodSymbol, diagnostics As DiagnosticBag)
+            Debug.Assert(debugEntryPoint IsNot Nothing)
+
+            ' Debug entry point has to be a method definition from this compilation.
+            Dim methodSymbol = TryCast(debugEntryPoint, MethodSymbol)
+            If methodSymbol?.DeclaringCompilation IsNot Me OrElse Not methodSymbol.IsDefinition Then
+                diagnostics.Add(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None)
+            End If
         End Sub
 
         Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
@@ -454,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If result Is Nothing Then
                     result = version
                 ElseIf result <> version Then
-                    Throw New ArgumentException("inconsistent language versions", "syntaxTrees")
+                    Throw New ArgumentException(CodeAnalysisResources.InconsistentLanguageVersions, NameOf(syntaxTrees))
                 End If
             Next
 
@@ -467,18 +484,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function Clone() As VisualBasicCompilation
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
-                m_Options,
+                _options,
                 Me.ExternalReferences,
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
-                m_rootNamespaces,
-                m_embeddedTrees,
-                m_declarationTable,
-                m_previousSubmission,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
-                m_referenceManager,
+                _referenceManager,
                 reuseReferenceManager:=True,
                 eventQueue:=Nothing) ' no event queue when cloning
         End Function
@@ -492,18 +509,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
-                m_Options,
+                _options,
                 Me.ExternalReferences,
                 syntaxTrees,
                 syntaxTreeOrdinalMap,
                 rootNamespaces,
-                m_embeddedTrees,
+                _embeddedTrees,
                 declarationTable,
-                m_previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
-                m_referenceManager,
+                _referenceManager,
                 reuseReferenceManager:=Not referenceDirectivesChanged)
         End Function
 
@@ -521,16 +538,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyName,
                 Me.Options,
                 Me.ExternalReferences,
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
-                m_rootNamespaces,
-                m_embeddedTrees,
-                m_declarationTable,
-                m_previousSubmission,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
-                m_referenceManager,
+                _referenceManager,
                 reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal))
         End Function
 
@@ -550,7 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the New compilation is going to use the updated version, while the current compilation will be using the previous (it doesn't change).
         ''' </remarks>
         Public Shadows Function WithReferences(newReferences As IEnumerable(Of MetadataReference)) As VisualBasicCompilation
-            Dim declTable = RemoveEmbeddedTrees(m_declarationTable, m_embeddedTrees)
+            Dim declTable = RemoveEmbeddedTrees(_declarationTable, _embeddedTrees)
             Dim c As VisualBasicCompilation = Nothing
             Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
             declTable = AddEmbeddedTrees(declTable, embeddedTrees)
@@ -562,12 +579,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.AssemblyName,
                 Me.Options,
                 ValidateReferences(Of VisualBasicCompilationReference)(newReferences),
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
-                m_rootNamespaces,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
                 embeddedTrees,
                 declTable,
-                m_previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -578,13 +595,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function WithOptions(newOptions As VisualBasicCompilationOptions) As VisualBasicCompilation
             If newOptions Is Nothing Then
-                Throw New ArgumentNullException("options")
+                Throw New ArgumentNullException(NameOf(newOptions))
             End If
 
             Dim c As VisualBasicCompilation = Nothing
-            Dim embeddedTrees = m_embeddedTrees
-            Dim declTable = m_declarationTable
-            Dim declMap = Me.m_rootNamespaces
+            Dim embeddedTrees = _embeddedTrees
+            Dim declTable = _declarationTable
+            Dim declMap = Me._rootNamespaces
 
             If Not String.Equals(Me.Options.RootNamespace, newOptions.RootNamespace, StringComparison.Ordinal) Then
                 ' If the root namespace was updated we have to update declaration table 
@@ -601,12 +618,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim discardedReferenceDirectivesChanged As Boolean = False
 
-                For Each tree In m_syntaxTrees
+                For Each tree In _syntaxTrees
                     AddSyntaxTreeToDeclarationMapAndTable(tree, newOptions, Me.IsSubmission, declMap, declTable, discardedReferenceDirectivesChanged) ' declMap and declTable passed ByRef
                 Next
 
             ElseIf Me.Options.EmbedVbCoreRuntime <> newOptions.EmbedVbCoreRuntime OrElse Me.Options.ParseOptions <> newOptions.ParseOptions Then
-                declTable = RemoveEmbeddedTrees(declTable, m_embeddedTrees)
+                declTable = RemoveEmbeddedTrees(declTable, _embeddedTrees)
                 embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
                 declTable = AddEmbeddedTrees(declTable, embeddedTrees)
             End If
@@ -615,26 +632,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.AssemblyName,
                 newOptions,
                 Me.ExternalReferences,
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
                 declMap,
                 embeddedTrees,
                 declTable,
-                m_previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
-                m_referenceManager,
-                reuseReferenceManager:=m_Options.CanReuseCompilationReferenceManager(newOptions))
+                _referenceManager,
+                reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions))
             Return c
         End Function
 
         ''' <summary>
         ''' Returns a new compilation with the given compilation set as the previous submission. 
         ''' </summary>
-        Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
-            If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
+        Friend Shadows Function WithScriptCompilationInfo(info As VisualBasicScriptCompilationInfo) As VisualBasicCompilation
+            If info Is ScriptCompilationInfo Then
+                Return Me
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
@@ -643,37 +660,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.AssemblyName,
                 Me.Options,
                 Me.ExternalReferences,
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
-                m_rootNamespaces,
-                m_embeddedTrees,
-                m_declarationTable,
-                newPreviousSubmission,
-                Me.SubmissionReturnType,
-                Me.HostObjectType,
-                Me.IsSubmission,
-                m_referenceManager,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                info?.PreviousScriptCompilation,
+                info?.ReturnType,
+                info?.GlobalsType,
+                info IsNot Nothing,
+                _referenceManager,
                 reuseReferenceManager:=True)
         End Function
 
         ''' <summary>
         ''' Returns a new compilation with a given event queue.
         ''' </summary>
-        Public Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
+        Friend Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
                 Me.Options,
                 Me.ExternalReferences,
-                m_syntaxTrees,
-                Me.syntaxTreeOrdinalMap,
-                m_rootNamespaces,
-                m_embeddedTrees,
-                m_declarationTable,
-                m_previousSubmission,
+                _syntaxTrees,
+                _syntaxTreeOrdinalMap,
+                _rootNamespaces,
+                _embeddedTrees,
+                _declarationTable,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
-                m_referenceManager,
+                _referenceManager,
                 reuseReferenceManager:=True,
                 eventQueue:=eventQueue)
         End Function
@@ -682,46 +699,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Submission"
 
-        Friend Shadows ReadOnly Property PreviousSubmission As VisualBasicCompilation
+        Friend Shadows ReadOnly Property ScriptCompilationInfo As VisualBasicScriptCompilationInfo
+
+        Friend Overrides ReadOnly Property CommonScriptCompilationInfo As ScriptCompilationInfo
             Get
-                Return m_previousSubmission
+                Return ScriptCompilationInfo
             End Get
         End Property
 
-        ' TODO (tomat): consider moving this method to SemanticModel
+        Friend Shadows ReadOnly Property PreviousSubmission As VisualBasicCompilation
+            Get
+                Return ScriptCompilationInfo?.PreviousScriptCompilation
+            End Get
+        End Property
 
-        ''' <summary>
-        ''' Returns the type of the submission return value.
-        ''' </summary>
-        ''' <param name="hasValue">
-        ''' Whether the submission is considered to have a value. 
-        ''' This information can be used for example in a REPL implementation to determine whether to print out the result of a submission execution.
-        ''' </param>
-        ''' <returns>
-        ''' Returns a static type of the expression of the last expression or call statement if there is any,
-        ''' a symbol for <see cref="Void"/> otherwise.
-        ''' </returns>
-        ''' <remarks>
-        ''' Note that the return type is System.Void for both compilations "System.Console.WriteLine()" and "?System.Console.WriteLine()",
-        ''' and <paramref name="hasValue"/> is <c>False</c> for the former and <c>True</c> for the latter.
-        ''' </remarks>
-        ''' <exception cref="InvalidOperationException">The compilation doesn't represent a submission (<see cref="IsSubmission"/> return false).</exception>
-        Friend Shadows Function GetSubmissionResultType(<Out> ByRef hasValue As Boolean) As TypeSymbol
-            If Not IsSubmission Then
-                Throw New InvalidOperationException(VBResources.CompilationDoesNotRepresentInteractiveSubmission)
-            End If
-
-            hasValue = False
-            Dim tree = SyntaxTrees.SingleOrDefault()
+        Friend Overrides Function HasSubmissionResult() As Boolean
+            Debug.Assert(IsSubmission)
 
             ' submission can be empty or comprise of a script file
-            If tree Is Nothing OrElse tree.Options.Kind <> SourceCodeKind.Interactive Then
-                Return GetSpecialType(SpecialType.System_Void)
+            Dim tree = SyntaxTrees.SingleOrDefault()
+            If tree Is Nothing Then
+                Return False
             End If
 
-            Dim lastStatement = tree.GetCompilationUnitRoot().Members.LastOrDefault()
+            Dim root = tree.GetCompilationUnitRoot()
+            If root.HasErrors Then
+                Return False
+            End If
+
+            ' TODO: look for return statements
+            ' https://github.com/dotnet/roslyn/issues/5773
+
+            Dim lastStatement = root.Members.LastOrDefault()
             If lastStatement Is Nothing Then
-                Return GetSpecialType(SpecialType.System_Void)
+                Return False
             End If
 
             Dim model = GetSemanticModel(tree)
@@ -729,24 +740,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.PrintStatement
                     Dim expression = DirectCast(lastStatement, PrintStatementSyntax).Expression
                     Dim info = model.GetTypeInfo(expression)
-                    hasValue = True ' always true, even for info.Type = Void
-                    Return DirectCast(info.ConvertedType, TypeSymbol)
+                    ' always true, even for info.Type = Void
+                    Return True
 
                 Case SyntaxKind.ExpressionStatement
                     Dim expression = DirectCast(lastStatement, ExpressionStatementSyntax).Expression
                     Dim info = model.GetTypeInfo(expression)
-                    hasValue = info.Type.SpecialType <> SpecialType.System_Void
-                    Return DirectCast(info.ConvertedType, TypeSymbol)
+                    Return info.Type.SpecialType <> SpecialType.System_Void
 
                 Case SyntaxKind.CallStatement
                     Dim expression = DirectCast(lastStatement, CallStatementSyntax).Invocation
                     Dim info = model.GetTypeInfo(expression)
-                    hasValue = info.Type.SpecialType <> SpecialType.System_Void
-                    Return DirectCast(info.ConvertedType, TypeSymbol)
+                    Return info.Type.SpecialType <> SpecialType.System_Void
 
                 Case Else
-                    Return GetSpecialType(SpecialType.System_Void)
+                    Return False
             End Select
+        End Function
+
+        Friend Function GetSubmissionInitializer() As SynthesizedInteractiveInitializerMethod
+            Return If(IsSubmission AndAlso ScriptClass IsNot Nothing,
+                ScriptClass.GetScriptInitializer(),
+                Nothing)
         End Function
 
 #End Region
@@ -755,12 +770,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Get a read-only list of the syntax trees that this compilation was created with.
-        ''' The ordering of the trees is arbitrary and may be different than the order the
-        ''' trees were supplied to the compilation.
         ''' </summary>
         Public Shadows ReadOnly Property SyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
-                Return m_syntaxTrees
+                Return _syntaxTrees
             End Get
         End Property
 
@@ -770,19 +783,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows ReadOnly Property AllSyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
-                If m_lazyAllSyntaxTrees.IsDefault Then
+                If _lazyAllSyntaxTrees.IsDefault Then
                     Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                    builder.AddRange(m_rootNamespaces.Keys)
-                    For Each embeddedTree In m_embeddedTrees
+                    builder.AddRange(_syntaxTrees)
+                    For Each embeddedTree In _embeddedTrees
                         Dim tree = embeddedTree.Tree.Value
                         If tree IsNot Nothing Then
                             builder.Add(tree)
                         End If
                     Next
-                    ImmutableInterlocked.InterlockedInitialize(m_lazyAllSyntaxTrees, builder.ToImmutableAndFree())
+                    ImmutableInterlocked.InterlockedInitialize(_lazyAllSyntaxTrees, builder.ToImmutableAndFree())
                 End If
 
-                Return m_lazyAllSyntaxTrees
+                Return _lazyAllSyntaxTrees
             End Get
         End Property
 
@@ -791,11 +804,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
             If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException("syntaxTree")
+                Throw New ArgumentNullException(NameOf(syntaxTree))
             End If
 
             Dim vbtree = syntaxTree
-            Return vbtree IsNot Nothing AndAlso m_rootNamespaces.ContainsKey(vbtree)
+            Return vbtree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(vbtree)
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
@@ -803,64 +816,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function AddSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_AddSyntaxTrees, message:=Me.AssemblyName)
-                If trees Is Nothing Then
-                    Throw New ArgumentNullException("trees")
-                End If
+            If trees Is Nothing Then
+                Throw New ArgumentNullException(NameOf(trees))
+            End If
 
-                If Not trees.Any() Then
-                    Return Me
-                End If
+            If Not trees.Any() Then
+                Return Me
+            End If
 
-                ' We're using a try-finally for this builder because there's a test that 
-                ' specifically checks for one or more of the argument exceptions below
-                ' and we don't want to see console spew (even though we don't generally
-                ' care about pool "leaks" in exceptional cases).  Alternatively, we
-                ' could create a new ArrayBuilder.
-                Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                Try
-                    builder.AddRange(m_syntaxTrees)
+            ' We're using a try-finally for this builder because there's a test that 
+            ' specifically checks for one or more of the argument exceptions below
+            ' and we don't want to see console spew (even though we don't generally
+            ' care about pool "leaks" in exceptional cases).  Alternatively, we
+            ' could create a new ArrayBuilder.
+            Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
+            Try
+                builder.AddRange(_syntaxTrees)
 
-                    Dim referenceDirectivesChanged = False
-                    Dim oldTreeCount = m_syntaxTrees.Length
+                Dim referenceDirectivesChanged = False
+                Dim oldTreeCount = _syntaxTrees.Length
 
-                    Dim ordinalMap = Me.syntaxTreeOrdinalMap
-                    Dim declMap = m_rootNamespaces
-                    Dim declTable = m_declarationTable
-                    Dim i = 0
+                Dim ordinalMap = _syntaxTreeOrdinalMap
+                Dim declMap = _rootNamespaces
+                Dim declTable = _declarationTable
+                Dim i = 0
 
-                    For Each tree As SyntaxTree In trees
-                        If tree Is Nothing Then
-                            Throw New ArgumentNullException(String.Format(VBResources.Trees0, i))
-                        End If
-
-                        If Not tree.HasCompilationUnitRoot Then
-                            Throw New ArgumentException(String.Format(VBResources.TreesMustHaveRootNode, i))
-                        End If
-
-                        If tree.IsEmbeddedOrMyTemplateTree() Then
-                            Throw New ArgumentException(VBResources.CannotAddCompilerSpecialTree)
-                        End If
-
-                        If declMap.ContainsKey(tree) Then
-                            Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, String.Format(VBResources.Trees0, i))
-                        End If
-
-                        AddSyntaxTreeToDeclarationMapAndTable(tree, m_Options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged) ' declMap and declTable passed ByRef
-                        builder.Add(tree)
-                        ordinalMap = ordinalMap.Add(tree, oldTreeCount + i)
-                        i += 1
-                    Next
-
-                    If IsSubmission AndAlso declMap.Count > 1 Then
-                        Throw New ArgumentException(VBResources.SubmissionCanHaveAtMostOneSyntaxTree, "trees")
+                For Each tree As SyntaxTree In trees
+                    If tree Is Nothing Then
+                        Throw New ArgumentNullException(String.Format(VBResources.Trees0, i))
                     End If
 
-                    Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
-                Finally
-                    builder.Free()
-                End Try
-            End Using
+                    If Not tree.HasCompilationUnitRoot Then
+                        Throw New ArgumentException(String.Format(VBResources.TreesMustHaveRootNode, i))
+                    End If
+
+                    If tree.IsEmbeddedOrMyTemplateTree() Then
+                        Throw New ArgumentException(VBResources.CannotAddCompilerSpecialTree)
+                    End If
+
+                    If declMap.ContainsKey(tree) Then
+                        Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, String.Format(VBResources.Trees0, i))
+                    End If
+
+                    AddSyntaxTreeToDeclarationMapAndTable(tree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged) ' declMap and declTable passed ByRef
+                    builder.Add(tree)
+                    ordinalMap = ordinalMap.Add(tree, oldTreeCount + i)
+                    i += 1
+                Next
+
+                If IsSubmission AndAlso declMap.Count > 1 Then
+                    Throw New ArgumentException(VBResources.SubmissionCanHaveAtMostOneSyntaxTree, NameOf(trees))
+                End If
+
+                Return UpdateSyntaxTrees(builder.ToImmutable(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
+            Finally
+                builder.Free()
+            End Try
         End Function
 
         Private Shared Sub AddSyntaxTreeToDeclarationMapAndTable(
@@ -873,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             )
 
             Dim entry = New DeclarationTableEntry(New Lazy(Of RootSingleNamespaceDeclaration)(Function() ForTree(tree, compilationOptions, isSubmission)), isEmbedded:=False)
-            declMap = declMap.Add(tree, entry)
+            declMap = declMap.Add(tree, entry) ' Callers are responsible for checking for existing entries.
             declTable = declTable.AddRootDeclaration(entry)
             referenceDirectivesChanged = referenceDirectivesChanged OrElse tree.HasReferenceDirectives
         End Sub
@@ -887,53 +898,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shadows Function RemoveSyntaxTrees(trees As IEnumerable(Of SyntaxTree)) As VisualBasicCompilation
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_RemoveSyntaxTrees, message:=Me.AssemblyName)
-                If trees Is Nothing Then
-                    Throw New ArgumentNullException("trees")
+            If trees Is Nothing Then
+                Throw New ArgumentNullException(NameOf(trees))
+            End If
+
+            If Not trees.Any() Then
+                Return Me
+            End If
+
+            Dim referenceDirectivesChanged = False
+            Dim removeSet As New HashSet(Of SyntaxTree)()
+            Dim declMap = _rootNamespaces
+            Dim declTable = _declarationTable
+
+            For Each tree As SyntaxTree In trees
+                If tree.IsEmbeddedOrMyTemplateTree() Then
+                    Throw New ArgumentException(VBResources.CannotRemoveCompilerSpecialTree)
                 End If
 
-                If Not trees.Any() Then
-                    Return Me
+                RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMap, declTable, referenceDirectivesChanged)
+                removeSet.Add(tree)
+            Next
+
+            Debug.Assert(Not removeSet.IsEmpty())
+
+            ' We're going to have to revise the ordinals of all
+            ' trees after the first one removed, so just build
+            ' a new map.
+
+            ' CONSIDER: an alternative approach would be to set the map to empty and
+            ' re-calculate it the next time we need it.  This might save us time in the
+            ' case where remove calls are made sequentially (rare?).
+
+            Dim ordinalMap = ImmutableDictionary.Create(Of SyntaxTree, Integer)()
+            Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
+            Dim i = 0
+
+            For Each tree In _syntaxTrees
+                If Not removeSet.Contains(tree) Then
+                    builder.Add(tree)
+                    ordinalMap = ordinalMap.Add(tree, i)
+                    i += 1
                 End If
+            Next
 
-                Dim referenceDirectivesChanged = False
-                Dim removeSet As New HashSet(Of SyntaxTree)()
-                Dim declMap = m_rootNamespaces
-                Dim declTable = m_declarationTable
-
-                For Each tree As SyntaxTree In trees
-                    If tree.IsEmbeddedOrMyTemplateTree() Then
-                        Throw New ArgumentException(VBResources.CannotRemoveCompilerSpecialTree)
-                    End If
-
-                    RemoveSyntaxTreeFromDeclarationMapAndTable(tree, declMap, declTable, referenceDirectivesChanged)
-                    removeSet.Add(tree)
-                Next
-
-                Debug.Assert(Not removeSet.IsEmpty())
-
-                ' We're going to have to revise the ordinals of all
-                ' trees after the first one removed, so just build
-                ' a new map.
-
-                ' CONSIDER: an alternative approach would be to set the map to empty and
-                ' re-calculate it the next time we need it.  This might save us time in the
-                ' case where remove calls are made sequentially (rare?).
-
-                Dim ordinalMap = ImmutableDictionary.Create(Of SyntaxTree, Integer)()
-                Dim builder = ArrayBuilder(Of SyntaxTree).GetInstance()
-                Dim i = 0
-
-                For Each tree In m_syntaxTrees
-                    If Not removeSet.Contains(tree) Then
-                        builder.Add(tree)
-                        ordinalMap = ordinalMap.Add(tree, i)
-                        i += 1
-                    End If
-                Next
-
-                Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
-            End Using
+            Return UpdateSyntaxTrees(builder.ToImmutableAndFree(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Sub RemoveSyntaxTreeFromDeclarationMapAndTable(
@@ -957,61 +966,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      ImmutableDictionary.Create(Of SyntaxTree, Integer)(),
                                      ImmutableDictionary.Create(Of SyntaxTree, DeclarationTableEntry)(),
                                      DeclarationTable.Empty,
-                                     referenceDirectivesChanged:=m_declarationTable.ReferenceDirectives.Any())
+                                     referenceDirectivesChanged:=_declarationTable.ReferenceDirectives.Any())
         End Function
 
         Public Shadows Function ReplaceSyntaxTree(oldTree As SyntaxTree, newTree As SyntaxTree) As VisualBasicCompilation
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_ReplaceSyntaxTree, message:=Me.AssemblyName)
-                If oldTree Is Nothing Then
-                    Throw New ArgumentNullException("oldSyntaxTree")
-                End If
+            If oldTree Is Nothing Then
+                Throw New ArgumentNullException(NameOf(oldTree))
+            End If
 
-                If newTree Is Nothing Then
-                    Return Me.RemoveSyntaxTrees(oldTree)
-                ElseIf newTree Is oldTree Then
-                    Return Me
-                End If
+            If newTree Is Nothing Then
+                Return Me.RemoveSyntaxTrees(oldTree)
+            ElseIf newTree Is oldTree Then
+                Return Me
+            End If
 
-                If Not newTree.HasCompilationUnitRoot Then
-                    Throw New ArgumentException(VBResources.TreeMustHaveARootNodeWithCompilationUnit, "newTree")
-                End If
+            If Not newTree.HasCompilationUnitRoot Then
+                Throw New ArgumentException(VBResources.TreeMustHaveARootNodeWithCompilationUnit, NameOf(newTree))
+            End If
 
-                Dim vbOldTree = oldTree
-                Dim vbNewTree = newTree
+            Dim vbOldTree = oldTree
+            Dim vbNewTree = newTree
 
-                If vbOldTree.IsEmbeddedOrMyTemplateTree() Then
-                    Throw New ArgumentException(VBResources.CannotRemoveCompilerSpecialTree)
-                End If
+            If vbOldTree.IsEmbeddedOrMyTemplateTree() Then
+                Throw New ArgumentException(VBResources.CannotRemoveCompilerSpecialTree)
+            End If
 
-                If vbNewTree.IsEmbeddedOrMyTemplateTree() Then
-                    Throw New ArgumentException(VBResources.CannotAddCompilerSpecialTree)
-                End If
+            If vbNewTree.IsEmbeddedOrMyTemplateTree() Then
+                Throw New ArgumentException(VBResources.CannotAddCompilerSpecialTree)
+            End If
 
-                Dim declMap = m_rootNamespaces
-                Dim declTable = m_declarationTable
-                Dim referenceDirectivesChanged = False
+            Dim declMap = _rootNamespaces
 
-                ' TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
-                ' This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke 
-                ' that replaces the tree with a new one.
+            If declMap.ContainsKey(vbNewTree) Then
+                Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, NameOf(newTree))
+            End If
 
-                RemoveSyntaxTreeFromDeclarationMapAndTable(vbOldTree, declMap, declTable, referenceDirectivesChanged)
-                AddSyntaxTreeToDeclarationMapAndTable(vbNewTree, m_Options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged)
+            Dim declTable = _declarationTable
+            Dim referenceDirectivesChanged = False
 
-                Dim ordinalMap = Me.syntaxTreeOrdinalMap
+            ' TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
+            ' This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke 
+            ' that replaces the tree with a new one.
 
-                Debug.Assert(ordinalMap.ContainsKey(oldTree)) ' Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
-                Dim oldOrdinal = ordinalMap(oldTree)
+            RemoveSyntaxTreeFromDeclarationMapAndTable(vbOldTree, declMap, declTable, referenceDirectivesChanged)
+            AddSyntaxTreeToDeclarationMapAndTable(vbNewTree, _options, Me.IsSubmission, declMap, declTable, referenceDirectivesChanged)
 
-                Dim newArray = m_syntaxTrees.ToArray()
-                newArray(oldOrdinal) = vbNewTree
+            Dim ordinalMap = _syntaxTreeOrdinalMap
 
-                ' CONSIDER: should this be an operation on ImmutableDictionary?
-                ordinalMap = ordinalMap.Remove(oldTree)
-                ordinalMap = ordinalMap.Add(newTree, oldOrdinal)
+            Debug.Assert(ordinalMap.ContainsKey(oldTree)) ' Checked by RemoveSyntaxTreeFromDeclarationMapAndTable
+            Dim oldOrdinal = ordinalMap(oldTree)
 
-                Return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
-            End Using
+            Dim newArray = _syntaxTrees.ToArray()
+            newArray(oldOrdinal) = vbNewTree
+
+            ' CONSIDER: should this be an operation on ImmutableDictionary?
+            ordinalMap = ordinalMap.Remove(oldTree)
+            ordinalMap = ordinalMap.Add(newTree, oldOrdinal)
+
+            Return UpdateSyntaxTrees(newArray.AsImmutableOrNull(), ordinalMap, declMap, declTable, referenceDirectivesChanged)
         End Function
 
         Private Shared Function CreateEmbeddedTrees(compReference As Lazy(Of VisualBasicCompilation)) As ImmutableArray(Of EmbeddedTreeAndDeclaration)
@@ -1026,7 +1038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime Or compilation.IncludeInternalXmlHelper,
-                                  ForTree(EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1039,7 +1051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime,
-                                  ForTree(EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1052,7 +1064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.IncludeInternalXmlHelper(),
-                                  ForTree(EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1063,7 +1075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.MyTemplate IsNot Nothing,
-                                  ForTree(compilation.MyTemplate, compilation.Options, compilation.IsSubmission),
+                                  ForTree(compilation.MyTemplate, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function))
         End Function
@@ -1092,31 +1104,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns True if the set of references contains those assemblies needed for XML
-        ''' literals (specifically System.Core.dll, System.Xml.dll, and System.Xml.Linq.dll).
+        ''' literals.
         ''' If those assemblies are included, we should include the InternalXmlHelper
         ''' SyntaxTree in the Compilation so the helper methods are available for binding XML.
         ''' </summary>
         Private Function IncludeInternalXmlHelper() As Boolean
-            Dim includesSystemCore = False
-            Dim includesSystemXml = False
-            Dim includesSystemXmlLinq = False
+            ' In new flavors of the framework, types, that XML helpers depend upon, are
+            ' defined in assemblies with different names. Let's not hardcode these names, 
+            ' let's check for presence of types instead.
+            Return Not Me.Options.SuppressEmbeddedDeclarations AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Linq_Enumerable) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XElement) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XName) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XAttribute) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XNamespace)
+        End Function
 
-            For Each referencedAssembly In GetBoundReferenceManager().ReferencedAssembliesMap.Values
-                ' Use AssemblySymbol.Name rather than AssemblyIdentity.Name
-                ' since the latter involves binding of the assembly attributes (in case of source assembly).
-                ' The name comparison is case-sensitive which should be sufficient
-                ' since we're comparing against the name in the assembly.
-                Select Case referencedAssembly.Symbol.Name
-                    Case "System.Core"
-                        includesSystemCore = True
-                    Case "System.Xml"
-                        includesSystemXml = True
-                    Case "System.Xml.Linq"
-                        includesSystemXmlLinq = True
-                End Select
+        Private Function InternalXmlHelperDependencyIsSatisfied(type As WellKnownType) As Boolean
+
+            Dim metadataName = MetadataTypeName.FromFullName(WellKnownTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
+            Dim sourceAssembly = Me.SourceAssembly
+
+            ' Lookup only in references. An attempt to lookup in assembly being built will get us in a cycle.
+            ' We are explicitly ignoring scenario where the type might be defined in an added module.
+            For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
+                Debug.Assert(Not reference.IsMissing)
+                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+
+                If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
+                    Return True
+                End If
             Next
 
-            Return includesSystemCore AndAlso includesSystemXml AndAlso includesSystemXmlLinq
+            Return False
         End Function
 
         ' TODO: This comparison probably will change to compiler command line order, or at least needs 
@@ -1130,6 +1150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return LexicalSortKey.Compare(first, second, Me)
         End Function
 
+        Friend Overrides Function GetSyntaxTreeOrdinal(tree As SyntaxTree) As Integer
+            Debug.Assert(Me.ContainsSyntaxTree(tree))
+            Return _syntaxTreeOrdinalMap(tree)
+        End Function
+
 #End Region
 
 #Region "References"
@@ -1138,19 +1163,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shadows Function GetBoundReferenceManager() As ReferenceManager
-            If m_lazyAssemblySymbol Is Nothing Then
-                m_referenceManager.CreateSourceAssemblyForCompilation(Me)
-                Debug.Assert(m_lazyAssemblySymbol IsNot Nothing)
+            If _lazyAssemblySymbol Is Nothing Then
+                _referenceManager.CreateSourceAssemblyForCompilation(Me)
+                Debug.Assert(_lazyAssemblySymbol IsNot Nothing)
             End If
 
             ' referenceManager can only be accessed after we initialized the lazyAssemblySymbol.
             ' In fact, initialization of the assembly symbol might change the reference manager.
-            Return m_referenceManager
+            Return _referenceManager
         End Function
 
         ' for testing only:
         Friend Function ReferenceManagerEquals(other As VisualBasicCompilation) As Boolean
-            Return m_referenceManager Is other.m_referenceManager
+            Return _referenceManager Is other._referenceManager
         End Function
 
         Public Overrides ReadOnly Property DirectiveReferences As ImmutableArray(Of MetadataReference)
@@ -1159,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of String, MetadataReference)
+        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of ValueTuple(Of String, String), MetadataReference)
             Get
                 Return GetBoundReferenceManager().ReferenceDirectiveMap
             End Get
@@ -1174,7 +1199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Shadows Function GetAssemblyOrModuleSymbol(reference As MetadataReference) As Symbol
             If (reference Is Nothing) Then
-                Throw New ArgumentNullException("reference")
+                Throw New ArgumentNullException(NameOf(reference))
             End If
 
             If reference.Properties.Kind = MetadataImageKind.Assembly Then
@@ -1190,7 +1215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         ''' </summary>
         Friend Shadows Function GetMetadataReference(assemblySymbol As AssemblySymbol) As MetadataReference
-            Return Me.GetBoundReferenceManager().ReferencedAssembliesMap.Where(Function(kvp) kvp.Value.Symbol Is assemblySymbol).Select(Function(kvp) kvp.Key).FirstOrDefault()
+            Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
         End Function
 
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
@@ -1201,7 +1226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides ReadOnly Property ReferenceDirectives As IEnumerable(Of ReferenceDirective)
             Get
-                Return m_declarationTable.ReferenceDirectives
+                Return _declarationTable.ReferenceDirectives
             End Get
         End Property
 
@@ -1256,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property SourceAssembly As SourceAssemblySymbol
             Get
                 GetBoundReferenceManager()
-                Return m_lazyAssemblySymbol
+                Return _lazyAssemblySymbol
             End Get
         End Property
 
@@ -1287,13 +1312,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows ReadOnly Property GlobalNamespace As NamespaceSymbol
             Get
-                If m_lazyGlobalNamespace Is Nothing Then
-                    Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_GetGlobalNamespace, message:=Me.AssemblyName)
-                        Interlocked.CompareExchange(m_lazyGlobalNamespace, MergedNamespaceSymbol.CreateGlobalNamespace(Me), Nothing)
-                    End Using
+                If _lazyGlobalNamespace Is Nothing Then
+                    Interlocked.CompareExchange(_lazyGlobalNamespace, MergedNamespaceSymbol.CreateGlobalNamespace(Me), Nothing)
                 End If
 
-                Return m_lazyGlobalNamespace
+                Return _lazyGlobalNamespace
             End Get
         End Property
 
@@ -1315,7 +1338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetCompilationNamespace(namespaceSymbol As INamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol Is Nothing Then
-                Throw New ArgumentNullException("namespaceSymbol")
+                Throw New ArgumentNullException(NameOf(namespaceSymbol))
             End If
 
             Dim vbNs = TryCast(namespaceSymbol, NamespaceSymbol)
@@ -1343,189 +1366,172 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetEntryPointAndDiagnostics(cancellationToken As CancellationToken) As EntryPoint
-            If Not Me.Options.OutputKind.IsApplication() Then
+            If Not Me.Options.OutputKind.IsApplication() AndAlso ScriptClass Is Nothing Then
                 Return Nothing
             End If
-
-            Debug.Assert(Not Me.IsSubmission)
 
             If Me.Options.MainTypeName IsNot Nothing AndAlso Not Me.Options.MainTypeName.IsValidClrTypeName() Then
                 Debug.Assert(Not Me.Options.Errors.IsDefaultOrEmpty)
                 Return New EntryPoint(Nothing, ImmutableArray(Of Diagnostic).Empty)
             End If
 
-            If m_lazyEntryPoint Is Nothing Then
-                Dim entryPoint As MethodSymbol = Nothing
+            If _lazyEntryPoint Is Nothing Then
                 Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                FindEntryPoint(cancellationToken, entryPoint, diagnostics)
-
-                Interlocked.CompareExchange(m_lazyEntryPoint, New EntryPoint(entryPoint, diagnostics), Nothing)
+                Dim entryPoint = FindEntryPoint(cancellationToken, diagnostics)
+                Interlocked.CompareExchange(_lazyEntryPoint, New EntryPoint(entryPoint, diagnostics), Nothing)
             End If
 
-            Return m_lazyEntryPoint
+            Return _lazyEntryPoint
         End Function
 
-        Private Sub FindEntryPoint(cancellationToken As CancellationToken, ByRef entryPoint As MethodSymbol, ByRef sealedDiagnostics As ImmutableArray(Of Diagnostic))
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_FindEntryPoint, message:=Me.AssemblyName, cancellationToken:=cancellationToken)
-                Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+        Private Function FindEntryPoint(cancellationToken As CancellationToken, ByRef sealedDiagnostics As ImmutableArray(Of Diagnostic)) As MethodSymbol
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
 
-                Try
-                    entryPoint = Nothing
+            Try
+                Dim mainType As SourceMemberContainerTypeSymbol
 
-                    Dim entryPointCandidates As ArrayBuilder(Of MethodSymbol)
-                    Dim mainType As SourceMemberContainerTypeSymbol
+                Dim mainTypeName As String = Me.Options.MainTypeName
+                Dim globalNamespace As NamespaceSymbol = Me.SourceModule.GlobalNamespace
 
-                    Dim mainTypeName As String = Me.Options.MainTypeName
-                    Dim globalNamespace As NamespaceSymbol = Me.SourceModule.GlobalNamespace
+                Dim errorTarget As Object
 
-                    Dim errorTarget As Object
+                If mainTypeName IsNot Nothing Then
+                    ' Global code is the entry point, ignore all other Mains.
+                    If ScriptClass IsNot Nothing Then
+                        ' CONSIDER: we could use the symbol instead of just the name.
+                        diagnostics.Add(ERRID.WRN_MainIgnored, NoLocation.Singleton, mainTypeName)
+                        Return ScriptClass.GetScriptEntryPoint()
+                    End If
 
-                    If mainTypeName IsNot Nothing Then
-                        ' Global code is the entry point, ignore all other Mains.
-                        ' TODO: don't special case scripts (DevDiv #13119).
-                        If Me.ScriptClass IsNot Nothing Then
-                            ' CONSIDER: we could use the symbol instead of just the name.
-                            diagnostics.Add(ERRID.WRN_MainIgnored, NoLocation.Singleton, mainTypeName)
-                            Return
-                        End If
+                    Dim mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split("."c)).OfType(Of NamedTypeSymbol)().OfMinimalArity()
+                    If mainTypeOrNamespace Is Nothing Then
+                        diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainTypeName)
+                        Return Nothing
+                    End If
 
-                        Dim mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split("."c)).OfType(Of NamedTypeSymbol)().OfMinimalArity()
-                        If mainTypeOrNamespace Is Nothing Then
-                            diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainTypeName)
-                            Return
-                        End If
+                    mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
+                    If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
+                        diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
+                        Return Nothing
+                    End If
 
-                        mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
-                        If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
-                            diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
-                            Return
-                        End If
+                    ' Dev10 reports ERR_StartupCodeNotFound1 but that doesn't make much sense
+                    If mainType.IsGenericType Then
+                        diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, mainType)
+                        Return Nothing
+                    End If
 
-                        ' Dev10 reports ERR_StartupCodeNotFound1 but that doesn't make much sense
-                        If mainType.IsGenericType Then
-                            diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, mainType)
-                            Return
-                        End If
+                    errorTarget = mainType
 
-                        errorTarget = mainType
+                    ' NOTE: unlike in C#, we're not going search the member list of mainType directly.
+                    ' Instead, we're going to mimic dev10's behavior by doing a lookup for "Main",
+                    ' starting in mainType.  Among other things, this implies that the entrypoint
+                    ' could be in a base class and that it could be hidden by a non-method member
+                    ' named "Main".
 
-                        ' NOTE: unlike in C#, we're not going search the member list of mainType directly.
-                        ' Instead, we're going to mimic dev10's behavior by doing a lookup for "Main",
-                        ' starting in mainType.  Among other things, this implies that the entrypoint
-                        ' could be in a base class and that it could be hidden by a non-method member
-                        ' named "Main".
+                    Dim binder As Binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
+                    Dim lookupResult As LookupResult = LookupResult.GetInstance()
+                    Dim entryPointLookupOptions As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods
+                    binder.LookupMember(lookupResult, mainType, WellKnownMemberNames.EntryPointMethodName, arity:=0, options:=entryPointLookupOptions, useSiteDiagnostics:=Nothing)
 
-                        Dim binder As Binder = BinderBuilder.CreateBinderForType(mainType.ContainingSourceModule, mainType.SyntaxReferences(0).SyntaxTree, mainType)
-                        Dim lookupResult As LookupResult = LookupResult.GetInstance()
-                        Dim entryPointLookupOptions As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods
-                        binder.LookupMember(lookupResult, mainType, WellKnownMemberNames.EntryPointMethodName, arity:=0, options:=entryPointLookupOptions, useSiteDiagnostics:=Nothing)
-
-                        If (Not lookupResult.IsGoodOrAmbiguous) OrElse lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
-                            diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
-                            lookupResult.Free()
-                            Return
-                        End If
-
-                        entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
-                        For Each candidate In lookupResult.Symbols
-                            ' The entrypoint cannot be in another assembly.
-                            ' NOTE: filter these out here, rather than below, so that we
-                            ' report "not found", rather than "invalid", as in dev10.
-                            If candidate.ContainingAssembly = Me.Assembly Then
-                                entryPointCandidates.Add(DirectCast(candidate, MethodSymbol))
-                            End If
-                        Next
-
+                    If (Not lookupResult.IsGoodOrAmbiguous) OrElse lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
+                        diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
                         lookupResult.Free()
-
-                        ' NOTE: Any return after this point must free entryPointCandidates.
-                    Else
-                        mainType = Nothing
-
-                        errorTarget = Me.AssemblyName
-
-                        entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
-                        EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken)
-
-                        ' NOTE: Any return after this point must free entryPointCandidates.
-
-                        ' Global code is the entry point, ignore all other Mains.
-                        If Me.ScriptClass IsNot Nothing Then
-                            For Each main In entryPointCandidates
-                                diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
-                            Next
-
-                            entryPointCandidates.Free()
-                            Return
-                        End If
+                        Return Nothing
                     End If
 
-                    If entryPointCandidates.Count = 0 Then
-                        diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, errorTarget)
-                        entryPointCandidates.Free()
-                        Return
-                    End If
-
-                    Dim hasViableGenericEntryPoints As Boolean = False
-                    Dim viableEntryPoints = ArrayBuilder(Of MethodSymbol).GetInstance()
-
-                    ' NOTE: Any return after this point must free viableEntryPoints (and entryPointCandidates).
-
-                    For Each candidate In entryPointCandidates
-                        If Not candidate.IsViableMainMethod Then
-                            Continue For
-                        End If
-
-                        If candidate.IsGenericMethod OrElse candidate.ContainingType.IsGenericType Then
-                            hasViableGenericEntryPoints = True
-                        Else
-                            viableEntryPoints.Add(candidate)
+                    For Each candidate In lookupResult.Symbols
+                        ' The entrypoint cannot be in another assembly.
+                        ' NOTE: filter these out here, rather than below, so that we
+                        ' report "not found", rather than "invalid", as in dev10.
+                        If candidate.ContainingAssembly = Me.Assembly Then
+                            entryPointCandidates.Add(DirectCast(candidate, MethodSymbol))
                         End If
                     Next
 
-                    If viableEntryPoints.Count = 0 Then
-                        If hasViableGenericEntryPoints Then
-                            diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, errorTarget)
-                        Else
-                            diagnostics.Add(ERRID.ERR_InValidSubMainsFound1, NoLocation.Singleton, errorTarget)
-                        End If
-                    ElseIf viableEntryPoints.Count > 1 Then
-                        viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance)
-                        diagnostics.Add(ERRID.ERR_MoreThanOneValidMainWasFound2,
+                    lookupResult.Free()
+
+                Else
+                    mainType = Nothing
+
+                    errorTarget = Me.AssemblyName
+
+                    EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken)
+
+                    ' Global code is the entry point, ignore all other Mains.
+                    If ScriptClass IsNot Nothing Then
+                        For Each main In entryPointCandidates
+                            diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
+                        Next
+                        Return ScriptClass.GetScriptEntryPoint()
+                    End If
+                End If
+
+                If entryPointCandidates.Count = 0 Then
+                    diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, errorTarget)
+                    Return Nothing
+                End If
+
+                Dim hasViableGenericEntryPoints As Boolean = False
+                Dim viableEntryPoints = ArrayBuilder(Of MethodSymbol).GetInstance()
+
+                For Each candidate In entryPointCandidates
+                    If Not candidate.IsViableMainMethod Then
+                        Continue For
+                    End If
+
+                    If candidate.IsGenericMethod OrElse candidate.ContainingType.IsGenericType Then
+                        hasViableGenericEntryPoints = True
+                    Else
+                        viableEntryPoints.Add(candidate)
+                    End If
+                Next
+
+                Dim entryPoint As MethodSymbol = Nothing
+                If viableEntryPoints.Count = 0 Then
+                    If hasViableGenericEntryPoints Then
+                        diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, errorTarget)
+                    Else
+                        diagnostics.Add(ERRID.ERR_InValidSubMainsFound1, NoLocation.Singleton, errorTarget)
+                    End If
+                ElseIf viableEntryPoints.Count > 1 Then
+                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance)
+                    diagnostics.Add(ERRID.ERR_MoreThanOneValidMainWasFound2,
                                         NoLocation.Singleton,
                                         Me.AssemblyName,
                                         New FormattedSymbolList(viableEntryPoints.ToArray(), CustomSymbolDisplayFormatter.ErrorMessageFormatNoModifiersNoReturnType))
-                    Else
-                        entryPoint = viableEntryPoints(0)
+                Else
+                    entryPoint = viableEntryPoints(0)
 
-                        If entryPoint.IsAsync Then
-                            ' The rule we follow:
-                            ' First determine the Sub Main using pre-async rules, and give the pre-async errors if there were 0 or >1 results
-                            ' If there was exactly one result, but it was async, then give an error. Otherwise proceed.
-                            ' This doesn't follow the same pattern as "error due to being generic". That's because
-                            ' maybe one day we'll want to allow Async Sub Main but without breaking back-compat.                    
-                            Dim sourceMethod = TryCast(entryPoint, SourceMemberMethodSymbol)
-                            Debug.Assert(sourceMethod IsNot Nothing)
+                    If entryPoint.IsAsync Then
+                        ' The rule we follow:
+                        ' First determine the Sub Main using pre-async rules, and give the pre-async errors if there were 0 or >1 results
+                        ' If there was exactly one result, but it was async, then give an error. Otherwise proceed.
+                        ' This doesn't follow the same pattern as "error due to being generic". That's because
+                        ' maybe one day we'll want to allow Async Sub Main but without breaking back-compat.                    
+                        Dim sourceMethod = TryCast(entryPoint, SourceMemberMethodSymbol)
+                        Debug.Assert(sourceMethod IsNot Nothing)
 
-                            If sourceMethod IsNot Nothing Then
-                                Dim location As Location = sourceMethod.NonMergedLocation
-                                Debug.Assert(location IsNot Nothing)
+                        If sourceMethod IsNot Nothing Then
+                            Dim location As Location = sourceMethod.NonMergedLocation
+                            Debug.Assert(location IsNot Nothing)
 
-                                If location IsNot Nothing Then
-                                    Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_AsyncSubMain)
-                                End If
+                            If location IsNot Nothing Then
+                                Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_AsyncSubMain)
                             End If
                         End If
                     End If
+                End If
 
-                    entryPointCandidates.Free()
-                    viableEntryPoints.Free()
+                viableEntryPoints.Free()
+                Return entryPoint
 
-                Finally
-                    sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
-                End Try
-            End Using
-        End Sub
+            Finally
+                entryPointCandidates.Free()
+                sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
+            End Try
+        End Function
 
         Friend Class EntryPoint
             Public ReadOnly MethodSymbol As MethodSymbol
@@ -1556,10 +1562,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            If m_lazyImportInfos IsNot Nothing Then
+            If _lazyImportInfos IsNot Nothing Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
-                For Each info As ImportInfo In m_lazyImportInfos
+                For Each info As ImportInfo In _lazyImportInfos
                     cancellationToken.ThrowIfCancellationRequested()
 
                     Dim infoTree As SyntaxTree = info.Tree
@@ -1619,41 +1625,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub CompleteTree(tree As SyntaxTree)
-            Dim completedCompilationUnit As Boolean = False
-            Dim completedCompilation As Boolean = False
-
-            If lazyCompilationUnitCompletedTrees Is Nothing Then
-                Interlocked.CompareExchange(lazyCompilationUnitCompletedTrees, New HashSet(Of SyntaxTree)(), Nothing)
+            If tree.IsEmbeddedOrMyTemplateTree Then
+                ' The syntax trees added to AllSyntaxTrees by the compiler
+                ' do not count toward completion.
+                Return
             End If
 
-            SyncLock lazyCompilationUnitCompletedTrees
-                If lazyCompilationUnitCompletedTrees.Add(tree) Then
-                    completedCompilationUnit = True
-                    If lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
-                        completedCompilation = True
+            Debug.Assert(AllSyntaxTrees.Contains(tree))
+
+            If _lazyCompilationUnitCompletedTrees Is Nothing Then
+                Interlocked.CompareExchange(_lazyCompilationUnitCompletedTrees, New HashSet(Of SyntaxTree)(), Nothing)
+            End If
+
+            SyncLock _lazyCompilationUnitCompletedTrees
+                If _lazyCompilationUnitCompletedTrees.Add(tree) Then
+                    ' signal the end of the compilation unit
+                    EventQueue.TryEnqueue(New CompilationUnitCompletedEvent(Me, tree))
+
+                    If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
+                        ' if that was the last tree, signal the end of compilation
+                        EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
+                        EventQueue.PromiseNotToEnqueue()
+                        EventQueue.TryComplete()
                     End If
                 End If
             End SyncLock
-
-            If completedCompilationUnit Then
-                EventQueue.Enqueue(New CompilationUnitCompletedEvent(Me, tree))
-            End If
-
-            If completedCompilation Then
-                EventQueue.Enqueue(New CompilationCompletedEvent(Me))
-                EventQueue.Complete() ' signal the End Of compilation events
-            End If
         End Sub
 
+        Friend Function ShouldAddEvent(symbol As Symbol) As Boolean
+            If EventQueue Is Nothing Then
+                Return False
+            End If
+
+            For Each location As Location In symbol.Locations
+                If location.SourceTree IsNot Nothing Then
+                    Debug.Assert(AllSyntaxTrees.Contains(location.SourceTree))
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
-            If EventQueue IsNot Nothing Then
-                Debug.Assert(Not EventQueue.IsCompleted)
-                EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+            If ShouldAddEvent(symbol) Then
+                EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
             End If
         End Sub
 
         Friend Sub RecordImports(syntax As ImportsStatementSyntax)
-            LazyInitializer.EnsureInitialized(m_lazyImportInfos).Enqueue(New ImportInfo(syntax))
+            LazyInitializer.EnsureInitialized(_lazyImportInfos).Enqueue(New ImportInfo(syntax))
         End Sub
 
         Private Structure ImportInfo
@@ -1702,32 +1723,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' "source" and "destination".
         ''' </summary>
         Public Shadows Function ClassifyConversion(source As ITypeSymbol, destination As ITypeSymbol) As Conversion
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_ClassifyConversion, message:=Me.AssemblyName)
-                If source Is Nothing Then
-                    Throw New ArgumentNullException("source")
-                End If
-
-                If destination Is Nothing Then
-                    Throw New ArgumentNullException("destination")
-                End If
-
-                Dim vbsource = source.EnsureVbSymbolOrNothing(Of TypeSymbol)("source")
-                Dim vbdest = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
-
-                If vbsource.IsErrorType() OrElse vbdest.IsErrorType() Then
-                    Return New Conversion(Nothing) ' No conversion
-                End If
-
-                Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
-            End Using
-        End Function
-
-        Friend Function GetSubmissionReturnType() As TypeSymbol
-            If IsSubmission AndAlso ScriptClass IsNot Nothing Then
-                Return (DirectCast(ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)(0), MethodSymbol)).Parameters(1).Type
-            Else
-                Return Nothing
+            If source Is Nothing Then
+                Throw New ArgumentNullException(NameOf(source))
             End If
+
+            If destination Is Nothing Then
+                Throw New ArgumentNullException(NameOf(destination))
+            End If
+
+            Dim vbsource = source.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(source))
+            Dim vbdest = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
+
+            If vbsource.IsErrorType() OrElse vbdest.IsErrorType() Then
+                Return New Conversion(Nothing) ' No conversion
+            End If
+
+            Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
         End Function
 
         ''' <summary>
@@ -1742,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend ReadOnly Property SourceScriptClass As ImplicitNamedTypeSymbol
             Get
-                Return m_scriptClass.Value
+                Return _scriptClass.Value
             End Get
         End Property
 
@@ -1778,36 +1789,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Assembly.GetSpecialTypeMember(memberId)
         End Function
 
-        Friend Sub MakeMemberMissing(member As WellKnownMember)
-            MakeMemberMissing(CInt(member))
-        End Sub
-
-        Friend Sub MakeMemberMissing(member As SpecialMember)
-            MakeMemberMissing(-CInt(member) - 1)
-        End Sub
-
-        Friend Function IsMemberMissing(member As WellKnownMember) As Boolean
-            Return IsMemberMissing(CInt(member))
-        End Function
-
-        Friend Function IsMemberMissing(member As SpecialMember) As Boolean
-            Return IsMemberMissing(-CInt(member) - 1)
-        End Function
-
-        Private Sub MakeMemberMissing(member As Integer)
-            If m_lazyMakeMemberMissingMap Is Nothing Then
-                m_lazyMakeMemberMissingMap = New SmallDictionary(Of Integer, Boolean)()
-            End If
-
-            m_lazyMakeMemberMissingMap(member) = True
-        End Sub
-
-        Private Function IsMemberMissing(member As Integer) As Boolean
-            If m_lazyMakeMemberMissingMap IsNot Nothing Then
-                Return m_lazyMakeMemberMissingMap.ContainsKey(member)
-            End If
-
-            Return False
+        Friend Function GetTypeByReflectionType(type As Type, diagnostics As DiagnosticBag) As TypeSymbol
+            ' TODO: See CSharpCompilation.GetTypeByReflectionType
+            Return GetSpecialType(SpecialType.System_Object)
         End Function
 
         ''' <summary>
@@ -1831,10 +1815,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shadows Function CreateArrayTypeSymbol(elementType As TypeSymbol, Optional rank As Integer = 1) As ArrayTypeSymbol
             If elementType Is Nothing Then
-                Throw New ArgumentNullException("elementType")
+                Throw New ArgumentNullException(NameOf(elementType))
             End If
 
-            Return New ArrayTypeSymbol(elementType, Nothing, rank, Me)
+            Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
         End Function
 
 #End Region
@@ -1846,9 +1830,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' which has a cache.  Therefore, one effectively clears the cache by discarding the
         ''' SemanticModel.
         '''</summary> 
-        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree)
+        Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+            Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
+
+        Friend ReadOnly Property FeatureStrictEnabled As Boolean
+            Get
+                Return Me.Feature("strict") IsNot Nothing
+            End Get
+        End Property
 
 #End Region
 
@@ -1910,47 +1900,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' should sort the errors as desired.
         ''' </returns>
         Friend Overloads Function GetDiagnostics(stage As CompilationStage, Optional includeEarlierStages As Boolean = True, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Using Logger.LogBlock(FunctionId.VisualBasic_Compilation_GetDiagnostics, message:=Me.AssemblyName, cancellationToken:=cancellationToken)
+            Dim builder = DiagnosticBag.GetInstance()
 
-                Dim builder = DiagnosticBag.GetInstance()
+            ' Add all parsing errors.
+            If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
 
-                ' Add all parsing errors.
-                If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
-                    If Options.ConcurrentBuild Then
-                        Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                        Parallel.For(0, AllSyntaxTrees.Length, options,
-                            Sub(i As Integer) builder.AddRange(AllSyntaxTrees(i).GetDiagnostics(cancellationToken)))
-                    Else
-                        For Each tree In AllSyntaxTrees
-                            cancellationToken.ThrowIfCancellationRequested()
-                            builder.AddRange(tree.GetDiagnostics(cancellationToken))
-                        Next
-                    End If
+                ' Embedded trees shouldn't have any errors, let's avoid making decision if they should be added too early.
+                ' Otherwise IDE performance might be affect.
+                If Options.ConcurrentBuild Then
+                    Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
+                    Parallel.For(0, SyntaxTrees.Length, options,
+                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))))
+                Else
+                    For Each tree In SyntaxTrees
+                        cancellationToken.ThrowIfCancellationRequested()
+                        builder.AddRange(tree.GetDiagnostics(cancellationToken))
+                    Next
                 End If
+            End If
 
-                ' Add declaration errors
-                If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
-                    builder.AddRange(Options.Errors)
-                    builder.AddRange(GetBoundReferenceManager().Diagnostics)
-                    builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
-                    builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
-                End If
+            ' Add declaration errors
+            If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
+                builder.AddRange(Options.Errors)
+                builder.AddRange(GetBoundReferenceManager().Diagnostics)
+                builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
+                builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+            End If
 
-                ' Add method body compilation errors.
-                If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
-                    ' Note: this phase does not need to be parallelized because 
-                    '       it is already implemented in method compiler
-                    Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
-                    GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
-                    builder.AddRangeAndFree(methodBodyDiagnostics)
-                End If
+            ' Add method body compilation errors.
+            If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
+                ' Note: this phase does not need to be parallelized because 
+                '       it is already implemented in method compiler
+                Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
+                GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                builder.AddRangeAndFree(methodBodyDiagnostics)
+            End If
 
-                ' Before returning diagnostics, we filter some of them
-                ' to honor the compiler options (e.g., /nowarn and /warnaserror)
-                Dim result = DiagnosticBag.GetInstance()
-                FilterAndAppendAndFreeDiagnostics(result, builder)
-                Return result.ToReadOnlyAndFree(Of Diagnostic)()
-            End Using
+            ' Before returning diagnostics, we filter some of them
+            ' to honor the compiler options (e.g., /nowarn and /warnaserror)
+            Dim result = DiagnosticBag.GetInstance()
+            FilterAndAppendAndFreeDiagnostics(result, builder)
+            Return result.ToReadOnlyAndFree(Of Diagnostic)()
         End Function
 
         Private Function GetClsComplianceDiagnostics(cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
@@ -1961,31 +1951,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Debug.Assert(filterSpanWithinTree Is Nothing)
-            If m_lazyClsComplianceDiagnostics.IsDefault Then
+            If _lazyClsComplianceDiagnostics.IsDefault Then
                 Dim builder = DiagnosticBag.GetInstance()
                 ClsComplianceChecker.CheckCompliance(Me, builder, cancellationToken)
-                ImmutableInterlocked.InterlockedInitialize(m_lazyClsComplianceDiagnostics, builder.ToReadOnlyAndFree())
+                ImmutableInterlocked.InterlockedInitialize(_lazyClsComplianceDiagnostics, builder.ToReadOnlyAndFree())
             End If
 
-            Debug.Assert(Not m_lazyClsComplianceDiagnostics.IsDefault)
-            Return m_lazyClsComplianceDiagnostics
+            Debug.Assert(Not _lazyClsComplianceDiagnostics.IsDefault)
+            Return _lazyClsComplianceDiagnostics
         End Function
 
         Private Shared Iterator Function FilterDiagnosticsByLocation(diagnostics As IEnumerable(Of Diagnostic), tree As SyntaxTree, filterSpanWithinTree As TextSpan?) As IEnumerable(Of Diagnostic)
             For Each diagnostic In diagnostics
-                If diagnostic.ContainsLocation(tree, filterSpanWithinTree) Then
+                If diagnostic.HasIntersectingLocation(tree, filterSpanWithinTree) Then
                     Yield diagnostic
                 End If
             Next
         End Function
 
-        Friend Function GetDiagnosticsForTree(stage As CompilationStage,
+        Friend Function GetDiagnosticsForSyntaxTree(stage As CompilationStage,
                                               tree As SyntaxTree,
                                               filterSpanWithinTree As TextSpan?,
                                               includeEarlierStages As Boolean,
                                               Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
             If Not SyntaxTrees.Contains(tree) Then
-                Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", "tree")
+                Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", NameOf(tree))
             End If
 
             Dim builder = DiagnosticBag.GetInstance()
@@ -1998,7 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(syntaxDiagnostics)
             End If
 
-            ' Add declaring errors errors
+            ' Add declaring errors
             If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
                 Dim declarationDiags = DirectCast(SourceModule, SourceModuleSymbol).GetDeclarationErrorsInTree(tree, filterSpanWithinTree, AddressOf FilterDiagnosticsByLocation, cancellationToken)
                 Dim filteredDiags = FilterDiagnosticsByLocation(declarationDiags, tree, filterSpanWithinTree)
@@ -2063,21 +2053,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Overloads Shared Function FilterDiagnostic(diagnostic As Diagnostic, options As CompilationOptions) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions)
-        End Function
-
-        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return FilterDiagnostic(diagnostic, Options)
-        End Function
-
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
+            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
 
             For Each diagnostic As Diagnostic In incoming
-                Dim filtered = FilterDiagnostic(diagnostic, Me.m_Options)
-                If filtered Is Nothing Then
+                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
+                If filtered Is Nothing OrElse
+                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
                     Continue For
                 End If
 
@@ -2091,9 +2075,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, continueOnAnalyzerException As Func(Of Exception, DiagnosticAnalyzer, Boolean), cancellationToken As CancellationToken) As AnalyzerDriver
+        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, continueOnAnalyzerException, cancellationToken)
+            Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
         End Function
 
 #End Region
@@ -2121,9 +2106,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Emit"
 
-        Friend Overrides ReadOnly Property IsDelaySign As Boolean
+        Friend Overrides ReadOnly Property LinkerMajorVersion As Byte
             Get
-                Return SourceAssembly.IsDelaySign
+                Return &H50
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property IsDelaySigned As Boolean
+            Get
+                Return SourceAssembly.IsDelaySigned
             End Get
         End Property
 
@@ -2133,24 +2124,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property EmitFunctionId As FunctionId
-            Get
-                Return FunctionId.VisualBasic_Compilation_Emit
-            End Get
-        End Property
-
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
-            assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Return CreateModuleBuilder(
                 emitOptions,
+                debugEntryPoint,
                 manifestResources,
-                assemblySymbolMapper,
                 testData,
                 diagnostics,
                 ImmutableArray(Of NamedTypeSymbol).Empty,
@@ -2159,20 +2144,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
+            debugEntryPoint As IMethodSymbol,
             manifestResources As IEnumerable(Of ResourceDescription),
-            assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
             additionalTypes As ImmutableArray(Of NamedTypeSymbol),
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
-
-            ' Do not waste a slot in the submission chain for submissions that contain no executable code
-            ' (they may only contain #r directives, usings, etc.)
-            If IsSubmission AndAlso Not HasCodeToEmit() Then
-                Return Nothing
-            End If
+            Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
@@ -2200,8 +2180,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         kind,
                         moduleSerializationProperties,
                         manifestResources,
-                        assemblySymbolMapper,
                         additionalTypes)
+            End If
+
+            If debugEntryPoint IsNot Nothing Then
+                moduleBeingBuilt.SetDebugEntryPoint(DirectCast(debugEntryPoint, MethodSymbol), diagnostics)
             End If
 
             If testData IsNot Nothing Then
@@ -2216,7 +2199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             win32Resources As Stream,
             xmlDocStream As Stream,
-            generateDebugInfo As Boolean,
+            emittingPdb As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
             cancellationToken As CancellationToken) As Boolean
@@ -2229,19 +2212,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
 
+            ' The translation of global imports assumes absence of error symbols.
+            ' We don't need to translate them if there are any declaration errors since 
+            ' we are not going to emit the metadata.
+            If Not hasDeclarationErrors Then
+                moduleBeingBuilt.TranslateImports(diagnostics)
+            End If
+
             If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
                 If hasDeclarationErrors Then
                     Return False
                 End If
 
+                If moduleBeingBuilt.SourceModule.HasBadAttributes Then
+                    ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name)
+                    Return False
+                End If
+
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
-
                 ' start generating PDB checksums if we need to emit PDBs
-                If generateDebugInfo AndAlso moduleBeingBuilt IsNot Nothing Then
-                    If Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
-                        Return False
-                    End If
+                If emittingPdb AndAlso Not StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics) Then
+                    Return False
                 End If
 
                 ' Perform initial bind of method bodies in spite of earlier errors. This is the same
@@ -2253,12 +2246,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MethodCompiler.CompileMethodBodies(
                     Me,
                     moduleBeingBuilt,
-                    generateDebugInfo,
+                    emittingPdb,
                     hasDeclarationErrors,
                     filterOpt,
                     methodBodyDiagnosticBag,
                     cancellationToken)
-
 
                 Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
 
@@ -2466,7 +2458,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics.Add(ERRID.ERR_ErrorCreatingWin32ResourceFile, NoLocation.Singleton, New LocalizableErrorArgument(ERRID.IDS_UnrecognizedFileFormat))
             End Select
         End Sub
-        Protected Overrides Function HasCodeToEmit() As Boolean
+
+        Friend Overrides Function HasCodeToEmit() As Boolean
             ' TODO (tomat):
             For Each syntaxTree In SyntaxTrees
                 Dim unit = syntaxTree.GetCompilationUnitRoot()
@@ -2490,8 +2483,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyName(assemblyName)
         End Function
 
-        Protected Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
-            Return GetSubmissionResultType(hasValue)
+        Protected Overrides Function CommonWithScriptCompilationInfo(info As ScriptCompilationInfo) As Compilation
+            Return WithScriptCompilationInfo(DirectCast(info, VisualBasicScriptCompilationInfo))
         End Function
 
         Protected Overrides ReadOnly Property CommonAssembly As IAssemblySymbol
@@ -2512,14 +2505,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property CommonPreviousSubmission As Compilation
-            Get
-                Return PreviousSubmission
-            End Get
-        End Property
-
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree) As SemanticModel
-            Return Me.GetSemanticModel(syntaxTree)
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
+            Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
         Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
@@ -2535,7 +2522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             Return Me.AddSyntaxTrees(trees.Cast(Of SyntaxTree)())
@@ -2548,7 +2535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If trees Is Nothing Then
-                Throw New ArgumentNullException("trees")
+                Throw New ArgumentNullException(NameOf(trees))
             End If
 
             Return Me.RemoveSyntaxTrees(trees.Cast(Of SyntaxTree)())
@@ -2564,10 +2551,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithOptions(options As CompilationOptions) As Compilation
             Return Me.WithOptions(DirectCast(options, VisualBasicCompilationOptions))
-        End Function
-
-        Protected Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
-            Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VisualBasicCompilation))
         End Function
 
         Protected Overrides Function CommonContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
@@ -2611,7 +2594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
-            Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)("elementType"), rank)
+            Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
@@ -2630,15 +2613,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetMetadataReference(_assemblySymbol As IAssemblySymbol) As MetadataReference
-            Dim symbol = TryCast(_assemblySymbol, AssemblySymbol)
-            If symbol IsNot Nothing Then
-                Return Me.GetMetadataReference(symbol)
-            Else
-                Return Nothing
-            End If
-        End Function
-
         Protected Overrides Function CommonGetEntryPoint(cancellationToken As CancellationToken) As IMethodSymbol
             Return Me.GetEntryPoint(cancellationToken)
         End Function
@@ -2648,11 +2622,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides Function ContainsSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If predicate Is Nothing Then
-                Throw New ArgumentNullException(NameOf (predicate))
+                Throw New ArgumentNullException(NameOf(predicate))
             End If
 
             If filter = SymbolFilter.None Then
-                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
             Return Me.Declarations.ContainsName(predicate, filter, cancellationToken)
@@ -2663,11 +2637,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides Function GetSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
             If predicate Is Nothing Then
-                Throw New ArgumentNullException(NameOf (predicate))
+                Throw New ArgumentNullException(NameOf(predicate))
             End If
 
             If filter = SymbolFilter.None Then
-                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
@@ -2676,19 +2650,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Class SymbolSearcher
 
-            Private ReadOnly cache As Dictionary(Of Declaration, NamespaceOrTypeSymbol)
-            Private ReadOnly compilation As VisualBasicCompilation
+            Private ReadOnly _cache As Dictionary(Of Declaration, NamespaceOrTypeSymbol)
+            Private ReadOnly _compilation As VisualBasicCompilation
 
             Public Sub New(compilation As VisualBasicCompilation)
-                Me.cache = New Dictionary(Of Declaration, NamespaceOrTypeSymbol)()
-                Me.compilation = compilation
+                Me._cache = New Dictionary(Of Declaration, NamespaceOrTypeSymbol)()
+                Me._compilation = compilation
             End Sub
 
             Public Function GetSymbolsWithName(predicate As Func(Of String, Boolean), filter As SymbolFilter, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
                 Dim result = New HashSet(Of ISymbol)()
                 Dim spine = New List(Of MergedNamespaceOrTypeDeclaration)()
 
-                AppendSymbolsWithName(spine, Me.compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
+                AppendSymbolsWithName(spine, Me._compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
 
                 Return result
             End Function
@@ -2703,12 +2677,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If current.Kind = DeclarationKind.Namespace Then
                     If includeNamespace AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
                 Else
                     If includeType AndAlso predicate(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
-                        [set].Add(GetSymbol(container, current))
+                        Dim symbol = GetSymbol(container, current)
+                        If symbol IsNot Nothing Then
+                            [set].Add(symbol)
+                        End If
                     End If
 
                     If includeMember Then
@@ -2741,7 +2721,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each name In mergedType.MemberNames
                     If predicate(name) Then
                         container = If(container, GetSpineSymbol(spine))
-                        [set].UnionWith(container.GetMembers(name))
+                        If container IsNot Nothing Then
+                            [set].UnionWith(container.GetMembers(name))
+                        End If
                     End If
                 Next
 
@@ -2758,7 +2740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return symbol
                 End If
 
-                Dim current = TryCast(Me.compilation.GlobalNamespace, NamespaceOrTypeSymbol)
+                Dim current = TryCast(Me._compilation.GlobalNamespace, NamespaceOrTypeSymbol)
                 For i = 1 To spine.Count - 1
                     current = GetSymbol(current, spine(i))
                 Next
@@ -2768,7 +2750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function GetCachedSymbol(declaration As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
                 Dim symbol As NamespaceOrTypeSymbol = Nothing
-                If Me.cache.TryGetValue(declaration, symbol) Then
+                If Me._cache.TryGetValue(declaration, symbol) Then
                     Return symbol
                 End If
 
@@ -2777,7 +2759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function GetSymbol(container As NamespaceOrTypeSymbol, declaration As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
                 If container Is Nothing Then
-                    Return Me.compilation.GlobalNamespace
+                    Return Me._compilation.GlobalNamespace
                 End If
 
                 Dim symbol = GetCachedSymbol(declaration)
@@ -2798,19 +2780,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each symbol In symbols
                     Dim mergedNamespace = TryCast(symbol, MergedNamespaceSymbol)
                     If mergedNamespace IsNot Nothing Then
-                        Me.cache(mergedNamespace.ConstituentNamespaces.OfType(Of SourceNamespaceSymbol).First().MergedDeclaration) = symbol
+                        Me._cache(mergedNamespace.ConstituentNamespaces.OfType(Of SourceNamespaceSymbol).First().MergedDeclaration) = symbol
                         Continue For
                     End If
 
                     Dim sourceNamespace = TryCast(symbol, SourceNamespaceSymbol)
                     If sourceNamespace IsNot Nothing Then
-                        Me.cache(sourceNamespace.MergedDeclaration) = sourceNamespace
+                        Me._cache(sourceNamespace.MergedDeclaration) = sourceNamespace
                         Continue For
                     End If
 
                     Dim sourceType = TryCast(symbol, SourceMemberContainerTypeSymbol)
                     If sourceType IsNot Nothing Then
-                        Me.cache(sourceType.TypeDeclaration) = sourceType
+                        Me._cache(sourceType.TypeDeclaration) = sourceType
                     End If
                 Next
             End Sub

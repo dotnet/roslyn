@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    NotInheritable Class InterfaceDeclarationBlockContext
+    Friend NotInheritable Class InterfaceDeclarationBlockContext
         Inherits TypeBlockContext
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.ClassBlock,
                     SyntaxKind.StructureBlock,
                     SyntaxKind.InterfaceBlock
-                    Return UseSyntax(node, newContext, DirectCast(node, TypeBlockSyntax).End.IsMissing)
+                    Return UseSyntax(node, newContext, DirectCast(node, TypeBlockSyntax).EndBlockStatement.IsMissing)
 
                 Case SyntaxKind.EnumBlock
                     Return UseSyntax(node, newContext, DirectCast(node, EnumBlockSyntax).EndEnumStatement.IsMissing)

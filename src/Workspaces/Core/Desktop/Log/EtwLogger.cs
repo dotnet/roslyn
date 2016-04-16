@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EtwLogger : ILogger
     {
-        private readonly Func<FunctionId, bool> loggingChecker;
+        private readonly Func<FunctionId, bool> _loggingChecker;
 
         // Due to ETW specifics, RoslynEventSource.Instance needs to be initialized during EtwLogger construction 
         // so that we can enable the listeners synchronously before any events are logged.
-        private readonly RoslynEventSource source = RoslynEventSource.Instance;
+        private readonly RoslynEventSource _source = RoslynEventSource.Instance;
 
         public EtwLogger(IOptionService optionService)
             : this(Logger.GetLoggingChecker(optionService))
@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public EtwLogger(Func<FunctionId, bool> loggingChecker)
         {
-            this.loggingChecker = loggingChecker;
+            _loggingChecker = loggingChecker;
         }
 
         public bool IsEnabled(FunctionId functionId)
         {
-            return source.IsEnabled() && (this.loggingChecker == null || this.loggingChecker(functionId));
+            return _source.IsEnabled() && (_loggingChecker == null || _loggingChecker(functionId));
         }
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            source.Log(GetMessage(logMessage), functionId);
+            _source.Log(GetMessage(logMessage), functionId);
         }
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private bool IsVerbose()
         {
             // "-1" makes this to work with any keyword
-            return source.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
+            return _source.IsEnabled(EventLevel.Verbose, (EventKeywords)(-1));
         }
 
         private string GetMessage(LogMessage logMessage)

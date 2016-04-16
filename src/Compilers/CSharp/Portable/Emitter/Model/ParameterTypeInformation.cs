@@ -11,20 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class ParameterTypeInformation : Cci.IParameterTypeInformation
     {
-        private readonly ParameterSymbol UnderlyingParameter;
+        private readonly ParameterSymbol _underlyingParameter;
 
         public ParameterTypeInformation(ParameterSymbol underlyingParameter)
         {
             Debug.Assert((object)underlyingParameter != null);
 
-            this.UnderlyingParameter = underlyingParameter;
+            _underlyingParameter = underlyingParameter;
         }
 
         ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get
             {
-                return UnderlyingParameter.CustomModifiers.As<Cci.ICustomModifier>();
+                return _underlyingParameter.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -32,48 +32,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingParameter.RefKind != RefKind.None;
+                return _underlyingParameter.RefKind != RefKind.None;
             }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return UnderlyingParameter.HasByRefBeforeCustomModifiers;
+                return _underlyingParameter.CountOfCustomModifiersPrecedingByRef;
             }
         }
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(_underlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
         ushort Cci.IParameterListEntry.Index
         {
             get
             {
-                return (ushort)UnderlyingParameter.Ordinal;
+                return (ushort)_underlyingParameter.Ordinal;
             }
         }
 
         public override string ToString()
         {
-            return UnderlyingParameter.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            return _underlyingParameter.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
         }
     }
 
     internal sealed class ArgListParameterTypeInformation : Cci.IParameterTypeInformation
     {
-        private readonly ushort ordinal;
-        private readonly bool isByRef;
-        private readonly Cci.ITypeReference type;
+        private readonly ushort _ordinal;
+        private readonly bool _isByRef;
+        private readonly Cci.ITypeReference _type;
 
         public ArgListParameterTypeInformation(int ordinal, bool isByRef, Cci.ITypeReference type)
         {
-            this.ordinal = (ushort)ordinal;
-            this.isByRef = isByRef;
-            this.type = type;
+            _ordinal = (ushort)ordinal;
+            _isByRef = isByRef;
+            _type = type;
         }
 
         ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
@@ -83,22 +83,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         bool Cci.IParameterTypeInformation.IsByReference
         {
-            get { return isByRef; }
+            get { return _isByRef; }
         }
 
-        bool Cci.IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return type;
+            return _type;
         }
 
         ushort Cci.IParameterListEntry.Index
         {
-            get { return ordinal; }
+            get { return _ordinal; }
         }
     }
 }

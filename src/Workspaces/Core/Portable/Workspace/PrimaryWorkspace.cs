@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,11 +10,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class PrimaryWorkspace
     {
-        private static readonly ReaderWriterLockSlim registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private static readonly ReaderWriterLockSlim s_registryGate = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
-        private static Workspace primaryWorkspace;
+        private static Workspace s_primaryWorkspace;
 
-        private static List<TaskCompletionSource<Workspace>> primaryWorkspaceTaskSourceList =
+        private static readonly List<TaskCompletionSource<Workspace>> s_primaryWorkspaceTaskSourceList =
             new List<TaskCompletionSource<Workspace>>();
 
         /// <summary>
@@ -22,9 +24,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                using (registryGate.DisposableRead())
+                using (s_registryGate.DisposableRead())
                 {
-                    return primaryWorkspace;
+                    return s_primaryWorkspace;
                 }
             }
         }
@@ -36,14 +38,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
-            using (registryGate.DisposableWrite())
+            using (s_registryGate.DisposableWrite())
             {
-                primaryWorkspace = workspace;
+                s_primaryWorkspace = workspace;
 
-                foreach (var taskSource in primaryWorkspaceTaskSourceList)
+                foreach (var taskSource in s_primaryWorkspaceTaskSourceList)
                 {
                     try
                     {
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                primaryWorkspaceTaskSourceList.Clear();
+                s_primaryWorkspaceTaskSourceList.Clear();
             }
         }
 
@@ -63,11 +65,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static Task<Workspace> GetWorkspaceAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (registryGate.DisposableWrite())
+            using (s_registryGate.DisposableWrite())
             {
-                if (primaryWorkspace != null)
+                if (s_primaryWorkspace != null)
                 {
-                    return Task<Workspace>.FromResult(primaryWorkspace);
+                    return Task<Workspace>.FromResult(s_primaryWorkspace);
                 }
                 else
                 {
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    primaryWorkspaceTaskSourceList.Add(taskSource);
+                    s_primaryWorkspaceTaskSourceList.Add(taskSource);
                     return taskSource.Task;
                 }
             }

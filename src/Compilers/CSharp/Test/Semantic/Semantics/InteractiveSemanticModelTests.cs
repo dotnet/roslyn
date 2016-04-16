@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -35,16 +36,15 @@ namespace Foo.Bar
             var classB = (root.Members[1] as NamespaceDeclarationSyntax).Members[0] as TypeDeclarationSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(classB);
-            Assert.NotNull(symbol);
-            Assert.NotNull(symbol.BaseType);
-            Assert.Equal("Foo.Bar.B", symbol.ToTestDisplayString());
-            Assert.Equal("Foo.Bar.Script.C", symbol.BaseType.ToTestDisplayString());
+            var baseType = symbol?.BaseType;
+            Assert.NotNull(baseType);
+            Assert.Equal(TypeKind.Error, baseType.TypeKind);
+            Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
         }
 
         [Fact]
         public void CompilationChain_OverloadsWithParams()
         {
-
             CompileAndVerifyBindInfo(@"
 public static string[] str = null;
 public static void Foo(string[] r, string i) { str = r;}
@@ -91,7 +91,7 @@ void Foo() {};
         }
 
         [Fact]
-        public void BindBoolenField()
+        public void BindBooleanField()
         {
             var testSrc = @"
 bool result = true ;
@@ -124,7 +124,7 @@ int field = constantField;
             Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
         }
 
-        [WorkItem(540513, "DevDiv")]
+        [WorkItem(540513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]
         [Fact]
         public void BindVariableInGlobalStatement()
         {
@@ -139,7 +139,7 @@ int i = 2;
             Assert.Equal(SymbolKind.Field, symbol.Kind);
         }
 
-        [WorkItem(543860, "DevDiv")]
+        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarKeyword()
         {
@@ -164,7 +164,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "DevDiv")]
+        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarKeyword_MultipleDeclarators()
         {
@@ -189,7 +189,7 @@ int i = 2;
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "DevDiv")]
+        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarNamedType()
         {
@@ -215,7 +215,7 @@ public class var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543860, "DevDiv")]
+        [WorkItem(543860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543860")]
         [Fact]
         public void BindVarNamedType_Ambiguous()
         {
@@ -248,7 +248,7 @@ public struct var { }
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [WorkItem(543864, "DevDiv")]
+        [WorkItem(543864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543864")]
         [Fact]
         public void BindQueryVariable()
         {
@@ -293,10 +293,10 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
                 string exprFullText = node.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                if (exprFullText.StartsWith("/*<bind>*/"))
+                if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains("/*</bind>*/"))
-                        if (exprFullText.EndsWith("/*</bind>*/"))
+                        if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
                             return node;
                         else
                             continue;
@@ -304,10 +304,10 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
                         return node;
                 }
 
-                if (exprFullText.EndsWith("/*</bind>*/"))
+                if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains("/*<bind>*/"))
-                        if (exprFullText.StartsWith("/*<bind>*/"))
+                        if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
                             return node;
                         else
                             continue;
@@ -350,11 +350,11 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
                 string exprFullText = exprSyntax.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                if (exprFullText.StartsWith("/*<bind>*/"))
+                if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains("/*</bind>*/"))
                     {
-                        if (exprFullText.EndsWith("/*</bind>*/"))
+                        if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
                         {
                             return exprSyntax;
                         }
@@ -369,11 +369,11 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
                     }
                 }
 
-                if (exprFullText.EndsWith("/*</bind>*/"))
+                if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains("/*<bind>*/"))
                     {
-                        if (exprFullText.StartsWith("/*<bind>*/"))
+                        if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
                         {
                             return exprSyntax;
                         }

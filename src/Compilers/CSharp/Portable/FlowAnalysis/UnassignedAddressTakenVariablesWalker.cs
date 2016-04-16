@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// An analysis that computes the set of variables that may be used
     /// before being assigned anywhere within a method.
     /// </summary>
-    class UnassignedAddressTakenVariablesWalker : DataFlowPass
+    internal class UnassignedAddressTakenVariablesWalker : DataFlowPass
     {
-        UnassignedAddressTakenVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
+        private UnassignedAddressTakenVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
             : base(compilation, member, node)
         {
         }
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<PrefixUnaryExpressionSyntax> result = new HashSet<PrefixUnaryExpressionSyntax>();
+        private readonly HashSet<PrefixUnaryExpressionSyntax> _result = new HashSet<PrefixUnaryExpressionSyntax>();
 
-        new HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
+        private new HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
         {
             // It might seem necessary to clear this.result after each Scan performed by base.Analyze, however,
             // finding new execution paths (via new backwards branches) can only make variables "less" definitely
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // assigned, then adding another path will not make the variable definitely assigned.  Therefore,
             // subsequent scans can only re-add elements to this.result, and the HashSet will naturally de-dup.
             base.Analyze(ref badRegion, null);
-            return result;
+            return _result;
         }
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
         {
             if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {
-                result.Add((PrefixUnaryExpressionSyntax)node.Parent);
+                _result.Add((PrefixUnaryExpressionSyntax)node.Parent);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {
-                result.Add((PrefixUnaryExpressionSyntax)node.Parent);
+                _result.Add((PrefixUnaryExpressionSyntax)node.Parent);
             }
         }
 

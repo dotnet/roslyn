@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedMethodSymbol : CodeGenerationAbstractMethodSymbol
     {
-        private readonly CodeGenerationAbstractMethodSymbol constructedFrom;
-        private readonly ITypeSymbol[] typeArguments;
+        private readonly CodeGenerationAbstractMethodSymbol _constructedFrom;
+        private readonly ITypeSymbol[] _typeArguments;
 
         public CodeGenerationConstructedMethodSymbol(
             CodeGenerationAbstractMethodSymbol constructedFrom,
@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                    constructedFrom.Name,
                    constructedFrom.GetReturnTypeAttributes())
         {
-            this.constructedFrom = constructedFrom;
-            this.OriginalDefinition = this.constructedFrom.OriginalDefinition;
-            this.typeArguments = typeArguments;
+            _constructedFrom = constructedFrom;
+            this.OriginalDefinition = _constructedFrom.OriginalDefinition;
+            _typeArguments = typeArguments;
         }
 
         public override int Arity
         {
             get
             {
-                return this.constructedFrom.Arity;
+                return _constructedFrom.Arity;
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.ReturnsVoid;
+                return _constructedFrom.ReturnsVoid;
             }
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.ReturnType;
+                return _constructedFrom.ReturnType;
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return ImmutableArray.CreateRange(this.typeArguments);
+                return ImmutableArray.CreateRange(_typeArguments);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom.TypeParameters;
+                return _constructedFrom.TypeParameters;
             }
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.constructedFrom;
+                return _constructedFrom;
             }
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.OverriddenMethod;
+                return _constructedFrom.OverriddenMethod;
             }
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.ReducedFrom;
+                return _constructedFrom.ReducedFrom;
             }
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.ExplicitInterfaceImplementations;
+                return _constructedFrom.ExplicitInterfaceImplementations;
             }
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.PartialDefinitionPart;
+                return _constructedFrom.PartialDefinitionPart;
             }
         }
 
@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // TODO(cyrusn): Construct this.
-                return this.constructedFrom.PartialImplementationPart;
+                return _constructedFrom.PartialImplementationPart;
             }
         }
 
         protected override CodeGenerationSymbol Clone()
         {
-            return new CodeGenerationConstructedMethodSymbol(this.constructedFrom, this.typeArguments);
+            return new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
         }
     }
 }

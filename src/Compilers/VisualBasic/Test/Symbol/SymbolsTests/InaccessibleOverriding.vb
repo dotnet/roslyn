@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class InaccessibleOverridingTests
         Inherits BasicTestBase
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverride()
             ' In order for Class3.f to override Class1.f (which it can because Class2.f is not
@@ -78,7 +78,7 @@ End Module
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverrideOnProperty()
             ' In order for Class3.p to override Class1.p (which it can because Class2.p is not
@@ -149,7 +149,7 @@ End Module
             proj3.VerifyDiagnostics()   ' no errors.
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverrideWithInterveningFriendOverride()
             Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -220,7 +220,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
 </expected>)
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverridePropertyWithInterveningFriendOverride()
             Dim proj1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -297,7 +297,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
 </expected>)
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub EmitExplicitOverrideMetadata()
             Dim p1AssemblyName = "P1" + Guid.NewGuid().ToString().Replace("-", "")
@@ -345,7 +345,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
 // =============================================================
 ]]>.Value.Replace("<<P1Name>>", p1AssemblyName)
 
-            Using proj2ILFile = SharedCompilationUtils.IlasmTempAssembly(proj2ILText, appendDefaultHeader:=False)
+            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, appendDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
                 Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
                 Dim proj2AssemblyNameBytes As New System.Text.StringBuilder()
@@ -396,7 +396,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
     } // end of class Class1    ]]>.Value
                 proj1ILText = proj1ILText.Replace("<<P1Name>>", p1AssemblyName)
 
-                Using proj1ILFile = SharedCompilationUtils.IlasmTempAssembly(proj1ILText, appendDefaultHeader:=False)
+                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, appendDefaultHeader:=False)
                     Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompileAndVerify(
@@ -429,7 +429,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub OverrideWithInterveningFriendMetadata()
             Dim proj2ILText = <![CDATA[
@@ -476,7 +476,7 @@ End Module
 // =============================================================
 ]]>.Value
 
-            Using proj2ILFile = SharedCompilationUtils.IlasmTempAssembly(proj2ILText, appendDefaultHeader:=False)
+            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, appendDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
                 Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
 
@@ -520,7 +520,7 @@ End Module
 
 } // end of class Class1    ]]>.Value
 
-                Using proj1ILFile = SharedCompilationUtils.IlasmTempAssembly(proj1ILText, appendDefaultHeader:=False)
+                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, appendDefaultHeader:=False)
                     Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -558,13 +558,12 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub CannotOverrideInAccessibleMemberInMetadata()
             Dim customIL = <![CDATA[
 
 //  Microsoft (R) .NET Framework IL Disassembler.  Version 4.0.30319.1
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
 
 
 
@@ -618,7 +617,7 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
             ' Because the private is defined in another assembly, we don't import it.
             ' So BC30284 is reasonable, and Dev10 does the same.
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
                     <compilation name="CannotOverrideInAccessibleMemberInMetadata">
@@ -641,7 +640,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
             End Using
         End Sub
 
-        <WorkItem(541742, "DevDiv")>
+        <WorkItem(541742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541742")>
         <Fact>
         Public Sub Bug14346()
             Dim customIL = <![CDATA[
@@ -704,7 +703,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
 ]]>
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                     <compilation name="Bug14346">

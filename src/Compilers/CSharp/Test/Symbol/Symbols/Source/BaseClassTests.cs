@@ -77,11 +77,11 @@ class C4 : C1 {}
             var x_base_base = x.BaseType.BaseType as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.", 
+            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [WorkItem(538506, "DevDiv")]
+        [WorkItem(538506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538506")]
         [Fact]
         public void CyclicBasesRegress4140()
         {
@@ -108,7 +108,7 @@ class A<T>
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [WorkItem(538526, "DevDiv")]
+        [WorkItem(538526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538526")]
         [Fact]
         public void CyclicBasesRegress4166()
         {
@@ -159,7 +159,7 @@ class A : object, A.IC
             Assert.Equal(0, diagnostics.Count());
         }
 
-        [WorkItem(527551, "DevDiv")]
+        [WorkItem(527551, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527551")]
         [Fact]
         public void CyclicBasesRegress4168()
         {
@@ -198,11 +198,11 @@ class B<T> : A<B<T>> {
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.GetDeclarationDiagnostics().Verify(
-                // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
-                // class A<T> : B<A<T>> { }
+    // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+    // class A<T> : B<A<T>> { }
     Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>"),
-                // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
-                // class B<T> : A<B<T>> {
+    // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+    // class B<T> : A<B<T>> {
     Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>")
                 );
         }
@@ -336,6 +336,111 @@ internal class F : A
                 //         public class E : C.X { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "E").WithArguments("F.D.E", "A.B.C.X")
                 );
+        }
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void BadVisibilityPartial()
+        {
+            var text = @"
+internal class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void StaticBasePartial()
+        {
+            var text = @"
+static class NV
+{
+}
+
+public partial class C1
+{
+}
+
+partial class C1 : NV
+{
+}
+
+public partial class C1
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
+                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial class C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
+        }
+
+
+        [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
+        public void BadVisInterfacePartial()
+        {
+            var text = @"
+interface IFoo
+{
+    void Moo();
+}
+
+interface IBaz
+{
+    void Noo();
+}
+
+interface IBam
+{
+    void Zoo();
+}
+
+public partial interface IBar
+{
+}
+
+partial interface IBar : IFoo, IBam
+{
+}
+
+partial interface IBar : IBaz, IBaz
+{
+}
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (25,32): error CS0528: 'IBaz' is already listed in interface list
+                // partial interface IBar : IBaz, IBaz
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "IBaz").WithArguments("IBaz").WithLocation(25, 32),
+                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IFoo' is less accessible than interface 'IBar'
+                // partial interface IBar : IFoo, IBam
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IFoo").WithLocation(21, 19),
+                // (21,19): error CS0061: Inconsistent accessibility: base interface 'IBam' is less accessible than interface 'IBar'
+                // partial interface IBar : IFoo, IBam
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBam").WithLocation(21, 19),
+                // (25,19): error CS0061: Inconsistent accessibility: base interface 'IBaz' is less accessible than interface 'IBar'
+                // partial interface IBar : IBaz, IBaz
+                Diagnostic(ErrorCode.ERR_BadVisBaseInterface, "IBar").WithArguments("IBar", "IBaz").WithLocation(25, 19));
         }
 
         [Fact]
@@ -955,11 +1060,11 @@ public class ClassC : ClassB {}
             var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilationWithMscorlib(text, new[] 
-                { 
-                    ClassAv1, 
+            var comp = CreateCompilationWithMscorlib(text, new[]
+                {
+                    ClassAv1,
                     ClassBv1
-                }, 
+                },
                 assemblyName: "ClassB");
 
             var global1 = comp.GlobalNamespace;
@@ -978,7 +1083,7 @@ public class ClassC : ClassB {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
             {
                 ClassAv2,
                 new CSharpCompilationReference(comp)
@@ -1048,9 +1153,9 @@ public class ClassB : ClassA {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
-            { 
-                ClassAv1, 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
+            {
+                ClassAv1,
                 new CSharpCompilationReference(comp),
             });
 
@@ -1073,11 +1178,11 @@ public class ClassC : ClassB {}
             var ClassBv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassB.netmodule;
 
             var text = @"// hi";
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[]
                 {
                     ClassAv2,
                     ClassBv1,
-                }, 
+                },
                 assemblyName: "ClassB");
 
             var global1 = comp.GlobalNamespace;
@@ -1106,7 +1211,7 @@ public class ClassC : ClassB {}
 public class ClassC : ClassB {}
 ";
 
-            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[] 
+            var comp2 = CreateCompilationWithMscorlib(text, new MetadataReference[]
             {
                 ClassAv1,
                 new CSharpCompilationReference(comp)
@@ -1239,6 +1344,7 @@ class C : G<C[,][]>
             Assert.Equal(c, carr2.ElementType);
             Assert.Equal(2, carr1.Rank);
             Assert.Equal(1, carr2.Rank);
+            Assert.True(carr2.IsSZArray);
         }
 
         [Fact]
@@ -1321,7 +1427,7 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "DevDiv")]
+        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
         [Fact]
         public void NamespaceClassInterfaceEscapedIdentifier()
         {
@@ -1347,8 +1453,8 @@ namespace @if
             Assert.Equal("@if.@break", ibreak.ToString());
         }
 
-        [WorkItem(539328, "DevDiv")]
-        [WorkItem(539789, "DevDiv")]
+        [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]
+        [WorkItem(539789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539789")]
         [Fact]
         public void AccessInBaseClauseCheckedWithRespectToContainer()
         {
@@ -1373,7 +1479,7 @@ class Y : X
         /// whether or not the base type of the containing type has been
         /// evaluated.
         /// </summary>
-        [WorkItem(539744, "DevDiv")]
+        [WorkItem(539744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539744")]
         [Fact]
         public void BaseTypeEvaluationOrder()
         {
@@ -1450,7 +1556,7 @@ class C : I2 { }
             context.Diagnostics.Verify();
         }
 
-        [Fact(), WorkItem(544454, "DevDiv")]
+        [Fact(), WorkItem(544454, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544454")]
         public void InterfaceImplementedWithPrivateType()
         {
             var textA = @"
@@ -1479,7 +1585,7 @@ class Z
         return a;
     }
 }";
- 
+
             CSharpCompilation c1 = CreateCompilationWithMscorlib(textA);
             CSharpCompilation c2 = CreateCompilationWithMscorlib(textB, new[] { new CSharpCompilationReference(c1) });
 
@@ -1493,7 +1599,7 @@ class Z
             Assert.Equal(0, c2.GetDiagnostics().Count());
         }
 
-        [WorkItem(545365, "DevDiv")]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
         [Fact()]
         public void ProtectedInternalNestedBaseClass()
         {
@@ -1525,8 +1631,8 @@ class C : PublicClass.ProtectedInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass"));
         }
 
-        [WorkItem(545365, "DevDiv")]
-        [Fact()]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ProtectedAndInternalNestedBaseClass()
         {
             // Note: the problem was with the "protected" check so we use InternalsVisibleTo to make
@@ -1578,7 +1684,7 @@ class C : PublicClass.ProtectedAndInternalClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
         }
 
-        [WorkItem(530144, "DevDiv")]
+        [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
         [Fact()]
         public void UnifyingBaseInterfaces01()
         {
@@ -1635,7 +1741,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(530144, "DevDiv")]
+        [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
         [Fact()]
         public void UnifyingBaseInterfaces02()
         {
@@ -1683,7 +1789,7 @@ public interface I2 : I<int> {}";
             );
         }
 
-        [WorkItem(545365, "DevDiv")]
+        [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
         [Fact()]
         public void ProtectedNestedBaseClass()
         {
@@ -1715,7 +1821,7 @@ class C : PublicClass.ProtectedClass
                 Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedClass").WithArguments("PublicClass.ProtectedClass"));
         }
 
-        [WorkItem(545589, "DevDiv")]
+        [WorkItem(545589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545589")]
         [Fact]
         public void MissingTypeArgumentInBase()
         {
@@ -1745,7 +1851,7 @@ class B : I<object>
                 );
         }
 
-        [WorkItem(792711, "DevDiv")]
+        [WorkItem(792711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792711")]
         [Fact]
         public void Repro792711()
         {
@@ -1766,7 +1872,7 @@ public class Derived<T> : Base<Derived<T>>
             Assert.Equal(TypeKind.Class, derived.TypeKind);
         }
 
-        [WorkItem(872825, "DevDiv")]
+        [WorkItem(872825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872825")]
         [Fact]
         public void InaccessibleStructInterface()
         {
@@ -1787,7 +1893,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_BadAccess, "I").WithArguments("C.I").WithLocation(7, 14));
         }
 
-        [WorkItem(872948, "DevDiv")]
+        [WorkItem(872948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872948")]
         [Fact]
         public void MissingNestedMemberInStructImplementsClause()
         {
@@ -1804,7 +1910,7 @@ struct S : C.I
                 Diagnostic(ErrorCode.ERR_CircularBase, "I").WithArguments("S", "S").WithLocation(1, 14));
         }
 
-        [WorkItem(896959, "DevDiv")]
+        [WorkItem(896959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896959")]
         [Fact(Skip = "896959")]
         public void MissingNestedMemberInClassImplementsClause()
         {
@@ -1818,8 +1924,8 @@ struct S : C.I
                 // class C : C.I
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "I").WithArguments("I", "C").WithLocation(1, 13));
         }
-        
-        [Fact, WorkItem(1085632, "DevDiv")]
+
+        [Fact, WorkItem(1085632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085632")]
         public void BaseLookupRecursionWithStaticImport01()
         {
             const string source =
@@ -1855,7 +1961,7 @@ class D
                 );
         }
 
-        [Fact, WorkItem(1085632, "DevDiv")]
+        [Fact, WorkItem(1085632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085632")]
         public void BaseLookupRecursionWithStaticImport02()
         {
             const string source =
@@ -1900,6 +2006,175 @@ class D : B {
             var typeInfo = model.GetTypeInfo(baseY);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_01()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_02()
+        {
+            var text =
+@"
+using static CrashTest.Crash<object>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+
+    class Class3
+    {
+        AbstractClass Test()
+        {
+            return null;
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (6,11): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Class2").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(6, 11),
+    // (21,23): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'Crash<T>'. There is no implicit reference conversion from 'object' to 'CrashTest.Crash<object>.AbstractClass'.
+    //         AbstractClass Test()
+    Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Test").WithArguments("CrashTest.Crash<T>", "CrashTest.Crash<object>.AbstractClass", "T", "object").WithLocation(21, 23)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_03()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    [System.Obsolete]
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    [System.Obsolete]
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (2,30): warning CS0612: 'Class2' is obsolete
+    // using static CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "CrashTest.Class2").WithArguments("CrashTest.Class2").WithLocation(2, 30)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_04()
+        {
+            var text =
+@"
+using static CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        [System.Obsolete]
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (11,18): warning CS0612: 'Crash<T>.AbstractClass' is obsolete
+    //         where T: Crash<T>.AbstractClass 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Crash<T>.AbstractClass").WithArguments("CrashTest.Crash<T>.AbstractClass").WithLocation(11, 18),
+    // (6,20): warning CS0612: 'Crash<Class2>.AbstractClass' is obsolete
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "AbstractClass").WithArguments("CrashTest.Crash<CrashTest.Class2>.AbstractClass").WithLocation(6, 20)
+                );
+        }
+
+        [Fact, WorkItem(5697, "https://github.com/dotnet/roslyn/issues/5697")]
+        public void InheritThroughStaticImportOfGenericTypeWithConstraint_05()
+        {
+            var text =
+@"
+using CrashTest.Crash<CrashTest.Class2>; 
+
+namespace CrashTest 
+{ 
+    class Class2 : AbstractClass 
+    { 
+    } 
+
+    public static class Crash<T> 
+        where T: Crash<T>.AbstractClass 
+    { 
+        public abstract class AbstractClass 
+        { 
+            public int Id { get; set; } 
+        } 
+    } 
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+    // (2,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'Crash<Class2>' is a type not a namespace. Consider a 'using static' directive instead
+    // using CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.ERR_BadUsingNamespace, "CrashTest.Crash<CrashTest.Class2>").WithArguments("CrashTest.Crash<CrashTest.Class2>").WithLocation(2, 7),
+    // (6,20): error CS0246: The type or namespace name 'AbstractClass' could not be found (are you missing a using directive or an assembly reference?)
+    //     class Class2 : AbstractClass 
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "AbstractClass").WithArguments("AbstractClass").WithLocation(6, 20),
+    // (2,1): hidden CS8019: Unnecessary using directive.
+    // using CrashTest.Crash<CrashTest.Class2>; 
+    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using CrashTest.Crash<CrashTest.Class2>;").WithLocation(2, 1)
+                );
         }
     }
 }

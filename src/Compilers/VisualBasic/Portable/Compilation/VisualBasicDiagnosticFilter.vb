@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Applies Visual Basic-specific modification and filtering of <see cref="Diagnostic"/>s.
     ''' </summary>
     Friend Class VisualBasicDiagnosticFilter
-        Private Shared ReadOnly AlinkWarnings As ERRID() = {ERRID.WRN_ConflictingMachineAssembly,
+        Private Shared ReadOnly s_alinkWarnings As ERRID() = {ERRID.WRN_ConflictingMachineAssembly,
                                                             ERRID.WRN_RefCultureMismatch,
                                                             ERRID.WRN_InvalidVersionFormat}
 
@@ -35,7 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If diagnostic is not configurable, keep it as it is.
             If diagnostic.IsNotConfigurable Then
-                Return diagnostic
+                If diagnostic.IsEnabledByDefault Then
+                    ' Enabled NotConfigurable should always be reported as it is.
+                    Return diagnostic
+                Else
+                    ' Disabled NotConfigurable should never be reported.
+                    Return Nothing
+                End If
             End If
 
             ' In the native compiler, all warnings originating from alink.dll were issued
@@ -48,8 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We don't permit configuring 1607 and independently configuring the new warnings.
 
             Dim report As ReportDiagnostic
+            Dim hasSourceSuppression As Boolean = False
 
-            If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
+            If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
                 caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
                 diagnostic.IsEnabledByDefault,
@@ -57,15 +65,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostic.Location,
                 diagnostic.Category,
                 generalDiagnosticOption,
-                caseInsensitiveSpecificDiagnosticOptions)
+                caseInsensitiveSpecificDiagnosticOptions,
+                hasSourceSuppression)
             Else
-                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location, diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions)
+                report = GetDiagnosticReport(diagnostic.Severity, diagnostic.IsEnabledByDefault, diagnostic.Id, diagnostic.Location,
+                    diagnostic.Category, generalDiagnosticOption, caseInsensitiveSpecificDiagnosticOptions, hasSourceSuppression)
+            End If
+
+            If hasSourceSuppression Then
+                diagnostic = diagnostic.WithIsSuppressed(True)
             End If
 
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
-        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
+        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic), <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
+            hasDisableDirectiveSuppression = False
+
             ' Read options (e.g., /nowarn or /warnaserror)
             Dim report As ReportDiagnostic = ReportDiagnostic.Default
             Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)
@@ -80,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If location is available, check warning directive state.
             If location IsNot Nothing AndAlso location.SourceTree IsNot Nothing AndAlso
-           location.SourceTree.GetWarningState(id, location.SourceSpan.Start) = ReportDiagnostic.Suppress Then
-                Return ReportDiagnostic.Suppress
+                location.SourceTree.GetWarningState(id, location.SourceSpan.Start) = ReportDiagnostic.Suppress Then
+                hasDisableDirectiveSuppression = True
             End If
 
             ' check options (/nowarn)
@@ -105,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return report
-
         End Function
     End Class
 End Namespace

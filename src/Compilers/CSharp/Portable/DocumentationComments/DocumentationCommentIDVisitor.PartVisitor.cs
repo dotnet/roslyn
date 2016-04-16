@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static readonly PartVisitor Instance = new PartVisitor(inParameterOrReturnType: false);
 
             // Select callers within this type use this one.
-            private static readonly PartVisitor ParameterOrReturnTypeInstance = new PartVisitor(inParameterOrReturnType: true);
+            private static readonly PartVisitor s_parameterOrReturnTypeInstance = new PartVisitor(inParameterOrReturnType: true);
 
-            private readonly bool inParameterOrReturnType;
+            private readonly bool _inParameterOrReturnType;
 
             private PartVisitor(bool inParameterOrReturnType)
             {
-                this.inParameterOrReturnType = inParameterOrReturnType;
+                _inParameterOrReturnType = inParameterOrReturnType;
             }
 
             public override object VisitArrayType(ArrayTypeSymbol symbol, StringBuilder builder)
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(symbol.ElementType, builder);
 
                 // Rank-one arrays are displayed different than rectangular arrays
-                if (symbol.Rank == 1)
+                if (symbol.IsSZArray)
                 {
                     builder.Append("[]");
                 }
@@ -105,13 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Parameters.Any() || symbol.IsVararg)
                 {
-                    ParameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, symbol.IsVararg, builder);
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, symbol.IsVararg, builder);
                 }
 
                 if (symbol.MethodKind == MethodKind.Conversion)
                 {
                     builder.Append('~');
-                    ParameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder);
+                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder);
                 }
 
                 return null;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Parameters.Any())
                 {
-                    ParameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, false, builder);
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, false, builder);
                 }
 
                 return null;
@@ -146,8 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Is this a type parameter on a type?
                 Symbol containingSymbol = symbol.ContainingSymbol;
-                if (containingSymbol.Kind == SymbolKind.NamedType)
+                if (containingSymbol.Kind == SymbolKind.Method)
                 {
+                    builder.Append("``");
+                }
+                else 
+                {
+                    Debug.Assert(containingSymbol is NamedTypeSymbol);
+
                     // If the containing type is nested within other types, then we need to add their arities.
                     // e.g. A<T>.B<U>.M<V>(T t, U u, V v) should be M(`0, `1, ``0).
                     for (NamedTypeSymbol curr = containingSymbol.ContainingType; (object)curr != null; curr = curr.ContainingType)
@@ -155,14 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ordinalOffset += curr.Arity;
                     }
                     builder.Append('`');
-                }
-                else if (containingSymbol.Kind == SymbolKind.Method)
-                {
-                    builder.Append("``");
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(containingSymbol.Kind);
                 }
 
                 builder.Append(symbol.Ordinal + ordinalOffset);
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Special case: dev11 treats types instances of the declaring type in the parameter list
                     // (and return type, for conversions) as constructed with its own type parameters.
-                    if (!this.inParameterOrReturnType && symbol == symbol.ConstructedFrom)
+                    if (!_inParameterOrReturnType && symbol == symbol.ConstructedFrom)
                     {
                         builder.Append('`');
                         builder.Append(symbol.Arity);
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitParameter(ParameterSymbol symbol, StringBuilder builder)
             {
-                Debug.Assert(this.inParameterOrReturnType);
+                Debug.Assert(_inParameterOrReturnType);
 
                 Visit(symbol.Type, builder);
 

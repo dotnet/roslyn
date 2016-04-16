@@ -13,306 +13,311 @@ namespace Microsoft.CodeAnalysis
     internal class CommonAssemblyWellKnownAttributeData<TNamedTypeSymbol> : WellKnownAttributeData, ISecurityAttributeTarget
     {
         #region AssemblySignatureKeyAttributeSetting
-        private string assemblySignatureKeyAttributeSetting;
+        private string _assemblySignatureKeyAttributeSetting;
         public string AssemblySignatureKeyAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblySignatureKeyAttributeSetting;
+                return _assemblySignatureKeyAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblySignatureKeyAttributeSetting = value;
+                _assemblySignatureKeyAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyDelaySignAttributeSetting
-        private ThreeState assemblyDelaySignAttributeSetting;
+        private ThreeState _assemblyDelaySignAttributeSetting;
         public ThreeState AssemblyDelaySignAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyDelaySignAttributeSetting;
+                return _assemblyDelaySignAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyDelaySignAttributeSetting = value;
+                _assemblyDelaySignAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyKeyFileAttributeSetting
-        private string assemblyKeyFileAttributeSetting = StringMissingValue;
+        private string _assemblyKeyFileAttributeSetting = StringMissingValue;
         public string AssemblyKeyFileAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyKeyFileAttributeSetting;
+                return _assemblyKeyFileAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyKeyFileAttributeSetting = value;
+                _assemblyKeyFileAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyKeyContainerAttributeSetting
-        private string assemblyKeyContainerAttributeSetting = StringMissingValue;
+        private string _assemblyKeyContainerAttributeSetting = StringMissingValue;
         public string AssemblyKeyContainerAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyKeyContainerAttributeSetting;
+                return _assemblyKeyContainerAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyKeyContainerAttributeSetting = value;
+                _assemblyKeyContainerAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyVersionAttributeSetting
-        private Version assemblyVersionAttributeSetting;
+        private Version _assemblyVersionAttributeSetting;
+
+        /// <summary>
+        /// Raw assembly version as specified in the AssemblyVersionAttribute, or Nothing if none specified.
+        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
+        /// </summary>
         public Version AssemblyVersionAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyVersionAttributeSetting;
+                return _assemblyVersionAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyVersionAttributeSetting = value;
+                _assemblyVersionAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyFileVersionAttributeSetting
-        private string assemblyFileVersionAttributeSetting;
+        private string _assemblyFileVersionAttributeSetting;
         public string AssemblyFileVersionAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyFileVersionAttributeSetting;
+                return _assemblyFileVersionAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyFileVersionAttributeSetting = value;
+                _assemblyFileVersionAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyTitleAttributeSetting
-        private string assemblyTitleAttributeSetting;
+        private string _assemblyTitleAttributeSetting;
         public string AssemblyTitleAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyTitleAttributeSetting;
+                return _assemblyTitleAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyTitleAttributeSetting = value;
+                _assemblyTitleAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyDescriptionAttributeSetting
-        private string assemblyDescriptionAttributeSetting;
+        private string _assemblyDescriptionAttributeSetting;
         public string AssemblyDescriptionAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyDescriptionAttributeSetting;
+                return _assemblyDescriptionAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyDescriptionAttributeSetting = value;
+                _assemblyDescriptionAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyCultureAttributeSetting
-        private string assemblyCultureAttributeSetting;
+        private string _assemblyCultureAttributeSetting;
         public string AssemblyCultureAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyCultureAttributeSetting;
+                return _assemblyCultureAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyCultureAttributeSetting = value;
+                _assemblyCultureAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyCompanyAttributeSetting
-        private string assemblyCompanyAttributeSetting;
+        private string _assemblyCompanyAttributeSetting;
         public string AssemblyCompanyAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyCompanyAttributeSetting;
+                return _assemblyCompanyAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyCompanyAttributeSetting = value;
+                _assemblyCompanyAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyProductAttributeSetting
-        private string assemblyProductAttributeSetting;
+        private string _assemblyProductAttributeSetting;
         public string AssemblyProductAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyProductAttributeSetting;
+                return _assemblyProductAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyProductAttributeSetting = value;
+                _assemblyProductAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyInformationalVersionAttributeSetting
-        private string assemblyInformationalVersionAttributeSetting;
+        private string _assemblyInformationalVersionAttributeSetting;
         public string AssemblyInformationalVersionAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyInformationalVersionAttributeSetting;
+                return _assemblyInformationalVersionAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyInformationalVersionAttributeSetting = value;
+                _assemblyInformationalVersionAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyCopyrightAttributeSetting
-        private string assemblyCopyrightAttributeSetting;
+        private string _assemblyCopyrightAttributeSetting;
         public string AssemblyCopyrightAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyCopyrightAttributeSetting;
+                return _assemblyCopyrightAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyCopyrightAttributeSetting = value;
+                _assemblyCopyrightAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyTrademarkAttributeSetting
-        private string assemblyTrademarkAttributeSetting;
+        private string _assemblyTrademarkAttributeSetting;
         public string AssemblyTrademarkAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyTrademarkAttributeSetting;
+                return _assemblyTrademarkAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyTrademarkAttributeSetting = value;
+                _assemblyTrademarkAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyFlagsAttributeSetting
-        private AssemblyNameFlags assemblyFlagsAttributeSetting;
+        private AssemblyNameFlags _assemblyFlagsAttributeSetting;
         public AssemblyNameFlags AssemblyFlagsAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyFlagsAttributeSetting;
+                return _assemblyFlagsAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyFlagsAttributeSetting = value;
+                _assemblyFlagsAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region AssemblyAlgorithmIdAttribute
-        private AssemblyHashAlgorithm? assemblyAlgorithmIdAttributeSetting;
+        private AssemblyHashAlgorithm? _assemblyAlgorithmIdAttributeSetting;
         public AssemblyHashAlgorithm? AssemblyAlgorithmIdAttributeSetting
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.assemblyAlgorithmIdAttributeSetting;
+                return _assemblyAlgorithmIdAttributeSetting;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.assemblyAlgorithmIdAttributeSetting = value;
+                _assemblyAlgorithmIdAttributeSetting = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region CompilationRelaxationsAttribute
-        private bool hasCompilationRelaxationsAttribute;
+        private bool _hasCompilationRelaxationsAttribute;
         public bool HasCompilationRelaxationsAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasCompilationRelaxationsAttribute;
+                return _hasCompilationRelaxationsAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasCompilationRelaxationsAttribute = value;
+                _hasCompilationRelaxationsAttribute = value;
                 SetDataStored();
             }
         }
@@ -320,7 +325,7 @@ namespace Microsoft.CodeAnalysis
 
         #region RuntimeCompatibilityAttribute
 
-        private bool? runtimeCompatibilityWrapNonExceptionThrows;
+        private bool? _runtimeCompatibilityWrapNonExceptionThrows;
 
         // By default WrapNonExceptionThrows is considered to be true.
         internal const bool WrapNonExceptionThrowsDefault = true;
@@ -330,7 +335,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return runtimeCompatibilityWrapNonExceptionThrows.HasValue;
+                return _runtimeCompatibilityWrapNonExceptionThrows.HasValue;
             }
         }
 
@@ -340,12 +345,12 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: true);
 
-                return this.runtimeCompatibilityWrapNonExceptionThrows ?? WrapNonExceptionThrowsDefault;
+                return _runtimeCompatibilityWrapNonExceptionThrows ?? WrapNonExceptionThrowsDefault;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.runtimeCompatibilityWrapNonExceptionThrows = value;
+                _runtimeCompatibilityWrapNonExceptionThrows = value;
                 SetDataStored();
             }
         }
@@ -353,37 +358,37 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region DebuggableAttribute
-        private bool hasDebuggableAttribute;
+        private bool _hasDebuggableAttribute;
         public bool HasDebuggableAttribute
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.hasDebuggableAttribute;
+                return _hasDebuggableAttribute;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.hasDebuggableAttribute = value;
+                _hasDebuggableAttribute = value;
                 SetDataStored();
             }
         }
         #endregion
 
         #region Security Attributes
-        private SecurityWellKnownAttributeData lazySecurityAttributeData;
+        private SecurityWellKnownAttributeData _lazySecurityAttributeData;
 
         SecurityWellKnownAttributeData ISecurityAttributeTarget.GetOrCreateData()
         {
             VerifySealed(expected: false);
 
-            if (lazySecurityAttributeData == null)
+            if (_lazySecurityAttributeData == null)
             {
-                lazySecurityAttributeData = new SecurityWellKnownAttributeData();
+                _lazySecurityAttributeData = new SecurityWellKnownAttributeData();
                 SetDataStored();
             }
 
-            return lazySecurityAttributeData;
+            return _lazySecurityAttributeData;
         }
 
         /// <summary>
@@ -394,24 +399,24 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 VerifySealed(expected: true);
-                return lazySecurityAttributeData;
+                return _lazySecurityAttributeData;
             }
         }
         #endregion
 
         #region ForwardedTypes
 
-        private HashSet<TNamedTypeSymbol> forwardedTypes;
+        private HashSet<TNamedTypeSymbol> _forwardedTypes;
         public HashSet<TNamedTypeSymbol> ForwardedTypes
         {
             get
             {
-                return this.forwardedTypes;
+                return _forwardedTypes;
             }
             set
             {
                 VerifySealed(expected: false);
-                this.forwardedTypes = value;
+                _forwardedTypes = value;
                 SetDataStored();
             }
         }

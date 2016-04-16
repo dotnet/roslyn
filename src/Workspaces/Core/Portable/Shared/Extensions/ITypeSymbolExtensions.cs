@@ -290,7 +290,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        // Determine if "type" inherits from "baseType", ignoring constructed types, optionally including interfaces,
+        // dealing only with original types.
+        public static bool InheritsFromOrEquals(
+            this ITypeSymbol type, ITypeSymbol baseType, bool includeInterfaces)
+        {
+            if (!includeInterfaces)
+            {
+                return InheritsFromOrEquals(type, baseType);
+            }
+
+            return type.GetBaseTypesAndThis().Concat(type.AllInterfaces).Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
+        }
+
+        // Determine if "type" inherits from "baseType", ignoring constructed types and interfaces, dealing
         // only with original types.
         public static bool InheritsFromOrEquals(
             this ITypeSymbol type, ITypeSymbol baseType)
@@ -366,6 +379,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsFormattableString(this ITypeSymbol symbol)
+        {
+            return symbol?.MetadataName == "FormattableString"
+                && symbol.ContainingType == null
+                && symbol.ContainingNamespace?.Name == "System"
+                && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         public static ITypeSymbol RemoveUnavailableTypeParameters(
@@ -444,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
 
-        public static bool IsUnexpressableTypeParameterConstraint(this ITypeSymbol typeSymbol)
+        public static bool IsUnexpressibleTypeParameterConstraint(this ITypeSymbol typeSymbol)
         {
             if (typeSymbol.IsSealed || typeSymbol.IsValueType)
             {
@@ -570,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : shortName;
         }
 
-        private static bool IsSpecialType(this ITypeSymbol symbol)
+        public static bool IsSpecialType(this ITypeSymbol symbol)
         {
             if (symbol != null)
             {
@@ -599,11 +620,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol)
+        public static bool CanSupportCollectionInitializer(this ITypeSymbol typeSymbol, ISymbol within)
         {
             return
                 typeSymbol.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-                typeSymbol.GetMembers(WellKnownMemberNames.CollectionInitializerAddMethodName)
+                typeSymbol.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(within ?? typeSymbol).Where(s => s.Name == WellKnownMemberNames.CollectionInitializerAddMethodName)
                     .OfType<IMethodSymbol>()
                     .Any(m => m.Parameters.Any());
         }
@@ -769,12 +790,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (type != null)
             {
-                foreach (var baseType in type.GetBaseTypesAndThis())
+                switch (type.Kind)
                 {
-                    if (baseType.Equals(compilation.ExceptionType()))
-                    {
-                        return true;
-                    }
+                    case SymbolKind.NamedType:
+                        foreach (var baseType in type.GetBaseTypesAndThis())
+                        {
+                            if (baseType.Equals(compilation.ExceptionType()))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+
+                    case SymbolKind.TypeParameter:
+                        foreach (var constraint in ((ITypeParameterSymbol)type).ConstraintTypes)
+                        {
+                            if (constraint.IsOrDerivesFromExceptionType(compilation))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                 }
             }
 

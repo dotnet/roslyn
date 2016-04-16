@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>75883ee4-8cbc-499f-b15c-c55fe036108a</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ResultProvider</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\RootHiddenExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatter.TypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatter.Values.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DebuggerPlaceholders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsCustomTypeInfo_Factory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeAndCustomInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResultProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\AggregateExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\ArrayExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\DebuggerTypeProxyExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\DynamicViewExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\Expansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\MemberExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\NativeViewExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\PointerDereferenceExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\ResultsViewExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expansion\TypeVariablesExpansion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DebuggerDisplayInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DkmClrValueFlagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\DkmEvaluationResultFlagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\EnumContextDataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\EvalResultDataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\GeneratedMetadataNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HashFunctions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\InternalWellKnownMemberNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\MemberAndDeclarationInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RawStringDataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\ValueHelpers.cs" />
+  </ItemGroup>
+</Project>

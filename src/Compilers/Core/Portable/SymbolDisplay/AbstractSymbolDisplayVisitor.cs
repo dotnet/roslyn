@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly TSemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
-        private AbstractSymbolDisplayVisitor<TSemanticModel> lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor<TSemanticModel> _lazyNotFirstVisitor;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)
             {
-                lazyNotFirstVisitor = this;
+                _lazyNotFirstVisitor = this;
             }
         }
 
@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         {
             get
             {
-                if (lazyNotFirstVisitor == null)
+                if (_lazyNotFirstVisitor == null)
                 {
-                    lazyNotFirstVisitor = MakeNotFirstVisitor();
+                    _lazyNotFirstVisitor = MakeNotFirstVisitor();
                 }
 
-                return lazyNotFirstVisitor;
+                return _lazyNotFirstVisitor;
             }
         }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             var result = constantValueULong;
 
             // We will not optimize this code further to keep it maintainable. There are some
-            // boundary checks that can be applied to minimize the comparsions required. This code
+            // boundary checks that can be applied to minimize the comparisons required. This code
             // works the same for the best/worst case. In general the number of items in an enum are
             // sufficiently small and not worth the optimization.
             if (result != 0)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        private void GetSortedEnumFields(
+        private static void GetSortedEnumFields(
             INamedTypeSymbol enumType,
             ArrayBuilder<EnumField> enumFields)
         {

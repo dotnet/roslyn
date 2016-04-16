@@ -8,7 +8,7 @@ Imports PreprocessorState = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSy
 Imports Scanner = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Scanner
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class VisualBasicSyntaxTree
+    Public Partial Class VisualBasicSyntaxTree
         ''' <summary>
         ''' Map containing information about all conditional symbol definitions in the source file corresponding to a parsed syntax tree.
         ''' </summary>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '''            InternalSyntax.CConst: Constant value of the symbol.
             '''            Integer: Source position of the defining #Const directive.
             ''' </summary>
-            Private ReadOnly m_conditionalsMap As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
+            Private ReadOnly _conditionalsMap As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
 
             Friend Shared ReadOnly Uninitialized As ConditionalSymbolsMap = New ConditionalSymbolsMap()
             ' Only used by Uninitialized instance
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 Next
 #End If
-                Me.m_conditionalsMap = conditionalsMap
+                Me._conditionalsMap = conditionalsMap
             End Sub
 
 #Region "Build conditional symbols map"
@@ -59,23 +59,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Class ConditionalSymbolsMapBuilder
-                Private m_conditionalsMap As Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
-                Private m_preprocessorState As PreprocessorState
+                Private _conditionalsMap As Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
+                Private _preprocessorState As PreprocessorState
 
                 Friend Function Build(root As SyntaxNodeOrToken, options As VisualBasicParseOptions) As ImmutableDictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))
-                    Me.m_conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
+                    Me._conditionalsMap = New Dictionary(Of String, Stack(Of Tuple(Of InternalSyntax.CConst, Integer)))(IdentifierComparison.Comparer)
 
                     ' Process command line preprocessor symbol definitions.
                     Dim preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst) = Scanner.GetPreprocessorConstants(options)
                     Me.ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap)
-                    Me.m_preprocessorState = New PreprocessorState(preprocessorSymbolsMap)
+                    Me._preprocessorState = New PreprocessorState(preprocessorSymbolsMap)
 
                     ' Get and process source directives.
                     Dim directives As IEnumerable(Of DirectiveTriviaSyntax) = root.GetDirectives(Of DirectiveTriviaSyntax)()
                     Debug.Assert(directives IsNot Nothing)
                     ProcessSourceDirectives(directives)
 
-                    Return If(Me.m_conditionalsMap.Any(), ImmutableDictionary.CreateRange(IdentifierComparison.Comparer, Me.m_conditionalsMap), Nothing)
+                    Return If(Me._conditionalsMap.Any(), ImmutableDictionary.CreateRange(IdentifierComparison.Comparer, Me._conditionalsMap), Nothing)
                 End Function
 
                 Private Sub ProcessCommandLinePreprocessorSymbols(preprocessorSymbolsMap As ImmutableDictionary(Of String, InternalSyntax.CConst))
@@ -86,10 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private Sub ProcessConditionalSymbolDefinition(name As String, value As InternalSyntax.CConst, position As Integer)
                     Dim values As Stack(Of Tuple(Of InternalSyntax.CConst, Integer)) = Nothing
-                    If Not m_conditionalsMap.TryGetValue(name, values) Then
+                    If Not _conditionalsMap.TryGetValue(name, values) Then
                         ' First definition for this conditional symbol in this source file, create a new key-value pair.
                         values = New Stack(Of Tuple(Of InternalSyntax.CConst, Integer))
-                        m_conditionalsMap.Add(name, values)
+                        _conditionalsMap.Add(name, values)
                     End If
 
                     values.Push(Tuple.Create(value, position))
@@ -103,20 +103,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Process all active conditional directives under trivia, in source code order.
                 Private Sub ProcessDirective(directive As DirectiveTriviaSyntax)
-                    Debug.Assert(m_conditionalsMap IsNot Nothing)
+                    Debug.Assert(_conditionalsMap IsNot Nothing)
                     Debug.Assert(directive IsNot Nothing)
 
                     Select Case directive.Kind
                         Case SyntaxKind.ConstDirectiveTrivia
-                            Dim prevPreprocessorSymbols = m_preprocessorState.SymbolsMap
-                            m_preprocessorState = Scanner.ApplyDirective(m_preprocessorState, DirectCast(directive.Green(), InternalSyntax.DirectiveTriviaSyntax))
-                            Dim newPreprocessorSymbols = m_preprocessorState.SymbolsMap
+                            Dim prevPreprocessorSymbols = _preprocessorState.SymbolsMap
+                            _preprocessorState = Scanner.ApplyDirective(_preprocessorState, DirectCast(directive.Green(), InternalSyntax.DirectiveTriviaSyntax))
+                            Dim newPreprocessorSymbols = _preprocessorState.SymbolsMap
 
                             If Not prevPreprocessorSymbols Is newPreprocessorSymbols Then
                                 Dim name As String = DirectCast(directive, ConstDirectiveTriviaSyntax).Name.ValueText
 #If DEBUG Then
                                 Dim values As Stack(Of Tuple(Of InternalSyntax.CConst, Integer)) = Nothing
-                                If Not m_conditionalsMap.TryGetValue(name, values) Then
+                                If Not _conditionalsMap.TryGetValue(name, values) Then
                                     ' First definition for this conditional symbol in this source file, create a new key-value pair.
                                     Debug.Assert(Not prevPreprocessorSymbols.ContainsKey(name))
                                 Else
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ProcessConditionalSymbolDefinition(name, newPreprocessorSymbols(name), directive.SpanStart)
                             End If
                         Case Else
-                            m_preprocessorState = Scanner.ApplyDirective(m_preprocessorState, DirectCast(directive.Green(), InternalSyntax.DirectiveTriviaSyntax))
+                            _preprocessorState = Scanner.ApplyDirective(_preprocessorState, DirectCast(directive.Green(), InternalSyntax.DirectiveTriviaSyntax))
                     End Select
                 End Sub
             End Class
@@ -145,13 +145,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Get symbol name at preprocessor definition, i.e. #Const directive.
                 ' NOTE: symbolName and conditionalSymbolName might have different case, we want the definition name.
-                Dim symbolName = m_conditionalsMap.Keys.First(Function(key) IdentifierComparison.Equals(key, conditionalSymbolName))
+                Dim symbolName = _conditionalsMap.Keys.First(Function(key) IdentifierComparison.Equals(key, conditionalSymbolName))
                 Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(name:=symbolName), constantValueOpt:=constValue.ValueAsObject, isDefined:=True)
             End Function
 
             Private Function GetPreprocessorSymbolValue(conditionalSymbolName As String, node As SyntaxNodeOrToken) As InternalSyntax.CConst
                 Dim values As Stack(Of Tuple(Of InternalSyntax.CConst, Integer)) = Nothing
-                If m_conditionalsMap.TryGetValue(conditionalSymbolName, values) Then
+                If _conditionalsMap.TryGetValue(conditionalSymbolName, values) Then
                     ' All the defining #Const directives for a conditional symbol are pushed onto the stack in source code order.
                     ' Get the first entry from the top end of the stack with source position less then the source position of 'node'.
                     ' If there is none, then the given conditional symbol is undefined at 'node'

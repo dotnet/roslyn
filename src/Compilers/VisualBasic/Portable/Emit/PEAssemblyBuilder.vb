@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEModuleBuilder
         Implements Cci.IAssembly
 
-        Private ReadOnly m_SourceAssembly As SourceAssemblySymbol
-        Private ReadOnly m_AdditionalTypes As ImmutableArray(Of NamedTypeSymbol)
-        Private m_LazyFiles As ImmutableArray(Of Cci.IFileReference)
+        Protected ReadOnly m_SourceAssembly As SourceAssemblySymbol
+        Private ReadOnly _additionalTypes As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyFiles As ImmutableArray(Of Cci.IFileReference)
 
         ''' <summary>
         ''' This value will override m_SourceModule.MetadataName.
@@ -22,29 +22,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' This functionality exists for parity with C#, which requires it for
         ''' legacy reasons (see Microsoft.CodeAnalysis.CSharp.Emit.PEAssemblyBuilderBase.metadataName).
         ''' </remarks>
-        Private ReadOnly m_MetadataName As String
+        Private ReadOnly _metadataName As String
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
                        additionalTypes As ImmutableArray(Of NamedTypeSymbol))
 
             MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
                        emitOptions,
                        outputKind,
                        serializationProperties,
-                       manifestResources,
-                       assemblySymbolMapper)
+                       manifestResources)
 
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
 
             Me.m_SourceAssembly = sourceAssembly
-            Me.m_AdditionalTypes = additionalTypes.NullToEmpty()
-            Me.m_MetadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
+            Me._additionalTypes = additionalTypes.NullToEmpty()
+            Me._metadataName = If(emitOptions.OutputNameOverride Is Nothing, sourceAssembly.MetadataName, FileNameUtilities.ChangeExtension(emitOptions.OutputNameOverride, extension:=Nothing))
             m_AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, Me)
         End Sub
 
@@ -53,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Friend Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
-            Return Me.m_AdditionalTypes
+            Return Me._additionalTypes
         End Function
 
         Private Function IAssemblyGetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference) Implements Cci.IAssembly.GetFiles
-            If m_LazyFiles.IsDefault Then
+            If _lazyFiles.IsDefault Then
                 Dim builder = ArrayBuilder(Of Cci.IFileReference).GetInstance()
                 Try
                     Dim modules = m_SourceAssembly.Modules
@@ -73,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Next
 
                     ' Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                    If ImmutableInterlocked.InterlockedInitialize(m_LazyFiles, builder.ToImmutable()) AndAlso m_LazyFiles.Length > 0 Then
+                    If ImmutableInterlocked.InterlockedInitialize(_lazyFiles, builder.ToImmutable()) AndAlso _lazyFiles.Length > 0 Then
                         If Not CryptographicHashProvider.IsSupportedAlgorithm(m_SourceAssembly.AssemblyHashAlgorithm) Then
                             context.Diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_CryptoHashFailed), NoLocation.Singleton))
                         End If
@@ -84,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Try
             End If
 
-            Return m_LazyFiles
+            Return _lazyFiles
         End Function
 
         Private Shared Function Free(builder As ArrayBuilder(Of Cci.IFileReference)) As Boolean
@@ -137,39 +135,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Sub
 
-        Private ReadOnly Property IAssemblyReferenceCulture As String Implements Cci.IAssemblyReference.Culture
+        Private ReadOnly Property Identity As AssemblyIdentity Implements Cci.IAssemblyReference.Identity
             Get
-                Return m_SourceAssembly.Identity.CultureName
+                Return m_SourceAssembly.Identity
             End Get
         End Property
 
-        Private ReadOnly Property IAssemblyReferenceIsRetargetable As Boolean Implements Cci.IAssemblyReference.IsRetargetable
+        Private ReadOnly Property AssemblyVersionPattern As Version Implements Cci.IAssemblyReference.AssemblyVersionPattern
             Get
-                Return m_SourceAssembly.Identity.IsRetargetable
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceContentType As AssemblyContentType Implements Cci.IAssemblyReference.ContentType
-            Get
-                Return m_SourceAssembly.Identity.ContentType
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferencePublicKeyToken As ImmutableArray(Of Byte) Implements Cci.IAssemblyReference.PublicKeyToken
-            Get
-                Return m_SourceAssembly.Identity.PublicKeyToken
-            End Get
-        End Property
-
-        Private ReadOnly Property IAssemblyReferenceVersion As Version Implements Cci.IAssemblyReference.Version
-            Get
-                Return m_SourceAssembly.Identity.Version
+                Return m_SourceAssembly.AssemblyVersionPattern
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Name As String
             Get
-                Return m_MetadataName
+                Return _metadataName
             End Get
         End Property
 
@@ -186,12 +166,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing,
                        Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing)
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes)
         End Sub
 
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
@@ -206,5 +185,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
     End Class
-
 End Namespace

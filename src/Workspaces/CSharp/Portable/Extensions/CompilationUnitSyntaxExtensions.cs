@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
         {
-            var usingDirectiveAncsestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if ((usingDirectiveAncsestor != null) && (usingDirectiveAncsestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
+            var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
+            if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
             {
                 // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
                 return false;

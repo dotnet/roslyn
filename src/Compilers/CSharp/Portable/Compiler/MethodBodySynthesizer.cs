@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RuntimeMembers;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Contains methods related to synthesizing bound nodes in initial binding 
     /// form that needs lowering, primarily method bodies for compiler-generated methods.
     /// </summary>
-    internal static partial class MethodBodySynthesizer
+    internal static class MethodBodySynthesizer
     {
         internal static ImmutableArray<BoundStatement> ConstructScriptConstructorBody(
             BoundStatement loweredBody,
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundExpressionStatement(syntax,
                     new BoundCall(syntax,
                         receiverOpt: receiver,
-                        method: objectType.InstanceConstructors.First(),
+                        method: objectType.InstanceConstructors[0],
                         arguments: ImmutableArray<BoundExpression>.Empty,
                         argumentNamesOpt: ImmutableArray<string>.Empty,
                         argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
@@ -52,35 +48,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: ImmutableArray<int>.Empty,
                         resultKind: LookupResultKind.Viable,
                         type: objectType)
-            { WasCompilerGenerated = true })
-            { WasCompilerGenerated = true };
+                    { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true };
 
-            var boundStatements = ImmutableArray.Create(baseConstructorCall);
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            statements.Add(baseConstructorCall);
 
             if (constructor.IsSubmissionConstructor)
             {
                 // submission initialization:
-                var submissionInitStatements = MakeSubmissionInitialization(syntax, constructor, previousSubmissionFields, compilation);
-                boundStatements = boundStatements.Concat(submissionInitStatements);
+                MakeSubmissionInitialization(statements, syntax, constructor, previousSubmissionFields, compilation);
             }
 
-            return boundStatements.Concat(ImmutableArray.Create(loweredBody));
+            statements.Add(loweredBody);
+            return statements.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Generates a submission initialization part of a Script type constructor that represents an interactive submission.
         /// </summary>
         /// <remarks>
-        /// The constructor takes a parameter of type Roslyn.Scripting.Session - the session reference.
+        /// The constructor takes a parameter of type Microsoft.CodeAnalysis.Scripting.Session - the session reference.
         /// It adds the object being constructed into the session by calling Microsoft.CSharp.RuntimeHelpers.SessionHelpers.SetSubmission,
         /// and retrieves strongly typed references on all previous submission script classes whose members are referenced by this submission.
         /// The references are stored to fields of the submission (<paramref name="synthesizedFields"/>).
         /// </remarks>
-        private static ImmutableArray<BoundStatement> MakeSubmissionInitialization(CSharpSyntaxNode syntax, MethodSymbol submissionConstructor, SynthesizedSubmissionFields synthesizedFields, CSharpCompilation compilation)
+        private static void MakeSubmissionInitialization(
+            ArrayBuilder<BoundStatement> statements,
+            CSharpSyntaxNode syntax,
+            MethodSymbol submissionConstructor,
+            SynthesizedSubmissionFields synthesizedFields,
+            CSharpCompilation compilation)
         {
-            Debug.Assert(submissionConstructor.ParameterCount == 2);
-
-            var statements = new List<BoundStatement>(2 + synthesizedFields.Count);
+            Debug.Assert(submissionConstructor.ParameterCount == 1);
 
             var submissionArrayReference = new BoundParameter(syntax, submissionConstructor.Parameters[0]) { WasCompilerGenerated = true };
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundConversion.Synthesized(syntax,
                                 new BoundArrayAccess(syntax,
                                     submissionArrayReference,
-                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(0), intType) { WasCompilerGenerated = true } ),
+                                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(0), intType) { WasCompilerGenerated = true }),
                                     objectType),
                                 Conversion.ExplicitReference,
                                 false,
@@ -157,8 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         { WasCompilerGenerated = true })
                     { WasCompilerGenerated = true });
             }
-
-            return statements.AsImmutableOrNull();
         }
 
         /// <summary>
@@ -196,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldAccess,
                         new BoundParameter(syntax, parameter) { WasCompilerGenerated = true },
                         property.Type)
-                { WasCompilerGenerated = true })
+                    { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
             }
 
@@ -288,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // value
             BoundParameter parameterAccess = new BoundParameter(
                 syntax,
-                accessor.Parameters.Single());
+                accessor.Parameters[0]);
 
             // EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).AddHandler(value) // or RemoveHandler
             BoundCall processHandlerCall = BoundCall.Synthesized(
@@ -356,8 +354,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(updateMethodId);
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember,
-                                                                      memberDescriptor.DeclaringTypeMetadataName, 
-                                                                      memberDescriptor.Name), 
+                                                                      memberDescriptor.DeclaringTypeMetadataName,
+                                                                      memberDescriptor.Name),
                                                                       syntax.Location));
 
                 return new BoundBlock(syntax,
@@ -437,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[0],
                     right: boundBackingField,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // LOOP:
@@ -451,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[1],
                     right: boundTmps[0],
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // (DelegateType)Delegate.Combine(tmp1, value)
@@ -469,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[2],
                     right: delegateUpdate,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1)
@@ -484,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     left: boundTmps[0],
                     right: compareExchange,
                     type: delegateType)
-            { WasCompilerGenerated = true })
+                { WasCompilerGenerated = true })
             { WasCompilerGenerated = true };
 
             // tmp0 == tmp1 // i.e. exit when they are equal, jump to start otherwise
@@ -497,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };
-            
+
             // branchfalse (tmp0 == tmp1) LOOP
             BoundStatement loopEnd = new BoundConditionalGoto(syntax,
                 condition: loopExitCondition,
@@ -516,11 +514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loopEnd,
                     @return))
             { WasCompilerGenerated = true };
-
         }
 
-        internal static BoundBlock ConstructDestructorBody(CSharpSyntaxNode syntax, MethodSymbol method, BoundBlock block)
+        internal static BoundBlock ConstructDestructorBody(MethodSymbol method, BoundBlock block)
         {
+            var syntax = block.Syntax;
+
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
             Debug.Assert(syntax.Kind() == SyntaxKind.Block);
 
@@ -540,10 +539,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new BoundBaseReference(
                                 syntax,
                                 method.ContainingType)
-                { WasCompilerGenerated = true },
+                            { WasCompilerGenerated = true },
                             baseTypeFinalize)
                         )
-                { WasCompilerGenerated = true },
+                    { WasCompilerGenerated = true },
                     ((BlockSyntax)syntax).CloseBraceToken.Span);
 
                 return new BoundBlock(
@@ -560,9 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )
-                { WasCompilerGenerated = true }
+                            { WasCompilerGenerated = true }
                         )
-                { WasCompilerGenerated = true }));
+                        { WasCompilerGenerated = true }));
             }
 
             return block;

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class NamedTypeBinder
         Inherits Binder
 
-        Private ReadOnly m_typeSymbol As NamedTypeSymbol
+        Private ReadOnly _typeSymbol As NamedTypeSymbol
 
         Public Sub New(containingBinder As Binder, typeSymbol As NamedTypeSymbol)
             MyBase.New(containingBinder)
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The constraints apply during normal binding, but not in the expression compiler.
             '   Debug.Assert(Not (TypeOf typeSymbol Is Symbols.Metadata.PE.PENamedTypeSymbol))
             '   Debug.Assert(typeSymbol.IsFromCompilation(Me.Compilation))
-            m_typeSymbol = typeSymbol
+            _typeSymbol = typeSymbol
         End Sub
 
         ''' <summary>
@@ -37,18 +37,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetBinder(node As VisualBasicSyntaxNode) As Binder
             ' TODO (tomat): this is a temporary workaround, we need a special script class binder
             ' Return Me so that identifiers in top-level statements bind to the members of the script class.
-            Return If(m_typeSymbol.IsScriptClass, Me, m_containingBinder.GetBinder(node))
+            Return If(_typeSymbol.IsScriptClass, Me, m_containingBinder.GetBinder(node))
         End Function
 
         Public Overrides Function GetBinder(stmtList As SyntaxList(Of StatementSyntax)) As Binder
             ' TODO (tomat): this is a temporary workaround, we need a special script class binder
             ' Return Me so that identifiers in top-level statements bind to the members of the script class.
-            Return If(m_typeSymbol.IsScriptClass, Me, m_containingBinder.GetBinder(stmtList))
+            Return If(_typeSymbol.IsScriptClass, Me, m_containingBinder.GetBinder(stmtList))
         End Function
 
         Public Overrides ReadOnly Property ContainingNamespaceOrType As NamespaceOrTypeSymbol
             Get
-                Return m_typeSymbol
+                Return _typeSymbol
             End Get
         End Property
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(lookupResult.IsClear)
 
             ' 1. look for members. This call automatically gets members of base types.
-            originalBinder.LookupMember(lookupResult, m_typeSymbol, name, arity, options, useSiteDiagnostics)
+            originalBinder.LookupMember(lookupResult, _typeSymbol, name, arity, options, useSiteDiagnostics)
             If lookupResult.StopFurtherLookup Then
                 Return ' short cut result
             End If
@@ -96,13 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       methods As ArrayBuilder(Of MethodSymbol),
                                                                       originalBinder As Binder)
             Debug.Assert(methods.Count = 0)
-            m_typeSymbol.AppendProbableExtensionMethods(name, methods)
+            _typeSymbol.AppendProbableExtensionMethods(name, methods)
         End Sub
 
         Protected Overrides Sub AddExtensionMethodLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                                    options As LookupOptions,
                                                                                    originalBinder As Binder)
-            m_typeSymbol.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder)
+            _typeSymbol.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder)
         End Sub
 
         Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
@@ -110,8 +110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     originalBinder As Binder)
             ' 1. Add all type parameters.
             ' UNDONE: filter using options.
-            If m_typeSymbol.Arity > 0 Then
-                For Each tp In m_typeSymbol.TypeParameters
+            If _typeSymbol.Arity > 0 Then
+                For Each tp In _typeSymbol.TypeParameters
                     If originalBinder.CanAddLookupSymbolInfo(tp, options, Nothing) Then
                         nameSet.AddSymbol(tp, tp.Name, 0)
                     End If
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' 2. Add member names on the type.
-            originalBinder.AddMemberLookupSymbolsInfo(nameSet, m_typeSymbol, options)
+            originalBinder.AddMemberLookupSymbolsInfo(nameSet, _typeSymbol, options)
         End Sub
 
         ' Look in all type parameters of the given name in the instance type.
@@ -133,8 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(name IsNot Nothing)
             Debug.Assert(lookupResult.IsClear)
 
-            If m_typeSymbol.Arity > 0 Then
-                For Each tp In m_typeSymbol.TypeParameters
+            If _typeSymbol.Arity > 0 Then
+                For Each tp In _typeSymbol.TypeParameters
                     If IdentifierComparison.Equals(tp.Name, name) Then
                         lookupResult.SetFrom(originalBinder.CheckViability(tp, arity, options, Nothing, useSiteDiagnostics))
                     End If
@@ -150,18 +150,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
             Return If(IgnoresAccessibility,
                 AccessCheckResult.Accessible,
-                AccessCheck.CheckSymbolAccessibility(sym, m_typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved))
+                AccessCheck.CheckSymbolAccessibility(sym, _typeSymbol, accessThroughType, useSiteDiagnostics, basesBeingResolved))
         End Function
 
         Public Overrides ReadOnly Property ContainingType As NamedTypeSymbol
             Get
-                Return m_typeSymbol
+                Return _typeSymbol
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
             Get
-                Return m_typeSymbol
+                Return _typeSymbol
             End Get
         End Property
 

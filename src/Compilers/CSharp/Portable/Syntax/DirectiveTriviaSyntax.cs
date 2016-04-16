@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return ((PragmaChecksumDirectiveTriviaSyntax)this).PragmaKeyword;
                     case SyntaxKind.ReferenceDirectiveTrivia:
                         return ((ReferenceDirectiveTriviaSyntax)this).ReferenceKeyword;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        return ((LoadDirectiveTriviaSyntax)this).LoadKeyword;
+                    case SyntaxKind.ShebangDirectiveTrivia:
+                        return ((ShebangDirectiveTriviaSyntax)this).ExclamationToken;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.Kind());
                 }
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                token = token.GetNextToken(hasDirectivesFunction);
+                token = token.GetNextToken(s_hasDirectivesFunction);
             }
 
             return null;
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                token = token.GetPreviousToken(hasDirectivesFunction);
+                token = token.GetPreviousToken(s_hasDirectivesFunction);
             }
 
             return null;
@@ -164,10 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     break;
                 case SyntaxKind.ElifDirectiveTrivia:
+                    d = d.GetNextPossiblyRelatedDirective();
+
                     while (d != null)
                     {
                         switch (d.Kind())
                         {
+                            case SyntaxKind.ElifDirectiveTrivia:
                             case SyntaxKind.ElseDirectiveTrivia:
                             case SyntaxKind.EndIfDirectiveTrivia:
                                 return d;
@@ -261,11 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     break;
                 case SyntaxKind.ElifDirectiveTrivia:
+                    d = d.GetPreviousPossiblyRelatedDirective();
+
                     while (d != null)
                     {
-                        if (d.Kind() == SyntaxKind.IfDirectiveTrivia)
+                        switch (d.Kind())
                         {
-                            return d;
+                            case SyntaxKind.IfDirectiveTrivia:
+                            case SyntaxKind.ElifDirectiveTrivia:
+                                return d;
                         }
 
                         d = d.GetPreviousPossiblyRelatedDirective();
@@ -337,6 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        private static readonly Func<SyntaxToken, bool> hasDirectivesFunction = t => t.ContainsDirectives;
+        private static readonly Func<SyntaxToken, bool> s_hasDirectivesFunction = t => t.ContainsDirectives;
     }
 }

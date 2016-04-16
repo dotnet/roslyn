@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly MethodSymbol BaseMethod;
         protected TypeMap TypeMap { get; private set; }
 
-        private readonly string name;
-        private ImmutableArray<TypeParameterSymbol> typeParameters;
-        private ImmutableArray<ParameterSymbol> parameters;
+        private readonly string _name;
+        private ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private ImmutableArray<ParameterSymbol> _parameters;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)baseMethod != null);
 
             this.BaseMethod = baseMethod;
-            this.name = name;
+            _name = name;
 
             this.MakeFlags(
                 methodKind: MethodKind.Ordinary,
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(typeMap != null);
             Debug.Assert(this.TypeMap == null);
             Debug.Assert(!typeParameters.IsDefault);
-            Debug.Assert(this.typeParameters.IsDefault);
+            Debug.Assert(_typeParameters.IsDefault);
             this.TypeMap = typeMap;
-            this.typeParameters = typeParameters;
+            _typeParameters = typeParameters;
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return typeParameters; }
+            get { return _typeParameters; }
         }
 
         internal override int ParameterCount
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (parameters.IsDefault)
+                if (_parameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref parameters, MakeParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _parameters, MakeParameters(), default(ImmutableArray<ParameterSymbol>));
                 }
-                return parameters;
+                return _parameters;
             }
         }
 
@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type), ordinal++, p.RefKind, p.Name));
+                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
             }
             return builder.ToImmutableAndFree();
         }
 
         public sealed override TypeSymbol ReturnType
         {
-            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType); }
+            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }
         }
 
         public sealed override bool IsVararg
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         public sealed override bool IsImplicitlyDeclared

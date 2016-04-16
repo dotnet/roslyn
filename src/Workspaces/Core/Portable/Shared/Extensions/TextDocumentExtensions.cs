@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TextDocument WithAdditionalDocumentText(this TextDocument textDocument, SourceText text)
         {
             Contract.ThrowIfTrue(textDocument is Document);
-            return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetDocument(textDocument.Id);
+            return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
         }
     }
 }

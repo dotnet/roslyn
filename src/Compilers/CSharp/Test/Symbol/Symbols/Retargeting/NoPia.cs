@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.vb
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\Pia1.dll
         /// </summary>
-        private static string SourcePia1 =
+        private static readonly string s_sourcePia1 =
 @"
 using System;
 using System.Reflection;
@@ -58,7 +58,7 @@ namespace NS1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.dll
         /// </summary>
-        private static string SourceLocalTypes1_IL =
+        private static readonly string s_sourceLocalTypes1_IL =
 @"
 using System;
 using System.Runtime.CompilerServices;
@@ -91,7 +91,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes1.vb
         /// </summary>
-        private static string SourceLocalTypes1 =
+        private static readonly string s_sourceLocalTypes1 =
 @"
 using NS1;
 
@@ -106,7 +106,7 @@ public class LocalTypes1
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.dll
         /// </summary>
-        private static string SourceLocalTypes2_IL =
+        private static readonly string s_sourceLocalTypes2_IL =
 @"
 using NS1;
 using System;
@@ -139,7 +139,7 @@ namespace NS1
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes2.vb
         /// </summary>
-        private static string SourceLocalTypes2 =
+        private static readonly string s_sourceLocalTypes2 =
 @"
 using NS1;
 
@@ -154,7 +154,7 @@ public class LocalTypes2
         /// <summary>
         /// Disassembly of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.dll
         /// </summary>
-        private static string SourceLocalTypes3_IL =
+        private static readonly string s_sourceLocalTypes3_IL =
 @"
 using System;
 using System.Reflection;
@@ -219,7 +219,7 @@ public class LocalTypes3
         /// <summary>
         /// Translation of Roslyn\Main\Open\Compilers\Test\Resources\Core\SymbolsTests\NoPia\LocalTypes3.vb
         /// </summary>
-        private static string SourceLocalTypes3 =
+        private static readonly string s_sourceLocalTypes3 =
 @"
 using System;
 using System.Collections.Generic;
@@ -272,13 +272,13 @@ public class LocalTypes3
 }
 ";
 
-        [Fact]
+        [ClrOnlyFact]
         public void HideLocalTypeDefinitions()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
@@ -341,13 +341,13 @@ public class LocalTypes3
             Assert.Null(assemblies[1].GetTypeByMetadataName(fullName_S2.FullName));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_1()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
@@ -638,14 +638,14 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_2()
         {
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes2);
 
@@ -937,17 +937,17 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LocalTypeSubstitution1_3()
         {
-            var Pia1 = CreateCompilationWithMscorlib(SourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilationWithMscorlib(SourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilationWithMscorlib(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes2);
 
@@ -1239,14 +1239,14 @@ public class LocalTypes3
             GC.KeepAlive(library1_9);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_1()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
             var localTypes1Ref = new CSharpCompilationReference(LocalTypes1);
@@ -1264,14 +1264,14 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_2()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1290,18 +1290,18 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CyclicReference_3()
         {
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
 
-            var Pia1 = CreateCompilationWithMscorlib(SourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
             var piaRef = new CSharpCompilationReference(Pia1);
 
-            var LocalTypes1 = CreateCompilationWithMscorlib(SourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilationWithMscorlib(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1320,10 +1320,10 @@ public class LocalTypes3
             GC.KeepAlive(tc2);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_1()
         {
-            var LocalTypes3 = CreateCompilationWithMscorlib(SourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
+            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
             CompileAndVerify(LocalTypes3);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
@@ -1366,10 +1366,10 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
-            var LocalTypes3 = CreateCompilationWithMscorlib(SourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes3);
 
@@ -1413,13 +1413,13 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_3()
         {
-            var Pia1 = CreateCompilationWithMscorlib(SourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilationWithMscorlib(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
-            var LocalTypes3 = CreateCompilationWithMscorlib(SourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilationWithMscorlib(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes3);
 
@@ -1463,7 +1463,7 @@ public class LocalTypes3
             Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType1()
         {
             string source =
@@ -1589,7 +1589,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType2()
         {
             string source =
@@ -1714,7 +1714,7 @@ public struct S1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType3()
         {
             string source =
@@ -1839,7 +1839,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NestedType4()
         {
             string piaSource =
@@ -1921,7 +1921,7 @@ interface AttrTest1
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void GenericType1()
         {
             string source =
@@ -2047,7 +2047,8 @@ public struct S2<T>
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
         }
 
-        [Fact, WorkItem(685240, "DevDiv")]
+        [ClrOnlyFact]
+        [WorkItem(685240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685240")]
         public void Bug685240()
         {
             string piaSource = @"
@@ -2102,7 +2103,7 @@ public class Consumer
                 references: new[] { new CSharpCompilationReference(multiModule),
                                     new CSharpCompilationReference(pia1)});
 
-            CompileAndVerify(consumer, emitOptions: TestEmitters.RefEmitBug);
+            CompileAndVerify(consumer);
         }
     }
 }

@@ -21,19 +21,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 2. BC30070: Next control variable does not match For loop control variable '{0}'.
         ''' </summary>
         Public Shared Sub VerifyForLoops(block As BoundBlock, diagnostics As DiagnosticBag)
-            Dim verifier As New ForLoopVerificationWalker(diagnostics)
-            verifier.Visit(block)
+            Try
+                Dim verifier As New ForLoopVerificationWalker(diagnostics)
+                verifier.Visit(block)
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
         End Sub
 
-        Private Class ForLoopVerificationWalker
-            Inherits BoundTreeWalker
+        Private NotInheritable Class ForLoopVerificationWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
-            Private m_diagnostics As DiagnosticBag
-            Private m_controlVariables As Stack(Of BoundExpression)
+            Private ReadOnly _diagnostics As DiagnosticBag
+            Private ReadOnly _controlVariables As Stack(Of BoundExpression)
 
             Public Sub New(diagnostics As DiagnosticBag)
-                m_diagnostics = diagnostics
-                m_controlVariables = New Stack(Of BoundExpression)
+                _diagnostics = diagnostics
+                _controlVariables = New Stack(Of BoundExpression)
             End Sub
 
             Public Overrides Function VisitForToStatement(node As BoundForToStatement) As BoundNode
@@ -69,9 +73,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Symbol may be Nothing for BadExpression.
                 If controlVariableSymbol IsNot Nothing Then
-                    For Each boundVariable In m_controlVariables
+                    For Each boundVariable In _controlVariables
                         If ForLoopVerification.ReferencedSymbol(boundVariable) = controlVariableSymbol Then
-                            m_diagnostics.Add(ERRID.ERR_ForIndexInUse1,
+                            _diagnostics.Add(ERRID.ERR_ForIndexInUse1,
                                               controlVariable.Syntax.GetLocation(),
                                               CustomSymbolDisplayFormatter.ShortErrorName(controlVariableSymbol))
                             Exit For
@@ -79,28 +83,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                m_controlVariables.Push(controlVariable)
+                _controlVariables.Push(controlVariable)
             End Sub
-
-            Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
-                Dim rightOperands = ArrayBuilder(Of BoundExpression).GetInstance()
-
-                Dim current As BoundExpression = node
-                While current.Kind = BoundKind.BinaryOperator
-                    Dim binary = DirectCast(current, BoundBinaryOperator)
-                    rightOperands.Push(binary.Right)
-                    current = binary.Left
-                End While
-
-                Me.Visit(current)
-
-                While rightOperands.Count > 0
-                    Me.Visit(rightOperands.Pop())
-                End While
-
-                rightOperands.Free()
-                Return Nothing
-            End Function
 
             ''' <summary>
             ''' Checks if the control variables from the next statement match the control variable of the enclosing 
@@ -113,19 +97,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' if it's empty we just have to adjust the index for one variable
                     If boundForStatement.NextVariablesOpt.IsEmpty Then
-                        m_controlVariables.Pop()
+                        _controlVariables.Pop()
                     Else
                         For Each nextVariable In boundForStatement.NextVariablesOpt
                             ' m_controlVariables will not contain too much or too few elements because 
                             ' 1. parser will fill up with missing next statements
                             ' 2. binding will not bind spare control variables (see binding of next statement 
                             '    in BindForBlockParts)
-                            Dim controlVariable = m_controlVariables.Pop()
+                            Dim controlVariable = _controlVariables.Pop()
 
                             If Not controlVariable.HasErrors AndAlso
                                 Not nextVariable.HasErrors AndAlso
                                 ForLoopVerification.ReferencedSymbol(nextVariable) <> ForLoopVerification.ReferencedSymbol(controlVariable) Then
-                                m_diagnostics.Add(ERRID.ERR_NextForMismatch1,
+                                _diagnostics.Add(ERRID.ERR_NextForMismatch1,
                                                   nextVariable.Syntax.GetLocation(),
                                                   CustomSymbolDisplayFormatter.ShortErrorName(ForLoopVerification.ReferencedSymbol(controlVariable)))
                             End If

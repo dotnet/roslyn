@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected const int TokenPairIndexNotNeeded = int.MinValue;
 
-        private readonly OptionSet optionSet;
-        private readonly string language;
+        private readonly OptionSet _optionSet;
+        private readonly string _language;
 
         protected TriviaData(OptionSet optionSet, string language)
         {
             Contract.ThrowIfNull(optionSet);
-            this.optionSet = optionSet;
-            this.language = language;
+            _optionSet = optionSet;
+            _language = language;
         }
 
-        protected OptionSet OptionSet { get { return this.optionSet; } }
-        protected string Language { get { return this.language; } }
+        protected OptionSet OptionSet { get { return _optionSet; } }
+        protected string Language { get { return _language; } }
 
         public int LineBreaks { get; protected set; }
         public int Spaces { get; protected set; }

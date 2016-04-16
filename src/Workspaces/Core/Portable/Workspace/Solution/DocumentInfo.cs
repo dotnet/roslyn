@@ -16,37 +16,37 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Id of the document.
         /// </summary>
-        public DocumentId Id { get; private set; }
+        public DocumentId Id { get; }
 
         /// <summary>
         /// The name of the document.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// The names of the logical nested folders the document is contained in.
         /// </summary>
-        public IReadOnlyList<string> Folders { get; private set; }
+        public IReadOnlyList<string> Folders { get; }
 
         /// <summary>
         /// The kind of the source code.
         /// </summary>
-        public SourceCodeKind SourceCodeKind { get; private set; }
+        public SourceCodeKind SourceCodeKind { get; }
 
         /// <summary>
         /// The file path of the document.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         /// <summary>
         /// A loader that can retrieve the document text.
         /// </summary>
-        public TextLoader TextLoader { get; private set; }
+        public TextLoader TextLoader { get; }
 
         /// <summary>
         /// True if the document is a side effect of the build.
         /// </summary>
-        public bool IsGenerated { get; private set; }
+        public bool IsGenerated { get; }
 
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             this.Id = id;
@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis
             this.SourceCodeKind = sourceCodeKind;
             this.TextLoader = loader;
             this.FilePath = filePath;
+            this.IsGenerated = isGenerated;
         }
 
         public static DocumentInfo Create(

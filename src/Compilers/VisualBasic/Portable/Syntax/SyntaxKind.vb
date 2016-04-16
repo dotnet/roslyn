@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         NamedFieldInitializer = 128               ' NamedFieldInitializerSyntax : FieldInitializerSyntax
         ''' <summary>
         ''' Represents an "= initializer" clause in a declaration for a variable,
-        ''' pararameter or automatic property.
+        ''' parameter or automatic property.
         ''' </summary>
         EqualsValue = 129                         ' EqualsValueSyntax
         ''' <summary>
@@ -710,12 +710,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         FinallyBlock = 188                        ' FinallyBlockSyntax
         ''' <summary>
-        ''' Represents the Try part part of a Try...Catch...Finally...End Try. This
+        ''' Represents the Try part of a Try...Catch...Finally...End Try. This
         ''' statement is always the Begin of a TryPart.
         ''' </summary>
         TryStatement = 189                       ' TryStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents the Catch part part of a Try...Catch...Finally...End Try. This
+        ''' Represents the Catch part of a Try...Catch...Finally...End Try. This
         ''' statement is always the Begin of a CatchPart.
         ''' </summary>
         CatchStatement = 190                     ' CatchStatementSyntax : StatementSyntax
@@ -724,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         CatchFilterClause = 191                  ' CatchFilterClauseSyntax
         ''' <summary>
-        ''' Represents the Finally part part of a Try...Catch...Finally...End Try. This
+        ''' Represents the Finally part of a Try...Catch...Finally...End Try. This
         ''' statement is always the Begin of a FinallyPart.
         ''' </summary>
         FinallyStatement = 194                   ' FinallyStatementSyntax : StatementSyntax
@@ -851,13 +851,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WhileStatement = 234                     ' WhileStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a For or For Each block, including the introducting statement, the
+        ''' Represents a For or For Each block, including the introducing statement, the
         ''' body and the "Next" (which can be omitted if a containing For has a Next with
         ''' multiple variables).
         ''' </summary>
         ForBlock = 237                           ' ForBlockSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a For or For Each block, including the introducting statement, the
+        ''' Represents a For or For Each block, including the introducing statement, the
         ''' body and the "Next" (which can be omitted if a containing For has a Next with
         ''' multiple variables).
         ''' </summary>
@@ -2937,7 +2937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         SkippedTokensTrivia = 709                ' SkippedTokensTriviaSyntax : StructuredTriviaSyntax
         ''' <summary>
-        ''' Represents a documentation comment e.g. ''' &lt;Summary&gt; apearing in source.
+        ''' Represents a documentation comment e.g. ''' &lt;Summary&gt; appearing in source.
         ''' </summary>
         DocumentationCommentTrivia = 710         ' DocumentationCommentTriviaSyntax : StructuredTriviaSyntax
         ''' <summary>
@@ -3150,7 +3150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Interpolation = 782                                             ' InterpolationSyntax : InterpolatedStringContentSyntax
 
         ''' <summary>
-        ''' Represents an alignment clause ', alignment' of an intepolated string embedded expression.
+        ''' Represents an alignment clause ', alignment' of an interpolated string embedded expression.
         ''' </summary>
         InterpolationAlignmentClause = 783                              ' InterpolationAlignmentClauseSyntax : VisualBasicSyntaxNode
 

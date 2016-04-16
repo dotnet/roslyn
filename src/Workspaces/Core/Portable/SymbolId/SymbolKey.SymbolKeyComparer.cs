@@ -9,36 +9,36 @@ namespace Microsoft.CodeAnalysis
     {
         private class SymbolKeyComparer : IEqualityComparer<SymbolKey>
         {
-            private readonly ComparisonOptions options;
+            private readonly ComparisonOptions _options;
 
             private SymbolKeyComparer(ComparisonOptions options)
             {
-                this.options = options;
+                _options = options;
             }
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
-                if ((object)x == (object)y)
+                if (ReferenceEquals(x, y))
                 {
                     return true;
                 }
 
-                if ((object)x == null || (object)y == null)
+                if (x == null || y == null)
                 {
                     return false;
                 }
 
-                return x.Equals(y, this.options);
+                return x.Equals(y, _options);
             }
 
             public int GetHashCode(SymbolKey obj)
             {
-                if ((object)obj == null)
+                if (obj == null)
                 {
                     return 0;
                 }
 
-                return obj.GetHashCode(this.options);
+                return obj.GetHashCode(_options);
             }
 
             public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey, bool compareMethodTypeParametersByName)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey, compareMethodTypeParametersByName));
             }
 
-            private static readonly SymbolKeyComparer[] cachedComparers = new SymbolKeyComparer[8];
+            private static readonly SymbolKeyComparer[] s_cachedComparers = new SymbolKeyComparer[8];
 
             private static SymbolKeyComparer EnsureInitialized(ref SymbolKeyComparer location, ComparisonOptions options)
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
 
             public static IEqualityComparer<SymbolKey> GetComparer(ComparisonOptions options)
             {
-                return EnsureInitialized(ref cachedComparers[options.FlagsValue], options);
+                return EnsureInitialized(ref s_cachedComparers[options.FlagsValue], options);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,8 +10,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class DeclarationParsingTests
+    public class DeclarationParsingTests : ParsingTests
     {
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+        {
+            return SyntaxFactory.ParseSyntaxTree(text);
+        }
+
         private CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null)
         {
             return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
@@ -2556,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassMethodWithMulipleParameters()
+        public void TestClassMethodWithMultipleParameters()
         {
             var text = "class a { b X(c d, e f) { } }";
             var file = this.ParseFile(text);
@@ -2919,7 +2925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGenericClassMethodWithTypeConstaintBound()
+        public void TestGenericClassMethodWithTypeConstraintBound()
         {
             var text = "class a { b X<c>() where b : d { } }";
             var file = this.ParseFile(text);
@@ -4982,7 +4988,7 @@ class Class1<T>{
             Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
         }
 
-        [WorkItem(537690, "DevDiv")]
+        [WorkItem(537690, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537690")]
         [Fact]
         public void TestMissingSemicolonAfterListInitializer()
         {
@@ -5000,7 +5006,7 @@ class Program {
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
         }
 
-        [WorkItem(539120, "DevDiv")]
+        [WorkItem(539120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539120")]
         [Fact]
         public void TestEscapedConstructor()
         {
@@ -5016,7 +5022,7 @@ class @class
             Assert.Equal(0, file.Errors().Length);
         }
 
-        [WorkItem(536956, "DevDiv")]
+        [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
         [Fact]
         public void TestAnonymousMethodWithDefaultParameter()
         {
@@ -5036,7 +5042,7 @@ class C {
             Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
         }
 
-        [WorkItem(537865, "DevDiv")]
+        [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]
         [Fact]
         public void RegressIfDevTrueUnicode()
         {
@@ -5057,7 +5063,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "DevDiv")]
+        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierDefn()
         {
@@ -5081,7 +5087,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             TestConditionalCompilation(text, desiredText: "Good", undesiredText: "Bad");
         }
 
-        [WorkItem(537815, "DevDiv")]
+        [WorkItem(537815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537815")]
         [Fact]
         public void RegressLongDirectiveIdentifierUse()
         {
@@ -5126,8 +5132,8 @@ System.Console.WriteLine(""Bad, breaking change"");
             var stmtText = statement.ToString();
 
             //make sure we compiled out the right statement
-            Assert.Contains(desiredText, stmtText);
-            Assert.DoesNotContain(undesiredText, stmtText);
+            Assert.Contains(desiredText, stmtText, StringComparison.Ordinal);
+            Assert.DoesNotContain(undesiredText, stmtText, StringComparison.Ordinal);
         }
 
         private void TestError(string text, ErrorCode error)
@@ -5141,7 +5147,6 @@ System.Console.WriteLine(""Bad, breaking change"");
         [Fact]
         public void TestBadlyPlacedParams()
         {
-            
             var text1 = @"
 class C 
 {
@@ -5228,5 +5233,80 @@ unsafe struct s
             Assert.Equal(0, file.Errors().Length);
         }
 
+        [Fact]
+        [WorkItem(4826, "https://github.com/dotnet/roslyn/pull/4826")]
+        public void NonAccessorAfterIncompleteProperty()
+        {
+            UsingTree(@"
+class C
+{
+    int A { get { return this.
+    public int B;
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.ReturnStatement);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.ThisExpression);
+                                            N(SyntaxKind.ThisKeyword);
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+        }
     }
 }

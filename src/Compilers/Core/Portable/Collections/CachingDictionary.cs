@@ -25,19 +25,19 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </summary>
     internal class CachingDictionary<TKey, TElement>
     {
-        private readonly Func<TKey, ImmutableArray<TElement>> getElementsOfKey;
-        private readonly Func<IEqualityComparer<TKey>, HashSet<TKey>> getKeys;
-        private readonly IEqualityComparer<TKey> comparer;
+        private readonly Func<TKey, ImmutableArray<TElement>> _getElementsOfKey;
+        private readonly Func<IEqualityComparer<TKey>, HashSet<TKey>> _getKeys;
+        private readonly IEqualityComparer<TKey> _comparer;
 
         // The underlying dictionary. It may be null (indicating that nothing is cached), a ConcurrentDictionary
         // or something frozen (usually a regular Dictionary). The frozen Dictionary is used only once the collection
         // is fully populated. This is a memory optimization so that we don't hold onto relatively ConcurrentDictionary
         // instances once the cache is fully populated.
-        private IDictionary<TKey, ImmutableArray<TElement>> map;
+        private IDictionary<TKey, ImmutableArray<TElement>> _map;
 
         // This is a special sentinel value that is placed inside the map to indicate that a key was looked
         // up, but not found.
-        private static readonly ImmutableArray<TElement> EmptySentinel = ImmutableArray<TElement>.Empty;
+        private static readonly ImmutableArray<TElement> s_emptySentinel = ImmutableArray<TElement>.Empty;
 
         /// <summary>
         /// Create a CachingLookup.
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Collections
             Func<IEqualityComparer<TKey>, HashSet<TKey>> getKeys,
             IEqualityComparer<TKey> comparer)
         {
-            this.getElementsOfKey = getElementsOfKey;
-            this.getKeys = getKeys;
-            this.comparer = comparer;
+            _getElementsOfKey = getElementsOfKey;
+            _getKeys = getKeys;
+            _comparer = comparer;
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The concurrent dictionary</returns>
         private ConcurrentDictionary<TKey, ImmutableArray<TElement>> CreateConcurrentDictionary()
         {
-            return new ConcurrentDictionary<TKey, ImmutableArray<TElement>>(concurrencyLevel: 2, capacity: 0, comparer: this.comparer);
+            return new ConcurrentDictionary<TKey, ImmutableArray<TElement>>(concurrencyLevel: 2, capacity: 0, comparer: _comparer);
         }
 
         /// <summary>
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>A new, empty dictionary, suitable for use as the fully populated map.</returns>
         private IDictionary<TKey, ImmutableArray<TElement>> CreateDictionaryForFullyPopulatedMap(int capacity)
         {
-            // CONSIDER: If capacity is small, consider using a more frugal datastructure.
-            return new Dictionary<TKey, ImmutableArray<TElement>>(capacity, this.comparer);
+            // CONSIDER: If capacity is small, consider using a more frugal data structure.
+            return new Dictionary<TKey, ImmutableArray<TElement>>(capacity, _comparer);
         }
 
         /// <summary>
@@ -145,17 +145,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Check if we're fully populated before trying to retrieve the elements.  If we are
             // and we don't get any elements back, then we don't have to go any further.
-            var localMap = this.map;
+            var localMap = _map;
 
             if (localMap == null)
             {
                 concurrentMap = CreateConcurrentDictionary();
-                localMap = Interlocked.CompareExchange(ref this.map, concurrentMap, null);
+                localMap = Interlocked.CompareExchange(ref _map, concurrentMap, null);
                 if (localMap == null)
                 {
                     return AddToConcurrentMap(concurrentMap, key);
                 }
-
                 // Some other thread beat us to the initial population
             }
 
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Collections
             concurrentMap = localMap as ConcurrentDictionary<TKey, ImmutableArray<TElement>>;
 
             // If we're fully populated, the value wasn't found. Otherwise, lookup the new value and add it to the concurrent map.
-            return concurrentMap == null ? EmptySentinel : AddToConcurrentMap(concurrentMap, key);
+            return concurrentMap == null ? s_emptySentinel : AddToConcurrentMap(concurrentMap, key);
         }
 
         /// <summary>
@@ -180,13 +179,13 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The added entry. If there was a race, and another thread beat this one, then this returns the previously added entry.</returns>
         private ImmutableArray<TElement> AddToConcurrentMap(ConcurrentDictionary<TKey, ImmutableArray<TElement>> map, TKey key)
         {
-            var elements = getElementsOfKey(key);
+            var elements = _getElementsOfKey(key);
 
             if (elements.IsDefaultOrEmpty)
             {
                 // In this case, we're not fully populated, so remember that this was a failed
                 // lookup.
-                elements = EmptySentinel;
+                elements = s_emptySentinel;
             }
 
             return map.GetOrAdd(key, elements);
@@ -212,8 +211,8 @@ namespace Microsoft.CodeAnalysis.Collections
             Debug.Assert(IsNotFullyPopulatedMap(existingMap));
 
             // Enumerate all the keys and attempt to generate values for all of them.
-            var allKeys = this.getKeys(this.comparer);
-            Debug.Assert(this.comparer == allKeys.Comparer);
+            var allKeys = _getKeys(_comparer);
+            Debug.Assert(_comparer == allKeys.Comparer);
 
             var fullyPopulatedMap = CreateDictionaryForFullyPopulatedMap(capacity: allKeys.Count);
             if (existingMap == null)
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // The concurrent map has never been created.
                 foreach (var key in allKeys)
                 {
-                    fullyPopulatedMap.Add(key, this.getElementsOfKey(key));
+                    fullyPopulatedMap.Add(key, _getElementsOfKey(key));
                 }
             }
             else
@@ -233,10 +232,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
                     if (!existingMap.TryGetValue(key, out elements))
                     {
-                        elements = this.getElementsOfKey(key);
+                        elements = _getElementsOfKey(key);
                     }
 
-                    Debug.Assert(elements != EmptySentinel);
+                    Debug.Assert(elements != s_emptySentinel);
                     fullyPopulatedMap.Add(key, elements);
                 }
             }
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             IDictionary<TKey, ImmutableArray<TElement>> fullyPopulatedMap = null;
 
-            var currentMap = this.map;
+            var currentMap = _map;
             while (IsNotFullyPopulatedMap(currentMap))
             {
                 if (fullyPopulatedMap == null)
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     fullyPopulatedMap = CreateFullyPopulatedMap(currentMap);
                 }
 
-                var replacedMap = Interlocked.CompareExchange(ref this.map, fullyPopulatedMap, currentMap);
+                var replacedMap = Interlocked.CompareExchange(ref _map, fullyPopulatedMap, currentMap);
                 if (replacedMap == currentMap)
                 {
                     // Normal exit.

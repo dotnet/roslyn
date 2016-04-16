@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private class CollectTypeParameterSymbolsVisitor : SymbolVisitor
         {
-            private readonly HashSet<ISymbol> visited = new HashSet<ISymbol>();
-            private readonly bool onlyMethodTypeParameters;
-            private readonly IList<ITypeParameterSymbol> typeParameters;
+            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly bool _onlyMethodTypeParameters;
+            private readonly IList<ITypeParameterSymbol> _typeParameters;
 
             public CollectTypeParameterSymbolsVisitor(
                  IList<ITypeParameterSymbol> typeParameters,
                 bool onlyMethodTypeParameters)
             {
-                this.onlyMethodTypeParameters = onlyMethodTypeParameters;
-                this.typeParameters = typeParameters;
+                _onlyMethodTypeParameters = onlyMethodTypeParameters;
+                _typeParameters = typeParameters;
             }
 
             public override void DefaultVisit(ISymbol node)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override void VisitArrayType(IArrayTypeSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return;
                 }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (visited.Add(symbol))
+                if (_visited.Add(symbol))
                 {
                     foreach (var child in symbol.GetAllTypeArguments())
                     {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override void VisitPointerType(IPointerTypeSymbol symbol)
             {
-                if (!visited.Add(symbol))
+                if (!_visited.Add(symbol))
                 {
                     return;
                 }
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                if (visited.Add(symbol))
+                if (_visited.Add(symbol))
                 {
-                    if (symbol.TypeParameterKind == TypeParameterKind.Method || !onlyMethodTypeParameters)
+                    if (symbol.TypeParameterKind == TypeParameterKind.Method || !_onlyMethodTypeParameters)
                     {
-                        if (!typeParameters.Contains(symbol))
+                        if (!_typeParameters.Contains(symbol))
                         {
-                            typeParameters.Add(symbol);
+                            _typeParameters.Add(symbol);
                         }
                     }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -10,12 +11,12 @@ namespace Microsoft.CodeAnalysis
         where ModuleSymbol : class
         where TypeSymbol : class
     {
-        private readonly SymbolFactory<ModuleSymbol, TypeSymbol> factory;
+        private readonly SymbolFactory<ModuleSymbol, TypeSymbol> _factory;
         protected readonly ModuleSymbol moduleSymbol;
 
         internal TypeNameDecoder(SymbolFactory<ModuleSymbol, TypeSymbol> factory, ModuleSymbol moduleSymbol)
         {
-            this.factory = factory;
+            _factory = factory;
             this.moduleSymbol = moduleSymbol;
         }
 
@@ -31,6 +32,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName);
         protected abstract TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName);
+
+        /// <summary>
+        /// Given the identity of an assembly referenced by this module, finds
+        /// the index of that assembly in the list of assemblies referenced by
+        /// the current module.
+        /// </summary>
         protected abstract int GetIndexOfReferencedAssembly(AssemblyIdentity identity);
 
         internal TypeSymbol GetTypeSymbolForSerializedType(string s)
@@ -47,62 +54,62 @@ namespace Microsoft.CodeAnalysis
 
         protected TypeSymbol GetUnsupportedMetadataTypeSymbol(BadImageFormatException exception = null)
         {
-            return this.factory.GetUnsupportedMetadataTypeSymbol(this.moduleSymbol, exception);
+            return _factory.GetUnsupportedMetadataTypeSymbol(this.moduleSymbol, exception);
         }
 
         protected TypeSymbol GetSZArrayTypeSymbol(TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return this.factory.GetSZArrayTypeSymbol(this.moduleSymbol, elementType, customModifiers);
+            return _factory.GetSZArrayTypeSymbol(this.moduleSymbol, elementType, customModifiers);
         }
 
-        protected TypeSymbol GetArrayTypeSymbol(int rank, TypeSymbol elementType)
+        protected TypeSymbol GetMDArrayTypeSymbol(int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers, ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
-            return this.factory.GetArrayTypeSymbol(this.moduleSymbol, rank, elementType);
+            return _factory.GetMDArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers, sizes, lowerBounds);
         }
 
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType)
+        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
         {
-            return this.factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType);
+            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
         }
 
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
-            return this.factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
+            return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
         protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
-            return this.factory.GetSpecialType(this.moduleSymbol, specialType);
+            return _factory.GetSpecialType(this.moduleSymbol, specialType);
         }
 
         protected TypeSymbol SystemTypeSymbol
         {
-            get { return this.factory.GetSystemTypeSymbol(this.moduleSymbol); }
+            get { return _factory.GetSystemTypeSymbol(this.moduleSymbol); }
         }
 
         protected TypeSymbol GetEnumUnderlyingType(TypeSymbol type)
         {
-            return this.factory.GetEnumUnderlyingType(this.moduleSymbol, type);
+            return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
         }
 
         protected bool IsVolatileModifierType(TypeSymbol type)
         {
-            return this.factory.IsVolatileModifierType(this.moduleSymbol, type);
+            return _factory.IsVolatileModifierType(this.moduleSymbol, type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
         {
-            return this.factory.GetPrimitiveTypeCode(this.moduleSymbol, type);
+            return _factory.GetPrimitiveTypeCode(this.moduleSymbol, type);
         }
 
         protected TypeSymbol SubstituteWithUnboundIfGeneric(TypeSymbol type)
         {
-            return this.factory.MakeUnboundIfGeneric(this.moduleSymbol, type);
+            return _factory.MakeUnboundIfGeneric(this.moduleSymbol, type);
         }
 
-        protected TypeSymbol SubstituteTypeParameters(TypeSymbol genericType, ImmutableArray<TypeSymbol> arguments, ImmutableArray<bool> refersToNoPiaLocalType)
+        protected TypeSymbol SubstituteTypeParameters(TypeSymbol genericType, ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments, ImmutableArray<bool> refersToNoPiaLocalType)
         {
-            return this.factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
+            return _factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
         }
 
         internal TypeSymbol GetTypeSymbol(MetadataHelpers.AssemblyQualifiedTypeName fullName, out bool refersToNoPiaLocalType)
@@ -191,29 +198,36 @@ namespace Microsoft.CodeAnalysis
                 container = SubstituteWithUnboundIfGeneric(container);
             }
 
+            for (int i = 0; i < fullName.PointerCount; i++)
+            {
+                container = MakePointerTypeSymbol(container, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty);
+            }
+
             // Process any array type ranks
             if (fullName.ArrayRanks != null)
             {
                 foreach (int rank in fullName.ArrayRanks)
                 {
                     Debug.Assert(rank > 0);
-                    container = rank == 1 ? GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) : GetArrayTypeSymbol(rank, container);
+                    container = rank == 1 ?
+                                GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo<TypeSymbol>>)) :
+                                GetMDArrayTypeSymbol(rank, container, default(ImmutableArray<ModifierInfo<TypeSymbol>>), ImmutableArray<int>.Empty, default(ImmutableArray<int>));
                 }
             }
 
             return container;
         }
 
-        private ImmutableArray<TypeSymbol> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType)
+        private ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType)
         {
             int count = arguments.Length;
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var typeArgumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(count);
             var refersToNoPiaBuilder = ArrayBuilder<bool>.GetInstance(count);
 
             foreach (var argument in arguments)
             {
                 bool refersToNoPia;
-                typeArgumentsBuilder.Add(GetTypeSymbol(argument, out refersToNoPia));
+                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(GetTypeSymbol(argument, out refersToNoPia), ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
                 refersToNoPiaBuilder.Add(refersToNoPia);
             }
 

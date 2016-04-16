@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("unclosed"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
         public void XmlSyntaxError_Included()
         {
             var xml = @"<unclosed>";
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 </doc>
 ".Trim();
 
-            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new [] 
+            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new[]
             {
                 // ExpandIncludes.cs(2,5): warning CS1584: XML comment has syntactically incorrect cref attribute '#'
                 // /// <include file='d6f61c210f5e.xml' path='see' />
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 </doc>
 ".Trim();
 
-            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new [] 
+            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new[]
             {
                 // ExpandIncludes.cs(2,5): warning CS1574: XML comment has cref attribute 'NotFound' that could not be resolved
                 // /// <include file='5127bff2acf3.xml' path='see' />
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 </doc>
 ".Trim();
 
-            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new[] 
+            TestIncluded(xml, xpath, expectedTextTemplate, includeElement => new[]
             {
                 // ExpandIncludes.cs(5,21): warning CS1711: XML comment has a typeparam tag for 'NotFound', but there is no type parameter by that name
                 // /// ExpandIncludes: <include file='3590e97bd224.xml' path='typeparam' />
@@ -377,14 +377,14 @@ partial class Partial {{ }}
                 Parse(string.Format(sourceTemplate, includeElement, mode), string.Format("{0}.cs", mode), GetOptions(mode)));
 
             var comp = CreateCompilationWithMscorlib(
-                trees, 
+                trees,
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
 
             comp.GetDiagnostics().Verify(fallbackToErrorCodeOnlyForNonEnglish: fallbackToErrorCodeOnlyForNonEnglish, expected: makeExpectedDiagnostics(includeElement));
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
-            var expectedText = string.Format(expectedTextTemplate, xmlFilePath);
+            var expectedText = string.Format(expectedTextTemplate, TestHelpers.AsXmlCommentText(xmlFilePath));
             Assert.Equal(expectedText, actualText);
         }
 

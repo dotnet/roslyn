@@ -7,30 +7,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class SyntaxNodeOrTokenListBuilder
     {
-        private Syntax.InternalSyntax.CSharpSyntaxNode[] nodes;
-        private int count;
+        private Syntax.InternalSyntax.CSharpSyntaxNode[] _nodes;
+        private int _count;
 
         public SyntaxNodeOrTokenListBuilder(int size)
         {
-            this.nodes = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
-            this.count = 0;
+            _nodes = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
+            _count = 0;
         }
 
         public int Count
         {
-            get { return count; }
+            get { return _count; }
         }
 
         public void Clear()
         {
-            this.count = 0;
+            _count = 0;
         }
 
         public SyntaxNodeOrToken this[int index]
         {
             get
             {
-                var innerNode = this.nodes[index];
+                var innerNode = _nodes[index];
                 var tk = innerNode as Syntax.InternalSyntax.SyntaxToken;
                 if (tk != null)
                 {
@@ -44,18 +44,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             set
             {
-                nodes[index] = (Syntax.InternalSyntax.CSharpSyntaxNode)value.UnderlyingNode;
+                _nodes[index] = (Syntax.InternalSyntax.CSharpSyntaxNode)value.UnderlyingNode;
             }
         }
 
         internal void Add(Syntax.InternalSyntax.CSharpSyntaxNode item)
         {
-            if (nodes == null || count >= nodes.Length)
+            if (_nodes == null || _count >= _nodes.Length)
             {
-                this.Grow(count == 0 ? 8 : nodes.Length * 2);
+                this.Grow(_count == 0 ? 8 : _nodes.Length * 2);
             }
 
-            nodes[count++] = item;
+            _nodes[_count++] = item;
         }
 
         public void Add(SyntaxNodeOrToken item)
@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public void Add(SyntaxNodeOrTokenList list, int offset, int length)
         {
-            if (nodes == null || count + length > nodes.Length)
+            if (_nodes == null || _count + length > _nodes.Length)
             {
-                this.Grow(count + length);
+                this.Grow(_count + length);
             }
 
-            list.CopyTo(offset, nodes, count, length);
-            count += length;
+            list.CopyTo(offset, _nodes, _count, length);
+            _count += length;
         }
 
         public void Add(IEnumerable<SyntaxNodeOrToken> nodeOrTokens)
@@ -89,47 +89,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal void RemoveLast()
         {
-            count--;
-            nodes[count] = null;
+            _count--;
+            _nodes[_count] = null;
         }
 
         private void Grow(int size)
         {
             var tmp = new Syntax.InternalSyntax.CSharpSyntaxNode[size];
-            Array.Copy(nodes, tmp, nodes.Length);
-            this.nodes = tmp;
+            Array.Copy(_nodes, tmp, _nodes.Length);
+            _nodes = tmp;
         }
 
         public SyntaxNodeOrTokenList ToList()
         {
-            if (this.count > 0)
+            if (_count > 0)
             {
-                switch (this.count)
+                switch (_count)
                 {
                     case 1:
-                        if (nodes[0].IsToken)
+                        if (_nodes[0].IsToken)
                         {
                             return new SyntaxNodeOrTokenList(
-                                Syntax.InternalSyntax.SyntaxList.List(new[] { nodes[0] }).CreateRed(),
+                                Syntax.InternalSyntax.SyntaxList.List(new[] { _nodes[0] }).CreateRed(),
                                 index: 0);
                         }
                         else
                         {
-                            return new SyntaxNodeOrTokenList(nodes[0].CreateRed(), index: 0);
+                            return new SyntaxNodeOrTokenList(_nodes[0].CreateRed(), index: 0);
                         }
                     case 2:
                         return new SyntaxNodeOrTokenList(
-                            Syntax.InternalSyntax.SyntaxList.List(nodes[0], nodes[1]).CreateRed(),
+                            Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1]).CreateRed(),
                             index: 0);
                     case 3:
                         return new SyntaxNodeOrTokenList(
-                            Syntax.InternalSyntax.SyntaxList.List(nodes[0], nodes[1], nodes[2]).CreateRed(),
+                            Syntax.InternalSyntax.SyntaxList.List(_nodes[0], _nodes[1], _nodes[2]).CreateRed(),
                             index: 0);
                     default:
-                        var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[count];
-                        for (int i = 0; i < this.count; i++)
+                        var tmp = new ArrayElement<Syntax.InternalSyntax.CSharpSyntaxNode>[_count];
+                        for (int i = 0; i < _count; i++)
                         {
-                            tmp[i].Value = nodes[i];
+                            tmp[i].Value = _nodes[i];
                         }
 
                         return new SyntaxNodeOrTokenList(Syntax.InternalSyntax.SyntaxList.List(tmp).CreateRed(), index: 0);

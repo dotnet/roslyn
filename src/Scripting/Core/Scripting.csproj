@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-rc2-23931\ref\netstandard1.5\System.Runtime.Loader.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
+      <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+      <Link>Resolvers\GacFileResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+      <Link>Resolvers\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
+      <Link>Resolvers\MonoGlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
+    <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
+    <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
+    <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.BuilderOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatterOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonPrimitiveFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatterOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonTypeNameFormatter.cs" />
+    <Compile Include="Hosting\CommonMemberFilter.cs" />
+    <Compile Include="Hosting\MemberFilter.cs" />
+    <Compile Include="Hosting\PrintOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatterHelpers.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Builder.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.FormattedMember.cs" />
+    <Compile Include="Hosting\Resolvers\RuntimeMetadataReferenceResolver.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="Hosting\AssemblyLoader\ShadowCopy.cs" />
+    <Compile Include="Hosting\Resolvers\NuGetPackageResolver.cs" />
+    <Compile Include="Hosting\SearchPaths.cs" />
+    <Compile Include="Hosting\SynchronizedList.cs" />
+    <Compile Include="ScriptMetadataResolver.cs" />
+    <Compile Include="ScriptCompiler.cs" />
+    <Compile Include="ScriptingResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ScriptingResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptRunner.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\CommonObjectFormatter.Visitor.cs" />
+    <Compile Include="Script.cs" />
+    <Compile Include="ScriptBuilder.cs" />
+    <Compile Include="CompilationErrorException.cs" />
+    <Compile Include="Hosting\ObjectFormatter\MemberDisplayFormat.cs" />
+    <Compile Include="ScriptExecutionState.cs" />
+    <Compile Include="ScriptOptions.cs" />
+    <Compile Include="ScriptSourceResolver.cs" />
+    <Compile Include="ScriptState.cs" />
+    <Compile Include="ScriptVariable.cs" />
+    <Compile Include="Utilities\ConsoleShims.cs" />
+    <Compile Include="Utilities\IListExtensions.cs" />
+    <Compile Include="Utilities\ParameterValidationHelpers.cs" />
+    <Compile Include="Utilities\TaskExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
+    <InternalsVisibleTo Include="csi" />
+    <InternalsVisibleTo Include="vbi" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <!-- /TODO -->
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="RoslynETAHost" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ScriptingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

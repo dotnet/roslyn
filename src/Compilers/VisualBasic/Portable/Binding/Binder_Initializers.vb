@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Used to store the bound field and property initializers and the associated list of
         ''' bound assignment statements because they are reused for multiple constructors
         ''' </summary>
-        Friend Class ProcessedFieldOrPropertyInitializers
+        Friend NotInheritable Class ProcessedFieldOrPropertyInitializers
             Friend ReadOnly BoundInitializers As ImmutableArray(Of BoundInitializer)
 
             ''' <summary> 
@@ -23,48 +23,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Friend ReadOnly HasAnyErrors As Boolean
 
-            Private _LoweredInitializers As ImmutableArray(Of BoundStatement)
+            Private _loweredInitializers As ImmutableArray(Of BoundStatement)
             Friend Property InitializerStatements As ImmutableArray(Of BoundStatement)
                 Get
-                    Return _LoweredInitializers
+                    Return _loweredInitializers
                 End Get
                 Set(value As ImmutableArray(Of BoundStatement))
-                    Debug.Assert(value.IsEmpty OrElse Not BoundInitializers.IsEmpty)
-                    _LoweredInitializers = value
+                    Debug.Assert(Not value.IsDefault)
+                    Debug.Assert(_loweredInitializers.IsDefault)
+                    _loweredInitializers = value
                 End Set
             End Property
 
-            Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers =
-                New ProcessedFieldOrPropertyInitializers(Nothing)
+            Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers = New ProcessedFieldOrPropertyInitializers()
+
+            Private Sub New()
+                Me.BoundInitializers = ImmutableArray(Of BoundInitializer).Empty
+                Me.HasAnyErrors = False
+                Me._loweredInitializers = ImmutableArray(Of BoundStatement).Empty
+            End Sub
 
             Friend Sub New(boundInitializers As ImmutableArray(Of BoundInitializer))
+                Debug.Assert(Not boundInitializers.IsDefault)
                 Me.BoundInitializers = boundInitializers
-
-                If Not boundInitializers.IsDefaultOrEmpty Then
-                    For Each initializer In boundInitializers
-                        If initializer.HasErrors Then
-                            HasAnyErrors = True
-                            Exit For
-                        End If
-                    Next
-                End If
+                Me.HasAnyErrors = boundInitializers.Any(Function(i) i.HasErrors)
             End Sub
 
             Private _analyzed As Boolean = False
-            Friend Sub EnsureInitializersAnalyzed(constructor As MethodSymbol, diagnostics As DiagnosticBag)
-                Debug.Assert(constructor IsNot Nothing)
-                Debug.Assert(constructor.MethodKind = MethodKind.Constructor OrElse constructor.MethodKind = MethodKind.SharedConstructor)
+            Friend Sub EnsureInitializersAnalyzed(method As MethodSymbol, diagnostics As DiagnosticBag)
+                Debug.Assert(method IsNot Nothing)
 
                 If Not _analyzed Then
-                    If Not Me.BoundInitializers.IsDefaultOrEmpty Then
+                    If Not Me.BoundInitializers.IsEmpty Then
                         ' Create a dummy block
                         Dim block As New BoundBlock(Me.BoundInitializers(0).Syntax,
                                                     Nothing,
                                                     ImmutableArray(Of LocalSymbol).Empty,
                                                     StaticCast(Of BoundStatement).From(Me.BoundInitializers))
 
-                        Analyzer.AnalyzeMethodBody(constructor, block, diagnostics)
-                        DiagnosticsPass.IssueDiagnostics(block, diagnostics, constructor)
+                        Analyzer.AnalyzeMethodBody(method, block, diagnostics)
+                        DiagnosticsPass.IssueDiagnostics(block, diagnostics, method)
                     End If
 
                     _analyzed = True
@@ -76,22 +74,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Binds all field initializers of a <see cref="SourceNamedTypeSymbol"/>.
         ''' </summary>
         ''' <param name="symbol">The named type symbol where the field initializers are declared.</param>
-        ''' <param name="scriptCtorOpt">Script constructor or Nothing if not binding top-level statements.</param>
+        ''' <param name="scriptInitializerOpt">Script initializer or Nothing if not binding top-level statements.</param>
         ''' <param name="initializers">The initializers itself. For each partial type declaration there is an array of 
         ''' field initializers</param>
-        ''' <param name="processedFieldInitializers">The structure storing the list of processed field initializers.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
-        Friend Shared Sub BindFieldAndPropertyInitializers(
+        Friend Shared Function BindFieldAndPropertyInitializers(
             symbol As SourceMemberContainerTypeSymbol,
             initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
-            scriptCtorOpt As MethodSymbol,
-            ByRef processedFieldInitializers As ProcessedFieldOrPropertyInitializers,
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
             diagnostics As DiagnosticBag
-        )
-            Debug.Assert((scriptCtorOpt IsNot Nothing) = symbol.IsScriptClass)
+        ) As ImmutableArray(Of BoundInitializer)
+            Debug.Assert((scriptInitializerOpt IsNot Nothing) = symbol.IsScriptClass)
 
             If initializers.IsDefaultOrEmpty Then
-                Return
+                Return ImmutableArray(Of BoundInitializer).Empty
             End If
 
             Dim moduleSymbol = DirectCast(symbol.ContainingModule, SourceModuleSymbol)
@@ -108,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For j = 0 To siblingInitializers.Length - 1
                     Dim initializer = siblingInitializers(j)
 
-                    If Not initializer.FieldsOrProperty.IsDefault AndAlso initializer.FieldsOrProperty.First.ContainingType.IsEnumType Then
+                    If Not initializer.FieldsOrProperties.IsDefault AndAlso initializer.FieldsOrProperties.First.ContainingType.IsEnumType Then
                         Continue For
                     End If
 
@@ -120,25 +116,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' use binder for type, not ctor - no access to ctor parameters
                         parentBinder = BinderBuilder.CreateBinderForType(moduleSymbol, syntaxTree, symbol)
 
-                        If scriptCtorOpt IsNot Nothing Then
-                            parentBinder = New TopLevelCodeBinder(scriptCtorOpt, parentBinder)
+                        If scriptInitializerOpt IsNot Nothing Then
+                            parentBinder = New TopLevelCodeBinder(scriptInitializerOpt, parentBinder)
                         End If
                     Else
                         Debug.Assert(parentBinder.SyntaxTree Is syntaxTree, "sibling initializer array contains initializers from two different syntax trees.")
                     End If
 
-                    If initializer.FieldsOrProperty.IsDefault Then
+                    If initializer.FieldsOrProperties.IsDefault Then
                         ' use the binder of the Script class for global statements
                         Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
-                        boundInitializers.Add(parentBinder.BindGlobalStatement(DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
+                        boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If
 
-                    Dim firstFieldOrProperty = initializer.FieldsOrProperty.First
+                    Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
                     Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
-                        Debug.Assert(initializer.FieldsOrProperty.Length = 1)
+                        Debug.Assert(initializer.FieldsOrProperties.Length = 1)
                         Debug.Assert(firstFieldOrProperty.Kind = SymbolKind.Field)
 
                         Dim fieldSymbol = DirectCast(firstFieldOrProperty, SourceFieldSymbol)
@@ -182,15 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
 
-                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperty,
+                            initializerBinder.BindFieldInitializer(initializer.FieldsOrProperties.Cast(Of FieldSymbol).ToImmutableArray(),
                                                                    initializerNode,
                                                                    boundInitializers,
                                                                    diagnostics)
                         End If
                     Else
-                        Dim propertySymbol = DirectCast(firstFieldOrProperty, PropertySymbol)
-
-                        initializerBinder.BindPropertyInitializer(propertySymbol,
+                        initializerBinder.BindPropertyInitializer(initializer.FieldsOrProperties.Cast(Of PropertySymbol).ToImmutableArray(),
                                                                   initializerNode,
                                                                   boundInitializers,
                                                                   diagnostics)
@@ -199,19 +193,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Next
 
-            processedFieldInitializers = New ProcessedFieldOrPropertyInitializers(
-                boundInitializers.ToImmutableAndFree())
-        End Sub
+            Return boundInitializers.ToImmutableAndFree()
+        End Function
 
-        Private Function BindGlobalStatement(statementNode As StatementSyntax, diagnostics As DiagnosticBag, isLast As Boolean) As BoundInitializer
+        Private Function BindGlobalStatement(
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
+            statementNode As StatementSyntax,
+            diagnostics As DiagnosticBag,
+            isLast As Boolean) As BoundInitializer
+
             Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
 
             If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
-                Dim submissionReturnType = Me.Compilation.GetSubmissionReturnType()
-
                 ' insert an implicit conversion to the submission return type (if needed):
                 Dim expression = (DirectCast(boundStatement, BoundExpressionStatement)).Expression
                 If expression.Type Is Nothing OrElse expression.Type.SpecialType <> SpecialType.System_Void Then
+                    Dim submissionReturnType = scriptInitializerOpt.ResultType
                     expression = ApplyImplicitConversion(expression.Syntax, submissionReturnType, expression, diagnostics)
                     boundStatement = New BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors)
                 End If
@@ -242,10 +239,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundFieldAccessExpression = New BoundFieldAccess(syntax, boundReceiver, fieldSymbol, True, fieldSymbol.Type)
             boundFieldAccessExpression.SetWasCompilerGenerated()
 
-            Dim initializer = New BoundFieldOrPropertyInitializer(syntax,
-                                                                  ImmutableArray.Create(Of Symbol)(fieldSymbol),
-                                                                  boundFieldAccessExpression,
-                                                                  arrayCreation)
+            Dim initializer = New BoundFieldInitializer(syntax,
+                                                        ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
+                                                        boundFieldAccessExpression,
+                                                        arrayCreation)
 
             initializer.SetWasCompilerGenerated()
             boundInitializers.Add(initializer)
@@ -259,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="boundInitializers">The array of bound initializers to add the newly bound ones to.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
         Friend Sub BindFieldInitializer(
-            fieldSymbols As ImmutableArray(Of Symbol),
+            fieldSymbols As ImmutableArray(Of FieldSymbol),
             equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag,
@@ -299,19 +296,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                                   diagnostics)
 
             Dim hasErrors = False
-            If fieldSymbols.Length > 1 Then
-                Debug.Assert(fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
 
-                For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
-                    If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
-                        ' Arrays cannot be declared with AsNew syntax
-                        ReportDiagnostic(diagnostics, name, ERRID.ERR_AsNewArray)
-                        hasErrors = True
-                    End If
-                Next
+            ' In speculative semantic model scenarios equalsValueOrAsNewSyntax might have no parent.
+            If equalsValueOrAsNewSyntax.Parent IsNot Nothing Then
+                Debug.Assert(Me.IsSemanticModelBinder OrElse
+                             fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
+
+                If equalsValueOrAsNewSyntax.Kind() = SyntaxKind.AsNewClause Then
+                    For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
+                        If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
+                            ' Arrays cannot be declared with AsNew syntax
+                            ReportDiagnostic(diagnostics, name, ERRID.ERR_AsNewArray)
+                            hasErrors = True
+                        End If
+                    Next
+                End If
             End If
 
-            boundInitializers.Add(New BoundFieldOrPropertyInitializer(
+            boundInitializers.Add(New BoundFieldInitializer(
                 equalsValueOrAsNewSyntax,
                 fieldSymbols,
                 If(fieldSymbols.Length = 1, fieldAccess, Nothing),
@@ -320,11 +322,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub BindPropertyInitializer(
-            propertySymbol As PropertySymbol,
+            propertySymbols As ImmutableArray(Of PropertySymbol),
             initValueOrAsNewNode As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer),
             diagnostics As DiagnosticBag
         )
+            Dim propertySymbol = DirectCast(propertySymbols.First, PropertySymbol)
             Dim syntaxNode As VisualBasicSyntaxNode = initValueOrAsNewNode
 
             Dim boundReceiver = If(propertySymbol.IsShared, Nothing, CreateMeReference(syntaxNode, isSynthetic:=True))
@@ -337,6 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
                 Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,
                                                                   propertySymbol.AssociatedField,
@@ -365,10 +369,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                Nothing,
                                                                                diagnostics)
 
-            boundInitializers.Add(New BoundFieldOrPropertyInitializer(initValueOrAsNewNode,
-                                                                      ImmutableArray.Create(Of Symbol)(propertySymbol),
-                                                                      boundPropertyOrFieldAccess,
-                                                                      boundInitExpression))
+            boundInitializers.Add(New BoundPropertyInitializer(initValueOrAsNewNode,
+                                                               propertySymbols,
+                                                               If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
+                                                               boundInitExpression))
 
         End Sub
 
@@ -456,10 +460,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       constantValue,
                                                       fieldSymbol.Type)
 
-                boundInitializers.Add(New BoundFieldOrPropertyInitializer(equalsValueOrAsNewSyntax,
-                                                                          ImmutableArray.Create(Of Symbol)(fieldSymbol),
-                                                                          boundFieldAccessExpr,
-                                                                          boundInitValue))
+                boundInitializers.Add(New BoundFieldInitializer(equalsValueOrAsNewSyntax,
+                                                                ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
+                                                                boundFieldAccessExpr,
+                                                                boundInitValue))
             End If
         End Sub
 

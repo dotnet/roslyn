@@ -13,30 +13,30 @@ namespace Microsoft.CodeAnalysis
     {
         private class NamedTypeSymbolKey : AbstractSymbolKey<NamedTypeSymbolKey>
         {
-            private readonly SymbolKey containerKey;
-            private readonly string metadataName;
-            private readonly int arity;
-            private readonly SymbolKey[] typeArgumentKeysOpt;
-            private readonly TypeKind typeKind;
-            private readonly bool isUnboundGenericType;
+            private readonly SymbolKey _containerKey;
+            private readonly string _metadataName;
+            private readonly int _arity;
+            private readonly SymbolKey[] _typeArgumentKeysOpt;
+            private readonly TypeKind _typeKind;
+            private readonly bool _isUnboundGenericType;
 
             internal NamedTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {
-                this.containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                this.metadataName = symbol.MetadataName;
-                this.arity = symbol.Arity;
-                this.typeKind = symbol.TypeKind;
-                this.isUnboundGenericType = symbol.IsUnboundGenericType;
+                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
+                _metadataName = symbol.MetadataName;
+                _arity = symbol.Arity;
+                _typeKind = symbol.TypeKind;
+                _isUnboundGenericType = symbol.IsUnboundGenericType;
 
-                if (!symbol.Equals(symbol.ConstructedFrom) && !isUnboundGenericType)
+                if (!symbol.Equals(symbol.ConstructedFrom) && !_isUnboundGenericType)
                 {
-                    this.typeArgumentKeysOpt = symbol.TypeArguments.Select(a => GetOrCreate(a, visitor)).ToArray();
+                    _typeArgumentKeysOpt = symbol.TypeArguments.Select(a => GetOrCreate(a, visitor)).ToArray();
                 }
             }
 
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
-                var containerInfo = containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
+                var containerInfo = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
                 var types = GetAllSymbols<INamespaceOrTypeSymbol>(containerInfo).SelectMany(s => Resolve(compilation, s, ignoreAssemblyKey));
                 return CreateSymbolInfo(types);
             }
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis
                 INamespaceOrTypeSymbol container,
                 bool ignoreAssemblyKey)
             {
-                var types = container.GetTypeMembers(GetName(this.metadataName), this.arity);
-                var result = InstantiateTypes(compilation, ignoreAssemblyKey, types, arity, typeArgumentKeysOpt);
+                var types = container.GetTypeMembers(GetName(_metadataName), _arity);
+                var result = InstantiateTypes(compilation, ignoreAssemblyKey, types, _arity, _typeArgumentKeysOpt);
 
-                return this.isUnboundGenericType
+                return _isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())
                     : result;
             }
@@ -58,19 +58,19 @@ namespace Microsoft.CodeAnalysis
             {
                 var comparer = SymbolKeyComparer.GetComparer(options);
                 return
-                    other.arity == this.arity &&
-                    Equals(options.IgnoreCase, other.metadataName, this.metadataName) &&
-                    comparer.Equals(other.containerKey, this.containerKey) &&
-                    SequenceEquals(other.typeArgumentKeysOpt, this.typeArgumentKeysOpt, comparer);
+                    other._arity == _arity &&
+                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
+                    comparer.Equals(other._containerKey, _containerKey) &&
+                    SequenceEquals(other._typeArgumentKeysOpt, _typeArgumentKeysOpt, comparer);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
                 // TODO(cyrusn): Consider hashing the type arguments as well.
                 return
-                    Hash.Combine(this.arity,
-                    Hash.Combine(GetHashCode(options.IgnoreCase, this.metadataName),
-                                 this.containerKey.GetHashCode(options)));
+                    Hash.Combine(_arity,
+                    Hash.Combine(GetHashCode(options.IgnoreCase, _metadataName),
+                                 _containerKey.GetHashCode(options)));
             }
         }
     }

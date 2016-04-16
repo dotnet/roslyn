@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMethodSymbol
     {
-        private readonly string name;
-        private readonly bool isExpressionBodied;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
-        private TypeSymbol lazyReturnType;
+        private readonly string _name;
+        private readonly bool _isExpressionBodied;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeSymbol _lazyReturnType;
 
         protected SourceUserDefinedOperatorSymbolBase(
             MethodKind methodKind,
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied) :
             base(containingType, syntaxReference, bodySyntaxReference, location)
         {
-            this.name = name;
-            this.isExpressionBodied = isExpressionBodied;
+            _name = name;
+            _isExpressionBodied = isExpressionBodied;
 
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var signatureBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks);
 
-            this.lazyParameters = ParameterHelpers.MakeParameters(
+            _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder,
                 this,
                 ParameterListSyntax,
@@ -143,21 +143,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the operator method as being a varargs method.
             }
 
-            this.lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
+            _lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
 
-            if (this.lazyReturnType.IsRestrictedType())
+            if (_lazyReturnType.IsRestrictedType())
             {
                 // Method or delegate cannot return type '{0}'
-                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, this.lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType);
             }
 
-            if (this.lazyReturnType.IsStatic)
+            if (_lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, ReturnTypeSyntax.Location, this.lazyReturnType);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, ReturnTypeSyntax.Location, _lazyReturnType);
             }
 
-            this.SetReturnsVoid(this.lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
 
             // If we have an operator in an interface or static class then we already 
             // have reported that fact as  an error. No need to cascade the error further.
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: All types referenced in an operator declaration must be at least as accessible 
             // SPEC: as the operator itself.
 
-            CheckEffectiveAccessibility(lazyReturnType, lazyParameters, diagnostics);
+            CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             CheckValueParameters(diagnostics);
             CheckOperatorSignatures(diagnostics);
         }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: For a given source type S and target type T, if S or T are
             // SPEC: nullable types let S0 and T0 refer to their underlying types,
-            // SPEC: otherise, S0 and T0 are equal to S and T, respectively.
+            // SPEC: otherwise, S0 and T0 are equal to S and T, respectively.
 
             var source = this.ParameterTypes[0];
             var target = this.ReturnType;
@@ -306,13 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Those are the easy ones. Now we come to:
 
             // SPEC: 
-            // Exluding user-defined conversions, a conversion does not exist from 
+            // Excluding user-defined conversions, a conversion does not exist from 
             // S to T or T to S. For the purposes of these rules, any type parameters
             // associated with S or T are considered to be unique types that have
             // no inheritance relationship with other types, and any constraints on
             // those type parameters are ignored.
 
-            // A counter-intuative consequence of this rule is that:
+            // A counter-intuitive consequence of this rule is that:
             //
             // class X<U> where U : X<U>
             // {
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return name;
+                return _name;
             }
         }
 
@@ -581,11 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(this.locations[0], this.DeclaringCompilation);
-        }
-
         public sealed override ImmutableArray<Location> Locations
         {
             get
@@ -598,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !this.lazyParameters.IsDefault ? this.lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
+                return !_lazyParameters.IsDefault ? _lazyParameters.Length : GetSyntax().ParameterList.ParameterCount;
             }
         }
 
@@ -607,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -621,13 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return this.lazyReturnType;
+                return _lazyReturnType;
             }
         }
 
         internal override bool IsExpressionBodied
         {
-            get { return this.isExpressionBodied; }
+            get { return _isExpressionBodied; }
         }
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal class LogAggregator : IEnumerable<KeyValuePair<object, LogAggregator.Counter>>
     {
-        private static int globalId = 0;
+        private static int s_globalId;
 
-        private readonly ConcurrentDictionary<object, Counter> map = new ConcurrentDictionary<object, Counter>(concurrencyLevel: 2, capacity: 2);
+        private readonly ConcurrentDictionary<object, Counter> _map = new ConcurrentDictionary<object, Counter>(concurrencyLevel: 2, capacity: 2);
 
         public static int GetNextId()
         {
-            return Interlocked.Increment(ref globalId);
+            return Interlocked.Increment(ref s_globalId);
         }
 
         public static StatisticResult GetStatistics(List<int> values)
@@ -62,10 +64,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             counter.IncreaseCount();
         }
 
+        public void IncreaseCountBy(object key, int value)
+        {
+            var counter = GetCounter(key);
+            counter.IncreaseCountBy(value);
+        }
+
         public int GetCount(object key)
         {
             Counter counter;
-            if (map.TryGetValue(key, out counter))
+            if (_map.TryGetValue(key, out counter))
             {
                 return counter.GetCount();
             }
@@ -80,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public IEnumerator<KeyValuePair<object, Counter>> GetEnumerator()
         {
-            return this.map.GetEnumerator();
+            return _map.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -90,28 +98,35 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private Counter GetCounter(object key)
         {
-            return map.GetOrAdd(key, _ => new Counter());
+            return _map.GetOrAdd(key, _ => new Counter());
         }
 
         internal class Counter
         {
-            private int count = 0;
+            private int _count;
 
             public void SetCount(int count)
             {
-                this.count = count;
+                _count = count;
             }
 
             public void IncreaseCount()
             {
                 // Counter class probably not needed. but it is here for 2 reasons.
                 // make handling concurrency easier and be a place holder for different type of counter
-                Interlocked.Increment(ref count);
+                Interlocked.Increment(ref _count);
+            }
+
+            public void IncreaseCountBy(int value)
+            {
+                // Counter class probably not needed. but it is here for 2 reasons.
+                // make handling concurrency easier and be a place holder for different type of counter
+                Interlocked.Add(ref _count, value);
             }
 
             public int GetCount()
             {
-                return count;
+                return _count;
             }
         }
 

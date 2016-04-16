@@ -9,16 +9,16 @@ namespace Microsoft.CodeAnalysis
 {
     internal class DeferredDocumentationProvider : DocumentationProvider
     {
-        private readonly Compilation compilation;
+        private readonly Compilation _compilation;
 
         public DeferredDocumentationProvider(Compilation compilation)
         {
-            this.compilation = compilation;
+            _compilation = compilation;
         }
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationMemberID, this.compilation);
+            var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationMemberID, _compilation);
 
             if (symbol != null)
             {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return this.compilation.GetHashCode();
+            return _compilation.GetHashCode();
         }
     }
 }

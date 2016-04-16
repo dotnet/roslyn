@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class UnmergedDocumentChanges
     {
-        public IEnumerable<TextChange> UnmergedChanges { get; private set; }
-        public string ProjectName { get; private set; }
-        public DocumentId DocumentId { get; private set; }
+        public IEnumerable<TextChange> UnmergedChanges { get; }
+        public string ProjectName { get; }
+        public DocumentId DocumentId { get; }
 
         public UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
         {

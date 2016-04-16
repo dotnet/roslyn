@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private struct LocalSignature : IEquatable<LocalSignature>
         {
-            private readonly Cci.ITypeReference Type;
-            private readonly LocalSlotConstraints Constraints;
+            private readonly Cci.ITypeReference _type;
+            private readonly LocalSlotConstraints _constraints;
 
             internal LocalSignature(Cci.ITypeReference valType, LocalSlotConstraints constraints)
             {
-                this.Constraints = constraints;
-                this.Type = valType;
+                _constraints = constraints;
+                _type = valType;
             }
 
             public bool Equals(LocalSignature other)
@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // ITypeReference does not have object identity.
                 // Same type may be represented by multiple instances.
                 // Therefore the use of "Equals" here.
-                return this.Constraints == other.Constraints &&
-                    (this.Type == other.Type || this.Type.Equals(other.Type));
+                return _constraints == other._constraints &&
+                    (_type == other._type || _type.Equals(other._type));
             }
 
             public override int GetHashCode()
             {
-                var code = Hash.Combine(this.Type, (int)this.Constraints);
+                var code = Hash.Combine(_type, (int)_constraints);
                 return code;
             }
 
@@ -63,28 +63,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // maps local identities to locals.
-        private Dictionary<ILocalSymbol, LocalDefinition> localMap;
+        private Dictionary<ILocalSymbol, LocalDefinition> _localMap;
 
         // pool of free slots partitioned by their signature.
-        private KeyedStack<LocalSignature, LocalDefinition> freeSlots;
+        private KeyedStack<LocalSignature, LocalDefinition> _freeSlots;
 
         // all locals in order
-        private ArrayBuilder<Cci.ILocalDefinition> lazyAllLocals;
+        private ArrayBuilder<Cci.ILocalDefinition> _lazyAllLocals;
 
         // An optional allocator that provides slots for locals.
         // Used when emitting an update to a method body during EnC.
-        private readonly VariableSlotAllocator slotAllocatorOpt;
+        private readonly VariableSlotAllocator _slotAllocatorOpt;
 
         public LocalSlotManager(VariableSlotAllocator slotAllocatorOpt)
         {
-            this.slotAllocatorOpt = slotAllocatorOpt;
+            _slotAllocatorOpt = slotAllocatorOpt;
 
             // Add placeholders for pre-allocated locals. 
             // The actual identities are populated if/when the locals are reused.
             if (slotAllocatorOpt != null)
             {
-                this.lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
-                slotAllocatorOpt.AddPreviousLocals(this.lazyAllLocals);
+                _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
+                slotAllocatorOpt.AddPreviousLocals(_lazyAllLocals);
             }
         }
 
@@ -92,11 +92,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                var map = localMap;
+                var map = _localMap;
                 if (map == null)
                 {
                     map = new Dictionary<ILocalSymbol, LocalDefinition>(ReferenceEqualityComparer.Instance);
-                    localMap = map;
+                    _localMap = map;
                 }
 
                 return map;
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                var slots = freeSlots;
+                var slots = _freeSlots;
                 if (slots == null)
                 {
                     slots = new KeyedStack<LocalSignature, LocalDefinition>();
-                    freeSlots = slots;
+                    _freeSlots = slots;
                 }
 
                 return slots;
@@ -197,20 +197,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
         {
-            if (this.lazyAllLocals == null)
+            if (_lazyAllLocals == null)
             {
-                this.lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
+                _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
             }
 
             LocalDefinition local;
 
-            if (symbolOpt != null && slotAllocatorOpt != null)
+            if (symbolOpt != null && _slotAllocatorOpt != null)
             {
-                local = this.slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
+                local = _slotAllocatorOpt.GetPreviousLocal(type, symbolOpt, nameOpt, kind, id, pdbAttributes, constraints, isDynamic, dynamicTransformFlags);
                 if (local != null)
                 {
                     int slot = local.SlotIndex;
-                    this.lazyAllLocals[slot] = local;
+                    _lazyAllLocals[slot] = local;
                     return local;
                 }
             }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 symbolOpt: symbolOpt,
                 nameOpt: nameOpt,
                 type: type,
-                slot: this.lazyAllLocals.Count,
+                slot: _lazyAllLocals.Count,
                 synthesizedKind: kind,
                 id: id,
                 pdbAttributes: pdbAttributes,
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 isDynamic: isDynamic,
                 dynamicTransformFlags: dynamicTransformFlags);
 
-            this.lazyAllLocals.Add(local);
+            _lazyAllLocals.Add(local);
             return local;
         }
 
@@ -242,13 +242,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<Cci.ILocalDefinition> LocalsInOrder()
         {
-            if (this.lazyAllLocals == null)
+            if (_lazyAllLocals == null)
             {
                 return ImmutableArray<Cci.ILocalDefinition>.Empty;
             }
             else
             {
-                return this.lazyAllLocals.ToImmutable();
+                return _lazyAllLocals.ToImmutable();
             }
         }
     }

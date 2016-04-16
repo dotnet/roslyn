@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundNewT
+    Friend Partial Class BoundNewT
 
 #If DEBUG Then
         Private Sub Validate()

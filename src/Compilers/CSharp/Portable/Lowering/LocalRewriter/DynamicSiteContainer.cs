@@ -8,18 +8,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class DynamicSiteContainer : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol topLevelMethod;
+        private readonly MethodSymbol _topLevelMethod;
 
         internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod)
             : base(name, topLevelMethod)
         {
             Debug.Assert(topLevelMethod != null);
-            this.topLevelMethod = topLevelMethod;
+            _topLevelMethod = topLevelMethod;
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return topLevelMethod.ContainingSymbol; }
+            get { return _topLevelMethod.ContainingSymbol; }
         }
 
         public override TypeKind TypeKind
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return topLevelMethod; }
+            get { return _topLevelMethod; }
         }
     }
 }

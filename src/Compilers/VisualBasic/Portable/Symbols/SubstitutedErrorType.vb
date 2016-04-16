@@ -112,8 +112,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If IdentitySubstitutionOnMyTypeParameters Then
                     Return StaticCast(Of TypeSymbol).From(TypeParameters)
                 Else
-                    Return (From tp In _fullInstanceType.TypeParameters Select _substitution.GetSubstitutionFor(tp)).ToArray.AsImmutableOrNull()
+                    Return _substitution.GetTypeArgumentsFor(_fullInstanceType, Nothing)
                 End If
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Get
+                If IdentitySubstitutionOnMyTypeParameters Then
+                    Return CreateEmptyTypeArgumentsCustomModifiers()
+                End If
+
+                Return _substitution.GetTypeArgumentsCustomModifiersFor(_fullInstanceType)
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+            Get
+                If IdentitySubstitutionOnMyTypeParameters Then
+                    Return False
+                End If
+
+                Return _substitution.HasTypeArgumentsCustomModifiersFor(_fullInstanceType)
             End Get
         End Property
 
@@ -123,7 +143,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
+            Return New TypeWithModifiers(InternalSubstituteTypeParametersInSubstitutedErrorType(additionalSubstitution))
+        End Function
+
+        Private Overloads Function InternalSubstituteTypeParametersInSubstitutedErrorType(additionalSubstitution As TypeSubstitution) As NamedTypeSymbol
             If additionalSubstitution Is Nothing Then
                 Return Me
             End If
@@ -145,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Return New SubstitutedErrorType(container, _fullInstanceType, substitution)
             Else
-                Dim newContainer = DirectCast(containingType.InternalSubstituteTypeParameters(additionalSubstitution), NamedTypeSymbol)
+                Dim newContainer = DirectCast(containingType.InternalSubstituteTypeParameters(additionalSubstitution).AsTypeSymbolOnly(), NamedTypeSymbol)
 
                 Dim newSubstitution = VisualBasic.Symbols.TypeSubstitution.AdjustForConstruct(newContainer.TypeSubstitution, _substitution, additionalSubstitution)
 
@@ -233,6 +257,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
+            Dim hasTypeArgumentsCustomModifiers = Me.HasTypeArgumentsCustomModifiers
+            If hasTypeArgumentsCustomModifiers <> other.HasTypeArgumentsCustomModifiers Then
+                Return False
+            End If
+
             Dim arguments = TypeArgumentsNoUseSiteDiagnostics
             Dim otherArguments = other.TypeArgumentsNoUseSiteDiagnostics
             Dim count As Integer = arguments.Length
@@ -242,6 +271,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
             Next
+
+            If hasTypeArgumentsCustomModifiers Then
+                Dim modifiers = TypeArgumentsCustomModifiers
+                Dim otherModifiers = other.TypeArgumentsCustomModifiers
+
+                For i As Integer = 0 To count - 1 Step 1
+                    If Not modifiers(i).SequenceEqual(otherModifiers(i)) Then
+                        Return False
+                    End If
+                Next
+            End If
 
             Return True
         End Function

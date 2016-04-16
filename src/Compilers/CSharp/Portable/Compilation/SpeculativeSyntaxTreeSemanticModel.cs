@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class SpeculativeSyntaxTreeSemanticModel : SyntaxTreeSemanticModel
     {
-        private readonly CSharpSemanticModel parentSemanticModel;
-        private readonly CSharpSyntaxNode root;
-        private readonly Binder rootBinder;
-        private readonly int position;
-        private readonly SpeculativeBindingOption bindingOption;
+        private readonly CSharpSemanticModel _parentSemanticModel;
+        private readonly CSharpSyntaxNode _root;
+        private readonly Binder _rootBinder;
+        private readonly int _position;
+        private readonly SpeculativeBindingOption _bindingOption;
 
         public static SpeculativeSyntaxTreeSemanticModel Create(CSharpSemanticModel parentSemanticModel, TypeSyntax root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
         {
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SpeculativeSyntaxTreeSemanticModel(CSharpSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
             : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree)
         {
-            this.parentSemanticModel = parentSemanticModel;
-            this.root = root;
-            this.rootBinder = rootBinder;
-            this.position = position;
-            this.bindingOption = bindingOption;
+            _parentSemanticModel = parentSemanticModel;
+            _root = root;
+            _rootBinder = rootBinder;
+            _position = position;
+            _bindingOption = bindingOption;
         }
 
         public override bool IsSpeculativeSemanticModel
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.position;
+                return _position;
             }
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.parentSemanticModel;
+                return _parentSemanticModel;
             }
         }
 
@@ -80,18 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.root;
+                return _root;
             }
         }
 
         internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            return parentSemanticModel.Bind(binder, node, diagnostics);
+            return _parentSemanticModel.Bind(binder, node, diagnostics);
         }
 
         internal override Binder GetEnclosingBinderInternal(int position)
         {
-            return this.rootBinder;
+            return _rootBinder;
         }
 
         private SpeculativeBindingOption GetSpeculativeBindingOption(ExpressionSyntax node)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpeculativeBindingOption.BindAsTypeOrNamespace;
             }
 
-            return this.bindingOption;
+            return _bindingOption;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -109,24 +109,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var cref = node as CrefSyntax;
             if (cref != null)
             {
-                return parentSemanticModel.GetSpeculativeSymbolInfo(position, cref, options);
+                return _parentSemanticModel.GetSpeculativeSymbolInfo(_position, cref, options);
             }
 
             var expression = (ExpressionSyntax)node;
 
             if ((options & SymbolInfoOptions.PreserveAliases) != 0)
             {
-                var aliasSymbol = (AliasSymbol)parentSemanticModel.GetSpeculativeAliasInfo(position, expression, this.GetSpeculativeBindingOption(expression));
+                var aliasSymbol = (AliasSymbol)_parentSemanticModel.GetSpeculativeAliasInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
                 return new SymbolInfo(aliasSymbol, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
-            return parentSemanticModel.GetSpeculativeSymbolInfo(position, expression, this.GetSpeculativeBindingOption(expression));
+            return _parentSemanticModel.GetSpeculativeSymbolInfo(_position, expression, this.GetSpeculativeBindingOption(expression));
         }
 
         internal override CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var expression = (ExpressionSyntax)node;
-            return parentSemanticModel.GetSpeculativeTypeInfoWorker(position, expression, this.GetSpeculativeBindingOption(expression));
+            return _parentSemanticModel.GetSpeculativeTypeInfoWorker(_position, expression, this.GetSpeculativeBindingOption(expression));
         }
     }
 }

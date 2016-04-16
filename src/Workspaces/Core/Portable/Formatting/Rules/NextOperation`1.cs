@@ -9,22 +9,22 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal struct NextOperation<TResult>
     {
-        private int index;
-        private SyntaxToken token1;
-        private SyntaxToken token2;
-        private IOperationHolder<TResult> operationCache;
+        private readonly int _index;
+        private SyntaxToken _token1;
+        private SyntaxToken _token2;
+        private readonly IOperationHolder<TResult> _operationCache;
 
         public NextOperation(int index, SyntaxToken token1, SyntaxToken token2, IOperationHolder<TResult> operationCache)
         {
-            this.index = index;
-            this.token1 = token1;
-            this.token2 = token2;
-            this.operationCache = operationCache;
+            _index = index;
+            _token1 = token1;
+            _token2 = token2;
+            _operationCache = operationCache;
         }
 
         public TResult Invoke()
         {
-            return operationCache.Continuation(index, token1, token2, operationCache);
+            return _operationCache.Continuation(_index, _token1, _token2, _operationCache);
         }
     }
 }

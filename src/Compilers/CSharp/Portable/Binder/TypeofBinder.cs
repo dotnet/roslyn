@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class TypeofBinder : Binder
     {
-        private readonly Dictionary<GenericNameSyntax, bool> allowedMap;
-        private readonly bool isTypeExpressionOpen;
+        private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
+        private readonly bool _isTypeExpressionOpen;
 
         internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
             // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
@@ -27,15 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // string expression usable in an early attribute, we use early attribute binding.
             : base(next, next.Flags | BinderFlags.UnsafeRegion | BinderFlags.EarlyAttributeBinding)
         {
-            OpenTypeVisitor.Visit(typeExpression, out this.allowedMap, out this.isTypeExpressionOpen);
+            OpenTypeVisitor.Visit(typeExpression, out _allowedMap, out _isTypeExpressionOpen);
         }
 
-        internal bool IsTypeExpressionOpen { get { return this.isTypeExpressionOpen; } }
+        internal bool IsTypeExpressionOpen { get { return _isTypeExpressionOpen; } }
 
         protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
             bool allowed;
-            return this.allowedMap != null && this.allowedMap.TryGetValue(syntax, out allowed) && allowed;
+            return _allowedMap != null && _allowedMap.TryGetValue(syntax, out allowed) && allowed;
         }
 
         /////// <summary>
@@ -89,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class OpenTypeVisitor : CSharpSyntaxVisitor
         {
-            private Dictionary<GenericNameSyntax, bool> allowedMap = null;
-            private bool seenConstructed = false;
-            private bool seenGeneric = false;
+            private Dictionary<GenericNameSyntax, bool> _allowedMap;
+            private bool _seenConstructed;
+            private bool _seenGeneric;
 
             /// <param name="typeSyntax">The argument to typeof.</param>
             /// <param name="allowedMap">
@@ -103,26 +103,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 OpenTypeVisitor visitor = new OpenTypeVisitor();
                 visitor.Visit(typeSyntax);
-                allowedMap = visitor.allowedMap;
-                isUnboundGenericType = visitor.seenGeneric && !visitor.seenConstructed;
+                allowedMap = visitor._allowedMap;
+                isUnboundGenericType = visitor._seenGeneric && !visitor._seenConstructed;
             }
 
             public override void VisitGenericName(GenericNameSyntax node)
             {
-                seenGeneric = true;
+                _seenGeneric = true;
 
                 SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
                 if (node.IsUnboundGenericName)
                 {
-                    if (allowedMap == null)
+                    if (_allowedMap == null)
                     {
-                        allowedMap = new Dictionary<GenericNameSyntax, bool>();
+                        _allowedMap = new Dictionary<GenericNameSyntax, bool>();
                     }
-                    allowedMap[node] = !seenConstructed;
+                    _allowedMap[node] = !_seenConstructed;
                 }
                 else
                 {
-                    seenConstructed = true;
+                    _seenConstructed = true;
                     foreach (TypeSyntax arg in typeArguments)
                     {
                         Visit(arg);
@@ -132,17 +132,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitQualifiedName(QualifiedNameSyntax node)
             {
-                bool seenConstructedBeforeRight = seenConstructed;
+                bool seenConstructedBeforeRight = _seenConstructed;
 
                 // Visit Right first because it's smaller (to make backtracking cheaper).
                 Visit(node.Right);
 
-                bool seenConstructedBeforeLeft = seenConstructed;
+                bool seenConstructedBeforeLeft = _seenConstructed;
 
                 Visit(node.Left);
 
                 // If the first time we saw a constructed type was in Left, then we need to re-visit Right
-                if (!seenConstructedBeforeRight && !seenConstructedBeforeLeft && seenConstructed)
+                if (!seenConstructedBeforeRight && !seenConstructedBeforeLeft && _seenConstructed)
                 {
                     Visit(node.Right);
                 }
@@ -155,19 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void VisitArrayType(ArrayTypeSyntax node)
             {
-                this.seenConstructed = true;
+                _seenConstructed = true;
                 Visit(node.ElementType);
             }
 
             public override void VisitPointerType(PointerTypeSyntax node)
             {
-                this.seenConstructed = true;
+                _seenConstructed = true;
                 Visit(node.ElementType);
             }
 
             public override void VisitNullableType(NullableTypeSyntax node)
             {
-                this.seenConstructed = true;
+                _seenConstructed = true;
                 Visit(node.ElementType);
             }
         }

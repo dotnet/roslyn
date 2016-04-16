@@ -10,24 +10,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         private class Walker : SyntaxWalker
         {
-            private readonly SemanticModel semanticModel;
-            private readonly SemanticMap map;
-            private readonly CancellationToken cancellationToken;
+            private readonly SemanticModel _semanticModel;
+            private readonly SemanticMap _map;
+            private readonly CancellationToken _cancellationToken;
 
             public Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken) :
                 base(SyntaxWalkerDepth.Token)
             {
-                this.semanticModel = semanticModel;
-                this.map = map;
-                this.cancellationToken = cancellationToken;
+                _semanticModel = semanticModel;
+                _map = map;
+                _cancellationToken = cancellationToken;
             }
 
             public override void Visit(SyntaxNode node)
             {
-                var info = semanticModel.GetSymbolInfo(node);
+                var info = _semanticModel.GetSymbolInfo(node);
                 if (!IsNone(info))
                 {
-                    map.expressionToInfoMap.Add(node, info);
+                    _map._expressionToInfoMap.Add(node, info);
                 }
 
                 base.Visit(node);
@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             protected override void VisitToken(SyntaxToken token)
             {
-                var info = semanticModel.GetSymbolInfo(token, cancellationToken);
+                var info = _semanticModel.GetSymbolInfo(token, _cancellationToken);
                 if (!IsNone(info))
                 {
-                    map.tokenToInfoMap.Add(token, info);
+                    _map._tokenToInfoMap.Add(token, info);
                 }
 
                 base.VisitToken(token);

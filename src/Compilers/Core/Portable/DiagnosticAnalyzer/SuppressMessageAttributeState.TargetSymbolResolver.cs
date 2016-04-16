@@ -1,21 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
-        private static string SuppressionPrefix = "~";
+        private const string s_suppressionPrefix = "~";
 
+        [StructLayout(LayoutKind.Auto)]
         private struct TargetSymbolResolver
         {
-            private static readonly char[] nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
-            private static readonly string[] callingConventionStrings =
+            private static readonly char[] s_nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
+            private static readonly string[] s_callingConventionStrings =
             {
                 "[vararg]",
                 "[cdecl]",
@@ -24,33 +27,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 "[thiscall]"
             };
 
-            private static readonly ParameterInfo[] noParameters = new ParameterInfo[0];
+            private static readonly ParameterInfo[] s_noParameters = SpecializedCollections.EmptyArray<ParameterInfo>();
 
-            private Compilation compilation;
-            private TargetScope scope;
-            private string name;
-            private int index;
+            private readonly Compilation _compilation;
+            private readonly TargetScope _scope;
+            private readonly string _name;
+            private int _index;
 
             public TargetSymbolResolver(Compilation compilation, TargetScope scope, string fullyQualifiedName)
             {
-                this.compilation = compilation;
-                this.scope = scope;
-                this.name = fullyQualifiedName;
-                this.index = 0;
+                _compilation = compilation;
+                _scope = scope;
+                _name = fullyQualifiedName;
+                _index = 0;
             }
 
             private static string RemovePrefix(string id, string prefix)
             {
-                if (prefix != null)
+                if (id != null && prefix != null && id.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    if (id == null || !id.StartsWith(prefix))
-                    {
-                        return null;
-                    }
-                    else
-                    {
-                        return id.Substring(prefix.Length);
-                    }
+                    return id.Substring(prefix.Length);
                 }
 
                 return id;
@@ -58,32 +54,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void Resolve(IList<ISymbol> results)
             {
-                if (string.IsNullOrEmpty(this.name))
+                if (string.IsNullOrEmpty(_name))
                 {
                     return;
                 }
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
-                List<ISymbol> docIdResults;
-                if (DocumentationCommentId.TryGetSymbolsForDeclarationId(RemovePrefix(this.name, SuppressionPrefix), this.compilation, out docIdResults))
+                var nameWithoutPrefix = RemovePrefix(_name, s_suppressionPrefix);
+                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
+                if (docIdResults.Length > 0)
                 {
                     foreach (var result in docIdResults)
                     {
                         results.Add(result);
                     }
-                    
+
                     return;
                 }
 
                 // Parse 'e:' prefix used by FxCop to differentiate between event and non-event symbols of the same name.
                 bool isEvent = false;
-                if (this.name.Length >= 2 && this.name[0] == 'e' && this.name[1] == ':')
+                if (_name.Length >= 2 && _name[0] == 'e' && _name[1] == ':')
                 {
                     isEvent = true;
-                    this.index = 2;
+                    _index = 2;
                 }
 
-                INamespaceOrTypeSymbol containingSymbol = this.compilation.GlobalNamespace;
+                INamespaceOrTypeSymbol containingSymbol = _compilation.GlobalNamespace;
                 bool? segmentIsNamedTypeName = null;
 
                 while (true)
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (segment == "Item" && PeekNextChar() == '[')
                     {
                         isIndexerProperty = true;
-                        if (this.compilation.Language == LanguageNames.CSharp)
+                        if (_compilation.Language == LanguageNames.CSharp)
                         {
                             segment = "this[]";
                         }
@@ -120,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ParameterInfo[] parameters = null;
 
                     // Check for generic arity
-                    if (scope != TargetScope.Namespace && PeekNextChar() == '`')
+                    if (_scope != TargetScope.Namespace && PeekNextChar() == '`')
                     {
-                        ++this.index;
+                        ++_index;
                         arity = ReadNextInteger();
                     }
 
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else if (nextChar == '.' || nextChar == '+')
                     {
-                        ++this.index;
+                        ++_index;
 
                         if (arity > 0 || nextChar == '+')
                         {
@@ -161,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // hope of finding the symbol.
                             return;
                         }
-                        else if (containingSymbol.Kind == SymbolKind.NamedType)
+
+                        if (containingSymbol.Kind == SymbolKind.NamedType)
                         {
                             // If segment resolves to a named type, that restricts what the next segment
                             // can resolve to depending on whether the name continues with '+' or '.'
@@ -171,12 +169,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    if (this.scope == TargetScope.Member && !isIndexerProperty && parameters != null)
+                    if (_scope == TargetScope.Member && !isIndexerProperty && parameters != null)
                     {
                         TypeInfo? returnType = null;
                         if (PeekNextChar() == ':')
                         {
-                            ++this.index;
+                            ++_index;
                             returnType = ParseNamedType(null);
                         }
 
@@ -188,9 +186,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return;
                     }
 
-                    ISymbol singleResult = null;
+                    ISymbol singleResult;
 
-                    switch (this.scope)
+                    switch (_scope)
                     {
                         case TargetScope.Namespace:
                             singleResult = candidateMembers.FirstOrDefault(s => s.Kind == SymbolKind.Namespace);
@@ -218,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         default:
-                            throw ExceptionUtilities.UnexpectedValue(this.scope);
+                            throw ExceptionUtilities.UnexpectedValue(_scope);
                     }
 
                     if (singleResult != null)
@@ -237,17 +235,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // these name providers is similar enough that we can just ignore this character.
                 if (PeekNextChar() == '#')
                 {
-                    ++this.index;
+                    ++_index;
 
                     // Ignore calling convention strings generated by FxCop for methods.
                     // Methods can't differ solely by calling convention in C# or VB.
                     if (PeekNextChar() == '[')
                     {
-                        foreach (string callingConvention in callingConventionStrings)
+                        foreach (string callingConvention in s_callingConventionStrings)
                         {
-                            if (callingConvention == this.name.Substring(this.index, callingConvention.Length))
+                            if (callingConvention == _name.Substring(_index, callingConvention.Length))
                             {
-                                this.index += callingConvention.Length;
+                                _index += callingConvention.Length;
                                 break;
                             }
                         }
@@ -258,18 +256,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Find the end of the next name segment, special case constructors which start with '.'
                 int delimiterOffset = PeekNextChar() == '.' ?
-                    this.name.IndexOfAny(nameDelimiters, this.index + 1) :
-                    this.name.IndexOfAny(nameDelimiters, this.index);
+                    _name.IndexOfAny(s_nameDelimiters, _index + 1) :
+                    _name.IndexOfAny(s_nameDelimiters, _index);
 
                 if (delimiterOffset >= 0)
                 {
-                    segment = this.name.Substring(this.index, delimiterOffset - this.index);
-                    this.index = delimiterOffset;
+                    segment = _name.Substring(_index, delimiterOffset - _index);
+                    _index = delimiterOffset;
                 }
                 else
                 {
-                    segment = this.name.Substring(this.index);
-                    this.index = this.name.Length;
+                    segment = _name.Substring(_index);
+                    _index = _name.Length;
                 }
 
                 return segment;
@@ -277,17 +275,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private char PeekNextChar()
             {
-                return this.index >= this.name.Length ? '\0' : this.name[this.index];
+                return _index >= _name.Length ? '\0' : _name[_index];
             }
 
             private int ReadNextInteger()
             {
                 int n = 0;
 
-                while (this.index < this.name.Length && char.IsDigit(this.name[this.index]))
+                while (_index < _name.Length && char.IsDigit(_name[_index]))
                 {
-                    n = n * 10 + (this.name[this.index] - '0');
-                    ++this.index;
+                    n = n * 10 + (_name[_index] - '0');
+                    ++_index;
                 }
 
                 return n;
@@ -297,14 +295,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Consume the opening parenthesis or bracket
                 Debug.Assert(PeekNextChar() == '(' || PeekNextChar() == '[');
-                ++this.index;
+                ++_index;
 
                 var nextChar = PeekNextChar();
                 if (nextChar == ')' || nextChar == ']')
                 {
                     // Empty parameter list
-                    ++this.index;
-                    return noParameters;
+                    ++_index;
+                    return s_noParameters;
                 }
 
                 var builder = new ArrayBuilder<ParameterInfo>();
@@ -324,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (PeekNextChar() == ',')
                     {
-                        ++this.index;
+                        ++_index;
                     }
                     else
                     {
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (nextChar == ')' || nextChar == ']')
                 {
                     // Consume the closing parenthesis or bracket
-                    ++this.index;
+                    ++_index;
                 }
                 else
                 {
@@ -350,18 +348,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ParameterInfo? ParseParameter()
             {
-                bool isRefOrOut = false;
-
                 var type = ParseType(null);
                 if (type == null)
                 {
                     return null;
                 }
 
-                if (PeekNextChar() == '&')
+                var isRefOrOut = PeekNextChar() == '&';
+                if (isRefOrOut)
                 {
-                    ++this.index;
-                    isRefOrOut = true;
+                    ++_index;
                 }
 
                 return new ParameterInfo(type.Value, isRefOrOut);
@@ -385,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // which we will only be able to resolve once we have a binding context.
                     if (bindingContext != null && result.HasValue && !result.Value.IsBound)
                     {
-                        this.index = result.Value.StartIndex;
+                        _index = result.Value.StartIndex;
                         result = ParseNamedTypeParameter(bindingContext);
                     }
                 }
@@ -394,7 +390,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return null;
                 }
-                else if (result.Value.IsBound)
+
+                if (result.Value.IsBound)
                 {
                     var typeSymbol = result.Value.Type;
 
@@ -413,26 +410,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                             continue;
                         }
-                        else if (nextChar == '*')
+
+                        if (nextChar == '*')
                         {
-                            ++this.index;
-                            typeSymbol = this.compilation.CreatePointerTypeSymbol(typeSymbol);
+                            ++_index;
+                            typeSymbol = _compilation.CreatePointerTypeSymbol(typeSymbol);
                             continue;
                         }
-                        else
-                        {
-                            break;
-                        }
+
+                        break;
                     }
 
                     return TypeInfo.Create(typeSymbol);
                 }
-                else
-                {
-                    // Skip pointer and array specifiers for unbound types
-                    IgnorePointerAndArraySpecifiers();
-                    return result;
-                }
+
+                // Skip pointer and array specifiers for unbound types
+                IgnorePointerAndArraySpecifiers();
+                return result;
             }
 
             private void IgnoreCustomModifierList()
@@ -448,14 +442,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // overloads a method from metadata which uses custom modifiers.
                 if (PeekNextChar() == '{')
                 {
-                    for (; this.index < this.name.Length && this.name[this.index] != '}'; ++this.index) ;
+                    for (; _index < _name.Length && _name[_index] != '}'; ++_index) { }
                 }
             }
 
             private void IgnorePointerAndArraySpecifiers()
             {
                 bool inBrackets = false;
-                for (; this.index < this.name.Length; ++this.index)
+                for (; _index < _name.Length; ++_index)
                 {
                     switch (PeekNextChar())
                     {
@@ -485,15 +479,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private TypeInfo? ParseIndexedTypeParameter(ISymbol bindingContext)
             {
-                var startIndex = this.index;
+                var startIndex = _index;
 
                 Debug.Assert(PeekNextChar() == '!');
-                ++this.index;
+                ++_index;
 
                 if (PeekNextChar() == '!')
                 {
                     // !! means this is a method type parameter
-                    ++this.index;
+                    ++_index;
                     var methodTypeParameterIndex = ReadNextInteger();
 
                     var methodContext = bindingContext as IMethodSymbol;
@@ -504,42 +498,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             return TypeInfo.Create(methodContext.TypeParameters[methodTypeParameterIndex]);
                         }
-                        else
-                        {
-                            // No such parameter
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        // If there is no method context, then the type is unbound and must be bound later
-                        return TypeInfo.CreateUnbound(startIndex);
-                    }
-                }
-                else
-                {
-                    // ! means this is a regular type parameter
-                    var typeParameterIndex = ReadNextInteger();
 
-                    if (bindingContext != null)
-                    {
-                        var typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
-                        if (typeParameter != null)
-                        {
-                            return TypeInfo.Create(typeParameter);
-                        }
-                        else
-                        {
-                            // no such parameter
-                            return null;
-                        }
+                        // No such parameter
+                        return null;
                     }
-                    else
-                    {
-                        // If there is no binding context, then the type is unbound and must be bound later
-                        return TypeInfo.CreateUnbound(startIndex);
-                    }
+
+                    // If there is no method context, then the type is unbound and must be bound later
+                    return TypeInfo.CreateUnbound(startIndex);
                 }
+
+                // ! means this is a regular type parameter
+                var typeParameterIndex = ReadNextInteger();
+
+                if (bindingContext != null)
+                {
+                    var typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
+                    if (typeParameter != null)
+                    {
+                        return TypeInfo.Create(typeParameter);
+                    }
+
+                    // no such parameter
+                    return null;
+                }
+
+                // If there is no binding context, then the type is unbound and must be bound later
+                return TypeInfo.CreateUnbound(startIndex);
             }
 
             private TypeInfo? ParseNamedTypeParameter(ISymbol bindingContext)
@@ -578,10 +562,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private TypeInfo? ParseNamedType(ISymbol bindingContext)
             {
-                INamespaceOrTypeSymbol containingSymbol = this.compilation.GlobalNamespace;
-                INamedTypeSymbol typeSymbol = null;
+                INamespaceOrTypeSymbol containingSymbol = _compilation.GlobalNamespace;
 
-                int startIndex = this.index;
+                int startIndex = _index;
 
                 while (true)
                 {
@@ -598,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Check for generic arity
                     if (PeekNextChar() == '`')
                     {
-                        ++this.index;
+                        ++_index;
                         arity = ReadNextInteger();
                     }
 
@@ -620,7 +603,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var nextChar = PeekNextChar();
                     if (nextChar == '.' || nextChar == '+')
                     {
-                        ++this.index;
+                        ++_index;
 
                         if (arity > 0 || nextChar == '+')
                         {
@@ -639,33 +622,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             // hope of finding the symbol.
                             return null;
                         }
-                        else
-                        {
-                            continue;
-                        }
+
+                        continue;
                     }
 
-                    typeSymbol = GetFirstMatchingNamedType(candidateMembers, arity);
-                    if (typeSymbol != null)
-                    {
-                        if (typeArguments != null)
-                        {
-                            typeSymbol = typeSymbol.Construct(typeArguments.Select(t => t.Type).ToArray());
-                        }
-
-                        return TypeInfo.Create(typeSymbol);
-                    }
-                    else
+                    INamedTypeSymbol typeSymbol = GetFirstMatchingNamedType(candidateMembers, arity);
+                    if (typeSymbol == null)
                     {
                         return null;
                     }
+
+                    if (typeArguments != null)
+                    {
+                        typeSymbol = typeSymbol.Construct(typeArguments.Select(t => t.Type).ToArray());
+                    }
+
+                    return TypeInfo.Create(typeSymbol);
                 }
             }
 
             private TypeInfo[] ParseTypeArgumentList(ISymbol bindingContext)
             {
                 Debug.Assert(PeekNextChar() == '<');
-                ++this.index;
+                ++_index;
 
                 var builder = new ArrayBuilder<TypeInfo>();
 
@@ -682,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (PeekNextChar() == ',')
                     {
-                        ++this.index;
+                        ++_index;
                     }
                     else
                     {
@@ -692,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (PeekNextChar() == '>')
                 {
-                    ++this.index;
+                    ++_index;
                 }
                 else
                 {
@@ -706,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ITypeSymbol ParseArrayType(ITypeSymbol typeSymbol)
             {
                 Debug.Assert(PeekNextChar() == '[');
-                ++this.index;
+                ++_index;
                 int rank = 1;
 
                 while (true)
@@ -718,8 +697,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else if (nextChar == ']')
                     {
-                        ++this.index;
-                        return this.compilation.CreateArrayTypeSymbol(typeSymbol, rank);
+                        ++_index;
+                        return _compilation.CreateArrayTypeSymbol(typeSymbol, rank);
                     }
                     else if (!char.IsDigit(nextChar) && nextChar != '.')
                     {
@@ -727,7 +706,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return null;
                     }
 
-                    ++this.index;
+                    ++_index;
                 }
             }
 
@@ -752,24 +731,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var symbol in candidateMembers)
                 {
                     var methodSymbol = symbol as IMethodSymbol;
-                    if (methodSymbol != null && (arity == null || methodSymbol.Arity == arity))
+                    if (methodSymbol == null ||
+                        (arity != null && methodSymbol.Arity != arity))
                     {
-                        if (AllParametersMatch(methodSymbol.Parameters, parameters))
+                        continue;
+                    }
+
+                    if (!AllParametersMatch(methodSymbol.Parameters, parameters))
+                    {
+                        continue;
+                    }
+
+                    if (returnType == null)
+                    {
+                        // If no return type specified, then any matches
+                        builder.Add(methodSymbol);
+                    }
+                    else
+                    {
+                        // If return type is specified, then it must match
+                        var boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
+                        if (boundReturnType != null && methodSymbol.ReturnType.Equals(boundReturnType))
                         {
-                            if (returnType == null)
-                            {
-                                // If no return type specified, then any matches
-                                builder.Add(methodSymbol);
-                            }
-                            else
-                            {
-                                // If return type is specified, then it must match
-                                var boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
-                                if (boundReturnType != null && methodSymbol.ReturnType.Equals(boundReturnType))
-                                {
-                                    builder.Add(methodSymbol);
-                                }
-                            }
+                            builder.Add(methodSymbol);
                         }
                     }
                 }
@@ -798,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private bool ParameterMatches(IParameterSymbol symbol, ParameterInfo parameterInfo)
             {
                 // same ref'ness?
-                if ((symbol.RefKind == RefKind.None) != !parameterInfo.IsRefOrOut)
+                if ((symbol.RefKind == RefKind.None) == parameterInfo.IsRefOrOut)
                 {
                     return false;
                 }
@@ -814,15 +798,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return type.Type;
                 }
-                else
-                {
-                    var currentIndex = this.index;
-                    this.index = type.StartIndex;
-                    var result = this.ParseType(bindingContext);
-                    this.index = currentIndex;
 
-                    return result.HasValue ? result.Value.Type : null;
-                }
+                var currentIndex = _index;
+                _index = type.StartIndex;
+                var result = this.ParseType(bindingContext);
+                _index = currentIndex;
+
+                return result?.Type;
             }
 
             private static INamedTypeSymbol GetFirstMatchingNamedType(ImmutableArray<ISymbol> candidateMembers, int arity)
@@ -842,16 +824,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
-                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
+                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType as INamedTypeSymbol, n);
+                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
-                else
-                {
-                    var index = n - containingTypeParameterCount;
-                    return typeSymbol.TypeParameters[index];
-                }
+
+                return typeSymbol.TypeParameters[n - containingTypeParameterCount];
             }
 
             private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
@@ -860,22 +839,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return 0;
                 }
-                else
-                {
-                    return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType as INamedTypeSymbol);
-                }
+
+                return typeSymbol.TypeParameters.Length + GetTypeParameterCount(typeSymbol.ContainingType);
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct TypeInfo
             {
                 // The type, may be null if unbound.
-                public ITypeSymbol Type;
+                public readonly ITypeSymbol Type;
 
                 // The start index into this.name for parsing this type if the type is not known
                 // This index is used when rebinding later when the method context is known
-                public int StartIndex;
+                public readonly int StartIndex;
 
-                public bool IsBound { get { return this.Type != null; } }
+                public bool IsBound => this.Type != null;
 
                 private TypeInfo(ITypeSymbol type, int startIndex)
                 {
@@ -896,10 +874,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            [StructLayout(LayoutKind.Auto)]
             private struct ParameterInfo
             {
-                public TypeInfo Type;
-                public bool IsRefOrOut;
+                public readonly TypeInfo Type;
+                public readonly bool IsRefOrOut;
 
                 public ParameterInfo(TypeInfo type, bool isRefOrOut)
                 {

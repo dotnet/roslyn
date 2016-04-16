@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundParenthesized
+    Friend Partial Class BoundParenthesized
 
 #If DEBUG Then
         Private Sub Validate()

@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Represents a <see cref="VisualBasicSyntaxVisitor"/> that descends an entire <see cref="SyntaxNode"/> tree
@@ -12,10 +8,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Public MustInherit Class VisualBasicSyntaxWalker
         Inherits VisualBasicSyntaxVisitor
 
-        Protected ReadOnly Depth As SyntaxWalkerDepth
+        Protected ReadOnly Property Depth As SyntaxWalkerDepth
 
         Protected Sub New(Optional depth As SyntaxWalkerDepth = SyntaxWalkerDepth.Node)
             Me.Depth = depth
+        End Sub
+
+        Private _recursionDepth As Integer
+
+        Public Overrides Sub Visit(node As SyntaxNode)
+            If node IsNot Nothing Then
+                _recursionDepth += 1
+
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+                DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
+
+                _recursionDepth -= 1
+            End If
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
@@ -69,23 +78,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Visit(DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode))
             End If
         End Sub
-    End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method.
-    ''' </summary>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor
-    End Class
-
-    ''' <summary>
-    ''' Represents a <see cref="SyntaxNode"/> visitor that visits only the single SyntaxNode
-    ''' passed into its <see cref="Visit(SyntaxNode)"/> method and produces 
-    ''' a value of the type specified by the <typeparamref name="TResult"/> parameter.
-    ''' </summary>
-    ''' <typeparam name="TResult">
-    ''' The type of the return value this visitor's Visit method.
-    ''' </typeparam>
-    Partial Public MustInherit Class VisualBasicSyntaxVisitor(Of TResult)
     End Class
 End Namespace

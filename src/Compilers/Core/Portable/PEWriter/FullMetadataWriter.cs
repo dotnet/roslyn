@@ -12,45 +12,63 @@ namespace Microsoft.Cci
 {
     internal sealed class FullMetadataWriter : MetadataWriter
     {
-        private readonly DefinitionIndex<ITypeDefinition> typeDefs;
-        private readonly DefinitionIndex<IEventDefinition> eventDefs;
-        private readonly DefinitionIndex<IFieldDefinition> fieldDefs;
-        private readonly DefinitionIndex<IMethodDefinition> methodDefs;
-        private readonly DefinitionIndex<IPropertyDefinition> propertyDefs;
-        private readonly DefinitionIndex<IParameterDefinition> parameterDefs;
-        private readonly DefinitionIndex<IGenericParameter> genericParameters;
+        private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
+        private readonly DefinitionIndex<IEventDefinition> _eventDefs;
+        private readonly DefinitionIndex<IFieldDefinition> _fieldDefs;
+        private readonly DefinitionIndex<IMethodDefinition> _methodDefs;
+        private readonly DefinitionIndex<IPropertyDefinition> _propertyDefs;
+        private readonly DefinitionIndex<IParameterDefinition> _parameterDefs;
+        private readonly DefinitionIndex<IGenericParameter> _genericParameters;
 
-        private readonly Dictionary<ITypeDefinition, uint> fieldDefIndex;
-        private readonly Dictionary<ITypeDefinition, uint> methodDefIndex;
-        private readonly Dictionary<IMethodDefinition, uint> parameterListIndex;
+        private readonly Dictionary<ITypeDefinition, int> _fieldDefIndex;
+        private readonly Dictionary<ITypeDefinition, int> _methodDefIndex;
+        private readonly Dictionary<IMethodDefinition, int> _parameterListIndex;
 
-        private readonly HeapOrReferenceIndex<IAssemblyReference> assemblyRefIndex;
-        private readonly HeapOrReferenceIndex<string> moduleRefIndex;
-        private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> memberRefIndex;
-        private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> methodSpecIndex;
-        private readonly HeapOrReferenceIndex<ITypeReference> typeRefIndex;
-        private readonly InstanceAndStructuralReferenceIndex<ITypeReference> typeSpecIndex;
-        private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
+        private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
+        private readonly InstanceAndStructuralReferenceIndex<ITypeMemberReference> _memberRefIndex;
+        private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
+        private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
+        private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
+        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
 
         public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
+            bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
-            return new FullMetadataWriter(context, heaps, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            MetadataHeapsBuilder debugHeapsOpt;
+            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            {
+                case DebugInformationFormat.PortablePdb:
+                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    break;
+
+                case DebugInformationFormat.Embedded:
+                    debugHeapsOpt = heaps;
+                    break;
+
+                default:
+                    debugHeapsOpt = null;
+                    break;
+            }
+
+            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps, 
+            MetadataHeapsBuilder heaps,
+            MetadataHeapsBuilder debugHeapsOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -58,25 +76,25 @@ namespace Microsoft.Cci
             int numFieldDefsGuess = numTypeDefsGuess * 4;
             int numPropertyDefsGuess = numMethods / 4;
 
-            this.typeDefs = new DefinitionIndex<ITypeDefinition>(numTypeDefsGuess);
-            this.eventDefs = new DefinitionIndex<IEventDefinition>(0);
-            this.fieldDefs = new DefinitionIndex<IFieldDefinition>(numFieldDefsGuess);
-            this.methodDefs = new DefinitionIndex<IMethodDefinition>(numMethods);
-            this.propertyDefs = new DefinitionIndex<IPropertyDefinition>(numPropertyDefsGuess);
-            this.parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
-            this.genericParameters = new DefinitionIndex<IGenericParameter>(0);
+            _typeDefs = new DefinitionIndex<ITypeDefinition>(numTypeDefsGuess);
+            _eventDefs = new DefinitionIndex<IEventDefinition>(0);
+            _fieldDefs = new DefinitionIndex<IFieldDefinition>(numFieldDefsGuess);
+            _methodDefs = new DefinitionIndex<IMethodDefinition>(numMethods);
+            _propertyDefs = new DefinitionIndex<IPropertyDefinition>(numPropertyDefsGuess);
+            _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
+            _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            this.fieldDefIndex = new Dictionary<ITypeDefinition, uint>(numTypeDefsGuess);
-            this.methodDefIndex = new Dictionary<ITypeDefinition, uint>(numTypeDefsGuess);
-            this.parameterListIndex = new Dictionary<IMethodDefinition, uint>(numMethods);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
+            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
 
-            this.assemblyRefIndex = new HeapOrReferenceIndex<IAssemblyReference>(this, AssemblyReferenceComparer.Instance);
-            this.moduleRefIndex = new HeapOrReferenceIndex<string>(this);
-            this.memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
-            this.methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
-            this.typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
-            this.typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
-            this.standAloneSignatureIndex = new HeapOrReferenceIndex<uint>(this);
+            _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this);
+            _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
+            _memberRefIndex = new InstanceAndStructuralReferenceIndex<ITypeMemberReference>(this, new MemberRefComparer(this));
+            _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
+            _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
+            _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this);
         }
 
         protected override ushort Generation
@@ -94,184 +112,179 @@ namespace Microsoft.Cci
             get { return Guid.Empty; }
         }
 
-        protected override bool CompressMetadataStream
+        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out int index)
         {
-            get { return true; }
+            return _typeDefs.TryGetValue(def, out index);
         }
 
-        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out uint index)
+        protected override int GetTypeDefIndex(ITypeDefinition def)
         {
-            return this.typeDefs.TryGetValue(def, out index);
-        }
-
-        protected override uint GetTypeDefIndex(ITypeDefinition def)
-        {
-            return this.typeDefs[def];
+            return _typeDefs[def];
         }
 
         protected override ITypeDefinition GetTypeDef(int index)
         {
-            return this.typeDefs[index];
+            return _typeDefs[index];
         }
 
         protected override IReadOnlyList<ITypeDefinition> GetTypeDefs()
         {
-            return this.typeDefs.Rows;
+            return _typeDefs.Rows;
         }
 
-        protected override uint GetEventDefIndex(IEventDefinition def)
+        protected override int GetEventDefIndex(IEventDefinition def)
         {
-            return this.eventDefs[def];
+            return _eventDefs[def];
         }
 
         protected override IReadOnlyList<IEventDefinition> GetEventDefs()
         {
-            return this.eventDefs.Rows;
+            return _eventDefs.Rows;
         }
 
-        protected override uint GetFieldDefIndex(IFieldDefinition def)
+        protected override int GetFieldDefIndex(IFieldDefinition def)
         {
-            return this.fieldDefs[def];
+            return _fieldDefs[def];
         }
 
         protected override IReadOnlyList<IFieldDefinition> GetFieldDefs()
         {
-            return this.fieldDefs.Rows;
+            return _fieldDefs.Rows;
         }
 
-        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out uint index)
+        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out int index)
         {
-            return this.methodDefs.TryGetValue(def, out index);
+            return _methodDefs.TryGetValue(def, out index);
         }
 
-        protected override uint GetMethodDefIndex(IMethodDefinition def)
+        protected override int GetMethodDefIndex(IMethodDefinition def)
         {
-            return this.methodDefs[def];
+            return _methodDefs[def];
         }
 
         protected override IMethodDefinition GetMethodDef(int index)
         {
-            return this.methodDefs[index];
+            return _methodDefs[index];
         }
 
         protected override IReadOnlyList<IMethodDefinition> GetMethodDefs()
         {
-            return this.methodDefs.Rows;
+            return _methodDefs.Rows;
         }
 
-        protected override uint GetPropertyDefIndex(IPropertyDefinition def)
+        protected override int GetPropertyDefIndex(IPropertyDefinition def)
         {
-            return this.propertyDefs[def];
+            return _propertyDefs[def];
         }
 
         protected override IReadOnlyList<IPropertyDefinition> GetPropertyDefs()
         {
-            return this.propertyDefs.Rows;
+            return _propertyDefs.Rows;
         }
 
-        protected override uint GetParameterDefIndex(IParameterDefinition def)
+        protected override int GetParameterDefIndex(IParameterDefinition def)
         {
-            return this.parameterDefs[def];
+            return _parameterDefs[def];
         }
 
         protected override IReadOnlyList<IParameterDefinition> GetParameterDefs()
         {
-            return this.parameterDefs.Rows;
+            return _parameterDefs.Rows;
         }
 
         protected override IReadOnlyList<IGenericParameter> GetGenericParameters()
         {
-            return this.genericParameters.Rows;
+            return _genericParameters.Rows;
         }
 
-        protected override uint GetFieldDefIndex(INamedTypeDefinition typeDef)
+        protected override int GetFieldDefIndex(INamedTypeDefinition typeDef)
         {
-            return this.fieldDefIndex[typeDef];
+            return _fieldDefIndex[typeDef];
         }
 
-        protected override uint GetMethodDefIndex(INamedTypeDefinition typeDef)
+        protected override int GetMethodDefIndex(INamedTypeDefinition typeDef)
         {
-            return this.methodDefIndex[typeDef];
+            return _methodDefIndex[typeDef];
         }
 
-        protected override uint GetParameterDefIndex(IMethodDefinition methodDef)
+        protected override int GetParameterDefIndex(IMethodDefinition methodDef)
         {
-            return this.parameterListIndex[methodDef];
+            return _parameterListIndex[methodDef];
         }
 
-        protected override uint GetOrAddAssemblyRefIndex(IAssemblyReference reference)
+        protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
         {
-            return this.assemblyRefIndex.GetOrAdd(reference);
+            return _assemblyRefIndex.GetOrAdd(reference.Identity);
         }
 
-        protected override IReadOnlyList<IAssemblyReference> GetAssemblyRefs()
+        protected override IReadOnlyList<AssemblyIdentity> GetAssemblyRefs()
         {
-            return this.assemblyRefIndex.Rows;
+            return _assemblyRefIndex.Rows;
         }
 
-        protected override uint GetOrAddModuleRefIndex(string reference)
+        protected override int GetOrAddModuleRefIndex(string reference)
         {
-            return this.moduleRefIndex.GetOrAdd(reference);
+            return _moduleRefIndex.GetOrAdd(reference);
         }
 
         protected override IReadOnlyList<string> GetModuleRefs()
         {
-            return this.moduleRefIndex.Rows;
+            return _moduleRefIndex.Rows;
         }
 
-        protected override uint GetOrAddMemberRefIndex(ITypeMemberReference reference)
+        protected override int GetOrAddMemberRefIndex(ITypeMemberReference reference)
         {
-            return this.memberRefIndex.GetOrAdd(reference);
+            return _memberRefIndex.GetOrAdd(reference);
         }
 
         protected override IReadOnlyList<ITypeMemberReference> GetMemberRefs()
         {
-            return this.memberRefIndex.Rows;
+            return _memberRefIndex.Rows;
         }
 
-        protected override uint GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
+        protected override int GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
         {
-            return this.methodSpecIndex.GetOrAdd(reference);
+            return _methodSpecIndex.GetOrAdd(reference);
         }
 
         protected override IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs()
         {
-            return this.methodSpecIndex.Rows;
+            return _methodSpecIndex.Rows;
         }
 
-        protected override bool TryGetTypeRefIndex(ITypeReference reference, out uint index)
+        protected override bool TryGetTypeRefIndex(ITypeReference reference, out int index)
         {
-            return this.typeRefIndex.TryGetValue(reference, out index);
+            return _typeRefIndex.TryGetValue(reference, out index);
         }
 
-        protected override uint GetOrAddTypeRefIndex(ITypeReference reference)
+        protected override int GetOrAddTypeRefIndex(ITypeReference reference)
         {
-            return this.typeRefIndex.GetOrAdd(reference);
+            return _typeRefIndex.GetOrAdd(reference);
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeRefs()
         {
-            return this.typeRefIndex.Rows;
+            return _typeRefIndex.Rows;
         }
 
-        protected override uint GetOrAddTypeSpecIndex(ITypeReference reference)
+        protected override int GetOrAddTypeSpecIndex(ITypeReference reference)
         {
-            return this.typeSpecIndex.GetOrAdd(reference);
+            return _typeSpecIndex.GetOrAdd(reference);
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeSpecs()
         {
-            return this.typeSpecIndex.Rows;
+            return _typeSpecIndex.Rows;
         }
 
-        protected override uint GetOrAddStandAloneSignatureIndex(uint blobIndex)
+        protected override int GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
         {
-            return this.standAloneSignatureIndex.GetOrAdd(blobIndex);
+            return _standAloneSignatureIndex.GetOrAdd(blobIndex);
         }
 
-        protected override IReadOnlyList<uint> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
         {
-            return this.standAloneSignatureIndex.Rows;
+            return _standAloneSignatureIndex.Rows;
         }
 
         protected override ReferenceIndexer CreateReferenceVisitor()
@@ -311,10 +324,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = eventDef.ContainingTypeDefinition;
-                uint eventIndex = this.GetEventDefIndex(eventDef);
+                int eventIndex = this.GetEventDefIndex(eventDef);
                 EventMapRow r = new EventMapRow();
-                r.Parent = this.GetTypeDefIndex(lastParent);
-                r.EventList = eventIndex;
+                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
+                r.EventList = (uint)eventIndex;
                 table.Add(r);
             }
         }
@@ -330,10 +343,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = propertyDef.ContainingTypeDefinition;
-                uint propertyIndex = this.GetPropertyDefIndex(propertyDef);
+                int propertyIndex = this.GetPropertyDefIndex(propertyDef);
                 PropertyMapRow r = new PropertyMapRow();
-                r.Parent = this.GetTypeDefIndex(lastParent);
-                r.PropertyList = propertyIndex;
+                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
+                r.PropertyList = (uint)propertyIndex;
                 table.Add(r);
             }
         }
@@ -345,14 +358,14 @@ namespace Microsoft.Cci
 
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
-            this.typeDefs.Add(typeDef);
+            _typeDefs.Add(typeDef);
 
             IEnumerable<IGenericTypeParameter> typeParameters = this.GetConsolidatedTypeParameters(typeDef);
             if (typeParameters != null)
             {
                 foreach (IGenericTypeParameter genericParameter in typeParameters)
                 {
-                    this.genericParameters.Add(genericParameter);
+                    _genericParameters.Add(genericParameter);
                 }
             }
 
@@ -363,86 +376,86 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in typeDef.Events)
             {
-                this.eventDefs.Add(eventDef);
+                _eventDefs.Add(eventDef);
             }
 
-            this.fieldDefIndex.Add(typeDef, this.fieldDefs.NextRowId);
+            _fieldDefIndex.Add(typeDef, _fieldDefs.NextRowId);
             foreach (IFieldDefinition fieldDef in typeDef.GetFields(Context))
             {
-                this.fieldDefs.Add(fieldDef);
+                _fieldDefs.Add(fieldDef);
             }
 
-            this.methodDefIndex.Add(typeDef, this.methodDefs.NextRowId);
+            _methodDefIndex.Add(typeDef, _methodDefs.NextRowId);
             foreach (IMethodDefinition methodDef in typeDef.GetMethods(Context))
             {
                 this.CreateIndicesFor(methodDef);
-                this.methodDefs.Add(methodDef);
+                _methodDefs.Add(methodDef);
             }
 
             foreach (IPropertyDefinition propertyDef in typeDef.GetProperties(Context))
             {
-                this.propertyDefs.Add(propertyDef);
+                _propertyDefs.Add(propertyDef);
             }
         }
 
         private void CreateIndicesFor(IMethodDefinition methodDef)
         {
-            this.parameterListIndex.Add(methodDef, this.parameterDefs.NextRowId);
+            _parameterListIndex.Add(methodDef, _parameterDefs.NextRowId);
 
             foreach (var paramDef in this.GetParametersToEmit(methodDef))
             {
-                this.parameterDefs.Add(paramDef);
+                _parameterDefs.Add(paramDef);
             }
 
             if (methodDef.GenericParameterCount > 0)
             {
                 foreach (IGenericMethodParameter genericParameter in methodDef.GenericParameters)
                 {
-                    this.genericParameters.Add(genericParameter);
+                    _genericParameters.Add(genericParameter);
                 }
             }
         }
 
         private struct DefinitionIndex<T> where T : IReference
         {
-            private readonly Dictionary<T, uint> index;
-            private readonly List<T> rows;
+            private readonly Dictionary<T, int> _index;
+            private readonly List<T> _rows;
 
             public DefinitionIndex(int capacity)
             {
-                this.index = new Dictionary<T, uint>(capacity);
-                this.rows = new List<T>(capacity);
+                _index = new Dictionary<T, int>(capacity);
+                _rows = new List<T>(capacity);
             }
 
-            public bool TryGetValue(T item, out uint index)
+            public bool TryGetValue(T item, out int index)
             {
-                return this.index.TryGetValue(item, out index);
+                return _index.TryGetValue(item, out index);
             }
 
-            public uint this[T item]
+            public int this[T item]
             {
-                get { return this.index[item]; }
+                get { return _index[item]; }
             }
 
             public T this[int index]
             {
-                get { return this.rows[index]; }
+                get { return _rows[index]; }
             }
 
             public IReadOnlyList<T> Rows
             {
-                get { return this.rows; }
+                get { return _rows; }
             }
 
-            public uint NextRowId
+            public int NextRowId
             {
-                get { return (uint)this.rows.Count + 1; }
+                get { return _rows.Count + 1; }
             }
 
             public void Add(T item)
             {
-                this.index.Add(item, NextRowId);
-                this.rows.Add(item);
+                _index.Add(item, NextRowId);
+                _rows.Add(item);
             }
         }
     }

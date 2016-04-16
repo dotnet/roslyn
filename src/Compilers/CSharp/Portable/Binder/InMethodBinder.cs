@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class InMethodBinder : LocalScopeBinder
     {
-        private readonly MultiDictionary<string, ParameterSymbol> parameterMap;
-        private readonly MethodSymbol methodSymbol;
-        private SmallDictionary<string, Symbol> definitionMap;
-        private IteratorInfo iteratorInfo;
+        private readonly MultiDictionary<string, ParameterSymbol> _parameterMap;
+        private readonly MethodSymbol _methodSymbol;
+        private SmallDictionary<string, Symbol> _definitionMap;
+        private IteratorInfo _iteratorInfo;
 
-        private static readonly HashSet<string> emptySet = new HashSet<string>();
+        private static readonly HashSet<string> s_emptySet = new HashSet<string>();
 
         private class IteratorInfo
         {
@@ -42,16 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)owner != null);
 
-            methodSymbol = owner;
+            _methodSymbol = owner;
 
             var parameters = owner.Parameters;
             if (!parameters.IsEmpty)
             {
                 RecordDefinition(parameters);
-                this.parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
+                _parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
                 foreach (var parameter in parameters)
                 {
-                    this.parameterMap.Add(parameter.Name, parameter);
+                    _parameterMap.Add(parameter.Name, parameter);
                 }
             }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordDefinition<T>(ImmutableArray<T> definitions) where T : Symbol
         {
-            var declarationMap = this.definitionMap ?? (this.definitionMap = new SmallDictionary<string, Symbol>());
+            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, Symbol>());
             foreach (Symbol s in definitions)
             {
                 if (!declarationMap.ContainsKey(s.Name))
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.methodSymbol;
+                return _methodSymbol;
             }
         }
 
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void MakeIterator()
         {
-            if (this.iteratorInfo == null)
+            if (_iteratorInfo == null)
             {
-                this.iteratorInfo = IteratorInfo.Empty;
+                _iteratorInfo = IteratorInfo.Empty;
             }
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.iteratorInfo != null;
+                return _iteratorInfo != null;
             }
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol returnType = this.methodSymbol.ReturnType;
+            TypeSymbol returnType = _methodSymbol.ReturnType;
 
             if (!this.IsDirectlyInIterator)
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetIteratorElementTypeFromReturnType(returnType, node, diagnostics) ?? CreateErrorType();
             }
 
-            if (this.iteratorInfo == IteratorInfo.Empty)
+            if (_iteratorInfo == IteratorInfo.Empty)
             {
                 TypeSymbol elementType = null;
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
@@ -160,23 +160,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)elementType == null)
                 {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, this.methodSymbol.Locations[0], this.methodSymbol, returnType);
+                    Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
                     elementType = CreateErrorType();
                 }
 
                 var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
 
-                Interlocked.CompareExchange(ref this.iteratorInfo, info, IteratorInfo.Empty);
+                Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
             }
 
             if (node == null)
             {
                 // node==null indicates this we are being called from the top-level of processing of a method. We report
                 // the diagnostic, if any, at that time to ensure it is reported exactly once.
-                diagnostics.AddRange(this.iteratorInfo.ElementTypeDiagnostics);
+                diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
             }
 
-            return this.iteratorInfo.ElementType;
+            return _iteratorInfo.ElementType;
         }
 
         private TypeSymbol GetIteratorElementTypeFromReturnType(TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
@@ -203,12 +203,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            if (parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0)
+            if (_parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0)
             {
                 return;
             }
 
-            foreach (var parameterSymbol in parameterMap[name])
+            foreach (var parameterSymbol in _parameterMap[name])
             {
                 result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (options.CanConsiderMembers())
             {
-                foreach (var parameter in this.methodSymbol.Parameters)
+                foreach (var parameter in _methodSymbol.Parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
                     {
@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterKind == SymbolKind.Parameter)
             {
-                if(newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
                 {
                     // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                     return true;
                 }
 
-                if(newSymbolKind == SymbolKind.RangeVariable)
+                if (newSymbolKind == SymbolKind.RangeVariable)
                 {
                     // The range variable '{0}' conflicts with a previous declaration of '{0}'
                     diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
@@ -274,13 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-                {
-                    // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                    return true;
-                }
-
                 if (newSymbolKind == SymbolKind.RangeVariable)
                 {
                     // The range variable '{0}' cannot have the same name as a method type parameter
@@ -297,12 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
             Symbol existingDeclaration;
-            var map = this.definitionMap;
+            var map = _definitionMap;
             if (map != null && map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);
             }
-            
+
             return false;
         }
     }

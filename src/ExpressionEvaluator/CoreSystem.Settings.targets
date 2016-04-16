@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <NoConfig>true</NoConfig>
+    <NoStandardLib>true</NoStandardLib>
+    <NoCompilerStandardLib>true</NoCompilerStandardLib>
+    <FrameworkPathOverride>..\..\..\..\References\Debugger\CoreSystem</FrameworkPathOverride>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <SkipGenerateVsdconfig>true</SkipGenerateVsdconfig>
+  </PropertyGroup>
+  <Target Name="CopyFilesToOutputDirectory">
+    <!--
+      Redefine CopyFileToOutputDirectory to be a NOOP.  It's not expedient to set properties
+      to suppress all copying that may occur in the original definition of the Target...
+    -->
+  </Target>
+</Project>

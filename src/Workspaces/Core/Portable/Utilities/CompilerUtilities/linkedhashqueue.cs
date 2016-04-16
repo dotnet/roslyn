@@ -15,9 +15,9 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class LinkedHashQueue<T> : IEnumerable<T>
     {
-        private readonly LinkedList<T> list;
-        private readonly Dictionary<T, LinkedListNode<T>> map;
-        private int insertionIndex = 0;
+        private readonly LinkedList<T> _list;
+        private readonly Dictionary<T, LinkedListNode<T>> _map;
+        private int _insertionIndex;
 
         public LinkedHashQueue()
             : this(null)
@@ -26,30 +26,30 @@ namespace Roslyn.Utilities
 
         public LinkedHashQueue(IEqualityComparer<T> comparer)
         {
-            this.list = new LinkedList<T>();
-            this.map = new Dictionary<T, LinkedListNode<T>>(comparer);
+            _list = new LinkedList<T>();
+            _map = new Dictionary<T, LinkedListNode<T>>(comparer);
         }
 
         public int Count
         {
             get
             {
-                return list.Count;
+                return _list.Count;
             }
         }
 
         public void Clear()
         {
-            this.list.Clear();
-            this.map.Clear();
-            this.insertionIndex = 0;
+            _list.Clear();
+            _map.Clear();
+            _insertionIndex = 0;
         }
 
         public T First
         {
             get
             {
-                return this.list.First.Value;
+                return _list.First.Value;
             }
         }
 
@@ -62,16 +62,16 @@ namespace Roslyn.Utilities
             var result = true;
 
             LinkedListNode<T> node;
-            if (map.TryGetValue(value, out node))
+            if (_map.TryGetValue(value, out node))
             {
                 // Already had this in the list.  Return 'false'.  
                 result = false;
-                list.Remove(node);
+                _list.Remove(node);
             }
 
-            node = list.AddLast(value);
-            insertionIndex++;
-            map[value] = node;
+            node = _list.AddLast(value);
+            _insertionIndex++;
+            _map[value] = node;
 
             return result;
         }
@@ -83,9 +83,9 @@ namespace Roslyn.Utilities
                 throw new InvalidOperationException();
             }
 
-            var node = list.First;
-            list.RemoveFirst();
-            map.Remove(node.Value);
+            var node = _list.First;
+            _list.RemoveFirst();
+            _map.Remove(node.Value);
 
             return node.Value;
         }
@@ -93,22 +93,22 @@ namespace Roslyn.Utilities
         public bool Contains(T value)
         {
             LinkedListNode<T> node;
-            return map.TryGetValue(value, out node);
+            return _map.TryGetValue(value, out node);
         }
 
         public void Remove(T value)
         {
             LinkedListNode<T> node;
-            map.TryGetValue(value, out node);
-            if (map.Remove(value))
+            _map.TryGetValue(value, out node);
+            if (_map.Remove(value))
             {
-                list.Remove(node);
+                _list.Remove(node);
             }
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return list.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

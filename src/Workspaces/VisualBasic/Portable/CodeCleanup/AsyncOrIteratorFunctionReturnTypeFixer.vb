@@ -6,16 +6,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup
     Friend Module AsyncOrIteratorFunctionReturnTypeFixer
-        Private Const _system_Threading_Tasks_Task_Name As String = "System.Threading.Tasks.Task"
-        Private Const _system_Threading_Tasks_Task_Of_T_Name As String = "System.Threading.Tasks.Task`1"
-        Private Const _system_Collections_IEnumerable_Name As String = "System.Collections.IEnumerable"
+        Private Const s_system_Threading_Tasks_Task_Name As String = "System.Threading.Tasks.Task"
+        Private Const s_system_Threading_Tasks_Task_Of_T_Name As String = "System.Threading.Tasks.Task`1"
+        Private Const s_system_Collections_IEnumerable_Name As String = "System.Collections.IEnumerable"
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As MethodStatementSyntax
             Return RewriteMethodStatement(func, semanticModel, oldFunc:=func, cancellationToken:=cancellationToken)
         End Function
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, oldFunc As MethodStatementSyntax, cancellationToken As CancellationToken) As MethodStatementSyntax
-            If func.Keyword.Kind = SyntaxKind.FunctionKeyword Then
+            If func.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword Then
 
                 Dim modifiers = func.Modifiers
                 Dim parameterListOpt = func.ParameterList
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                 Dim position = If(oldFunc.ParameterList IsNot Nothing, oldFunc.ParameterList.SpanStart, oldFunc.Identifier.SpanStart)
 
                 If RewriteFunctionStatement(modifiers, oldAsClauseOpt, parameterListOpt, asClauseOpt, semanticModel, position, cancellationToken) Then
-                    Return func.Update(func.Kind, func.AttributeLists, func.Modifiers, func.Keyword, func.Identifier,
+                    Return func.Update(func.Kind, func.AttributeLists, func.Modifiers, func.DeclarationKeyword, func.Identifier,
                                    func.TypeParameterList, parameterListOpt, asClauseOpt, func.HandlesClause, func.ImplementsClause)
                 End If
             End If
@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, oldLambdaHeader As LambdaHeaderSyntax, cancellationToken As CancellationToken) As LambdaHeaderSyntax
-            If lambdaHeader.Keyword.Kind = SyntaxKind.FunctionKeyword AndAlso
+            If lambdaHeader.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword AndAlso
                lambdaHeader.AsClause IsNot Nothing AndAlso
                lambdaHeader.ParameterList IsNot Nothing Then
 
                 Dim parameterList = lambdaHeader.ParameterList
                 Dim asClause = lambdaHeader.AsClause
                 If RewriteFunctionStatement(lambdaHeader.Modifiers, oldLambdaHeader.AsClause, parameterList, asClause, semanticModel, oldLambdaHeader.AsClause.SpanStart, cancellationToken) Then
-                    Return lambdaHeader.Update(lambdaHeader.Kind, lambdaHeader.AttributeLists, lambdaHeader.Modifiers, lambdaHeader.Keyword, parameterList, asClause)
+                    Return lambdaHeader.Update(lambdaHeader.Kind, lambdaHeader.AttributeLists, lambdaHeader.Modifiers, lambdaHeader.DeclarationKeyword, parameterList, asClause)
                 End If
             End If
 
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                 Return False
             End If
 
-            Dim taskType = semanticModel.Compilation.GetTypeByMetadataName(_system_Threading_Tasks_Task_Name)
+            Dim taskType = semanticModel.Compilation.GetTypeByMetadataName(s_system_Threading_Tasks_Task_Name)
             If asClauseOpt Is Nothing Then
                 ' Without an AsClause: Async functions are pretty listed to return Task.
                 If taskType IsNot Nothing AndAlso parameterListOpt IsNot Nothing Then
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
             Else
                 '   2) With an AsClause: If the return type R is a valid non-error type, pretty list as follows:
                 '       (a) Async functions: If R is not Task or Task(Of T) or an instantiation of Task(Of T), pretty list return type to Task(Of R).
-                Dim taskOfT = semanticModel.Compilation.GetTypeByMetadataName(_system_Threading_Tasks_Task_Of_T_Name)
+                Dim taskOfT = semanticModel.Compilation.GetTypeByMetadataName(s_system_Threading_Tasks_Task_Of_T_Name)
                 Dim returnType = semanticModel.GetTypeInfo(oldAsClauseOpt.Type, cancellationToken).Type
                 If returnType IsNot Nothing AndAlso Not returnType.IsErrorType() AndAlso
                     taskType IsNot Nothing AndAlso taskOfT IsNot Nothing AndAlso
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
 
             If asClauseOpt Is Nothing Then
                 ' Without an AsClause: Iterator functions are pretty listed to return IEnumerable.
-                Dim iEnumerableType = semanticModel.Compilation.GetTypeByMetadataName(_system_Collections_IEnumerable_Name)
+                Dim iEnumerableType = semanticModel.Compilation.GetTypeByMetadataName(s_system_Collections_IEnumerable_Name)
                 If iEnumerableType IsNot Nothing Then
                     GenerateFunctionAsClause(iEnumerableType, parameterListOpt, asClauseOpt, semanticModel, position)
                     Return True

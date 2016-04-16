@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
     {
-        private readonly TypeSymbol pointedAtType;
-        private readonly ImmutableArray<CustomModifier> customModifiers;
+        private readonly TypeSymbol _pointedAtType;
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
 
         /// <summary>
         /// Create a new PointerTypeSymbol.
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)pointedAtType != null);
 
-            this.pointedAtType = pointedAtType;
-            this.customModifiers = customModifiers.NullToEmpty();
+            _pointedAtType = pointedAtType;
+            _customModifiers = customModifiers.NullToEmpty();
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return customModifiers;
+                return _customModifiers;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return pointedAtType;
+                return _pointedAtType;
             }
         }
 
@@ -229,9 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
+        internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
-            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiers, ignoreDynamic);
+            return this.Equals(t2 as PointerTypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic);
         }
 
         internal bool Equals(PointerTypeSymbol other)
@@ -239,19 +239,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.Equals(other, false, false);
         }
 
-        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiers, bool ignoreDynamic)
+        private bool Equals(PointerTypeSymbol other, bool ignoreCustomModifiersAndArraySizesAndLowerBounds, bool ignoreDynamic)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other.pointedAtType.Equals(pointedAtType, ignoreCustomModifiers, ignoreDynamic))
+            if ((object)other == null || !other._pointedAtType.Equals(_pointedAtType, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
             {
                 return false;
             }
 
-            if (!ignoreCustomModifiers)
+            if (!ignoreCustomModifiersAndArraySizesAndLowerBounds)
             {
                 // Make sure custom modifiers are the same.
                 var mod = this.CustomModifiers;

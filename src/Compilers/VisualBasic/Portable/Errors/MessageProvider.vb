@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Overrides ReadOnly Property ErrorCodeType As Type
+        Public Overrides ReadOnly Property ErrorCodeType As Type
             Get
                 Return GetType(ERRID)
             End Get
@@ -96,25 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
-            ' show extra info for assembly if possible such as version, publictoken and etc
+            ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
-                Return symbol.ToString()
-            End If
-
-            ' cases where we actually want fully qualified name
-            If errorCode = ERRID.ERR_AmbiguousAcrossInterfaces3 OrElse
-               errorCode = ERRID.ERR_TypeConflict6 OrElse
-               errorCode = ERRID.ERR_ExportedTypesConflict OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithDeclaration OrElse
-               errorCode = ERRID.ERR_ForwardedTypeConflictsWithExportedType OrElse
-               errorCode = ERRID.ERR_ForwardedTypesConflict Then
-                Return symbol.ToString()
-            End If
-
-            ' show fully qualified name for missing special types
-            If errorCode = ERRID.ERR_UnreferencedAssembly3 AndAlso
-               TypeOf symbol Is ITypeSymbol AndAlso
-               DirectCast(symbol, ITypeSymbol).SpecialType <> SpecialType.None Then
                 Return symbol.ToString()
             End If
 
@@ -129,13 +112,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetDiagnosticReport(diagnosticInfo As DiagnosticInfo, options As CompilationOptions) As ReportDiagnostic
+            Dim hasSourceSuppression = False
             Return VisualBasicDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
                                                                    Location.None,
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
-                                                                   options.SpecificDiagnosticOptions)
+                                                                   options.SpecificDiagnosticOptions,
+                                                                   hasSourceSuppression)
         End Function
 
 
@@ -146,15 +131,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ' command line:
-        Public Overrides ReadOnly Property ERR_NoScriptsSpecified As Integer
+        Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer
             Get
-                Return ERRID.ERR_NoScriptsSpecified
+                Return ERRID.ERR_ExpectedSingleScript
             End Get
         End Property
 
         Public Overrides ReadOnly Property ERR_OpenResponseFile As Integer
             Get
                 Return ERRID.ERR_NoResponseFile
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidPathMap As Integer
+            Get
+                Return ERRID.ERR_InvalidPathMap
             End Get
         End Property
 
@@ -227,6 +218,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_CantReadRulesetFile As Integer
             Get
                 Return ERRID.ERR_CantReadRulesetFile
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_CompileCancelled As Integer
+            Get
+                ' TODO: Add an error code for CompileCancelled
+                Return ERRID.ERR_None
+            End Get
+        End Property
+
+        ' compilation options:
+
+        Public Overrides ReadOnly Property ERR_BadCompilationOptionValue As Integer
+            Get
+                Return ERRID.ERR_InvalidSwitchValue
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_MutuallyExclusiveOptions As Integer
+            Get
+                Return ERRID.ERR_MutuallyExclusiveOptions
             End Get
         End Property
 
@@ -466,6 +478,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_EncReferenceToAddedMember As Integer
             Get
                 Return ERRID.ERR_EncReferenceToAddedMember
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
+            Get
+                Return ERRID.ERR_PeWritingFailure
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_ModuleEmitFailure As Integer
+            Get
+                Return ERRID.ERR_ModuleEmitFailure
             End Get
         End Property
     End Class

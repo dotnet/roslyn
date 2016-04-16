@@ -1,17 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Symbol
+    Friend Partial Class Symbol
         Implements Cci.IReference
 
         Friend Overridable Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition _
@@ -51,8 +47,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary> 
         ''' Returns a list of attributes to emit to CustomAttribute table.
-        '''  </summary>
-        Friend Iterator Function GetCustomAttributesToEmit(userDefined As ImmutableArray(Of VisualBasicAttributeData),
+        ''' </summary>
+        Friend Function GetCustomAttributesToEmit(userDefined As ImmutableArray(Of VisualBasicAttributeData),
+                                                  synthesized As ArrayBuilder(Of SynthesizedAttributeData),
+                                                  isReturnType As Boolean,
+                                                  emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+
+            ' PERF: Avoid creating an iterator for the common case of no attributes.
+            If userDefined.IsEmpty AndAlso synthesized Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of VisualBasicAttributeData)()
+            End If
+
+            Return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule)
+        End Function
+
+        Private Iterator Function GetCustomAttributesToEmitIterator(userDefined As ImmutableArray(Of VisualBasicAttributeData),
                                                   synthesized As ArrayBuilder(Of SynthesizedAttributeData),
                                                   isReturnType As Boolean,
                                                   emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)

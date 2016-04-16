@@ -126,7 +126,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TestObsoleteAttributeOnMembers()
+        Public Sub TestObsoleteAttributeOnMembers()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -348,7 +348,7 @@ BC31142: 'System.ObsoleteAttribute' cannot be applied to the 'AddHandler', 'Remo
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeOnOperators()
+        Public Sub TestObsoleteAttributeOnOperators()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -420,7 +420,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeInMetadata()
+        Public Sub TestObsoleteAttributeInMetadata()
             Dim peSource =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -507,7 +507,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub TestObsoleteAttributeCycles()
+        Public Sub TestObsoleteAttributeCycles()
             Dim source =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -881,7 +881,7 @@ Public Delegate Sub MyDeleg()
         End Sub
 
         <Fact>
-        <WorkItem(546636, "DevDiv")>
+        <WorkItem(546636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546636")>
         Public Sub TestObsoleteAttributeOnAttributes()
             Dim source =
 <compilation>
@@ -1016,9 +1016,9 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
-        <WorkItem(578023, "DevDiv")>
+        <WorkItem(578023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578023")>
         <Fact>
-        Sub TestObsoleteInAlias()
+        Public Sub TestObsoleteInAlias()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1067,9 +1067,9 @@ Imports A(Of C()).B
      </errors>)
         End Sub
 
-        <WorkItem(580832, "DevDiv")>
+        <WorkItem(580832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/580832")>
         <Fact>
-        Sub TestObsoleteOnVirtualMethod()
+        Public Sub TestObsoleteOnVirtualMethod()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1341,7 +1341,7 @@ BC40000: 'Public Sub Bar()' is obsolete: 'hi'.
             compilation3.AssertTheseDiagnostics(expected2)
         End Sub
 
-        <Fact(), WorkItem(858839, "DevDiv")>
+        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_1()
             Dim source1 =
 <compilation>
@@ -1433,7 +1433,7 @@ BC40000: 'Sub Foo()' is obsolete: 'IFoo1.Foo has been deprecated'.
             compilation1.AssertTheseDiagnostics(expected)
         End Sub
 
-        <Fact(), WorkItem(858839, "DevDiv")>
+        <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
         Public Sub Bug858839_2()
             Dim source0 =
 <compilation>

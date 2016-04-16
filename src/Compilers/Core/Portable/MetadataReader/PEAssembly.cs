@@ -17,35 +17,38 @@ namespace Microsoft.CodeAnalysis
         /// All assemblies this assembly references.
         /// </summary>
         /// <remarks>
-        /// A concatenation of assemblies referenced by each module in the order they are listed in <see cref="modules"/>.
+        /// A concatenation of assemblies referenced by each module in the order they are listed in <see cref="_modules"/>.
         /// </remarks>
         internal readonly ImmutableArray<AssemblyIdentity> AssemblyReferences;
 
         /// <summary>
-        /// The number of assemblies referenced by each module in <see cref="modules"/>.
+        /// The number of assemblies referenced by each module in <see cref="_modules"/>.
         /// </summary>
         internal readonly ImmutableArray<int> ModuleReferenceCounts;
 
-        private readonly ImmutableArray<PEModule> modules;
+        private readonly ImmutableArray<PEModule> _modules;
 
         /// <summary>
         /// Assembly identity read from Assembly table, or null if the table is empty.
         /// </summary>
-        private readonly AssemblyIdentity identity;
+        private readonly AssemblyIdentity _identity;
 
         /// <summary>
         /// Using <see cref="ThreeState"/> for atomicity.
         /// </summary>
-        private ThreeState lazyContainsNoPiaLocalTypes;
+        private ThreeState _lazyContainsNoPiaLocalTypes;
 
-        private ThreeState lazyDeclaresTheObjectClass;
+        private ThreeState _lazyDeclaresTheObjectClass;
 
-        // We need to store reference for to keep the metadata alive while symbols have reference to PEAssembly.
-        private readonly AssemblyMetadata owner;
+        /// <summary>
+        /// We need to store reference to the assembly metadata to keep the metadata alive while 
+        /// symbols have reference to PEAssembly.
+        /// </summary>
+        private readonly AssemblyMetadata _owner;
 
         //Maps from simple name to list of public keys. If an IVT attribute specifies no public
         //key, the list contains one element with an empty value
-        private Dictionary<string, List<ImmutableArray<byte>>> lazyInternalsVisibleToMap;
+        private Dictionary<string, List<ImmutableArray<byte>>> _lazyInternalsVisibleToMap;
 
         /// <exception cref="BadImageFormatException"/>
         internal PEAssembly(AssemblyMetadata owner, ImmutableArray<PEModule> modules)
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!modules.IsDefault);
             Debug.Assert(modules.Length > 0);
 
-            this.identity = modules[0].ReadAssemblyIdentityOrThrow();
+            _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
             var refs = ArrayBuilder<AssemblyIdentity>.GetInstance();
             int[] refCounts = new int[modules.Length];
@@ -65,17 +68,17 @@ namespace Microsoft.CodeAnalysis
                 refs.AddRange(refsForModule);
             }
 
-            this.modules = modules;
+            _modules = modules;
             this.AssemblyReferences = refs.ToImmutableAndFree();
             this.ModuleReferenceCounts = refCounts.AsImmutableOrNull();
-            this.owner = owner;
+            _owner = owner;
         }
 
-        internal Handle Handle
+        internal EntityHandle Handle
         {
             get
             {
-                return Handle.AssemblyDefinition;
+                return EntityHandle.AssemblyDefinition;
             }
         }
 
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return modules;
+                return _modules;
             }
         }
 
@@ -96,27 +99,27 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return identity;
+                return _identity;
             }
         }
 
         internal bool ContainsNoPiaLocalTypes()
         {
-            if (this.lazyContainsNoPiaLocalTypes == ThreeState.Unknown)
+            if (_lazyContainsNoPiaLocalTypes == ThreeState.Unknown)
             {
                 foreach (PEModule module in Modules)
                 {
                     if (module.ContainsNoPiaLocalTypes())
                     {
-                        this.lazyContainsNoPiaLocalTypes = ThreeState.True;
+                        _lazyContainsNoPiaLocalTypes = ThreeState.True;
                         return true;
                     }
                 }
 
-                this.lazyContainsNoPiaLocalTypes = ThreeState.False;
+                _lazyContainsNoPiaLocalTypes = ThreeState.False;
             }
 
-            return this.lazyContainsNoPiaLocalTypes == ThreeState.True;
+            return _lazyContainsNoPiaLocalTypes == ThreeState.True;
         }
 
         private Dictionary<string, List<ImmutableArray<byte>>> BuildInternalsVisibleToMap()
@@ -151,12 +154,12 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
-            if (lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+            if (_lazyInternalsVisibleToMap == null)
+                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
 
             List<ImmutableArray<byte>> result;
 
-            lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
+            _lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
 
             return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
@@ -165,19 +168,16 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.lazyDeclaresTheObjectClass == ThreeState.Unknown)
+                if (_lazyDeclaresTheObjectClass == ThreeState.Unknown)
                 {
-                    if (!modules[0].FindSystemObjectTypeDef().IsNil)
-                    {
-                        this.lazyDeclaresTheObjectClass = ThreeState.True;
-                        return true;
-                    }
-
-                    this.lazyDeclaresTheObjectClass = ThreeState.False;
+                    var value = _modules[0].MetadataReader.DeclaresTheObjectClass();
+                    _lazyDeclaresTheObjectClass = value.ToThreeState();
                 }
 
-                return this.lazyDeclaresTheObjectClass == ThreeState.True;
+                return _lazyDeclaresTheObjectClass == ThreeState.True;
             }
         }
+
+        public AssemblyMetadata GetNonDisposableMetadata() => _owner.Copy();
     }
 }

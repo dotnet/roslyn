@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract class AbstractSyntaxFormattingService : ISyntaxFormattingService
     {
-        private static readonly Func<TextSpan, bool> NotEmpty = s => !s.IsEmpty;
-        private static readonly Func<TextSpan, int> SpanLength = s => s.Length;
+        private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
+        private static readonly Func<TextSpan, int> s_spanLength = s => s.Length;
 
         protected AbstractSyntaxFormattingService()
         {
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan> formattingSpans = null);
 
-        protected abstract AbstractFormattingResult Format(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
+        protected abstract Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
-        public IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        public async Task<IFormattingResult> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             CheckArguments(node, spans, options, rules);
 
             // quick exit check
-            var spansToFormat = new NormalizedTextSpanCollection(spans.Where(NotEmpty));
+            var spansToFormat = new NormalizedTextSpanCollection(spans.Where(s_notEmpty));
             if (spansToFormat.Count == 0)
             {
                 return CreateAggregatedFormattingResult(node, SpecializedCollections.EmptyList<AbstractFormattingResult>());
@@ -43,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             // check what kind of formatting strategy to use
             if (AllowDisjointSpanMerging(spansToFormat, options.GetOption(FormattingOptions.AllowDisjointSpanMerging)))
             {
-                return FormatMergedSpan(node, options, rules, spansToFormat, cancellationToken);
+                return await FormatMergedSpanAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
             }
 
-            return FormatIndividually(node, options, rules, spansToFormat, cancellationToken);
+            return await FormatIndividuallyAsync(node, options, rules, spansToFormat, cancellationToken).ConfigureAwait(false);
         }
 
-        private IFormattingResult FormatMergedSpan(
+        private async Task<IFormattingResult> FormatMergedSpanAsync(
             SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             var spanToFormat = TextSpan.FromBounds(spansToFormat[0].Start, spansToFormat[spansToFormat.Count - 1].End);
@@ -61,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // more expensive case
-            var result = Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken);
+            var result = await FormatAsync(node, options, rules, pair.Item1, pair.Item2, cancellationToken).ConfigureAwait(false);
             return CreateAggregatedFormattingResult(node, new List<AbstractFormattingResult>(1) { result }, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, spanToFormat));
         }
 
-        private IFormattingResult FormatIndividually(
+        private async Task<IFormattingResult> FormatIndividuallyAsync(
             SyntaxNode node, OptionSet options, IEnumerable<IFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
             List<AbstractFormattingResult> results = null;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 results = results ?? new List<AbstractFormattingResult>();
-                results.Add(Format(node, options, rules, pair.Item1, pair.Item2, cancellationToken));
+                results.Add(await FormatAsync(node, options, rules, pair.Item1, pair.Item2, cancellationToken).ConfigureAwait(false));
             }
 
             // quick simple case check
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // check how much area we are formatting
             var formattingSpan = TextSpan.FromBounds(list[0].Start, list[list.Count - 1].End);
-            var actualFormattingSize = list.Sum(SpanLength);
+            var actualFormattingSize = list.Sum(s_spanLength);
 
             // we are formatting more than half of the collapsed span.
             return (formattingSpan.Length / Math.Max(actualFormattingSize, 1)) < 2;
@@ -132,17 +133,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (spans == null)
             {
-                throw new ArgumentNullException("spans");
+                throw new ArgumentNullException(nameof(spans));
             }
 
             if (options == null)
             {
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException(nameof(options));
             }
 
             if (rules == null)

@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     // FormattingOperationsFactory property from Formatter?
     internal static class FormattingOperations
     {
-        private static readonly AdjustNewLinesOperation PreserveZeroLine = new AdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
-        private static readonly AdjustNewLinesOperation PreserveOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-        private static readonly AdjustNewLinesOperation ForceOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
-        private static readonly AdjustNewLinesOperation ForceIfSameLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+        private static readonly AdjustNewLinesOperation s_preserveZeroLine = new AdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+        private static readonly AdjustNewLinesOperation s_preserveOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+        private static readonly AdjustNewLinesOperation s_forceOneLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+        private static readonly AdjustNewLinesOperation s_forceIfSameLine = new AdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
 
-        private static readonly AdjustSpacesOperation DefaultOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
-        private static readonly AdjustSpacesOperation ForceOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-        private static readonly AdjustSpacesOperation ForceZeroSpaceIfOnSingleLine = new AdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+        private static readonly AdjustSpacesOperation s_defaultOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
+        private static readonly AdjustSpacesOperation s_forceOneSpaceIfOnSingleLine = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+        private static readonly AdjustSpacesOperation s_forceZeroSpaceIfOnSingleLine = new AdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
 
         // As the name suggests, the line force operation is performed by force spacing
-        private static readonly AdjustSpacesOperation ForceZeroLineUsingSpaceForce = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+        private static readonly AdjustSpacesOperation s_forceZeroLineUsingSpaceForce = new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
 
         /// <summary>
         /// create anchor indentation region around start and end token
@@ -111,22 +111,22 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             {
                 if (option == AdjustNewLinesOption.PreserveLines)
                 {
-                    return PreserveZeroLine;
+                    return s_preserveZeroLine;
                 }
             }
             else if (line == 1)
             {
                 if (option == AdjustNewLinesOption.PreserveLines)
                 {
-                    return PreserveOneLine;
+                    return s_preserveOneLine;
                 }
                 else if (option == AdjustNewLinesOption.ForceLines)
                 {
-                    return ForceOneLine;
+                    return s_forceOneLine;
                 }
                 else if (option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
                 {
-                    return ForceIfSameLine;
+                    return s_forceIfSameLine;
                 }
             }
 
@@ -140,19 +140,19 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         {
             if (space == 1 && option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
             {
-                return DefaultOneSpaceIfOnSingleLine;
+                return s_defaultOneSpaceIfOnSingleLine;
             }
             else if (space == 0 && option == AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             {
-                return ForceZeroSpaceIfOnSingleLine;
+                return s_forceZeroSpaceIfOnSingleLine;
             }
             else if (space == 1 && option == AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             {
-                return ForceOneSpaceIfOnSingleLine;
+                return s_forceOneSpaceIfOnSingleLine;
             }
             else if (space == 1 && option == AdjustSpacesOption.ForceSpaces)
             {
-                return ForceZeroLineUsingSpaceForce;
+                return s_forceZeroLineUsingSpaceForce;
             }
 
             return new AdjustSpacesOperation(space, option);
@@ -161,48 +161,48 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<SuppressOperation>();
-            chainedFormattingRules.AddSuppressOperations(list, node);
+            chainedFormattingRules.AddSuppressOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return AnchorIndentationOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<AnchorIndentationOperation>();
-            chainedFormattingRules.AddAnchorIndentationOperations(list, node);
+            chainedFormattingRules.AddAnchorIndentationOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return IndentBlockOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<IndentBlockOperation>();
-            chainedFormattingRules.AddIndentBlockOperations(list, node);
+            chainedFormattingRules.AddIndentBlockOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return AlignTokensOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<AlignTokensOperation>();
-            chainedFormattingRules.AddAlignTokensOperations(list, node);
+            chainedFormattingRules.AddAlignTokensOperations(list, node, lastToken);
             return list;
         }
 

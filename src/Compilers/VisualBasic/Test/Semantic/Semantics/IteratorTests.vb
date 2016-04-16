@@ -83,7 +83,7 @@ BC36942: To return a value from an Iterator function, use 'Yield' rather than 'R
         <Fact()>
         Public Sub BadYieldInNonIteratorMethod()
 
-            ' I cannot get the actuall BadYieldInNonIteratorMethod error since Yield keyword is conditional.
+            ' Cannot get the actual BadYieldInNonIteratorMethod error since Yield keyword is conditional.
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
                         <file name="a.vb">
@@ -188,15 +188,15 @@ End Class
             Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count())
             Assert.Equal(True, controlFlowAnalysisResults.StartPointIsReachable)
             Assert.Equal(True, controlFlowAnalysisResults.EndPointIsReachable)
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Me, o", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact()>
@@ -861,7 +861,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
 
-        <Fact(), WorkItem(629565, "DevDiv")>
+        <Fact(), WorkItem(629565, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629565")>
         Public Sub Bug629565()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
@@ -907,7 +907,7 @@ Object
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(1006315, "DevDiv")>
+        <Fact(), WorkItem(1006315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006315")>
         Public Sub BadAsyncSingleLineLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                     <compilation>
@@ -934,6 +934,61 @@ BC36947: Single-line lambdas cannot have the 'Iterator' modifier. Use a multilin
         Dim x As Func(Of IEnumerable(Of Integer)) = Iterator Function() E()
                                                     ~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
+        End Sub
+
+        <Fact(), WorkItem(1173145, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1173145"), WorkItem(2862, "https://github.com/dotnet/roslyn/issues/2862")>
+        Public Sub CompoundAssignmentToAField()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System.Collections 
+Imports System.Collections.Generic 
+
+Module Module1
+    Sub Main()
+        For Each x In New MyEnumerable(Of Integer)({100, 99, 98})
+            System.Console.WriteLine(x)
+        Next
+    End Sub
+End Module
+
+Public Class MyEnumerable(Of T)
+    Implements IEnumerable(Of T)
+
+    Private ReadOnly _items As T()
+    Private _count As Integer = 0
+
+    Public Sub New(items As T())
+        _items = items
+        _count = items.Length
+    End Sub
+
+    Public Iterator Function GetEnumerator() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        For Each item In _items
+            If _count = 0 Then Exit Function
+            _count -= 1
+            Yield item
+        Next
+    End Function
+
+    Public Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return GetEnumerator()
+    End Function
+End Class
+]]>
+                        </file>
+                    </compilation>, TestOptions.DebugExe)
+
+            Dim expected As Xml.Linq.XCData = <![CDATA[
+100
+99
+98
+]]>
+
+            CompileAndVerify(compilation, expected)
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expected)
         End Sub
 
     End Class

@@ -125,7 +125,7 @@
   <data name="NamespaceCanNotBeAddedIn" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
   </data>
-  <data name="ExpectedStringOrCharLitera" xml:space="preserve">
+  <data name="ExpectedStringOrCharLiteral" xml:space="preserve">
     <value>Expected string or char literal</value>
   </data>
   <data name="NodeDoesNotDescendFromRoo" xml:space="preserve">

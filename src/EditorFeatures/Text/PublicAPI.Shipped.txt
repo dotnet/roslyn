@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.Text.Extensions
+static Microsoft.CodeAnalysis.Text.Extensions.AsText(this Microsoft.VisualStudio.Text.ITextSnapshot textSnapshot) -> Microsoft.CodeAnalysis.Text.SourceText
+static Microsoft.CodeAnalysis.Text.Extensions.AsTextContainer(this Microsoft.VisualStudio.Text.ITextBuffer buffer) -> Microsoft.CodeAnalysis.Text.SourceTextContainer
+static Microsoft.CodeAnalysis.Text.Extensions.FindCorrespondingEditorTextSnapshot(this Microsoft.CodeAnalysis.Text.SourceText text) -> Microsoft.VisualStudio.Text.ITextSnapshot
+static Microsoft.CodeAnalysis.Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(this Microsoft.VisualStudio.Text.ITextSnapshot text) -> Microsoft.CodeAnalysis.Document
+static Microsoft.CodeAnalysis.Text.Extensions.GetRelatedDocuments(this Microsoft.VisualStudio.Text.ITextBuffer buffer) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Text.Extensions.GetRelatedDocumentsWithChanges(this Microsoft.VisualStudio.Text.ITextSnapshot text) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(this Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> Microsoft.VisualStudio.Text.ITextBuffer
+static Microsoft.CodeAnalysis.Text.Extensions.GetWorkspace(this Microsoft.VisualStudio.Text.ITextBuffer buffer) -> Microsoft.CodeAnalysis.Workspace
+static Microsoft.CodeAnalysis.Text.Extensions.TryGetTextBuffer(this Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> Microsoft.VisualStudio.Text.ITextBuffer

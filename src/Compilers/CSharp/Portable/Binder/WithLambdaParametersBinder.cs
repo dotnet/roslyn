@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly LambdaSymbol lambdaSymbol;
         protected readonly MultiDictionary<string, ParameterSymbol> parameterMap;
-        private SmallDictionary<string, ParameterSymbol> definitionMap;
+        private SmallDictionary<string, ParameterSymbol> _definitionMap;
 
         public WithLambdaParametersBinder(LambdaSymbol lambdaSymbol, Binder enclosing)
             : base(enclosing)
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
         {
-            var declarationMap = this.definitionMap ?? (this.definitionMap = new SmallDictionary<string, ParameterSymbol>());
+            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
             foreach (var s in definitions)
             {
                 if (!declarationMap.ContainsKey(s.Name))
@@ -135,13 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                return true;
-            }
-
             if (newSymbolKind == SymbolKind.RangeVariable)
             {
                 // The range variable '{0}' conflicts with a previous declaration of '{0}'
@@ -157,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
             ParameterSymbol existingDeclaration;
-            var map = this.definitionMap;
+            var map = _definitionMap;
             if (map != null && map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);

@@ -8,18 +8,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationDestructorInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> destructorToInfoMap =
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo> s_destructorToInfoMap =
             new ConditionalWeakTable<IMethodSymbol, CodeGenerationDestructorInfo>();
 
-        private readonly string typeName;
-        private readonly IList<SyntaxNode> statements;
+        private readonly string _typeName;
+        private readonly IList<SyntaxNode> _statements;
 
         private CodeGenerationDestructorInfo(
             string typeName,
             IList<SyntaxNode> statements)
         {
-            this.typeName = typeName;
-            this.statements = statements;
+            _typeName = typeName;
+            _statements = statements;
         }
 
         public static void Attach(
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IList<SyntaxNode> statements)
         {
             var info = new CodeGenerationDestructorInfo(typeName, statements);
-            destructorToInfoMap.Add(destructor, info);
+            s_destructorToInfoMap.Add(destructor, info);
         }
 
         private static CodeGenerationDestructorInfo GetInfo(IMethodSymbol method)
         {
             CodeGenerationDestructorInfo info;
-            destructorToInfoMap.TryGetValue(method, out info);
+            s_destructorToInfoMap.TryGetValue(method, out info);
             return info;
         }
 
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static IList<SyntaxNode> GetStatements(CodeGenerationDestructorInfo info)
         {
-            return info == null ? null : info.statements;
+            return info == null ? null : info._statements;
         }
 
         private static string GetTypeName(CodeGenerationDestructorInfo info, IMethodSymbol constructor)
         {
-            return info == null ? constructor.ContainingType.Name : info.typeName;
+            return info == null ? constructor.ContainingType.Name : info._typeName;
         }
     }
 }

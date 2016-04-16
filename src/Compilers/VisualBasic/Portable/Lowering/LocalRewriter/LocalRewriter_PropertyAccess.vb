@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' we have a special node for such cases.
             If receiverOpt IsNot Nothing AndAlso receiverOpt.Type.IsArrayType Then
                 Dim asArrayType = DirectCast(receiverOpt.Type, ArrayTypeSymbol)
-                If asArrayType.Rank = 1 Then
+                If asArrayType.IsSZArray Then
                     ' NOTE: we are not interested in potential badness of Array.Length property.
                     ' If it is bad reference compare will not succeed.
                     If (node.PropertySymbol Is GetSpecialTypeMember(SpecialMember.System_Array__Length) OrElse
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim [property] = node.PropertySymbol
             Dim isMyClassOrMyBase As Boolean = receiverOpt IsNot Nothing AndAlso (receiverOpt.IsMyClassReference OrElse receiverOpt.IsMyBaseReference)
-            If inExpressionLambda AndAlso
+            If _inExpressionLambda AndAlso
                 [property].ParameterCount = 0 AndAlso
                 [property].ReducedFrom Is Nothing AndAlso
                 Not isMyClassOrMyBase Then

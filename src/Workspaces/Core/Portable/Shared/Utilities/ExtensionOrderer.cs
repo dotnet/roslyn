@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -12,6 +10,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal static partial class ExtensionOrderer
     {
         internal static IList<Lazy<TExtension, TMetadata>> Order<TExtension, TMetadata>(
+            IEnumerable<Lazy<TExtension, TMetadata>> extensions)
+            where TMetadata : IOrderableMetadata
+        {
+            var graph = GetGraph(extensions);
+            return graph.TopologicalSort();
+        }
+
+        /// <summary>
+        /// Internal test helper for checking whether cycles exist in the extension ordering.
+        /// Throws <see cref="ArgumentException"/> if a cycle is detected.
+        /// </summary>
+        /// <exception cref="ArgumentException">A cycle was detected in the extension ordering.</exception>
+        internal static void CheckForCycles<TExtension, TMetadata>(
+            IEnumerable<Lazy<TExtension, TMetadata>> extensions)
+            where TMetadata : IOrderableMetadata
+        {
+            var graph = GetGraph(extensions);
+            graph.CheckForCycles();
+        }
+
+        private static Graph<TExtension, TMetadata> GetGraph<TExtension, TMetadata>(
             IEnumerable<Lazy<TExtension, TMetadata>> extensions)
             where TMetadata : IOrderableMetadata
         {
@@ -45,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            graph.CheckForCycles();
-            return graph.TopologicalSort();
+            return graph;
         }
 
         private static IEnumerable<string> Before<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)

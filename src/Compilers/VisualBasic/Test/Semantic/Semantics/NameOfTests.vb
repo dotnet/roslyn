@@ -1014,7 +1014,7 @@ BC32042: Too few type arguments to 'C2.cC3(Of U, V)'.
         End Sub
 
         <Fact>
-        Public Sub InacessibleNonGenericType_01()
+        Public Sub InaccessibleNonGenericType_01()
             Dim compilationDef =
 <compilation>
     <file name="a.vb">
@@ -3497,6 +3497,51 @@ MTest
 
             group = model.GetMemberGroup(argument)
             Assert.Equal("Property Module1.MTest As System.String", group.Single.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(543, "https://github.com/dotnet/roslyn")>
+        Public Sub NameOfConstantInInitializer()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class Module1
+    Const N1 As String = NameOf(N1)
+    Shared Sub Main()
+        Const N2 As String = NameOf(N2)
+        System.Console.WriteLine(N1 &amp; N2)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+N1N2
+]]>).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(564, "https://github.com/dotnet/roslyn/issues/564")>
+        Public Sub NameOfTypeParameterInDefaultValue()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub M(Of TP)(Optional name As String = NameOf(TP))
+        System.Console.WriteLine(name)
+    End Sub
+    Sub Main()
+        M(Of String)()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+TP
+]]>).VerifyDiagnostics()
         End Sub
 
     End Class

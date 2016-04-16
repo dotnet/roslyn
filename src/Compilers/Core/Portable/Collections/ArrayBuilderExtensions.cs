@@ -139,5 +139,10 @@ namespace Microsoft.CodeAnalysis
         {
             return builder[builder.Count - 1];
         }
+
+        public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T> builderOpt)
+        {
+            return builderOpt?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;
+        }
     }
 }

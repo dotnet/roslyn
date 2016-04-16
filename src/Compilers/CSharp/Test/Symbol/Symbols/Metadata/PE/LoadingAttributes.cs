@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var sub1 = (MethodSymbol)c1.GetMember("Sub1");
             sub1.GetAttributes().First().VerifyValue(0, TypedConstantKind.Primitive, "Sub1");
 
-            var sub1P1 = sub1.Parameters.Where(p => p.Name == "p1").Single();
+            var sub1P1 = sub1.Parameters.Single(p => p.Name == "p1");
             sub1P1.GetAttributes().First().VerifyValue(0, TypedConstantKind.Primitive, "p1");
 
             var function1 = (MethodSymbol)c1.GetMember("Function1");
@@ -536,30 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             };
 
             CheckAttributes(assemblies[0], assemblyArgs);
-
-            DumpAttributes(assemblies[0].Modules[0]);
-        }
-
-        private void DumpAttributes(Symbol s)
-        {
-            int i = 0;
-            foreach (var sa in s.GetAttributes())
-            {
-                int j = 0;
-                foreach (var pa in sa.CommonConstructorArguments)
-                {
-                    Console.WriteLine("{0} {1} {2}", pa.ToString());
-                    j += 1;
-                }
-
-                j = 0;
-                foreach (var na in sa.CommonNamedArguments)
-                {
-                    Console.WriteLine("{0} {1} {2} = {3}", na.Key, na.Value.ToString());
-                    j += 1;
-                }
-                i += 1;
-            }
         }
 
         private void CheckAttributes(Symbol s, AttributeArgs[] expected)
@@ -675,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             }
         }
 
-        /// Didnot Skip the test - will remove the explist cast (from IMethodSymbol to MethodSymbol)once this bug is fixed
+        /// Did not Skip the test - will remove the explicit cast (from IMethodSymbol to MethodSymbol) once this bug is fixed
         [Fact]
         public void TestInteropAttributesInterface()
         {
@@ -1060,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void TestAttributesMultiples()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new []{
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
                 TestReferences.NetFx.v4_0_21006.mscorlib
@@ -1311,8 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         #endregion
 
-        [WorkItem(530209, "DevDiv")]
-        [Fact]
+        [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Bug530209()
         {
             var ilSource = @"
@@ -1476,6 +1452,5 @@ public class Class1
             Assert.Empty(m1.Parameters[1].GetAttributes());
             Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters[1].GetCustomAttributesToEmit(state).Single().ToString());
         }
-
     }
 }

@@ -3,19 +3,19 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationTypeParameterSymbol : CodeGenerationTypeSymbol, ITypeParameterSymbol
     {
-        public VarianceKind Variance { get; private set; }
+        public VarianceKind Variance { get; }
         public ImmutableArray<ITypeSymbol> ConstraintTypes { get; internal set; }
-        public bool HasConstructorConstraint { get; private set; }
-        public bool HasReferenceTypeConstraint { get; private set; }
-        public bool HasValueTypeConstraint { get; private set; }
-        public int Ordinal { get; private set; }
+        public bool HasConstructorConstraint { get; }
+        public bool HasReferenceTypeConstraint { get; }
+        public bool HasValueTypeConstraint { get; }
+        public int Ordinal { get; }
 
         public CodeGenerationTypeParameterSymbol(
             INamedTypeSymbol containingType,

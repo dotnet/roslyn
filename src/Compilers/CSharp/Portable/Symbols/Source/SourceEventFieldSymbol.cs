@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -14,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </remarks>
     internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbol
     {
-        private readonly SourceEventSymbol associatedEvent;
+        private readonly SourceEventSymbol _associatedEvent;
 
         internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag discardedDiagnostics)
             : base(associatedEvent.containingType, declaratorSyntax, (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private, modifierErrors: true, diagnostics: discardedDiagnostics)
         {
-            this.associatedEvent = associatedEvent;
+            _associatedEvent = associatedEvent;
         }
 
         public override bool IsImplicitlyDeclared
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.associatedEvent;
+                return _associatedEvent;
             }
         }
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.associatedEvent;
+                return _associatedEvent;
             }
         }
 

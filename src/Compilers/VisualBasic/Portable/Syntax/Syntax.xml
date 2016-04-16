@@ -409,7 +409,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <child name="ValueKeyword" optional="true" kind="OnKeyword|OffKeyword|TextKeyword|BinaryKeyword">
-        <description>The keyword that identifiers the value being set for the opition: On, Off, Text or Binary.</description>
+        <description>The keyword that identifiers the value being set for the option: On, Off, Text or Binary.</description>
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name=""></native-equiv>
         <!-- TODO: constraint: Text and Binary iff CompareKeyword? -->
@@ -598,42 +598,17 @@ Unify Enum declarations with other block type declarations.
       <lm-equiv name="TypeDeclarationNode"></lm-equiv>
       <native-equiv name="TypeStatement"></native-equiv>
 
-      <child name="Begin">
-        <description>The statement that begins the type or module. </description>
-        <lm-equiv name=""></lm-equiv>
-        <native-equiv name=""></native-equiv>
-        <kind name="ModuleStatement" node-kind="ModuleBlock"/>
-        <kind name="StructureStatement" node-kind="StructureBlock"/>
-        <kind name="InterfaceStatement" node-kind="InterfaceBlock"/>
-        <kind name="ClassStatement" node-kind="ClassBlock"/>
-      </child>
-
-      <child name="Inherits" list="true" optional="true"  kind="InheritsStatement">
+      <child name="Inherits" list="true" optional="true"  kind="InheritsStatement" order="20">
         <description>A list of the Inherits declarations for the type. </description>
       </child>
 
-      <child name="Implements" list="true" optional="true"  kind="ImplementsStatement">
+      <child name="Implements" list="true" optional="true"  kind="ImplementsStatement" order="30">
         <description>A list of the Implements declarations for the type. </description>
       </child>
 
-      <child name="Members" list="true" optional="true" kind="@StatementSyntax">
+      <child name="Members" list="true" optional="true" kind="@StatementSyntax" order="40">
         <description>The declarations contained in the type or module.</description>
-        <lm-equiv name="Contents"></lm-equiv>
-        <native-equiv name="Children"></native-equiv>
       </child>
-
-      <child name="End">
-        <description>
-          The End XXX statement that ends the block.
-        </description>
-        <lm-equiv name="EndBlock"></lm-equiv>
-        <native-equiv name="TerminatingConstruct"></native-equiv>
-        <kind name="EndModuleStatement" node-kind="ModuleBlock"/>
-        <kind name="EndStructureStatement" node-kind="StructureBlock"/>
-        <kind name="EndInterfaceStatement" node-kind="InterfaceBlock"/>
-        <kind name="EndClassStatement" node-kind="ClassBlock"/>
-      </child>
-
     </node-structure>
 
     <!--********************
@@ -651,6 +626,15 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Module" />
       </node-kind>
 
+      <child name="ModuleStatement" kind="ModuleStatement" order="10">
+        <description>The "Module" statement that begins the block.</description>
+      </child>
+
+      <child name="EndModuleStatement" kind="EndModuleStatement" order="50">
+        <description>
+          The "End Module" statement that ends the block.
+        </description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -668,6 +652,15 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Structure" />
       </node-kind>
 
+      <child name="StructureStatement" kind="StructureStatement" order="10">
+        <description>The "Structure" statement that begins the block.</description>
+      </child>
+
+      <child name="EndStructureStatement" kind="EndStructureStatement" order="50">
+        <description>
+          The "End Structure" statement that ends the block.
+        </description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -685,6 +678,15 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Interface" />
       </node-kind>
 
+      <child name="InterfaceStatement" kind="InterfaceStatement" order="10">
+        <description>The "Interface" statement that begins the block.</description>
+      </child>
+
+      <child name="EndInterfaceStatement" kind="EndInterfaceStatement" order="50">
+        <description>
+          The "End Interface" statement that ends the block.
+        </description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -702,6 +704,15 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Class" />
       </node-kind>
 
+      <child name="ClassStatement" kind="ClassStatement" order="10">
+        <description>The "Class" statement that begins the block.</description>
+      </child>
+
+      <child name="EndClassStatement" kind="EndClassStatement" order="50">
+        <description>
+          The "End Class" statement that ends the block.
+        </description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -793,13 +804,13 @@ Unify Enum declarations with other block type declarations.
       <lm-equiv name="TypeDeclarationNode"></lm-equiv>
       <native-equiv name="TypeStatement"></native-equiv>
 
-      <child name="AttributeLists" optional="true" list="true" kind="AttributeList">
+      <child name="AttributeLists" optional="true" list="true" kind="AttributeList" order="10">
         <description>A list of all attribute lists on this declaration. If no attributes were specified, an empty list is returned.</description>
         <lm-equiv name="Attributes"></lm-equiv>
         <native-equiv name="Attributes"></native-equiv>
       </child>
 
-      <child name="Modifiers" optional="true" list="true" kind="PublicKeyword|PrivateKeyword|ProtectedKeyword|FriendKeyword|ShadowsKeyword|MustInheritKeyword|NotInheritableKeyword|PartialKeyword">
+      <child name="Modifiers" optional="true" list="true" kind="PublicKeyword|PrivateKeyword|ProtectedKeyword|FriendKeyword|ShadowsKeyword|MustInheritKeyword|NotInheritableKeyword|PartialKeyword" order="20">
         <description>
           A list of all the modifier tokens that were present on this declaration. If no modifiers were specified, an empty list is returned.
         </description>
@@ -807,23 +818,13 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Specifiers"></native-equiv>
       </child>
 
-      <child name="Keyword" >
-        <description>The "Module", "Class", "Interface" or "Structure" keyword.</description>
-        <lm-equiv name="TypeKeyword"></lm-equiv>
-        <native-equiv name="TypeKeyword"></native-equiv>
-        <kind name="ClassKeyword" node-kind="ClassStatement"/>
-        <kind name="ModuleKeyword" node-kind="ModuleStatement"/>
-        <kind name="InterfaceKeyword" node-kind="InterfaceStatement"/>
-        <kind name="StructureKeyword" node-kind="StructureStatement"/>
-      </child>
-
-      <child name="Identifier" kind="IdentifierToken">
+      <child name="Identifier" kind="IdentifierToken" order="40">
         <description>The name of the type being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
         <native-equiv name="Name"></native-equiv>
       </child>
 
-      <child name="TypeParameterList" optional="true" kind="TypeParameterList">
+      <child name="TypeParameterList" optional="true" kind="TypeParameterList" order="50">
         <!-- REVIEW: Add constraint that this can't be present for a Module. -->
         <description>
           If present, a type parameter list with generic parameters for this type. If no generic parameters were
@@ -849,6 +850,9 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Module" />
       </node-kind>
 
+      <child name="ModuleKeyword" kind="ModuleKeyword" order="30">
+        <description>The "Module" keyword.</description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -867,6 +871,9 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Structure" />
       </node-kind>
 
+      <child name="StructureKeyword" kind="StructureKeyword" order="30">
+        <description>The "Structure" keyword.</description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -885,6 +892,9 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Interface" />
       </node-kind>
 
+      <child name="InterfaceKeyword" kind="InterfaceKeyword" order="30">
+        <description>The "Interface" keyword.</description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -903,6 +913,9 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.Class" />
       </node-kind>
 
+      <child name="ClassKeyword" kind="ClassKeyword" order="30">
+        <description>The "Class" keyword.</description>
+      </child>
     </node-structure>
 
     <!--********************
@@ -1201,44 +1214,12 @@ Unify Enum declarations with other block type declarations.
       <native-equiv name="BlockStatement"></native-equiv>
       <native-equiv name="HiddenBlockStatement">TODO: Describe how these map!</native-equiv>
 
-      <child name="Begin">
-        <description>The declaration that begins the block. </description>
-        <lm-equiv name=""></lm-equiv>
-        <native-equiv name=""></native-equiv>
-        <kind name="SubStatement" node-kind="SubBlock"/>
-        <kind name="FunctionStatement" node-kind="FunctionBlock"/>
-        <kind name="SubNewStatement" node-kind="ConstructorBlock"/>
-        <kind name="OperatorStatement" node-kind="OperatorBlock"/>
-        <kind name="GetAccessorStatement" node-kind="GetAccessorBlock"/>
-        <kind name="SetAccessorStatement" node-kind="SetAccessorBlock"/>
-        <kind name="AddHandlerAccessorStatement" node-kind="AddHandlerAccessorBlock"/>
-        <kind name="RemoveHandlerAccessorStatement" node-kind="RemoveHandlerAccessorBlock"/>
-        <kind name="RaiseEventAccessorStatement" node-kind="RaiseEventAccessorBlock"/>
-      </child>
-
-      <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
+      <child name="Statements" optional="true" list="true" kind="@StatementSyntax" order="20">
         <description>
           The statements contained in the block statement. This might be an empty list.
         </description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
         <native-equiv name="BlockStatement.Children"></native-equiv>
-      </child>
-
-      <child name="End">
-        <description>
-          The End XXX statement that ends the block declaration.
-        </description>
-        <lm-equiv name="EndBlock"></lm-equiv>
-        <native-equiv name="TerminatingConstruct"></native-equiv>
-        <kind name="EndSubStatement" node-kind="SubBlock"/>
-        <kind name="EndFunctionStatement" node-kind="FunctionBlock"/>
-        <kind name="EndSubStatement" node-kind="ConstructorBlock"/>
-        <kind name="EndOperatorStatement" node-kind="OperatorBlock"/>
-        <kind name="EndGetStatement" node-kind="GetAccessorBlock"/>
-        <kind name="EndSetStatement" node-kind="SetAccessorBlock"/>
-        <kind name="EndAddHandlerStatement" node-kind="AddHandlerAccessorBlock"/>
-        <kind name="EndRemoveHandlerStatement" node-kind="RemoveHandlerAccessorBlock"/>
-        <kind name="EndRaiseEventStatement" node-kind="RaiseEventAccessorBlock"/>
       </child>
     </node-structure>
 
@@ -1260,6 +1241,20 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.ProcedureBody" />
       </node-kind>
+      
+      <child name="SubOrFunctionStatement" order="10">
+        <description>The "Sub" or "Function" statement that begins the block.</description>
+        <kind name="SubStatement" node-kind="SubBlock"/>
+        <kind name="FunctionStatement" node-kind="FunctionBlock"/>
+      </child>
+
+      <child name="EndSubOrFunctionStatement" order="30">
+        <description>
+          The "End Sub" or "End Function" statement that ends the block.
+        </description>
+        <kind name="EndSubStatement" node-kind="SubBlock"/>
+        <kind name="EndFunctionStatement" node-kind="FunctionBlock"/>
+      </child>
     </node-structure>
 
     <!--****************
@@ -1275,6 +1270,16 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.ProcedureBody" />
       </node-kind>
+
+      <child name="SubNewStatement" kind="SubNewStatement" order="10">
+        <description>The "Sub New" statement that begins the block. </description>
+      </child>
+
+      <child name="EndSubStatement" kind="EndSubStatement" order="30">
+        <description>
+          The "End Sub" statement that ends the block declaration.
+        </description>
+      </child>
     </node-structure>
 
     <!--****************
@@ -1290,6 +1295,16 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.ProcedureBody" />
       </node-kind>
+
+      <child name="OperatorStatement" kind="OperatorStatement" order="10">
+        <description>The "Operator" statement that begins the block. </description>
+      </child>
+
+      <child name="EndOperatorStatement" kind="EndOperatorStatement" order="30">
+        <description>
+          The "End Operator" statement that ends the block declaration.
+        </description>
+      </child>
     </node-structure>
 
     <!--****************
@@ -1326,6 +1341,24 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Method" />
         <native-equiv name="Statement.Opcodes.RaiseEventBody" />
       </node-kind>
+
+      <child name="AccessorStatement" order="10">
+        <description>The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that begins the accessor block.</description>
+        <kind name="GetAccessorStatement" node-kind="GetAccessorBlock"/>
+        <kind name="SetAccessorStatement" node-kind="SetAccessorBlock"/>
+        <kind name="AddHandlerAccessorStatement" node-kind="AddHandlerAccessorBlock"/>
+        <kind name="RemoveHandlerAccessorStatement" node-kind="RemoveHandlerAccessorBlock"/>
+        <kind name="RaiseEventAccessorStatement" node-kind="RaiseEventAccessorBlock"/>
+      </child>
+
+      <child name="EndAccessorStatement" order="30">
+        <description>The "End Get", "End Set", "End AddHandler", "End RemoveHandler", or "End RaiseEvent" statement that ends the accessor block.</description>
+        <kind name="EndGetStatement" node-kind="GetAccessorBlock"/>
+        <kind name="EndSetStatement" node-kind="SetAccessorBlock"/>
+        <kind name="EndAddHandlerStatement" node-kind="AddHandlerAccessorBlock"/>
+        <kind name="EndRemoveHandlerStatement" node-kind="RemoveHandlerAccessorBlock"/>
+        <kind name="EndRaiseEventStatement" node-kind="RaiseEventAccessorBlock"/>
+      </child>
     </node-structure>
 
     <!--****************
@@ -1437,32 +1470,6 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Specifiers"></native-equiv>
       </child>
 
-      <child name="Keyword" order="10">
-        <description>
-          The keyword that introduces this method declaration. One of "Sub", "Function", "Operator", "Event", "Property", "Get",
-          "Set", "AddHandler", "RemoveHandler" or "RaiseEvent".
-        </description>
-        <lm-equiv name="MethodKeyword"></lm-equiv>
-        <native-equiv name="MethodKind"></native-equiv>
-        <kind name ="SubKeyword" node-kind="SubStatement" />
-        <kind name ="SubKeyword" node-kind="SubNewStatement" />
-        <kind name ="FunctionKeyword" node-kind="FunctionStatement" />
-        <kind name ="SubKeyword" node-kind="DelegateSubStatement" />
-        <kind name ="FunctionKeyword" node-kind="DelegateFunctionStatement" />
-        <kind name ="SubKeyword" node-kind="SubLambdaHeader" />
-        <kind name ="FunctionKeyword" node-kind="FunctionLambdaHeader" />
-        <kind name ="SubKeyword" node-kind="DeclareSubStatement" />
-        <kind name ="FunctionKeyword" node-kind="DeclareFunctionStatement" />
-        <kind name ="OperatorKeyword" node-kind="OperatorStatement" />
-        <kind name ="EventKeyword" node-kind="EventStatement" />
-        <kind name ="PropertyKeyword" node-kind="PropertyStatement" />
-        <kind name ="GetKeyword" node-kind="GetAccessorStatement" />
-        <kind name ="SetKeyword" node-kind="SetAccessorStatement" />
-        <kind name ="AddHandlerKeyword" node-kind="AddHandlerAccessorStatement" />
-        <kind name ="RemoveHandlerKeyword" node-kind="RemoveHandlerAccessorStatement" />
-        <kind name ="RaiseEventKeyword" node-kind="RaiseEventAccessorStatement" />
-      </child>
-
       <child name="ParameterList" optional="true" kind="ParameterList" order="30">
         <description>The method's parameter list including the parentheses. If no parameter list was present, Nothing is returned.</description>
       </child>
@@ -1520,6 +1527,14 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statements.Opcodes.FunctionDeclaration" />
       </node-kind>
 
+      <child name="SubOrFunctionKeyword" order="10">
+        <description>
+          The "Sub" or "Function" keyword that introduces this method declaration.
+        </description>
+        <kind name ="SubKeyword" node-kind="SubStatement" />
+        <kind name ="FunctionKeyword" node-kind="FunctionStatement" />
+      </child>
+      
       <child name="Identifier" kind="IdentifierToken" order="20">
         <description>The name of the method being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
@@ -1567,6 +1582,12 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="ConstructorDeclaration" />
       </node-kind>
 
+      <child name="SubKeyword" kind="SubKeyword" order="10">
+        <description>
+          The "Sub" keyword.
+        </description>
+      </child>
+      
       <child name="NewKeyword" kind="NewKeyword" order="20">
         <description>The "New" keyword in the constructor declaration.</description>
         <lm-equiv name="NewKeyword"></lm-equiv>
@@ -1603,7 +1624,15 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="StringMode"></lm-equiv>
         <native-equiv name="StringMode"></native-equiv>
       </child>
-
+      
+      <child name="SubOrFunctionKeyword" order="10">
+        <description>
+          The "Sub" or "Function" keyword.
+        </description>
+        <kind name ="SubKeyword" node-kind="DeclareSubStatement" />
+        <kind name ="FunctionKeyword" node-kind="DeclareFunctionStatement" />
+      </child>
+      
       <child name="Identifier" kind="IdentifierToken" order="20">
         <description>The name of the method being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
@@ -1663,6 +1692,14 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Delegate"></native-equiv>
       </child>
 
+      <child name="SubOrFunctionKeyword" order="10">
+        <description>
+          The "Sub" or "Function" keyword.
+        </description>
+        <kind name ="SubKeyword" node-kind="DelegateSubStatement" />
+        <kind name ="FunctionKeyword" node-kind="DelegateFunctionStatement" />
+      </child>
+      
       <child name="Identifier" kind="IdentifierToken" order="20">
         <description>The name of the delegate being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
@@ -1702,6 +1739,12 @@ Unify Enum declarations with other block type declarations.
         <description>The optional Custom keyword for custom event declarations.</description>
       </child>
 
+      <child name="EventKeyword" kind="EventKeyword" order="10">
+        <description>
+          The "Event" keyword that introduces this event declaration.
+        </description>
+      </child>
+      
       <child name="Identifier" kind="IdentifierToken" order="20">
         <description>The name of the event being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
@@ -1738,7 +1781,13 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Operator" />
         <native-equiv name="Statements.Opcodes.OperatorDeclaration" />
       </node-kind>
-
+      
+      <child name="OperatorKeyword" kind="OperatorKeyword" order="10">
+        <description>
+          The "Operator" keyword that introduces this operator declaration.
+        </description>
+      </child>
+      
       <child name="OperatorToken"  kind="CTypeKeyword|IsTrueKeyword|IsFalseKeyword|NotKeyword|PlusToken|MinusToken|AsteriskToken|SlashToken|CaretToken|BackslashToken|AmpersandToken|LessThanLessThanToken|GreaterThanGreaterThanToken|ModKeyword|OrKeyword|XorKeyword|AndKeyword|LikeKeyword|EqualsToken|LessThanGreaterThanToken|LessThanToken|LessThanEqualsToken|GreaterThanEqualsToken|GreaterThanToken" order="20">
         <description>The operator being defined.</description>
         <lm-equiv name="Operator"></lm-equiv>
@@ -1775,6 +1824,12 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statements.Opcodes.Property" />
       </node-kind>
 
+      <child name="PropertyKeyword" kind="PropertyKeyword" order="10">
+        <description>
+          The "Property" keyword that introduces this property declaration.
+        </description>
+      </child>
+      
       <child name="Identifier" kind="IdentifierToken" order="20">
         <description>The name of the property being declared.</description>
         <lm-equiv name="Name"></lm-equiv>
@@ -1826,6 +1881,17 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="RaiseEventAccessorStatement">
         <lm-equiv name="Statement.Opcodes.RaiseEventDeclaration" />
       </node-kind>
+    
+      <child name="AccessorKeyword" order="10">
+        <description>
+          The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" keyword that introduces this accessor declaration.
+        </description>
+        <kind name ="GetKeyword" node-kind="GetAccessorStatement" />
+        <kind name ="SetKeyword" node-kind="SetAccessorStatement" />
+        <kind name ="AddHandlerKeyword" node-kind="AddHandlerAccessorStatement" />
+        <kind name ="RemoveHandlerKeyword" node-kind="RemoveHandlerAccessorStatement" />
+        <kind name ="RaiseEventKeyword" node-kind="RaiseEventAccessorStatement" />
+      </child>
     </node-structure>
 
     <!--********************
@@ -2332,7 +2398,7 @@ Unify Enum declarations with other block type declarations.
       **********************-->
     <node-structure name="EqualsValueSyntax" parent="VisualBasicSyntaxNode">
       <description>
-        Represents an "= initializer" clause in a declaration for a variable, pararameter or automatic property.
+        Represents an "= initializer" clause in a declaration for a variable, parameter or automatic property.
       </description>
 
       <node-kind name="EqualsValue"></node-kind>
@@ -3091,7 +3157,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <child name="ElseClause" optional="true" kind="SingleLineElseClause">
-        <description>An "Else" clause to be executed if the condition expression evalues as false.</description>
+        <description>An "Else" clause to be executed if the condition expression evaluates as false.</description>
       </child>
 
     </node-structure>
@@ -3134,10 +3200,10 @@ Unify Enum declarations with other block type declarations.
       <description>
         Represents a multi-line "If ... Then ... ElseIf ... Then ... Else ... End If" block.
       </description>
-      <spec-section>10.8.1</spec-section>
-      <grammar>IfStatement</grammar>
       <lm-equiv name="IfNode">A MultiLineIfBlock corresponds to an IfNode -- the If statement and its following body.</lm-equiv>
       <native-equiv name="IfStatement">A MultiLineIfBlock corresponds to an IfStatement -- the If statement and its following body.</native-equiv>
+      <spec-section>10.8.1</spec-section>
+      <grammar>IfStatement</grammar>
 
       <node-kind name="MultiLineIfBlock" />
 
@@ -3788,8 +3854,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Statement.Opcodes.CaseElse" />
       </node-kind>
 
-      <!-- REVIEW: name this CaseStatement instead? -->
-      <child name="Begin" kind="CaseStatement|CaseElseStatement">
+      <child name="CaseStatement" kind="CaseStatement|CaseElseStatement">
         <description>The statement that begins the case block. </description>
       </child>
 
@@ -4210,7 +4275,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="ForBlockSyntax" parent="ForOrForEachBlockSyntax">
       <description>
-        Represents a For block, including the introducting statement,
+        Represents a For block, including the introducing statement,
         the body and the "Next" (which can be omitted if a containing For has a Next with
         multiple variables).
       </description>
@@ -4237,7 +4302,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="ForEachBlockSyntax" parent="ForOrForEachBlockSyntax">
       <description>
-        Represents a For Each block, including the introducting statement,
+        Represents a For Each block, including the introducing statement,
         the body and the "Next" (which can be omitted if a containing For has a Next with
         multiple variables).
       </description>
@@ -5908,7 +5973,7 @@ Unify Enum declarations with other block type declarations.
       <spec-section>11.20</spec-section>
       <grammar>LambdaExpression</grammar>
 
-      <child name="Begin" kind="@LambdaHeaderSyntax">
+      <child name="SubOrFunctionHeader" kind="@LambdaHeaderSyntax">
         <description>The header part of the lambda that includes the "Sub" or "Function" keyword, the argument list and return type.</description>
       </child>
 
@@ -5973,7 +6038,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
 
-      <child name="End" kind="EndSubStatement|EndFunctionStatement">
+      <child name="EndSubOrFunctionStatement" kind="EndSubStatement|EndFunctionStatement">
         <description>
           Returns the "End Sub" or "End Function" statement if this is a multi-line lambda.
         </description>
@@ -5991,11 +6056,17 @@ Unify Enum declarations with other block type declarations.
       <spec-section>11.20</spec-section>
       <grammar>LambdaExpression</grammar>
 
-      <node-kind name="SubLambdaHeader">
-      </node-kind>
+      <node-kind name="SubLambdaHeader" />
 
-      <node-kind name="FunctionLambdaHeader">
-      </node-kind>
+      <node-kind name="FunctionLambdaHeader" />
+
+      <child name="SubOrFunctionKeyword" order="10">
+        <description>
+          The "Sub" or "Function" keyword that introduces this lambda expression.
+        </description>
+        <kind name ="SubKeyword" node-kind="SubLambdaHeader" />
+        <kind name ="FunctionKeyword" node-kind="FunctionLambdaHeader" />
+      </child>
 
       <child name="AsClause" optional="true" kind="SimpleAsClause" order="60">
         <description>The "As" clause that describes the return type. If no As clause was present, Nothing is returned.</description>
@@ -7532,7 +7603,7 @@ Unify Enum declarations with other block type declarations.
     <node-structure name="CrefOperatorReferenceSyntax" parent="NameSyntax">
       <node-kind name="CrefOperatorReference" />
 
-      <child name="Keyword" order="10" kind="OperatorKeyword"/>
+      <child name="OperatorKeyword" kind="OperatorKeyword" order="10"/>
       <child name="OperatorToken" kind="CTypeKeyword|IsTrueKeyword|IsFalseKeyword|NotKeyword|PlusToken|MinusToken|AsteriskToken|SlashToken|CaretToken|BackslashToken|AmpersandToken|LessThanLessThanToken|GreaterThanGreaterThanToken|ModKeyword|OrKeyword|XorKeyword|AndKeyword|LikeKeyword|EqualsToken|LessThanGreaterThanToken|LessThanToken|LessThanEqualsToken|GreaterThanEqualsToken|GreaterThanToken" order="20" />
     </node-structure>
 
@@ -8773,7 +8844,7 @@ Unify Enum declarations with other block type declarations.
     <enumeration name="TypeCharacter">
       <description>
         Represents one of the type characters or literal suffixes of VB. Used to describe
-        a) the type character suffixes that can be placed on identifers, and
+        a) the type character suffixes that can be placed on identifiers, and
         b) the suffixes that can be placed on integer literals.
       </description>
       <lm-equiv name="TypeCharacter"></lm-equiv>
@@ -9011,7 +9082,7 @@ Unify Enum declarations with other block type declarations.
       -  XmlDocumentation
       **********************-->
     <node-structure name="DocumentationCommentTriviaSyntax" parent="StructuredTriviaSyntax">
-      <description>Represents a documentation comment e.g. ''' &lt;Summary&gt; apearing in source.</description>
+      <description>Represents a documentation comment e.g. ''' &lt;Summary&gt; appearing in source.</description>
       <node-kind name="DocumentationCommentTrivia">
         <lm-equiv name="XmlDocCommentToken" />
         <native-equiv name="" />
@@ -9172,7 +9243,7 @@ Unify Enum declarations with other block type declarations.
       -  InterpolationAlignmentClause
       ******************-->
     <node-structure name="InterpolationAlignmentClauseSyntax" parent="VisualBasicSyntaxNode">
-      <description>Represents an alignment clause ',alignment' of an intepolated string embedded expression.</description>
+      <description>Represents an alignment clause ',alignment' of an interpolated string embedded expression.</description>
 
       <node-kind name="InterpolationAlignmentClause" />
 

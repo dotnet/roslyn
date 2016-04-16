@@ -7,10 +7,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class LinkedFileMergeSessionResult
     {
-        public Solution MergedSolution { get; private set; }
+        public Solution MergedSolution { get; }
 
-        private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> mergeConflictCommentSpans = new Dictionary<DocumentId, IEnumerable<TextSpan>>();
-        public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans { get { return mergeConflictCommentSpans; } }
+        private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = new Dictionary<DocumentId, IEnumerable<TextSpan>>();
+        public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans { get { return _mergeConflictCommentSpans; } }
 
         public LinkedFileMergeSessionResult(Solution mergedSolution, IEnumerable<LinkedFileMergeResult> fileMergeResults)
         {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var documentId in fileMergeResult.DocumentIds)
                 {
-                    mergeConflictCommentSpans.Add(documentId, fileMergeResult.MergeConflictResolutionSpans);
+                    _mergeConflictCommentSpans.Add(documentId, fileMergeResult.MergeConflictResolutionSpans);
                 }
             }
         }

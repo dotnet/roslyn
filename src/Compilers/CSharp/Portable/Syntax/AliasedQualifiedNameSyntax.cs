@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public sealed partial class AliasQualifiedNameSyntax : NameSyntax
@@ -13,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SimpleNameSyntax GetUnqualifiedName()
         {
             return this.Name;
+        }
+
+        internal override string ErrorDisplayName()
+        {
+            return Alias.ErrorDisplayName() + "::" + Name.ErrorDisplayName();
         }
     }
 }

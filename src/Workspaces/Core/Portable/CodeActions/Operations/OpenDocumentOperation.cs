@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Threading;
 
@@ -9,30 +10,30 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public sealed class OpenDocumentOperation : CodeActionOperation
     {
-        private readonly DocumentId documentId;
-        private readonly bool activate;
+        private readonly DocumentId _documentId;
+        private readonly bool _activate;
 
         public OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false)
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
-            this.documentId = documentId;
-            this.activate = activateIfAlreadyOpen;
+            _documentId = documentId;
+            _activate = activateIfAlreadyOpen;
         }
 
         public DocumentId DocumentId
         {
-            get { return this.documentId; }
+            get { return _documentId; }
         }
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
             if (workspace.CanOpenDocuments)
             {
-                workspace.OpenDocument(this.documentId, this.activate);
+                workspace.OpenDocument(_documentId, _activate);
             }
         }
     }

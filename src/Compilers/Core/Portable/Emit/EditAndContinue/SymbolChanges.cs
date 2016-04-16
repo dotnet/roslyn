@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class SymbolChanges
     {
-        private readonly DefinitionMap definitionMap;
-        private readonly IReadOnlyDictionary<ISymbol, SymbolChange> changes;
-        private readonly Func<ISymbol, bool> isAddedSymbol;
+        private readonly DefinitionMap _definitionMap;
+        private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
+        private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(edits != null);
             Debug.Assert(isAddedSymbol != null);
 
-            this.definitionMap = definitionMap;
-            this.isAddedSymbol = isAddedSymbol;
-            this.changes = CalculateChanges(edits);
+            _definitionMap = definitionMap;
+            _isAddedSymbol = isAddedSymbol;
+            _changes = CalculateChanges(edits);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public bool IsAdded(ISymbol symbol)
         {
-            return isAddedSymbol(symbol);
+            return _isAddedSymbol(symbol);
         }
 
         /// <summary>
@@ -52,29 +52,33 @@ namespace Microsoft.CodeAnalysis.Emit
                 var generator = synthesizedDef.Method;
                 var synthesizedSymbol = (ISymbol)synthesizedDef;
 
-                switch (GetChange(generator))
+                var change = GetChange((IDefinition)generator);
+                switch (change)
                 {
                     case SymbolChange.Updated:
                         // The generator has been updated. Some synthesized members should be reused, others updated or added.
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!this.definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
+                        if (!_definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
                         {
                             return SymbolChange.Added;
                         }
 
-                        // The symbol should be reused when the generator is updated.
+                        if (!_definitionMap.DefinitionExists(def))
+                        {
+                            // A method was changed to a method containing a lambda, to an iterator, or to an async method.
+                            // The state machine or closure class has been added.
+                            return SymbolChange.Added;
+                        }
+
+                        // The existing symbol should be reused when the generator is updated,
+                        // not updated since it's form doesn't depend on the content of the generator.
+                        // For example, when an iterator method changes all methods that implement IEnumerable 
+                        // but MoveNext can be reused as they are.
                         if (!synthesizedDef.HasMethodBodyDependency)
                         {
                             return SymbolChange.None;
-                        }
-
-                        if (!this.definitionMap.DefinitionExists(def))
-                        {
-                            // A method was changed to a method containing a lambda, to an interator, or to an async method.
-                            // The state machine or closure class has been added.
-                            return SymbolChange.Added;
                         }
 
                         // If the type produced from the method body existed before then its members are updated.
@@ -88,12 +92,12 @@ namespace Microsoft.CodeAnalysis.Emit
                             // The method body might have been updated.
                             return SymbolChange.Updated;
                         }
-                        
+
                         return SymbolChange.None;
 
                     case SymbolChange.Added:
                         // The method has been added - add the synthesized member as well, unless they already exist.
-                        if (!this.definitionMap.DefinitionExists(def))
+                        if (!_definitionMap.DefinitionExists(def))
                         {
                             return SymbolChange.Added;
                         }
@@ -120,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     default:
                         // The method had to change, otherwise the synthesized symbol wouldn't be generated
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(change);
                 }
             }
 
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the def existed in the previous generation, the def is unchanged
             // (although it may contain changed defs); otherwise, it was added.
-            if (this.definitionMap.DefinitionExists(def))
+            if (_definitionMap.DefinitionExists(def))
             {
                 return (def is ITypeDefinition) ? SymbolChange.ContainsChanges : SymbolChange.None;
             }
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private SymbolChange GetChange(ISymbol symbol)
         {
             SymbolChange change;
-            if (this.changes.TryGetValue(symbol, out change))
+            if (_changes.TryGetValue(symbol, out change))
             {
                 return change;
             }
@@ -155,7 +159,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 return SymbolChange.None;
             }
 
-            switch (this.GetChange(container))
+            change = this.GetChange(container);
+            switch (change)
             {
                 case SymbolChange.Added:
                     return SymbolChange.Added;
@@ -167,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 case SymbolChange.ContainsChanges:
                     var definition = symbol as IDefinition;
 
-                    if (definition != null && !this.definitionMap.DefinitionExists(definition))
+                    if (definition != null && !_definitionMap.DefinitionExists(definition))
                     {
                         // If the definition did not exist in the previous generation, it was added.
                         return SymbolChange.Added;
@@ -176,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return SymbolChange.None;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(change);
             }
         }
 
@@ -188,16 +193,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield return type;
             }
 
-            foreach (var symbol in this.changes.Keys)
+            foreach (var symbol in _changes.Keys)
             {
-                var typeDef = symbol as ITypeDefinition;
-                if (typeDef != null)
+                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                if (namespaceTypeDef != null)
                 {
-                    var namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
-                    if (namespaceTypeDef != null)
-                    {
-                        yield return namespaceTypeDef;
-                    }
+                    yield return namespaceTypeDef;
                 }
             }
         }

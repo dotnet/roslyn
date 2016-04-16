@@ -1,15 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis
 {
-    partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
         /// <summary>
         /// Private helper class to capture information about AssemblySymbol instance we 

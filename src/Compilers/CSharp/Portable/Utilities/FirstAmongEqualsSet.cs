@@ -34,18 +34,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // We're going to be making one of these hash sets on every
         // intersection, so we might as well just make one and re-use it.
-        private readonly HashSet<T> hashSet;
-        private readonly Dictionary<T, T> dictionary;
-        private readonly Func<T, T, int> canonicalComparer;
+        private readonly HashSet<T> _hashSet;
+        private readonly Dictionary<T, T> _dictionary;
+        private readonly Func<T, T, int> _canonicalComparer;
 
         public FirstAmongEqualsSet(
             IEnumerable<T> items,
             IEqualityComparer<T> equalityComparer,
             Func<T, T, int> canonicalComparer)
         {
-            this.canonicalComparer = canonicalComparer;
-            this.dictionary = new Dictionary<T, T>(equalityComparer);
-            this.hashSet = new HashSet<T>(equalityComparer);
+            _canonicalComparer = canonicalComparer;
+            _dictionary = new Dictionary<T, T>(equalityComparer);
+            _hashSet = new HashSet<T>(equalityComparer);
             UnionWith(items);
         }
 
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (T item in items)
             {
                 T current;
-                if (!dictionary.TryGetValue(item, out current) || IsMoreCanonical(item, current))
+                if (!_dictionary.TryGetValue(item, out current) || IsMoreCanonical(item, current))
                 {
-                    dictionary[item] = item;
+                    _dictionary[item] = item;
                 }
             }
         }
@@ -64,48 +64,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Is the new item better than the old one?
         private bool IsMoreCanonical(T newItem, T oldItem)
         {
-            return canonicalComparer(newItem, oldItem) > 0;
+            return _canonicalComparer(newItem, oldItem) > 0;
         }
 
         public void IntersectWith(IEnumerable<T> items)
         {
-            Debug.Assert(hashSet.Count == 0);
+            Debug.Assert(_hashSet.Count == 0);
 
             // Make a copy of the input for quick indexing.
             // (As an optimization, we could check to see if the sequence already 
             // is a hash set; in practice it will not typically be.)
-            hashSet.UnionWith(items);
+            _hashSet.UnionWith(items);
 
             // Remove from the dictionary all items that are not
             // in the input item set.
 
             // Make a copy of the keys so that we are not changing the 
             // dictionary as we enumerate it.
-            foreach (var key in dictionary.Keys.ToList())
+            foreach (var key in _dictionary.Keys.ToList())
             {
-                if (!hashSet.Contains(key))
+                if (!_hashSet.Contains(key))
                 {
-                    dictionary.Remove(key);
+                    _dictionary.Remove(key);
                 }
             }
 
             // Now update the dictionary so that it contains the more
             // canonical of the items that are in both sets.
 
-            foreach (var item in hashSet)
+            foreach (var item in _hashSet)
             {
                 T current;
-                if (dictionary.TryGetValue(item, out current) && IsMoreCanonical(item, current))
+                if (_dictionary.TryGetValue(item, out current) && IsMoreCanonical(item, current))
                 {
-                    dictionary[item] = item;
+                    _dictionary[item] = item;
                 }
             }
-            hashSet.Clear();
+            _hashSet.Clear();
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return dictionary.Values.GetEnumerator();
+            return _dictionary.Values.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

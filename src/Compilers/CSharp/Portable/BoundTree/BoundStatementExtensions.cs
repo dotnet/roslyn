@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,12 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
                     }
-                    Debug.Assert(false);
-                    break;
+                    throw ExceptionUtilities.Unreachable;
 
                 default:
-                    Debug.Assert(false);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
         }
     }

@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -27,58 +25,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // All our root declarations.  We split these so we can separate out the unchanging 'older'
         // declarations from the constantly changing 'latest' declaration.
-        private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations;
-        private readonly Lazy<RootSingleNamespaceDeclaration> latestLazyRootDeclaration;
+        private readonly ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> _allOlderRootDeclarations;
+        private readonly Lazy<RootSingleNamespaceDeclaration> _latestLazyRootDeclaration;
 
         // The cache of computed values for the old declarations.
-        private readonly Cache cache;
+        private readonly Cache _cache;
 
         // The lazily computed total merged declaration.
-        private readonly Lazy<MergedNamespaceDeclaration> mergedRoot;
+        private readonly Lazy<MergedNamespaceDeclaration> _mergedRoot;
 
-        private readonly Lazy<ICollection<string>> typeNames;
-        private readonly Lazy<ICollection<string>> namespaceNames;
-        private readonly Lazy<ICollection<ReferenceDirective>> referenceDirectives;
-        private readonly Lazy<ICollection<Diagnostic>> referenceDirectiveDiagnostics;
+        private readonly Lazy<ICollection<string>> _typeNames;
+        private readonly Lazy<ICollection<string>> _namespaceNames;
+        private readonly Lazy<ICollection<ReferenceDirective>> _referenceDirectives;
 
         private DeclarationTable(
             ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
             Lazy<RootSingleNamespaceDeclaration> latestLazyRootDeclaration,
             Cache cache)
         {
-            this.allOlderRootDeclarations = allOlderRootDeclarations;
-            this.latestLazyRootDeclaration = latestLazyRootDeclaration;
-            this.cache = cache ?? new Cache(this);
-            this.mergedRoot = new Lazy<MergedNamespaceDeclaration>(GetMergedRoot);
-            this.typeNames = new Lazy<ICollection<string>>(GetMergedTypeNames);
-            this.namespaceNames = new Lazy<ICollection<string>>(GetMergedNamespaceNames);
-            this.referenceDirectives = new Lazy<ICollection<ReferenceDirective>>(GetMergedReferenceDirectives);
-            this.referenceDirectiveDiagnostics = new Lazy<ICollection<Diagnostic>>(GetMergedDiagnostics);
+            _allOlderRootDeclarations = allOlderRootDeclarations;
+            _latestLazyRootDeclaration = latestLazyRootDeclaration;
+            _cache = cache ?? new Cache(this);
+            _mergedRoot = new Lazy<MergedNamespaceDeclaration>(GetMergedRoot);
+            _typeNames = new Lazy<ICollection<string>>(GetMergedTypeNames);
+            _namespaceNames = new Lazy<ICollection<string>>(GetMergedNamespaceNames);
+            _referenceDirectives = new Lazy<ICollection<ReferenceDirective>>(GetMergedReferenceDirectives);
         }
 
         public DeclarationTable AddRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
         {
             // We can only re-use the cache if we don't already have a 'latest' item for the decl
             // table.
-            if (latestLazyRootDeclaration == null)
+            if (_latestLazyRootDeclaration == null)
             {
-                return new DeclarationTable(allOlderRootDeclarations, lazyRootDeclaration, this.cache);
+                return new DeclarationTable(_allOlderRootDeclarations, lazyRootDeclaration, _cache);
             }
             else
             {
                 // we already had a 'latest' item.  This means we're hearing about a change to a
                 // different tree.  Realize the old latest item, add it to the 'oldest' collection
                 // and don't reuse the cache.
-                return new DeclarationTable(allOlderRootDeclarations.Add(latestLazyRootDeclaration.Value), lazyRootDeclaration, cache: null);
+                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration.Value), lazyRootDeclaration, cache: null);
             }
         }
 
         public DeclarationTable RemoveRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
         {
             // We can only reuse the cache if we're removing the decl that was just added.
-            if (latestLazyRootDeclaration == lazyRootDeclaration)
+            if (_latestLazyRootDeclaration == lazyRootDeclaration)
             {
-                return new DeclarationTable(allOlderRootDeclarations, latestLazyRootDeclaration: null, cache: cache);
+                return new DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration: null, cache: _cache);
             }
             else
             {
@@ -88,19 +84,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // Note: we can keep around the 'latestLazyRootDeclaration'.  There's no need to
                 // realize it if we don't have to.
-                return new DeclarationTable(allOlderRootDeclarations.Remove(lazyRootDeclaration.Value), latestLazyRootDeclaration, cache: null);
+                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration.Value), _latestLazyRootDeclaration, cache: null);
             }
         }
 
         public IEnumerable<RootSingleNamespaceDeclaration> AllRootNamespacesUnordered()
         {
-            if (latestLazyRootDeclaration == null)
+            if (_latestLazyRootDeclaration == null)
             {
-                return allOlderRootDeclarations;
+                return _allOlderRootDeclarations;
             }
             else
             {
-                return allOlderRootDeclarations.Concat(SpecializedCollections.SingletonEnumerable(latestLazyRootDeclaration.Value));
+                return _allOlderRootDeclarations.Concat(SpecializedCollections.SingletonEnumerable(_latestLazyRootDeclaration.Value));
             }
         }
 
@@ -121,88 +117,74 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MergedNamespaceDeclaration GetMergedRoot()
         {
-            var oldRoot = this.cache.MergedRoot.Value;
-            if (latestLazyRootDeclaration == null)
+            var oldRoot = _cache.MergedRoot.Value;
+            if (_latestLazyRootDeclaration == null)
             {
                 return oldRoot;
             }
             else if (oldRoot == null)
             {
-                return MergedNamespaceDeclaration.Create(latestLazyRootDeclaration.Value);
+                return MergedNamespaceDeclaration.Create(_latestLazyRootDeclaration.Value);
             }
             else
             {
-                return MergedNamespaceDeclaration.Create(oldRoot, latestLazyRootDeclaration.Value);
+                return MergedNamespaceDeclaration.Create(oldRoot, _latestLazyRootDeclaration.Value);
             }
         }
 
         private ICollection<string> GetMergedTypeNames()
         {
-            var cachedTypeNames = this.cache.TypeNames.Value;
+            var cachedTypeNames = _cache.TypeNames.Value;
 
-            if (latestLazyRootDeclaration == null)
+            if (_latestLazyRootDeclaration == null)
             {
                 return cachedTypeNames;
             }
             else
             {
-                return UnionCollection<string>.Create(cachedTypeNames, GetTypeNames(latestLazyRootDeclaration.Value));
+                return UnionCollection<string>.Create(cachedTypeNames, GetTypeNames(_latestLazyRootDeclaration.Value));
             }
         }
 
         private ICollection<string> GetMergedNamespaceNames()
         {
-            var cachedNamespaceNames = this.cache.NamespaceNames.Value;
+            var cachedNamespaceNames = _cache.NamespaceNames.Value;
 
-            if (latestLazyRootDeclaration == null)
+            if (_latestLazyRootDeclaration == null)
             {
                 return cachedNamespaceNames;
             }
             else
             {
-                return UnionCollection<string>.Create(cachedNamespaceNames, GetNamespaceNames(latestLazyRootDeclaration.Value));
+                return UnionCollection<string>.Create(cachedNamespaceNames, GetNamespaceNames(_latestLazyRootDeclaration.Value));
             }
         }
 
         private ICollection<ReferenceDirective> GetMergedReferenceDirectives()
         {
-            var cachedReferenceDirectives = this.cache.ReferenceDirectives.Value;
+            var cachedReferenceDirectives = _cache.ReferenceDirectives.Value;
 
-            if (latestLazyRootDeclaration == null)
+            if (_latestLazyRootDeclaration == null)
             {
                 return cachedReferenceDirectives;
             }
             else
             {
-                return UnionCollection<ReferenceDirective>.Create(cachedReferenceDirectives, latestLazyRootDeclaration.Value.ReferenceDirectives);
+                return UnionCollection<ReferenceDirective>.Create(cachedReferenceDirectives, _latestLazyRootDeclaration.Value.ReferenceDirectives);
             }
         }
 
-        private ICollection<Diagnostic> GetMergedDiagnostics()
-        {
-            var cachedDiagnostics = this.cache.ReferenceDirectiveDiagnostics.Value;
-
-            if (latestLazyRootDeclaration == null)
-            {
-                return cachedDiagnostics;
-            }
-            else
-            {
-                return UnionCollection<Diagnostic>.Create(cachedDiagnostics, latestLazyRootDeclaration.Value.ReferenceDirectiveDiagnostics);
-            }
-        }
-
-        private static readonly Predicate<Declaration> IsNamespacePredicate = d => d.Kind == DeclarationKind.Namespace;
-        private static readonly Predicate<Declaration> IsTypePredicate = d => d.Kind != DeclarationKind.Namespace;
+        private static readonly Predicate<Declaration> s_isNamespacePredicate = d => d.Kind == DeclarationKind.Namespace;
+        private static readonly Predicate<Declaration> s_isTypePredicate = d => d.Kind != DeclarationKind.Namespace;
 
         private static ISet<string> GetTypeNames(Declaration declaration)
         {
-            return GetNames(declaration, IsTypePredicate);
+            return GetNames(declaration, s_isTypePredicate);
         }
 
         private static ISet<string> GetNamespaceNames(Declaration declaration)
         {
-            return GetNames(declaration, IsNamespacePredicate);
+            return GetNames(declaration, s_isNamespacePredicate);
         }
 
         private static ISet<string> GetNames(Declaration declaration, Predicate<Declaration> predicate)
@@ -237,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return mergedRoot.Value;
+                return _mergedRoot.Value;
             }
         }
 
@@ -245,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return typeNames.Value;
+                return _typeNames.Value;
             }
         }
 
@@ -253,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return namespaceNames.Value;
+                return _namespaceNames.Value;
             }
         }
 
@@ -261,16 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return referenceDirectives.Value;
-            }
-        }
-
-
-        public IEnumerable<Diagnostic> Diagnostics
-        {
-            get
-            {
-                return referenceDirectiveDiagnostics.Value;
+                return _referenceDirectives.Value;
             }
         }
 

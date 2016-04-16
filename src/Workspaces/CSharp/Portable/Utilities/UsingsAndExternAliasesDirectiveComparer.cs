@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             NameSyntaxComparer.Create(TokenComparer.SystemFirstInstance),
             TokenComparer.SystemFirstInstance);
 
-        private readonly IComparer<NameSyntax> nameComparer;
-        private readonly IComparer<SyntaxToken> tokenComparer;
+        private readonly IComparer<NameSyntax> _nameComparer;
+        private readonly IComparer<SyntaxToken> _tokenComparer;
 
         private UsingsAndExternAliasesDirectiveComparer(
             IComparer<NameSyntax> nameComparer,
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             Contract.Requires(nameComparer != null);
             Contract.Requires(tokenComparer != null);
-            this.nameComparer = nameComparer;
-            this.tokenComparer = tokenComparer;
+            _nameComparer = nameComparer;
+            _tokenComparer = tokenComparer;
         }
 
         public int Compare(SyntaxNode directive1, SyntaxNode directive2)
@@ -96,16 +96,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (directive1IsExtern)
             {
                 // they're externs, sort by the alias
-                return tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
+                return _tokenComparer.Compare(extern1.Identifier, extern2.Identifier);
             }
             else if (directive1IsAlias)
             {
-                var aliasComparisonResult = tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
+                var aliasComparisonResult = _tokenComparer.Compare(using1.Alias.Name.Identifier, using2.Alias.Name.Identifier);
 
                 if (aliasComparisonResult == 0)
                 {
                     // They both use the same alias, so compare the names.
-                    return nameComparer.Compare(using1.Name, using2.Name);
+                    return _nameComparer.Compare(using1.Name, using2.Name);
                 }
                 else
                 {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
             else
             {
-                return nameComparer.Compare(using1.Name, using2.Name);
+                return _nameComparer.Compare(using1.Name, using2.Name);
             }
         }
     }

@@ -559,7 +559,7 @@ class C
 ");
         }
 
-        [WorkItem(540146, "DevDiv")]
+        [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
         [Fact]
         public void NestedClosureThisConstructorInitializer()
         {
@@ -675,7 +675,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "xxxpass");
         }
 
-        [WorkItem(541258, "DevDiv")]
+        [WorkItem(541258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541258")]
         [Fact]
         public void CatchVarLifted1()
         {
@@ -808,7 +808,7 @@ class Program
   IL_004e:  ret
 }
 ");
-}
+        }
 
         [Fact]
         public void CatchVarLifted2a()
@@ -843,7 +843,7 @@ class Program
 
             var verifier = CompileAndVerify(source, expectedOutput: "pass");
         }
-        
+
         [Fact]
         public void CatchVarLifted3()
         {
@@ -2059,7 +2059,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -2244,10 +2244,10 @@ static class M1
         var arg0 = arguments[0];
         GenericParameterAttributes attributes = arg0.GenericParameterAttributes;
         Console.WriteLine(attributes.ToString());
-        var arg0constraits = arg0.GetGenericParameterConstraints();
-        Console.WriteLine(arg0constraits.Length);
-        Console.WriteLine(arg0constraits[0]);
-        Console.WriteLine(arg0constraits[1]);
+        var arg0constraints = arg0.GetGenericParameterConstraints();
+        Console.WriteLine(arg0constraints.Length);
+        Console.WriteLine(arg0constraints[0]);
+        Console.WriteLine(arg0constraints[1]);
     }
 }";
             CompileAndVerify(source,
@@ -3227,7 +3227,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "12");
         }
 
-        [WorkItem(539346, "DevDiv")]
+        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
         [Fact]
         public void CachedLambdas()
         {
@@ -3350,7 +3350,6 @@ class Foo<T>
         [Fact]
         public void ParentFrame01()
         {
-
             //IMPORTANT: the parent frame field in Program.c1.<>c__DisplayClass1 should be named CS$<>8__locals, not <>4__this.
 
             string source = @"
@@ -3398,7 +3397,7 @@ class Program
   IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1_1.<Test>b__3(int)""
   IL_0019:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_001e:  ret
-}"); 
+}");
         }
 
         [Fact]
@@ -3872,7 +3871,7 @@ public class C
                     "C.<>c__3<TG1, TG2>"
                 }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
 
-                var c0 = c.GetMember<NamedTypeSymbol>("<>c__0"); 
+                var c0 = c.GetMember<NamedTypeSymbol>("<>c__0");
                 AssertEx.SetEqual(new[]
                 {
                     "C.<>c__0<TF>.<>9",
@@ -3987,14 +3986,14 @@ public class C
                     "C.<F>b__0_0<TF>()",
                     "C.<G>b__1_0<TG>()",
                     "C.<F>b__2_0<TF1, TF2>(TF1)",
-                    "C.<G>b__3_0<TG1, TG2>(TG1)",  
+                    "C.<G>b__3_0<TG1, TG2>(TG1)",
                 }, c.GetMembers().Select(member => member.ToString()));
             });
         }
 
         #region "Regressions"
 
-        [WorkItem(539439, "DevDiv")]
+        [WorkItem(539439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539439")]
         [Fact]
         public void LambdaWithReturn()
         {
@@ -4017,7 +4016,7 @@ class Program
         /// Based on MadsT blog post:
         /// http://blogs.msdn.com/b/madst/archive/2007/05/11/recursive-lambda-expressions.aspx
         /// </remarks>
-        [WorkItem(540034, "DevDiv")]
+        [WorkItem(540034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540034")]
         [Fact]
         public void YCombinatorTest()
         {
@@ -4074,7 +4073,7 @@ public class Program
 );
         }
 
-        [WorkItem(540035, "DevDiv")]
+        [WorkItem(540035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540035")]
         [Fact]
         public void LongNameTest()
         {
@@ -4126,7 +4125,7 @@ namespace Lambda.Bugs
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Foo>b__0").WithLocation(19, 31));
         }
 
-        [WorkItem(540049, "DevDiv")]
+        [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
         [Fact]
         public void LambdaWithUnreachableCode()
         {
@@ -4147,7 +4146,7 @@ class Program
             CompileAndVerify(source, expectedOutput: "7");
         }
 
-        [WorkItem(1019237, "DevDiv")]
+        [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
         [Fact]
         public void OrderOfDelegateMembers()
         {
@@ -4172,9 +4171,8 @@ class Program
 ";
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
-            CompileAndVerify(source, 
-                additionalRefs: new[] { LinqAssemblyRef }, 
-                emitOptions: TestEmitters.RefEmitBug,   
+            CompileAndVerify(source,
+                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -4183,7 +4181,7 @@ Int32 EndInvoke(System.IAsyncResult)
 ");
         }
 
-        [WorkItem(540092, "DevDiv")]
+        [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
         [Fact]
         public void NestedAnonymousMethodsusingLocalAndField()
         {
@@ -4229,7 +4227,7 @@ class Test
             CompileAndVerify(source, expectedOutput: "111");
         }
 
-        [WorkItem(540129, "DevDiv")]
+        [WorkItem(540129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540129")]
         [Fact]
         public void CacheStaticAnonymousMethodInField()
         {
@@ -4266,7 +4264,7 @@ public class Test
             CompileAndVerify(source, expectedOutput: "PASS");
         }
 
-        [WorkItem(540147, "DevDiv")]
+        [WorkItem(540147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540147")]
         [Fact]
         public void CapturedVariableNamedThis()
         {
@@ -4345,12 +4343,12 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe ,expectedOutput: @"True
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
 False");
         }
 
 
-        [WorkItem(540178, "DevDiv")]
+        [WorkItem(540178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540178")]
         [Fact]
         public void NestedGenericLambda()
         {
@@ -4377,7 +4375,7 @@ class Program
                 expectedOutput: "");
         }
 
-        [WorkItem(540768, "DevDiv")]
+        [WorkItem(540768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540768")]
         [Fact]
         public void TestClosureMethodAccessibility()
         {
@@ -4396,14 +4394,14 @@ class Test
     }
 }";
             // Dev11 emits "public", we emit "internal" visibility for <Foo>b__1:
-            CompileAndVerify(source, expectedSignatures: new[] 
+            CompileAndVerify(source, expectedSignatures: new[]
             {
-                Signature("Test+<>c__DisplayClass2_0", "<Foo>b__0", 
+                Signature("Test+<>c__DisplayClass2_0", "<Foo>b__0",
                           ".method assembly hidebysig instance System.String <Foo>b__0(System.String a) cil managed"),
             });
         }
 
-        [WorkItem(541008, "DevDiv")]
+        [WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")]
         [Fact]
         public void TooEarlyForThis()
         {
@@ -4435,7 +4433,7 @@ class Program
                 expectedOutput: "11102");
         }
 
-        [WorkItem(542062, "DevDiv")]
+        [WorkItem(542062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542062")]
         [Fact]
         public void TestLambdaNoClosureClass()
         {
@@ -4471,7 +4469,7 @@ class Test
 ");
         }
 
-        [WorkItem(543087, "DevDiv")]
+        [WorkItem(543087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543087")]
         [Fact]
         public void LambdaInGenericMethod()
         {
@@ -4510,7 +4508,7 @@ class Test
                 expectedOutput: "True");
         }
 
-        [WorkItem(543344, "DevDiv")]
+        [WorkItem(543344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543344")]
         [Fact]
         public void AnonymousMethodOmitParameterList()
         {
@@ -4537,7 +4535,7 @@ class C
                 expectedOutput: "0");
         }
 
-        [WorkItem(543345, "DevDiv")]
+        [WorkItem(543345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543345")]
         [Fact()]
         public void ExtraCompilerGeneratedAttribute()
         {
@@ -4574,10 +4572,10 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput:"0");
+            var compilation = CompileAndVerify(source, expectedOutput: "0");
         }
 
-        [WorkItem(545430, "DevDiv")]
+        [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
         [Fact]
         public void CacheNonStaticLambdaInGenericMethod()
         {
@@ -4634,7 +4632,7 @@ class D
   IL_0018:  brtrue.s   IL_0030
   IL_001a:  pop
   IL_001b:  ldloc.0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldftn      ""bool C.<>c__DisplayClass0_0<T>.<M>b__0(T)""
   IL_0023:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_0028:  dup
@@ -4732,7 +4730,7 @@ class D
   IL_0025:  brtrue.s   IL_003d
   IL_0027:  pop
   IL_0028:  ldloc.0
-  IL_0029:  dup
+  IL_0029:  ldloc.0
   IL_002a:  ldftn      ""int Program.<>c__DisplayClass3_0.<Test>b__0(int)""
   IL_0030:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0035:  dup
@@ -4759,7 +4757,7 @@ class D
   IL_005f:  ldc.i4.2
   IL_0060:  bge.s      IL_0084
   IL_0062:  ldloc.3
-  IL_0063:  dup
+  IL_0063:  ldloc.3
   IL_0064:  add
   IL_0065:  call       ""void System.Console.WriteLine(int)""
   IL_006a:  ldarg.0
@@ -4919,7 +4917,7 @@ class D
         }
 
 
-        [WorkItem(546211, "DevDiv")]
+        [WorkItem(546211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546211")]
         [Fact]
         public void LambdaInCatchInLambdaInInstance()
         {
@@ -4961,7 +4959,7 @@ class VsCatalogProvider
             var compilation = CompileAndVerify(source, expectedOutput: "success");
         }
 
-        [WorkItem(546748, "DevDiv")]
+        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
         [Fact]
         public void LambdaWithCatchTypeParameter()
         {
@@ -4988,7 +4986,7 @@ class Program
             CompileAndVerify(source);
         }
 
-        [WorkItem(546748, "DevDiv")]
+        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
         [Fact]
         public void LambdaWithCapturedCatchTypeParameter()
         {
@@ -5018,7 +5016,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(530911, "DevDiv")]
+        [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
         [Fact]
         public void LambdaWithOutParameter()
         {
@@ -5049,7 +5047,7 @@ class Program
             var compilation = CompileAndVerify(source);
         }
 
-        [WorkItem(691006, "DevDiv")]
+        [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
         [Fact]
         public void LambdaWithSwitch()
         {
@@ -5133,6 +5131,8 @@ namespace ConsoleApplication16
             CompileAndVerify(source);
         }
 
+        #endregion
+
         [Fact]
         public void LambdaInQuery_Let()
         {
@@ -5150,7 +5150,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef } );
+            CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
         [Fact]
@@ -5173,6 +5173,124 @@ class C
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
-        #endregion
+        [Fact]
+        public void EmbeddedStatementClosures1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+class C
+{
+    public void G<T>(Func<T> f) {}
+
+    public void F()
+    {
+        for (int x = 1, y = 2; x < 10; x++) G(() => x + y);
+        for (int x = 1, y = 2; x < 10; x++) { G(() => x + y); }
+        foreach (var x in new[] { 1, 2, 3 }) G(() => x);
+        foreach (var x in new[] { 1, 2, 3 }) { G(() => x); }
+        foreach (var x in new[,] { {1}, {2}, {3} }) G(() => x);
+        foreach (var x in new[,] { {1}, {2}, {3} }) { G(() => x); }
+        foreach (var x in ""123"") G(() => x);
+        foreach (var x in ""123"") { G(() => x); }
+        foreach (var x in new List<string>()) G(() => x);
+        foreach (var x in new List<string>()) { G(() => x); }
+        using (var x = new MemoryStream()) G(() => x);
+        using (var x = new MemoryStream()) G(() => x);
+    }
+}";
+
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
+
+        [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
+        public void NestedLambdaWithExtensionMethodsInGeneric()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class BadBaby
+{
+    IEnumerable<object> Children;
+    public object Foo<T>()
+    {
+        return from child in Children select from T ch in Children select false;
+    }
+}";
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
+
+        [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
+        [Fact]
+        public void ClosureInSwitchStatementWithNullableExpression()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int? i = null;
+        switch (i)
+        {
+        default:
+            object o = null;
+            Func<object> f = () => o;
+            Console.Write(""{0}"", f() == null);
+            break;
+        case 0:
+            o = 1;
+            break;
+        }
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"True");
+            compilation.VerifyIL("C.Main",
+@"{
+  // Code size       92 (0x5c)
+  .maxstack  3
+  .locals init (int? V_0, //i
+                C.<>c__DisplayClass0_0 V_1, //CS$<>8__locals0
+                int V_2,
+                System.Func<object> V_3) //f
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  brfalse.s  IL_0022
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int int?.GetValueOrDefault()""
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  brfalse.s  IL_004f
+  IL_0022:  ldloc.1
+  IL_0023:  ldnull
+  IL_0024:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_0029:  ldloc.1
+  IL_002a:  ldftn      ""object C.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0030:  newobj     ""System.Func<object>..ctor(object, System.IntPtr)""
+  IL_0035:  stloc.3
+  IL_0036:  ldstr      ""{0}""
+  IL_003b:  ldloc.3
+  IL_003c:  callvirt   ""object System.Func<object>.Invoke()""
+  IL_0041:  ldnull
+  IL_0042:  ceq
+  IL_0044:  box        ""bool""
+  IL_0049:  call       ""void System.Console.Write(string, object)""
+  IL_004e:  ret
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4.1
+  IL_0051:  box        ""int""
+  IL_0056:  stfld      ""object C.<>c__DisplayClass0_0.o""
+  IL_005b:  ret
+}");
+        }
     }
 }

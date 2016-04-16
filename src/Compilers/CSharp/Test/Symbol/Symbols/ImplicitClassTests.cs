@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,12 +33,21 @@ namespace N
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
+
+            var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
+
+            n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
+            implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
+            Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
+            Assert.Equal(0, implicitClass.Interfaces.Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
         }
 
         [Fact]
         public void ScriptClassSymbol()
         {
             var c = CreateCompilationWithMscorlib(@"
+base.ToString();
 void Foo()
 {
 }
@@ -47,18 +56,26 @@ void Foo()
             var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, scriptClass.BaseType);
+            Assert.Null(scriptClass.BaseType);
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(scriptClass.IsSubmissionClass);
             Assert.True(scriptClass.IsScriptClass);
+
+            var tree = c.SyntaxTrees.Single();
+            var model = c.GetSemanticModel(tree);
+
+            IEnumerable<IdentifierNameSyntax> identifiers = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
+            var toStringIdentifier = identifiers.Where(node => node.Identifier.ValueText.Equals("ToString")).Single();
+
+            Assert.Null(model.GetSymbolInfo(toStringIdentifier).Symbol);
         }
 
-        [Fact, WorkItem(531535, "DevDiv")]
+        [Fact, WorkItem(531535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]
         public void Events()
         {
-            var c = CreateCompilationWithMscorlib(@"
+            var c = CreateCompilationWithMscorlib45(@"
 event System.Action e;
 ", parseOptions: TestOptions.Script);
 
@@ -68,7 +85,7 @@ event System.Action e;
             Assert.NotNull(evnt.Type);
         }
 
-        [WorkItem(598860, "DevDiv")]
+        [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]
         [Fact]
         public void AliasQualifiedNamespaceName()
         {

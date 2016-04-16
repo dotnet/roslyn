@@ -10,9 +10,9 @@ namespace Roslyn.Utilities
     // struct with three values
     internal struct ValueTuple<T1, T2, T3> : IEquatable<ValueTuple<T1, T2, T3>>
     {
-        private static readonly EqualityComparer<T1> comparer1 = EqualityComparer<T1>.Default;
-        private static readonly EqualityComparer<T2> comparer2 = EqualityComparer<T2>.Default;
-        private static readonly EqualityComparer<T3> comparer3 = EqualityComparer<T3>.Default;
+        private static readonly EqualityComparer<T1> s_comparer1 = EqualityComparer<T1>.Default;
+        private static readonly EqualityComparer<T2> s_comparer2 = EqualityComparer<T2>.Default;
+        private static readonly EqualityComparer<T3> s_comparer3 = EqualityComparer<T3>.Default;
 
         public readonly T1 Item1;
         public readonly T2 Item2;
@@ -27,9 +27,9 @@ namespace Roslyn.Utilities
 
         public bool Equals(ValueTuple<T1, T2, T3> other)
         {
-            return comparer1.Equals(this.Item1, other.Item1) 
-                && comparer2.Equals(this.Item2, other.Item2) 
-                && comparer3.Equals(this.Item3, other.Item3);
+            return s_comparer1.Equals(this.Item1, other.Item1)
+                && s_comparer2.Equals(this.Item2, other.Item2)
+                && s_comparer3.Equals(this.Item3, other.Item3);
         }
 
         public override bool Equals(object obj)
@@ -47,9 +47,9 @@ namespace Roslyn.Utilities
         {
             return Hash.Combine(
                 Hash.Combine(
-                    comparer1.GetHashCode(Item1),
-                    comparer2.GetHashCode(Item2)),
-                comparer3.GetHashCode(Item3));
+                    s_comparer1.GetHashCode(Item1),
+                    s_comparer2.GetHashCode(Item2)),
+                s_comparer3.GetHashCode(Item3));
         }
 
         public static bool operator ==(ValueTuple<T1, T2, T3> left, ValueTuple<T1, T2, T3> right)

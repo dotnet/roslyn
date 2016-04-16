@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         internal const string CompilerDiagnosticCategory = "Compiler";
 
         /// <summary>
-        /// Highest valid warning level for non-error diagnostcs.
+        /// Highest valid warning level for non-error diagnostics.
         /// </summary>
         internal const int HighestValidWarningLevel = 4;
 
@@ -34,7 +36,28 @@ namespace Microsoft.CodeAnalysis
             Location location,
             params object[] messageArgs)
         {
-            return Create(descriptor, location, null, messageArgs);
+            return Create(descriptor, location, null, null, messageArgs);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
+            return Create(descriptor, location, null, properties, messageArgs);
         }
 
         /// <summary>
@@ -55,9 +78,36 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<Location> additionalLocations,
             params object[] messageArgs)
         {
+            return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            IEnumerable<Location> additionalLocations,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
             if (descriptor == null)
             {
-                throw new ArgumentNullException("descriptor");
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
             var warningLevel = GetDefaultWarningLevel(descriptor.DefaultSeverity);
@@ -67,7 +117,8 @@ namespace Microsoft.CodeAnalysis
                 warningLevel: warningLevel,
                 location: location ?? Location.None,
                 additionalLocations: additionalLocations,
-                messageArgs: messageArgs);
+                messageArgs: messageArgs,
+                properties: properties);
         }
 
         /// <summary>
@@ -93,6 +144,11 @@ namespace Microsoft.CodeAnalysis
         /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
         /// If null, <see cref="CustomTags"/> will return an empty list.
         /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             string id,
@@ -107,25 +163,77 @@ namespace Microsoft.CodeAnalysis
             string helpLink = null,
             Location location = null,
             IEnumerable<Location> additionalLocations = null,
-            IEnumerable<string> customTags = null)
+            IEnumerable<string> customTags = null,
+            ImmutableDictionary<string, string> properties = null)
+        {
+            return Create(id, category, message, severity, defaultSeverity, isEnabledByDefault, warningLevel, false,
+                title, description, helpLink, location, additionalLocations, customTags, properties);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance which is localizable.
+        /// </summary>
+        /// <param name="id">An identifier for the diagnostic. For diagnostics generated by the compiler, this will be a numeric code with a prefix such as "CS1001".</param>
+        /// <param name="category">The category of the diagnostic. For diagnostics generated by the compiler, the category will be "Compiler".</param>
+        /// <param name="message">The diagnostic message text.</param>
+        /// <param name="severity">The diagnostic's effective severity.</param>
+        /// <param name="defaultSeverity">The diagnostic's default severity.</param>
+        /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
+        /// <param name="warningLevel">The warning level, between 1 and 4 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
+        /// <param name="title">An optional short localizable title describing the diagnostic.</param>
+        /// <param name="description">An optional longer localizable description for the diagnostic.</param>
+        /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="customTags">
+        /// An optional set of custom tags for the diagnostic. See <see cref="WellKnownDiagnosticTags"/> for some well known tags.
+        /// If null, <see cref="CustomTags"/> will return an empty list.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            string id,
+            string category,
+            LocalizableString message,
+            DiagnosticSeverity severity,
+            DiagnosticSeverity defaultSeverity,
+            bool isEnabledByDefault,
+            int warningLevel,
+            bool isSuppressed,
+            LocalizableString title = null,
+            LocalizableString description = null,
+            string helpLink = null,
+            Location location = null,
+            IEnumerable<Location> additionalLocations = null,
+            IEnumerable<string> customTags = null,
+            ImmutableDictionary<string, string> properties = null)
         {
             if (id == null)
             {
-                throw new ArgumentNullException("id");
+                throw new ArgumentNullException(nameof(id));
             }
 
             if (category == null)
             {
-                throw new ArgumentNullException("category");
+                throw new ArgumentNullException(nameof(category));
             }
 
             if (message == null)
             {
-                throw new ArgumentNullException("message");
+                throw new ArgumentNullException(nameof(message));
             }
 
             return SimpleDiagnostic.Create(id, title ?? string.Empty, category, message, description ?? string.Empty, helpLink ?? string.Empty,
-                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags);
+                severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags, properties, isSuppressed);
         }
 
         internal static Diagnostic Create(CommonMessageProvider messageProvider, int errorCode)
@@ -147,7 +255,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the diagnostic descriptor, which provides a description about a <see cref="Diagnostic"/>.
         /// </summary>
         public abstract DiagnosticDescriptor Descriptor { get; }
-        
+
         /// <summary>
         /// Gets the diagnostic identifier. For diagnostics generated by the compiler, this will be a numeric code with a prefix such as "CS1001".
         /// </summary>
@@ -187,6 +295,32 @@ namespace Microsoft.CodeAnalysis
         public abstract int WarningLevel { get; }
 
         /// <summary>
+        /// Returns true if the diagnostic has a source suppression, i.e. an attribute or a pragma suppression.
+        /// </summary>
+        public abstract bool IsSuppressed { get; }
+
+        /// <summary>
+        /// Gets the <see cref="SuppressionInfo"/> for suppressed diagnostics, i.e. <see cref="IsSuppressed"/> = true.
+        /// Otherwise, returns null.
+        /// </summary>
+        public SuppressionInfo GetSuppressionInfo(Compilation compilation)
+        {
+            if (!IsSuppressed)
+            {
+                return null;
+            }
+
+            AttributeData attribute;
+            var suppressMessageState = new SuppressMessageAttributeState(compilation);
+            if (!suppressMessageState.IsDiagnosticSuppressed(this, out attribute))
+            {
+                attribute = null;
+            }
+
+            return new SuppressionInfo(this.Id, attribute);
+        }
+
+        /// <summary>
         /// Returns true if this diagnostic is enabled by default by the author of the diagnostic.
         /// </summary>
         internal virtual bool IsEnabledByDefault { get { return this.Descriptor.IsEnabledByDefault; } }
@@ -222,6 +356,12 @@ namespace Microsoft.CodeAnalysis
         /// Gets custom tags for the diagnostic.
         /// </summary>
         internal virtual IReadOnlyList<string> CustomTags { get { return (IReadOnlyList<string>)this.Descriptor.CustomTags; } }
+
+        /// <summary>
+        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> if there is no entry.
+        /// This can be used to put diagnostic specific information you want to pass around. for example, to corresponding fixer.
+        /// </summary>
+        public virtual ImmutableDictionary<string, string> Properties { get { return ImmutableDictionary<string, string>.Empty; } }
 
         string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
         {
@@ -269,6 +409,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract Diagnostic WithSeverity(DiagnosticSeverity severity);
 
+        /// <summary>
+        /// Create a new instance of this diagnostic with the suppression info changed.
+        /// </summary>
+        internal abstract Diagnostic WithIsSuppressed(bool isSuppressed);
+
         // compatibility
         internal virtual int Code { get { return 0; } }
 
@@ -278,15 +423,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the diagnostic location (or any additional location) is within the given tree and optional filterSpanWithinTree.
+        /// Returns true if the diagnostic location (or any additional location) is within the given tree and intersects with the filterSpanWithinTree, if non-null.
         /// </summary>
-        internal bool ContainsLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
+        internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
             var locations = this.GetDiagnosticLocationsWithinTree(tree);
 
             foreach (var location in locations)
             {
-                if (!filterSpanWithinTree.HasValue || filterSpanWithinTree.Value.Contains(location.SourceSpan))
+                if (!filterSpanWithinTree.HasValue || filterSpanWithinTree.Value.IntersectsWith(location.SourceSpan))
                 {
                     return true;
                 }
@@ -357,7 +502,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool IsNotConfigurable()
         {
-            return DiagnosticDescriptor.IsNotConfigurable(this.CustomTags);
+            return AnalyzerManager.HasNotConfigurableTag(this.CustomTags);
         }
     }
 }

@@ -74,19 +74,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            private readonly HashSet<string> existingFullPaths;
+            private readonly HashSet<string> _existingFullPaths;
 
             public VirtualizedStrongNameProvider(
                 IEnumerable<string> existingFullPaths = null,
                 ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
                 : base(searchPaths.NullToEmpty())
             {
-                this.existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
+                _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase);
             }
 
             internal override bool FileExists(string fullPath)
             {
-                return fullPath != null && existingFullPaths != null && existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
+                return fullPath != null && _existingFullPaths != null && _existingFullPaths.Contains(FileUtilities.NormalizeAbsolutePath(fullPath));
             }
         }
     }

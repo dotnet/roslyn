@@ -11,23 +11,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceParameterSymbolBase
         Inherits ParameterSymbol
 
-        Private ReadOnly m_containingSymbol As Symbol
-        Private ReadOnly m_ordinal As UShort
+        Private ReadOnly _containingSymbol As Symbol
+        Private ReadOnly _ordinal As UShort
 
         Friend Sub New(containingSymbol As Symbol, ordinal As Integer)
-            m_containingSymbol = containingSymbol
-            m_ordinal = CUShort(ordinal)
+            _containingSymbol = containingSymbol
+            _ordinal = CUShort(ordinal)
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return m_ordinal
+                Return _ordinal
             End Get
         End Property
 
         Public NotOverridable Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_containingSymbol
+                Return _containingSymbol
             End Get
         End Property
 
@@ -66,13 +66,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return False
+                Return 0
             End Get
         End Property
 
-        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), hasByRefBeforeCustomModifiers As Boolean) As ParameterSymbol
+        Friend MustOverride Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort) As ParameterSymbol
 
     End Class
 End Namespace

@@ -9,33 +9,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' the method being implemented is passed as a parameter and is used to build
     ''' implementation method's parameters, return value type, etc...
     ''' </summary>
-    Friend NotInheritable Class SynthesizedStateMachineMethod
+    Friend MustInherit Class SynthesizedStateMachineMethod
         Inherits SynthesizedMethod
         Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private ReadOnly _interfaceMethod As MethodSymbol
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
         Private ReadOnly _locations As ImmutableArray(Of Location)
-        Private ReadOnly _debugAttributes As DebugAttributes
         Private ReadOnly _accessibility As Accessibility
         Private ReadOnly _generateDebugInfo As Boolean
         Private ReadOnly _hasMethodBodyDependency As Boolean
         Private ReadOnly _associatedProperty As PropertySymbol
 
-        Friend Sub New(stateMachineType As StateMachineTypeSymbol,
-                       name As String,
-                       interfaceMethod As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
-                       attributes As DebugAttributes,
-                       declaredAccessibility As Accessibility,
-                       generateDebugInfo As Boolean,
-                       hasMethodBodyDependency As Boolean,
-                       Optional associatedProperty As PropertySymbol = Nothing)
+        Protected Sub New(stateMachineType As StateMachineTypeSymbol,
+                          name As String,
+                          interfaceMethod As MethodSymbol,
+                          syntax As VisualBasicSyntaxNode,
+                          declaredAccessibility As Accessibility,
+                          generateDebugInfo As Boolean,
+                          hasMethodBodyDependency As Boolean,
+                          Optional associatedProperty As PropertySymbol = Nothing)
 
             MyBase.New(syntax, stateMachineType, name, isShared:=False)
 
             Me._locations = ImmutableArray.Create(syntax.GetLocation())
-            Me._debugAttributes = attributes
             Me._accessibility = declaredAccessibility
             Me._generateDebugInfo = generateDebugInfo
             Me._hasMethodBodyDependency = hasMethodBodyDependency
@@ -44,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._interfaceMethod = interfaceMethod
 
             Dim params(Me._interfaceMethod.ParameterCount - 1) As ParameterSymbol
-            For i = 0 To params.Count - 1
+            For i = 0 To params.Length - 1
                 Dim curParam = Me._interfaceMethod.Parameters(i)
                 Debug.Assert(Not curParam.IsOptional)
                 Debug.Assert(Not curParam.HasExplicitDefaultValue)
@@ -66,36 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Get
         End Property
-
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
-
-            Dim compilation = Me.DeclaringCompilation
-
-            If (Me._debugAttributes And DebugAttributes.CompilerGeneratedAttribute) <> 0 Then
-                Debug.Assert(
-                    WellKnownMembers.IsSynthesizedAttributeOptional(
-                        WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
-
-                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
-            End If
-
-            If (Me._debugAttributes And DebugAttributes.DebuggerHiddenAttribute) <> 0 Then
-                Debug.Assert(
-                    WellKnownMembers.IsSynthesizedAttributeOptional(
-                        WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
-
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
-            End If
-
-            If (Me._debugAttributes And DebugAttributes.DebuggerNonUserCodeAttribute) <> 0 Then
-                Debug.Assert(
-                    WellKnownMembers.IsSynthesizedAttributeOptional(
-                        WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
-
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerNonUserCodeAttribute())
-            End If
-        End Sub
 
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
@@ -201,6 +168,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return StateMachineType.KickoffMethod
             End Get
         End Property
+    End Class
+
+    ''' <summary>
+    ''' Represents a state machine MoveNext method.
+    ''' Handles special behavior around inheriting some attributes from the original async/iterator method.
+    ''' </summary>
+    Friend NotInheritable Class SynthesizedStateMachineMoveNextMethod
+        Inherits SynthesizedStateMachineMethod
+
+        Private _attributes As ImmutableArray(Of VisualBasicAttributeData)
+
+        Friend Sub New(stateMachineType As StateMachineTypeSymbol,
+                       interfaceMethod As MethodSymbol,
+                       syntax As VisualBasicSyntaxNode,
+                       declaredAccessibility As Accessibility)
+            MyBase.New(stateMachineType, WellKnownMemberNames.MoveNextMethodName, interfaceMethod, syntax, declaredAccessibility, generateDebugInfo:=True, hasMethodBodyDependency:=True)
+        End Sub
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+            Dim compilation = Me.DeclaringCompilation
+            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+        End Sub
+
+        Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
+            If _attributes.IsDefault Then
+                Debug.Assert(MyBase.GetAttributes().Length = 0)
+
+                Dim builder As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
+
+                ' Inherit some attributes from the kickoff method
+                Dim kickoffMethod = StateMachineType.KickoffMethod
+                For Each attribute In kickoffMethod.GetAttributes()
+                    If attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerHiddenAttribute) OrElse
+                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerNonUserCodeAttribute) OrElse
+                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepperBoundaryAttribute) OrElse
+                       attribute.IsTargetAttribute(kickoffMethod, AttributeDescription.DebuggerStepThroughAttribute) Then
+                        If builder Is Nothing Then
+                            builder = ArrayBuilder(Of VisualBasicAttributeData).GetInstance(4) ' only 4 different attributes are inherited at the moment
+                        End If
+
+                        builder.Add(attribute)
+                    End If
+                Next
+
+                ImmutableInterlocked.InterlockedCompareExchange(_attributes,
+                                                                If(builder Is Nothing, ImmutableArray(Of VisualBasicAttributeData).Empty, builder.ToImmutableAndFree()),
+                                                                Nothing)
+            End If
+
+            Return _attributes
+        End Function
+    End Class
+
+    ''' <summary>
+    ''' Represents a state machine method other than a MoveNext method.
+    ''' All such methods are considered non-user code. 
+    ''' </summary>
+    Friend NotInheritable Class SynthesizedStateMachineDebuggerNonUserCodeMethod
+        Inherits SynthesizedStateMachineMethod
+
+        Friend Sub New(stateMachineType As StateMachineTypeSymbol,
+                       name As String,
+                       interfaceMethod As MethodSymbol,
+                       syntax As VisualBasicSyntaxNode,
+                       declaredAccessibility As Accessibility,
+                       hasMethodBodyDependency As Boolean,
+                       Optional associatedProperty As PropertySymbol = Nothing)
+            MyBase.New(stateMachineType, name, interfaceMethod, syntax, declaredAccessibility, generateDebugInfo:=False,
+                       hasMethodBodyDependency:=hasMethodBodyDependency, associatedProperty:=associatedProperty)
+        End Sub
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
+            Dim compilation = Me.DeclaringCompilation
+            AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerNonUserCodeAttribute())
+        End Sub
     End Class
 
 End Namespace

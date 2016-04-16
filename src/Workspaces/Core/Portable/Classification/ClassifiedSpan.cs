@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     public struct ClassifiedSpan : IEquatable<ClassifiedSpan>
     {
-        public string ClassificationType { get; private set; }
-        public TextSpan TextSpan { get; private set; }
+        public string ClassificationType { get; }
+        public TextSpan TextSpan { get; }
 
         public ClassifiedSpan(string classificationType, TextSpan textSpan)
             : this(textSpan, classificationType)

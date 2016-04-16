@@ -12,24 +12,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' before being assigned anywhere within a method.
     ''' </summary>
     ''' <remarks></remarks>
-    Class UnassignedVariablesWalker
+    Friend NotInheritable Class UnassignedVariablesWalker
         Inherits DataFlowPass
 
         ' TODO: normalize the result by removing variables that are unassigned in an unmodified flow analysis.
-        Sub New(info As FlowAnalysisInfo)
+        Private Sub New(info As FlowAnalysisInfo)
             MyBase.New(info, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True)
         End Sub
 
         Friend Overloads Shared Function Analyze(info As FlowAnalysisInfo) As HashSet(Of Symbol)
             Dim walker = New UnassignedVariablesWalker(info)
             Try
-                Return If(walker.Analyze(), walker.result, New HashSet(Of Symbol)())
+                Return If(walker.Analyze(), walker._result, New HashSet(Of Symbol)())
             Finally
                 walker.Free()
             End Try
         End Function
 
-        Dim result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
+        Private ReadOnly _result As HashSet(Of Symbol) = New HashSet(Of Symbol)()
 
         Protected Overrides Sub ReportUnassigned(local As Symbol,
                                                  node As VisualBasicSyntaxNode,
@@ -46,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
 
                 If sym IsNot Nothing Then
-                    result.Add(sym)
+                    _result.Add(sym)
                 End If
 
             Else
-                result.Add(local)
+                _result.Add(local)
             End If
 
             MyBase.ReportUnassigned(local, node, rwContext, slot, boundFieldAccess)

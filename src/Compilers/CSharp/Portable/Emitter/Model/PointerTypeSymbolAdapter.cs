@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class PointerTypeSymbol :
+    internal partial class PointerTypeSymbol :
         Cci.IPointerTypeReference
     {
         Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)

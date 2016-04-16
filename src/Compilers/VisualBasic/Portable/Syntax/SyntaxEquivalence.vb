@@ -49,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                      SyntaxKind.DecimalLiteralToken,
                      SyntaxKind.FloatingLiteralToken,
                      SyntaxKind.IntegerLiteralToken,
+                     SyntaxKind.InterpolatedStringTextToken,
                      SyntaxKind.StringLiteralToken
                     Return String.Equals(DirectCast(before, Green.SyntaxToken).Text,
                                          DirectCast(after, Green.SyntaxToken).Text,
@@ -78,6 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Dim kind = CType(before.RawKind, SyntaxKind)
 
+            If Not AreModifiersEquivalent(before, after, kind) Then
+                Return False
+            End If
+
             If topLevel Then
                 Select Case kind
                     Case SyntaxKind.SubBlock,
@@ -99,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     Case SyntaxKind.FieldDeclaration
                         ' If we're only checking top level equivalence, then we don't have to go down into
                         ' the initializer for a field. However, we can't put that optimization for all
-                        ' fields. For example, fields that are 'const' do need their initalizers checked as
+                        ' fields. For example, fields that are 'const' do need their initializers checked as
                         ' changing them can affect binding results.
                         Dim fieldBefore = DirectCast(before, Green.FieldDeclarationSyntax)
                         Dim fieldAfter = DirectCast(after, Green.FieldDeclarationSyntax)
@@ -173,5 +178,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return True
             End If
         End Function
+
+        Private Function AreModifiersEquivalent(before As GreenNode, after As GreenNode, kind As SyntaxKind) As Boolean
+            Select Case kind
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock
+                    Dim beforeModifiers = DirectCast(before, Green.MethodBlockBaseSyntax).Begin.Modifiers
+                    Dim afterModifiers = DirectCast(after, Green.MethodBlockBaseSyntax).Begin.Modifiers
+
+                    If beforeModifiers.Count <> afterModifiers.Count Then
+                        Return False
+                    End If
+
+                    For i = 0 To beforeModifiers.Count - 1
+                        If Not beforeModifiers.Any(afterModifiers(i).Kind) Then
+                            Return False
+                        End If
+                    Next
+            End Select
+
+            Return True
+        End Function
+
     End Module
 End Namespace

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class EventSymbol : Symbol, IEventSymbol
     {
-
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
         // Do not make any changes to the public interface without making the corresponding change
@@ -118,7 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride)
                 {
-                    return (EventSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (EventSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (EventSymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenEvent);
                 }
                 return null;
             }

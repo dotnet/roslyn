@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     </file>
 </compilation>
-            Dim simpleWithEvents = MetadataReference.CreateFromImage(TestResources.SymbolsTests._WithEvents.SimpleWithEvents.AsImmutableOrNull())
+            Dim simpleWithEvents = MetadataReference.CreateFromImage(TestResources.SymbolsTests.WithEvents.SimpleWithEvents.AsImmutableOrNull())
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {simpleWithEvents}, TestOptions.ReleaseExe)
 
             Dim ns = DirectCast(c1.GlobalNamespace.GetMembers("SimpleWithEvents").Single, NamespaceSymbol)
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     </file>
 </compilation>
-            Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests._WithEvents.SimpleWithEvents.AsImmutableOrNull())
+            Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.WithEvents.SimpleWithEvents.AsImmutableOrNull())
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
 
             Dim ns = DirectCast(c1.GlobalNamespace.GetMembers("SimpleWithEvents").Single, NamespaceSymbol)

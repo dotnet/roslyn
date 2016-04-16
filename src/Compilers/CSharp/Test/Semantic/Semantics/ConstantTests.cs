@@ -178,6 +178,9 @@ class Program
 ";
             var comp = CreateExperimentalCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics(
+    // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     public S2()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
     // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
     //     static void Foo(S2 s = new S2())
     Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
@@ -358,7 +361,7 @@ class Program
             Assert.Equal(expected, actual);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
         public void TestConstantDecimalComparisons02()
         {
             var source =
@@ -422,7 +425,7 @@ class Program
             Assert.Equal(expected, actual);
         }
 
-        private static readonly string[] EnumTypeQualifiers =
+        private static readonly string[] s_enumTypeQualifiers =
             {
                 "",
                 " : sbyte",
@@ -438,7 +441,7 @@ class Program
         [Fact]
         public void TestExplicitEnumIntConversions()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B = 64, C }
@@ -508,7 +511,7 @@ class C
         [Fact]
         public void TestExplicitEnumEnumConversions()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B = 3, C }
@@ -553,7 +556,7 @@ class C
         [Fact]
         public void TestConstantEnumOperations()
         {
-            foreach (var typeQualifier in EnumTypeQualifiers)
+            foreach (var typeQualifier in s_enumTypeQualifiers)
             {
                 var source =
 @"enum E" + typeQualifier + @" { A, B, C }
@@ -677,7 +680,7 @@ true != false --> True";
         [Fact]
         public void TestEnumOverflowErrors()
         {
-            TestErrors(
+            string source =
 @"enum S8 : sbyte { Min = sbyte.MinValue, MinPlusOne, Max = sbyte.MaxValue }
 enum U8 : byte { Min = byte.MinValue, MinPlusOne, Max = byte.MaxValue }
 enum S16 : short { Min = short.MinValue, MinPlusOne, Max = short.MaxValue }
@@ -768,50 +771,131 @@ class C
         F(S64.Min - 2); // overflows at compile time in checked mode
         F(U64.Min - 2); // overflows at compile time in checked mode
     }
-}",
-                "'S8.Max + 1' error CS0221: Constant value '128' cannot be converted to a 'S8' (use 'unchecked' syntax to override)",
-                "'U8.Max + 1' error CS0221: Constant value '256' cannot be converted to a 'U8' (use 'unchecked' syntax to override)",
-                "'S16.Max + 1' error CS0221: Constant value '32768' cannot be converted to a 'S16' (use 'unchecked' syntax to override)",
-                "'U16.Max + 1' error CS0221: Constant value '65536' cannot be converted to a 'U16' (use 'unchecked' syntax to override)",
-                "'S32.Max + 1' error CS0220: The operation overflows at compile time in checked mode",
-                "'U32.Max + 1' error CS0220: The operation overflows at compile time in checked mode",
-                "'S64.Max + 1' error CS0220: The operation overflows at compile time in checked mode",
-                "'U64.Max + 1' error CS0220: The operation overflows at compile time in checked mode",
-                "'2 + S8.Max' error CS0221: Constant value '129' cannot be converted to a 'S8' (use 'unchecked' syntax to override)",
-                "'2 + U8.Max' error CS0221: Constant value '257' cannot be converted to a 'U8' (use 'unchecked' syntax to override)",
-                "'2 + S16.Max' error CS0221: Constant value '32769' cannot be converted to a 'S16' (use 'unchecked' syntax to override)",
-                "'2 + U16.Max' error CS0221: Constant value '65537' cannot be converted to a 'U16' (use 'unchecked' syntax to override)",
-                "'2 + S32.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'2 + U32.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'2 + S64.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'2 + U64.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'U8.Min - U8.MinPlusOne' error CS0221: Constant value '-1' cannot be converted to a 'byte' (use 'unchecked' syntax to override)",
-                "'U16.Min - U16.MinPlusOne' error CS0221: Constant value '-1' cannot be converted to a 'ushort' (use 'unchecked' syntax to override)",
-                "'U32.Min - U32.MinPlusOne' error CS0220: The operation overflows at compile time in checked mode",
-                "'U64.Min - U64.MinPlusOne' error CS0220: The operation overflows at compile time in checked mode",
-                "'S8.Min - S8.Max' error CS0221: Constant value '-255' cannot be converted to a 'sbyte' (use 'unchecked' syntax to override)",
-                "'U8.Min - U8.Max' error CS0221: Constant value '-255' cannot be converted to a 'byte' (use 'unchecked' syntax to override)",
-                "'S16.Min - S16.Max' error CS0221: Constant value '-65535' cannot be converted to a 'short' (use 'unchecked' syntax to override)",
-                "'U16.Min - U16.Max' error CS0221: Constant value '-65535' cannot be converted to a 'ushort' (use 'unchecked' syntax to override)",
-                "'S32.Min - S32.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'U32.Min - U32.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'S64.Min - S64.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'U64.Min - U64.Max' error CS0220: The operation overflows at compile time in checked mode",
-                "'S8.Max - S8.Min' error CS0221: Constant value '255' cannot be converted to a 'sbyte' (use 'unchecked' syntax to override)",
-                "'S16.Max - S16.Min' error CS0221: Constant value '65535' cannot be converted to a 'short' (use 'unchecked' syntax to override)",
-                "'S32.Max - S32.Min' error CS0220: The operation overflows at compile time in checked mode",
-                "'S64.Max - S64.Min' error CS0220: The operation overflows at compile time in checked mode",
-                "'S8.Min - 2' error CS0221: Constant value '-130' cannot be converted to a 'S8' (use 'unchecked' syntax to override)",
-                "'U8.Min - 2' error CS0221: Constant value '-2' cannot be converted to a 'U8' (use 'unchecked' syntax to override)",
-                "'S16.Min - 2' error CS0221: Constant value '-32770' cannot be converted to a 'S16' (use 'unchecked' syntax to override)",
-                "'U16.Min - 2' error CS0221: Constant value '-2' cannot be converted to a 'U16' (use 'unchecked' syntax to override)",
-                "'S32.Min - 2' error CS0220: The operation overflows at compile time in checked mode",
-                "'U32.Min - 2' error CS0220: The operation overflows at compile time in checked mode",
-                "'S64.Min - 2' error CS0220: The operation overflows at compile time in checked mode",
-                "'U64.Min - 2' error CS0220: The operation overflows at compile time in checked mode");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (32,11): error CS0221: Constant value '128' cannot be converted to a 'S8' (use 'unchecked' syntax to override)
+                //         F(S8.Max + 1); // 128 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Max + 1").WithArguments("128", "S8").WithLocation(32, 11),
+                // (33,11): error CS0221: Constant value '256' cannot be converted to a 'U8' (use 'unchecked' syntax to override)
+                //         F(U8.Max + 1); // 256 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U8.Max + 1").WithArguments("256", "U8").WithLocation(33, 11),
+                // (34,11): error CS0221: Constant value '32768' cannot be converted to a 'S16' (use 'unchecked' syntax to override)
+                //         F(S16.Max + 1); // 32768 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S16.Max + 1").WithArguments("32768", "S16").WithLocation(34, 11),
+                // (35,11): error CS0221: Constant value '65536' cannot be converted to a 'U16' (use 'unchecked' syntax to override)
+                //         F(U16.Max + 1); // 65536 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U16.Max + 1").WithArguments("65536", "U16").WithLocation(35, 11),
+                // (36,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S32.Max + 1); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S32.Max + 1").WithLocation(36, 11),
+                // (37,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U32.Max + 1); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U32.Max + 1").WithLocation(37, 11),
+                // (38,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S64.Max + 1); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S64.Max + 1").WithLocation(38, 11),
+                // (39,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U64.Max + 1); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Max + 1").WithLocation(39, 11),
+                // (42,11): error CS0221: Constant value '129' cannot be converted to a 'S8' (use 'unchecked' syntax to override)
+                //         F(2 + S8.Max); // 129 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "2 + S8.Max").WithArguments("129", "S8").WithLocation(42, 11),
+                // (43,11): error CS0221: Constant value '257' cannot be converted to a 'U8' (use 'unchecked' syntax to override)
+                //         F(2 + U8.Max); // 257 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "2 + U8.Max").WithArguments("257", "U8").WithLocation(43, 11),
+                // (44,11): error CS0221: Constant value '32769' cannot be converted to a 'S16' (use 'unchecked' syntax to override)
+                //         F(2 + S16.Max); // 32769 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "2 + S16.Max").WithArguments("32769", "S16").WithLocation(44, 11),
+                // (45,11): error CS0221: Constant value '65537' cannot be converted to a 'U16' (use 'unchecked' syntax to override)
+                //         F(2 + U16.Max); // 65537 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "2 + U16.Max").WithArguments("65537", "U16").WithLocation(45, 11),
+                // (46,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(2 + S32.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "2 + S32.Max").WithLocation(46, 11),
+                // (47,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(2 + U32.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "2 + U32.Max").WithLocation(47, 11),
+                // (48,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(2 + S64.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "2 + S64.Max").WithLocation(48, 11),
+                // (49,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(2 + U64.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "2 + U64.Max").WithLocation(49, 11),
+                // (53,11): error CS0221: Constant value '-1' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //         F(U8.Min - U8.MinPlusOne); // -1 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U8.Min - U8.MinPlusOne").WithArguments("-1", "byte").WithLocation(53, 11),
+                // (55,11): error CS0221: Constant value '-1' cannot be converted to a 'ushort' (use 'unchecked' syntax to override)
+                //         F(U16.Min - U16.MinPlusOne); // -1 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U16.Min - U16.MinPlusOne").WithArguments("-1", "ushort").WithLocation(55, 11),
+                // (57,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U32.Min - U32.MinPlusOne); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U32.Min - U32.MinPlusOne").WithLocation(57, 11),
+                // (59,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U64.Min - U64.MinPlusOne); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Min - U64.MinPlusOne").WithLocation(59, 11),
+                // (62,11): error CS0221: Constant value '-255' cannot be converted to a 'sbyte' (use 'unchecked' syntax to override)
+                //         F(S8.Min - S8.Max); // -255 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Min - S8.Max").WithArguments("-255", "sbyte").WithLocation(62, 11),
+                // (63,11): error CS0221: Constant value '-255' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //         F(U8.Min - U8.Max); // -255 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U8.Min - U8.Max").WithArguments("-255", "byte").WithLocation(63, 11),
+                // (64,11): error CS0221: Constant value '-65535' cannot be converted to a 'short' (use 'unchecked' syntax to override)
+                //         F(S16.Min - S16.Max); // -65535 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S16.Min - S16.Max").WithArguments("-65535", "short").WithLocation(64, 11),
+                // (65,11): error CS0221: Constant value '-65535' cannot be converted to a 'ushort' (use 'unchecked' syntax to override)
+                //         F(U16.Min - U16.Max); // -65535 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U16.Min - U16.Max").WithArguments("-65535", "ushort").WithLocation(65, 11),
+                // (66,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S32.Min - S32.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S32.Min - S32.Max").WithLocation(66, 11),
+                // (67,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U32.Min - U32.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U32.Min - U32.Max").WithLocation(67, 11),
+                // (68,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S64.Min - S64.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S64.Min - S64.Max").WithLocation(68, 11),
+                // (69,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U64.Min - U64.Max); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Min - U64.Max").WithLocation(69, 11),
+                // (72,11): error CS0221: Constant value '255' cannot be converted to a 'sbyte' (use 'unchecked' syntax to override)
+                //         F(S8.Max - S8.Min); // 255 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Max - S8.Min").WithArguments("255", "sbyte").WithLocation(72, 11),
+                // (74,11): error CS0221: Constant value '65535' cannot be converted to a 'short' (use 'unchecked' syntax to override)
+                //         F(S16.Max - S16.Min); // 65535 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S16.Max - S16.Min").WithArguments("65535", "short").WithLocation(74, 11),
+                // (76,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S32.Max - S32.Min); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S32.Max - S32.Min").WithLocation(76, 11),
+                // (78,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S64.Max - S64.Min); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S64.Max - S64.Min").WithLocation(78, 11),
+                // (82,11): error CS0221: Constant value '-130' cannot be converted to a 'S8' (use 'unchecked' syntax to override)
+                //         F(S8.Min - 2); // -130 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S8.Min - 2").WithArguments("-130", "S8").WithLocation(82, 11),
+                // (83,11): error CS0221: Constant value '-2' cannot be converted to a 'U8' (use 'unchecked' syntax to override)
+                //         F(U8.Min - 2); // -2 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U8.Min - 2").WithArguments("-2", "U8").WithLocation(83, 11),
+                // (84,11): error CS0221: Constant value '-32770' cannot be converted to a 'S16' (use 'unchecked' syntax to override)
+                //         F(S16.Min - 2); // -32770 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "S16.Min - 2").WithArguments("-32770", "S16").WithLocation(84, 11),
+                // (85,11): error CS0221: Constant value '-2' cannot be converted to a 'U16' (use 'unchecked' syntax to override)
+                //         F(U16.Min - 2); // -2 cannot be converted to ...
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "U16.Min - 2").WithArguments("-2", "U16").WithLocation(85, 11),
+                // (86,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S32.Min - 2); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S32.Min - 2").WithLocation(86, 11),
+                // (87,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U32.Min - 2); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U32.Min - 2").WithLocation(87, 11),
+                // (88,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(S64.Min - 2); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "S64.Min - 2").WithLocation(88, 11),
+                // (89,11): error CS0220: The operation overflows at compile time in checked mode
+                //         F(U64.Min - 2); // overflows at compile time in checked mode
+                Diagnostic(ErrorCode.ERR_CheckedOverflow, "U64.Min - 2").WithLocation(89, 11));
         }
 
-        [Fact, WorkItem(528727, "DevDiv")]
+        [Fact, WorkItem(528727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528727")]
         public void TestConstantNumericConversionsNotOverflow()
         {
             var source = @"
@@ -1359,7 +1443,7 @@ ulong.MinValue --> 0";
                 OfType<BoundExpression>().
                 Where(node => node.ConstantValue != null).
                 Select(node => node.Syntax.ToFullString().Trim() + " --> " + ExtractValue(node.ConstantValue));
-            var result = string.Join("\r\n", constants);
+            var result = string.Join(Environment.NewLine, constants);
             return result;
         }
 
@@ -1386,7 +1470,7 @@ ulong.MinValue --> 0";
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730, "DevDiv")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [WorkItem(1043494, "DevDiv")]
         [Fact(Skip = "1043494")]
         public void TestConstantFoldingDecimalOperations01()
@@ -1446,7 +1530,7 @@ class C
         /// Breaking change from the native compiler for
         /// certain constant expressions involving +0m and -0m.
         /// </summary>
-        [WorkItem(529730, "DevDiv")]
+        [WorkItem(529730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529730")]
         [Fact]
         public void TestConstantFoldingDecimalOperations02()
         {
@@ -1572,7 +1656,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        [WorkItem(538179, "DevDiv")]
+        [WorkItem(538179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538179")]
         [Fact]
         public void TestConstantErrors()
         {
@@ -1614,63 +1698,93 @@ class C
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (7,15): error CS0283: The type 'C.S' cannot be declared const
-                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S"),
-                // (8,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808UL").WithArguments("-", "ulong"),
-                // (9,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808ul").WithArguments("-", "ulong"),
-                // (12,27): error CS0133: The expression being assigned to 's2' must be constant
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "s1").WithArguments("s2"),
-                // (14,27): error CS0134: 'o1' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
-                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""hello""").WithArguments("o1", "object"),
-                // (16,18): error CS0020: Division by constant zero
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0"),
-                // (16,28): error CS0020: Division by constant zero
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1L/0L"),
-                // (16,38): error CS0020: Division by constant zero
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1UL/0UL"),
-                // (16,50): error CS0020: Division by constant zero
-                Diagnostic(ErrorCode.ERR_IntDivByZero, "1M/0M"),
-                // (16,60): error CS0463: Evaluation of the decimal constant expression failed
-                Diagnostic(ErrorCode.ERR_DecConstError, "-79228162514264337593543950335m - 1m"),
-                // (18,19): error CS0133: The expression being assigned to 'z' must be constant
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "1 + (z + 1)").WithArguments("z"),
-                // (20,29): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)0x8888888888888888").WithArguments("9838263505978427528", "int"),
-                // (21,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'uint' (use 'unchecked' syntax to override)
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(uint)0x8888888888888888").WithArguments("9838263505978427528", "uint"),
-                // (22,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'long' (use 'unchecked' syntax to override)
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(long)0x8888888888888888").WithArguments("9838263505978427528", "long"),
-                // (23,33): error CS0221: Constant value '1E+50' cannot be converted to a 'ulong' (use 'unchecked' syntax to override)
-                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(ulong)1E50").WithArguments("1E+50", "ulong"),
-                // (25,27): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1"),
-                // (26,29): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MaxValue + 1"),
-                // (27,29): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MaxValue + 1"),
-                // (28,31): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MaxValue + 1"),
-                // (30,28): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue - 1"),
-                // (31,30): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MinValue - 1"),
-                // (32,30): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MinValue - 1"),
-                // (33,32): error CS0220: The operation overflows at compile time in checked mode
-                Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MinValue - 1"),
-                // (7,17): warning CS0219: The variable 's' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s"),
-                // (20,13): warning CS0219: The variable 'intConversion' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "intConversion").WithArguments("intConversion"),
-                // (21,14): warning CS0219: The variable 'uintConversion' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "uintConversion").WithArguments("uintConversion"),
-                // (22,14): warning CS0219: The variable 'longConversion' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "longConversion").WithArguments("longConversion"),
-                // (23,15): warning CS0219: The variable 'ulongConversion' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "ulongConversion").WithArguments("ulongConversion"));
+    // (7,15): error CS0283: The type 'C.S' cannot be declared const
+    //         const S s = new S();
+    Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("C.S").WithLocation(7, 15),
+    // (8,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
+    //         const double ul1 = -9223372036854775808UL + 0;
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808UL").WithArguments("-", "ulong").WithLocation(8, 28),
+    // (9,28): error CS0023: Operator '-' cannot be applied to operand of type 'ulong'
+    //         const double ul2 = -9223372036854775808ul + 0;
+    Diagnostic(ErrorCode.ERR_BadUnaryOp, "-9223372036854775808ul").WithArguments("-", "ulong").WithLocation(9, 28),
+    // (12,27): error CS0133: The expression being assigned to 's2' must be constant
+    //         const string s2 = s1; // Not a constant
+    Diagnostic(ErrorCode.ERR_NotConstantExpression, "s1").WithArguments("s2").WithLocation(12, 27),
+    // (14,27): error CS0134: 'o1' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+    //         const object o1 = "hello"; // Constants of ref type other than string must be null.
+    Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""hello""").WithArguments("o1", "object").WithLocation(14, 27),
+    // (16,60): error CS0463: Evaluation of the decimal constant expression failed
+    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+    Diagnostic(ErrorCode.ERR_DecConstError, "-79228162514264337593543950335m - 1m").WithLocation(16, 60),
+    // (16,50): error CS0020: Division by constant zero
+    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+    Diagnostic(ErrorCode.ERR_IntDivByZero, "1M/0M").WithLocation(16, 50),
+    // (16,38): error CS0020: Division by constant zero
+    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+    Diagnostic(ErrorCode.ERR_IntDivByZero, "1UL/0UL").WithLocation(16, 38),
+    // (16,28): error CS0020: Division by constant zero
+    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+    Diagnostic(ErrorCode.ERR_IntDivByZero, "1L/0L").WithLocation(16, 28),
+    // (16,18): error CS0020: Division by constant zero
+    //         int y = (1 / 0) + (1L/0L) + (1UL/0UL) + (1M/0M) + (-79228162514264337593543950335m - 1m);
+    Diagnostic(ErrorCode.ERR_IntDivByZero, "1 / 0").WithLocation(16, 18),
+    // (18,28): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
+    //         const int z = 1 + (z + 1);
+    Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(18, 28),
+    // (20,29): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+    //         int intConversion = (int)0x8888888888888888;
+    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)0x8888888888888888").WithArguments("9838263505978427528", "int").WithLocation(20, 29),
+    // (21,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'uint' (use 'unchecked' syntax to override)
+    //         uint uintConversion = (uint)0x8888888888888888;
+    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(uint)0x8888888888888888").WithArguments("9838263505978427528", "uint").WithLocation(21, 31),
+    // (22,31): error CS0221: Constant value '9838263505978427528' cannot be converted to a 'long' (use 'unchecked' syntax to override)
+    //         long longConversion = (long)0x8888888888888888;
+    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(long)0x8888888888888888").WithArguments("9838263505978427528", "long").WithLocation(22, 31),
+    // (23,33): error CS0221: Constant value '1E+50' cannot be converted to a 'ulong' (use 'unchecked' syntax to override)
+    //         ulong ulongConversion = (ulong)1E50;
+    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(ulong)1E50").WithArguments("1E+50", "ulong").WithLocation(23, 33),
+    // (25,27): error CS0220: The operation overflows at compile time in checked mode
+    //         int intOverflow = int.MaxValue + 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MaxValue + 1").WithLocation(25, 27),
+    // (26,29): error CS0220: The operation overflows at compile time in checked mode
+    //         uint uintOverflow = uint.MaxValue + 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MaxValue + 1").WithLocation(26, 29),
+    // (27,29): error CS0220: The operation overflows at compile time in checked mode
+    //         long longOverflow = long.MaxValue + 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MaxValue + 1").WithLocation(27, 29),
+    // (28,31): error CS0220: The operation overflows at compile time in checked mode
+    //         ulong ulongOverflow = ulong.MaxValue + 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MaxValue + 1").WithLocation(28, 31),
+    // (30,28): error CS0220: The operation overflows at compile time in checked mode
+    //         int intUnderflow = int.MinValue - 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "int.MinValue - 1").WithLocation(30, 28),
+    // (31,30): error CS0220: The operation overflows at compile time in checked mode
+    //         uint uintUnderflow = uint.MinValue - 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "uint.MinValue - 1").WithLocation(31, 30),
+    // (32,30): error CS0220: The operation overflows at compile time in checked mode
+    //         long longUnderflow = long.MinValue - 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "long.MinValue - 1").WithLocation(32, 30),
+    // (33,32): error CS0220: The operation overflows at compile time in checked mode
+    //         ulong ulongUnderflow = ulong.MinValue - 1;
+    Diagnostic(ErrorCode.ERR_CheckedOverflow, "ulong.MinValue - 1").WithLocation(33, 32),
+    // (7,17): warning CS0219: The variable 's' is assigned but its value is never used
+    //         const S s = new S();
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 17),
+    // (20,13): warning CS0219: The variable 'intConversion' is assigned but its value is never used
+    //         int intConversion = (int)0x8888888888888888;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "intConversion").WithArguments("intConversion").WithLocation(20, 13),
+    // (21,14): warning CS0219: The variable 'uintConversion' is assigned but its value is never used
+    //         uint uintConversion = (uint)0x8888888888888888;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "uintConversion").WithArguments("uintConversion").WithLocation(21, 14),
+    // (22,14): warning CS0219: The variable 'longConversion' is assigned but its value is never used
+    //         long longConversion = (long)0x8888888888888888;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "longConversion").WithArguments("longConversion").WithLocation(22, 14),
+    // (23,15): warning CS0219: The variable 'ulongConversion' is assigned but its value is never used
+    //         ulong ulongConversion = (ulong)1E50;
+    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "ulongConversion").WithArguments("ulongConversion").WithLocation(23, 15)
+                );
         }
+
         [Fact]
         public void TestDynamicConstantError()
         {
@@ -1722,7 +1836,7 @@ class C
                 Diagnostic(ErrorCode.ERR_CheckedOverflow, "-Int64.MinValue"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void FoldingRemDivOperators()
         {
             var source = @"
@@ -1730,17 +1844,17 @@ class C
 {
     void M()
     {
-	    const int crem = checked(int.MinValue % (-1));
-	    const int urem = unchecked(int.MinValue % (-1));
+        const int crem = checked(int.MinValue % (-1));
+        const int urem = unchecked(int.MinValue % (-1));
 
-	    const long creml = checked(long.MinValue % (-1));
-	    const long ureml = unchecked(long.MinValue % (-1));
+        const long creml = checked(long.MinValue % (-1));
+        const long ureml = unchecked(long.MinValue % (-1));
 
         const int cdiv = checked(int.MinValue / (-1));
-	    const int udiv = unchecked(int.MinValue / (-1));
+        const int udiv = unchecked(int.MinValue / (-1));
 
         const long cdivl = checked(long.MinValue / (-1));
-	    const long udivl = unchecked(long.MinValue / (-1));
+        const long udivl = unchecked(long.MinValue / (-1));
 
         System.Console.WriteLine(null, crem, urem, creml, ureml, cdiv, udiv, cdivl, udivl);
     }
@@ -1877,7 +1991,7 @@ public class foo
         }
 
         [Fact]
-        public void ExoressionsInDefaultCheckedContext()
+        public void ExpressionsInDefaultCheckedContext()
         {
             // Expressions which are in unchecked statement are in explicitly unchecked context.
             // Expressions which are out of unchecked statement are in default checked context.
@@ -2369,7 +2483,7 @@ class c1
             Assert.Equal(constantValue.Value, 6);
         }
 
-        [WorkItem(544620, "DevDiv")]
+        [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]
         [Fact]
         public void NoConstantValueForOverflows()
         {
@@ -2397,7 +2511,7 @@ class c1
             Assert.False(((FieldSymbol)symbol).HasConstantValue);
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularConstantReportingRace()
         {
@@ -2427,7 +2541,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C0.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularConstantReportingRace()
         {
@@ -2484,7 +2598,7 @@ class C{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("C8.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularEnumReportingRace()
         {
@@ -2514,7 +2628,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E0.X"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularEnumReportingRace()
         {
@@ -2571,7 +2685,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "X").WithArguments("E8.X").WithLocation(44, 5));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void CircularImplicitEnumReportingRace()
         {
@@ -2604,7 +2718,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E0.A"));
         }
 
-        [WorkItem(545965, "DevDiv")]
+        [WorkItem(545965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545965")]
         [Fact]
         public void MultiCircularImplicitEnumReportingRace()
         {
@@ -2664,7 +2778,7 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E8.A"));
         }
 
-        [Fact, WorkItem(544941, "DevDiv")]
+        [Fact, WorkItem(544941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
         public static void ConstantNullNotObject()
         {
             var source =
@@ -2690,7 +2804,7 @@ class MyClass
         // would resulted from a runtime conversion with normal CLR overflow behavior.
         // To avoid breaking programs that might accidentally rely on that unspecified behavior
         // we now match the native compiler behavior, and we are going to keep this behavior for compatibility.
-        [Fact, WorkItem(1020273, "DevDiv")]
+        [Fact, WorkItem(1020273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020273")]
         public void Bug1020273()
         {
             string source = @"
@@ -2711,7 +2825,7 @@ Inline  : -1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(1098197, "DevDiv")]
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_01()
         {
             var source =
@@ -2755,7 +2869,44 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(1098197, "DevDiv")]
+        [Fact]
+        public static void DoubleRecursiveConst()
+        {
+            var source =
+@"using System;
+class C
+{
+    public static void Main()
+    {
+        const Func<int> a = () => { const int b = a(); return 1; };
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+                //         const Func<int> a = () => { const int b = a(); return 1; };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public static void RecursiveConst()
+        {
+            var source =
+@"class C
+{
+    public static void Main()
+    {
+        const int z = 1 + z + 1;
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (5,27): error CS0110: The evaluation of the constant value for 'z' involves a circular definition
+    //         const int z = 1 + z + 1;
+    Diagnostic(ErrorCode.ERR_CircConstValue, "z").WithArguments("z").WithLocation(5, 27)
+                );
+        }
+
+        [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]
         public static void Bug1098197_02()
         {
             var source =
@@ -2772,7 +2923,7 @@ void f() { if () const int i = 0; }
                 );
         }
 
-        [Fact, WorkItem(1098605, "DevDiv")]
+        [Fact, WorkItem(1098605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098605")]
         public static void Bug1098605_01()
         {
             var source =
@@ -2833,30 +2984,35 @@ void f() { if () const int i = 0; }
     }
 
 
-    internal sealed class BoundTreeSequencer : BoundTreeWalker
+    internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard
     {
         public static IEnumerable<BoundNode> GetNodes(BoundNode root)
         {
             var s = new BoundTreeSequencer();
             s.Visit(root);
-            foreach (var node in s.list)
+            foreach (var node in s._list)
                 yield return node;
         }
 
-        private readonly List<BoundNode> list;
+        private readonly List<BoundNode> _list;
 
         private BoundTreeSequencer()
         {
-            list = new List<BoundNode>();
+            _list = new List<BoundNode>();
         }
 
         public override BoundNode Visit(BoundNode node)
         {
             if (node != null) //e.g. static method invocations have null receivers
             {
-                list.Add(node);
+                _list.Add(node);
             }
             return base.Visit(node);
+        }
+
+        protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+        {
+            return false;
         }
     }
 }

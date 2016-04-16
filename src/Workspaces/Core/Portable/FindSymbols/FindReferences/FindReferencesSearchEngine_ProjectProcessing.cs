@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // depends on will have been created already.
             foreach (var projectId in projectSet)
             {
-                this.cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
 
                 await ProcessProjectAsync(projectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
             }
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Don't visit projects more than once.  
             if (visitedProjects.Add(projectId))
             {
-                var project = solution.GetProject(projectId);
+                var project = _solution.GetProject(projectId);
 
                 // Visit dependencies first.  That way the compilation for a project that we depend
                 // on is already ready for us when we need it.
                 foreach (var dependent in project.ProjectReferences)
                 {
-                    this.cancellationToken.ThrowIfCancellationRequested();
+                    _cancellationToken.ThrowIfCancellationRequested();
 
                     await ProcessProjectAsync(dependent.ProjectId, projectMap, visitedProjects, wrapper).ConfigureAwait(false);
                 }
@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Dictionary<Document, List<ValueTuple<ISymbol, IReferenceFinder>>> map,
             ProgressWrapper wrapper)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, _cancellationToken))
             {
                 // make sure we hold onto compilation while we search documents belong to this project
-                var compilation = await project.GetCompilationAsync(this.cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
 
                 var documentTasks = new List<Task>();
                 foreach (var kvp in map)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var document = kvp.Key;
                     var documentQueue = kvp.Value;
 
-                    documentTasks.Add(Task.Run(async () => await ProcessDocumentQueueAsync(document, documentQueue, wrapper).ConfigureAwait(false), this.cancellationToken));
+                    documentTasks.Add(Task.Run(async () => await ProcessDocumentQueueAsync(document, documentQueue, wrapper).ConfigureAwait(false), _cancellationToken));
                 }
 
                 await Task.WhenAll(documentTasks).ConfigureAwait(false);

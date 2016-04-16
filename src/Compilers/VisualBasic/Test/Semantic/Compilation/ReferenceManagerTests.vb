@@ -10,21 +10,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ReferenceManagerTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly SignedDll As VisualBasicCompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                              optimizationLevel:=OptimizationLevel.Release,
-                                              cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
-                                              strongNameProvider:=New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(Of String)()))
+        Private Shared ReadOnly s_signedDll As VisualBasicCompilationOptions =
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
 
         <WorkItem(5483, "DevDiv_Projects/Roslyn")>
-        <WorkItem(527917, "DevDiv")>
+        <WorkItem(527917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527917")>
         <Fact>
         Public Sub ReferenceBinding_SymbolUsed()
             ' Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            Dim v1 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1.AsImmutableOrNull())
+            Dim v1 = MetadataReference.CreateFromImage(TestResources.General.C1.AsImmutableOrNull())
 
             ' Identity: C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            Dim v2 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2.AsImmutableOrNull())
+            Dim v2 = MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull())
 
             Dim refSource =
 <text>
@@ -48,10 +45,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, options:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({testRefSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, options:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
 
@@ -68,10 +65,10 @@ BC32207: The project currently contains references to more than one version of '
         End Sub
 
         <Fact>
-        <WorkItem(546080, "DevDiv")>
+        <WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")>
         Public Sub ReferenceBinding_SymbolNotUsed()
-            Dim v1 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1.AsImmutableOrNull())
-            Dim v2 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2.AsImmutableOrNull())
+            Dim v1 = MetadataReference.CreateFromImage(TestResources.General.C1.AsImmutableOrNull())
+            Dim v2 = MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull())
 
             Dim refSource =
 <text>
@@ -89,10 +86,10 @@ End Class
 </text>
 
             ' reference asks for a lower version than available:
-            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV1 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV1), v2}, options:=TestOptions.ReleaseDll)
 
             ' reference asks for a higher version than available:
-            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, compOptions:=TestOptions.ReleaseDll)
+            Dim testRefV2 = CreateCompilationWithMscorlib({refSource.Value}, New MetadataReference() {New VisualBasicCompilationReference(refV2), v1}, options:=TestOptions.ReleaseDll)
 
             testRefV1.VerifyDiagnostics()
             testRefV2.VerifyDiagnostics()
@@ -110,7 +107,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
 <compilation name="Lib">
@@ -122,7 +119,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV3 =
 <compilation name="Lib">
@@ -134,7 +131,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV3 = CreateCompilationWithMscorlib(sourceLibV3, options:=SignedDll)
+            Dim libV3 = CreateCompilationWithMscorlib(sourceLibV3, options:=s_signedDll)
 
             Dim sourceRefLibV2 =
 <compilation name="RefLibV2">
@@ -150,7 +147,7 @@ End Class
 
             Dim refLibV2 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefLibV2,
-                references:={New VisualBasicCompilationReference(libV2)}, options:=SignedDll)
+                references:={New VisualBasicCompilationReference(libV2)}, options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -181,7 +178,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(529808, "DevDiv"), WorkItem(546080, "DevDiv"), WorkItem(530246, "DevDiv")>
+        <WorkItem(529808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529808"), WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080"), WorkItem(530246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530246")>
         Public Sub VersionUnification_UseSiteErrors()
 
             Dim sourceLibV1 =
@@ -204,7 +201,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
     <compilation name="Lib">
@@ -222,7 +219,7 @@ End Interface
         </file>
     </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV2 =
     <compilation name="RefLibV2">
@@ -284,7 +281,7 @@ End Class
             Dim refLibV2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sourceRefLibV2,
                 {New VisualBasicCompilationReference(libV2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             refLibV2.VerifyDiagnostics()
 
@@ -309,7 +306,7 @@ End Class
             Dim x = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sourceX,
                 {New VisualBasicCompilationReference(refLibV2), New VisualBasicCompilationReference(libV2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             x.AssertNoDiagnostics()
 
@@ -402,7 +399,7 @@ BC32207: The project currently contains references to more than one version of '
         End Sub
 
         <Fact>
-        <WorkItem(546080, "DevDiv"), WorkItem(530296, "DevDiv")>
+        <WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080"), WorkItem(530296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530296")>
         Public Sub VersionUnification_UseSiteErrors_Multiple()
             Dim sourceA1 =
 <compilation name="A">
@@ -414,7 +411,7 @@ End Class
     </file>
 </compilation>
 
-            Dim a1 = CreateCompilationWithMscorlib(sourceA1, options:=SignedDll)
+            Dim a1 = CreateCompilationWithMscorlib(sourceA1, options:=s_signedDll)
 
             Dim sourceA2 =
 <compilation name="A">
@@ -426,7 +423,7 @@ End Class
     </file>
 </compilation>
 
-            Dim a2 = CreateCompilationWithMscorlib(sourceA2, options:=SignedDll)
+            Dim a2 = CreateCompilationWithMscorlib(sourceA2, options:=s_signedDll)
 
             Dim sourceB1 =
 <compilation name="B">
@@ -438,7 +435,7 @@ End Class
     </file>
 </compilation>
 
-            Dim b1 = CreateCompilationWithMscorlib(sourceB1, options:=SignedDll)
+            Dim b1 = CreateCompilationWithMscorlib(sourceB1, options:=s_signedDll)
 
             Dim sourceB2 =
 <compilation name="B">
@@ -450,7 +447,7 @@ End Class
     </file>
 </compilation>
 
-            Dim b2 = CreateCompilationWithMscorlib(sourceB2, options:=SignedDll)
+            Dim b2 = CreateCompilationWithMscorlib(sourceB2, options:=s_signedDll)
 
             Dim sourceRefA1B2 =
 <compilation name="RefA1B2">
@@ -472,7 +469,7 @@ End Class
             Dim refA1B2 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefA1B2,
                 references:={New VisualBasicCompilationReference(a1), New VisualBasicCompilationReference(b2)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -496,7 +493,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(529808, "DevDiv"), WorkItem(546080, "DevDiv")>
+        <WorkItem(529808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529808"), WorkItem(546080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546080")>
         Public Sub VersionUnification_MemberRefsNotRemapped()
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -508,7 +505,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlib(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
 <compilation name="Lib">
@@ -520,7 +517,7 @@ End Class
     </file>
 </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlib(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV1 =
 <compilation name="RefLibV1">
@@ -536,7 +533,7 @@ End Class
             Dim refLibV1 = CreateCompilationWithMscorlibAndReferences(
                 sourceRefLibV1,
                 references:={New VisualBasicCompilationReference(libV1)},
-                options:=SignedDll)
+                options:=s_signedDll)
 
             Dim sourceMain =
 <compilation name="Main">
@@ -559,8 +556,8 @@ End Class
             main.VerifyDiagnostics()
 
             ' Disable PE verification, it would need .config file with Lib v1 -> Lib v2 binding redirect.
-            CompileAndVerify(main, emitOptions:=TestEmitters.CCI, verify:=False, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(main, verify:=False, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Dim refs As List(Of String) = New List(Of String)()
 
@@ -574,7 +571,7 @@ End Class
         End Sub
 
         <Fact>
-        <WorkItem(546752, "DevDiv")>
+        <WorkItem(546752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546752")>
         Public Sub VersionUnification_NoPiaMissingCanonicalTypeSymbol()
 
             Dim sourceLibV1 =
@@ -588,7 +585,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=SignedDll)
+            Dim libV1 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV1, options:=s_signedDll)
 
             Dim sourceLibV2 =
     <compilation name="Lib">
@@ -601,7 +598,7 @@ End Class
         </file>
     </compilation>
 
-            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=SignedDll)
+            Dim libV2 = CreateCompilationWithMscorlibAndVBRuntime(sourceLibV2, options:=s_signedDll)
 
             Dim sourceRefLibV1 =
     <compilation name="RefLibV1">
@@ -656,7 +653,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
         ''' Two Framework identities with unified versions.
         ''' </summary>
         <Fact>
-        <WorkItem(546026, "DevDiv"), WorkItem(546169, "DevDiv")>
+        <WorkItem(546026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546026"), WorkItem(546169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546169")>
         Public Sub CS1703ERR_DuplicateImport()
             Dim text = "Namespace N" & vbCrLf & "End Namespace"
 
@@ -670,13 +667,13 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
                 Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(TestReferences.NetFx.v4_0_30319.System.Display, TestReferences.NetFx.v2_0_50727.System.Display))
         End Sub
 
-        <WorkItem(545062, "DevDiv")>
+        <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
         <Fact()>
         Public Sub DuplicateReferences()
             Dim c As VisualBasicCompilation
             Dim source As String
-            Dim r1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R1")
-            Dim r2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R2")
+            Dim r1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R1")
+            Dim r2 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath:="c:\temp\a.dll", display:="R2")
             Dim rEmbed = r1.WithEmbedInteropTypes(True)
 
             source =
@@ -685,7 +682,7 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
@@ -697,12 +694,12 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib({source}, {r1, r2}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
             c.AssertTheseDiagnostics()
 
-            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {r1, rEmbed}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics(<errors>
 BC31549: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
 BC31553: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing either the 'System.Runtime.InteropServices.ImportedFromTypeLibAttribute' attribute or the 'System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute' attribute.
@@ -713,13 +710,13 @@ BC31541: Reference to class 'C' is not allowed when its assembly is configured t
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(rEmbed))
 
-            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, compOptions:=TestOptions.ReleaseDll)
+            c = CreateCompilationWithMscorlib({source}, {rEmbed, r1}, options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(rEmbed))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1))
         End Sub
 
-        <WorkItem(539495, "DevDiv")>
+        <WorkItem(539495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539495")>
         <Fact>
         Public Sub BC32208ERR_DuplicateReference2()
             Dim sourceLibV1 =
@@ -748,7 +745,7 @@ End class
 
             Dim sourceRefLibV1 =
 <compilation name="RefLibV1">
-<file>
+    <file>
 Public Class P
     Dim x = new C()
 End Class
@@ -757,7 +754,7 @@ End Class
 
             Dim sourceMain =
 <compilation name="Main">
-<file>        
+    <file>        
 Class Q
     Dim x = new P()
 End Class
@@ -1160,7 +1157,7 @@ End Class
             Assert.NotSame(refA2_symbol1, refA2_symbol2)
         End Sub
 
-        <Fact(), WorkItem(530795, "DevDiv")>
+        <Fact(), WorkItem(530795, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530795")>
         Public Sub ReferenceTwoVersionsOfSystem()
             Dim compilation = CreateCompilationWithReferences(
                 <compilation>
@@ -1182,7 +1179,7 @@ End Module
 
         ' NOTE: This does not work in dev11, but the code is shared with C# so there's
         ' no reason not to implement it in roslyn.
-        <Fact, WorkItem(546828, "DevDiv")>
+        <Fact, WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")>
         Public Sub MetadataDependsOnSource()
             ' {0} is the body of the ReachFramework assembly reference.
             Dim ilTemplate = <![CDATA[
@@ -1290,7 +1287,7 @@ End Module
 
         ' NOTE: This does not work in dev11, but the code is shared with C# so there's
         ' no reason not to implement it in roslyn.
-        <Fact, WorkItem(546828, "DevDiv")>
+        <Fact, WorkItem(546828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546828")>
         Public Sub MetadataDependsOnMetadataOrSource()
             Dim il = <![CDATA[
 .assembly extern ReachFramework
@@ -1393,7 +1390,7 @@ End Namespace
             Assert.NotEqual(comp.Assembly.Identity, actualIdentity)
         End Sub
 
-        <Fact(), WorkItem(530303, "DevDiv")>
+        <Fact(), WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")>
         Public Sub TestReferenceResolution()
             Dim vb1Compilation = CreateVisualBasicCompilation("VB1",
             <![CDATA[Public Class VB1
@@ -1429,7 +1426,7 @@ End Module]]>,
             vb4Compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(531537, "DevDiv")>
+        <Fact(), WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")>
         Public Sub ModuleSymbolReuse()
             Dim assemblySource =
 <compilation name="lib1">
@@ -1493,7 +1490,7 @@ End Class
             AssertEx.Equal(moduleReferences1, moduleReferences2)
         End Sub
 
-        <Fact(), WorkItem(531537, "DevDiv")>
+        <Fact(), WorkItem(531537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531537")>
         Public Sub ModuleSymbolReuse_ImplicitType()
             Dim moduleSource =
     <compilation name="lib">
@@ -1617,25 +1614,46 @@ End Class
             Assert.NotEqual(mca1, Copymca1)
             Assert.Equal(mca1.ToString, Copymca1.ToString)
             Assert.Equal(mca1.Kind, Copymca1.Kind)
-
-            'With no alias this will result in hashcode of 0
-            Dim mrp1 As MetadataReferenceProperties = refa.Properties
-            Assert.Equal(0, mrp1.GetHashCode)
-
-            'With the use of the alias this will generate a hashcode
-            Dim refb = AssemblyMetadata.CreateFromImage(a.EmitToArray()).GetReference(display:="A", aliases:=ImmutableArray.Create("Alias1"))
-            Dim mrp2 As MetadataReferenceProperties = refb.Properties
-            Assert.NotEqual(0, mrp2.GetHashCode)
         End Sub
 
-        <Fact, WorkItem(905495, "DevDiv")>
+        <Fact, WorkItem(905495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/905495")>
         Public Sub ReferenceWithNoMetadataSection()
-            Dim c = CreateCompilationWithMscorlib({}, {New TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe")}, TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib(New String() {}, {New TestImageReference(TestResources.Basic.NativeApp, "NativeApp.exe")}, TestOptions.ReleaseDll)
             c.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata))
         End Sub
 
-        <Fact, WorkItem(43)>
+        <Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")>
+        Public Sub EmptyReference()
+            Dim source =
+<compilation>
+    <file>        
+Public Class C 
+    Shared Sub Main() 
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithMscorlibAndReferences(source, {AssemblyMetadata.CreateFromImage({}).GetReference(display:="Empty.dll")}, TestOptions.ReleaseDll)
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("Empty.dll", CodeAnalysisResources.PEImageDoesntContainManagedMetadata))
+        End Sub
+
+        <Fact, WorkItem(2992, "https://github.com/dotnet/roslyn/issues/2992")>
+        Public Sub MetadataDisposed()
+            Dim md = AssemblyMetadata.CreateFromImage(TestResources.NetFX.Minimal.mincorlib)
+            Dim c = VisualBasicCompilation.Create("test", references:={md.GetReference()})
+
+            ' Use the Compilation once to force lazy initialization of the underlying MetadataReader
+            c.GetTypeByMetadataName("System.Int32").GetMembers()
+
+            md.Dispose()
+
+            Assert.Throws(Of ObjectDisposedException)(Function() c.GetTypeByMetadataName("System.Int64").GetMembers())
+        End Sub
+
+        <Fact, WorkItem(43, "https://roslyn.codeplex.com/workitem/43")>
         Public Sub ReusingCorLibManager()
             Dim corlib1 = VisualBasicCompilation.Create("Comp")
             Dim assembly1 = corlib1.Assembly
@@ -1646,6 +1664,395 @@ End Class
             Assert.Same(assembly1.CorLibrary, assembly1)
             Assert.Same(assembly2.CorLibrary, assembly2)
             Assert.True(corlib1.ReferenceManagerEquals(corlib2))
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution1()
+            ' c - a -> b
+            Dim bRef = CreateCompilationWithMscorlib({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Class A : Inherits B : End Class"}, {bRef}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B", bRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Inherits A : End Class"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
+
+            Resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_WeakIdentities1()
+            ' c - a -> "b,v1,PKT=null" 
+            '   - d -> "b,v2,PKT=null"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b1Ref},
+                {"B, 2.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_WeakIdentities2()
+            ' c - a -> "b,v1,PKT=null"
+            '   - d -> "b,v2,PKT=null"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b3Ref},
+                {"B, 2.0.0.0", b4Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=null"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_None()
+            ' c - a -> d
+            '   - d
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference)())
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics()
+            resolver.VerifyResolutionAttempts()
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_ActualMissing()
+            ' c - a -> d
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference)())
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
+
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        ''' <summary>
+        ''' Ignore assemblies returned by the resolver that don't match the reference identity.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_MissingDueToResolutionMismatch()
+            ' c - a -> b
+            Dim bRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {bRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim eRef = CreateCompilationWithMscorlib({"Public Interface E : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="E").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+                {
+                    {"B, 1.0.0.0", eRef}
+                })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
+
+            resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_Modules()
+            ' c - a - d
+            '   - module(m) - b
+            '   - module(n) - d 
+            Dim bRef = CreateCompilationWithMscorlib({"Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim mRef = CreateCompilationWithMscorlib({"Public Interface M : Inherits B : End Interface"}, {bRef}, TestOptions.ReleaseModule.WithModuleName("M.netmodule")).EmitToImageReference()
+            Dim nRef = CreateCompilationWithMscorlib({"Public Interface N : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseModule.WithModuleName("N.netmodule")).EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B", bRef},
+                {"D", dRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef, mRef, nRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+            Assert.Equal("B", (DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol)).Name)
+            Assert.Equal("D", (DirectCast(c.GetAssemblyOrModuleSymbol(dRef), AssemblySymbol)).Name)
+
+            ' We don't resolve one assembly reference identity twice, even if the requesting definition is different.
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "M.netmodule -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToForExplicitReference1()
+            ' c - a -> "b,v1"
+            '   - "b,v3"
+            '      
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Class A : Inherits B : End Class"}, {b1Ref}, options:=s_signedDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Inherits A : End Class"}, {aRef, b3Ref}, s_signedDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b3Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            Assert.Null(DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol))
+
+            resolver.VerifyResolutionAttempts()
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '   - "b,v1"  
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim resolverA = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 2.0.0.0", b2Ref},
+                {"B, 1.0.0.0", b1Ref}
+            })
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef},
+                                                     s_signedDll.WithMetadataReferenceResolver(resolverA), assemblyName:="A").EmitToImageReference()
+
+            Assert.Equal(2, resolverA.ResolutionAttempts.Count)
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef, b1Ref}, s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "A").WithArguments("B", "2.0.0.0", "1.0.0.0"))
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '   - "b,v2"  
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim resolverA = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 2.0.0.0", b2Ref},
+                {"B, 1.0.0.0", b1Ref}
+            })
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef},
+                                                     s_signedDll.WithMetadataReferenceResolver(resolverA),
+                                                     assemblyName:="A").EmitToImageReference()
+
+            Assert.Equal(2, resolverA.ResolutionAttempts.Count)
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef, b2Ref},
+                s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToImplicitReference1()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '          "b,v1"
+            '          "b,v2"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef, b1Ref, b2Ref},
+                                                     s_signedDll,
+                                                     assemblyName:="A").EmitToImageReference()
+
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef},
+                {"B, 1.0.0.0", b1Ref},
+                {"B, 2.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef},
+                s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(
+                "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b1Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            Assert.Equal(
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToImplicitReference2()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '          "b,v1"
+            '          "b,v2"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"}, {dRef, eRef, b1Ref, b2Ref}, s_signedDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef},
+                {"B, 1.0.0.0", b3Ref},
+                {"B, 2.0.0.0", b4Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef}, s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(4, resolverC.ResolutionAttempts.Count)
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
     End Class
 End Namespace

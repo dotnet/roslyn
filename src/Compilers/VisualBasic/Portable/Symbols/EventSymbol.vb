@@ -89,11 +89,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Property OverriddenEvent As EventSymbol
             Get
                 If Me.IsOverrides Then
-                    For Each OverriddenEvent In OverriddenOrHiddenMembers.OverriddenMembers
-                        If OverriddenEvent.IsMustOverride OrElse OverriddenEvent.IsOverridable OrElse OverriddenEvent.IsOverrides Then
-                            Return DirectCast(OverriddenEvent, EventSymbol)
-                        End If
-                    Next
+                    If IsDefinition Then
+                        Return OverriddenOrHiddenMembers.OverriddenMember
+                    End If
+
+                    Return OverriddenMembersResult(Of EventSymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenEvent)
                 End If
 
                 Return Nothing

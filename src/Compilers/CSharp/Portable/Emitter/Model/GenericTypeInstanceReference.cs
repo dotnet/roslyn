@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public GenericTypeInstanceReference(NamedTypeSymbol underlyingNamedType)
             : base(underlyingNamedType)
         {
+            Debug.Assert(underlyingNamedType.IsDefinition);
+            // Definition doesn't have custom modifiers on type arguments
+            Debug.Assert(!underlyingNamedType.HasTypeArgumentsCustomModifiers);
         }
 
         public sealed override void Dispatch(Cci.MetadataVisitor visitor)

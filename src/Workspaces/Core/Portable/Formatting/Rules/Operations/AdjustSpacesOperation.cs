@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.Option = option;
         }
 
-        public int Space { get; private set; }
-        public AdjustSpacesOption Option { get; private set; }
+        public int Space { get; }
+        public AdjustSpacesOption Option { get; }
     }
 }

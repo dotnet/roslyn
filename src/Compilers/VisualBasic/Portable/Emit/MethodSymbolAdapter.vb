@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Partial Class MethodSymbol
+    Friend Partial Class MethodSymbol
         Implements Cci.ITypeMemberReference
         Implements Cci.IMethodReference
         Implements Cci.IGenericMethodInstanceReference
@@ -500,6 +500,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim securityAttributes As IEnumerable(Of Cci.SecurityAttribute) = Me.GetSecurityInformation()
                 Debug.Assert(securityAttributes IsNot Nothing)
                 Return securityAttributes
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodDefinition_ContainingNamespace As Cci.INamespace Implements Cci.IMethodDefinition.ContainingNamespace
+            Get
+                Return ContainingNamespace
             End Get
         End Property
     End Class

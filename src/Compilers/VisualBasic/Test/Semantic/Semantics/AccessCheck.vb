@@ -505,7 +505,7 @@ BC30389: 'D' is not accessible in this context because it is 'Friend'.
 </expected>)
         End Sub
 
-        <WorkItem(540036, "DevDiv")>
+        <WorkItem(540036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540036")>
         <Fact>
         Public Sub AccessCheckCrossAssemblyParameterProtectedMethodP2P()
             Dim other As VisualBasicCompilation = CreateCompilationWithMscorlibAndReferences(
@@ -599,7 +599,7 @@ End Class
             CompilationUtils.AssertNoErrors(c)
         End Sub
 
-        <WorkItem(542206, "DevDiv")>
+        <WorkItem(542206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542206")>
         <Fact>
         Public Sub AccessCheckInternalVisibleToAttributeVBModule()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1075,8 +1075,8 @@ Namespace Project1
         End Class
     End Class
 
-    'My own pathalogical case for determining access inside inheritance relationships
-     Public Class PathalogicalC2
+    'My own pathological case for determining access inside inheritance relationships
+     Public Class PathologicalC2
 	    Friend Class c3
 	        Public Enum bob
 	            asdf
@@ -1084,8 +1084,8 @@ Namespace Project1
 	    End Class
      End Class
 
-     Public Class PathalogicalC4
-	    Inherits PathalogicalC2
+     Public Class PathologicalC4
+	    Inherits PathologicalC2
 	    Public Function y() As c3.bob
             Return Nothing
 	    End Function
@@ -1607,7 +1607,7 @@ BC30910: 'C1' cannot inherit from class 'FriendModule1.Cls2' because it expands 
 BC30509: 'c1' cannot inherit from class 'PublicClass1.c2' because it expands the access of the base class to namespace 'Project1'.
             Inherits c2 'Need a compile error
                      ~~
-BC30909: 'y' cannot expose type 'PathalogicalC2.c3.bob' outside the project through class 'PathalogicalC4'.
+BC30909: 'y' cannot expose type 'PathologicalC2.c3.bob' outside the project through class 'PathologicalC4'.
 	    Public Function y() As c3.bob
                             ~~~~~~
 BC30508: 'x' cannot expose type 'foo.foo2.foo3.foo4' in class 'foo' through class 'foo2'.
@@ -1837,7 +1837,7 @@ BC30909: 'C' cannot expose type 'A.B' outside the project through class 'A'.
 
         End Sub
 
-        <WorkItem(543576, "DevDiv")>
+        <WorkItem(543576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543576")>
         <Fact()>
         Public Sub InconsistentAccessibilityOfGenericConstraint()
 
@@ -1873,7 +1873,7 @@ BC30508: 'D' cannot expose type 'A.B(Of T).C' in class 'A' through class 'B'.
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545722, "DevDiv")>
+        <Fact(), WorkItem(545722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545722")>
         Public Sub AccessCheckInaccessibleReturnType()
             Dim assem1 As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="Assem1">
@@ -1979,7 +1979,7 @@ BC36666: 'Friend Function Class2.GetClass1() As Class1' is not accessible in thi
 </expected>)
         End Sub
 
-        <WorkItem(546209, "DevDiv")>
+        <WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")>
         <Fact()>
         Public Sub OverriddenMemberFromInternalType()
             Dim vbSource1 =
@@ -1996,7 +1996,7 @@ End Class
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
-            Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=TestEmitters.CCI)
+            Dim compilationVerifier = CompileAndVerify(compilation1)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
@@ -2013,7 +2013,7 @@ End Class
                 </compilation>
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions:=TestEmitters.CCI)
+            compilationVerifier = CompileAndVerify(compilation2)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">
@@ -2031,7 +2031,7 @@ End Module
             compilation3.AssertNoErrors()
         End Sub
 
-        <WorkItem(546209, "DevDiv")>
+        <WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")>
         <Fact()>
         Public Sub InternalOverriddenMember()
             Dim vbSource1 =
@@ -2048,7 +2048,7 @@ End Class
                 </compilation>
             Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
             compilation1.AssertNoErrors()
-            Dim compilationVerifier = CompileAndVerify(compilation1, emitOptions:=TestEmitters.CCI)
+            Dim compilationVerifier = CompileAndVerify(compilation1)
             Dim reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource2 =
                 <compilation name="B">
@@ -2065,7 +2065,7 @@ End Class
                 </compilation>
             Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {reference1})
             compilation2.AssertNoErrors()
-            compilationVerifier = CompileAndVerify(compilation2, emitOptions:=TestEmitters.CCI)
+            compilationVerifier = CompileAndVerify(compilation2)
             Dim reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData)
             Dim vbSource3 =
                 <compilation name="C">
@@ -2083,7 +2083,7 @@ End Module
             compilation3.AssertNoErrors()
         End Sub
 
-        <Fact, WorkItem(531415, "DevDiv")>
+        <Fact, WorkItem(531415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531415")>
         Public Sub Bug18091()
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>

@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class BinderWithContainingMemberOrLambda : Binder
         {
-            private readonly Symbol containingMemberOrLambda;
+            private readonly Symbol _containingMemberOrLambda;
 
             internal BinderWithContainingMemberOrLambda(Binder next, Symbol containingMemberOrLambda)
                 : base(next)
             {
                 Debug.Assert(containingMemberOrLambda != null);
 
-                this.containingMemberOrLambda = containingMemberOrLambda;
+                _containingMemberOrLambda = containingMemberOrLambda;
             }
 
             internal BinderWithContainingMemberOrLambda(Binder next, BinderFlags flags, Symbol containingMemberOrLambda)
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(containingMemberOrLambda != null);
 
-                this.containingMemberOrLambda = containingMemberOrLambda;
+                _containingMemberOrLambda = containingMemberOrLambda;
             }
 
             internal override Symbol ContainingMemberOrLambda
             {
-                get { return this.containingMemberOrLambda; }
+                get { return _containingMemberOrLambda; }
             }
         }
 
@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class BinderWithConditionalReceiver : Binder
         {
-            private readonly BoundExpression receiverExpression;
+            private readonly BoundExpression _receiverExpression;
 
             internal BinderWithConditionalReceiver(Binder next, BoundExpression receiverExpression)
                 : base(next)
             {
                 Debug.Assert(receiverExpression != null);
 
-                this.receiverExpression = receiverExpression;
+                _receiverExpression = receiverExpression;
             }
 
             internal override BoundExpression ConditionalReceiverExpression
             {
-                get { return this.receiverExpression; }
+                get { return _receiverExpression; }
             }
         }
 

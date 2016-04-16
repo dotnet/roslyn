@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal struct LexicalSortKey
     {
-        private int treeOrdinal;
-        private int position;
+        private int _treeOrdinal;
+        private int _position;
 
         // If -1, symbols is in metadata or otherwise not in source
         public int TreeOrdinal
         {
-            get { return this.treeOrdinal; }
+            get { return _treeOrdinal; }
         }
 
         // Offset of location within the tree. Doesn't need to exactly that span returns by Locations, just
@@ -34,27 +34,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // initializations only along with LexicalSortKey.NotInitialized
         public int Position
         {
-            get { return this.position; }
+            get { return _position; }
         }
 
-        public static readonly LexicalSortKey NotInSource = new LexicalSortKey() { treeOrdinal = -1, position = 0 };
+        public static readonly LexicalSortKey NotInSource = new LexicalSortKey() { _treeOrdinal = -1, _position = 0 };
 
-        public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { treeOrdinal = -1, position = -1 };
+        public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { _treeOrdinal = -1, _position = -1 };
 
         // Dev12 compiler adds synthetic constructors to the child list after adding all other members.
         // Methods are emitted in the children order, but synthetic cctors would be deferred 
         // until later when it is known if they can be optimized or not.
         // As a result the last emitted method tokens are synthetic ctor and then synthetic cctor (if not optimized)
         // Since it is not too hard, we will try keeping the same order just to be easy on metadata diffing tools and such.
-        public static readonly LexicalSortKey SynthesisedCtor = new LexicalSortKey() { treeOrdinal = int.MaxValue, position = int.MaxValue - 1 };
-        public static readonly LexicalSortKey SynthesisedCCtor = new LexicalSortKey() { treeOrdinal = int.MaxValue, position = int.MaxValue };
+        public static readonly LexicalSortKey SynthesizedCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 1 };
+        public static readonly LexicalSortKey SynthesizedCCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue };
 
         private LexicalSortKey(int treeOrdinal, int position)
         {
             Debug.Assert(position >= 0);
             Debug.Assert(treeOrdinal >= 0);
-            this.treeOrdinal = treeOrdinal;
-            this.position = position;
+            _treeOrdinal = treeOrdinal;
+            _position = position;
         }
 
         private LexicalSortKey(SyntaxTree tree, int position, CSharpCompilation compilation)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // WARNING: Only use this if the node is obtainable without allocating it (even if cached later). E.g., only
         // if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
-        // call on a SyntacReference.
+        // call on a SyntaxReference.
         public LexicalSortKey(CSharpSyntaxNode node, CSharpCompilation compilation)
             : this(node.SyntaxTree, node.SpanStart, compilation)
         {
@@ -126,15 +126,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return Volatile.Read(ref this.position) >= 0;
+                return Volatile.Read(ref _position) >= 0;
             }
         }
 
         public void SetFrom(LexicalSortKey other)
         {
             Debug.Assert(other.IsInitialized);
-            this.treeOrdinal = other.treeOrdinal;
-            Volatile.Write(ref this.position, other.position);
+            _treeOrdinal = other._treeOrdinal;
+            Volatile.Write(ref _position, other._position);
         }
     }
 }

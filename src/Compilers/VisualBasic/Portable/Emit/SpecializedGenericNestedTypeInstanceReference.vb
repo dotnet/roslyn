@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Sub New(underlyingNamedType As NamedTypeSymbol)
             MyBase.New(underlyingNamedType)
+
+            Debug.Assert(underlyingNamedType.IsDefinition)
+            ' Definition doesn't have custom modifiers on type arguments
+            Debug.Assert(Not underlyingNamedType.HasTypeArgumentsCustomModifiers)
         End Sub
 
         Public Overrides Sub Dispatch(visitor As Cci.MetadataVisitor)

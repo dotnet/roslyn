@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct FileLinePositionSpan : IEquatable<FileLinePositionSpan>
     {
-        private readonly string path;
-        private readonly LinePositionSpan span;
-        private readonly bool hasMappedPath;
+        private readonly string _path;
+        private readonly LinePositionSpan _span;
+        private readonly bool _hasMappedPath;
 
         /// <summary>
         /// Path, or null if the span represents an invalid value.
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Path may be <see cref="string.Empty"/> if not available.
         /// </remarks>
-        public string Path { get { return path; } }
+        public string Path { get { return _path; } }
 
         /// <summary>
         /// True if the <see cref="Path"/> is a mapped path.
@@ -30,19 +30,19 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// A mapped path is a path specified in source via <code>#line</code> (C#) or <code>#ExternalSource</code> (VB) directives.
         /// </remarks>
-        public bool HasMappedPath { get { return hasMappedPath; } }
+        public bool HasMappedPath { get { return _hasMappedPath; } }
 
         /// <summary>
         /// Gets the <see cref="LinePosition"/> of the start of the span.
         /// </summary>
         /// <returns></returns>
-        public LinePosition StartLinePosition { get { return span.Start; } }
+        public LinePosition StartLinePosition { get { return _span.Start; } }
 
         /// <summary>
         /// Gets the <see cref="LinePosition"/> of the end of the span.
         /// </summary>
         /// <returns></returns>
-        public LinePosition EndLinePosition { get { return span.End; } }
+        public LinePosition EndLinePosition { get { return _span.End; } }
 
         /// <summary>
         /// Gets the span.
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return span;
+                return _span;
             }
         }
 
@@ -77,19 +77,19 @@ namespace Microsoft.CodeAnalysis
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
-            this.path = path;
-            this.span = span;
-            this.hasMappedPath = false;
+            _path = path;
+            _span = span;
+            _hasMappedPath = false;
         }
 
         internal FileLinePositionSpan(string path, LinePositionSpan span, bool hasMappedPath)
         {
-            this.path = path;
-            this.span = span;
-            this.hasMappedPath = hasMappedPath;
+            _path = path;
+            _span = span;
+            _hasMappedPath = hasMappedPath;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 // invalid span can be constructed by new FileLinePositionSpan()
-                return path != null;
+                return _path != null;
             }
         }
 
@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public bool Equals(FileLinePositionSpan other)
         {
-            return span.Equals(other.span)
-                && hasMappedPath == other.hasMappedPath
-                && string.Equals(path, other.path, StringComparison.Ordinal);
+            return _span.Equals(other._span)
+                && _hasMappedPath == other._hasMappedPath
+                && string.Equals(_path, other._path, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public override int GetHashCode()
         {
-            return Hash.Combine(path, Hash.Combine(hasMappedPath, span.GetHashCode()));
+            return Hash.Combine(_path, Hash.Combine(_hasMappedPath, _span.GetHashCode()));
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
         /// <example>Path: (0,0)-(5,6)</example>
         public override string ToString()
         {
-            return path + ": " + span;
+            return _path + ": " + _span;
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return token.TrailingTrivia;
         }
-        
+
         internal static ImmutableArray<DiagnosticInfo> Errors(this SyntaxToken token)
         {
             return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node).ErrorsOrWarnings(errorsOnly: true);

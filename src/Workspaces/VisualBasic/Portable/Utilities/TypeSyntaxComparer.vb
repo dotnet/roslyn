@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Class TypeSyntaxComparer
+    Friend Class TypeSyntaxComparer
         Implements IComparer(Of TypeSyntax)
         Private ReadOnly _tokenComparer As IComparer(Of SyntaxToken)
         Friend nameComparer As IComparer(Of NameSyntax)
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return nameComparer.Compare(DirectCast(x, NameSyntax), DirectCast(y, NameSyntax))
             End If
 
-            ' we have two predefined types, or a predefind type and a normal VB name.  We only need
+            ' we have two predefined types, or a predefined type and a normal VB name.  We only need
             ' to compare the first tokens here.
             Return _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
         End Function

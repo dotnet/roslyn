@@ -6,19 +6,18 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Public Class MetadataFileReferenceCompilationTests
     Inherits BasicTestBase
 
-    <WorkItem(539480, "DevDiv")>
-    <WorkItem(1037628, "DevDiv")>
-    <Fact(Skip:="1037628")>
+    <WorkItem(539480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539480")>
+    <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
+    <Fact>
     Public Sub BC31011ERR_BadRefLib1()
         Dim ref = MetadataReference.CreateFromImage({}, filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-<file name="a.vb">
+    <file name="a.vb">
 Class C1
 End Class
     </file>
@@ -30,29 +29,29 @@ BC31519: 'Foo.dll' cannot be referenced because it is not a valid assembly.
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 
-    <WorkItem(1037628, "DevDiv")>
-    <Fact(Skip:="1037628")>
+    <WorkItem(1037628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=1037628")>
+    <Fact>
     Public Sub BC31007ERR_BadModuleFile1()
         Dim ref = ModuleMetadata.CreateFromImage({}).GetReference(filePath:="Foo.dll")
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="BadRefLib1">
-<file name="a.vb">
+    <file name="a.vb">
 Class C1
 End Class
     </file>
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Foo.dll': Image is too small.
+BC31007: Unable to load module file 'Foo.dll': PE image doesn't contain managed metadata.
                  </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 
-    <WorkItem(538349, "DevDiv")>
-    <WorkItem(545062, "DevDiv")>
+    <WorkItem(538349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538349")>
+    <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>
     <Fact>
     Public Sub DuplicateReferences()
-        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib)
+        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib)
 
         Dim mscorlib1 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlib2 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
@@ -78,12 +77,12 @@ BC31007: Unable to load module file 'Foo.dll': Image is too small.
 
     <Fact>
     Public Sub ReferencesVersioning()
-        Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1)
-        Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2)
+        Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1)
+        Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2)
 
         Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="b">
-<file name="b.vb">
+    <file name="b.vb">
 Public Class B
     Public Shared Function Main() As Integer
         Return C.Main()
@@ -91,14 +90,14 @@ Public Class B
 End Class
     </file>
 </compilation>,
-        references:={MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2)},
+        references:={MetadataReference.CreateFromImage(TestResources.General.C2)},
         options:=TestOptions.ReleaseDll)
 
         Dim metadata3 = AssemblyMetadata.CreateFromImage(b.EmitToArray())
 
         Dim a = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="a">
-<file name="a.vb">
+    <file name="a.vb">
 Class A
         Public Shared Sub Main()
             B.Main()

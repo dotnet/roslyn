@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -25,27 +24,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly MethodSymbol Method;
             public readonly BoundStatement Body;
-            public readonly ConsList<Imports> DebugImports;
+            public readonly ImportChain ImportChainOpt;
 
-            internal MethodWithBody(MethodSymbol method, BoundStatement body, ConsList<Imports> debugImports)
+            internal MethodWithBody(MethodSymbol method, BoundStatement body, ImportChain importChainOpt)
             {
+                Debug.Assert(method != null);
+                Debug.Assert(body != null);
+
                 this.Method = method;
                 this.Body = body;
-                this.DebugImports = debugImports;
+                this.ImportChainOpt = importChainOpt;
             }
         }
 
         /// <summary> Flat array of created methods, non-empty if not-null </summary>
-        private ArrayBuilder<MethodWithBody> synthesizedMethods;
+        private ArrayBuilder<MethodWithBody> _synthesizedMethods;
 
         /// <summary> 
         /// Map of wrapper methods created for base access of base type virtual methods from 
         /// other classes (like those created for lambdas...); actually each method symbol will 
         /// only need one wrapper to call it non-virtually.
         /// </summary>
-        private Dictionary<MethodSymbol, MethodSymbol> wrappers;
-        
-        private readonly NamedTypeSymbol type;
+        private Dictionary<MethodSymbol, MethodSymbol> _wrappers;
+
+        /// <summary>
+        /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
+        /// </summary>
+        private readonly NamedTypeSymbol _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
@@ -56,16 +61,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Any generated methods that don't suppress debug info will use this
         /// list of debug imports.
         /// </summary>
-        public ConsList<Imports> CurrentDebugImports { get; set; }
+        public ImportChain CurrentImportChain;
 
         public readonly CSharpCompilation Compilation;
 
-        public LambdaFrame staticLambdaFrame;
+        public LambdaFrame StaticLambdaFrame;
 
-        public TypeCompilationState(NamedTypeSymbol type, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
+        /// <summary>
+        /// A graph of method->method references for this(...) constructor initializers.
+        /// Used to detect and report initializer cycles.
+        /// </summary>
+        private SmallDictionary<MethodSymbol, MethodSymbol> _constructorInitializers;
+
+        public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
         {
             this.Compilation = compilation;
-            this.type = type;
+            _typeOpt = typeOpt;
             this.ModuleBuilderOpt = moduleBuilderOpt;
         }
 
@@ -77,9 +88,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // NOTE: currently it can be null if only private implementation type methods are compiled
-                // TODO: is it used? if yes, make sure it is not accessed when type is not available; 
-                Debug.Assert((object)this.type != null);
-                return type;
+                Debug.Assert((object)_typeOpt != null);
+                return _typeOpt;
+            }
+        }
+
+        /// <summary>
+        /// The type passed to the runtime binder as context.
+        /// </summary>
+        public NamedTypeSymbol DynamicOperationContextType
+        {
+            get
+            {
+                var moduleBuilder = this.ModuleBuilderOpt;
+                if (moduleBuilder == null)
+                {
+                    return null;
+                }
+
+                return moduleBuilder.DynamicOperationContextType ?? this.Type;
             }
         }
 
@@ -88,27 +115,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return ModuleBuilderOpt != null; }
         }
 
+        public ArrayBuilder<MethodWithBody> SynthesizedMethods
+        {
+            get { return _synthesizedMethods; }
+        }
+
         /// <summary> 
         /// Add a 'regular' synthesized method.
         /// </summary>
-        public bool HasSynthesizedMethods
-        {
-            get { return this.synthesizedMethods != null; }
-        }
-
-        public ArrayBuilder<MethodWithBody> SynthesizedMethods
-        {
-            get { return this.synthesizedMethods; }
-        }
-
         public void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
-            if (this.synthesizedMethods == null)
+            if (_synthesizedMethods == null)
             {
-                this.synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
+                _synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
             }
 
-            synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentDebugImports : null));
+            _synthesizedMethods.Add(new MethodWithBody(method, body, CurrentImportChain));
         }
 
         /// <summary> 
@@ -122,18 +144,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.AddSynthesizedMethod(wrapper, body);
 
-            if (this.wrappers == null)
+            if (_wrappers == null)
             {
-                this.wrappers = new Dictionary<MethodSymbol, MethodSymbol>();
+                _wrappers = new Dictionary<MethodSymbol, MethodSymbol>();
             }
 
-            this.wrappers.Add(method, wrapper);
+            _wrappers.Add(method, wrapper);
         }
 
         /// <summary> The index of the next wrapped method to be used </summary>
         public int NextWrapperMethodIndex
         {
-            get { return this.wrappers == null ? 0 : this.wrappers.Count; }
+            get { return _wrappers == null ? 0 : _wrappers.Count; }
         }
 
         /// <summary> 
@@ -146,19 +168,71 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MethodSymbol GetMethodWrapper(MethodSymbol method)
         {
             MethodSymbol wrapper = null;
-            return this.wrappers != null && this.wrappers.TryGetValue(method, out wrapper) ? wrapper : null;
+            return _wrappers != null && _wrappers.TryGetValue(method, out wrapper) ? wrapper : null;
         }
 
         /// <summary> Free resources allocated for this method collection </summary>
         public void Free()
         {
-            if (this.synthesizedMethods != null)
+            if (_synthesizedMethods != null)
             {
-                this.synthesizedMethods.Free();
-                this.synthesizedMethods = null;
+                _synthesizedMethods.Free();
+                _synthesizedMethods = null;
             }
 
-            this.wrappers = null;
+            _wrappers = null;
+            _constructorInitializers = null;
+        }
+
+        /// <summary>
+        /// Report an error if adding the edge (method1, method2) to the ctor-initializer
+        /// graph would add a new cycle to that graph.
+        /// </summary>
+        /// <param name="method1">a calling ctor</param>
+        /// <param name="method2">the chained-to ctor</param>
+        /// <param name="syntax">where to report a cyclic error if needed</param>
+        /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            // precondition and postcondition: the graph _constructorInitializers is acyclic.
+            // If adding the edge (method1, method2) would induce a cycle, we report an error
+            // and do not add it to the set of edges. If it would not induce a cycle we add
+            // it to the set of edges and return.
+
+            if (method1 == method2)
+            {
+                // direct recursion is diagnosed elsewhere
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            if (_constructorInitializers == null)
+            {
+                _constructorInitializers = new SmallDictionary<MethodSymbol, MethodSymbol>();
+                _constructorInitializers.Add(method1, method2);
+                return;
+            }
+
+            MethodSymbol next = method2;
+            while (true)
+            {
+                if (_constructorInitializers.TryGetValue(next, out next))
+                {
+                    Debug.Assert((object)next != null);
+                    if (method1 == next)
+                    {
+                        // We found a (new) cycle containing the edge (method1, method2). Report an
+                        // error and do not add the edge.
+                        diagnostics.Add(ErrorCode.ERR_IndirectRecursiveConstructorCall, syntax.Location, method1);
+                        return;
+                    }
+                }
+                else
+                {
+                    // we've reached the end of the path without finding a cycle. Add the new edge.
+                    _constructorInitializers.Add(method1, method2);
+                    return;
+                }
+            }
         }
     }
 }

@@ -8,32 +8,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
 {
     internal sealed class MetadataConstant : Cci.IMetadataConstant
     {
-        private readonly Cci.ITypeReference type;
-        private readonly object value;
+        private readonly Cci.ITypeReference _type;
+        private readonly object _value;
 
         public MetadataConstant(Cci.ITypeReference type, object value)
         {
             Debug.Assert(type != null);
             AssertValidConstant(value);
 
-            this.type = type;
-            this.value = value;
+            _type = type;
+            _value = value;
         }
 
-        object Cci.IMetadataConstant.Value
-        {
-            get { return this.value; }
-        }
+        object Cci.IMetadataConstant.Value => _value;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return this.type; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _type;
 
         [Conditional("DEBUG")]
         internal static void AssertValidConstant(object value)

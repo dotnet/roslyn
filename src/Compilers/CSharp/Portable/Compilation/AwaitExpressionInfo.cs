@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
-        public readonly IMethodSymbol GetAwaiterMethod;
+        public IMethodSymbol GetAwaiterMethod { get; }
 
-        public readonly IPropertySymbol IsCompletedProperty;
+        public IPropertySymbol IsCompletedProperty { get; }
 
-        public readonly IMethodSymbol GetResultMethod;
+        public IMethodSymbol GetResultMethod { get; }
 
-        public readonly bool IsDynamic;
+        public bool IsDynamic { get; }
 
         internal AwaitExpressionInfo(IMethodSymbol getAwaiterMethod,
                                      IPropertySymbol isCompletedProperty,

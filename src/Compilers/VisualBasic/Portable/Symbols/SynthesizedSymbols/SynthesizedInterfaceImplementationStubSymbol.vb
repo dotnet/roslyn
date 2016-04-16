@@ -12,61 +12,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class SynthesizedInterfaceImplementationStubSymbol
         Inherits SynthesizedMethodBase
 
-        Private ReadOnly m_Name As String
-        Private ReadOnly m_TypeParameters As ImmutableArray(Of TypeParameterSymbol)
-        Private ReadOnly m_TypeParametersSubstitution As TypeSubstitution
-        Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
-        Private ReadOnly m_ReturnType As TypeSymbol
-        Private ReadOnly m_CustomModifiers As ImmutableArray(Of CustomModifier)
+        Private ReadOnly _name As String
+        Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
+        Private ReadOnly _typeParametersSubstitution As TypeSubstitution
+        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _returnType As TypeSymbol
+        Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
 
-        Private m_ExplicitInterfaceImplementationsBuilder As ArrayBuilder(Of MethodSymbol) = ArrayBuilder(Of MethodSymbol).GetInstance()
-        Private m_ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
+        Private _explicitInterfaceImplementationsBuilder As ArrayBuilder(Of MethodSymbol) = ArrayBuilder(Of MethodSymbol).GetInstance()
+        Private _explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
 
-        Private Shared ReadOnly TypeParametersSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
-                Function(container) DirectCast(container, SynthesizedInterfaceImplementationStubSymbol).m_TypeParametersSubstitution
+        Private Shared ReadOnly s_typeParametersSubstitutionFactory As Func(Of Symbol, TypeSubstitution) =
+                Function(container) DirectCast(container, SynthesizedInterfaceImplementationStubSymbol)._typeParametersSubstitution
 
-        Private Shared ReadOnly CreateTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
-                Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(typeParameter, container, typeParameter.Name, TypeParametersSubstitutionFactory)
+        Private Shared ReadOnly s_createTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
+                Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(typeParameter, container, typeParameter.Name, s_typeParametersSubstitutionFactory)
 
         Friend Sub New(implementingMethod As MethodSymbol, implementedMethod As MethodSymbol)
             MyBase.New(implementingMethod.ContainingType)
 
-            m_Name = "$VB$Stub_" & implementingMethod.MetadataName
+            _name = "$VB$Stub_" & implementingMethod.MetadataName
 
-            m_TypeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(implementingMethod.TypeParameters, Me, CreateTypeParameter)
-            m_TypeParametersSubstitution = TypeSubstitution.Create(implementingMethod, implementingMethod.TypeParameters, StaticCast(Of TypeSymbol).From(m_TypeParameters))
+            _typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(implementingMethod.TypeParameters, Me, s_createTypeParameter)
+            _typeParametersSubstitution = TypeSubstitution.Create(implementingMethod, implementingMethod.TypeParameters, StaticCast(Of TypeSymbol).From(_typeParameters))
 
             If implementedMethod.IsGenericMethod Then
-                implementedMethod = implementedMethod.Construct(StaticCast(Of TypeSymbol).From(m_TypeParameters))
+                implementedMethod = implementedMethod.Construct(StaticCast(Of TypeSymbol).From(_typeParameters))
             End If
 
             Dim builder = ArrayBuilder(Of ParameterSymbol).GetInstance()
             For Each p As ParameterSymbol In implementingMethod.Parameters
                 Dim implementedParameter = implementedMethod.Parameters(p.Ordinal)
                 builder.Add(New SynthesizedParameterSymbolWithCustomModifiers(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
-                                                                              implementedParameter.CustomModifiers, implementedParameter.HasByRefBeforeCustomModifiers))
+                                                                              implementedParameter.CustomModifiers, implementedParameter.CountOfCustomModifiersPrecedingByRef))
             Next
 
-            m_Parameters = builder.ToImmutableAndFree()
-            m_ReturnType = implementedMethod.ReturnType
-            m_CustomModifiers = implementedMethod.ReturnTypeCustomModifiers
+            _parameters = builder.ToImmutableAndFree()
+            _returnType = implementedMethod.ReturnType
+            _customModifiers = implementedMethod.ReturnTypeCustomModifiers
         End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_Name
+                Return _name
             End Get
         End Property
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
-                Return m_TypeParameters.Length
+                Return _typeParameters.Length
             End Get
         End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                Return m_TypeParameters
+                Return _typeParameters
             End Get
         End Property
 
@@ -78,36 +78,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return m_ReturnType
+                Return _returnType
             End Get
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return m_CustomModifiers
+                Return _customModifiers
             End Get
         End Property
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_Parameters
+                Return _parameters
             End Get
         End Property
 
         Public Sub AddImplementedMethod(implemented As MethodSymbol)
-            m_ExplicitInterfaceImplementationsBuilder.Add(implemented)
+            _explicitInterfaceImplementationsBuilder.Add(implemented)
         End Sub
 
         Public Sub Seal()
-            Debug.Assert(m_ExplicitInterfaceImplementations.IsDefault)
-            m_ExplicitInterfaceImplementations = m_ExplicitInterfaceImplementationsBuilder.ToImmutableAndFree()
-            m_ExplicitInterfaceImplementationsBuilder = Nothing
+            Debug.Assert(_explicitInterfaceImplementations.IsDefault)
+            _explicitInterfaceImplementations = _explicitInterfaceImplementationsBuilder.ToImmutableAndFree()
+            _explicitInterfaceImplementationsBuilder = Nothing
         End Sub
 
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
             Get
-                Debug.Assert(Not m_ExplicitInterfaceImplementations.IsDefault)
-                Return m_ExplicitInterfaceImplementations
+                Debug.Assert(Not _explicitInterfaceImplementations.IsDefault)
+                Return _explicitInterfaceImplementations
             End Get
         End Property
 
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return m_ReturnType.IsVoidType()
+                Return _returnType.IsVoidType()
             End Get
         End Property
 

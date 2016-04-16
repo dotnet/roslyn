@@ -50,21 +50,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
+        // In general, different values are not required to have different hash codes.
+        // But for perf reasons we want hash functions with a good distribution, 
+        // so we expect hash codes to differ if a single component is incremented.
+        // But program correctness should be preserved even with a null hash function,
+        // so we need a way to disable these tests during such correctness validation.
+#if !DISABLE_GOOD_HASH_TESTS
+
         [Fact]
         public void SaneHashCode()
         {
             var hash1 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(1, 2), new LinePosition(3, 5)).GetHashCode();
             var hash2 = new FileLinePositionSpan("C:\\foo1.cs", new LinePosition(1, 2), new LinePosition(3, 5)).GetHashCode();
             var hash3 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(1, 3), new LinePosition(3, 5)).GetHashCode();
-            var hash4 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(1, 1), new LinePosition(6, 5)).GetHashCode();
+            var hash4 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(1, 2), new LinePosition(6, 5)).GetHashCode();
+            var hash5 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(2, 2), new LinePosition(6, 5)).GetHashCode();
+            var hash6 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(2, 2), new LinePosition(6, 8)).GetHashCode();
 
             Assert.NotEqual(hash1, hash2);
             Assert.NotEqual(hash1, hash3);
-            Assert.NotEqual(hash1, hash4);
-            Assert.NotEqual(hash2, hash3);
-            Assert.NotEqual(hash2, hash4);
             Assert.NotEqual(hash3, hash4);
+            Assert.NotEqual(hash4, hash5);
+            Assert.NotEqual(hash5, hash6);
         }
+
+#endif
 
         [Fact]
         public void TestToString()

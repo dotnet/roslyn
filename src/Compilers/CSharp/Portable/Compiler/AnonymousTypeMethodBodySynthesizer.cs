@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Generate 'field' = 'parameter' statement
                         statements[statementIndex++] =
-                            F.Assignment(F.Field(F.This(), anonymousType.Properties[index].BackingField), F.Parameter(this.parameters[index]));
+                            F.Assignment(F.Field(F.This(), anonymousType.Properties[index].BackingField), F.Parameter(_parameters[index]));
                     }
                 }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  }
 
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
-                F.CloseMethod(F.Block(F.Return(F.Field(F.This(), this.property.BackingField))));
+                F.CloseMethod(F.Block(F.Return(F.Field(F.This(), _property.BackingField))));
             }
 
             internal override bool HasSpecialName
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  local
                 BoundAssignmentOperator assignmentToTemp;
-                BoundLocal boundLocal = F.StoreToTemp(F.As(F.Parameter(this.parameters[0]), anonymousType), out assignmentToTemp);
+                BoundLocal boundLocal = F.StoreToTemp(F.As(F.Parameter(_parameters[0]), anonymousType), out assignmentToTemp);
 
                 //  Generate: statement <= 'local = value as $anonymous$'
                 BoundStatement assignment = F.ExpressionStatement(assignmentToTemp);
@@ -272,10 +272,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // build argument
                         arguments[i] = F.Convert(manager.System_Object,
-                                                 new BoundConditionalAccess(F.Syntax, 
+                                                 new BoundLoweredConditionalAccess(F.Syntax,
                                                                             F.Field(F.This(), property.BackingField),
-                                                                            F.Call(new BoundConditionalReceiver(F.Syntax, property.BackingField.Type), manager.System_Object__ToString),
-                                                                            manager.System_String), 
+                                                                            null,
+                                                                            F.Call(new BoundConditionalReceiver(
+                                                                                F.Syntax,
+                                                                                id: i,
+                                                                                type: property.BackingField.Type), manager.System_Object__ToString),
+                                                                            null,
+                                                                            id: i,
+                                                                            type: manager.System_String),
                                                  ConversionKind.ImplicitReference);
                     }
                     formatString.Builder.Append(" }}");
@@ -286,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
                     var formatMethod = manager.System_String__Format_IFormatProvider;
-                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.Array(manager.System_Object, arguments));
+                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.ArrayOrEmpty(manager.System_Object, arguments));
                 }
                 else
                 {

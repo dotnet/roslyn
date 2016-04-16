@@ -12,27 +12,27 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class KeyValueLogMessage : LogMessage
     {
-        private static readonly ObjectPool<KeyValueLogMessage> Pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
+        private static readonly ObjectPool<KeyValueLogMessage> s_pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
 
-        public static KeyValueLogMessage Create(Action<Dictionary<string, string>> propertySetter)
+        public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
-            var logMessage = Pool.Allocate();
-            logMessage.Constrcut(propertySetter);
+            var logMessage = s_pool.Allocate();
+            logMessage.Construct(propertySetter);
 
             return logMessage;
         }
 
-        private Dictionary<string, string> map = null;
-        private Action<Dictionary<string, string>> propertySetter = null;
+        private Dictionary<string, object> _map;
+        private Action<Dictionary<string, object>> _propertySetter;
 
         private KeyValueLogMessage()
         {
             // prevent it from being created directly
         }
 
-        private void Constrcut(Action<Dictionary<string, string>> propertySetter)
+        private void Construct(Action<Dictionary<string, object>> propertySetter)
         {
-            this.propertySetter = propertySetter;
+            _propertySetter = propertySetter;
         }
 
         public bool ContainsProperty
@@ -40,46 +40,46 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             get
             {
                 EnsureMap();
-                return this.map.Count > 0;
+                return _map.Count > 0;
             }
         }
 
-        public IEnumerable<KeyValuePair<string, string>> Properties
+        public IEnumerable<KeyValuePair<string, object>> Properties
         {
             get
             {
                 EnsureMap();
-                return this.map;
+                return _map;
             }
         }
 
         protected override string CreateMessage()
         {
             EnsureMap();
-            return string.Join("|", map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
+            return string.Join("|", _map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
         }
 
-        public override void Free()
+        protected override void FreeCore()
         {
-            if (this.map != null)
+            if (_map != null)
             {
-                SharedPools.Default<Dictionary<string, string>>().ClearAndFree(this.map);
-                this.map = null;
+                SharedPools.Default<Dictionary<string, object>>().ClearAndFree(_map);
+                _map = null;
             }
 
-            if (this.propertySetter != null)
+            if (_propertySetter != null)
             {
-                this.propertySetter = null;
-                Pool.Free(this);
+                _propertySetter = null;
+                s_pool.Free(this);
             }
         }
 
         private void EnsureMap()
         {
-            if (this.map == null && this.propertySetter != null)
+            if (_map == null && _propertySetter != null)
             {
-                this.map = SharedPools.Default<Dictionary<string, string>>().AllocateAndClear();
-                this.propertySetter(this.map);
+                _map = SharedPools.Default<Dictionary<string, object>>().AllocateAndClear();
+                _propertySetter(_map);
             }
         }
     }

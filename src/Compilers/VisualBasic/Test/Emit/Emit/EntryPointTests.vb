@@ -132,12 +132,12 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
         End Sub
 
-        <WorkItem(528677, "DevDiv")>
+        <WorkItem(528677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528677")>
         <Fact()>
         Public Sub ERR_OneEntryPointAndOverload()
             Dim source =
@@ -546,7 +546,7 @@ End Class
 System.Console.WriteLine(1)
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -566,7 +566,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -593,7 +593,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("D.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -745,7 +745,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, compOptions:=TestOptions.ReleaseExe.WithMainTypeName("C"))
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, options:=TestOptions.ReleaseExe.WithMainTypeName("C"))
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored).WithArguments("C"))
         End Sub
@@ -978,7 +978,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -997,7 +997,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B)
             End Sub
@@ -1016,7 +1016,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As String)
             End Sub
@@ -1066,7 +1066,7 @@ End Class
                 Diagnostic(ERRID.ERR_MoreThanOneValidMainWasFound2).WithArguments("a", "A.mAIN(), M1.mAIN()"))
         End Sub
 
-        <Fact, WorkItem(543591, "DevDiv")>
+        <Fact, WorkItem(543591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543591")>
         Public Sub MainInPrivateClass()
             Dim source =
 <compilation name="a">
@@ -1086,7 +1086,7 @@ End Class
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("a"))
         End Sub
 
-        <Fact, WorkItem(543591, "DevDiv")>
+        <Fact, WorkItem(543591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543591")>
         Public Sub MainInPrivateClass_1()
             Dim source =
 <compilation>
@@ -1104,7 +1104,7 @@ End Class
             CreateCompilationWithMscorlibAndVBRuntime(source, Nothing, options:=TestOptions.ReleaseExe).VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(543591, "DevDiv")>
+        <Fact, WorkItem(543591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543591")>
         Public Sub MainInPrivateClass_2()
             Dim source =
 <compilation>
@@ -1269,7 +1269,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -1279,8 +1279,8 @@ End Class
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("B")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("extention")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("extention"))
+            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("Extension")).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("Extension"))
         End Sub
 
         <Fact()>
@@ -1335,7 +1335,7 @@ End Class
 
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_PublicInBase()
             Dim source =
@@ -1357,7 +1357,7 @@ End Class
                          compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_ProtectedInBase()
             Dim source =
@@ -1379,7 +1379,7 @@ End Class
                          compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_PrivateInBase()
             Dim source =
@@ -1401,7 +1401,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InGenericBase()
             Dim source =
@@ -1423,7 +1423,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InBaseHiddenByField()
             Dim source =
@@ -1447,7 +1447,7 @@ End Class
             Assert.Null(compilation.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(545803, "DevDiv")>
+        <WorkItem(545803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545803")>
         <Fact()>
         Public Sub ExplicitMainTypeName_InBaseInOtherAssembly()
             Dim source1 =
@@ -1474,7 +1474,7 @@ End Class
             Assert.Null(compilation2.GetEntryPoint(Nothing))
         End Sub
 
-        <WorkItem(630763, "DevDiv")>
+        <WorkItem(630763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630763")>
         <Fact()>
         Public Sub Bug630763()
             Dim source =
@@ -1505,7 +1505,7 @@ BC30420: 'Sub Main' was not found in 'Bug630763'.
 </expected>)
         End Sub
 
-        <WorkItem(753028, "DevDiv")>
+        <WorkItem(753028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/753028")>
         <Fact>
         Public Sub RootMemberNamedScript()
             Dim comp As VisualBasicCompilation

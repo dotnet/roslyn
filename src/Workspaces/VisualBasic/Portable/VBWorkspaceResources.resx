@@ -261,4 +261,7 @@
   <data name="NameOfDocumentation" xml:space="preserve">
     <value>Produces a string for the name of the specified type or member.</value>
   </data>
+  <data name="Result" xml:space="preserve">
+    <value>&lt;result&gt;</value>
+  </data>
 </root>

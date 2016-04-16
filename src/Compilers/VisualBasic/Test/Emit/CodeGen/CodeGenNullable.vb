@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenNullable
         Inherits BasicTestBase
 
-        <Fact(), WorkItem(544947, "DevDiv")>
+        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedIntrinsicNegationLocal()
             CompileAndVerify(
                 <compilation>
@@ -1394,7 +1394,7 @@ Else: Ret2=True
 
         End Sub
 
-        <Fact(), WorkItem(544948, "DevDiv")>
+        <Fact(), WorkItem(544948, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544948")>
         Public Sub NothingOrZeroInBinaryExpression()
             CompileAndVerify(
                 <compilation>
@@ -1948,7 +1948,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544930, "DevDiv")>
+        <Fact(), WorkItem(544930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544930")>
         Public Sub LiftedBinaryIf1a()
             CompileAndVerify(
                 <compilation>
@@ -2124,7 +2124,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact, WorkItem(545064, "DevDiv")>
+        <Fact, WorkItem(545064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545064")>
         Public Sub LiftedBinaryIf5_Nested()
             Dim source =
                 <compilation>
@@ -2150,7 +2150,7 @@ End Module
 
         End Sub
 
-        <Fact(), WorkItem(544945, "DevDiv")>
+        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub LiftedBinaryRelationalWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2180,7 +2180,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544946, "DevDiv")>
+        <Fact(), WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2205,7 +2205,7 @@ End Class
 
         End Sub
 
-        <Fact(), WorkItem(544947, "DevDiv")>
+        <Fact(), WorkItem(544947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544947")>
         Public Sub LiftedBinaryDivisionWithNothingLiteral()
             Dim source =
                 <compilation>
@@ -2458,26 +2458,26 @@ Module Module1
         Dim a2 As New S1?(av)
         Dim b2 As T1
         b2 = a2
-        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passsed:{0}" &amp; vbCrLf, b2.i) 'expect 7
+        Console.WriteLine("regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:{0}" &amp; vbCrLf, b2.i) 'expect 7
 
         Dim a21 As New S1
         a21.i = 8
         Dim b21 As T1?
         b21 = a21
-        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passsed:{0}" &amp; vbCrLf, b21.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion: S1-->T1->T1?, value passed:{0}" &amp; vbCrLf, b21.Value.i) 'expect 8
 
         Dim val As New S1
         val.i = 3
         c = New S1?(val)
         d = c
-        Console.WriteLine("lifted UD conversion, value passsed:{0}" &amp; vbCrLf, d.Value.i) 'expect 3
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, d.Value.i) 'expect 3
 
         Dim k As New S2
         k.i = 2
         Dim c2 As New S2?(k)
         Dim d2 As T2?
         d2 = c2 'UD conversion on nullable preferred over lifting
-        Console.WriteLine(" UD nullable conversion, preferred over lifted value passsed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
+        Console.WriteLine(" UD nullable conversion, preferred over lifted value passed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
 
 
         av.i = 5
@@ -2485,26 +2485,26 @@ Module Module1
         'a.i = 2
         Dim b As T1?
         b = a
-        Console.WriteLine("lifted UD conversion, value passsed:{0}" &amp; vbCrLf, b.Value.i) 'expect 5
+        Console.WriteLine("lifted UD conversion, value passed:{0}" &amp; vbCrLf, b.Value.i) 'expect 5
 
         Dim a1 As S1
         a1.i = 6
         Dim b1 As T1
         b1 = a1
-        Console.WriteLine("regular UD conversion, value passsed:{0}" &amp; vbCrLf, b1.i) 'expect 6
+        Console.WriteLine("regular UD conversion, value passed:{0}" &amp; vbCrLf, b1.i) 'expect 6
 
         Dim a3 As S1
         a3.i = 8
         Dim b3 As T1?
         b3 = a3
-        Console.WriteLine("regular UD conversion+PD conversion, value passsed:{0}" &amp; vbCrLf, b3.Value.i) 'expect 8
+        Console.WriteLine("regular UD conversion+PD conversion, value passed:{0}" &amp; vbCrLf, b3.Value.i) 'expect 8
 
         Dim atv = New st(Of Integer)
         atv.i = 9
         Dim at As New st(Of Integer)?(atv)
         Dim bt As Integer?
         bt = at
-        Console.WriteLine("generic UD, value passsed bt.value = :{0}" &amp; vbCrLf, bt.Value) 'expect 8
+        Console.WriteLine("generic UD, value passed bt.value = :{0}" &amp; vbCrLf, bt.Value) 'expect 8
     End Sub
 
     Structure S1
@@ -2594,28 +2594,28 @@ widening to nullable UD conversion: c=1;  c.value= 1
 widening to nullable UD conversion: c=Nothing;  c.HasValue= False
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PDconversion:  S1?->S1 -->T1, value passsed:7
+regular UD conversion+PDconversion:  S1?->S1 -->T1, value passed:7
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PD conversion: S1-->T1->T1?, value passsed:8
+regular UD conversion+PD conversion: S1-->T1->T1?, value passed:8
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-lifted UD conversion, value passsed:3
+lifted UD conversion, value passed:3
 
 UD S2?->T2? conversion on nullable invoked
- UD nullable conversion, preferred over lifted value passsed: 2
+ UD nullable conversion, preferred over lifted value passed: 2
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-lifted UD conversion, value passsed:5
+lifted UD conversion, value passed:5
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion, value passsed:6
+regular UD conversion, value passed:6
 
 UD regular conversion S1->T1 (possible by lifting) invoked
-regular UD conversion+PD conversion, value passsed:8
+regular UD conversion+PD conversion, value passed:8
 
 UD generic regular conversion st(of T)->T (possible by lifting) invoked
-generic UD, value passsed bt.value = :9
+generic UD, value passed bt.value = :9
 
 ]]>)
         End Sub
@@ -3088,7 +3088,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(544589, "DevDiv")>
+        <Fact(), WorkItem(544589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544589")>
         Public Sub LiftedShortCircuitOperations()
             CompileAndVerify(
                 <compilation>
@@ -3199,7 +3199,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545124, "DevDiv")>
+        <Fact(), WorkItem(545124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545124")>
         Public Sub LogicalOperationsWithNullableEnum()
             CompileAndVerify(
                 <compilation>
@@ -3299,7 +3299,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545125, "DevDiv")>
+        <Fact(), WorkItem(545125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545125")>
         Public Sub ArithmeticOperationsWithNullableType()
             CompileAndVerify(
                 <compilation>
@@ -3330,43 +3330,42 @@ End Module
             VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size       55 (0x37)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (Integer V_0,
-  Integer? V_1,
-  System.ArgumentNullException V_2) //ex
+                Integer? V_1,
+                System.ArgumentNullException V_2) //ex
   .try
-{
-  IL_0000:  call       "Function M.foo_exception() As Integer"
-  IL_0005:  stloc.0
-  IL_0006:  call       "Function M.foo_eval_check() As Integer?"
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0013:  brtrue.s   IL_0017
-  IL_0015:  leave.s    IL_0036
-  IL_0017:  ldloc.0
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_001f:  div
-  IL_0020:  newobj     "Sub Integer?..ctor(Integer)"
-  IL_0025:  pop
-  IL_0026:  leave.s    IL_0036
-}
+  {
+    IL_0000:  call       "Function M.foo_exception() As Integer"
+    IL_0005:  stloc.0
+    IL_0006:  call       "Function M.foo_eval_check() As Integer?"
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_0013:  brfalse.s  IL_0024
+    IL_0015:  ldloc.0
+    IL_0016:  ldloca.s   V_1
+    IL_0018:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_001d:  div
+    IL_001e:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_0023:  pop
+    IL_0024:  leave.s    IL_0034
+  }
   catch System.ArgumentNullException
-{
-  IL_0028:  dup
-  IL_0029:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_002e:  stloc.2
-  IL_002f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0034:  leave.s    IL_0036
-}
-  IL_0036:  ret
+  {
+    IL_0026:  dup
+    IL_0027:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_002c:  stloc.2
+    IL_002d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0032:  leave.s    IL_0034
+  }
+  IL_0034:  ret
 }
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545437, "DevDiv")>
+        <Fact(), WorkItem(545437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545437")>
         Public Sub Regress13840()
             CompileAndVerify(
                 <compilation>
@@ -3395,7 +3394,7 @@ End Module
 
 #Region "Diagnostics"
 
-        <Fact(), WorkItem(544942, "DevDiv"), WorkItem(599013, "DevDiv")>
+        <Fact(), WorkItem(544942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem(599013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
         Public Sub BC30424ERR_ConstAsNonConstant_Nullable()
             Dim source =
                 <compilation>
@@ -3469,7 +3468,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "ns.field").WithArguments("field", "S?"))
         End Sub
 
-        <Fact(), WorkItem(544945, "DevDiv")>
+        <Fact(), WorkItem(544945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544945")>
         Public Sub BC42037And42038WRN_EqualToLiteralNothing_Nullable()
             Dim source =
                 <compilation>
@@ -3493,13 +3492,13 @@ End Class
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug, expectedOutput:="PASS").VerifyDiagnostics(
+            CompileAndVerify(source, expectedOutput:="PASS").VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_EqualToLiteralNothing, "x = Nothing"),
                     Diagnostic(ERRID.WRN_NotEqualToLiteralNothing, "Nothing <> y")
                                                                           )
         End Sub
 
-        <Fact(), WorkItem(545050, "DevDiv")>
+        <Fact(), WorkItem(545050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545050")>
         Public Sub DoNotGiveBC32126ERR_AddressOfNullableMethod()
             Dim source =
                 <compilation>
@@ -3525,7 +3524,7 @@ End Module
                     </file>
                 </compilation>
 
-            CompileAndVerify(source, emitOptions:=TestEmitters.RefEmitBug).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
+            CompileAndVerify(source).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
 {
   // Code size      124 (0x7c)
   .maxstack  3
@@ -3571,7 +3570,7 @@ End Module
                 ]]>)
         End Sub
 
-        <Fact(), WorkItem(545126, "DevDiv")>
+        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported()
             Dim source =
                 <compilation>
@@ -3779,7 +3778,7 @@ BC33112: Nullable modifier cannot be used with a variable whose implicit type is
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(545126, "DevDiv")>
+        <Fact(), WorkItem(545126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545126")>
         Public Sub BC36629ERR_NullableTypeInferenceNotSupported_2()
             Dim source =
                 <compilation>
@@ -4594,7 +4593,7 @@ expectedOutput:=<![CDATA[:catenation right to integer?(null):
         '''    explicit: int? --> int
         ''' </summary>
         ''' <remarks></remarks>
-        <Fact, WorkItem(545166, "DevDiv")>
+        <Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         Public Sub Op_ExplicitImplicitOnNullable()
             CompileAndVerify(
                 <compilation>
@@ -4715,6 +4714,117 @@ VerifyIL("NullableTest.EqualEqual",
   IL_008d:  box        "Boolean"
   IL_0092:  call       "Sub Test.Eval(Object, Object)"
   IL_0097:  ret
+}
+                ]]>)
+
+        End Sub
+
+        <Fact>
+        Public Sub LiftedToIntPtrConversion()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module M
+    Sub Main()
+        Console.WriteLine(CType(M(Nothing), IntPtr?))
+        Console.WriteLine(CType(M(42), IntPtr?))
+    End Sub
+
+    Function M(p as Integer?) As Integer?
+        Return p
+    End Function
+End Module
+
+    </file>
+</compilation>
+
+            Dim expectedOutput = "" + vbCrLf + "42"
+            CompileAndVerify(source, expectedOutput)
+        End Sub
+
+        <Fact()>
+        Public Sub SubtractFromZero()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+  Sub Main()
+    Dim a As Integer? = 1
+    Dim b As Integer? = 0 - a
+    Console.WriteLine(String.Format("a: {0}, b: {1}", a, b))
+
+    Dim a1 As Integer? = 1
+    Dim b1 As Integer? = a - 0
+    Console.WriteLine(String.Format("a1: {0}, b1: {1}", a1, b1))
+
+ End Sub
+End Module
+
+    </file>
+</compilation>, expectedOutput:="a: 1, b: -1
+a1: 1, b1: 1").
+VerifyIL("Module1.Main",
+            <![CDATA[
+{
+  // Code size      144 (0x90)
+  .maxstack  3
+  .locals init (Integer? V_0, //a
+                Integer? V_1, //b
+                Integer? V_2, //a1
+                Integer? V_3, //b1
+                Integer? V_4,
+                Integer? V_5)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "Sub Integer?..ctor(Integer)"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_000f:  brtrue.s   IL_001d
+  IL_0011:  ldloca.s   V_4
+  IL_0013:  initobj    "Integer?"
+  IL_0019:  ldloc.s    V_4
+  IL_001b:  br.s       IL_002b
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0025:  sub.ovf
+  IL_0026:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_002b:  stloc.1
+  IL_002c:  ldstr      "a: {0}, b: {1}"
+  IL_0031:  ldloc.0
+  IL_0032:  box        "Integer?"
+  IL_0037:  ldloc.1
+  IL_0038:  box        "Integer?"
+  IL_003d:  call       "Function String.Format(String, Object, Object) As String"
+  IL_0042:  call       "Sub System.Console.WriteLine(String)"
+  IL_0047:  ldloca.s   V_2
+  IL_0049:  ldc.i4.1
+  IL_004a:  call       "Sub Integer?..ctor(Integer)"
+  IL_004f:  ldloc.0
+  IL_0050:  stloc.s    V_4
+  IL_0052:  ldloca.s   V_4
+  IL_0054:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0059:  brtrue.s   IL_0067
+  IL_005b:  ldloca.s   V_5
+  IL_005d:  initobj    "Integer?"
+  IL_0063:  ldloc.s    V_5
+  IL_0065:  br.s       IL_0073
+  IL_0067:  ldloca.s   V_4
+  IL_0069:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_006e:  newobj     "Sub Integer?..ctor(Integer)"
+  IL_0073:  stloc.3
+  IL_0074:  ldstr      "a1: {0}, b1: {1}"
+  IL_0079:  ldloc.2
+  IL_007a:  box        "Integer?"
+  IL_007f:  ldloc.3
+  IL_0080:  box        "Integer?"
+  IL_0085:  call       "Function String.Format(String, Object, Object) As String"
+  IL_008a:  call       "Sub System.Console.WriteLine(String)"
+  IL_008f:  ret
 }
                 ]]>)
 

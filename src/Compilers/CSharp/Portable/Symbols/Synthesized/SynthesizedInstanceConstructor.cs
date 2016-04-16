@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
     {
-        private readonly NamedTypeSymbol containingType;
+        private readonly NamedTypeSymbol _containingType;
 
         internal SynthesizedInstanceConstructor(NamedTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
-            this.containingType = containingType;
+            _containingType = containingType;
         }
 
         //
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override Symbol ContainingSymbol
         {
-            get { return this.containingType; }
+            get { return _containingType; }
         }
 
         public sealed override NamedTypeSymbol ContainingType
         {
             get
             {
-                return this.containingType;
+                return _containingType;
             }
         }
 
@@ -73,13 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (containingType.IsComImport)
+                if (_containingType.IsComImport)
                 {
-                    Debug.Assert(containingType.TypeKind == TypeKind.Class);
+                    Debug.Assert(_containingType.TypeKind == TypeKind.Class);
                     return System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall;
                 }
 
-                if (containingType.TypeKind == TypeKind.Delegate)
+                if (_containingType.TypeKind == TypeKind.Delegate)
                 {
                     return System.Reflection.MethodImplAttributes.Runtime;
                 }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             //For the sake of matching the metadata output of the native compiler, make synthesized constructors appear last in the metadata.
             //This is not critical, but it makes it easier on tools that are comparing metadata.
-            return LexicalSortKey.SynthesisedCtor;
+            return LexicalSortKey.SynthesizedCtor;
         }
 
         public sealed override ImmutableArray<Location> Locations
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
-            return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
+            return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
         #endregion

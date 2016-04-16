@@ -16,24 +16,27 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        internal CSharpCompilation Compilation { get; private set; }
-        private readonly Binder next;
+        internal CSharpCompilation Compilation { get; }
+        private readonly Binder _next;
 
         internal readonly BinderFlags Flags;
+
+        /// <summary>
+        /// Used to create a root binder.
+        /// </summary>
+        internal Binder(CSharpCompilation compilation)
+        {
+            Debug.Assert(compilation != null);
+            this.Flags = compilation.Options.TopLevelBinderFlags;
+            this.Compilation = compilation;
+        }
 
         internal Binder(Binder next)
         {
             Debug.Assert(next != null);
-            this.next = next;
+            _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
-        }
-
-        internal Binder(CSharpCompilation compilation)
-        {
-            Debug.Assert(compilation != null);
-            this.Flags = BinderFlags.None;
-            this.Compilation = compilation;
         }
 
         protected Binder(Binder next, BinderFlags flags)
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!flags.Includes(BinderFlags.UncheckedRegion | BinderFlags.CheckedRegion));
             // Implied.
             Debug.Assert(!flags.Includes(BinderFlags.InNestedFinallyBlock) || flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock));
-            this.next = next;
+            _next = next;
             this.Flags = flags;
             this.Compilation = next.Compilation;
         }
@@ -65,11 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // Is the given node being bound as a nameof(...) operator?
-        protected virtual bool IsNameofArgument(SyntaxNode node)
-        {
-            return false;
-        }
+        // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
+        protected virtual SyntaxNode EnclosingNameofArgument => null;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
@@ -78,13 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return next;
+                return _next;
             }
         }
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
-        /// <see cref="OverflowChecks.Disabled"/> if we are in an explcitly unchecked context (within unchecked block or expression).
+        /// <see cref="OverflowChecks.Disabled"/> if we are in an explicitly unchecked context (within unchecked block or expression).
         /// <see cref="OverflowChecks.Implicit"/> otherwise.
         /// </summary>
         protected OverflowChecks CheckOverflow
@@ -258,19 +258,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.next.ImplicitlyTypedLocalsBeingBound;
+                return _next.ImplicitlyTypedLocalsBeingBound;
             }
         }
 
         /// <summary>
-        /// The Imports for all containing namespace declarations (innermost-to-outermost, including global).
+        /// The imports for all containing namespace declarations (innermost-to-outermost, including global),
+        /// or null if there are none.
         /// </summary>
-        internal virtual ConsList<Imports> ImportsList
+        internal virtual ImportChain ImportChain
         {
             get
             {
-                return this.next.ImportsList;
+                return _next.ImportChain;
             }
+        }
+
+        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return _next.GetImports(basesBeingResolved);
         }
 
         /// <summary>
@@ -285,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)member == null
                     ? null
                     : member.Kind == SymbolKind.NamedType
-                        ? (NamedTypeSymbol)member 
+                        ? (NamedTypeSymbol)member
                         : member.ContainingType;
             }
         }
@@ -303,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Method:
                         // global statements
-                        return ((MethodSymbol)containingMember).IsScriptConstructor;
+                        return ((MethodSymbol)containingMember).IsScriptInitializer;
 
                     case SymbolKind.NamedType:
                         // script variable initializers
@@ -347,31 +353,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        Conversions lazyConversions;
+        private Conversions _lazyConversions;
         internal Conversions Conversions
         {
             get
             {
-                if (this.lazyConversions == null)
+                if (_lazyConversions == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyConversions, new Conversions(this), null);
+                    Interlocked.CompareExchange(ref _lazyConversions, new Conversions(this), null);
                 }
 
-                return lazyConversions;
+                return _lazyConversions;
             }
         }
 
-        OverloadResolution lazyOverloadResolution;
+        private OverloadResolution _lazyOverloadResolution;
         internal OverloadResolution OverloadResolution
         {
             get
             {
-                if (this.lazyOverloadResolution == null)
+                if (_lazyOverloadResolution == null)
                 {
-                    Interlocked.CompareExchange(ref this.lazyOverloadResolution, new OverloadResolution(this), null);
+                    Interlocked.CompareExchange(ref _lazyOverloadResolution, new OverloadResolution(this), null);
                 }
 
-                return this.lazyOverloadResolution;
+                return _lazyOverloadResolution;
             }
         }
 
@@ -617,13 +623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
-            {
-                // This is an untested code path. If we
-                // reach here, add a corresponding test.
-                throw ExceptionUtilities.Unreachable;
-            }
-
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
 
@@ -633,11 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             TypeSymbol throughTypeOpt = null)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
-            {
-                return true;
-            }
-            return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
+            return this.Flags.Includes(BinderFlags.IgnoreAccessibility) || AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics, throughTypeOpt);
         }
 
         internal bool IsSymbolAccessibleConditional(
@@ -648,11 +643,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             ConsList<Symbol> basesBeingResolved = null)
         {
-            if (this.Flags.Includes(BinderFlags.SuppressAccessChecks))
+            if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {
                 failedThroughTypeCheck = false;
                 return true;
             }
+
             return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
         }
 

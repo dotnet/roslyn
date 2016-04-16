@@ -39,7 +39,7 @@ namespace Roslyn.UnitTestFramework
         private const string NamedSpanStartString = "{|";
         private const string NamedSpanEndString = "|}";
 
-        private static readonly Regex namedSpanStartRegex = new Regex(@"\{\| ([^:]+) \:",
+        private static readonly Regex s_namedSpanStartRegex = new Regex(@"\{\| ([^:]+) \:",
             RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
         private static void Parse(string input, out string output, out int? position, out IDictionary<string, IList<TextSpan>> spans)
@@ -72,7 +72,7 @@ namespace Roslyn.UnitTestFramework
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
                 AddMatch(input, NamedSpanEndString, currentIndexInInput, matches);
 
-                var namedSpanStartMatch = namedSpanStartRegex.Match(input, currentIndexInInput);
+                var namedSpanStartMatch = s_namedSpanStartRegex.Match(input, currentIndexInInput);
                 if (namedSpanStartMatch.Success)
                 {
                     matches.Add(Tuple.Create(namedSpanStartMatch.Index, namedSpanStartMatch.Value));

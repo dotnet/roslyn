@@ -8,7 +8,6 @@ Imports System.IO
 Imports System.Text
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -50,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: Roslyn for UI scenarios always (even in presence of errors) returns implementation part's 
                 ' NOTE: doc comment to be consistent with Dev11 and in compilation scenario writes implementation 
                 ' NOTE: part's comment if it exists and does not have errors, otherwise uses doc comment from 
-                ' NOTE: declatation part.
+                ' NOTE: declaration part.
 
                 Dim implementationPart = TryCast(method.PartialImplementationPart, SourceMethodSymbol)
                 If implementationPart IsNot Nothing AndAlso WriteDocumentationCommentForMethod(implementationPart) Then

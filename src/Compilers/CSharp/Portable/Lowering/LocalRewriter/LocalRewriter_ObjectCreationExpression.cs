@@ -12,7 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             var loweredArguments = VisitList(node.Arguments);
-            return dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
+            var constructorInvocation = _dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
+
+            if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
+            {
+                return constructorInvocation;
+            }
+
+            return MakeObjectCreationWithInitializer(node.Syntax, constructorInvocation, node.InitializerExpressionOpt, node.Type);
         }
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
@@ -33,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenObjectCreation;
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 if (!temps.IsDefaultOrEmpty)
                 {
@@ -102,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression initializerExpression,
             TypeSymbol type)
         {
-            Debug.Assert(!inExpressionLambda);
+            Debug.Assert(!_inExpressionLambda);
             Debug.Assert(initializerExpression != null && !initializerExpression.HasErrors);
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal value = this.factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
+            BoundLocal value = _factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
 
             // Rewrite object/collection initializer expressions
             ArrayBuilder<BoundExpression> dynamicSiteInitializers = null;
@@ -150,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNewT(BoundNewT node)
         {
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.Type);
             }
@@ -198,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable,
                 type: typeParameter);
 
-           return createInstanceCall;
+            return createInstanceCall;
         }
 
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
@@ -213,53 +220,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // (IPiaType)System.Activator.CreateInstance(System.Type.GetTypeFromCLSID(new Guid(GUID)))
 
-            CSharpSyntaxNode oldSyntax = factory.Syntax;
-            factory.Syntax = node.Syntax;
+            CSharpSyntaxNode oldSyntax = _factory.Syntax;
+            _factory.Syntax = node.Syntax;
 
 
-            var ctor = factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
+            var ctor = _factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
             BoundExpression newGuid;
 
             if ((object)ctor != null)
             {
-                newGuid = factory.New(ctor, factory.Literal(node.GuidString));
+                newGuid = _factory.New(ctor, _factory.Literal(node.GuidString));
             }
             else
             {
                 newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var getTypeFromCLSID = factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
+            var getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
 
             if ((object)getTypeFromCLSID == null)
             {
-                getTypeFromCLSID = factory.WellKnownMethod(WellKnownMember.System_Type__GetTypeFromCLSID);
+                getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Type__GetTypeFromCLSID);
             }
 
             BoundExpression callGetTypeFromCLSID;
 
             if ((object)getTypeFromCLSID != null)
             {
-                callGetTypeFromCLSID = factory.Call(null, getTypeFromCLSID, newGuid);
+                callGetTypeFromCLSID = _factory.Call(null, getTypeFromCLSID, newGuid);
             }
             else
             {
                 callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var createInstance = factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
+            var createInstance = _factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
             BoundExpression rewrittenObjectCreation;
 
             if ((object)createInstance != null)
             {
-                rewrittenObjectCreation = factory.Convert(node.Type, factory.Call(null, createInstance, callGetTypeFromCLSID));
+                rewrittenObjectCreation = _factory.Convert(node.Type, _factory.Call(null, createInstance, callGetTypeFromCLSID));
             }
             else
             {
                 rewrittenObjectCreation = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, node.Type);
             }
 
-            factory.Syntax = oldSyntax;
+            _factory.Syntax = oldSyntax;
 
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
             {

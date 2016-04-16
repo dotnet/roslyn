@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundSequence
+    Friend Partial Class BoundSequence
 
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Debug.Assert(Type.IsSameTypeIgnoringCustomModifiers(ValueOpt.Type))
                 If Not ValueOpt.IsLValue Then
-                    ValueOpt.AssertRValue() ' Value must return a result, if it doesn't, add that expression into sideeffects instead.
+                    ValueOpt.AssertRValue() ' Value must return a result, if it doesn't, add that expression into side-effects instead.
                 End If
             End If
 

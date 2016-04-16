@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class Symbol
+    internal partial class Symbol
     {
         /// <summary>
         /// Gets the attributes for this symbol. Returns an empty <see cref="ImmutableArray&lt;AttributeData&gt;"/> if
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         /// lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
         /// 
-        /// Post-validation for attributes that is dependant on other attributes can be done here.
+        /// Post-validation for attributes that is dependent on other attributes can be done here.
         /// 
         /// This method should not have any side effects on the symbol, i.e. it SHOULD NOT change the symbol state.
         /// </remarks>
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     (a) Store the bound attributes in lazyCustomAttributes in a thread safe manner.
         ///     (b) Perform some additional post attribute validations, such as
         ///         1) Duplicate attributes, attribute usage target validation, etc.
-        ///         2) Post validation for attributes dependant on other attributes
+        ///         2) Post validation for attributes dependent on other attributes
         ///         These validations cannot be performed prior to step 6(a) as we might need to
         ///         perform a GetAttributes() call on a symbol which can introduce a cycle in attribute binding.
         ///         We avoid this cycle by performing such validations in PostDecodeWellKnownAttributes after lazyCustomAttributes have been set.
@@ -348,7 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
-                this.AddSemanticDiagnostics(diagnostics);
+                this.RecordPresenceOfBadAttributes(boundAttributes);
+                this.AddDeclarationDiagnostics(diagnostics);
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }
@@ -356,6 +357,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(lazyCustomAttributesBag.IsSealed);
             diagnostics.Free();
             return lazyAttributesStoredOnThisThread;
+        }
+
+        private void RecordPresenceOfBadAttributes(ImmutableArray<CSharpAttributeData> boundAttributes)
+        {
+            foreach (var attribute in boundAttributes)
+            {
+                if (attribute.HasErrors)
+                {
+                    CSharpCompilation compilation = this.DeclaringCompilation;
+                    Debug.Assert(compilation != null);
+                    ((SourceModuleSymbol)compilation.SourceModule).RecordPresenceOfBadAttributes();
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -447,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return isOwner;
             }
 
+            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
+
             AttributeLocation explicitTarget = targetOpt.GetAttributeLocation();
             if (explicitTarget == AttributeLocation.None)
             {
@@ -455,13 +472,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     //NOTE: ValueText so that we accept targets like "@return", to match dev10 (DevDiv #2591).
                     diagnostics.Add(ErrorCode.WRN_InvalidAttributeLocation,
-                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText);
+                        targetOpt.Identifier.GetLocation(), targetOpt.Identifier.ValueText, allowedTargets.ToDisplayString());
                 }
 
                 return false;
             }
 
-            AttributeLocation allowedTargets = attributesOwner.AllowedAttributeLocations;
             if ((explicitTarget & allowedTargets) == 0)
             {
                 // error: invalid target for symbol
@@ -639,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Given attribute can't be specified more than once if AllowMultiple is false.
             if (!uniqueAttributeTypes.Add(attributeType) && !attributeUsageInfo.AllowMultiple)
             {
-                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.Name);
+                diagnostics.Add(ErrorCode.ERR_DuplicateAttribute, node.Name.Location, node.GetErrorDisplayName());
                 return false;
             }
 
@@ -659,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
                 // generate error
-                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.Name, attributeUsageInfo.GetValidTargetsErrorArgument());
+                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.GetErrorDisplayName(), attributeUsageInfo.GetValidTargetsErrorArgument());
                 return false;
             }
 

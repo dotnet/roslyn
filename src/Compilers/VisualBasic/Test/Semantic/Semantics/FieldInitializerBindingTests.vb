@@ -541,7 +541,7 @@ End Class
 
         End Sub
 
-        <WorkItem(539286, "DevDiv")>
+        <WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")>
         <Fact>
         Public Sub Bug5181()
             Dim source =
@@ -586,7 +586,7 @@ End Class
             Dim secondMeSymbol = model.GetSemanticInfoSummary(CType(secondMe.AsNode(), ExpressionSyntax)).Symbol
             Dim thirdMeSymbol = model.GetSemanticInfoSummary(CType(thirdMe.AsNode(), ExpressionSyntax)).Symbol
 
-            'Assert.Equal(1, firstMeSymbols.Count)   returnd 0 symbols
+            'Assert.Equal(1, firstMeSymbols.Count)   returned 0 symbols
             'Assert.Equal(1, secondMeSymbols.Count)
             'Assert.Equal(1, thirdMeSymbols.Count)
         End Sub
@@ -622,7 +622,7 @@ End Class
             Assert.Equal(firstMeFSymbol.Name, "C2")
         End Sub
 
-        <WorkItem(542375, "DevDiv")>
+        <WorkItem(542375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542375")>
         <Fact>
         Public Sub ConstFieldNonConstValueAsArrayBoundary()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -655,7 +655,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub StaticLocalFields()
-            'As we cant easily get at fields wich are non callable by user code such as
+            'As we can't easily get at fields which are non callable by user code such as
             'the $STATIC$Foo$001$a  we can simply determine that the count of items which
             'we expect is present
             Dim source = <compilation name="StaticLocals">
@@ -686,7 +686,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub VbConstantFields_Error()
+        Public Sub VbConstantFields_Error()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -752,7 +752,7 @@ End Class
 Enum EI : AI : BI : End Enum
 Enum EB As Byte : AB : BB : End Enum
 
-Class ClazzWithEnumes
+Class ClazzWithEnums
     Public Const F1 = CType(CType(CType(CType(Nothing, EI), Object), Object), Object)
     Public Const F3 = CType(CType(CType(CType(Nothing, EB), Object), Object), Object)
 End Class
@@ -838,22 +838,22 @@ BC30060: Conversion from 'String' to 'Object' cannot occur in a constant express
 </expected>)
         End Sub
 
-        Const ELEMENT_TYPE_U1 = 5
-        Const ELEMENT_TYPE_I4 = 8
-        Const ELEMENT_TYPE_VALUETYPE = 17
-        Const ELEMENT_TYPE_CLASS = 18
-        Const ELEMENT_TYPE_OBJECT = 28
+        Private Const s_ELEMENT_TYPE_U1 = 5
+        Private Const s_ELEMENT_TYPE_I4 = 8
+        Private Const s_ELEMENT_TYPE_VALUETYPE = 17
+        Private Const s_ELEMENT_TYPE_CLASS = 18
+        Private Const s_ELEMENT_TYPE_OBJECT = 28
 
-        Const FIELD_SIGNATURE_CALLING_CONVENTION = 6
+        Private Const s_FIELD_SIGNATURE_CALLING_CONVENTION = 6
 
-        ReadOnly ZERO4 As Byte() = New Byte() {0, 0, 0, 0}
-        ReadOnly ONE4 As Byte() = New Byte() {1, 0, 0, 0}
+        Private ReadOnly _ZERO4 As Byte() = New Byte() {0, 0, 0, 0}
+        Private ReadOnly _ONE4 As Byte() = New Byte() {1, 0, 0, 0}
 
-        ReadOnly ZERO1 As Byte() = New Byte() {0}
-        ReadOnly ONE1 As Byte() = New Byte() {1}
+        Private ReadOnly _ZERO1 As Byte() = New Byte() {0}
+        Private ReadOnly _ONE1 As Byte() = New Byte() {1}
 
         <Fact>
-        Sub VbConstantFields_NoError()
+        Public Sub VbConstantFields_NoError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -903,13 +903,13 @@ End Class
                     Dim name = reader.GetString(field.Name)
 
                     Dim actual = reader.GetBlobBytes(constant.Value)
-                    AssertEx.Equal(ZERO4, actual)
+                    AssertEx.Equal(_ZERO4, actual)
 
                     Dim constType = constant.TypeCode
 
                     Select Case name
                         Case "F9", "F3", "F33", "F22", "F7", "F8"
-                            Assert.Equal(ELEMENT_TYPE_CLASS, constType)
+                            Assert.Equal(s_ELEMENT_TYPE_CLASS, constType)
 
                         Case Else
                             Assert.True(False)
@@ -920,7 +920,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub VbConstantFields_NoError_DateDecimal()
+        Public Sub VbConstantFields_NoError_DateDecimal()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -938,7 +938,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub VbConstantFields_Enum()
+        Public Sub VbConstantFields_Enum()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -973,91 +973,91 @@ End Class
                     Select Case name
                         Case "F1"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: System.Object
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_OBJECT},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_OBJECT},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F2"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: int32
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_I4},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_I4},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F3"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: System.Object
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_OBJECT},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_OBJECT},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F4"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: uint8
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_U1},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_U1},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F5"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ONE4, reader.GetBlobBytes(constant.Value))
                             ' Field type: int32
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_I4},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_I4},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F6"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ONE1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ONE1, reader.GetBlobBytes(constant.Value))
                             ' Field type: uint8
-                            AssertEx.Equal(New Byte() {FIELD_SIGNATURE_CALLING_CONVENTION, ELEMENT_TYPE_U1},
+                            AssertEx.Equal(New Byte() {s_FIELD_SIGNATURE_CALLING_CONVENTION, s_ELEMENT_TYPE_U1},
                                            reader.GetBlobBytes(field.Signature))
 
                         Case "F7"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "F8"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "AI"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "BI"
                             ' Constant: int32(0)
-                            Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                            AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                            AssertEx.Equal(_ONE4, reader.GetBlobBytes(constant.Value))
                             ' Field type: EI (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "AB"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ZERO1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ZERO1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
                         Case "BB"
                             ' Constant: uint8(0)
-                            Assert.Equal(ELEMENT_TYPE_U1, constant.TypeCode)
-                            AssertEx.Equal(ONE1, reader.GetBlobBytes(constant.Value))
+                            Assert.Equal(s_ELEMENT_TYPE_U1, constant.TypeCode)
+                            AssertEx.Equal(_ONE1, reader.GetBlobBytes(constant.Value))
                             ' Field type: EB (valuetype)
                             AssertAnyValueType(reader.GetBlobBytes(field.Signature))
 
@@ -1070,12 +1070,12 @@ End Class
 
         Private Sub AssertAnyValueType(actual As Byte())
             Assert.Equal(3, actual.Length)
-            Assert.Equal(FIELD_SIGNATURE_CALLING_CONVENTION, actual(0))
-            Assert.Equal(ELEMENT_TYPE_VALUETYPE, actual(1))
+            Assert.Equal(s_FIELD_SIGNATURE_CALLING_CONVENTION, actual(0))
+            Assert.Equal(s_ELEMENT_TYPE_VALUETYPE, actual(1))
         End Sub
 
         <Fact>
-        Sub VbParameterDefaults_Error()
+        Public Sub VbParameterDefaults_Error()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -1206,7 +1206,7 @@ BC30060: Conversion from 'EI?' to 'Object' cannot occur in a constant expression
         End Sub
 
         <Fact>
-        Sub VbParameterDefaults_NoError()
+        Public Sub VbParameterDefaults_NoError()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
    <compilation>
        <file name="a.vb">
@@ -1314,18 +1314,18 @@ End Interface
                             Case "F1", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
                                  "F13", "F14", "F19", "F20", "F21", "F26", "F27", "F28", "F34", "F39"
                                 ' Constant: nullref
-                                Assert.Equal(ELEMENT_TYPE_CLASS, constant.TypeCode)
-                                AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                                Assert.Equal(s_ELEMENT_TYPE_CLASS, constant.TypeCode)
+                                AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
 
                             Case "F2", "F30", "F31", "F32", "F33", "F40"
                                 ' Constant: int32(0)
-                                Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                                AssertEx.Equal(ZERO4, reader.GetBlobBytes(constant.Value))
+                                Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                                AssertEx.Equal(_ZERO4, reader.GetBlobBytes(constant.Value))
 
                             Case "F22", "F23", "F24", "F25", "F35", "F36", "F37", "F38", "F41"
                                 ' Constant: int32(1)
-                                Assert.Equal(ELEMENT_TYPE_I4, constant.TypeCode)
-                                AssertEx.Equal(ONE4, reader.GetBlobBytes(constant.Value))
+                                Assert.Equal(s_ELEMENT_TYPE_I4, constant.TypeCode)
+                                AssertEx.Equal(_ONE4, reader.GetBlobBytes(constant.Value))
 
                             Case Else
                                 Assert.True(False, "Unknown field: " + name)
@@ -1345,7 +1345,7 @@ End Interface
             End Using
         End Sub
 
-        Private Function HasAnyCustomAttribute(reader As MetadataReader, parent As Handle) As Boolean
+        Private Function HasAnyCustomAttribute(reader As MetadataReader, parent As EntityHandle) As Boolean
             For Each ca In reader.CustomAttributes
                 If reader.GetCustomAttribute(ca).Parent = parent Then
                     Return True
@@ -1391,7 +1391,7 @@ End Module
 </compilation>
 
             Dim reference As MetadataReference = Nothing
-            Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value)
+            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource.Value)
                 reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
             End Using
 
@@ -1408,6 +1408,81 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 </errors>)
         End Sub
 
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
+        Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation01()
+            Dim source = <compilation>
+                             <file name="a.vb">
+Class Foo(Of T)
+    Shared Sub New()
+        Foo(Of Integer).X = 12
+        Foo(Of Integer).Y = 12
+        Foo(Of T).X = 12
+        Foo(Of T).Y = 12
+    End Sub
+
+    Public Shared ReadOnly X As Integer
+    Public Shared ReadOnly Property Y As Integer = 0
+End Class
+                             </file>
+                         </compilation>
+
+            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll,
+                                                                                   parseOptions:=TestOptions.Regular.WithStrictFeature())
+
+            CompilationUtils.AssertTheseDiagnostics(standardCompilation, <expected>
+BC30526: Property 'Y' is 'ReadOnly'.
+        Foo(Of Integer).Y = 12
+        ~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            CompilationUtils.AssertTheseDiagnostics(strictCompilation, <expected>
+BC30064: 'ReadOnly' variable cannot be the target of an assignment.
+        Foo(Of Integer).X = 12
+        ~~~~~~~~~~~~~~~~~
+BC30526: Property 'Y' is 'ReadOnly'.
+        Foo(Of Integer).Y = 12
+        ~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact, WorkItem(1028, "https://github.com/dotnet/roslyn/issues/1028")>
+        Public Sub WriteOfReadonlySharedMemberOfAnotherInstantiation02()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module M1
+    Sub Main()
+        Console.WriteLine(Foo(Of Long).X)
+        Console.WriteLine(Foo(Of Integer).X)
+        Console.WriteLine(Foo(Of String).X)
+        Console.WriteLine(Foo(Of Integer).X)
+    End Sub
+End Module
+
+Public Class Foo(Of T)
+    Shared Sub New()
+        Console.WriteLine("Initializing for {0}", GetType(T))
+        Foo(Of Integer).X = GetType(T).Name
+    End Sub
+
+    Public Shared ReadOnly X As String
+End Class
+    </file>
+</compilation>,
+verify:=False,
+expectedOutput:=<![CDATA[Initializing for System.Int64
+Initializing for System.Int32
+
+Int64
+Initializing for System.String
+
+String
+]]>)
+        End Sub
+
 #Region "Helpers"
         Private Shared Function CompileAndExtractTypeSymbol(sources As Xml.Linq.XElement, Optional typeName As String = "C") As SourceNamedTypeSymbol
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
@@ -1417,7 +1492,7 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 
         Private Shared Function GetMember(sources As Xml.Linq.XElement, fieldName As String, Optional typeName As String = "C") As Symbol
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
-            Dim symbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single.GetMembers(fieldName).Single(), symbol)
+            Dim symbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetTypeMembers(typeName).Single.GetMembers(fieldName).Single(), Symbol)
             Return symbol
         End Function
 
@@ -1452,7 +1527,7 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 
         Private Shared Sub CheckBoundInitializers(expectedInitializers As IEnumerable(Of ExpectedInitializer), syntaxTree As SyntaxTree, boundInitializers As ImmutableArray(Of BoundInitializer), isStatic As Boolean)
             If expectedInitializers Is Nothing Then
-                Assert.[True](boundInitializers.IsDefault)
+                Assert.[True](boundInitializers.IsEmpty)
             Else
                 Assert.[True](Not boundInitializers.IsDefault)
                 Dim numInitializers As Integer = expectedInitializers.Count()
@@ -1461,7 +1536,7 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
                 For Each expectedInitializer In expectedInitializers
                     Dim boundInit = boundInitializers(i)
                     i += 1
-                    Assert.Equal(BoundKind.FieldOrPropertyInitializer, boundInit.Kind)
+                    Assert.[True](boundInit.Kind = BoundKind.FieldInitializer OrElse boundInit.Kind = BoundKind.PropertyInitializer)
                     Dim boundFieldInit = DirectCast(boundInit, BoundFieldOrPropertyInitializer)
                     Dim initValueSyntax = boundFieldInit.InitialValue.Syntax
                     If boundInit.Syntax.Kind <> SyntaxKind.AsNewClause Then
@@ -1470,8 +1545,13 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
                     End If
                     Dim initValueLineNumber = syntaxTree.GetLineSpan(initValueSyntax.Span).StartLinePosition.Line
                     Assert.Equal(expectedInitializer.LineNumber, initValueLineNumber)
-                    Dim fieldSymbol = boundFieldInit.InitializedSymbols.First
-                    Assert.Equal(expectedInitializer.FieldName, fieldSymbol.Name)
+                    Dim fieldOrPropertySymbol As Symbol
+                    If boundInit.Kind = BoundKind.FieldInitializer Then
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundFieldInitializer).InitializedFields.First
+                    Else
+                        fieldOrPropertySymbol = DirectCast(boundFieldInit, BoundPropertyInitializer).InitializedProperties.First
+                    End If
+                    Assert.Equal(expectedInitializer.FieldName, fieldOrPropertySymbol.Name)
 
                     Dim boundReceiver As BoundExpression
                     Select Case boundFieldInit.MemberAccessExpressionOpt.Kind
@@ -1496,17 +1576,16 @@ BC30799: Field 'Clazz.b' has an invalid constant value.
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Dim processedFieldInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, processedFieldInitializers, diagnostics)
+            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
             Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             For Each d In sealedDiagnostics
                 Console.WriteLine(d)
             Next
             Assert.False(sealedDiagnostics.Any())
-            Return processedFieldInitializers.BoundInitializers
+            Return processedFieldInitializers
         End Function
 
-        Class ExpectedInitializer
+        Public Class ExpectedInitializer
 
             Public Property FieldName As String
 

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !symbol.IsSealed;
         }
 
-        public static bool IsImplementable(this ISymbol symbol)
+        public static bool IsImplementableMember(this ISymbol symbol)
         {
             if (symbol != null &&
                 symbol.ContainingType != null &&
@@ -394,11 +394,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return symbol.TypeSwitch(
                 (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol p) => p.Parameters,
+                (IPropertySymbol nt) => nt.Parameters,
                 _ => ImmutableArray.Create<IParameterSymbol>());
         }
 
-#if false
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
         {
             return symbol.TypeSwitch(
@@ -406,7 +405,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (INamedTypeSymbol nt) => nt.TypeParameters,
                 _ => ImmutableArray.Create<ITypeParameterSymbol>());
         }
-#endif
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
@@ -418,7 +416,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = new List<ITypeSymbol>(symbol.GetTypeArguments());
+            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
             while (containingType != null)
@@ -427,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return ImmutableArray.CreateRange(results);
+            return results.AsImmutable();
         }
 
         public static bool IsAttribute(this ISymbol symbol)
@@ -456,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return type;
             }
 
-            var method = (IMethodSymbol)symbol;
+            var method = symbol as IMethodSymbol;
             if (method != null && !method.Parameters.Any(p => p.RefKind != RefKind.None))
             {
                 // Convert the symbol to Func<...> or Action<...>
@@ -481,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             var types = method.Parameters
                                 .Skip(skip)
                                 .Select(p =>
-                                    (object)p.Type == null ?
+                                    p.Type == null ?
                                     compilation.GetSpecialType(SpecialType.System_Object) :
                                     p.Type)
                                 .ToArray();
@@ -506,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
                             .Select(t =>
-                                (object)t == null ?
+                                t == null ?
                                 compilation.GetSpecialType(SpecialType.System_Object) :
                                 t)
                             .ToArray();
@@ -517,12 +516,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Otherwise, just default to object.
             return compilation.ObjectType;
-        }
-
-        public static bool IsDeprecated(this ISymbol symbol)
-        {
-            // TODO(cyrusn): Implement this
-            return false;
         }
 
         public static bool IsStaticType(this ISymbol symbol)
@@ -882,11 +875,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// If the <paramref name="symbol"/> is a method symbol, returns True if the method's return type is "awaitable".
-        /// If the <paramref name="symbol"/> is a type symbol, returns True if that type is "awaitable".
+        /// If the <paramref name="symbol"/> is a method symbol, returns <see langword="true"/> if the method's return type is "awaitable", but not if it's <see langword="dynamic"/>.
+        /// If the <paramref name="symbol"/> is a type symbol, returns <see langword="true"/> if that type is "awaitable".
         /// An "awaitable" is any type that exposes a GetAwaiter method which returns a valid "awaiter". This GetAwaiter method may be an instance method or an extension method.
         /// </summary>
-        public static bool IsAwaitable(this ISymbol symbol, SemanticModel semanticModel, int position)
+        public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
             IMethodSymbol methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;
@@ -905,19 +898,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     return false;
                 }
-
-                // dynamic
-                if (methodSymbol.ReturnType.TypeKind == TypeKind.Dynamic &&
-                    methodSymbol.MethodKind != MethodKind.BuiltinOperator)
-                {
-                    return true;
-                }
             }
 
             // otherwise: needs valid GetAwaiter
-            var potentialGetAwaiters = semanticModel.LookupSymbols(position, 
-                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition, 
-                                                                   name: WellKnownMemberNames.GetAwaiter, 
+            var potentialGetAwaiters = semanticModel.LookupSymbols(position,
+                                                                   container: typeSymbol ?? methodSymbol.ReturnType.OriginalDefinition,
+                                                                   name: WellKnownMemberNames.GetAwaiter,
                                                                    includeReducedExtensionMethods: true);
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
             return getAwaiters.Any(VerifyGetAwaiter);
@@ -960,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var spacePart = new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             var parts = new List<SymbolDisplayPart>();
 
-            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, "\r\nUsage:\r\n  "));
+            parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, $"\r\n{WorkspacesResources.Usage}\r\n  "));
 
             var returnType = symbol.InferAwaitableReturnType(semanticModel, position);
             returnType = returnType != null && returnType.SpecialType != SpecialType.System_Void ? returnType : null;

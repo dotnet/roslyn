@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class ForBlockContext
         Inherits ExecutableStatementContext
 
-        Private Shared _emptyNextStatement As NextStatementSyntax
+        Private Shared ReadOnly s_emptyNextStatement As NextStatementSyntax
 
         Shared Sub New()
-            _emptyNextStatement = InternalSyntaxFactory.NextStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.NextKeyword), Nothing)
+            s_emptyNextStatement = InternalSyntaxFactory.NextStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.NextKeyword), Nothing)
         End Sub
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(BeginStatement IsNot Nothing)
 
-            If endStmt Is _emptyNextStatement Then
+            If endStmt Is s_emptyNextStatement Then
                 ' This means that this block was closed by a next statement with variables. i.e. next i,j
                 ' In that case, don't create a missing next just set the next statement to nothing.
                 nextStmt = Nothing
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Exit For
                     End If
 
-                    blockSyntax = context.CreateBlockSyntax(_emptyNextStatement)
+                    blockSyntax = context.CreateBlockSyntax(s_emptyNextStatement)
                     context = context.PrevBlock
                     context = context.ProcessSyntax(blockSyntax)
                 Next

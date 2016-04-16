@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Factory that provides the <see cref="ModuleMetadata"/> for additional modules (other than <see cref="initialModules"/>) of the assembly.
+        /// Factory that provides the <see cref="ModuleMetadata"/> for additional modules (other than <see cref="_initialModules"/>) of the assembly.
         /// Shall only throw <see cref="BadImageFormatException"/> or <see cref="IOException"/>.
         /// Null of all modules were specified at construction time.
         /// </summary>
-        private readonly Func<string, ModuleMetadata> moduleFactoryOpt;
+        private readonly Func<string, ModuleMetadata> _moduleFactoryOpt;
 
         /// <summary>
         /// Modules the <see cref="AssemblyMetadata"/> was created with, in case they are eagerly allocated.
         /// </summary>
-        private readonly ImmutableArray<ModuleMetadata> initialModules;
+        private readonly ImmutableArray<ModuleMetadata> _initialModules;
 
         // Encapsulates the modules and the corresponding PEAssembly produced by the modules factory.
-        private Data lazyData;
+        private Data _lazyData;
 
         // The actual array of modules exposed via Modules property.
         // The same modules as the ones produced by the factory or their copies.
-        private ImmutableArray<ModuleMetadata> lazyPublishedModules;
+        private ImmutableArray<ModuleMetadata> _lazyPublishedModules;
 
         /// <summary>
         /// Cached assembly symbols.
@@ -71,31 +71,30 @@ namespace Microsoft.CodeAnalysis
 
         // creates a copy
         private AssemblyMetadata(AssemblyMetadata other)
-            : base(isImageOwner: false)
+            : base(isImageOwner: false, id: other.Id)
         {
             this.CachedSymbols = other.CachedSymbols;
-            this.lazyData = other.lazyData;
-            this.moduleFactoryOpt = other.moduleFactoryOpt;
-            this.initialModules = other.initialModules;
-
+            _lazyData = other._lazyData;
+            _moduleFactoryOpt = other._moduleFactoryOpt;
+            _initialModules = other._initialModules;
             // Leave lazyPublishedModules unset. Published modules will be set and copied as needed.
         }
 
         internal AssemblyMetadata(ImmutableArray<ModuleMetadata> modules)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(!modules.IsDefaultOrEmpty);
-            this.initialModules = modules;
+            _initialModules = modules;
         }
 
         internal AssemblyMetadata(ModuleMetadata manifestModule, Func<string, ModuleMetadata> moduleFactory)
-            : base(isImageOwner: true)
+            : base(isImageOwner: true, id: MetadataId.CreateNewId())
         {
             Debug.Assert(manifestModule != null);
             Debug.Assert(moduleFactory != null);
 
-            this.initialModules = ImmutableArray.Create(manifestModule);
-            this.moduleFactoryOpt = moduleFactory;
+            _initialModules = ImmutableArray.Create(manifestModule);
+            _moduleFactoryOpt = moduleFactory;
         }
 
         /// <summary>
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
         public ImmutableArray<ModuleMetadata> GetModules()
         {
-            if (lazyPublishedModules.IsDefault)
+            if (_lazyPublishedModules.IsDefault)
             {
                 var data = GetOrCreateData();
                 var newModules = data.Modules;
@@ -282,15 +281,15 @@ namespace Microsoft.CodeAnalysis
                     newModules = newModules.SelectAsArray(module => module.Copy());
                 }
 
-                ImmutableInterlocked.InterlockedInitialize(ref lazyPublishedModules, newModules);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyPublishedModules, newModules);
             }
 
-            if (lazyData == Data.Disposed)
+            if (_lazyData == Data.Disposed)
             {
                 throw new ObjectDisposedException(nameof(AssemblyMetadata));
             }
 
-            return lazyPublishedModules;
+            return _lazyPublishedModules;
         }
 
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
@@ -306,27 +305,27 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
         private Data GetOrCreateData()
         {
-            if (lazyData == null)
+            if (_lazyData == null)
             {
-                ImmutableArray<ModuleMetadata> modules = initialModules;
+                ImmutableArray<ModuleMetadata> modules = _initialModules;
                 ImmutableArray<ModuleMetadata>.Builder moduleBuilder = null;
 
                 bool createdModulesUsed = false;
                 try
                 {
-                    if (this.moduleFactoryOpt != null)
+                    if (_moduleFactoryOpt != null)
                     {
-                        Debug.Assert(initialModules.Length == 1);
+                        Debug.Assert(_initialModules.Length == 1);
 
-                        var additionalModuleNames = initialModules[0].GetModuleNames();
+                        var additionalModuleNames = _initialModules[0].GetModuleNames();
                         if (additionalModuleNames.Length > 0)
                         {
                             moduleBuilder = ImmutableArray.CreateBuilder<ModuleMetadata>(1 + additionalModuleNames.Length);
-                            moduleBuilder.Add(initialModules[0]);
+                            moduleBuilder.Add(_initialModules[0]);
 
                             foreach (string moduleName in additionalModuleNames)
                             {
-                                moduleBuilder.Add(moduleFactoryOpt(moduleName));
+                                moduleBuilder.Add(_moduleFactoryOpt(moduleName));
                             }
 
                             modules = moduleBuilder.ToImmutable();
@@ -336,14 +335,14 @@ namespace Microsoft.CodeAnalysis
                     var assembly = new PEAssembly(this, modules.SelectAsArray(m => m.Module));
                     var newData = new Data(modules, assembly);
 
-                    createdModulesUsed = Interlocked.CompareExchange(ref lazyData, newData, null) == null;
+                    createdModulesUsed = Interlocked.CompareExchange(ref _lazyData, newData, null) == null;
                 }
                 finally
                 {
                     if (moduleBuilder != null && !createdModulesUsed)
                     {
                         // dispose unused modules created above:
-                        for (int i = initialModules.Length; i < moduleBuilder.Count; i++)
+                        for (int i = _initialModules.Length; i < moduleBuilder.Count; i++)
                         {
                             moduleBuilder[i].Dispose();
                         }
@@ -351,12 +350,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (lazyData.IsDisposed)
+            if (_lazyData.IsDisposed)
             {
                 throw new ObjectDisposedException(nameof(AssemblyMetadata));
             }
 
-            return lazyData;
+            return _lazyData;
         }
 
         /// <summary>
@@ -364,7 +363,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override void Dispose()
         {
-            var previousData = Interlocked.Exchange(ref lazyData, Data.Disposed);
+            var previousData = Interlocked.Exchange(ref _lazyData, Data.Disposed);
 
             if (previousData == Data.Disposed || !this.IsImageOwner)
             {
@@ -373,7 +372,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // AssemblyMetadata assumes their ownership of all modules passed to the constructor.
-            foreach (var module in initialModules)
+            foreach (var module in _initialModules)
             {
                 module.Dispose();
             }
@@ -384,10 +383,10 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            Debug.Assert(initialModules.Length == 1 || initialModules.Length == previousData.Modules.Length);
-            
+            Debug.Assert(_initialModules.Length == 1 || _initialModules.Length == previousData.Modules.Length);
+
             // dispose additional modules created lazily:
-            for (int i = initialModules.Length; i < previousData.Modules.Length; i++)
+            for (int i = _initialModules.Length; i < previousData.Modules.Length; i++)
             {
                 previousData.Modules[i].Dispose();
             }
@@ -439,9 +438,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="display">Display string used in error messages to identity the reference.</param>
         /// <returns>A reference to the assembly metadata.</returns>
         public PortableExecutableReference GetReference(
-            DocumentationProvider documentation = null, 
+            DocumentationProvider documentation = null,
             ImmutableArray<string> aliases = default(ImmutableArray<string>),
-            bool embedInteropTypes = false, 
+            bool embedInteropTypes = false,
             string filePath = null,
             string display = null)
         {

@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal class BuildTargets
     {
-        private MSB.Evaluation.Project project;
-        private List<string> buildTargets;
+        private readonly MSB.Evaluation.Project _project;
+        private readonly List<string> _buildTargets;
 
         public BuildTargets(MSB.Evaluation.Project project, params string[] targets)
         {
-            this.project = project;
-            this.buildTargets = new List<string>();
-            this.buildTargets.AddRange(targets);
+            _project = project;
+            _buildTargets = new List<string>();
+            _buildTargets.AddRange(targets);
         }
 
         public string[] Targets
         {
-            get { return this.buildTargets.ToArray(); }
+            get { return _buildTargets.ToArray(); }
         }
 
         /// <summary>
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // its children
             var knownTargets = new HashSet<string>();
 
-            for (int i = 0; i < this.buildTargets.Count;)
+            for (int i = 0; i < _buildTargets.Count;)
             {
-                var buildTarget = this.buildTargets[i];
+                var buildTarget = _buildTargets[i];
                 if (buildTarget == target)
                 {
                     // we found it!
-                    this.buildTargets.RemoveAt(i);
+                    _buildTargets.RemoveAt(i);
 
                     // it might exist multiple times
                     continue;
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 else if (DependsOn(buildTarget, target))
                 {
                     // replace this build target with its children and check again
-                    this.buildTargets.RemoveAt(i);
+                    _buildTargets.RemoveAt(i);
 
                     int loc = i;
-                    foreach (var dependsOnTarget in GetTargetDependents(this.project, buildTarget))
+                    foreach (var dependsOnTarget in GetTargetDependents(_project, buildTarget))
                     {
                         if (!knownTargets.Contains(dependsOnTarget))
                         {
-                            this.buildTargets.Insert(loc, dependsOnTarget);
+                            _buildTargets.Insert(loc, dependsOnTarget);
                             loc++;
                         }
                     }
@@ -96,12 +96,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             bool found = false;
 
-            for (int i = 0; i < this.buildTargets.Count;)
+            for (int i = 0; i < _buildTargets.Count;)
             {
-                var buildTarget = this.buildTargets[i];
+                var buildTarget = _buildTargets[i];
                 if (found)
                 {
-                    this.buildTargets.RemoveAt(i);
+                    _buildTargets.RemoveAt(i);
                     continue;
                 }
                 else if (buildTarget == target)
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 else if (DependsOn(buildTarget, target))
                 {
                     // replace this build target with its children and check again
-                    this.buildTargets.RemoveAt(i);
+                    _buildTargets.RemoveAt(i);
 
                     int loc = i;
-                    foreach (var dependsOnTarget in GetTargetDependents(this.project, buildTarget))
+                    foreach (var dependsOnTarget in GetTargetDependents(_project, buildTarget))
                     {
                         if (!knownTargets.Contains(dependsOnTarget))
                         {
-                            this.buildTargets.Insert(loc, dependsOnTarget);
+                            _buildTargets.Insert(loc, dependsOnTarget);
                             loc++;
                         }
                     }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private bool DependsOn(string target, string dependentTarget)
         {
-            foreach (var dependsOnTarget in GetTargetDependents(this.project, target))
+            foreach (var dependsOnTarget in GetTargetDependents(_project, target))
             {
                 if (dependsOnTarget == dependentTarget || DependsOn(dependsOnTarget, dependentTarget))
                 {
@@ -151,11 +151,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return false;
         }
 
-        private static readonly char[] targetsSplitChars = new char[] { ';', '\r', '\n', '\t', ' ' };
+        private static readonly char[] s_targetsSplitChars = new char[] { ';', '\r', '\n', '\t', ' ' };
 
         private static IEnumerable<string> SplitTargets(string targets)
         {
-            return targets.Split(targetsSplitChars, StringSplitOptions.RemoveEmptyEntries);
+            return targets.Split(s_targetsSplitChars, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private static IEnumerable<string> GetTargetDependents(MSB.Evaluation.Project project, string targetName)

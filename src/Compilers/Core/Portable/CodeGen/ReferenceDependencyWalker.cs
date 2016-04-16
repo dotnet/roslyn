@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Visit return value type
             VisitTypeReference(methodReference.GetType(context), context);
-            
+
             foreach (var typeModifier in methodReference.ReturnValueCustomModifiers)
             {
                 VisitTypeReference(typeModifier.GetModifier(context), context);

@@ -236,7 +236,7 @@ abstract class AbstractFoo : IFoo
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractFoo.IFoo.this[long, int, long, int].set"));
         }
 
-        [Fact, WorkItem(542158, "DevDiv")]
+        [Fact, WorkItem(542158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542158")]
         public void TestModifiersOnExplicitEventImpl()
         {
             var text = @"
@@ -3713,7 +3713,6 @@ abstract class Derived2 : Derived
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 28, Column = 17, IsWarning = true }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 28, Column = 17, IsWarning = false }, //1.get/set
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 29, Column = 26, IsWarning = true }, //2
@@ -3794,7 +3793,6 @@ abstract class Derived2 : Derived
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 28, Column = 17, IsWarning = true }, //1
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 28, Column = 17, IsWarning = false }, //1.get/set
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 29, Column = 26, IsWarning = true }, //2
@@ -4046,7 +4044,6 @@ public class Derived : Base<int>, Interface<int, int>
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
-
         }
 
         [Fact]
@@ -4524,7 +4521,7 @@ public class Derived1 : Base
             });
         }
 
-        [WorkItem(540185, "DevDiv")]
+        [WorkItem(540185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540185")]
         [Fact]
         public void TestChangeVirtualPropertyAccessorAccessibilityWithinAssembly()
         {
@@ -4958,7 +4955,7 @@ class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15));
         }
 
-        [WorkItem(539162, "DevDiv")]
+        [WorkItem(539162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539162")]
         [Fact]
         public void TestAbstractTypeMember()
         {
@@ -5014,7 +5011,7 @@ public class Derived1 : Base
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "set").WithArguments("Derived1.this[int].set"));
         }
 
-        [WorkItem(540221, "DevDiv")]
+        [WorkItem(540221, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540221")]
         [Fact]
         public void AbstractOverrideOnePropertyAccessor()
         {
@@ -5460,7 +5457,7 @@ class NS4
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS3.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS3.Base2.Method<T>"));
         }
 
-        [WorkItem(540348, "DevDiv")]
+        [WorkItem(540348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540348")]
         [Fact]
         public void TestOverridingBrokenTypes()
         {
@@ -5779,9 +5776,8 @@ class C2 : C1, I1, I2
             var c2Type = comp.Assembly.Modules[0].GlobalNamespace.GetTypeMembers("C2").Single();
             comp.VerifyDiagnostics(DiagnosticDescription.None);
             Assert.True(c2Type.Interfaces.All(iface => iface.Name == "I1" || iface.Name == "I2"));
-
         }
-        [WorkItem(540451, "DevDiv")]
+        [WorkItem(540451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540451")]
         [Fact]
         public void TestImplicitImplSignatureMismatches()
         {
@@ -5837,7 +5833,7 @@ class Class2 : I2 // Implicit implementation
         }
 
         [Fact]
-        public void TestExplicitImplSigntureMismatches()
+        public void TestExplicitImplSignatureMismatches()
         {
             // Tests: 
             // Mismatching ref / out in signature of implemented member
@@ -6020,7 +6016,7 @@ class Class7 : Base7, Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class5", "Interface.Method<T>(long, int)").WithLocation(44, 16));
         }
 
-        [WorkItem(540470, "DevDiv")]
+        [WorkItem(540470, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540470")]
         [Fact]
         public void TestExplicitImplSignatureMismatches2()
         {
@@ -6677,7 +6673,7 @@ class Test
         public void TestErrorsOverridingGenericNestedClasses_HideTypeParameter()
         {
             // Tests:
-            // In signature / name of overriden member, use generic type whose open type (C<T>) matches signature
+            // In signature / name of overridden member, use generic type whose open type (C<T>) matches signature
             // in base class - but the closed type (C<string> / C<U>) does not match
 
             var source = @"
@@ -7140,9 +7136,9 @@ class Test
                 // (20,23): warning CS0473: Explicit interface implementation 'Explicit.I1<int, int>.Method(int, int[])' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Explicit.I1<int, int>.Method(int, int[])"));
         }
-
         [Fact]
-        void TestErrorsOverridingImplementingMember()
+
+        public void TestErrorsOverridingImplementingMember()
         {
             // Tests:
             // Members that implement interface members are usually marked as virtual sealed -
@@ -7235,16 +7231,13 @@ class Derived : Base, I
 }
 class Test
 {
-    public static void Main() { I i = new Derived(); i.Finalze(i.Finalize()); }
+    public static void Main() { I i = new Derived(); i.Finalize(i.Finalize()); }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (17,56): error CS1061: 'I' does not contain a definition for 'Finalze' and no extension method 'Finalze' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
-                //     public static void Main() { I i = new Derived(); i.Finalze(i.Finalize()); }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Finalze").WithArguments("I", "Finalze"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitMethodImplementation()
         {
@@ -7265,7 +7258,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T<S>()"));
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitPropertyImplementation()
         {
@@ -7286,7 +7279,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T"));
         }
 
-        [WorkItem(542361, "DevDiv")]
+        [WorkItem(542361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542361")]
         [Fact]
         public void TestTypeParameterExplicitEventImplementation()
         {
@@ -7328,7 +7321,7 @@ class A<T> : global::T
         }
 
         [Fact]
-        [WorkItem(1016693, "DevDiv")]
+        [WorkItem(1016693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1016693")]
         public void Bug1016693()
         {
             const string source = @"

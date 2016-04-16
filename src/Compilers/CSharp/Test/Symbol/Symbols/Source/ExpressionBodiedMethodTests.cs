@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public sealed class ExpressionBodiedMethodTests : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void PartialMethods()
         {
             var comp = CompileAndVerify(@"
@@ -139,7 +139,7 @@ abstract class C
         }
 
         [Fact]
-        [WorkItem(1009638)]
+        [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void Syntax07()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -150,7 +150,7 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(1029117)]
+        [WorkItem(1029117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029117")]
         public void Syntax08()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -296,9 +296,9 @@ class C : I, J, K
 
             method = c.GetMember<SourceMethodSymbol>("O");
             Assert.False(method.IsExplicitInterfaceImplementation);
-        } 
+        }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Emit01()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -341,7 +341,7 @@ foo
 foo8");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Emit02()
         {
             var comp = CreateCompilationWithMscorlib45(@"

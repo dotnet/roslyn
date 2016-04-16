@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace ImplementNotifyPropertyChangedCS
 {
-    [ExportCodeRefactoringProvider("ImplementNotifyPropertyChangedCS", LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "ImplementNotifyPropertyChangedCS"), Shared]
     internal partial class ImplementNotifyPropertyChangedCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

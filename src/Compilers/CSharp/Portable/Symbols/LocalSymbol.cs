@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
+
         internal abstract bool IsImportedFromMetadata
         {
             get;
@@ -201,11 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the local variable is declared in resource-acquisition of a 'using statement';
         /// otherwise false
         /// </summary>
-        /// <exmaple>
+        /// <example>
         /// <code>
         ///     using (var localVariable = new StreamReader("C:\\Temp\\MyFile.txt")) { ... } 
         /// </code>
-        /// </exmaple>
+        /// </example>
         public bool IsUsing
         {
             get
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                ConstantValue constantValue = this.GetConstantValue(null);
+                ConstantValue constantValue = this.GetConstantValue(null, null, null);
                 return constantValue != null && !constantValue.IsBad; //can be null in error scenarios
             }
         }
@@ -307,9 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-
-                ConstantValue constantValue = this.GetConstantValue(null); //null just means we aren't currently evaluating another constant
-                return constantValue == null ? null : constantValue.Value; //can be null in error scenarios
+                ConstantValue constantValue = this.GetConstantValue(null, null, null);
+                return constantValue?.Value; //can be null in error scenarios
             }
         }
 
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract ConstantValue GetConstantValue(LocalSymbol inProgress);
+        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 

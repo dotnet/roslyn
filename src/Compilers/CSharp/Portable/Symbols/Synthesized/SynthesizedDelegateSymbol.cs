@@ -8,13 +8,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    /// <summary>
+    /// Dynamic call-site delegate, for call-sites that do not
+    /// match System.Action or System.Func signatures.
+    /// </summary>
     internal sealed class SynthesizedDelegateSymbol : SynthesizedContainer
     {
-        private readonly NamespaceOrTypeSymbol containingSymbol;
-        private readonly MethodSymbol constructor;
-        private readonly MethodSymbol invoke;
+        private readonly NamespaceOrTypeSymbol _containingSymbol;
+        private readonly MethodSymbol _constructor;
+        private readonly MethodSymbol _invoke;
 
-        // constructor for dynamic call-site delegate:
         public SynthesizedDelegateSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             string name,
@@ -22,17 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol intPtrType,
             TypeSymbol voidReturnTypeOpt,
             int parameterCount,
-            BitArray byRefParameters)
+            BitVector byRefParameters)
             : base(name, parameterCount, returnsVoid: (object)voidReturnTypeOpt != null)
         {
-            this.containingSymbol = containingSymbol;
-            this.constructor = new DelegateConstructor(this, objectType, intPtrType);
-            this.invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt);
+            _containingSymbol = containingSymbol;
+            _constructor = new DelegateConstructor(this, objectType, intPtrType);
+            _invoke = new InvokeMethod(this, byRefParameters, voidReturnTypeOpt);
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return containingSymbol; }
+            get { return _containingSymbol; }
         }
 
         public override TypeKind TypeKind
@@ -42,24 +45,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MethodSymbol Constructor
         {
-            get { return constructor; }
+            get { return _constructor; }
         }
 
         public override IEnumerable<string> MemberNames
         {
-            get { return new[] { constructor.Name, invoke.Name }; }
+            get { return new[] { _constructor.Name, _invoke.Name }; }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return ImmutableArray.Create<Symbol>(constructor, invoke);
+            return ImmutableArray.Create<Symbol>(_constructor, _invoke);
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
             return
-                (name == constructor.Name) ? ImmutableArray.Create<Symbol>(constructor) :
-                (name == invoke.Name) ? ImmutableArray.Create<Symbol>(invoke) :
+                (name == _constructor.Name) ? ImmutableArray.Create<Symbol>(_constructor) :
+                (name == _invoke.Name) ? ImmutableArray.Create<Symbol>(_invoke) :
                 ImmutableArray<Symbol>.Empty;
         }
 
@@ -80,36 +83,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
         {
-            private readonly ImmutableArray<ParameterSymbol> parameters;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
 
             public DelegateConstructor(NamedTypeSymbol containingType, TypeSymbol objectType, TypeSymbol intPtrType)
                 : base(containingType)
             {
-                this.parameters = ImmutableArray.Create<ParameterSymbol>(
+                _parameters = ImmutableArray.Create<ParameterSymbol>(
                    new SynthesizedParameterSymbol(this, objectType, 0, RefKind.None, "object"),
                    new SynthesizedParameterSymbol(this, intPtrType, 1, RefKind.None, "method"));
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
             {
-                get { return parameters; }
+                get { return _parameters; }
             }
         }
 
         private sealed class InvokeMethod : SynthesizedInstanceMethodSymbol
         {
-            private readonly ImmutableArray<ParameterSymbol> parameters;
-            private readonly TypeSymbol containingType;
-            private readonly TypeSymbol returnType;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
+            private readonly TypeSymbol _containingType;
+            private readonly TypeSymbol _returnType;
 
-            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitArray byRefParameters, TypeSymbol voidReturnTypeOpt)
+            internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol voidReturnTypeOpt)
             {
                 var typeParams = containingType.TypeParameters;
 
-                this.containingType = containingType;
+                _containingType = containingType;
 
                 // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
-                this.returnType = voidReturnTypeOpt ?? typeParams.Last();
+                _returnType = voidReturnTypeOpt ?? typeParams.Last();
 
                 var parameters = new ParameterSymbol[typeParams.Length - ((object)voidReturnTypeOpt != null ? 0 : 1)];
                 for (int i = 0; i < parameters.Length; i++)
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameters[i] = new SynthesizedParameterSymbol(this, typeParams[i], i, refKind);
                 }
 
-                this.parameters = parameters.AsImmutableOrNull();
+                _parameters = parameters.AsImmutableOrNull();
             }
 
             public override string Name
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool ReturnsVoid
             {
-                get { return returnType.SpecialType == SpecialType.System_Void; }
+                get { return _returnType.SpecialType == SpecialType.System_Void; }
             }
 
             public override bool IsAsync
@@ -218,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol ReturnType
             {
-                get { return returnType; }
+                get { return _returnType; }
             }
 
             public override ImmutableArray<TypeSymbol> TypeArguments
@@ -233,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters
             {
-                get { return parameters; }
+                get { return _parameters; }
             }
 
             public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
@@ -268,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol ContainingSymbol
             {
-                get { return containingType; }
+                get { return _containingType; }
             }
 
             public override ImmutableArray<Location> Locations
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    // Invoke method of a deelgate used in a dynamic call-site must be public 
+                    // Invoke method of a delegate used in a dynamic call-site must be public 
                     // since the DLR looks only for public Invoke methods:
                     return Accessibility.Public;
                 }

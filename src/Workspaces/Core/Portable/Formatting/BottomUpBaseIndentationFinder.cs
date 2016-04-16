@@ -15,23 +15,26 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class BottomUpBaseIndentationFinder
     {
-        private readonly TokenStream tokenStream;
-        private readonly ChainedFormattingRules formattingRules;
-        private readonly int tabSize;
-        private readonly int indentationSize;
+        private readonly TokenStream _tokenStream;
+        private readonly ChainedFormattingRules _formattingRules;
+        private readonly int _tabSize;
+        private readonly int _indentationSize;
+        private readonly SyntaxToken _lastToken;
 
         public BottomUpBaseIndentationFinder(
             ChainedFormattingRules formattingRules,
             int tabSize,
             int indentationSize,
-            TokenStream tokenStream)
+            TokenStream tokenStream,
+            SyntaxToken lastToken)
         {
             Contract.ThrowIfNull(formattingRules);
 
-            this.formattingRules = formattingRules;
-            this.tabSize = tabSize;
-            this.indentationSize = indentationSize;
-            this.tokenStream = tokenStream;
+            _formattingRules = formattingRules;
+            _tabSize = tabSize;
+            _indentationSize = indentationSize;
+            _tokenStream = tokenStream;
+            _lastToken = lastToken;
         }
 
         public int? FromIndentBlockOperations(
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var alignmentBaseToken = GetAlignmentBaseTokenFor(nextToken);
                 if (alignmentBaseToken.RawKind != 0)
                 {
-                    return tree.GetTokenColumn(alignmentBaseToken, this.tabSize);
+                    return tree.GetTokenColumn(alignmentBaseToken, _tabSize);
                 }
             }
 
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetIndentationOfCurrentPosition(
                 tree.GetRoot(cancellationToken),
                 token, list, position, extraSpaces,
-                t => tree.GetTokenColumn(t, this.tabSize),
+                t => tree.GetTokenColumn(t, _tabSize),
                 cancellationToken);
         }
 
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            return GetIndentationOfCurrentPosition(root, token, list, token.SpanStart, /* extracSpaces */ 0, tokenColumnGetter, cancellationToken);
+            return GetIndentationOfCurrentPosition(root, token, list, token.SpanStart, /* extraSpaces */ 0, tokenColumnGetter, cancellationToken);
         }
 
         private int GetIndentationOfCurrentPosition(
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (operation == null)
             {
-                return indentationLevel * this.indentationSize + extraSpaces;
+                return indentationLevel * _indentationSize + extraSpaces;
             }
 
             if (operation.IsRelativeIndentation)
@@ -151,9 +154,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // If the SmartIndenter created this IndentationFinder then tokenStream will be a null hence we should do a null check on the tokenStream
                 if (operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
                 {
-                    if (tokenStream != null)
+                    if (_tokenStream != null)
                     {
-                        baseToken = tokenStream.FirstTokenOfBaseTokenLine(baseToken);
+                        baseToken = _tokenStream.FirstTokenOfBaseTokenLine(baseToken);
                     }
                     else
                     {
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 var baseIndentation = tokenColumnGetter(baseToken);
-                return Math.Max(0, baseIndentation + (indentationLevel + operation.IndentationDeltaOrPosition) * this.indentationSize);
+                return Math.Max(0, baseIndentation + (indentationLevel + operation.IndentationDeltaOrPosition) * _indentationSize);
             }
 
             if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
                 {
-                    return ValueTuple.Create(operation.IndentationDeltaOrPosition + this.indentationSize * indentationLevel, operation);
+                    return ValueTuple.Create(operation.IndentationDeltaOrPosition + _indentationSize * indentationLevel, operation);
                 }
 
                 if (operation.Option == IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // gather all indent operations 
             var list = new List<IndentBlockOperation>();
-            allNodes.Do(n => this.formattingRules.AddIndentBlockOperations(list, n));
+            allNodes.Do(n => _formattingRules.AddIndentBlockOperations(list, n, _lastToken));
 
             // sort them in right order
             list.RemoveAll(CommonFormattingHelpers.IsNull);
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             while (currentNode != null)
             {
                 list.Clear();
-                this.formattingRules.AddAlignTokensOperations(list, currentNode);
+                _formattingRules.AddAlignTokensOperations(list, currentNode, _lastToken);
 
                 if (list.Count == 0)
                 {
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var currentNode = startNode;
             while (currentNode != null)
             {
-                this.formattingRules.AddIndentBlockOperations(list, currentNode);
+                _formattingRules.AddIndentBlockOperations(list, currentNode, _lastToken);
 
                 if (list.Any(o => o != null && o.TextSpan.Contains(position)))
                 {

@@ -27,12 +27,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override ConsList<Imports> ImportsList
+        internal override ImportChain ImportChain
         {
             get
             {
-                return ConsList<Imports>.Empty;
+                return null;
             }
+        }
+
+        internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return Imports.Empty;
         }
 
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
@@ -40,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
             return this.IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);

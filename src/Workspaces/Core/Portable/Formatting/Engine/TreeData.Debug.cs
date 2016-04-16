@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         private class Debug : NodeAndText
         {
-            private readonly TreeData debugNodeData;
+            private readonly TreeData _debugNodeData;
 
             public Debug(SyntaxNode root, SourceText text) :
                 base(root, text)
             {
-                this.debugNodeData = new Node(root);
+                _debugNodeData = new Node(root);
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
             {
                 var text = base.GetTextBetween(token1, token2);
-                Contract.ThrowIfFalse(text == this.debugNodeData.GetTextBetween(token1, token2));
+                Contract.ThrowIfFalse(text == _debugNodeData.GetTextBetween(token1, token2));
 
                 return text;
             }

@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)
         {
-            if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsValueType)
+            if (fieldSymbol.IsStatic ||
+                !fieldSymbol.ContainingType.IsValueType ||
+                (object)receiver == null) // receiver may be null in error cases
             {
                 return false;
             }
@@ -61,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
         }
-
     }
 
     internal partial class BoundCall
@@ -465,14 +466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundLambda
-    {
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type)
-            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
-        {
-        }
-    }
-
     internal partial class BoundStatementList
     {
         public static BoundStatementList Synthesized(CSharpSyntaxNode syntax, params BoundStatement[] statements)
@@ -532,15 +525,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, BoundStatement statement)
         {
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, 
-                ImmutableArray.Create(statement)) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty,
+                ImmutableArray.Create(statement))
+            { WasCompilerGenerated = true };
+        }
+
+        public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, ImmutableArray<BoundStatement> statements)
+        {
+            Debug.Assert(statements.Length > 0);
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements) { WasCompilerGenerated = true };
         }
 
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, params BoundStatement[] statements)
         {
             Debug.Assert(statements.Length > 0);
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty,
-                statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
         }
     }
 

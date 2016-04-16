@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var canonicalText = SyntaxFacts.GetText(token.Kind);
 
             var builder = new StringBuilder();
-            
+
             builder.AppendFormat("Token(SyntaxKind.{0}", token.Kind);
 
             if (token.Text != canonicalText)

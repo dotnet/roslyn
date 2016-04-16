@@ -10,59 +10,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataNamedArgument : Cci.IMetadataNamedArgument
     {
-        private readonly ISymbol entity;
-        private readonly Cci.ITypeReference type;
-        private readonly Cci.IMetadataExpression value;
+        private readonly ISymbol _entity;
+        private readonly Cci.ITypeReference _type;
+        private readonly Cci.IMetadataExpression _value;
 
         public MetadataNamedArgument(ISymbol entity, Cci.ITypeReference type, Cci.IMetadataExpression value)
         {
             // entity must be one of INamedEntity or IFieldDefinition or IPropertyDefinition
-            this.entity = entity;
-            this.type = type;
-            this.value = value;
+            _entity = entity;
+            _type = type;
+            _value = value;
         }
 
         /// <summary>
         /// The name of the parameter or property or field that corresponds to the argument.
         /// </summary>
-        string Cci.IMetadataNamedArgument.ArgumentName
-        {
-            get
-            {
-                return this.entity.Name;
-            }
-        }
+        string Cci.IMetadataNamedArgument.ArgumentName => _entity.Name;
 
         /// <summary>
         /// The value of the argument.
         /// </summary>
-        Cci.IMetadataExpression Cci.IMetadataNamedArgument.ArgumentValue
-        {
-            get
-            {
-                return this.value;
-            }
-        }
+        Cci.IMetadataExpression Cci.IMetadataNamedArgument.ArgumentValue => _value;
 
         /// <summary>
         /// True if the named argument provides the value of a field.
         /// </summary>
-        bool Cci.IMetadataNamedArgument.IsField
-        {
-            get
-            {
-                return this.entity is Cci.IFieldDefinition;
-            }
-        }
+        bool Cci.IMetadataNamedArgument.IsField => _entity is Cci.IFieldDefinition;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return this.type; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _type;
     }
 }

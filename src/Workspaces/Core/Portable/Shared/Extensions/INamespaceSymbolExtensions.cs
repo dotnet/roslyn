@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class INamespaceSymbolExtensions
     {
-        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> namespaceToNameMap =
+        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> s_namespaceToNameMap =
             new ConditionalWeakTable<INamespaceSymbol, List<string>>();
-        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>>.CreateValueCallback getNameParts = GetNameParts;
+        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>>.CreateValueCallback s_getNameParts = GetNameParts;
 
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();
@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int CompareTo(this INamespaceSymbol n1, INamespaceSymbol n2)
         {
-            var names1 = namespaceToNameMap.GetValue(n1, GetNameParts);
-            var names2 = namespaceToNameMap.GetValue(n2, GetNameParts);
+            var names1 = s_namespaceToNameMap.GetValue(n1, GetNameParts);
+            var names2 = s_namespaceToNameMap.GetValue(n2, GetNameParts);
 
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {
@@ -148,6 +148,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 return ContainsAccessibleTypesOrNamespacesWorker(namespaceSymbol, assembly, namespaceQueue.Object);
             }
+        }
+
+        public static INamespaceSymbol GetQualifiedNamespace(
+            this INamespaceSymbol globalNamespace,
+            string namespaceName)
+        {
+            var namespaceSymbol = globalNamespace;
+            foreach (var name in namespaceName.Split('.'))
+            {
+                var members = namespaceSymbol.GetMembers(name);
+                namespaceSymbol = members.Count() == 1
+                        ? members.First() as INamespaceSymbol
+                        : null;
+
+                if ((object)namespaceSymbol == null)
+                {
+                    break;
+                }
+            }
+            return namespaceSymbol;
         }
 
         private static bool ContainsAccessibleTypesOrNamespacesWorker(

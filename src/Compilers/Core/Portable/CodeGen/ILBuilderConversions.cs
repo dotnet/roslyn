@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -330,7 +331,5 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(toPredefTypeKind);
             }
         }
-
-
     }
 }

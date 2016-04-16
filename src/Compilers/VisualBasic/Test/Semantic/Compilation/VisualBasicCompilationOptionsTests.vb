@@ -58,31 +58,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithOptionCompareText(value), Function(opt) opt.OptionCompareText, True)
 
             TestProperty(Function(old, value) old.WithParseOptions(value), Function(opt) opt.ParseOptions,
-                         New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
+                         New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
 
             TestProperty(Function(old, value) old.WithEmbedVbCoreRuntime(value), Function(opt) opt.EmbedVbCoreRuntime, True)
             TestProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
             TestProperty(Function(old, value) old.WithOverflowChecks(value), Function(opt) opt.CheckOverflow, False)
             TestProperty(Function(old, value) old.WithCryptoKeyContainer(value), Function(opt) opt.CryptoKeyContainer, "foo")
             TestProperty(Function(old, value) old.WithCryptoKeyFile(value), Function(opt) opt.CryptoKeyFile, "foo")
+            TestProperty(Function(old, value) old.WithCryptoPublicKey(value), Function(opt) opt.CryptoPublicKey, ImmutableArray.CreateRange(Of Byte)({1, 2, 3, 4}))
             TestProperty(Function(old, value) old.WithDelaySign(value), Function(opt) opt.DelaySign, True)
             TestProperty(Function(old, value) old.WithPlatform(value), Function(opt) opt.Platform, Platform.X64)
             TestProperty(Function(old, value) old.WithGeneralDiagnosticOption(value), Function(opt) opt.GeneralDiagnosticOption, ReportDiagnostic.Suppress)
 
             TestProperty(Function(old, value) old.WithSpecificDiagnosticOptions(value), Function(opt) opt.SpecificDiagnosticOptions,
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
+            TestProperty(Function(old, value) old.WithReportSuppressedDiagnostics(value), Function(opt) opt.ReportSuppressedDiagnostics, True)
 
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
             TestProperty(Function(old, value) old.WithExtendedCustomDebugInformation(value), Function(opt) opt.ExtendedCustomDebugInformation, False)
+            TestProperty(Function(old, value) old.WithCurrentLocalTime(value), Function(opt) opt.CurrentLocalTime, #2015/1/1#)
+            TestProperty(Function(old, value) old.WithDebugPlusMode(value), Function(opt) opt.DebugPlusMode, True)
 
             TestProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))
             TestProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
-            TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New AssemblyReferenceResolver(New MetadataFileReferenceResolver({}, Nothing), New MetadataFileReferenceProvider()))
+            TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New TestMetadataReferenceResolver())
             TestProperty(Function(old, value) old.WithAssemblyIdentityComparer(value), Function(opt) opt.AssemblyIdentityComparer, New DesktopAssemblyIdentityComparer(New AssemblyPortabilityPolicy()))
             TestProperty(Function(old, value) old.WithStrongNameProvider(value), Function(opt) opt.StrongNameProvider, New DesktopStrongNameProvider())
         End Sub
 
-        Sub WithXxx()
+        Public Sub WithXxx()
             AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName(Nothing).Errors,
 <expected>
 BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
@@ -455,7 +459,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
-            ' Suppress All with treaing 42024 as an error, which will be ignored
+            ' Suppress All with treating 42024 as an error, which will be ignored
             ' vbc a.vb /warnaserror:42024 /nowarn or
             ' vbc a.vb /nowarn /warnaserror
             warnings = New Dictionary(Of String, ReportDiagnostic)()
@@ -466,7 +470,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(529809, "DevDiv")>
+        <Fact, WorkItem(529809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529809")>
         Public Sub NetModuleWithVbCore()
             Dim options As New VisualBasicCompilationOptions(OutputKind.NetModule, embedVbCoreRuntime:=True)
 
@@ -495,65 +499,19 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 "OptionExplicit",
                 "OptionCompareText",
                 "EmbedVbCoreRuntime",
+                "SuppressEmbeddedDeclarations",
                 "ParseOptions")
         End Sub
 
         <Fact>
-        Public Sub Serializability1()
-            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
-                outputKind:=OutputKind.WindowsApplication,
-                generalDiagnosticOption:=ReportDiagnostic.Hidden,
-                specificDiagnosticOptions:={KeyValuePair.Create("VB0001", ReportDiagnostic.Suppress)},
-                globalImports:={GlobalImport.Parse("Foo.Bar")})))
-        End Sub
+        Public Sub WithCryptoPublicKey()
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
-        <Fact>
-        Public Sub Serializability2()
-            VerifySerializability(New VisualBasicSerializableCompilationOptions(New VisualBasicCompilationOptions(
-                outputKind:=OutputKind.WindowsApplication,
-                parseOptions:=New VisualBasicParseOptions(
-                    languageVersion:=LanguageVersion.VisualBasic14,
-                    documentationMode:=DocumentationMode.Diagnose,
-                    preprocessorSymbols:={KeyValuePair.Create(Of String, Object)("s", 1), KeyValuePair.Create(Of String, Object)("t", 2)}))))
-        End Sub
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.CryptoPublicKey)
+            Assert.Equal(ImmutableArray(Of Byte).Empty, options.WithCryptoPublicKey(Nothing).CryptoPublicKey)
 
-        <Fact>
-        Public Sub Serializability3()
-            Dim parseOptions = New VisualBasicParseOptions(
-                languageVersion:=LanguageVersion.VisualBasic10,
-                documentationMode:=DocumentationMode.Diagnose,
-                kind:=SourceCodeKind.Regular,
-                preprocessorSymbols:=ImmutableArray.Create(New KeyValuePair(Of String, Object)("key", "Value")))
-
-            Dim compilationOptions = New VisualBasicCompilationOptions(
-                OutputKind.ConsoleApplication,
-                globalImports:={GlobalImport.Parse("Foo.Bar")},
-                rootNamespace:="Alpha.Beta",
-                optionStrict:=OptionStrict.Custom,
-                optionInfer:=False,
-                optionExplicit:=False,
-                optionCompareText:=True,
-                embedVbCoreRuntime:=True,
-                parseOptions:=parseOptions)
-
-            Dim deserializedCompilationOptions = VerifySerializability(New VisualBasicSerializableCompilationOptions(compilationOptions)).Options
-
-            Assert.Equal(compilationOptions.GlobalImports.First().Name,
-                         deserializedCompilationOptions.GlobalImports.First().Name)
-            Assert.Equal(compilationOptions.RootNamespace,
-                         deserializedCompilationOptions.RootNamespace)
-            Assert.Equal(compilationOptions.OptionStrict,
-                         deserializedCompilationOptions.OptionStrict)
-            Assert.Equal(compilationOptions.OptionInfer,
-                         deserializedCompilationOptions.OptionInfer)
-            Assert.Equal(compilationOptions.OptionExplicit,
-                         deserializedCompilationOptions.OptionExplicit)
-            Assert.Equal(compilationOptions.OptionCompareText,
-                         deserializedCompilationOptions.OptionCompareText)
-            Assert.Equal(compilationOptions.EmbedVbCoreRuntime,
-                         deserializedCompilationOptions.EmbedVbCoreRuntime)
-            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation,
-                         deserializedCompilationOptions.ExtendedCustomDebugInformation)
+            Assert.Same(options, options.WithCryptoPublicKey(Nothing))
+            Assert.Same(options, options.WithCryptoPublicKey(ImmutableArray(Of Byte).Empty))
         End Sub
 
     End Class

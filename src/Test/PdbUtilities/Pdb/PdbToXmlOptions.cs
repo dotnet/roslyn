@@ -8,9 +8,16 @@ namespace Roslyn.Test.PdbUtilities
     public enum PdbToXmlOptions
     {
         Default = 0,
-        ResolveTokens = 1 << 1,
-        IncludeTokens = 1 << 2,
-        IncludeMethodSpans = 1 << 3,
-        ThrowOnError = 1 << 4,
+        ThrowOnError = 1 << 1,
+        ResolveTokens = 1 << 2,
+        IncludeTokens = 1 << 3,
+        IncludeMethodSpans = 1 << 4,
+        ExcludeDocuments = 1 << 5,
+        ExcludeMethods = 1 << 6,
+        ExcludeSequencePoints = 1 << 7,
+        ExcludeScopes = 1 << 8,
+        ExcludeNamespaces = 1 << 9,
+        ExcludeAsyncInfo = 1 << 10,
+        ExcludeCustomDebugInformation = 1 << 11,
     }
 }

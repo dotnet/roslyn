@@ -41,40 +41,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This dictionary stores contexts so we don't have to recreate them, which can be
         // expensive. 
-        private readonly ConcurrentCache<BinderCacheKey, Binder> binderCache;
-        private readonly CSharpCompilation compilation;
-        private readonly SyntaxTree syntaxTree;
-        private readonly BuckStopsHereBinder buckStopsHereBinder;
+        private readonly ConcurrentCache<BinderCacheKey, Binder> _binderCache;
+        private readonly CSharpCompilation _compilation;
+        private readonly SyntaxTree _syntaxTree;
+        private readonly BuckStopsHereBinder _buckStopsHereBinder;
 
         // In a typing scenario, GetBinder is regularly called with a non-zero position.
         // This results in a lot of allocations of BinderFactoryVisitors. Pooling them
         // reduces this churn to almost nothing.
-        private ObjectPool<BinderFactoryVisitor> binderFactoryVisitorPool;
+        private readonly ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
 
         internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree)
         {
-            this.compilation = compilation;
-            this.syntaxTree = syntaxTree;
+            _compilation = compilation;
+            _syntaxTree = syntaxTree;
 
-            binderFactoryVisitorPool = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(this), 64);
+            _binderFactoryVisitorPool = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(this), 64);
 
             // 50 is more or less a guess, but it seems to work fine for scenarios that I tried.
             // we need something big enough to keep binders for most classes and some methods 
             // in a typical syntax tree.
-            // On the other side, note that the whole factory is weakly referenced and therefore shortlived, 
+            // On the other side, note that the whole factory is weakly referenced and therefore short lived, 
             // making this cache big is not very useful.
             // I noticed that while compiling Roslyn C# compiler most caches never see 
             // more than 50 items added before getting collected.
-            this.binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
+            _binderCache = new ConcurrentCache<BinderCacheKey, Binder>(50);
 
-            this.buckStopsHereBinder = new BuckStopsHereBinder(compilation);
+            _buckStopsHereBinder = new BuckStopsHereBinder(compilation);
         }
 
         internal SyntaxTree SyntaxTree
         {
             get
             {
-                return syntaxTree;
+                return _syntaxTree;
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return syntaxTree.Options.Kind == SourceCodeKind.Interactive || syntaxTree.Options.Kind == SourceCodeKind.Script;
+                return _syntaxTree.Options.Kind == SourceCodeKind.Script;
             }
         }
 
@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder result = null;
 
-            BinderFactoryVisitor visitor = binderFactoryVisitorPool.Allocate();
+            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Position = position;
             result = node.Accept(visitor);
-            binderFactoryVisitorPool.Free(visitor);
+            _binderFactoryVisitorPool.Free(visitor);
 
             return result;
         }
@@ -127,53 +127,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Specify <see cref="NamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
         /// <see cref="CompilationUnitSyntax"/> for top-level imports.
         /// </param>
-        internal InContainerBinder GetImportsBinder(CSharpSyntaxNode unit)
+        /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
+        internal InContainerBinder GetImportsBinder(CSharpSyntaxNode unit, bool inUsing = false)
         {
             switch (unit.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
                     {
-                        BinderFactoryVisitor visitor = binderFactoryVisitorPool.Allocate();
+                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Position = 0;
-                        var result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
-                        binderFactoryVisitorPool.Free(visitor);
+                        var result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
+                        _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
 
                 case SyntaxKind.CompilationUnit:
                     // imports are bound by the Script class binder:
                     {
-                        BinderFactoryVisitor visitor = binderFactoryVisitorPool.Allocate();
+                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Position = 0;
-                        var result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
-                        binderFactoryVisitorPool.Free(visitor);
+                        var result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: inUsing, inScript: InScript);
+                        _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
 
                 default:
                     return null;
             }
-        }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(compilation.IsSubmission);
-
-            BinderFactoryVisitor visitor = binderFactoryVisitorPool.Allocate();
-            visitor.Position = 0;
-
-            Binder binder = visitor.VisitCompilationUnit(syntaxTree.GetCompilationUnitRoot(), inUsing: false, inScript: true);
-            binderFactoryVisitorPool.Free(visitor);
-
-            if (compilation.HostObjectType != null)
-            {
-                binder = binder.Next;
-                Debug.Assert(binder is HostObjectModelBinder);
-            }
-
-            Debug.Assert(binder.Next is InContainerBinder);
-
-            return (InteractiveUsingsBinder)binder.Next.Next;
         }
     }
 }

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly TokenStream TokenStream;
         protected readonly TaskExecutor TaskExecutor;
 
-        private readonly CancellableLazy<IList<TextChange>> lazyChanges;
-        private readonly CancellableLazy<SyntaxNode> lazyNode;
+        private readonly CancellableLazy<IList<TextChange>> _lazyChanges;
+        private readonly CancellableLazy<SyntaxNode> _lazyNode;
 
         /// <summary>
         /// span in the tree to format
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             this.FormattedSpan = formattedSpan;
             this.TaskExecutor = taskExecutor;
 
-            this.lazyChanges = new CancellableLazy<IList<TextChange>>(CreateTextChanges);
-            this.lazyNode = new CancellableLazy<SyntaxNode>(CreateFormattedRoot);
+            _lazyChanges = new CancellableLazy<IList<TextChange>>(CreateTextChanges);
+            _lazyNode = new CancellableLazy<SyntaxNode>(CreateFormattedRoot);
         }
 
         /// <summary>
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public IList<TextChange> GetTextChanges(CancellationToken cancellationToken)
         {
-            return this.lazyChanges.GetValue(cancellationToken);
+            return _lazyChanges.GetValue(cancellationToken);
         }
 
         public SyntaxNode GetFormattedRoot(CancellationToken cancellationToken)
         {
-            return this.lazyNode.GetValue(cancellationToken);
+            return _lazyNode.GetValue(cancellationToken);
         }
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
@@ -62,15 +62,21 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_CreateTextChanges, cancellationToken))
             {
                 var data = this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken);
-                var result = this.TaskExecutor
-                                 .Filter(data, d => d.Item2.ContainsChanges, d => d, cancellationToken)
-                                 .SelectMany(d => CreateTextChange(d.Item1.Item1, d.Item1.Item2, d.Item2));
 
-                return result.ToList();
+                var filtered = this.TaskExecutor
+                                 .Filter(data, d => d.Item2.ContainsChanges, d => d, cancellationToken);
+
+                var result = new List<TextChange>();
+                foreach (var f in filtered)
+                {
+                    AddTextChanges(result, f.Item1.Item1, f.Item1.Item2, f.Item2);
+                }
+
+                return result;
             }
         }
 
-        private IEnumerable<TextChange> CreateTextChange(SyntaxToken token1, SyntaxToken token2, TriviaData data)
+        private void AddTextChanges(List<TextChange> list, SyntaxToken token1, SyntaxToken token2, TriviaData data)
         {
             var span = TextSpan.FromBounds(token1.RawKind == 0 ? this.TreeInfo.StartPosition : token1.Span.End, token2.RawKind == 0 ? this.TreeInfo.EndPosition : token2.SpanStart);
             var originalString = this.TreeInfo.GetTextBetween(token1, token2);
@@ -78,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             foreach (var change in data.GetTextChanges(span))
             {
                 var oldText = (change.Span == span) ? originalString : originalString.Substring(change.Span.Start - span.Start, change.Span.Length);
-                yield return change.SimpleDiff(oldText);
+                list.Add(change.SimpleDiff(oldText));
             }
         }
 

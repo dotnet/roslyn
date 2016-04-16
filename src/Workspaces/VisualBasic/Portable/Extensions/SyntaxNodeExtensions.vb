@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -185,12 +179,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' Matches the following:
         '
         ' (whitespace* newline)+ 
-        Private ReadOnly OneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
+        Private ReadOnly s_oneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
 
         ' Matches the following:
         '
         ' (whitespace* comment whitespace* newline)+ OneOrMoreBlankLines
-        Private ReadOnly BannerMatcher As Matcher(Of SyntaxTrivia)
+        Private ReadOnly s_bannerMatcher As Matcher(Of SyntaxTrivia)
+
+        ' Used to match the following:
+        '
+        ' <start-of-file> (whitespace* comment whitespace* newline)+ blankLine*
+        Private ReadOnly s_fileBannerMatcher As Matcher(Of SyntaxTrivia)
 
         Sub New()
             Dim whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"))
@@ -200,11 +199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim comment = Match(SyntaxKind.CommentTrivia, "'")
             Dim commentLine = Matcher.Sequence(whitespace, comment, whitespace, endOfLine)
 
-            OneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
-            BannerMatcher =
+            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
+            s_bannerMatcher =
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
-                    OneOrMoreBlankLines)
+                    s_oneOrMoreBlankLines)
+            s_fileBannerMatcher =
+                Matcher.Sequence(
+                    Matcher.OneOrMore(commentLine),
+                    Matcher.Repeat(singleBlankLine))
         End Sub
 
         Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
@@ -253,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case TypeCharacter.String
                     Return "$"
                 Case Else
-                    Throw New ArgumentException("Unexpected TypeCharacter.", "type")
+                    Throw New ArgumentException("Unexpected TypeCharacter.", NameOf(type))
             End Select
         End Function
 
@@ -391,31 +394,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Also, keep track of those spans so that if we see #else/#elif we
             ' can tell if they belong to a pp span that is entirely within the
             ' node.
-            Dim ifEndIfSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance)
             Dim span = node.Span
-
-            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken, ifEndIfSpans))
+            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken))
         End Function
 
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             token As SyntaxToken,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
-            Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken, ifEndIfSpans) OrElse
-                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken, ifEndIfSpans)
+            Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) OrElse
+                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken)
         End Function
 
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             list As SyntaxTriviaList,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             For Each trivia In list
                 If textSpan.Contains(trivia.Span) Then
-                    If ContainsInterleavedDirective(textSpan, trivia, cancellationToken, ifEndIfSpans) Then
+                    If ContainsInterleavedDirective(textSpan, trivia, cancellationToken) Then
                         Return True
                     End If
                 End If
@@ -427,8 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             trivia As SyntaxTrivia,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             If trivia.HasStructure AndAlso TypeOf trivia.GetStructure() Is DirectiveTriviaSyntax Then
                 Dim parentSpan = trivia.GetStructure().Span
@@ -442,18 +440,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' this node.
                             Return True
                         End If
-
-                        If directiveSyntax.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
-                            Dim ppSpan = TextSpan.FromBounds(Math.Min(parentSpan.Start, matchSpan.Start), Math.Max(parentSpan.End, matchSpan.End))
-
-                            ifEndIfSpans = ifEndIfSpans.AddInterval(ppSpan)
-                        End If
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
-                    If Not ifEndIfSpans.IntersectsWith(parentSpan.Start) Then
-                        ' This else/elif belongs to a pp span that isn't 
-                        ' entirely within this node.
-                        Return True
+                    Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
+                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                        If Not textSpan.Contains(directives(0).SpanStart) OrElse
+                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                            ' This else/elif belongs to a pp span that isn't 
+                            ' entirely within this node.
+                            Return True
+                        End If
                     End If
                 End If
             End If
@@ -482,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTriviaToKeep = New List(Of SyntaxTrivia)(node.GetLeadingTrivia())
 
             Dim index = 0
-            OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
+            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
 
             strippedTrivia = New List(Of SyntaxTrivia)(leadingTriviaToKeep.Take(index))
 
@@ -510,11 +506,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTrivia = node.GetLeadingTrivia()
 
             ' Rules for stripping trivia: 
-            ' 1) If there is a pp directive, then it (and all precedign trivia) *must* be stripped.
-            '    This rule supercedes all other rules.
+            ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
+            '    This rule supersedes all other rules.
             ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
             '    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            '    rule does *not* supercede rule 1.
+            '    rule does *not* supersede rule 1.
             ' 3) Single line comments in a group (i.e. with no blank lines between them) belong to
             '    the node *iff* there is no blank line between it and the following trivia.
 
@@ -529,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
 
             If ppIndex <> -1 Then
-                ' We have a pp directive.  it (and all all previous trivia) must be stripped.
+                ' We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)(leadingTrivia.Take(ppIndex + 1))
                 leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia.Skip(ppIndex + 1))
             Else
@@ -537,11 +533,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)()
             End If
 
-            ' Now, consume as many banners as we can.
+            ' Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
+            ' the start of the file.
             Dim index = 0
             While (
-                OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
-                BannerMatcher.TryMatch(leadingTriviaToKeep, index))
+                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index) OrElse
+                (node.FullSpan.Start = 0 AndAlso s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, index)))
             End While
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index))
@@ -659,46 +657,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to right.
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnRightOfPosition(
-            root As SyntaxNode,
-            position As Integer,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
-
-            skippedTokenFinder =
-                If(includeSkipped, FindSkippedTokenForward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
-
-            Return FindTokenHelper.FindTokenOnRightOfPosition(Of CompilationUnitSyntax)(
-                    root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
-        ''' If the position is inside of token, return that token; otherwise, return the token to left. 
-        ''' </summary>
-        <Extension()>
-        Public Function FindTokenOnLeftOfPosition(
-            root As SyntaxNode,
-            position As Integer,
-            Optional includeSkipped As Boolean = True,
-            Optional includeDirectives As Boolean = False,
-            Optional includeDocumentationComments As Boolean = False) As SyntaxToken
-
-            Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
-
-            skippedTokenFinder =
-                If(includeSkipped, FindSkippedTokenBackward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
-
-            Return FindTokenHelper.FindTokenOnLeftOfPosition(Of CompilationUnitSyntax)(
-                    root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        ''' <summary>
         ''' Returns child node or token that contains given position.
         ''' </summary>
         ''' <remarks>
@@ -711,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim right As Integer = childList.Count - 1
             While left <= right
                 Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList.ElementAt(middle)
+                Dim node As SyntaxNodeOrToken = childList(middle)
                 Dim span = node.FullSpan
                 If position < span.Start Then
                     right = middle - 1
@@ -724,28 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException("position")
-        End Function
-
-
-        ''' <summary>
-        ''' Look inside a trivia list for a skipped token that contains the given position.
-        ''' </summary>
-        Private FindSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
-            Function(l, p) FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p)
-
-        ''' <summary>
-        ''' Look inside a trivia list for a skipped token that contains the given position.
-        ''' </summary>
-        Private FindSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
-            Function(l, p) FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p)
-
-        ''' <summary>
-        ''' get skipped tokens from the trivia list
-        ''' </summary>
-        Private Function GetSkippedTokens(list As SyntaxTriviaList) As IEnumerable(Of SyntaxToken)
-            Return list.Where(Function(t) t.RawKind = SyntaxKind.SkippedTokensTrivia) _
-                       .SelectMany(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax).Tokens)
+            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
         <Extension()>
@@ -795,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 #End If
 
                     Return SyntaxFactory.MultiLineSubLambdaExpression(
-                        singleLineLambda.Begin,
+                        singleLineLambda.SubOrFunctionHeader,
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
                 End If
@@ -906,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
                     Dim singleLineLambda = DirectCast(current, SingleLineLambdaExpressionSyntax)
                     Dim multiLineLambda = SyntaxFactory.MultiLineSubLambdaExpression(
-                        singleLineLambda.Begin,
+                        singleLineLambda.SubOrFunctionHeader,
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
 
@@ -1016,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Dim blockSpan = TextSpan.FromBounds(block.Begin.Span.End, block.End.SpanStart)
+            Dim blockSpan = TextSpan.FromBounds(block.BlockStatement.Span.End, block.EndBlockStatement.SpanStart)
             Return blockSpan.Contains(textSpan)
         End Function
 
@@ -1102,6 +1039,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 Next
             Next
+        End Function
+
+        ''' <summary>
+        ''' Given an expression within a tree of <see cref="ConditionalAccessExpressionSyntax"/>s, 
+        ''' finds the <see cref="ConditionalAccessExpressionSyntax"/> that it is part of.
+        ''' </summary>
+        ''' <param name="node"></param>
+        ''' <returns></returns>
+        <Extension>
+        Friend Function GetCorrespondingConditionalAccessExpression(node As ExpressionSyntax) As ConditionalAccessExpressionSyntax
+            Dim access As SyntaxNode = node
+            Dim parent As SyntaxNode = access.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind
+                    Case SyntaxKind.DictionaryAccessExpression,
+                         SyntaxKind.SimpleMemberAccessExpression
+
+                        If DirectCast(parent, MemberAccessExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.XmlElementAccessExpression,
+                         SyntaxKind.XmlDescendantAccessExpression,
+                         SyntaxKind.XmlAttributeAccessExpression
+
+                        If DirectCast(parent, XmlMemberAccessExpressionSyntax).Base IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.InvocationExpression
+
+                        If DirectCast(parent, InvocationExpressionSyntax).Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case SyntaxKind.ConditionalAccessExpression
+
+                        Dim conditional = DirectCast(parent, ConditionalAccessExpressionSyntax)
+                        If conditional.WhenNotNull Is access Then
+                            Return conditional
+                        ElseIf conditional.Expression IsNot access Then
+                            Return Nothing
+                        End If
+
+                    Case Else
+                        Return Nothing
+                End Select
+
+                access = parent
+                parent = access.Parent
+            End While
+
+            Return Nothing
         End Function
     End Module
 End Namespace

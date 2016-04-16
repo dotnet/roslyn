@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T"></typeparam>
     public struct Optional<T>
     {
-        private bool hasValue;
-        private T value;
+        private readonly bool _hasValue;
+        private readonly T _value;
 
         /// <summary>
         /// Initializes a new instance to the specified value.
@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="value"></param>
         public Optional(T value)
         {
-            this.hasValue = true;
-            this.value = value;
+            _hasValue = true;
+            _value = value;
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public bool HasValue
         {
-            get { return this.hasValue; }
+            get { return _hasValue; }
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public T Value
         {
-            get { return this.value; }
+            get { return _value; }
         }
 
         /// <summary>

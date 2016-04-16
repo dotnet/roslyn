@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotInheritable Class AnonymousDelegatePublicSymbol
             Inherits AnonymousTypeOrDelegatePublicSymbol
 
-            Private ReadOnly m_Members As ImmutableArray(Of SynthesizedDelegateMethodSymbol)
+            Private ReadOnly _members As ImmutableArray(Of SynthesizedDelegateMethodSymbol)
 
             Public Sub New(manager As AnonymousTypeManager, typeDescr As AnonymousTypeDescriptor)
                 MyBase.New(manager, typeDescr)
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     parameters.Free()
 
-                    m_Members = ImmutableArray.Create(delegateCtor, delegateInvoke)
+                    _members = ImmutableArray.Create(delegateCtor, delegateInvoke)
                 Else
                     ' (3) BeginInvoke
                     delegateBeginInvoke = New SynthesizedDelegateMethodSymbol(
@@ -105,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                   False, StringConstants.DelegateMethodResultParameterName))
                     delegateEndInvoke.SetParameters(parameters.ToImmutableAndFree())
 
-                    m_Members = ImmutableArray.Create(delegateCtor, delegateBeginInvoke, delegateEndInvoke, delegateInvoke)
+                    _members = ImmutableArray.Create(delegateCtor, delegateBeginInvoke, delegateEndInvoke, delegateInvoke)
                 End If
 
 #If DEBUG Then
-                For Each m In m_Members
+                For Each m In _members
                     Debug.Assert(m IsNot Nothing)
                 Next
 #End If
@@ -132,15 +132,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-                Return StaticCast(Of Symbol).From(m_Members)
+                Return StaticCast(Of Symbol).From(_members)
             End Function
 
-            Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+            Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
                 Dim newDescriptor As New AnonymousTypeDescriptor
                 If Not Me.TypeDescriptor.SubstituteTypeParametersIfNeeded(substitution, newDescriptor) Then
-                    Return Me
+                    Return New TypeWithModifiers(Me)
                 End If
-                Return Me.Manager.ConstructAnonymousDelegateSymbol(newDescriptor)
+
+                Return New TypeWithModifiers(Me.Manager.ConstructAnonymousDelegateSymbol(newDescriptor))
             End Function
 
             Public Overrides Function MapToImplementationSymbol() As NamedTypeSymbol
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property DelegateInvokeMethod As MethodSymbol
                 Get
                     ' In both regular and winmd, the last member is invoke
-                    Return m_Members(m_Members.Length - 1)
+                    Return _members(_members.Length - 1)
                 End Get
             End Property
 

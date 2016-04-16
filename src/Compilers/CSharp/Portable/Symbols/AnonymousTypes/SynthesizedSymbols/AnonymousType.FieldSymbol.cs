@@ -14,22 +14,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class AnonymousTypeFieldSymbol : FieldSymbol
         {
-            private readonly PropertySymbol property;
+            private readonly PropertySymbol _property;
 
             public AnonymousTypeFieldSymbol(PropertySymbol property)
             {
                 Debug.Assert((object)property != null);
-                this.property = property;
+                _property = property;
             }
 
             internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             {
-                return this.property.Type;
+                return _property.Type;
             }
 
             public override string Name
             {
-                get { return GeneratedNames.MakeAnonymousTypeBackingFieldName(this.property.Name); }
+                get { return GeneratedNames.MakeAnonymousTypeBackingFieldName(_property.Name); }
             }
 
             internal override bool HasSpecialName
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return this.property;
+                    return _property;
                 }
             }
 
@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol ContainingSymbol
             {
-                get { return this.property.ContainingType; }
+                get { return _property.ContainingType; }
             }
 
             public override NamedTypeSymbol ContainingType
             {
                 get
                 {
-                    return this.property.ContainingType;
+                    return _property.ContainingType;
                 }
             }
 

@@ -219,6 +219,9 @@
   <data name="IDS_FeatureAutoImplementedProperties" xml:space="preserve">
     <value>automatically implemented properties</value>
   </data>
+  <data name="IDS_FeatureReadonlyAutoImplementedProperties" xml:space="preserve">
+    <value>readonly automatically implemented properties</value>
+  </data>
   <data name="IDS_FeatureObjectInitializer" xml:space="preserve">
     <value>object initializer</value>
   </data>
@@ -373,7 +376,7 @@
     <value>Metadata file '{0}' could not be found</value>
   </data>
   <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
-    <value>Metadata references not supported.</value>
+    <value>Metadata references are not supported.</value>
   </data>
   <data name="FTL_MetadataCantOpenFile" xml:space="preserve">
     <value>Metadata file '{0}' could not be opened -- {1}</value>
@@ -1418,6 +1421,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_RecursiveConstructorCall" xml:space="preserve">
     <value>Constructor '{0}' cannot call itself</value>
   </data>
+  <data name="ERR_IndirectRecursiveConstructorCall" xml:space="preserve">
+    <value>Constructor '{0}' cannot call itself through another constructor</value>
+  </data>
   <data name="ERR_ObjectCallingBaseConstructor" xml:space="preserve">
     <value>'{0}' has no base class and cannot call a base constructor</value>
   </data>
@@ -1546,9 +1552,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
-  </data>
-  <data name="ERR_ParameterlessStructCtorsMustBePublic" xml:space="preserve">
-    <value>Parameterless instance constructors in structs must be public</value>
   </data>
   <data name="ERR_CantOverrideBogusMethod" xml:space="preserve">
     <value>'{0}': cannot override '{1}' because it is not supported by the language</value>
@@ -1755,7 +1758,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Not a valid attribute location for this declaration</value>
   </data>
   <data name="WRN_InvalidAttributeLocation" xml:space="preserve">
-    <value>'{0}' is not a recognized attribute location. All attributes in this block will be ignored.</value>
+    <value>'{0}' is not a recognized attribute location. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</value>
   </data>
   <data name="WRN_InvalidAttributeLocation_Title" xml:space="preserve">
     <value>Not a recognized attribute location</value>
@@ -2136,7 +2139,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Auto-implemented property property '{0}' must be fully assigned before control is returned to the caller.</value>
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -2272,6 +2275,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_UnexpectedCharacter" xml:space="preserve">
     <value>Unexpected character '{0}'</value>
+  </data>
+  <data name="ERR_UnexpectedToken" xml:space="preserve">
+    <value>Unexpected token '{0}'</value>
   </data>
   <data name="ERR_ProtectedInStatic" xml:space="preserve">
     <value>'{0}': static classes cannot contain protected members</value>
@@ -2626,11 +2632,11 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_MissingCoClass" xml:space="preserve">
     <value>The managed coclass wrapper class '{0}' for interface '{1}' cannot be found (are you missing an assembly reference?)</value>
   </data>
-  <data name="ERR_AmbigousAttribute" xml:space="preserve">
+  <data name="ERR_AmbiguousAttribute" xml:space="preserve">
     <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
-    <value>Argument {0} should not be passed with the '{1}' keyword</value>
+    <value>Argument {0} may not be passed with the '{1}' keyword</value>
   </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
@@ -3222,10 +3228,10 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>No source files specified.</value>
   </data>
   <data name="WRN_NoSources_Title" xml:space="preserve">
-    <value>No source files specified.</value>
+    <value>No source files specified</value>
   </data>
-  <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.csx file) but none specified</value>
+  <data name="ERR_ExpectedSingleScript" xml:space="preserve">
+    <value>Expected a script (.csx file) but none specified</value>
   </data>
   <data name="ERR_OpenResponseFile" xml:space="preserve">
     <value>Error opening response file '{0}'</value>
@@ -3357,7 +3363,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'{0}': base type '{1}' is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadBase_Title" xml:space="preserve">
-    <value>'Base type is not CLS-compliant</value>
+    <value>Base type is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadBase_Description" xml:space="preserve">
     <value>A base type was marked as not having to be compliant with the Common Language Specification (CLS) in an assembly that was marked as being CLS compliant. Either remove the attribute that specifies the assembly is CLS compliant or remove the attribute that indicates the type is not CLS compliant.</value>
@@ -3524,11 +3530,14 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>
+  <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
+    <value>The 'await' operator cannot be used in a static script variable initializer.</value>
+  </data>
   <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
     <value>Cannot await in an unsafe context</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
-    <value>The 'async' modifier can only be used in methods that have a statement body.</value>
+    <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
@@ -3558,7 +3567,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Because this call is not awaited, execution of the current method continues before the call is completed</value>
   </data>
   <data name="WRN_UnobservedAwaitableExpression_Description" xml:space="preserve">
-    <value>The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn’t apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn't what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from the method that contains the call.
+    <value>The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn't apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn't what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from the method that contains the call.
 
 An equally important issue is what happens to exceptions that are raised in the called async method. An exception that's raised in a method that returns a Task or Task&lt;TResult&gt; is stored in the returned task. If you don't await the task or explicitly check for exceptions, the exception is lost. If you await the task, its exception is rethrown.
 
@@ -3594,10 +3603,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerLineNumberAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation" xml:space="preserve">
-    <value>The CalleFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation_Title" xml:space="preserve">
-    <value>The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerMemberNameParamForUnconsumedLocation" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
@@ -3692,11 +3701,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_OverloadRefOutCtor" xml:space="preserve">
     <value>Cannot define overloaded constructor '{0}' because it differs from another constructor only on ref and out</value>
   </data>
-  <data name="ERR_ReturnNotAllowedInScript" xml:space="preserve">
-    <value>You cannot use 'return' in top-level script code</value>
+  <data name="ERR_YieldNotAllowedInScript" xml:space="preserve">
+    <value>Cannot use 'yield' in top-level script code</value>
   </data>
   <data name="ERR_NamespaceNotAllowedInScript" xml:space="preserve">
-    <value>You cannot declare namespace in script code</value>
+    <value>Cannot declare namespace in script code</value>
   </data>
   <data name="ERR_GlobalAttributesNotAllowed" xml:space="preserve">
     <value>Assembly and module attributes are not allowed in this context</value>
@@ -3708,7 +3717,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The entry point of the program is global script code; ignoring '{0}' entry point.</value>
   </data>
   <data name="WRN_MainIgnored_Title" xml:space="preserve">
-    <value>The entry point of the program is global script code; ignoring entry point.</value>
+    <value>The entry point of the program is global script code; ignoring entry point</value>
   </data>
   <data name="ERR_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
@@ -3784,6 +3793,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_SignButNoPrivateKey" xml:space="preserve">
     <value>Key file '{0}' is missing the private key needed for signing</value>
+  </data>
+  <data name="ERR_PublicSignButNoKey" xml:space="preserve">
+    <value>Public signing was specified and requires a public key, but no public key was specified.</value>
   </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified</value>
@@ -4107,6 +4119,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EncReferenceToAddedMember" xml:space="preserve">
     <value>Member '{0}' added during the current debug session can only be accessed from within its declaring assembly '{1}'.</value>
   </data>
+  <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
+    <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
+  </data>
   <data name="ERR_LinkedNetmoduleMetadataMustProvideFullPEImage" xml:space="preserve">
     <value>Linked netmodule metadata must provide a full PE image: '{0}'.</value>
   </data>
@@ -4155,14 +4170,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CantReferenceCompilationOf" xml:space="preserve">
     <value>Can't reference compilation of type '{0}' from {1} compilation.</value>
   </data>
-  <data name="TreesMustHaveRootNode" xml:space="preserve">
-    <value>trees[{0}] must have root node with SyntaxKind.CompilationUnit.</value>
-  </data>
   <data name="SyntaxTreeAlreadyPresent" xml:space="preserve">
     <value>Syntax tree already present</value>
-  </data>
-  <data name="Trees0" xml:space="preserve">
-    <value>trees[{0}]</value>
   </data>
   <data name="SubmissionCanOnlyInclude" xml:space="preserve">
     <value>Submission can only include script code.</value>
@@ -4198,13 +4207,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>items: must be non-empty</value>
   </data>
   <data name="UseVerbatimIdentifier" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.</value>
   </data>
   <data name="UseLiteralForTokens" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.</value>
   </data>
   <data name="UseLiteralForNumeric" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.</value>
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
@@ -4229,9 +4238,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
-  </data>
-  <data name="ThisCompilationNotInteractive" xml:space="preserve">
-    <value>This compilation doesn't represent an interactive submission.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
@@ -4326,8 +4332,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
+  <data name="IDS_ToolName" xml:space="preserve">
+    <value>Microsoft (R) Visual C# Compiler</value>
+  </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
-    <value>Microsoft (R) Visual C# Compiler version {0}</value>
+    <value>{0} version {1}</value>
   </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
@@ -4384,10 +4393,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly}         Specify debugging type ('full' is default, and 
+ /debug:{full|pdbonly|portable}
+                               Specify debugging type ('full' is default, and 
                                enables attaching a debugger to a running 
-                               program)
+                               program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
+ /deterministic                Produce a deterministic assembly
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4396,7 +4408,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /nowarn:&lt;warn list&gt;           Disable specific warning messages
  /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                                diagnostics.
-
+ /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                               diagnostics.
+ /reportanalyzer               Report additional analyzer information, such as
+                               execution time.
+ 
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks
  /unsafe[+|-]                  Allow 'unsafe' code
@@ -4407,6 +4423,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public 
+                               portion of the strong name key
+ /publicsign[+|-]              Public-sign the assembly using only the public
                                portion of the strong name key
  /keyfile:&lt;file&gt;               Specify a strong name key file
  /keycontainer:&lt;string&gt;        Specify a strong name key container
@@ -4434,6 +4452,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /fullpaths                    Compiler generates fully qualified paths
  /filealign:&lt;n&gt;                Specify the alignment used for output file 
                                sections
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Specify a mapping for source path names output by
+                               the compiler.
  /pdb:&lt;file&gt;                   Specify debug information file name (default: 
                                output file name with .pdb extension)
  /errorendlocation             Output line and column of the end location of 
@@ -4493,6 +4514,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
+  </data>
   <data name="IDS_OperationCausedStackOverflow" xml:space="preserve">
     <value>Operation caused a stack overflow.</value>
   </data>
@@ -4538,14 +4562,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DictionaryInitializerInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a dictionary initializer.</value>
   </data>
+  <data name="ERR_ExtensionCollectionElementInitializerInExpressionTree" xml:space="preserve">
+    <value>An extension Add method is not supported for a collection initializer in an expression lambda.</value>
+  </data>
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
-  </data>
-  <data name="IDS_FeatureStructParameterlessConstructors" xml:space="preserve">
-    <value>struct instance parameterless constructors</value>
   </data>
   <data name="ERR_UnclosedExpressionHole" xml:space="preserve">
     <value>Missing close delimiter '}' for interpolated expression started with '{'.</value>
@@ -4580,6 +4604,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
+    <value>await in catch blocks and finally blocks</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>
@@ -4605,18 +4632,52 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value {0} has a magnitude greater than {1} and may result in a large formatted string.</value>
   </data>
   <data name="HDN_UnusedExternAlias_Title" xml:space="preserve">
-    <value>Unused extern alias.</value>
+    <value>Unused extern alias</value>
   </data>
   <data name="HDN_UnusedUsingDirective_Title" xml:space="preserve">
-    <value>Unnecessary using directive.</value>
+    <value>Unnecessary using directive</value>
   </data>
   <data name="INF_UnableToLoadSomeTypesInAnalyzer_Title" xml:space="preserve">
-    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.</value>
+    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException</value>
   </data>
   <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
-    <value>Alignment value has a magnitude that may result in a large formatted string.</value>
+    <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+  </data>
+  <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
+    <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_LoadDirectiveOnlyAllowedInScripts" xml:space="preserve">
+    <value>#load is only allowed in scripts</value>
+  </data>
+  <data name="ERR_PPLoadFollowsToken" xml:space="preserve">
+    <value>Cannot use #load after first token in file</value>
+  </data>
+  <data name="CouldNotFindFile" xml:space="preserve">
+    <value>Could not find file.</value>
+    <comment>File path referenced in source (#load) could not be resolved.</comment>
+  </data>
+  <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
+    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+  </data>
+  <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
+    <value>Source file references are not supported.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="ERR_InvalidReal" xml:space="preserve">
+    <value>Invalid real literal.</value>
+  </data>
+  <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
+    <value>Syntax tree should be created from a submission.</value>
+  </data>
+  <data name="ERR_TooManyUserStrings" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
+  </data>
+  <data name="ERR_PeWritingFailure" xml:space="preserve">
+    <value>An error occurred while writing the output file: {0}</value>
   </data>
 </root>

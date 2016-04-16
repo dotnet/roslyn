@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class GroupTypeInferenceLambda
+    Friend Partial Class GroupTypeInferenceLambda
 
         Public Function InferLambdaReturnType(delegateParams As ImmutableArray(Of ParameterSymbol)) As TypeSymbol
             ' Return type of the lambda must be an Anonymous Type corresponding to the following initializer:

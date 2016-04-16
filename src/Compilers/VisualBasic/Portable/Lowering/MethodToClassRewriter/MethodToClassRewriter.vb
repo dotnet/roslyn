@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     ''' </summary>    
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuard
 
         ''' <summary>
         ''' For each captured variable, the corresponding field of its frame
@@ -58,11 +58,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly Diagnostics As DiagnosticBag
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
 
-        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        ''' <summary>
+        ''' During rewriting, we ignore locals that have already been rewritten to a proxy (a field on a closure class).
+        ''' However, in the EE, we need to preserve the original slots for all locals (slots for any new locals must be
+        ''' appended after the originals).  The <see cref="PreserveOriginalLocals"/> field is intended to suppress any
+        ''' rewriter logic that would result in original locals being omitted.
+        ''' </summary>
+        Protected ReadOnly PreserveOriginalLocals As Boolean
+
+        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, preserveOriginalLocals As Boolean)
             Debug.Assert(compilationState IsNot Nothing)
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
             Me.SlotAllocatorOpt = slotAllocatorOpt
+            Me.PreserveOriginalLocals = preserveOriginalLocals
         End Sub
 
 #Region "Visitors"
@@ -86,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return type
             End If
 
-            Return type.InternalSubstituteTypeParameters(Me.TypeMap)
+            Return type.InternalSubstituteTypeParameters(Me.TypeMap).Type
         End Function
 
         Public NotOverridable Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
@@ -241,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newMethod As MethodSymbol = method.OriginalDefinition
 
-                Dim newContainer As TypeSymbol = method.ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = method.ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newMethod = DirectCast(substitutedContainer.GetMemberForDefinition(newMethod), MethodSymbol)
@@ -276,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newProperty As PropertySymbol = [property].OriginalDefinition
 
-                Dim newContainer As TypeSymbol = [property].ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = [property].ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newProperty = DirectCast(substitutedContainer.GetMemberForDefinition(newProperty), PropertySymbol)
@@ -303,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newField As FieldSymbol = field.OriginalDefinition
 
-                Dim newContainer As TypeSymbol = field.ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = field.ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newField = DirectCast(substitutedContainer.GetMemberForDefinition(newField), FieldSymbol)
@@ -330,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         newLocals As ArrayBuilder(Of LocalSymbol)) As BoundBlock
 
             For Each v In node.Locals
-                If Not Me.Proxies.ContainsKey(v) Then
+                If Me.PreserveOriginalLocals OrElse Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
                     If vType = v.Type Then
 
@@ -358,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim nodeStatements = node.Statements
 
             If prologue.Count > 0 Then
-                ' Add hidden sequence point, prolog doesn't map to source, but if 
+                ' Add hidden sequence point, prologue doesn't map to source, but if 
                 ' the first statement in the block is a non-hidden sequence point
                 ' (for example, sequence point for a method block), keep it first. 
                 If nodeStatements.Length > 0 AndAlso nodeStatements(0).Syntax IsNot Nothing Then
@@ -455,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            ' merge sideeffects - prologue followed by rewritten original sideeffects
+            ' merge side-effect - prologue followed by rewritten original side-effect
             For Each s In node.SideEffects
                 Dim replacement = DirectCast(Me.Visit(s), BoundExpression)
                 If replacement IsNot Nothing Then

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Variable
 
         ''' <summary>
-        ''' Implicilty declared variable (w/o variable declaration).
+        ''' Implicitly declared variable (w/o variable declaration).
         ''' </summary>
         ImplicitVariable
 

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
-        private readonly Lazy<IEnumerable<IFormattingRule>> lazyExportedRules;
+        private readonly Lazy<IEnumerable<IFormattingRule>> _lazyExportedRules;
 
         [ImportingConstructor]
         public CSharpSyntaxFormattingService([ImportMany] IEnumerable<Lazy<IFormattingRule, OrderableLanguageMetadata>> rules)
         {
-            this.lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() =>
+            _lazyExportedRules = new Lazy<IEnumerable<IFormattingRule>>(() =>
                 ExtensionOrderer.Order(rules)
                                 .Where(x => x.Metadata.Language == LanguageNames.CSharp)
                                 .Select(x => x.Value)
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()
         {
-            var rules = this.lazyExportedRules.Value;
+            var rules = _lazyExportedRules.Value;
 
             var spaceFormattingRules = new IFormattingRule[]
                 {
@@ -54,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
+        protected override Task<AbstractFormattingResult> FormatAsync(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
-            return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken);
+            return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).FormatAsync(cancellationToken);
         }
     }
 }

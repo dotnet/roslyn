@@ -20,47 +20,71 @@ namespace Microsoft.CodeAnalysis
     public sealed partial class AssemblyIdentity : IEquatable<AssemblyIdentity>
     {
         // determines the binding model (how assembly references are matched to assembly definitions)
-        private readonly AssemblyContentType contentType;
+        private readonly AssemblyContentType _contentType;
 
         // not null, not empty:
-        private readonly string name;
+        private readonly string _name;
 
         // no version: 0.0.0.0
-        private readonly Version version;
+        private readonly Version _version;
 
         // Invariant culture is represented as empty string.
         // The culture might not exist on the system.
-        private readonly string cultureName;
+        private readonly string _cultureName;
 
         // weak name:   empty
         // strong name: full public key or empty (only token is available)
-        private readonly ImmutableArray<byte> publicKey;
+        private readonly ImmutableArray<byte> _publicKey;
 
         // weak name: empty
         // strong name: null (to be initialized), or 8 bytes (initialized)
-        private ImmutableArray<byte> lazyPublicKeyToken;
+        private ImmutableArray<byte> _lazyPublicKeyToken;
 
-        private readonly bool isRetargetable;
+        private readonly bool _isRetargetable;
 
         // cached display name
-        private string lazyDisplayName;
+        private string _lazyDisplayName;
 
         // cached hash code
-        private int lazyHashCode;
+        private int _lazyHashCode;
 
         internal const int PublicKeyTokenSize = 8;
+
+        private AssemblyIdentity(AssemblyIdentity other, Version version)
+        {
+            Debug.Assert((object)other != null);
+            Debug.Assert((object)version != null);
+
+            _contentType = other.ContentType;
+            _name = other._name;
+            _cultureName = other._cultureName;
+            _publicKey = other._publicKey;
+            _lazyPublicKeyToken = other._lazyPublicKeyToken;
+            _isRetargetable = other._isRetargetable;
+
+            _version = version;
+            _lazyDisplayName = null;
+            _lazyHashCode = 0;
+        }
+
+        internal AssemblyIdentity WithVersion(Version version) => (version == _version) ? this : new AssemblyIdentity(this, version);
 
         /// <summary>
         /// Constructs an <see cref="AssemblyIdentity"/> from its constituent parts.
         /// </summary>
         /// <param name="name">The simple name of the assembly.</param>
         /// <param name="version">The version of the assembly.</param>
-        /// <param name="cultureName">The name of the culture to associate with the assembly.</param>
+        /// <param name="cultureName">
+        /// The name of the culture to associate with the assembly. 
+        /// Specify null, <see cref="string.Empty"/>, or "neutral" (any casing) to represent <see cref="System.Globalization.CultureInfo.InvariantCulture"/>.
+        /// The name can be an arbitrary string that doesn't contain NUL character, the legality of the culture name is not validated.
+        /// </param>
         /// <param name="publicKeyOrToken">The public key or public key token of the assembly.</param>
         /// <param name="hasPublicKey">Indicates whether <paramref name="publicKeyOrToken"/> represents a public key.</param>
         /// <param name="isRetargetable">Indicates whether the assembly is retargetable.</param>
         /// <param name="contentType">Specifies the binding model for how this object will be treated in comparisons.</param>
-        /// <exception cref="ArgumentException">If <paramref name="name"/> is null, empty or contains an embedded null character.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="name"/> is null, empty or contains a NUL character.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="cultureName"/> contains a NUL character.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="contentType"/> is not a value of the <see cref="AssemblyContentType"/> enumeration.</exception>
         /// <exception cref="ArgumentException"><paramref name="version"/> contains values that are not greater than or equal to zero and less than or equal to ushort.MaxValue.</exception>
         /// <exception cref="ArgumentException"><paramref name="hasPublicKey"/> is true and <paramref name="publicKeyOrToken"/> is not set.</exception>
@@ -77,51 +101,51 @@ namespace Microsoft.CodeAnalysis
         {
             if (!IsValid(contentType))
             {
-                throw new ArgumentOutOfRangeException(CodeAnalysisResources.InvalidContentType, "contentType");
+                throw new ArgumentOutOfRangeException(nameof(contentType), CodeAnalysisResources.InvalidContentType);
             }
 
             if (!IsValidName(name))
             {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidAssemblyName, name), "name");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidAssemblyName, name), nameof(name));
             }
 
             if (!IsValidCultureName(cultureName))
             {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName), "cultureName");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName), nameof(cultureName));
             }
 
             // Version allows more values then can be encoded in metadata:
             if (!IsValid(version))
             {
-                throw new ArgumentOutOfRangeException("version");
+                throw new ArgumentOutOfRangeException(nameof(version));
             }
 
             if (hasPublicKey)
             {
                 if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
                 {
-                    throw new ArgumentException(CodeAnalysisResources.InvalidPublicKey, "publicKeyOrToken");
+                    throw new ArgumentException(CodeAnalysisResources.InvalidPublicKey, nameof(publicKeyOrToken));
                 }
             }
             else
             {
                 if (!publicKeyOrToken.IsDefaultOrEmpty && publicKeyOrToken.Length != PublicKeyTokenSize)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.InvalidSizeOfPublicKeyToken, "publicKeyOrToken");
+                    throw new ArgumentException(CodeAnalysisResources.InvalidSizeOfPublicKeyToken, nameof(publicKeyOrToken));
                 }
             }
 
             if (isRetargetable && contentType == AssemblyContentType.WindowsRuntime)
             {
-                throw new ArgumentException(CodeAnalysisResources.WinRTIdentityCantBeRetargetable, "isRetargetable");
+                throw new ArgumentException(CodeAnalysisResources.WinRTIdentityCantBeRetargetable, nameof(isRetargetable));
             }
 
-            this.name = name;
-            this.version = version ?? NullVersion;
-            this.cultureName = cultureName ?? string.Empty;
-            this.isRetargetable = isRetargetable;
-            this.contentType = contentType;
-            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
+            _name = name;
+            _version = version ?? NullVersion;
+            _cultureName = NormalizeCultureName(cultureName);
+            _isRetargetable = isRetargetable;
+            _contentType = contentType;
+            InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
 
         // asserting constructor used by SourceAssemblySymbol:
@@ -137,12 +161,12 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(IsValidCultureName(cultureName));
             Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
 
-            this.name = name;
-            this.version = version ?? NullVersion;
-            this.cultureName = cultureName ?? string.Empty;
-            this.isRetargetable = false;
-            this.contentType = AssemblyContentType.Default;
-            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
+            _name = name;
+            _version = version ?? NullVersion;
+            _cultureName = NormalizeCultureName(cultureName);
+            _isRetargetable = false;
+            _contentType = AssemblyContentType.Default;
+            InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
 
         // constructor used by metadata reader:
@@ -160,15 +184,31 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
             Debug.Assert(noThrow);
 
-            this.name = name;
-            this.version = version ?? NullVersion;
-            this.cultureName = cultureName ?? string.Empty;
-            this.contentType = IsValid(contentType) ? contentType : AssemblyContentType.Default;
-            this.isRetargetable = isRetargetable && this.contentType != AssemblyContentType.WindowsRuntime;
-            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
+            _name = name;
+            _version = version ?? NullVersion;
+            _cultureName = NormalizeCultureName(cultureName);
+            _contentType = IsValid(contentType) ? contentType : AssemblyContentType.Default;
+            _isRetargetable = isRetargetable && _contentType != AssemblyContentType.WindowsRuntime;
+            InitializeKey(publicKeyOrToken, hasPublicKey, out _publicKey, out _lazyPublicKeyToken);
         }
 
-        static private void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
+        private static string NormalizeCultureName(string cultureName)
+        {
+            // Treat "neutral" culture as invariant culture name, although it is technically not a legal culture name.
+            //
+            // A few reasons:
+            // 1) Invariant culture is displayed as "neutral" in the identity display name.
+            //    Thus a) an identity with culture "neutral" wouldn't roundrip serialization to display name.
+            //         b) an identity with culture "neutral" wouldn't compare equal to invariant culture identity, 
+            //            yet their display names are the same which is confusing.
+            //
+            // 2) The implementation of AssemblyName.CultureName on Mono incorrectly returns "neutral" for invariant culture identities.
+
+            return cultureName == null || AssemblyIdentityComparer.CultureComparer.Equals(cultureName, InvariantCultureDisplay) ?
+                string.Empty : cultureName;
+        }
+
+        private static void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
             out ImmutableArray<byte> publicKey, out ImmutableArray<byte> publicKeyToken)
         {
             if (hasPublicKey)
@@ -185,10 +225,12 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsValidCultureName(string name)
         {
-            // NOTE: if these checks change, the error messages emitted by the compilers when
-            //       this case is detected will also need to change. They currently directly
-            //       name the presence of the NUL character as the reason that the culture
-            //       name is invalid.
+            // The native compiler doesn't enforce that the culture be anything in particular. 
+            // AssemblyIdentity should preserve user input even if it is of dubious utility.
+
+            // Note: If these checks change, the error messages emitted by the compilers when
+            // this case is detected will also need to change. They currently directly
+            // name the presence of the NUL character as the reason that the culture name is invalid.
             return name == null || name.IndexOf('\0') < 0;
         }
 
@@ -220,17 +262,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The simple name of the assembly.
         /// </summary>
-        public string Name { get { return name; } }
+        public string Name { get { return _name; } }
 
         /// <summary>
         /// The version of the assembly.
         /// </summary>
-        public Version Version { get { return version; } }
+        public Version Version { get { return _version; } }
 
         /// <summary>
         /// The culture name of the assembly, or empty if the culture is neutral.
         /// </summary>
-        public string CultureName { get { return cultureName; } }
+        public string CultureName { get { return _cultureName; } }
 
         /// <summary>
         /// The AssemblyNameFlags.
@@ -239,7 +281,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (isRetargetable ? AssemblyNameFlags.Retargetable : AssemblyNameFlags.None) |
+                return (_isRetargetable ? AssemblyNameFlags.Retargetable : AssemblyNameFlags.None) |
                        (HasPublicKey ? AssemblyNameFlags.PublicKey : AssemblyNameFlags.None);
             }
         }
@@ -250,7 +292,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public AssemblyContentType ContentType
         {
-            get { return contentType; }
+            get { return _contentType; }
         }
 
         /// <summary>
@@ -258,7 +300,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasPublicKey
         {
-            get { return publicKey.Length > 0; }
+            get { return _publicKey.Length > 0; }
         }
 
         /// <summary>
@@ -266,7 +308,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<byte> PublicKey
         {
-            get { return publicKey; }
+            get { return _publicKey; }
         }
 
         /// <summary>
@@ -276,12 +318,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (lazyPublicKeyToken.IsDefault)
+                if (_lazyPublicKeyToken.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyPublicKeyToken, CalculatePublicKeyToken(publicKey), default(ImmutableArray<byte>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyPublicKeyToken, CalculatePublicKeyToken(_publicKey), default(ImmutableArray<byte>));
                 }
 
-                return lazyPublicKeyToken;
+                return _lazyPublicKeyToken;
             }
         }
 
@@ -293,9 +335,9 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 // if we don't have public key, the token is either empty or 8-byte value
-                Debug.Assert(HasPublicKey || !lazyPublicKeyToken.IsDefault);
+                Debug.Assert(HasPublicKey || !_lazyPublicKeyToken.IsDefault);
 
-                return HasPublicKey || lazyPublicKeyToken.Length > 0;
+                return HasPublicKey || _lazyPublicKeyToken.Length > 0;
             }
         }
 
@@ -304,12 +346,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsRetargetable
         {
-            get { return isRetargetable; }
+            get { return _isRetargetable; }
         }
 
         internal static bool IsFullName(AssemblyIdentityParts parts)
         {
-            var nvc = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture;
+            const AssemblyIdentityParts nvc = AssemblyIdentityParts.Name | AssemblyIdentityParts.Version | AssemblyIdentityParts.Culture;
             return (parts & nvc) == nvc && (parts & AssemblyIdentityParts.PublicKeyOrToken) != 0;
         }
 
@@ -342,7 +384,7 @@ namespace Microsoft.CodeAnalysis
         public bool Equals(AssemblyIdentity obj)
         {
             return !ReferenceEquals(obj, null)
-                && (lazyHashCode == 0 || obj.lazyHashCode == 0 || lazyHashCode == obj.lazyHashCode)
+                && (_lazyHashCode == 0 || obj._lazyHashCode == 0 || _lazyHashCode == obj._lazyHashCode)
                 && MemberwiseEqual(this, obj) == true;
         }
 
@@ -361,18 +403,24 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public override int GetHashCode()
         {
-            if (lazyHashCode == 0)
+            if (_lazyHashCode == 0)
             {
                 // Do not include PK/PKT in the hash - collisions on PK/PKT are rare (assembly identities differ only in PKT/PK)
                 // and we can't calculate hash of PKT if only PK is available
-                lazyHashCode = Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(name),
-                               Hash.Combine(version.GetHashCode(),
-                               Hash.Combine((int)contentType,
-                               Hash.Combine(isRetargetable,
-                                            AssemblyIdentityComparer.CultureComparer.GetHashCode(cultureName)))));
+                _lazyHashCode =
+                    Hash.Combine(AssemblyIdentityComparer.SimpleNameComparer.GetHashCode(_name),
+                    Hash.Combine(_version.GetHashCode(), GetHashCodeIgnoringNameAndVersion()));
             }
 
-            return lazyHashCode;
+            return _lazyHashCode;
+        }
+
+        internal int GetHashCodeIgnoringNameAndVersion()
+        {
+            return 
+                Hash.Combine((int)_contentType, 
+                Hash.Combine(_isRetargetable, 
+                AssemblyIdentityComparer.CultureComparer.GetHashCode(_cultureName)));
         }
 
         // internal for testing
@@ -391,7 +439,7 @@ namespace Microsoft.CodeAnalysis
                 result.Add(hash[l - i]);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -406,16 +454,12 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(x.name, y.name))
+            if (!AssemblyIdentityComparer.SimpleNameComparer.Equals(x._name, y._name))
             {
                 return false;
             }
 
-            if (x.version.Equals(y.version) &&
-                x.isRetargetable == y.isRetargetable &&
-                x.ContentType == y.ContentType &&
-                AssemblyIdentityComparer.CultureComparer.Equals(x.cultureName, y.cultureName) &&
-                KeysEqual(x, y))
+            if (x._version.Equals(y._version) && EqualIgnoringNameAndVersion(x, y))
             {
                 return true;
             }
@@ -423,10 +467,19 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        internal static bool EqualIgnoringNameAndVersion(AssemblyIdentity x, AssemblyIdentity y)
+        {
+            return
+                x.IsRetargetable == y.IsRetargetable &&
+                x.ContentType == y.ContentType &&
+                AssemblyIdentityComparer.CultureComparer.Equals(x.CultureName, y.CultureName) &&
+                KeysEqual(x, y);
+        }
+
         internal static bool KeysEqual(AssemblyIdentity x, AssemblyIdentity y)
         {
-            var xToken = x.lazyPublicKeyToken;
-            var yToken = y.lazyPublicKeyToken;
+            var xToken = x._lazyPublicKeyToken;
+            var yToken = y._lazyPublicKeyToken;
 
             // weak names or both strong names with initialized PKT - compare tokens:
             if (!xToken.IsDefault && !yToken.IsDefault)
@@ -437,10 +490,10 @@ namespace Microsoft.CodeAnalysis
             // both are strong names with uninitialized PKT - compare full keys:
             if (xToken.IsDefault && yToken.IsDefault)
             {
-                return x.publicKey.SequenceEqual(y.publicKey);
+                return x._publicKey.SequenceEqual(y._publicKey);
             }
 
-            // one of the strong names doesn't have PK, other other doesn't have PTK initialized.
+            // one of the strong names doesn't have PK, other doesn't have PTK initialized.
             if (xToken.IsDefault)
             {
                 return x.PublicKeyToken.SequenceEqual(yToken);
@@ -453,7 +506,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region AssemblyName convesions 
+        #region AssemblyName conversions 
 
         /// <summary>
         /// Retrieves assembly definition identity from given runtime assembly.
@@ -465,7 +518,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (assembly == null)
             {
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(assembly));
             }
 
             return FromAssemblyDefinition(assembly.GetName());
@@ -484,6 +537,19 @@ namespace Microsoft.CodeAnalysis
                 name.CultureName,
                 publicKey,
                 hasPublicKey: publicKey.Length > 0,
+                isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
+                contentType: name.ContentType);
+        }
+
+        internal static AssemblyIdentity FromAssemblyReference(AssemblyName name)
+        {
+            // AssemblyRef either has PKT or no key:
+            return new AssemblyIdentity(
+                name.Name,
+                name.Version,
+                name.CultureName,
+                ImmutableArray.Create(name.GetPublicKeyToken()),
+                hasPublicKey: false,
                 isRetargetable: (name.Flags & AssemblyNameFlags.Retargetable) != 0,
                 contentType: name.ContentType);
         }

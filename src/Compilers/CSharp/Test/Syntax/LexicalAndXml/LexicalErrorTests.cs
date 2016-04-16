@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
-        [WorkItem(535880, "DevDiv")]
-        [WorkItem(553293, "DevDiv")]
+        [WorkItem(535880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535880")]
+        [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
         [Fact]
         public void CS0594ERR_FloatOverflow()
         {
@@ -42,6 +42,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,25): error CS0594: Floating-point constant is outside the range of type 'decimal'
                 //     const decimal m1 = -3e100m;
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "3e100m").WithArguments("decimal"));
+        }
+
+        [Fact]
+        public void CS0595ERR_InvalidReal()
+        {
+            var test =
+@"public class C
+{
+    double d1 = 0e;
+    double d2 = .0e;
+    double d3 = 0.0e;
+    double d4 = 0e+;
+    double d5 = 0e-;
+}";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                  // (3,17): error CS0595: Invalid real literal
+                  //     double d1 = 0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(3, 17),
+                  // (4,17): error CS0595: Invalid real literal
+                  //     double d2 = .0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(4, 17),
+                  // (5,17): error CS0595: Invalid real literal
+                  //     double d3 = 0.0e;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(5, 17),
+                  // (6,17): error CS0595: Invalid real literal
+                  //     double d4 = 0e+;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(6, 17),
+                  // (7,17): error CS0595: Invalid real literal
+                  //     double d5 = 0e-;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(7, 17)
+                );
+        }
+
+        [WorkItem(6079, "https://github.com/dotnet/roslyn/issues/6079")]
+        [Fact]
+        public void FloatLexicalError()
+        {
+            var test =
+@"class C
+{
+    const double d1 = 0endOfDirective.Span;
+}";
+            // The precise errors don't matter so much as the fact that the compiler should not crash.
+            ParserErrorMessageTests.ParseAndValidate(test,
+                  // (3,23): error CS0595: Invalid real literal
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidReal, "").WithLocation(3, 23),
+                  // (3,25): error CS1002: ; expected
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
+                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
+                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  //     const double d1 = 0endOfDirective.Span;
+                  Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
+                );
         }
 
         [Fact]
@@ -118,7 +176,47 @@ namespace x
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_TooManyCharsInConst, ""));
         }
 
-        [WorkItem(553293, "DevDiv")]
+        [Fact]
+        public void CS1015ERR_TypeExpected()
+        {
+            var test = @"
+public class C
+{
+    public static void Main()
+    {
+        const int i = 0;
+        const const double d = 0;
+        const const const long l = 0;
+        const readonly readonly readonly const double r = 0;
+    }    
+}
+";
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (7,15): error CS1031: Type expected
+                //         const const double d = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(7, 15),
+                // (8,15): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 15),
+                // (8,21): error CS1031: Type expected
+                //         const const const long l = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 21),
+                // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
+                // (9,24): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 24),
+                // (9,33): error CS0106: The modifier 'readonly' is not valid for this item
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
+                // (9,42): error CS1031: Type expected
+                //         const readonly readonly readonly const double r = 0;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(9, 42)
+            );
+        }
+
+        [WorkItem(553293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553293")]
         [Fact]
         public void CS1021ERR_IntOverflow()
         {
@@ -164,7 +262,7 @@ using System;
 # r ""foo""
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PPReferenceFollowsToken, "r"));
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Script, Diagnostic(ErrorCode.ERR_PPReferenceFollowsToken, "r"));
         }
 
         [Fact]
@@ -185,7 +283,7 @@ public class MainClass
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OpenEndedComment, ""));
         }
 
-        [Fact, WorkItem(526993, "DevDiv")]
+        [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
         public void CS1039ERR_UnterminatedStringLit()
         {
             // TODO: extra errors
@@ -201,18 +299,18 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (6,17): error CS1039: Unterminated string literal
-                //       string s =@"string;
+    // (6,17): error CS1039: Unterminated string literal
+    //       string s =@"string;
     Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ""),
-                // (10,1): error CS1002: ; expected
+    // (10,1): error CS1002: ; expected
     Diagnostic(ErrorCode.ERR_SemicolonExpected, ""),
-                // (10,1): error CS1513: } expected
+    // (10,1): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (10,1): error CS1513: } expected
+    // (10,1): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
 
-        [Fact, WorkItem(536688, "DevDiv")]
+        [Fact, WorkItem(536688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536688")]
         public void CS1040ERR_BadDirectivePlacementpp()
         {
             var test = @"
@@ -225,7 +323,7 @@ class Test
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"));
         }
 
-        [Fact, WorkItem(526994, "DevDiv")]
+        [Fact, WorkItem(526994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526994")]
         public void CS1056ERR_UnexpectedCharacter()
         {
             // TODO: Extra errors
@@ -267,26 +365,26 @@ int x = 0;
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,// (1,8): error CS1002: ; expected
-                // using S\u005Cu0065 = System;
+                                                          // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C"),
-                // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
-                // using S\u005Cu0065 = System;
+    // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "u0065"),
-                // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
-                // using S\u005Cu0065 = System;
+    // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "System"),
-                // (1,8): error CS1056: Unexpected character '\u005C'
-                // using S\u005Cu0065 = System;
+    // (1,8): error CS1056: Unexpected character '\u005C'
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C"),
-                // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
-                // using S\u005Cu0065 = System;
+    // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_EOFExpected, "="),
-                // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
-                // using S\u005Cu0065 = System;
+    // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
+    // using S\u005Cu0065 = System;
     Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
         }
 
-        [Fact, WorkItem(536882, "DevDiv")]
+        [Fact, WorkItem(536882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536882")]
         public void CS1056RegressDisallowedUnicodeChars()
         {
             var test = @"using S\u0600 = System;
@@ -302,7 +400,7 @@ class A
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
         }
 
-        [Fact, WorkItem(535937, "DevDiv")]
+        [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]
         public void CS1646ERR_ExpectedVerbatimLiteral()
         {
             var test = @"
@@ -318,16 +416,16 @@ class Test
 
             // Roslyn more errors
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,17): error CS1525: Invalid expression term ''
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1525: Invalid expression term ''
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments(""),
-                // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
                 // (7,18): error CS1056: Unexpected character '\u0303'
                 //         int i = @\u0303;  // CS1646
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "5"));
-    // Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
+            // Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 
         [Fact]
@@ -346,14 +444,14 @@ class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
-                // (7,17): error CS1525: Invalid expression term ''
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1525: Invalid expression term ''
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments(""),
-                // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
-                //         int i = @\u0303;  // CS1646
+    // (7,17): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
-                // (7,18): error CS1056: Unexpected character '\u0303'
-                //         int i = @\u0303;  // CS1646
+    // (7,18): error CS1056: Unexpected character '\u0303'
+    //         int i = @\u0303;  // CS1646
     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0303"));
         }
 
@@ -361,7 +459,7 @@ class Test
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
 
-        [Fact, WorkItem(535871, "DevDiv"), WorkItem(527942, "DevDiv")]
+        [Fact, WorkItem(535871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535871"), WorkItem(527942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527942")]
         public void CS0078WRN_LowercaseEllSuffix()
         {
             var test = @"
@@ -384,7 +482,7 @@ Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"));
         }
 
-        [Fact, WorkItem(530118, "DevDiv")]
+        [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]
         public void TestEndIfExpectedOnEOF()
         {
             var test = @"
@@ -395,7 +493,7 @@ int 1 = 0;";
 Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(3, 11));
         }
 
-        [Fact, WorkItem(530118, "DevDiv")]
+        [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]
         public void TestEndIfExpectedOnEndRegion()
         {
             var test = @"

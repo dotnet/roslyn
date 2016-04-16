@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Class NameSyntaxComparer
+    Friend Class NameSyntaxComparer
         Implements IComparer(Of NameSyntax)
         Private ReadOnly _tokenComparer As IComparer(Of SyntaxToken)
         Friend typeComparer As TypeSyntaxComparer

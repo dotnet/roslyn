@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis
     internal class CommonPropertyEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region ObsoleteAttribute
-        private ObsoleteAttributeData obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
         public ObsoleteAttributeData ObsoleteAttributeData
         {
             get
             {
                 VerifySealed(expected: true);
-                return this.obsoleteAttributeData.IsUninitialized ? null : this.obsoleteAttributeData;
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
             }
             set
             {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
-                this.obsoleteAttributeData = value;
+                _obsoleteAttributeData = value;
                 SetDataStored();
             }
         }

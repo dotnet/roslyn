@@ -1,6 +1,7 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -9,8 +10,10 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class TestSyntaxNodes
-        Dim spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Dim NewlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
+        Inherits BasicTestBase
+
+        Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
         Private Function CreateIntegerLiteral(value As ULong) As LiteralExpressionSyntax
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(value.ToString(), LiteralBase.Decimal, TypeCharacter.None, value))
@@ -19,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Creates "1- X( 3, 4+ 8, 9)"
         Private Function CreateSimpleTree() As BinaryExpressionSyntax
             Dim operandsx() As ArgumentSyntax = {SyntaxFactory.SimpleArgument(CreateIntegerLiteral(3)),
-                                          SyntaxFactory.SimpleArgument(SyntaxFactory.AddExpression(CreateIntegerLiteral(4), SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia), CreateIntegerLiteral(8))),
+                                          SyntaxFactory.SimpleArgument(SyntaxFactory.AddExpression(CreateIntegerLiteral(4), SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia), CreateIntegerLiteral(8))),
                                           SyntaxFactory.SimpleArgument(CreateIntegerLiteral(9))}
 
             'Dim operands = New SeparatedSyntaxListBuilder(Of ArgumentSyntax)(8)
@@ -30,19 +33,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             'operands.AddSeparator(Syntax.Token(SyntaxKind.CommaToken,spaceTrivia))
             'operands.Add(Syntax.SimpleArgument(CreateIntegerLiteral(9)))
 
-            ' Use Syntax.Separatlist factory method instead of builder
+            ' Use Syntax.SeparatedList factory method instead of builder
             Dim operands = SyntaxFactory.SeparatedList(Of ArgumentSyntax)({SyntaxFactory.SimpleArgument(CreateIntegerLiteral(3)),
-                                                                     SyntaxFactory.SimpleArgument(SyntaxFactory.AddExpression(CreateIntegerLiteral(4), SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia), CreateIntegerLiteral(8))),
+                                                                     SyntaxFactory.SimpleArgument(SyntaxFactory.AddExpression(CreateIntegerLiteral(4), SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia), CreateIntegerLiteral(8))),
                                                                      SyntaxFactory.SimpleArgument(CreateIntegerLiteral(9))},
-                                                                    {SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia),
-                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia)
+                                                                    {SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia),
+                                                                     SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia)
                                                                     })
 
-            Return SyntaxFactory.SubtractExpression(CreateIntegerLiteral(1), SyntaxFactory.Token(SyntaxKind.MinusToken, trailing:=spaceTrivia),
+            Return SyntaxFactory.SubtractExpression(CreateIntegerLiteral(1), SyntaxFactory.Token(SyntaxKind.MinusToken, trailing:=_spaceTrivia),
                                              SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("X")),
-                                                                    SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia),
+                                                                    SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia),
                                                                                              operands,
-                                                                                             SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia))))
+                                                                                             SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia))))
 
         End Function
 
@@ -110,8 +113,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Loop
             End If
 
-            Assert.NotEqual(0, children.GetHashCode)
-            Assert.NotEqual(0, children.Reverse.GetHashCode)
             Dim b1 As Integer = 0
             Dim enumerator = children.GetEnumerator
             enumerator.Reset()
@@ -305,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(New TextSpan(0, 1), dig1.FullSpan)
             Dim binop = SyntaxFactory.AddExpression(
                                          CreateIntegerLiteral(4),
-                                         SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia),
+                                         SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia),
                                          CreateIntegerLiteral(8))
             Assert.Equal(New TextSpan(0, 4), binop.Span)
             Assert.Equal(New TextSpan(1, 1), binop.OperatorToken.Span)
@@ -329,8 +330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestSpans2()
-            Dim stmt1 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=spaceTrivia), CreateIntegerLiteral(5))
-            Dim stmt2 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=spaceTrivia), CreateIntegerLiteral(178))
+            Dim stmt1 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=_spaceTrivia), CreateIntegerLiteral(5))
+            Dim stmt2 = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword, trailing:=_spaceTrivia), CreateIntegerLiteral(178))
             Dim listBldr = SyntaxNodeOrTokenListBuilder.Create()
             listBldr.Add(stmt1)
             listBldr.Add(SyntaxFactory.Token(SyntaxKind.StatementTerminatorToken))
@@ -340,23 +341,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim statements = listBldr.ToList
             VerifyListSpans(statements, TextSpan.FromBounds(statements(0).FullSpan.Start, statements(statements.Count - 1).FullSpan.End))
 
-            Dim item1 = SyntaxFactory.HandlesClauseItem(SyntaxFactory.KeywordEventContainer(SyntaxFactory.Token(SyntaxKind.MeKeyword, trailing:=spaceTrivia)), SyntaxFactory.Token(SyntaxKind.DotToken, trailing:=spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia)))
-            Dim item2 = SyntaxFactory.HandlesClauseItem(SyntaxFactory.KeywordEventContainer(SyntaxFactory.Token(SyntaxKind.MeKeyword, trailing:=spaceTrivia)), SyntaxFactory.Token(SyntaxKind.DotToken, trailing:=spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "banana", spaceTrivia)))
+            Dim item1 = SyntaxFactory.HandlesClauseItem(SyntaxFactory.KeywordEventContainer(SyntaxFactory.Token(SyntaxKind.MeKeyword, trailing:=_spaceTrivia)), SyntaxFactory.Token(SyntaxKind.DotToken, trailing:=_spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia)))
+            Dim item2 = SyntaxFactory.HandlesClauseItem(SyntaxFactory.KeywordEventContainer(SyntaxFactory.Token(SyntaxKind.MeKeyword, trailing:=_spaceTrivia)), SyntaxFactory.Token(SyntaxKind.DotToken, trailing:=_spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "banana", _spaceTrivia)))
 
             listBldr.Clear()
             listBldr.Add(item1)
-            listBldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
+            listBldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
             listBldr.Add(item2)
 
-            Dim handlesClause = SyntaxFactory.HandlesClause(SyntaxFactory.Token(SyntaxKind.HandlesKeyword, trailing:=spaceTrivia), New SeparatedSyntaxList(Of HandlesClauseItemSyntax)(listBldr.ToList))
+            Dim handlesClause = SyntaxFactory.HandlesClause(SyntaxFactory.Token(SyntaxKind.HandlesKeyword, trailing:=_spaceTrivia), New SeparatedSyntaxList(Of HandlesClauseItemSyntax)(listBldr.ToList))
             VerifyAllSpans(handlesClause)
 
-            Dim modifiedIdent1 = SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia))))
-            Dim modifiedIdent2 = SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "banana", spaceTrivia), Nothing, Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia))))
+            Dim modifiedIdent1 = SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia))))
+            Dim modifiedIdent2 = SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "banana", _spaceTrivia), Nothing, Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia))))
 
             listBldr.Clear()
             listBldr.Add(modifiedIdent1)
-            listBldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
+            listBldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
             listBldr.Add(modifiedIdent2)
 
             Dim declarator = SyntaxFactory.VariableDeclarator(New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)(listBldr.ToList), Nothing, Nothing)
@@ -392,17 +393,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim l = New SyntaxTokenList
             Assert.Equal(0, l.Count)
 
-            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=spaceTrivia))
+            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=_spaceTrivia))
             Dim param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock),
                                               l,
-                                              SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia),
+                                              SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia),
                                                                              Nothing, Nothing, Nothing),
                                               Nothing,
                                               Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(0, param.Modifiers.Count)
 
-            param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), Nothing, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), Nothing, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(0, param.Modifiers.Count)
 
@@ -411,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test that list with 1 item works correctly.
         <Fact>
         Public Sub TestSingletonList()
-            Dim l = New SyntaxTokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia))
+            Dim l = New SyntaxTokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia))
             Assert.NotNull(l)
             Assert.Equal(1, l.Count)
             Assert.Equal("ByVal", l(0).ToString())
@@ -419,8 +420,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(5, l(0).Span.End)
             VerifyListSpans(l, New TextSpan(0, 6))
 
-            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=spaceTrivia))
-            Dim param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), l, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=_spaceTrivia))
+            Dim param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), l, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(1, param.Modifiers.Count)
             Assert.Equal("ByVal", l(0).ToString())
@@ -428,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(9, param.Modifiers(0).Span.End)
             VerifyAllSpans(param)
 
-            param = SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            param = SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(1, param.Modifiers.Count)
             Assert.Equal("ByVal", l(0).ToString())
@@ -441,9 +442,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestList()
             Dim bldr = New SyntaxTokenListBuilder(8)
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia))
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=spaceTrivia))
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=_spaceTrivia))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=_spaceTrivia))
             Dim l = bldr.ToList
             Assert.NotNull(l)
             Assert.Equal(3, l.Count)
@@ -458,8 +459,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(20, l(2).Span.End)
             VerifyListSpans(l, New TextSpan(0, 21))
 
-            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=spaceTrivia))
-            Dim param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), l, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            Dim attrBlock = SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.LessThanToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=_spaceTrivia))
+            Dim param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), l, SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(3, param.Modifiers.Count)
             Assert.Equal("ByVal", param.Modifiers(0).ToString())
@@ -473,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(24, param.Modifiers(2).Span.End)
             VerifyAllSpans(param)
 
-            param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            param = SyntaxFactory.Parameter(SyntaxFactory.SingletonList(attrBlock), SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=_spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             Assert.NotNull(param.Modifiers)
             Assert.Equal(3, param.Modifiers.Count)
             Assert.Equal("ByVal", param.Modifiers(0).ToString())
@@ -487,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(24, param.Modifiers(2).Span.End)
             VerifyAllSpans(param)
 
-            param = SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
+            param = SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.OptionalKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=_spaceTrivia)), SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "foo", _spaceTrivia), Nothing, Nothing, Nothing), Nothing, Nothing)
             VerifyAllSpans(param)
         End Sub
 
@@ -507,10 +508,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestEmptySeparatedList()
             CheckEmptySeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(DirectCast(Nothing, VisualBasicSyntaxNode), 0))
-            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), (New SeparatedSyntaxListBuilder(Of TypeSyntax)).ToList)
+            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=_spaceTrivia), (New SeparatedSyntaxListBuilder(Of TypeSyntax)).ToList)
             CheckEmptySeparatedList(statement.Types)
 
-            Dim arglist = SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia))
+            Dim arglist = SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia), Nothing, SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia))
             Assert.NotNull(arglist.Arguments)
             Assert.Equal(0, arglist.Arguments.Count)
             Assert.Equal(0, arglist.Arguments.SeparatorCount)
@@ -538,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CheckSingletonSeparatedList(New SeparatedSyntaxList(Of TypeSyntax)(New SyntaxNodeOrTokenList(CreateSimpleTypeName("foo"), 0)), 0)
             Dim bldr = SeparatedSyntaxListBuilder(Of TypeSyntax).Create()
             bldr.Add(CreateSimpleTypeName("foo"))
-            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), bldr.ToList)
+            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=_spaceTrivia), bldr.ToList)
             CheckSingletonSeparatedList(statement.Types, 9)
             Assert.Equal("Inherits foo", statement.ToString)
             Assert.Equal("Inherits foo ", statement.ToFullString)
@@ -549,9 +550,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestSeparatedList()
             Dim bldr = SeparatedSyntaxListBuilder(Of TypeSyntax).Create()
             bldr.Add(CreateSimpleTypeName("aaa"))
-            bldr.AddSeparator(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
+            bldr.AddSeparator(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
             bldr.Add(CreateSimpleTypeName("bbb"))
-            bldr.AddSeparator(SyntaxFactory.Token(SyntaxKind.SemicolonToken, trailing:=spaceTrivia))
+            bldr.AddSeparator(SyntaxFactory.Token(SyntaxKind.SemicolonToken, trailing:=_spaceTrivia))
             bldr.Add(CreateSimpleTypeName("cc"))
 
             Dim sepList = bldr.ToList
@@ -574,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(10, sepList.GetWithSeparators(3).SpanStart)
             Assert.Equal(12, sepList(2).SpanStart)
 
-            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), sepList)
+            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=_spaceTrivia), sepList)
             Assert.Equal("Inherits aaa , bbb ; cc", statement.ToString)
             Assert.Equal("Inherits aaa , bbb ; cc ", statement.ToFullString)
             VerifyAllSpans(statement)
@@ -699,7 +700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub TestKeywordFactoryMethods()
             ' Check simple factory for keyword.
-            Dim keyword = SyntaxFactory.Token(SyntaxKind.AliasKeyword, trailing:=spaceTrivia)
+            Dim keyword = SyntaxFactory.Token(SyntaxKind.AliasKeyword, trailing:=_spaceTrivia)
             Assert.Equal("Alias", keyword.ToString())
             Assert.Equal(5, keyword.Span.Length)
             Assert.Equal(6, keyword.FullSpan.Length)
@@ -720,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(0, keyword.TrailingTrivia().Count)
 
             ' Check factory methods giving the node kind
-            keyword = SyntaxFactory.Token(Nothing, SyntaxKind.AndAlsoKeyword, spaceTrivia, "ANDALSO")
+            keyword = SyntaxFactory.Token(Nothing, SyntaxKind.AndAlsoKeyword, _spaceTrivia, "ANDALSO")
             Assert.Equal("ANDALSO", keyword.ToString())
             Assert.Equal(7, keyword.Span.Length)
             Assert.Equal(8, keyword.FullSpan.Length)
@@ -745,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestNonTerminalFactoryMethods()
             Dim endTry As EndBlockStatementSyntax
 
-            endTry = SyntaxFactory.EndTryStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.TryKeyword, trailing:=spaceTrivia))
+            endTry = SyntaxFactory.EndTryStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.TryKeyword, trailing:=_spaceTrivia))
             Assert.Equal(7, endTry.Span.Length)
             Assert.Equal(8, endTry.FullSpan.Length)
             Assert.Equal(SyntaxKind.EndKeyword, endTry.EndKeyword.Kind)
@@ -759,8 +760,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Check that IsToken, IsTrivia, IsTerminal properties returns correct thing.
         <Fact>
         Public Sub TestTokenTriviaClassification()
-            Dim endIfStmt = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=spaceTrivia), SyntaxFactory.Token(SyntaxKind.IfKeyword, trailing:=spaceTrivia))
-            Dim plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia)
+            Dim endIfStmt = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=_spaceTrivia), SyntaxFactory.Token(SyntaxKind.IfKeyword, trailing:=_spaceTrivia))
+            Dim plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia)
             Dim comment = SyntaxFactory.CommentTrivia("'hello")
 
             Assert.True(plusToken.Node.IsToken)
@@ -792,27 +793,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private Function CreateMethodStatement() As MethodStatementSyntax
 
             Dim bldr = SyntaxNodeOrTokenListBuilder.Create()
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param1", False, "Param1", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword, trailing:=spaceTrivia))), Nothing))
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=spaceTrivia))), Nothing))
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=spaceTrivia))), Nothing))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param1", False, "Param1", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword, trailing:=_spaceTrivia))), Nothing))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=_spaceTrivia))), Nothing))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=_spaceTrivia)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=_spaceTrivia))), Nothing))
 
             Return SyntaxFactory.SubStatement(Nothing,
                                       SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxFactory.WhitespaceTrivia("         "), SyntaxKind.PublicKeyword, SyntaxFactory.WhitespaceTrivia(" "), "public"),
-                                          SyntaxFactory.Token(SyntaxKind.OverloadsKeyword, trailing:=spaceTrivia)),
+                                          SyntaxFactory.Token(SyntaxKind.OverloadsKeyword, trailing:=_spaceTrivia)),
                                       SyntaxFactory.Token(SyntaxFactory.WhitespaceTrivia("     "), SyntaxKind.SubKeyword, SyntaxFactory.WhitespaceTrivia("   "), "SUB"),
-                                      SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "MySub", False, "MySub", TypeCharacter.None, spaceTrivia),
+                                      SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "MySub", False, "MySub", TypeCharacter.None, _spaceTrivia),
                                       Nothing,
-                                      SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia),
+                                      SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia),
                                           New SeparatedSyntaxList(Of ParameterSyntax)(bldr.ToList()),
-                                          SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia)),
+                                          SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia)),
                                       Nothing, Nothing, Nothing)
         End Function
 
@@ -836,17 +837,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Check that IsMissing seems to do the right thing.
         <Fact>
         Public Sub IsMissing()
-            Dim ident = SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "hello", spaceTrivia)
+            Dim ident = SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "hello", _spaceTrivia)
             Assert.False(ident.IsMissing)
             ident = SyntaxFactory.MissingIdentifier()
             Assert.True(ident.IsMissing)
 
-            Dim punc = SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=spaceTrivia)
+            Dim punc = SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia)
             Assert.False(punc.IsMissing)
             punc = SyntaxFactory.MissingPunctuation(SyntaxKind.PlusToken)
             Assert.True(punc.IsMissing)
 
-            Dim kw = SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=spaceTrivia)
+            Dim kw = SyntaxFactory.Token(SyntaxKind.EndKeyword, trailing:=_spaceTrivia)
             Assert.False(kw.IsMissing)
             kw = SyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword)
             Assert.True(kw.IsMissing)
@@ -918,7 +919,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test simple errors on a token and its associated trivia.
         <Fact>
         Public Sub SimpleTokenErrors()
-            Dim kwModule = SyntaxFactory.Token(SyntaxKind.ModuleKeyword, trailing:=spaceTrivia)
+            Dim kwModule = SyntaxFactory.Token(SyntaxKind.ModuleKeyword, trailing:=_spaceTrivia)
             CheckErrorList(kwModule, {}, {})
             Assert.Equal(6, kwModule.Span.Length)
             Assert.Equal(7, kwModule.FullSpan.Length)
@@ -950,28 +951,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact>
         Public Sub ComplexErrors()
             Dim bldr = SyntaxNodeOrTokenListBuilder.Create()
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param1", False, "Param1", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword, trailing:=spaceTrivia))), Nothing))
-            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia))
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=spaceTrivia)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=spaceTrivia))), Nothing).AddError(CreateDiagnosticInfo(101)))
-            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VisualBasicSyntaxNode))
-            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(New SyntaxToken(Nothing, CType(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=spaceTrivia).Node.AddError(CreateDiagnosticInfo(44)), InternalSyntax.KeywordSyntax), 0, 0)),
-                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, spaceTrivia), Nothing, Nothing, Nothing),
-                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=spaceTrivia))), Nothing))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param1", False, "Param1", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword, trailing:=_spaceTrivia))), Nothing))
+            bldr.Add(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ByValKeyword, trailing:=_spaceTrivia)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param2", False, "Param2", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword, trailing:=_spaceTrivia))), Nothing).AddError(CreateDiagnosticInfo(101)))
+            bldr.Add(DirectCast(SyntaxFactory.Token(SyntaxKind.CommaToken, trailing:=_spaceTrivia).Node.AddError(CreateDiagnosticInfo(33)), InternalSyntax.VisualBasicSyntaxNode))
+            bldr.Add(SyntaxFactory.Parameter(Nothing, SyntaxFactory.TokenList(New SyntaxToken(Nothing, CType(SyntaxFactory.Token(SyntaxKind.ByRefKeyword, trailing:=_spaceTrivia).Node.AddError(CreateDiagnosticInfo(44)), InternalSyntax.KeywordSyntax), 0, 0)),
+                                                                     SyntaxFactory.ModifiedIdentifier(SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "Param3", False, "Param3", TypeCharacter.None, _spaceTrivia), Nothing, Nothing, Nothing),
+                                                                     SyntaxFactory.SimpleAsClause(SyntaxFactory.Token(SyntaxKind.AsKeyword, trailing:=_spaceTrivia), Nothing, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword, trailing:=_spaceTrivia))), Nothing))
 
             Dim methodDecl As MethodStatementSyntax =
                 SyntaxFactory.SubStatement(Nothing,
                                       SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxFactory.WhitespaceTrivia("         "), SyntaxKind.PublicKeyword, SyntaxFactory.WhitespaceTrivia(" "), "public"),
-                                          SyntaxFactory.Token(SyntaxKind.OverloadsKeyword, trailing:=spaceTrivia)),
+                                          SyntaxFactory.Token(SyntaxKind.OverloadsKeyword, trailing:=_spaceTrivia)),
                                       SyntaxFactory.Token(New SyntaxTrivia(Nothing, CType(SyntaxFactory.WhitespaceTrivia("     ").UnderlyingNode.AddError(CreateDiagnosticInfo(22)).AddError(CreateDiagnosticInfo(23)), InternalSyntax.SyntaxTrivia), 0, 0), SyntaxKind.SubKeyword, SyntaxFactory.WhitespaceTrivia("   "), "SUB"),
-                                      SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "MySub", False, "MySyb", TypeCharacter.None, spaceTrivia),
+                                      SyntaxFactory.Identifier(SyntaxFactory.ElasticMarker, "MySub", False, "MySyb", TypeCharacter.None, _spaceTrivia),
                                       Nothing,
-                                      SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=spaceTrivia),
+                                      SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken, trailing:=_spaceTrivia),
                                           New SeparatedSyntaxList(Of ParameterSyntax)(bldr.ToList),
-                                          SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=spaceTrivia)),
+                                          SyntaxFactory.Token(SyntaxKind.CloseParenToken, trailing:=_spaceTrivia)),
                                       Nothing, Nothing, Nothing)
 
             Assert.Equal("         public Overloads      SUB   MySub ( ByVal Param1 As Integer , ByVal Param2 As String , ByRef Param3 As Double ) ",
@@ -981,10 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                            {New TextSpan(26, 5), New TextSpan(26, 5), New TextSpan(71, 22), New TextSpan(94, 1), New TextSpan(96, 5)})
         End Sub
 
-        Shared _messageProvider As New MockMessageProvider()
+        Private Shared ReadOnly s_messageProvider As New MockMessageProvider()
 
         Private Function CreateDiagnosticInfo(code As Integer) As DiagnosticInfo
-            Return New DiagnosticInfo(_messageProvider, code)
+            Return New DiagnosticInfo(s_messageProvider, code)
         End Function
 
         ' A mock message provider
@@ -1079,7 +1080,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Return SyntaxFactory.MethodStatement(node.Kind,
                                                          node.AttributeLists,
                                                          node.Modifiers,
-                                                         node.Keyword,
+                                                         node.DeclarationKeyword,
                                                          node.Identifier,
                                                          node.TypeParameterList,
                                                          SyntaxFactory.ParameterList(
@@ -1188,7 +1189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("""Hi""""Bye""", simpleTree.ToFullString)
 
             op = simpleTree.OperatorToken
-            simpleTree = simpleTree.ReplaceToken(op, SyntaxFactory.Token(SyntaxKind.EqualsToken, trailing:=spaceTrivia))
+            simpleTree = simpleTree.ReplaceToken(op, SyntaxFactory.Token(SyntaxKind.EqualsToken, trailing:=_spaceTrivia))
             Assert.Equal("""Hi""= ""Bye""", simpleTree.ToFullString)
         End Sub
 
@@ -1243,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expC = SyntaxFactory.ParseExpression("c")
             Dim expD = SyntaxFactory.ParseExpression("d")
 
-            ' cannot replace a node that is not in a list with mulitple nodes
+            ' cannot replace a node that is not in a list with multiple nodes
             Assert.Throws(Of InvalidOperationException)(Function() invocation.ReplaceNode(expA, {expC, expD}))
 
             ' cannot replace a node that is not in a list with and empty list of nodes
@@ -1280,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expC = SyntaxFactory.ParseExpression("c")
             Dim expD = SyntaxFactory.ParseExpression("d")
 
-            ' cannot replace a node that is not in a list with mulitple nodes
+            ' cannot replace a node that is not in a list with multiple nodes
             Assert.Throws(Of InvalidOperationException)(Function() invocation.InsertNodesBefore(expA, {expC, expD}))
 
             ' cannot replace a node that is not in a list with and empty list of nodes
@@ -1415,7 +1416,7 @@ End If</x>.Value, newBlock.ToFullString())
 <x>Private Class C
 End Class</x>.Value)
 
-            Dim privateToken = DirectCast(cu.Members(0), ClassBlockSyntax).Begin.Modifiers(0)
+            Dim privateToken = DirectCast(cu.Members(0), ClassBlockSyntax).BlockStatement.Modifiers(0)
             Dim publicToken = SyntaxFactory.ParseToken("Public ")
             Dim partialToken = SyntaxFactory.ParseToken("Partial ")
 
@@ -1458,7 +1459,7 @@ End Class</x>.Value)
             Dim cu = SyntaxFactory.ParseCompilationUnit(
 <x>Public Class C
 End Class</x>.Value)
-            Dim publicToken = DirectCast(cu.Members(0), ClassBlockSyntax).Begin.Modifiers(0)
+            Dim publicToken = DirectCast(cu.Members(0), ClassBlockSyntax).BlockStatement.Modifiers(0)
             Dim partialToken = SyntaxFactory.ParseToken("Partial ")
             Dim sharedToken = SyntaxFactory.ParseToken("Shared ")
 
@@ -1650,16 +1651,16 @@ End Class</x>.Value)
         <Fact>
         Public Sub TestStructuredTrivia()
             Dim xmlStartElement = SyntaxFactory.XmlElementStartTag(
-                SyntaxFactory.Token(spaceTrivia, SyntaxKind.LessThanToken, trailing:=Nothing),
+                SyntaxFactory.Token(_spaceTrivia, SyntaxKind.LessThanToken, trailing:=Nothing),
                 SyntaxFactory.XmlName(Nothing,
                                SyntaxFactory.XmlNameToken("foo", SyntaxKind.XmlNameToken)),
                 Nothing,
-                SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=spaceTrivia))
+                SyntaxFactory.Token(SyntaxKind.GreaterThanToken, trailing:=_spaceTrivia))
 
             Dim xmlEndElement = SyntaxFactory.XmlElementEndTag(
-                SyntaxFactory.Token(SyntaxKind.LessThanSlashToken, trailing:=spaceTrivia),
+                SyntaxFactory.Token(SyntaxKind.LessThanSlashToken, trailing:=_spaceTrivia),
                 Nothing,
-                SyntaxFactory.Token(Nothing, SyntaxKind.GreaterThanToken, trailing:=SyntaxTriviaList.Create(spaceTrivia).Concat(spaceTrivia).ToSyntaxTriviaList()))
+                SyntaxFactory.Token(Nothing, SyntaxKind.GreaterThanToken, trailing:=SyntaxTriviaList.Create(_spaceTrivia).Concat(_spaceTrivia).ToSyntaxTriviaList()))
 
             Dim xmlElement = SyntaxFactory.XmlElement(xmlStartElement, Nothing, xmlEndElement)
             Assert.Equal(" <foo> </ >  ", xmlElement.ToFullString)
@@ -1674,7 +1675,7 @@ End Class</x>.Value)
             Assert.Equal("<foo>", DirectCast(docComment.Content(0), XmlElementSyntax).StartTag.ToString)
 
             Dim sTrivia = SyntaxFactory.Trivia(docComment)
-            Dim ident = SyntaxFactory.Identifier(sTrivia, "banana", spaceTrivia)
+            Dim ident = SyntaxFactory.Identifier(sTrivia, "banana", _spaceTrivia)
 
             Assert.Equal(" <foo> </ >  banana ", ident.ToFullString())
             Assert.Equal("banana", ident.ToString())
@@ -1728,7 +1729,7 @@ End Class</x>.Value)
 
 
             Return SyntaxFactory.NamespaceBlock(SyntaxFactory.NamespaceStatement(
-                                            SyntaxFactory.Token(SyntaxKind.NamespaceKeyword, trailing:=spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("foo"))),
+                                            SyntaxFactory.Token(SyntaxKind.NamespaceKeyword, trailing:=_spaceTrivia), SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("foo"))),
                                                 statementBuilder.ToList,
                                             SyntaxFactory.EndNamespaceStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword)))
         End Function
@@ -1823,7 +1824,7 @@ End Module
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousToken()
             Dim prog = ParseAndVerify(<![CDATA[
 Module Module1
@@ -1861,7 +1862,7 @@ End Module
                 "End Class"
             Dim tree = VisualBasicSyntaxTree.ParseText(text)
 
-            Dim location = text.IndexOf("List(Of T)")
+            Dim location = text.IndexOf("List(Of T)", StringComparison.Ordinal)
             Dim openParenToken = CType(tree.GetRoot().FindToken(location + "List".Length), SyntaxToken)
 
             Assert.Equal(SyntaxKind.OpenParenToken, openParenToken.Kind)
@@ -1871,7 +1872,7 @@ End Module
             Assert.Equal(SyntaxKind.IdentifierToken, listToken.Kind)
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1889,7 +1890,7 @@ End Module
 
         End Sub
 
-        <Fact, WorkItem(789824, "DevDiv"), WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(789824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/789824"), WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetPreviousSibling()
             Dim prog = ParseAndVerify(<![CDATA[Module Module1
     dim xxxx ::: Dim yyyy
@@ -1977,7 +1978,7 @@ End Module
 
         End Sub
 
-        <WorkItem(537404, "DevDiv")>
+        <WorkItem(537404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537404")>
         <Fact>
         Public Sub TestNodeTokenConversion01()
             Dim prog = ParseAndVerify(<![CDATA[ Class A
@@ -2003,7 +2004,7 @@ End Class
             Assert.Equal(sN.Width, cS.Span.Length)
         End Sub
 
-        <WorkItem(537403, "DevDiv")>
+        <WorkItem(537403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537403")>
         <Fact>
         Public Sub TestNodeTokenConversion02()
 
@@ -2014,15 +2015,15 @@ End Class
 
         End Sub
 
-        <WorkItem(537673, "DevDiv")>
+        <WorkItem(537673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537673")>
         <Fact>
         Public Sub SyntaxTriviaDefaultIsDirective()
             Dim trivia As New SyntaxTrivia()
             Assert.False(trivia.IsDirective)
         End Sub
 
-        <WorkItem(538362, "DevDiv")>
-        <Fact, WorkItem(530316, "DevDiv")>
+        <WorkItem(538362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538362")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestGetNextTokenCommon()
             Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText("public class foo : end class")
 
@@ -2054,8 +2055,9 @@ End Class
             Debug.Assert(lastToken.Kind = SyntaxKind.EndOfFileToken)
         End Sub
 
-        <WorkItem(755236, "DevDiv")>
-        <Fact(Skip:="802431")>
+        <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
+        <WorkItem(9896, "https://github.com/dotnet/roslyn/issues/9896")>
+        <Fact>
         Public Sub TestFindNode()
             Dim code = <code><![CDATA[
 ''' <see cref="Foo"/>
@@ -2071,14 +2073,15 @@ End Class]]>
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=True))
 
             Dim classDecl = DirectCast(root.ChildNodes().First(), TypeBlockSyntax)
-            Dim classStatement = classDecl.Begin
+            Dim classStatement = classDecl.BlockStatement
 
             ' IdentifierNameSyntax in trivia.
             Dim identifier = root.DescendantNodes(descendIntoTrivia:=True).Single(Function(n) TypeOf n Is IdentifierNameSyntax)
             Dim position = identifier.Span.Start + 1
 
             Assert.Equal(classStatement, root.FindNode(identifier.Span, findInsideTrivia:=False))
-            Assert.Equal(identifier, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent, root.FindNode(identifier.Span, findInsideTrivia:=True))
+            Assert.Equal(identifier.Parent.Span, identifier.Span)
 
             ' Token span.
             Assert.Equal(classStatement, root.FindNode(classStatement.Identifier.Span, findInsideTrivia:=False))
@@ -2089,7 +2092,7 @@ End Class]]>
 
             ' EOF Invalid span for childnode
             Dim classDecl2 = DirectCast(root.ChildNodes().Last(), TypeBlockSyntax)
-            Dim classStatement2 = classDecl2.Begin
+            Dim classStatement2 = classDecl2.BlockStatement
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(EOFSpan))
 
             ' Check end position included in node span
@@ -2116,7 +2119,42 @@ End Class]]>
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl.FindNode(root.FullSpan))
         End Sub
 
-        <WorkItem(539940, "DevDiv")>
+        <Fact>
+        Public Sub TestFindTokenInLargeList()
+            Dim identifier = SyntaxFactory.Identifier("x")
+            Dim missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)
+            Dim name = SyntaxFactory.IdentifierName(identifier)
+            Dim missingName = SyntaxFactory.IdentifierName(missingIdentifier)
+            Dim comma = SyntaxFactory.Token(SyntaxKind.CommaToken)
+            Dim missingComma = SyntaxFactory.MissingToken(SyntaxKind.CommaToken)
+            Dim argument = SyntaxFactory.SimpleArgument(name)
+            Dim missingArgument = SyntaxFactory.SimpleArgument(missingName)
+
+            '' make a large list that has lots of zero-length nodes (that shouldn't be found)
+            Dim nodesAndTokens = SyntaxFactory.NodeOrTokenList(
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                missingArgument, missingComma,
+                argument)
+
+            Dim argumentList = SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(Of ArgumentSyntax)(SyntaxFactory.NodeOrTokenList(nodesAndTokens)))
+            Dim invocation = SyntaxFactory.InvocationExpression(name, argumentList)
+            CheckFindToken(invocation)
+        End Sub
+
+        Private Sub CheckFindToken(node As SyntaxNode)
+            For i As Integer = 1 To node.FullSpan.End - 1
+                Dim token = node.FindToken(i)
+                Assert.Equal(True, token.FullSpan.Contains(i))
+            Next
+        End Sub
+
+        <WorkItem(539940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539940")>
         <Fact>
         Public Sub TestFindTriviaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
@@ -2248,7 +2286,7 @@ End Class</code>.Value
             Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes(4).Kind)
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTrivia()
             Dim text = <![CDATA[' Foo
 a + b
@@ -2263,7 +2301,7 @@ a + b
             Assert.Equal(SyntaxKind.WhitespaceTrivia, list(3).Kind)
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestDescendantTriviaIntoStructuredTrivia()
             Dim text = <![CDATA[
 ''' <foo >
@@ -2478,7 +2516,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(530316, "DevDiv")>
+        <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>
         Public Sub TestRemove_KeepExternalTrivia_KeepUnbalancedDirectives()
             Dim text = <![CDATA[
 #If True
@@ -2619,7 +2657,7 @@ End Module
             Assert.Equal(ChangesFromTransform, changes2UsingCommonSyntax)
         End Sub
 
-        <Fact, WorkItem(658329, "DevDiv")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangesInValid()
             'GetChanges with two Scenarios where either new or old tree is nothing
             Dim SourceText = <String>
@@ -2641,7 +2679,7 @@ End Module
             Assert.Throws(Of ArgumentNullException)(Sub() FirstImportsClause.SyntaxTree.GetChanges(BlankTree))
         End Sub
 
-        <Fact, WorkItem(658329, "DevDiv")>
+        <Fact, WorkItem(658329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658329")>
         Public Sub TestSyntaxTree_GetChangeSpans()
             Dim oldTree = VisualBasicSyntaxTree.ParseText("class A : End Class")
             Dim newTree = oldTree.WithInsertAt(0, "class B : End Class")
@@ -2902,7 +2940,9 @@ End Module
             compilation.VerifyDiagnostics()
         End Sub
 
-        <Fact(Skip:="658398")>
+        <Fact>
+        <WorkItem(111538, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
+        <WorkItem(658398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
         Public Sub Test_UnaryOperatorsInvalid()
             'Added for Code Coverage 
             Dim compilationDef =
@@ -2947,12 +2987,46 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
-            compilation.VerifyDiagnostics()
-            'TODO add the appropriate errors once bug is fixed
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30487: Operator '-' is not defined for type 'Char'.
+#If -"1"c Then
+~~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'String'.
+#If +"1" Then
+~~~~~~~~~~~~~
+BC30487: Operator '+' is not defined for type 'Char'.
+#If +" "c Then
+~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If +"test"$ Then
+           ~
+BC30205: End of statement expected.
+#If +"test"$ Then
+           ~
+BC30487: Operator 'Not' is not defined for type 'Char'.
+#If Not " "c Then
+~~~~~~~~~~~~~~~~~
+BC30037: Character is not valid.
+#If NOT "test"$ Then
+              ~
+BC30205: End of statement expected.
+#If NOT "test"$ Then
+              ~
+BC31427: Syntax error in conditional compilation expression.
+#If - Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If + Then
+      ~~~~
+BC31427: Syntax error in conditional compilation expression.
+#If NOT Then
+        ~~~~
+</expected>)
         End Sub
 
         <Fact>
-        Sub TestInvalidModuleScenario_AddingTreesWithImplementsAndInherits()
+        Public Sub TestInvalidModuleScenario_AddingTreesWithImplementsAndInherits()
             'Verifies we can hit the inheritable and implements slots on module blocks through usage of the AddInherits/AddImplements methods in the  ModuleBlockSyntax.
             ' Although Modules do not support inheritance or Implements
 
@@ -2990,7 +3064,7 @@ End Interface
             bldr.Add(CreateSimpleTypeName("aaa"))
             Dim sepList = bldr.ToList
 
-            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=spaceTrivia), sepList)
+            Dim statement = SyntaxFactory.InheritsStatement(SyntaxFactory.Token(SyntaxKind.InheritsKeyword, trailing:=_spaceTrivia), sepList)
             Module2 = Module2.AddInherits(statement)
             Root = Root.ReplaceNode(Root.Members(1), Module2)
 
@@ -2999,7 +3073,7 @@ End Interface
             Dim bldr2 = SeparatedSyntaxListBuilder(Of TypeSyntax).Create()
             bldr2.Add(CreateSimpleTypeName("Ifoo"))
             Dim sepList2 = bldr2.ToList
-            Dim statement2 = SyntaxFactory.ImplementsStatement(SyntaxFactory.Token(SyntaxKind.ImplementsKeyword, trailing:=spaceTrivia), sepList2)
+            Dim statement2 = SyntaxFactory.ImplementsStatement(SyntaxFactory.Token(SyntaxKind.ImplementsKeyword, trailing:=_spaceTrivia), sepList2)
             Module3 = Module3.AddImplements(statement2)
 
             Root = Root.ReplaceNode(Root.Members(2), Module3)
@@ -3017,14 +3091,17 @@ End Interface
 </compilation>
 
             'Verify Compile Errors when try to use
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
-                                                                                                                              BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
+                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
+                Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
         <Fact>
-        Sub TestSyntaxNode_GetDirectivesMultiplePresent()
+        Public Sub TestSyntaxNode_GetDirectivesMultiplePresent()
             Dim SourceText = <String>
 Imports System
 Imports Microsoft.VisualBasic
@@ -3057,7 +3134,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TestSyntaxNode_GetDirectivesNonePresent()
+        Public Sub TestSyntaxNode_GetDirectivesNonePresent()
             Dim SourceText = <String>
 Imports System
 Imports Microsoft.VisualBasic
@@ -3080,7 +3157,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TestSyntaxNode_GetDirectivesIncorrectUnbalanced()
+        Public Sub TestSyntaxNode_GetDirectivesIncorrectUnbalanced()
             Dim SourceText = <String>
 Imports System
 Imports Microsoft.VisualBasic
@@ -3103,9 +3180,30 @@ End Module
             Assert.Equal(1, x.Count)
         End Sub
 
+
+        <WorkItem(6536, "https://github.com/dotnet/roslyn/issues/6536")>
+        <Fact>
+        Public Sub TestFindTrivia_NoStackOverflowOnLargeExpression()
+            Dim code As New StringBuilder()
+            code.Append(<![CDATA[
+Module Module1
+     Sub Test()
+         Dim c =  ]]>.Value)
+            For i = 0 To 3000
+                code.Append("""asdf"" + ")
+            Next
+            code.AppendLine(<![CDATA["last"
+    End Sub
+End Module]]>.Value)
+
+            Dim tree = VisualBasicSyntaxTree.ParseText(code.ToString())
+            Dim trivia = tree.GetRoot().FindTrivia(4000)
+            ' no stack overflow
+        End Sub
+
 #Region "Equality Verifications"
         <Fact>
-        Sub Test_GlobalImportsEqual()
+        Public Sub Test_GlobalImportsEqual()
             Dim SourceText = <String>
 Imports System
 Imports Microsoft.VisualBasic
@@ -3415,7 +3513,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMethod_VerifyOmmittedArgument()
+        Public Sub SyntaxWalkerMethod_VerifyOmittedArgument()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3600,7 +3698,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehhod_VerifyXMLBracketName()
+        Public Sub SyntaxWalkerMethod_VerifyXMLBracketName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3625,7 +3723,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMethod_VerifyImcompleteSyntaxClause()
+        Public Sub SyntaxWalkerMethod_VerifyIncompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">

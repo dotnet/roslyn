@@ -3,7 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Xml.Linq
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -12,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class LoadingNamespacesAndTypes
         Inherits BasicTestBase
 
-        <Fact(Skip:="873386")>
+        <Fact>
         Public Sub Test1()
-            Dim assembly = LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace1(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -25,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(dumpXML.ToString(), baseLine.ToString())
         End Sub
 
-        <Fact(Skip:="873386")>
+        <Fact>
         Public Sub Test2()
-            Dim assembly = LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim dumpXML As XElement = LoadChildNamespace2(assembly.Modules(0).GlobalNamespace)
 
             Dim baseLine = XElement.Load(New MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes))
@@ -104,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub Test3()
-            Dim assembly = LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             Dim module0 = assembly.Modules(0)
             Dim globalNS = module0.GlobalNamespace
 
@@ -149,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact()>
         Public Sub Test4()
-            Dim assembly = LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
             TestGetMembersOfName(assembly.Modules(0))
 
             Dim assembly2 = LoadFromBytes(TestResources.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase)
@@ -287,8 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Dim structType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("S")
                                                            Dim constructor = structType.InstanceConstructors.Single()
                                                            Assert.False(constructor.IsImplicitlyDeclared)
-                                                       End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
+                                                       End Sub)
 
         End Sub
 
@@ -308,8 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Dim structType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("S")
                                                            Dim constructor = structType.InstanceConstructors.Single()
                                                            Assert.True(constructor.IsImplicitlyDeclared)
-                                                       End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
+                                                       End Sub)
 
         End Sub
 
@@ -342,11 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                                            Assert.Equal(0, constructors(withoutParameterIndex).Parameters.Length)
                                                            Assert.False(constructors(withParameterIndex).IsImplicitlyDeclared)
                                                            Assert.True(constructors(withoutParameterIndex).IsImplicitlyDeclared)
-                                                       End Sub,
-                                                       emitOptions:=TestEmitters.RefEmitBug)
-
+                                                       End Sub)
         End Sub
-
     End Class
-
 End Namespace

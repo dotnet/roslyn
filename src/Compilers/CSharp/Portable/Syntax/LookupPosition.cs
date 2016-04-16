@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             PropertyDeclarationSyntax property)
         {
             var exprOpt = property.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, property.Semicolon);
+            return IsInExpressionBody(position, exprOpt, property.SemicolonToken);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             IndexerDeclarationSyntax indexer)
         {
             var exprOpt = indexer.GetExpressionBodySyntax();
-            return IsInExpressionBody(position, exprOpt, indexer.Semicolon);
+            return IsInExpressionBody(position, exprOpt, indexer.SemicolonToken);
         }
 
         /// <summary>
@@ -121,8 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             Debug.Assert(methodDecl != null);
 
             var body = methodDecl.Body;
-            SyntaxToken lastToken = body == null ? methodDecl.SemicolonToken : body.CloseBraceToken;
-            return IsBeforeToken(position, methodDecl, lastToken);
+            if (body == null)
+            {
+                return IsBeforeToken(position, methodDecl, methodDecl.SemicolonToken);
+            }
+
+            return IsBeforeToken(position, methodDecl, body.CloseBraceToken) ||
+                   IsInExpressionBody(position, methodDecl.GetExpressionBodySyntax(), methodDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodDeclaration(int position, AccessorDeclarationSyntax accessorDecl)
@@ -399,32 +404,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal static bool IsInAnonymousFunctionOrQuery(int position, CSharpSyntaxNode anonymousFunction)
+        internal static bool IsInAnonymousFunctionOrQuery(int position, CSharpSyntaxNode lambdaExpressionOrQueryNode)
         {
+            Debug.Assert(lambdaExpressionOrQueryNode.IsAnonymousFunction() || lambdaExpressionOrQueryNode.IsQuery());
+
             SyntaxToken firstIncluded;
             CSharpSyntaxNode body;
 
-            switch (anonymousFunction.Kind())
+            switch (lambdaExpressionOrQueryNode.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
-                    SimpleLambdaExpressionSyntax simple = (SimpleLambdaExpressionSyntax)anonymousFunction;
+                    SimpleLambdaExpressionSyntax simple = (SimpleLambdaExpressionSyntax)lambdaExpressionOrQueryNode;
                     firstIncluded = simple.Parameter.Identifier;
                     body = simple.Body;
                     break;
+
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    ParenthesizedLambdaExpressionSyntax parenthesized = (ParenthesizedLambdaExpressionSyntax)anonymousFunction;
+                    ParenthesizedLambdaExpressionSyntax parenthesized = (ParenthesizedLambdaExpressionSyntax)lambdaExpressionOrQueryNode;
                     firstIncluded = parenthesized.ParameterList.OpenParenToken;
                     body = parenthesized.Body;
                     break;
+
                 case SyntaxKind.AnonymousMethodExpression:
-                    AnonymousMethodExpressionSyntax anon = (AnonymousMethodExpressionSyntax)anonymousFunction;
+                    AnonymousMethodExpressionSyntax anon = (AnonymousMethodExpressionSyntax)lambdaExpressionOrQueryNode;
                     firstIncluded = anon.DelegateKeyword;
                     body = anon.Block;
                     break;
+
                 default:
                     // OK, so we have some kind of query clause.  They all start with a keyword token, so we'll skip that.
-                    firstIncluded = anonymousFunction.GetFirstToken().GetNextToken();
-                    return IsBetweenTokens(position, firstIncluded, anonymousFunction.GetLastToken().GetNextToken());
+                    firstIncluded = lambdaExpressionOrQueryNode.GetFirstToken().GetNextToken();
+                    return IsBetweenTokens(position, firstIncluded, lambdaExpressionOrQueryNode.GetLastToken().GetNextToken());
             }
 
             var bodyStatement = body as StatementSyntax;

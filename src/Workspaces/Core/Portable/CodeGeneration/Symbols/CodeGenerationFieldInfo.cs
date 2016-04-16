@@ -6,21 +6,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationFieldInfo
     {
-        private static readonly ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo> fieldToInfoMap =
+        private static readonly ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo> s_fieldToInfoMap =
             new ConditionalWeakTable<IFieldSymbol, CodeGenerationFieldInfo>();
 
-        private readonly bool isUnsafe;
-        private readonly bool isWithEvents;
-        private readonly SyntaxNode initializer;
+        private readonly bool _isUnsafe;
+        private readonly bool _isWithEvents;
+        private readonly SyntaxNode _initializer;
 
         private CodeGenerationFieldInfo(
             bool isUnsafe,
             bool isWithEvents,
             SyntaxNode initializer)
         {
-            this.isUnsafe = isUnsafe;
-            this.isWithEvents = isWithEvents;
-            this.initializer = initializer;
+            _isUnsafe = isUnsafe;
+            _isWithEvents = isWithEvents;
+            _initializer = initializer;
         }
 
         public static void Attach(
@@ -30,19 +30,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxNode initializer)
         {
             var info = new CodeGenerationFieldInfo(isUnsafe, isWithEvents, initializer);
-            fieldToInfoMap.Add(field, info);
+            s_fieldToInfoMap.Add(field, info);
         }
 
         private static CodeGenerationFieldInfo GetInfo(IFieldSymbol field)
         {
             CodeGenerationFieldInfo info;
-            fieldToInfoMap.TryGetValue(field, out info);
+            s_fieldToInfoMap.TryGetValue(field, out info);
             return info;
         }
 
         private static bool GetIsUnsafe(CodeGenerationFieldInfo info)
         {
-            return info != null && info.isUnsafe;
+            return info != null && info._isUnsafe;
         }
 
         public static bool GetIsUnsafe(IFieldSymbol field)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static bool GetIsWithEvents(CodeGenerationFieldInfo info)
         {
-            return info != null && info.isWithEvents;
+            return info != null && info._isWithEvents;
         }
 
         public static bool GetIsWithEvents(IFieldSymbol field)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static SyntaxNode GetInitializer(CodeGenerationFieldInfo info)
         {
-            return info == null ? null : info.initializer;
+            return info == null ? null : info._initializer;
         }
 
         public static SyntaxNode GetInitializer(IFieldSymbol field)

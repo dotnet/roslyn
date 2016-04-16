@@ -1086,9 +1086,10 @@ End Interface
 
         End Sub
 
-        <WorkItem(545182, "DevDiv")>
-        <WorkItem(545184, "DevDiv")>
-        <Fact()>
+        <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
+        <WorkItem(545182, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545182")>
+        <WorkItem(545184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545184")>
+        <Fact>
         Public Sub TestHandlesForWithEventsFromBaseFromADifferentAssembly()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestHandlesForWithEventsFromBaseFromADifferentAssembly_Assembly1",
             <![CDATA[Public Class c1
@@ -1134,8 +1135,9 @@ End Module]]>,
             CompileAndVerify(assembly2Compilation, <![CDATA[True]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545185, "DevDiv")>
-        <Fact()>
+        <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
+        <WorkItem(545185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545185")>
+        <Fact>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
             <![CDATA[Public Class c1
@@ -1156,7 +1158,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(529548, "DevDiv")>
+        <WorkItem(529548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529548")>
         <Fact()>
         Public Sub TestIssueWeFixedInNativeCompiler()
             Dim comp = CreateVisualBasicCompilation("TestIssueWeFixedInNativeCompiler",
@@ -1183,7 +1185,7 @@ End Class]]>,
             verifier.VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545188, "DevDiv")>
+        <WorkItem(545188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545188")>
         <Fact>
         Public Sub Bug13470()
             Dim compilation1 = CompileAndVerify(
@@ -1208,7 +1210,7 @@ End Class
 </compilation>, expectedOutput:="True")
         End Sub
 
-        <WorkItem(545187, "DevDiv")>
+        <WorkItem(545187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545187")>
         <Fact>
         Public Sub Bug13469()
             'Note: Below IL is for the following VB code compiled with Dev11 (using /debug-) -
@@ -1407,7 +1409,7 @@ End Class
             CompileAndVerify(source)
         End Sub
 
-        <Fact(), WorkItem(545250, "DevDiv")>
+        <Fact(), WorkItem(545250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545250")>
         Public Sub HookupOrder()
             CompileAndVerify(
     <compilation>
@@ -1469,7 +1471,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact, WorkItem(529653, "DevDiv")>
+        <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrder1()
             Dim vbCompilation = CreateVisualBasicCompilation("TestExecutionOrder1",
             <![CDATA[Imports System, System.Collections.Generic
@@ -1589,7 +1591,7 @@ End Module]]>,
             vbVerifier.VerifyDiagnostics()
         End Sub
 
-        <Fact, WorkItem(529653, "DevDiv")>
+        <Fact, WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestExecutionOrder2()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestExecutionOrder2",
             <![CDATA[Option Strict Off
@@ -1672,7 +1674,7 @@ Derived H2]]>)
             assembly2Verifier.VerifyDiagnostics()
         End Sub
 
-        <Fact(), WorkItem(545250, "DevDiv"), WorkItem(529653, "DevDiv")>
+        <Fact(), WorkItem(545250, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545250"), WorkItem(529653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529653")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("TestCrossLanguageOptionalAndParamarray1_CS",
             <![CDATA[public class CSClass
@@ -1874,7 +1876,7 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
         End Sub
 
-        <Fact, WorkItem(545257, "DevDiv")>
+        <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
         Public Sub TestCrossLanguageOptionalAndParamarray_Error2()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1998,5 +2000,126 @@ End Class
 
             CompileAndVerify(source)
         End Sub
+
+        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        Public Sub MultipleInitializationsWithAsNew_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Shared WithEvents a1, b1, c1 As New C2()
+    WithEvents a2, b2, c2 As New C2()
+    Shared a3, b3, c3 As New C2()
+    Dim a4, b4, c4 As New C2()
+
+    Shared Sub Main()
+        Check(a1, b1, c1)
+        Check(a3, b3, c3)
+        
+        Dim c as New C1()
+        Check(c.a2, c.b2, c.c2)
+        Check(c.a4, c.b4, c.c4)
+    End Sub
+
+    Private Shared Sub Check(a As Object, b As Object, c As Object)
+        System.Console.WriteLine(a Is Nothing)
+        System.Console.WriteLine(b Is Nothing)
+        System.Console.WriteLine(c Is Nothing)
+        System.Console.WriteLine(a Is b)
+        System.Console.WriteLine(a Is c)
+        System.Console.WriteLine(b Is c)
+    End Sub
+End Class
+
+Class C2
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:=
+            <![CDATA[
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+]]>)
+        End Sub
+
+        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        Public Sub MultipleInitializationsWithAsNew_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Shared WithEvents a, b, c As New C1() With {.P1 = 2}
+
+    Shared Sub Main()
+        System.Console.WriteLine(a.P1)
+        System.Console.WriteLine(b.P1)
+        System.Console.WriteLine(c.P1)
+        System.Console.WriteLine(a Is b)
+        System.Console.WriteLine(a Is c)
+        System.Console.WriteLine(b Is c)
+    End Sub
+
+    Public P1 As Integer
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:=
+            <![CDATA[
+2
+2
+2
+False
+False
+False
+]]>).
+            VerifyIL("C1..cctor",
+            <![CDATA[
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  IL_0000:  newobj     "Sub C1..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.2
+  IL_0007:  stfld      "C1.P1 As Integer"
+  IL_000c:  call       "Sub C1.set_a(C1)"
+  IL_0011:  newobj     "Sub C1..ctor()"
+  IL_0016:  dup
+  IL_0017:  ldc.i4.2
+  IL_0018:  stfld      "C1.P1 As Integer"
+  IL_001d:  call       "Sub C1.set_b(C1)"
+  IL_0022:  newobj     "Sub C1..ctor()"
+  IL_0027:  dup
+  IL_0028:  ldc.i4.2
+  IL_0029:  stfld      "C1.P1 As Integer"
+  IL_002e:  call       "Sub C1.set_c(C1)"
+  IL_0033:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

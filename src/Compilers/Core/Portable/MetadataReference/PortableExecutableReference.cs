@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class PortableExecutableReference : MetadataReference
     {
-        private readonly string filePath;
+        private readonly string _filePath;
 
-        private DocumentationProvider lazyDocumentation;
+        private DocumentationProvider _lazyDocumentation;
 
         protected PortableExecutableReference(
             MetadataReferenceProperties properties,
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider initialDocumentation = null)
             : base(properties)
         {
-            this.filePath = fullPath;
-            this.lazyDocumentation = initialDocumentation;
+            _filePath = fullPath;
+            _lazyDocumentation = initialDocumentation;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string FilePath
         {
-            get { return filePath; }
+            get { return _filePath; }
         }
 
         /// <summary>
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (lazyDocumentation == null)
+                if (_lazyDocumentation == null)
                 {
-                    Interlocked.CompareExchange(ref lazyDocumentation, CreateDocumentationProvider(), null);
+                    Interlocked.CompareExchange(ref _lazyDocumentation, CreateDocumentationProvider(), null);
                 }
 
-                return lazyDocumentation;
+                return _lazyDocumentation;
             }
         }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
         public new PortableExecutableReference WithAliases(ImmutableArray<string> aliases)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes));
+            return WithProperties(Properties.WithAliases(aliases));
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Interop types can't be embedded from modules.</exception> 
         public new PortableExecutableReference WithEmbedInteropTypes(bool value)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value));
+            return WithProperties(Properties.WithEmbedInteropTypes(value));
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         /// Any other exception is considered an unexpected error in the implementation and is not caught.
         ///
         /// <see cref="Metadata"/> objects may cache information decoded from the PE image.
-        /// Reusing <see cref="Metadata"/> instances accross metadata references will result in better performance.
+        /// Reusing <see cref="Metadata"/> instances across metadata references will result in better performance.
         /// 
         /// The calling <see cref="Compilation"/> doesn't take ownership of the <see cref="Metadata"/> objects returned by this method.
         /// The implementation needs to retrieve the object from a provider that manages their lifetime (such as metadata cache).

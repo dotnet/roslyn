@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class SemanticMap
     {
-        private readonly Dictionary<SyntaxNode, SymbolInfo> expressionToInfoMap =
+        private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap =
             new Dictionary<SyntaxNode, SymbolInfo>();
 
-        private readonly Dictionary<SyntaxToken, SymbolInfo> tokenToInfoMap =
+        private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap =
             new Dictionary<SyntaxToken, SymbolInfo>();
 
         private SemanticMap()
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             get
             {
-                return expressionToInfoMap.Values.Concat(tokenToInfoMap.Values).Select(info => info.Symbol).Distinct();
+                return _expressionToInfoMap.Values.Concat(_tokenToInfoMap.Values).Select(info => info.Symbol).Distinct();
             }
         }
     }

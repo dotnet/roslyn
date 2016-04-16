@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -37,32 +37,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitModuleBlock(ByVal node As ModuleBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Members)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitClassBlock(ByVal node As ClassBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Inherits)
             VisitList(node.Implements)
             VisitList(node.Members)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitStructureBlock(ByVal node As StructureBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Inherits)
             VisitList(node.Implements)
             VisitList(node.Members)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitInterfaceBlock(ByVal node As InterfaceBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Inherits)
             VisitList(node.Members)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitEnumBlock(ByVal node As EnumBlockSyntax)
@@ -72,27 +72,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitMethodBlock(ByVal node As MethodBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Statements)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitConstructorBlock(node As ConstructorBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Statements)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitOperatorBlock(node As OperatorBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Statements)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitAccessorBlock(node As AccessorBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.BlockStatement)
             VisitList(node.Statements)
-            Visit(node.End)
+            Visit(node.EndBlockStatement)
         End Sub
 
         Public Overrides Sub VisitPropertyBlock(ByVal node As PropertyBlockSyntax)
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitCaseBlock(ByVal node As CaseBlockSyntax)
-            Visit(node.Begin)
+            Visit(node.CaseStatement)
             VisitList(node.Statements)
         End Sub
 

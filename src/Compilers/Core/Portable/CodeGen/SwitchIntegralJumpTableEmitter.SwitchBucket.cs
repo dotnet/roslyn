@@ -8,38 +8,38 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
-    partial struct SwitchIntegralJumpTableEmitter
+    internal partial struct SwitchIntegralJumpTableEmitter
     {
         private struct SwitchBucket
         {
             // range of sorted case labels within this bucket
-            private readonly int startLabelIndex;
-            private readonly int endLabelIndex;
+            private readonly int _startLabelIndex;
+            private readonly int _endLabelIndex;
 
             // sorted case labels
-            private readonly ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels;
+            private readonly ImmutableArray<KeyValuePair<ConstantValue, object>> _allLabels;
 
             internal SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int index)
             {
-                this.startLabelIndex = index;
-                this.endLabelIndex = index;
-                this.allLabels = allLabels;
+                _startLabelIndex = index;
+                _endLabelIndex = index;
+                _allLabels = allLabels;
             }
 
             private SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int startIndex, int endIndex)
             {
                 Debug.Assert((uint)startIndex < (uint)endIndex);
 
-                this.startLabelIndex = startIndex;
-                this.endLabelIndex = endIndex;
-                this.allLabels = allLabels;
+                _startLabelIndex = startIndex;
+                _endLabelIndex = endIndex;
+                _allLabels = allLabels;
             }
 
             internal uint LabelsCount
             {
                 get
                 {
-                    return (uint)(this.endLabelIndex - this.startLabelIndex + 1);
+                    return (uint)(_endLabelIndex - _startLabelIndex + 1);
                 }
             }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get
                 {
                     Debug.Assert(i < LabelsCount, "index out of range");
-                    return allLabels[i + startLabelIndex];
+                    return _allLabels[i + _startLabelIndex];
                 }
             }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    if (startLabelIndex == endLabelIndex)
+                    if (_startLabelIndex == _endLabelIndex)
                     {
                         // single element bucket needs exactly one compare
                         return 1;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // based on benchmarks the combined cost seems to be closer to 3
                     //
                     // this also allows in the "mostly sparse" scenario to avoid numerous 
-                    // little swithces with only 2 labels in them.
+                    // little switches with only 2 labels in them.
                     return 3;
                 }
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return bucketSize;
             }
 
-            // Check if bucketsize exceeds UInt64.MaxValue
+            // Check if bucket size exceeds UInt64.MaxValue
             private static bool BucketOverflowUInt64Limit(ConstantValue startConstant, ConstantValue endConstant)
             {
                 Debug.Assert(IsValidSwitchBucketConstantPair(startConstant, endConstant));
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Virtual switch instruction has a max limit of Int32.MaxValue labels
-            // Check if bucketsize exceeds Int32.MaxValue
+            // Check if bucket size exceeds Int32.MaxValue
             private static bool BucketOverflow(ConstantValue startConstant, ConstantValue endConstant)
             {
                 return BucketOverflowUInt64Limit(startConstant, endConstant)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return startLabelIndex;
+                    return _startLabelIndex;
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return endLabelIndex;
+                    return _endLabelIndex;
                 }
             }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return allLabels[this.startLabelIndex].Key;
+                    return _allLabels[_startLabelIndex].Key;
                 }
             }
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    return allLabels[this.endLabelIndex].Key;
+                    return _allLabels[_endLabelIndex].Key;
                 }
             }
 
@@ -207,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             internal bool TryMergeWith(SwitchBucket prevBucket)
             {
-                Debug.Assert(prevBucket.endLabelIndex + 1 == this.startLabelIndex);
+                Debug.Assert(prevBucket._endLabelIndex + 1 == _startLabelIndex);
                 if (MergeIsAdvantageous(prevBucket, this))
                 {
-                    this = new SwitchBucket(this.allLabels, prevBucket.startLabelIndex, this.endLabelIndex);
+                    this = new SwitchBucket(_allLabels, prevBucket._startLabelIndex, _endLabelIndex);
                     return true;
                 }
 

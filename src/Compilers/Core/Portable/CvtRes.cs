@@ -12,6 +12,7 @@ using DWORD = System.UInt32;
 using WCHAR = System.Char;
 using WORD = System.UInt16;
 using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal class CvtResFile
     {
-        const WORD RT_DLGINCLUDE = 17;
+        private const WORD RT_DLGINCLUDE = 17;
 
         static internal List<RESOURCE> ReadResFile(Stream stream)
         {
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             return resourceNames;
         }
 
-        static RESOURCE_STRING ReadStringOrID(BinaryReader fhIn)
+        private static RESOURCE_STRING ReadStringOrID(BinaryReader fhIn)
         {
             // Reads a String structure from fhIn
             // If the first word is 0xFFFF then this is an ID
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class COFFResourceReader
     {
-        static void ConfirmSectionValues(SectionHeader hdr, long fileSize)
+        private static void ConfirmSectionValues(SectionHeader hdr, long fileSize)
         {
             if ((long)hdr.PointerToRawData + hdr.SizeOfRawData > fileSize)
                 throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSectionSize);
@@ -204,9 +205,9 @@ namespace Microsoft.CodeAnalysis
             var imageResourceSectionBytes = new byte[checked(rsrc1.SizeOfRawData + rsrc2.SizeOfRawData)];
 
             stream.Seek(rsrc1.PointerToRawData, SeekOrigin.Begin);
-            stream.Read(imageResourceSectionBytes, 0, rsrc1.SizeOfRawData);
+            stream.TryReadAll(imageResourceSectionBytes, 0, rsrc1.SizeOfRawData); // ConfirmSectionValues ensured that data are available
             stream.Seek(rsrc2.PointerToRawData, SeekOrigin.Begin);
-            stream.Read(imageResourceSectionBytes, rsrc1.SizeOfRawData, rsrc2.SizeOfRawData);
+            stream.TryReadAll(imageResourceSectionBytes, rsrc1.SizeOfRawData, rsrc2.SizeOfRawData); // ConfirmSectionValues ensured that data are available
 
             const int SizeOfRelocationEntry = 10;
 
@@ -230,14 +231,14 @@ namespace Microsoft.CodeAnalysis
             var relocationSymbolIndices = new uint[rsrc1.NumberOfRelocations];
 
             var reader = new BinaryReader(stream, Encoding.Unicode);
-            stream.Position = rsrc1.PointerToRelocations; 
+            stream.Position = rsrc1.PointerToRelocations;
 
             for (int i = 0; i < rsrc1.NumberOfRelocations; i++)
             {
                 relocationOffsets[i] = reader.ReadUInt32();
                 //What is being read and stored is the reloc's "Value"
                 //This is the symbol's index.
-                relocationSymbolIndices[i] = reader.ReadUInt32(); 
+                relocationSymbolIndices[i] = reader.ReadUInt32();
                 reader.ReadUInt16(); //we do nothing with the "Type"
             }
 
@@ -298,7 +299,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class Win32ResourceConversions
     {
-        struct ICONDIRENTRY
+        private struct ICONDIRENTRY
         {
             internal BYTE bWidth;
             internal BYTE bHeight;
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis
                     iconDirEntries[i].wBitCount = iconReader.ReadUInt16();
                 }
             }
-                    
+
             //read everything and no exceptions. time to write.
             var resWriter = new BinaryWriter(resStream);
 
@@ -397,8 +398,8 @@ namespace Microsoft.CodeAnalysis
                 resWriter.Write((WORD)RT_ICON);
                 resWriter.Write((WORD)0xFFFF);
                 resWriter.Write((WORD)(i + 1));       //EDMAURER this is not general. Implies you can only append one icon to the resources.
-                                                //This icon ID would seem to be global among all of the icons not just this group.
-                                                //Zero appears to not be an acceptable ID. Note that this ID is referred to below.
+                                                      //This icon ID would seem to be global among all of the icons not just this group.
+                                                      //Zero appears to not be an acceptable ID. Note that this ID is referred to below.
                 resWriter.Write((DWORD)0x00000000);
                 resWriter.Write((WORD)0x1010);
                 resWriter.Write((WORD)0x0000);
@@ -568,86 +569,85 @@ namespace Microsoft.CodeAnalysis
             manifestStream.CopyTo(resStream);
         }
 
-        class VersionResourceSerializer
+        private class VersionResourceSerializer
         {
-            private readonly string commentsContents;
-            private readonly string companyNameContents;
-            private readonly string fileDescriptionContents;
-            private readonly string fileVersionContents;
-            private readonly string internalNameContents;
-            private readonly string legalCopyrightContents;
-            private readonly string legalTrademarksContents;
-            private readonly string originalFileNameContents;
-            private readonly string productNameContents;
-            private readonly string productVersionContents;
-            private readonly Version assemblyVersionContents;
+            private readonly string _commentsContents;
+            private readonly string _companyNameContents;
+            private readonly string _fileDescriptionContents;
+            private readonly string _fileVersionContents;
+            private readonly string _internalNameContents;
+            private readonly string _legalCopyrightContents;
+            private readonly string _legalTrademarksContents;
+            private readonly string _originalFileNameContents;
+            private readonly string _productNameContents;
+            private readonly string _productVersionContents;
+            private readonly Version _assemblyVersionContents;
 
-            const string vsVersionInfoKey = "VS_VERSION_INFO";
-            const string varFileInfoKey = "VarFileInfo";
-            const string translationKey = "Translation";
-            const string stringFileInfoKey = "StringFileInfo";
-            readonly string langIdAndCodePageKey; //should be 8 characters
-            const DWORD CP_WINUNICODE = 1200;
+            private const string vsVersionInfoKey = "VS_VERSION_INFO";
+            private const string varFileInfoKey = "VarFileInfo";
+            private const string translationKey = "Translation";
+            private const string stringFileInfoKey = "StringFileInfo";
+            private readonly string _langIdAndCodePageKey; //should be 8 characters
+            private const DWORD CP_WINUNICODE = 1200;
 
-            const ushort sizeVS_FIXEDFILEINFO = sizeof(DWORD) * 13;
-readonly 
-            bool isDll;
+            private const ushort sizeVS_FIXEDFILEINFO = sizeof(DWORD) * 13;
+            private readonly bool _isDll;
 
             internal VersionResourceSerializer(bool isDll, string comments, string companyName, string fileDescription, string fileVersion,
                 string internalName, string legalCopyright, string legalTrademark, string originalFileName, string productName, string productVersion,
                 Version assemblyVersion)
             {
-                this.isDll = isDll;
-                this.commentsContents = comments;
-                this.companyNameContents = companyName;
-                this.fileDescriptionContents = fileDescription;
-                this.fileVersionContents = fileVersion;
-                this.internalNameContents = internalName;
-                this.legalCopyrightContents = legalCopyright;
-                this.legalTrademarksContents = legalTrademark;
-                this.originalFileNameContents = originalFileName;
-                this.productNameContents = productName;
-                this.productVersionContents = productVersion;
-                this.assemblyVersionContents = assemblyVersion;
-                this.langIdAndCodePageKey = System.String.Format("{0:x4}{1:x4}", 0 /*langId*/, CP_WINUNICODE /*codepage*/);
+                _isDll = isDll;
+                _commentsContents = comments;
+                _companyNameContents = companyName;
+                _fileDescriptionContents = fileDescription;
+                _fileVersionContents = fileVersion;
+                _internalNameContents = internalName;
+                _legalCopyrightContents = legalCopyright;
+                _legalTrademarksContents = legalTrademark;
+                _originalFileNameContents = originalFileName;
+                _productNameContents = productName;
+                _productVersionContents = productVersion;
+                _assemblyVersionContents = assemblyVersion;
+                _langIdAndCodePageKey = System.String.Format("{0:x4}{1:x4}", 0 /*langId*/, CP_WINUNICODE /*codepage*/);
             }
 
-            const uint VFT_APP = 0x00000001;
-            const uint VFT_DLL = 0x00000002;
+            private const uint VFT_APP = 0x00000001;
+            private const uint VFT_DLL = 0x00000002;
 
             private IEnumerable<KeyValuePair<string, string>> GetVerStrings()
             {
-                if (commentsContents != null) yield return new KeyValuePair<string, string>("Comments", commentsContents);
-                if (companyNameContents != null) yield return new KeyValuePair<string, string>("CompanyName", companyNameContents);
-                if (fileDescriptionContents != null) yield return new KeyValuePair<string, string>("FileDescription", fileDescriptionContents);
+                if (_commentsContents != null) yield return new KeyValuePair<string, string>("Comments", _commentsContents);
+                if (_companyNameContents != null) yield return new KeyValuePair<string, string>("CompanyName", _companyNameContents);
+                if (_fileDescriptionContents != null) yield return new KeyValuePair<string, string>("FileDescription", _fileDescriptionContents);
 
-                yield return new KeyValuePair<string, string>("FileVersion", fileVersionContents);
+                yield return new KeyValuePair<string, string>("FileVersion", _fileVersionContents);
 
-                if (internalNameContents != null) yield return new KeyValuePair<string, string>("InternalName", internalNameContents);
-                if (legalCopyrightContents != null) yield return new KeyValuePair<string, string>("LegalCopyright", legalCopyrightContents);
-                if (legalTrademarksContents != null) yield return new KeyValuePair<string, string>("LegalTrademarks", legalTrademarksContents);
-                if (originalFileNameContents != null) yield return new KeyValuePair<string, string>("OriginalFilename", originalFileNameContents);
-                if (productNameContents != null) yield return new KeyValuePair<string, string>("ProductName", productNameContents);
+                if (_internalNameContents != null) yield return new KeyValuePair<string, string>("InternalName", _internalNameContents);
+                if (_legalCopyrightContents != null) yield return new KeyValuePair<string, string>("LegalCopyright", _legalCopyrightContents);
+                if (_legalTrademarksContents != null) yield return new KeyValuePair<string, string>("LegalTrademarks", _legalTrademarksContents);
+                if (_originalFileNameContents != null) yield return new KeyValuePair<string, string>("OriginalFilename", _originalFileNameContents);
+                if (_productNameContents != null) yield return new KeyValuePair<string, string>("ProductName", _productNameContents);
 
-                yield return new KeyValuePair<string, string>("ProductVersion", productVersionContents);
+                yield return new KeyValuePair<string, string>("ProductVersion", _productVersionContents);
 
-                if (assemblyVersionContents != null) yield return new KeyValuePair<string, string>("Assembly Version", assemblyVersionContents.ToString());
+                if (_assemblyVersionContents != null) yield return new KeyValuePair<string, string>("Assembly Version", _assemblyVersionContents.ToString());
             }
 
-            private uint FileType { get { return (isDll) ? VFT_DLL : VFT_APP; } }
+            private uint FileType { get { return (_isDll) ? VFT_DLL : VFT_APP; } }
 
             private void WriteVSFixedFileInfo(BinaryWriter writer)
             {
                 //There's nothing guaranteeing that these are n.n.n.n format.
                 //The documentation says that if they're not that format the behavior is undefined.
                 Version fileVersion;
-                if (!VersionHelper.TryParse(this.fileVersionContents, version: out fileVersion))
+                if (!VersionHelper.TryParse(_fileVersionContents, version: out fileVersion))
                 {
                     fileVersion = new Version(0, 0, 0, 0);
                 }
 
                 Version productVersion;
-                if (!VersionHelper.TryParse(this.productVersionContents, version: out productVersion))
+                if (!VersionHelper.TryParse(_productVersionContents, version: out productVersion))
                 {
                     productVersion = new Version(0, 0, 0, 0);
                 }
@@ -763,7 +763,7 @@ readonly
                     KEYBYTES(varFileInfoKey) +
                     KEYBYTES(translationKey) +
                     KEYBYTES(stringFileInfoKey) +
-                    KEYBYTES(langIdAndCodePageKey) +
+                    KEYBYTES(_langIdAndCodePageKey) +
                     sizeVS_FIXEDFILEINFO;
 
                 return GetStringsSize() + sizeEXEVERRESOURCE;
@@ -831,18 +831,18 @@ readonly
                 writer.Write((WORD)0);      //langId; MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL)) = 0
                 writer.Write((WORD)CP_WINUNICODE);   //codepage; 1200 = CP_WINUNICODE
                 System.Diagnostics.Debug.Assert((writer.BaseStream.Position & 3) == 0);
-                writer.Write((WORD)(2 * HDRSIZE + KEYBYTES(stringFileInfoKey) + KEYBYTES(langIdAndCodePageKey) + GetStringsSize()));
+                writer.Write((WORD)(2 * HDRSIZE + KEYBYTES(stringFileInfoKey) + KEYBYTES(_langIdAndCodePageKey) + GetStringsSize()));
                 writer.Write((WORD)0);
                 writer.Write((WORD)1);
                 writer.Write(stringFileInfoKey.ToCharArray());      //actually preceded by 5 WORDS so not consistent with the
                                                                     //assumptions of KEYBYTES, but equivalent.
                 writer.Write(new byte[KEYBYTES(stringFileInfoKey) - stringFileInfoKey.Length * 2]); //padding. 
                 System.Diagnostics.Debug.Assert((writer.BaseStream.Position & 3) == 0);
-                writer.Write((WORD)(HDRSIZE + KEYBYTES(langIdAndCodePageKey) + GetStringsSize()));
+                writer.Write((WORD)(HDRSIZE + KEYBYTES(_langIdAndCodePageKey) + GetStringsSize()));
                 writer.Write((WORD)0);
                 writer.Write((WORD)1);
-                writer.Write(langIdAndCodePageKey.ToCharArray());
-                writer.Write(new byte[KEYBYTES(langIdAndCodePageKey) - langIdAndCodePageKey.Length * 2]); //padding
+                writer.Write(_langIdAndCodePageKey.ToCharArray());
+                writer.Write(new byte[KEYBYTES(_langIdAndCodePageKey) - _langIdAndCodePageKey.Length * 2]); //padding
                 System.Diagnostics.Debug.Assert((writer.BaseStream.Position & 3) == 0);
 
                 System.Diagnostics.Debug.Assert(writer.BaseStream.Position - debugPos == dataSize - GetStringsSize());

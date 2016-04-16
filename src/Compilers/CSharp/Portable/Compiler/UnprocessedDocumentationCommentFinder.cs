@@ -8,18 +8,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class UnprocessedDocumentationCommentFinder : CSharpSyntaxWalker
     {
-        private readonly DiagnosticBag diagnostics;
-        private readonly CancellationToken cancellationToken;
-        private readonly TextSpan? filterSpanWithinTree;
+        private readonly DiagnosticBag _diagnostics;
+        private readonly CancellationToken _cancellationToken;
+        private readonly TextSpan? _filterSpanWithinTree;
 
-        private bool IsValidLocation;
+        private bool _isValidLocation;
 
         private UnprocessedDocumentationCommentFinder(DiagnosticBag diagnostics, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.Trivia)
         {
-            this.diagnostics = diagnostics;
-            this.filterSpanWithinTree = filterSpanWithinTree;
-            this.cancellationToken = cancellationToken;
+            _diagnostics = diagnostics;
+            _filterSpanWithinTree = filterSpanWithinTree;
+            _cancellationToken = cancellationToken;
         }
 
         public static void ReportUnprocessed(SyntaxTree tree, TextSpan? filterSpanWithinTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (tree.ReportDocumentationCommentDiagnostics())
             {
                 UnprocessedDocumentationCommentFinder finder = new UnprocessedDocumentationCommentFinder(diagnostics, filterSpanWithinTree, cancellationToken);
-                finder.Visit(tree.GetRoot());
+                finder.Visit(tree.GetRoot(cancellationToken));
             }
         }
 
         private bool IsSyntacticallyFilteredOut(TextSpan fullSpan)
         {
-            return filterSpanWithinTree.HasValue && !filterSpanWithinTree.Value.Contains(fullSpan);
+            return _filterSpanWithinTree.HasValue && !_filterSpanWithinTree.Value.Contains(fullSpan);
         }
 
         public override void DefaultVisit(SyntaxNode node)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (IsSyntacticallyFilteredOut(node.FullSpan))
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.Span.Length > 0)
                 {
-                    IsValidLocation = false; //would have seen a token
+                    _isValidLocation = false; //would have seen a token
                 }
                 return;
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Will be cleared the next time we visit a token,
                 // after the leading trivia, if there is any.
-                IsValidLocation = true;
+                _isValidLocation = true;
             }
 
             base.DefaultVisit(node);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLeadingTrivia(SyntaxToken token)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (IsSyntacticallyFilteredOut(token.FullSpan))
             {
@@ -81,23 +81,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.VisitLeadingTrivia(token);
-            IsValidLocation = false;
+            _isValidLocation = false;
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationToken.ThrowIfCancellationRequested();
 
             if (IsSyntacticallyFilteredOut(trivia.FullSpan))
             {
                 return;
             }
 
-            if (!IsValidLocation && SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
+            if (!_isValidLocation && SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
             {
                 int start = trivia.Position; // FullSpan start to include /** or ///
                 const int length = 1; //Match dev11: span is just one character
-                diagnostics.Add(ErrorCode.WRN_UnprocessedXMLComment, new SourceLocation(trivia.SyntaxTree, new TextSpan(start, length)));
+                _diagnostics.Add(ErrorCode.WRN_UnprocessedXMLComment, new SourceLocation(trivia.SyntaxTree, new TextSpan(start, length)));
             }
             base.VisitTrivia(trivia);
         }

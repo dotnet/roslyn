@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Differencing
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct Edit<TNode> : IEquatable<Edit<TNode>>
     {
-        private readonly TreeComparer<TNode> comparer;
-        private readonly EditKind kind;
-        private readonly TNode oldNode;
-        private readonly TNode newNode;
+        private readonly TreeComparer<TNode> _comparer;
+        private readonly EditKind _kind;
+        private readonly TNode _oldNode;
+        private readonly TNode _newNode;
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Differencing
                          (newNode == null || newNode.Equals(default(TNode))) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
-            this.comparer = comparer;
-            this.kind = kind;
-            this.oldNode = oldNode;
-            this.newNode = newNode;
+            _comparer = comparer;
+            _kind = kind;
+            _oldNode = oldNode;
+            _newNode = newNode;
         }
 
-        public EditKind Kind { get { return kind; } }
+        public EditKind Kind { get { return _kind; } }
 
         /// <summary>
         /// Insert: 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update: 
         /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return oldNode; } }
+        public TNode OldNode { get { return _oldNode; } }
 
         /// <summary>
         /// Insert: 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Move, Update:
         /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return newNode; } }
+        public TNode NewNode { get { return _newNode; } }
 
         public override bool Equals(object obj)
         {
@@ -66,22 +66,22 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         public bool Equals(Edit<TNode> other)
         {
-            return this.kind == other.kind
-                && (this.oldNode == null) ? other.oldNode == null : this.oldNode.Equals(other.oldNode)
-                && (this.newNode == null) ? other.newNode == null : this.newNode.Equals(other.newNode);
+            return _kind == other._kind
+                && (_oldNode == null) ? other._oldNode == null : _oldNode.Equals(other._oldNode)
+                && (_newNode == null) ? other._newNode == null : _newNode.Equals(other._newNode);
         }
 
         public override int GetHashCode()
         {
-            int hash = (int)this.kind;
-            if (oldNode != null)
+            int hash = (int)_kind;
+            if (_oldNode != null)
             {
-                hash = Hash.Combine(oldNode.GetHashCode(), hash);
+                hash = Hash.Combine(_oldNode.GetHashCode(), hash);
             }
 
-            if (newNode != null)
+            if (_newNode != null)
             {
-                hash = Hash.Combine(newNode.GetHashCode(), hash);
+                hash = Hash.Combine(_newNode.GetHashCode(), hash);
             }
 
             return hash;
@@ -94,17 +94,17 @@ namespace Microsoft.CodeAnalysis.Differencing
             switch (Kind)
             {
                 case EditKind.Delete:
-                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode);
+                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode);
 
                 case EditKind.Insert:
-                    return result + " [" + newNode.ToString() + "]" + DisplayPosition(newNode);
+                    return result + " [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
 
                 case EditKind.Update:
-                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode) + " -> [" + newNode.ToString() + "]" + DisplayPosition(newNode);
+                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
 
                 case EditKind.Move:
                 case EditKind.Reorder:
-                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode) + " -> " + DisplayPosition(newNode);
+                    return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> " + DisplayPosition(_newNode);
             }
 
             return result;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         private string DisplayPosition(TNode node)
         {
-            return "@" + comparer.GetSpan(node).Start;
+            return "@" + _comparer.GetSpan(node).Start;
         }
     }
 }

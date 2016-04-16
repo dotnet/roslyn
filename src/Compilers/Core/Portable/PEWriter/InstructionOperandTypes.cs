@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Reflection.Emit;
 
 namespace Microsoft.Cci
 {
     internal static class InstructionOperandTypes
     {
-        internal static OperandType ReadOperandType(byte[] il, ref int position)
+        internal static OperandType ReadOperandType(ImmutableArray<byte> il, ref int position)
         {
             byte operation = il[position++];
             if (operation == 0xfe)

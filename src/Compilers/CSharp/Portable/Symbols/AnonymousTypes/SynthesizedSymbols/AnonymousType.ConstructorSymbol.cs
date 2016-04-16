@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
         {
-            private readonly ImmutableArray<ParameterSymbol> parameters;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
 
             internal AnonymousTypeConstructorSymbol(NamedTypeSymbol container, ImmutableArray<AnonymousTypePropertySymbol> properties)
                 : base(container, WellKnownMemberNames.InstanceConstructorName)
@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         PropertySymbol property = properties[index];
                         paramsArr[index] = new SynthesizedParameterSymbol(this, property.Type, index, RefKind.None, property.Name);
                     }
-                    this.parameters = paramsArr.AsImmutableOrNull();
+                    _parameters = paramsArr.AsImmutableOrNull();
                 }
                 else
                 {
-                    this.parameters = ImmutableArray<ParameterSymbol>.Empty;
+                    _parameters = ImmutableArray<ParameterSymbol>.Empty;
                 }
             }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters
             {
-                get { return this.parameters; }
+                get { return _parameters; }
             }
 
             public override bool IsOverride
@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ContainingSymbol.Locations;
                 }
             }
-
         }
     }
 }

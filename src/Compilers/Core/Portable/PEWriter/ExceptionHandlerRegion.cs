@@ -11,25 +11,29 @@ namespace Microsoft.Cci
     /// </summary>
     internal abstract class ExceptionHandlerRegion
     {
-        private readonly uint tryStartOffset;
-        private readonly uint tryEndOffset;
-        private readonly uint handlerStartOffset;
-        private readonly uint handlerEndOffset;
+        private readonly int _tryStartOffset;
+        private readonly int _tryEndOffset;
+        private readonly int _handlerStartOffset;
+        private readonly int _handlerEndOffset;
 
         public ExceptionHandlerRegion(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
         {
             Debug.Assert(tryStartOffset < tryEndOffset);
             Debug.Assert(tryEndOffset <= handlerStartOffset);
             Debug.Assert(handlerStartOffset < handlerEndOffset);
+            Debug.Assert(tryStartOffset >= 0);
+            Debug.Assert(tryEndOffset >= 0);
+            Debug.Assert(handlerStartOffset >= 0);
+            Debug.Assert(handlerEndOffset >= 0);
 
-            this.tryStartOffset = tryStartOffset;
-            this.tryEndOffset = tryEndOffset;
-            this.handlerStartOffset = handlerStartOffset;
-            this.handlerEndOffset = handlerEndOffset;
+            _tryStartOffset = tryStartOffset;
+            _tryEndOffset = tryEndOffset;
+            _handlerStartOffset = handlerStartOffset;
+            _handlerEndOffset = handlerEndOffset;
         }
 
         /// <summary>
@@ -38,7 +42,7 @@ namespace Microsoft.Cci
         public abstract ExceptionRegionKind HandlerKind { get; }
 
         /// <summary>
-        /// If HandlerKind == HandlerKind.Catch, this is the type of expection to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
+        /// If HandlerKind == HandlerKind.Catch, this is the type of exception to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
         /// Otherwise this is a Dummy.TypeReference.
         /// </summary>
         public virtual ITypeReference ExceptionType
@@ -52,7 +56,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of filter decision block
         /// </summary>
-        public virtual uint FilterDecisionStartOffset
+        public virtual int FilterDecisionStartOffset
         {
             get { return 0; }
         }
@@ -60,43 +64,43 @@ namespace Microsoft.Cci
         /// <summary>
         /// Label instruction corresponding to the start of try block
         /// </summary>
-        public uint TryStartOffset
+        public int TryStartOffset
         {
-            get { return this.tryStartOffset; }
+            get { return _tryStartOffset; }
         }
 
         /// <summary>
         /// Label instruction corresponding to the end of try block
         /// </summary>
-        public uint TryEndOffset
+        public int TryEndOffset
         {
-            get { return this.tryEndOffset; }
+            get { return _tryEndOffset; }
         }
 
         /// <summary>
         /// Label instruction corresponding to the start of handler block
         /// </summary>
-        public uint HandlerStartOffset
+        public int HandlerStartOffset
         {
-            get { return this.handlerStartOffset; }
+            get { return _handlerStartOffset; }
         }
 
         /// <summary>
         /// Label instruction corresponding to the end of handler block
         /// </summary>
-        public uint HandlerEndOffset
+        public int HandlerEndOffset
         {
-            get { return this.handlerEndOffset; }
+            get { return _handlerEndOffset; }
         }
     }
 
     internal sealed class ExceptionHandlerRegionFinally : ExceptionHandlerRegion
     {
         public ExceptionHandlerRegionFinally(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
         }
@@ -110,10 +114,10 @@ namespace Microsoft.Cci
     internal sealed class ExceptionHandlerRegionFault : ExceptionHandlerRegion
     {
         public ExceptionHandlerRegionFault(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
         }
@@ -126,17 +130,17 @@ namespace Microsoft.Cci
 
     internal sealed class ExceptionHandlerRegionCatch : ExceptionHandlerRegion
     {
-        private readonly ITypeReference exceptionType;
+        private readonly ITypeReference _exceptionType;
 
         public ExceptionHandlerRegionCatch(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset,
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset,
             ITypeReference exceptionType)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
-            this.exceptionType = exceptionType;
+            _exceptionType = exceptionType;
         }
 
         public override ExceptionRegionKind HandlerKind
@@ -146,23 +150,25 @@ namespace Microsoft.Cci
 
         public override ITypeReference ExceptionType
         {
-            get { return exceptionType; }
+            get { return _exceptionType; }
         }
     }
 
     internal sealed class ExceptionHandlerRegionFilter : ExceptionHandlerRegion
     {
-        private readonly uint filterDecisionStartOffset;
+        private readonly int _filterDecisionStartOffset;
 
         public ExceptionHandlerRegionFilter(
-            uint tryStartOffset,
-            uint tryEndOffset,
-            uint handlerStartOffset,
-            uint handlerEndOffset,
-            uint filterDecisionStartOffset)
+            int tryStartOffset,
+            int tryEndOffset,
+            int handlerStartOffset,
+            int handlerEndOffset,
+            int filterDecisionStartOffset)
             : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
         {
-            this.filterDecisionStartOffset = filterDecisionStartOffset;
+            Debug.Assert(filterDecisionStartOffset >= 0);
+
+            _filterDecisionStartOffset = filterDecisionStartOffset;
         }
 
         public override ExceptionRegionKind HandlerKind
@@ -170,9 +176,9 @@ namespace Microsoft.Cci
             get { return ExceptionRegionKind.Filter; }
         }
 
-        public override uint FilterDecisionStartOffset
+        public override int FilterDecisionStartOffset
         {
-            get { return filterDecisionStartOffset; }
+            get { return _filterDecisionStartOffset; }
         }
     }
 }

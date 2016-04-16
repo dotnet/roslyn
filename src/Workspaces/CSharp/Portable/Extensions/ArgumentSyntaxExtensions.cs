@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             // If a parameter appears to have a void return type, then just use 'object'
             // instead.
-            var typeInfo = semanticModel.GetTypeInfo(argument.Expression);
+            var typeInfo = semanticModel.GetTypeInfo(argument.Expression, cancellationToken);
             if (typeInfo.Type != null && typeInfo.Type.SpecialType == SpecialType.System_Void)
             {
                 return semanticModel.Compilation.ObjectType;

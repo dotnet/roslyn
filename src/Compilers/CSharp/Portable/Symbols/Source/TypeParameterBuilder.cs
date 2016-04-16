@@ -10,33 +10,34 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A context for binding type parameter symbols.
+    /// A context for binding type parameter symbols of named types.
     /// </summary>
     internal sealed class TypeParameterBuilder
     {
-        private readonly SyntaxReference syntaxRef;
-        private readonly SourceNamedTypeSymbol owner;
-        private readonly Location location;
+        private readonly SyntaxReference _syntaxRef;
+        private readonly SourceNamedTypeSymbol _owner;
+        private readonly Location _location;
 
         internal TypeParameterBuilder(SyntaxReference syntaxRef, SourceNamedTypeSymbol owner, Location location)
         {
-            this.syntaxRef = syntaxRef;
+            _syntaxRef = syntaxRef;
             Debug.Assert(syntaxRef.GetSyntax().IsKind(SyntaxKind.TypeParameter));
-            this.owner = owner;
-            this.location = location;
+            _owner = owner;
+            _location = location;
         }
 
         internal TypeParameterSymbol MakeSymbol(int ordinal, IList<TypeParameterBuilder> builders, DiagnosticBag diagnostics)
         {
-            var syntaxNode = (TypeParameterSyntax)this.syntaxRef.GetSyntax();
+            var syntaxNode = (TypeParameterSyntax)_syntaxRef.GetSyntax();
             var result = new SourceTypeParameterSymbol(
-                this.owner,
+                _owner,
                 syntaxNode.Identifier.ValueText,
                 ordinal,
                 syntaxNode.VarianceKeyword.VarianceKindFromToken(),
                 ToLocations(builders),
                 ToSyntaxRefs(builders));
 
+            // SPEC: A type parameter [of a type] cannot have the same name as the type itself.
             if (result.Name == result.ContainingSymbol.Name)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, result.Locations[0], result.Name);
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arrayBuilder = ArrayBuilder<Location>.GetInstance(builders.Count);
             foreach (var builder in builders)
             {
-                arrayBuilder.Add(builder.location);
+                arrayBuilder.Add(builder._location);
             }
 
             return arrayBuilder.ToImmutableAndFree();
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arrayBuilder = ArrayBuilder<SyntaxReference>.GetInstance(builders.Count);
             foreach (var builder in builders)
             {
-                arrayBuilder.Add(builder.syntaxRef);
+                arrayBuilder.Add(builder._syntaxRef);
             }
 
             return arrayBuilder.ToImmutableAndFree();

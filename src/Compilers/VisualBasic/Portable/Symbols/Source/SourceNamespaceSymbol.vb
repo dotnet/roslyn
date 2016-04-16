@@ -8,18 +8,18 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    Friend Class SourceNamespaceSymbol
+    Friend NotInheritable Class SourceNamespaceSymbol
         Inherits PEOrSourceOrMergedNamespaceSymbol
 
-        Private ReadOnly m_declaration As MergedNamespaceDeclaration
-        Private ReadOnly m_containingNamespace As SourceNamespaceSymbol
-        Private ReadOnly m_containingModule As SourceModuleSymbol
-        Private m_nameToMembersMap As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-        Private m_nameToTypeMembersMap As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
-        Private m_lazyEmbeddedKind As Integer = EmbeddedSymbolKind.Unset
+        Private ReadOnly _declaration As MergedNamespaceDeclaration
+        Private ReadOnly _containingNamespace As SourceNamespaceSymbol
+        Private ReadOnly _containingModule As SourceModuleSymbol
+        Private _nameToMembersMap As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
+        Private _nameToTypeMembersMap As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
+        Private _lazyEmbeddedKind As Integer = EmbeddedSymbolKind.Unset
 
         ' lazily evaluated state of the symbol (StateFlags)
-        Private m_lazyState As Integer
+        Private _lazyState As Integer
 
         <Flags>
         Private Enum StateFlags As Integer
@@ -29,19 +29,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Enum
 
         ' This caches results of GetModuleMembers()
-        Private m_lazyModuleMembers As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyModuleMembers As ImmutableArray(Of NamedTypeSymbol)
 
         ' This caches results of GetMembers()
-        Private m_lazyAllMembers As ImmutableArray(Of Symbol)
+        Private _lazyAllMembers As ImmutableArray(Of Symbol)
 
-        Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
+        Private _lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
 
         Friend Sub New(decl As MergedNamespaceDeclaration, containingNamespace As SourceNamespaceSymbol, containingModule As SourceModuleSymbol)
-            m_declaration = decl
-            m_containingNamespace = containingNamespace
-            m_containingModule = containingModule
+            _declaration = decl
+            _containingNamespace = containingNamespace
+            _containingModule = containingModule
             If (containingNamespace IsNot Nothing AndAlso containingNamespace.HasMultipleSpellings) OrElse decl.HasMultipleSpellings Then
-                m_lazyState = StateFlags.HasMultipleSpellings
+                _lazyState = StateFlags.HasMultipleSpellings
             End If
         End Sub
 
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If (containingAssembly.KeepLookingForDeclaredSpecialTypes) Then
                 ' Register newly declared COR types
-                For Each array In m_nameToMembersMap.Values
+                For Each array In _nameToMembersMap.Values
                     For Each member In array
                         Dim type = TryCast(member, NamedTypeSymbol)
                         If type IsNot Nothing AndAlso type.SpecialType <> SpecialType.None Then
@@ -71,15 +71,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_declaration.Name
+                Return _declaration.Name
             End Get
         End Property
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
-                If m_lazyEmbeddedKind = EmbeddedSymbolKind.Unset Then
+                If _lazyEmbeddedKind = EmbeddedSymbolKind.Unset Then
                     Dim value As Integer = EmbeddedSymbolKind.None
-                    For Each location In m_declaration.NameLocations
+                    For Each location In _declaration.NameLocations
                         Debug.Assert(location IsNot Nothing)
                         If location.Kind = LocationKind.None Then
                             Dim embeddedLocation = TryCast(location, EmbeddedTreeLocation)
@@ -88,34 +88,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             End If
                         End If
                     Next
-                    Interlocked.CompareExchange(m_lazyEmbeddedKind, value, EmbeddedSymbolKind.Unset)
+                    Interlocked.CompareExchange(_lazyEmbeddedKind, value, EmbeddedSymbolKind.Unset)
                 End If
 
-                Return CType(m_lazyEmbeddedKind, EmbeddedSymbolKind)
+                Return CType(_lazyEmbeddedKind, EmbeddedSymbolKind)
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return If(m_containingNamespace, DirectCast(m_containingModule, Symbol))
+                Return If(_containingNamespace, DirectCast(_containingModule, Symbol))
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_containingModule.ContainingAssembly
+                Return _containingModule.ContainingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                Return Me.m_containingModule
+                Return Me._containingModule
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Extent As NamespaceExtent
             Get
-                Return New NamespaceExtent(m_containingModule)
+                Return New NamespaceExtent(_containingModule)
             End Get
         End Property
 
@@ -126,14 +126,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetNameToMembersMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-            If m_nameToMembersMap Is Nothing Then
+            If _nameToMembersMap Is Nothing Then
                 Dim map = MakeNameToMembersMap()
-                If Interlocked.CompareExchange(m_nameToMembersMap, map, Nothing) Is Nothing Then
+                If Interlocked.CompareExchange(_nameToMembersMap, map, Nothing) Is Nothing Then
                     RegisterDeclaredCorTypes()
                 End If
             End If
 
-            Return m_nameToMembersMap
+            Return _nameToMembersMap
         End Function
 
         Private Function MakeNameToMembersMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' NOTE: a name maps into values collection containing types only instead of allocating another 
             ' NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray(Of NamedTypeSymbol)
 
-            Dim builder As New NameToSymbolMapBuilder(m_declaration.Children.Length)
-            For Each declaration In m_declaration.Children
+            Dim builder As New NameToSymbolMapBuilder(_declaration.Children.Length)
+            For Each declaration In _declaration.Children
                 builder.Add(BuildSymbol(declaration))
             Next
 
@@ -158,35 +158,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Structure NameToSymbolMapBuilder
-            Private ReadOnly dictionary As Dictionary(Of String, Object)
+            Private ReadOnly _dictionary As Dictionary(Of String, Object)
 
             Public Sub New(capacity As Integer)
-                dictionary = New Dictionary(Of String, Object)(capacity, IdentifierComparison.Comparer)
+                _dictionary = New Dictionary(Of String, Object)(capacity, IdentifierComparison.Comparer)
             End Sub
 
             Public Sub Add(symbol As NamespaceOrTypeSymbol)
                 Dim name As String = symbol.Name
                 Dim item As Object = Nothing
 
-                If Me.dictionary.TryGetValue(name, item) Then
+                If Me._dictionary.TryGetValue(name, item) Then
                     Dim builder = TryCast(item, ArrayBuilder(Of NamespaceOrTypeSymbol))
                     If builder Is Nothing Then
                         builder = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
                         builder.Add(DirectCast(item, NamespaceOrTypeSymbol))
-                        Me.dictionary(name) = builder
+                        Me._dictionary(name) = builder
                     End If
                     builder.Add(symbol)
 
                 Else
-                    Me.dictionary(name) = symbol
+                    Me._dictionary(name) = symbol
                 End If
 
             End Sub
 
             Public Function CreateMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(Me.dictionary.Count, IdentifierComparison.Comparer)
+                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(Me._dictionary.Count, IdentifierComparison.Comparer)
 
-                For Each kvp In Me.dictionary
+                For Each kvp In Me._dictionary
 
                     Dim value As Object = kvp.Value
                     Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
@@ -229,12 +229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function BuildSymbol(decl As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
             Dim namespaceDecl = TryCast(decl, MergedNamespaceDeclaration)
             If namespaceDecl IsNot Nothing Then
-                Return New SourceNamespaceSymbol(namespaceDecl, Me, m_containingModule)
+                Return New SourceNamespaceSymbol(namespaceDecl, Me, _containingModule)
             Else
                 Dim typeDecl = DirectCast(decl, MergedTypeDeclaration)
 #If DEBUG Then
                 ' Ensure that the type declaration is either from user code or embedded
-                ' code, but not merged accross embedded code/user code boundary.
+                ' code, but not merged across embedded code/user code boundary.
                 Dim embedded = EmbeddedSymbolKind.Unset
                 For Each ref In typeDecl.SyntaxReferences
                     Dim refKind = ref.SyntaxTree.GetEmbeddedKind()
@@ -246,12 +246,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
                 Debug.Assert(embedded <> EmbeddedSymbolKind.Unset)
 #End If
-                Return SourceNamedTypeSymbol.Create(typeDecl, Me, m_containingModule)
+                Return SourceNamedTypeSymbol.Create(typeDecl, Me, _containingModule)
             End If
         End Function
 
         Private Function GetNameToTypeMembersMap() As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
-            If m_nameToTypeMembersMap Is Nothing Then
+            If _nameToTypeMembersMap Is Nothing Then
 
                 ' NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
@@ -290,49 +290,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 Next
 
-                Interlocked.CompareExchange(m_nameToTypeMembersMap, dictionary, Nothing)
+                Interlocked.CompareExchange(_nameToTypeMembersMap, dictionary, Nothing)
             End If
 
-            Return m_nameToTypeMembersMap
+            Return _nameToTypeMembersMap
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            If (m_lazyState And StateFlags.AllMembersIsSorted) <> 0 Then
-                Return m_lazyAllMembers
+            If (_lazyState And StateFlags.AllMembersIsSorted) <> 0 Then
+                Return _lazyAllMembers
 
             Else
                 Dim allMembers = Me.GetMembersUnordered()
 
                 If allMembers.Length >= 2 Then
                     allMembers = allMembers.Sort(LexicalOrderSymbolComparer.Instance)
-                    ImmutableInterlocked.InterlockedExchange(m_lazyAllMembers, allMembers)
+                    ImmutableInterlocked.InterlockedExchange(_lazyAllMembers, allMembers)
                 End If
 
-                ThreadSafeFlagOperations.Set(m_lazyState, StateFlags.AllMembersIsSorted)
+                ThreadSafeFlagOperations.Set(_lazyState, StateFlags.AllMembersIsSorted)
 
                 Return allMembers
             End If
         End Function
 
         Friend Overloads Overrides Function GetMembersUnordered() As ImmutableArray(Of Symbol)
-            If m_lazyAllMembers.IsDefault Then
+            If _lazyAllMembers.IsDefault Then
                 Dim members = StaticCast(Of Symbol).From(Me.GetNameToMembersMap().Flatten())
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyAllMembers, members, Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyAllMembers, members, Nothing)
             End If
 
 #If DEBUG Then
             ' In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
             ' more obviously.
-            Return m_lazyAllMembers.DeOrder()
+            Return _lazyAllMembers.DeOrder()
 #Else
-            Return m_lazyAllMembers
+            Return _lazyAllMembers
 #End If
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = Nothing
             If Me.GetNameToMembersMap().TryGetValue(name, members) Then
-                Return ImmutableArray.Create(Of Symbol, NamespaceOrTypeSymbol)(members)
+                Return ImmutableArray(Of Symbol).CastUp(members)
             Else
                 Return ImmutableArray(Of Symbol).Empty
             End If
@@ -357,78 +357,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' This is very performance critical for type lookup.
         Public Overrides Function GetModuleMembers() As ImmutableArray(Of NamedTypeSymbol)
-            If m_lazyModuleMembers.IsDefault Then
+            If _lazyModuleMembers.IsDefault Then
                 Dim moduleMembers = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
 
                 ' look at all child declarations to find the modules.
-                For Each childDecl In m_declaration.Children
+                For Each childDecl In _declaration.Children
                     If childDecl.Kind = DeclarationKind.Module Then
                         moduleMembers.AddRange(GetModuleMembers(childDecl.Name))
                     End If
                 Next
 
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyModuleMembers,
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyModuleMembers,
                                                     moduleMembers.ToImmutableAndFree(),
                                                     Nothing)
             End If
 
-            Return m_lazyModuleMembers
+            Return _lazyModuleMembers
         End Function
 
         Friend Overrides Function GetLexicalSortKey() As LexicalSortKey
             ' WARNING: this should not allocate memory!
-            If Not m_lazyLexicalSortKey.IsInitialized Then
-                m_lazyLexicalSortKey.SetFrom(m_declaration.GetLexicalSortKey(Me.DeclaringCompilation))
+            If Not _lazyLexicalSortKey.IsInitialized Then
+                _lazyLexicalSortKey.SetFrom(_declaration.GetLexicalSortKey(Me.DeclaringCompilation))
             End If
-            Return m_lazyLexicalSortKey
+            Return _lazyLexicalSortKey
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return StaticCast(Of Location).From(m_declaration.NameLocations)
+                Return StaticCast(Of Location).From(_declaration.NameLocations)
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Dim declarations As ImmutableArray(Of SingleNamespaceDeclaration) = m_declaration.Declarations
-
-                Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance(declarations.Length)
-
-                ' SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
-                ' namespace decl node we want to return. here we will wrap the original syntax reference in 
-                ' the translation syntax reference so that we can lazily manipulate a node return to the caller
-                For Each decl In declarations
-                    Dim reference = decl.SyntaxReference
-                    If reference IsNot Nothing AndAlso Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
-                        builder.Add(New NamespaceDeclarationSyntaxReference(reference))
-                    End If
-                Next
-
-                Return builder.ToImmutableAndFree()
+                Return ComputeDeclaringReferencesCore()
             End Get
         End Property
+
+        Private Function ComputeDeclaringReferencesCore() As ImmutableArray(Of SyntaxReference)
+            Dim declarations As ImmutableArray(Of SingleNamespaceDeclaration) = _declaration.Declarations
+
+            Dim builder As ArrayBuilder(Of SyntaxReference) = ArrayBuilder(Of SyntaxReference).GetInstance(declarations.Length)
+
+            ' SyntaxReference in the namespace declaration points to the name node of the namespace decl node not
+            ' namespace decl node we want to return. here we will wrap the original syntax reference in 
+            ' the translation syntax reference so that we can lazily manipulate a node return to the caller
+            For Each decl In declarations
+                Dim reference = decl.SyntaxReference
+                If reference IsNot Nothing AndAlso Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
+                    builder.Add(New NamespaceDeclarationSyntaxReference(reference))
+                End If
+            Next
+
+            Return builder.ToImmutableAndFree()
+        End Function
 
         Friend Overrides Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If Me.IsGlobalNamespace Then
                 Return True
             Else
                 ' Check if any namespace declaration block intersects with the given tree/span.
-                Dim syntaxRefs = Me.DeclaringSyntaxReferences
-                If syntaxRefs.Length = 0 Then
-                    Return True
-                End If
-
-                For Each syntaxRef In syntaxRefs
+                For Each decl In _declaration.Declarations
                     cancellationToken.ThrowIfCancellationRequested()
 
-                    Dim syntax = syntaxRef.GetSyntax(cancellationToken)
-                    If TypeOf syntax Is NamespaceStatementSyntax Then
-                        ' Get the parent NamespaceBlockSyntax
-                        syntax = syntax.Parent
-                    End If
+                    Dim reference = decl.SyntaxReference
+                    If reference IsNot Nothing AndAlso reference.SyntaxTree Is tree Then
+                        If Not reference.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then
+                            Dim syntaxRef = New NamespaceDeclarationSyntaxReference(reference)
+                            Dim syntax = syntaxRef.GetSyntax(cancellationToken)
+                            If TypeOf syntax Is NamespaceStatementSyntax Then
+                                ' Get the parent NamespaceBlockSyntax
+                                syntax = syntax.Parent
+                            End If
 
-                    If IsDefinedInSourceTree(syntax, tree, definedWithinSpan, cancellationToken) Then
+                            If IsDefinedInSourceTree(syntax, tree, definedWithinSpan, cancellationToken) Then
+                                Return True
+                            End If
+                        End If
+
+                    ElseIf decl.IsPartOfRootNamespace
+                        ' Root namespace is implicitly defined in every tree 
                         Return True
                     End If
                 Next
@@ -460,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' for example, it is called twice on Namespace X.Y, once with "X" and once with "X.Y".
         ' It will also be called with the CompilationUnit.
         Private Sub ValidateDeclaration(tree As SyntaxTree, cancellationToken As CancellationToken)
-            If (m_lazyState And StateFlags.DeclarationValidated) <> 0 Then
+            If (_lazyState And StateFlags.DeclarationValidated) <> 0 Then
                 Return
             End If
 
@@ -468,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim reportedNamespaceMismatch As Boolean = False
 
             ' Check for a few issues with namespace declaration.
-            For Each syntaxRef In m_declaration.SyntaxReferences
+            For Each syntaxRef In _declaration.SyntaxReferences
                 If tree IsNot Nothing AndAlso syntaxRef.SyntaxTree IsNot tree Then
                     Continue For
                 End If
@@ -483,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.GlobalName
                         ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics)
                     Case SyntaxKind.CompilationUnit
-                    ' nothing to validate
+                        ' nothing to validate
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
@@ -491,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState, StateFlags.DeclarationValidated, 0, diagnostics, CompilationStage.Declare) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, diagnostics, CompilationStage.Declare) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()
@@ -552,12 +561,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Gets the filename of the first declaration that matches the given namespace name case sensitively.
         ''' </summary>
         Private Function GetSourcePathForDeclaration() As Object
-            Debug.Assert(m_declaration.Declarations.Length > 0)
+            Debug.Assert(_declaration.Declarations.Length > 0)
 
             ' unfortunately we cannot initialize with the filename of the first declaration because that filename might be nothing.
             Dim path = Nothing
 
-            For Each declaration In m_declaration.Declarations
+            For Each declaration In _declaration.Declarations
                 If String.Compare(Me.Name, declaration.Name, StringComparison.Ordinal) = 0 Then
                     If declaration.IsPartOfRootNamespace Then
                         'path = StringConstants.ProjectSettingLocationName
@@ -585,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property TypesToCheckForExtensionMethods As ImmutableArray(Of NamedTypeSymbol)
             Get
-                If m_containingModule.MightContainExtensionMethods Then
+                If _containingModule.MightContainExtensionMethods Then
                     ' Note that we are using GetModuleMembers because only Modules can contain extension methods in source.
                     Return Me.GetModuleMembers()
                 End If
@@ -595,12 +604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Does this namespace have multiple different different case-sensitive spellings
+        ''' Does this namespace have multiple different case-sensitive spellings
         ''' (i.e., "Namespace FOO" and "Namespace foo". Includes parent namespace(s).
         ''' </summary>
         Friend ReadOnly Property HasMultipleSpellings As Boolean
             Get
-                Return (m_lazyState And StateFlags.HasMultipleSpellings) <> 0
+                Return (_lazyState And StateFlags.HasMultipleSpellings) <> 0
             End Get
         End Property
 
@@ -629,13 +638,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Since the declaration builder has already resolved things like "Global", qualified names, etc, 
                 ' just find the declaration that encloses the location (as opposed to recreating the name 
                 ' by walking the syntax)
-                Dim containingDecl = m_declaration.Declarations.FirstOrDefault(Function(decl)
-                                                                                   Dim nsBlock As NamespaceBlockSyntax = decl.GetNamespaceBlockSyntax()
-                                                                                   Return nsBlock IsNot Nothing AndAlso nsBlock.SyntaxTree Is tree AndAlso nsBlock.Span.Contains(location)
-                                                                               End Function)
+                Dim containingDecl = _declaration.Declarations.FirstOrDefault(Function(decl)
+                                                                                  Dim nsBlock As NamespaceBlockSyntax = decl.GetNamespaceBlockSyntax()
+                                                                                  Return nsBlock IsNot Nothing AndAlso nsBlock.SyntaxTree Is tree AndAlso nsBlock.Span.Contains(location)
+                                                                              End Function)
                 If containingDecl Is Nothing Then
                     ' Could be project namespace, which has no namespace block syntax.
-                    containingDecl = m_declaration.Declarations.FirstOrDefault(Function(decl) decl.GetNamespaceBlockSyntax() Is Nothing)
+                    containingDecl = _declaration.Declarations.FirstOrDefault(Function(decl) decl.GetNamespaceBlockSyntax() Is Nothing)
                 End If
 
                 Dim containingDeclName = If(containingDecl IsNot Nothing, containingDecl.Name, Me.Name)
@@ -654,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property MergedDeclaration As MergedNamespaceDeclaration
             Get
-                Return m_declaration
+                Return _declaration
             End Get
         End Property
     End Class

@@ -6,37 +6,37 @@ namespace Microsoft.CodeAnalysis
 {
     internal struct SymbolKeyResolution
     {
-        private readonly ISymbol symbol;
-        private readonly ImmutableArray<ISymbol> candidateSymbols;
-        private readonly CandidateReason candidateReason;
+        private readonly ISymbol _symbol;
+        private readonly ImmutableArray<ISymbol> _candidateSymbols;
+        private readonly CandidateReason _candidateReason;
 
         internal SymbolKeyResolution(ISymbol symbol) : this()
         {
-            this.symbol = symbol;
-            this.candidateSymbols = ImmutableArray<ISymbol>.Empty;
-            this.candidateReason = CandidateReason.None;
+            _symbol = symbol;
+            _candidateSymbols = ImmutableArray<ISymbol>.Empty;
+            _candidateReason = CandidateReason.None;
         }
 
         internal SymbolKeyResolution(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
         {
-            this.symbol = null;
-            this.candidateSymbols = candidateSymbols;
-            this.candidateReason = candidateReason;
+            _symbol = null;
+            _candidateSymbols = candidateSymbols;
+            _candidateReason = candidateReason;
         }
 
         public ISymbol Symbol
         {
-            get { return this.symbol; }
+            get { return _symbol; }
         }
 
         public ImmutableArray<ISymbol> CandidateSymbols
         {
-            get { return this.candidateSymbols.NullToEmpty(); }
+            get { return _candidateSymbols.NullToEmpty(); }
         }
 
         public CandidateReason CandidateReason
         {
-            get { return this.candidateReason; }
+            get { return _candidateReason; }
         }
     }
 }

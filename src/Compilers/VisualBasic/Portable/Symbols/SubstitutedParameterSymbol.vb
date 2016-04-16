@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                Return _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution)
+                Return _originalDefinition.Type.InternalSubstituteTypeParameters(TypeSubstitution).Type
             End Get
         End Property
 
@@ -164,9 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return _originalDefinition.HasByRefBeforeCustomModifiers
+                Return _originalDefinition.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return _originalDefinition.CustomModifiers
+                Return TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.CustomModifiers)
             End Get
         End Property
 

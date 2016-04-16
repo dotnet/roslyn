@@ -14,10 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Module BoundExpressionExtensions
 
-        ' returns true when expression has no sideeffects and produces
+        ' returns true when expression has no side-effects and produces
         ' default value (null, zero, false, default(T) ...)
         ' NOTE: This method is a very shallow check.
-        '       It does not make any asumptions about what this node could become 
+        '       It does not make any assumptions about what this node could become 
         '       after some folding/propagation/algebraic transformations.
         <Extension>
         Public Function IsDefaultValue(node As BoundExpression) As Boolean
@@ -39,8 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return constValue IsNot Nothing AndAlso constValue.IsNothing
 
                 Case BoundKind.DirectCast
-                    constValue = DirectCast(node, BoundDirectCast).Operand.ConstantValueOpt
-                    Return constValue IsNot Nothing AndAlso constValue.IsNothing
+                    ' DirectCast(Nothing, <ValueType>) is emitted as an unbox on a null reference.
+                    ' It is not equivalent to a default value
+                    If node.Type.IsTypeParameter() OrElse Not node.Type.IsValueType Then
+                        constValue = DirectCast(node, BoundDirectCast).Operand.ConstantValueOpt
+                        Return constValue IsNot Nothing AndAlso constValue.IsNothing
+                    End If
 
                 Case BoundKind.TryCast
                     constValue = DirectCast(node, BoundTryCast).Operand.ConstantValueOpt
@@ -184,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Does this node represent a property or latebound access not yet determied to be Get?
+        ''' Does this node represent a property or latebound access not yet determined to be Get?
         ''' </summary>
         <Extension()>
         Public Function IsSupportingAssignment(node As BoundExpression) As Boolean

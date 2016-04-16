@@ -13,24 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class LabelSymbol : Symbol, ILabelSymbol
     {
-        internal LabelSymbol(string name)
-        {
-            this.name = name;
-        }
-
-        private readonly string name;
-
-        /// <summary>
-        /// Gets the name of this label
-        /// </summary>
-        public override string Name
-        {
-            get
-            {
-                return this.name;
-            }
-        }
-
         /// <summary>
         /// Returns false because label can't be defined externally.
         /// </summary>

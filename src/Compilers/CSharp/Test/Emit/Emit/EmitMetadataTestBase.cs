@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         #region DeclSecurityTable Validation
-        
+
         /// <summary>
         /// Validate the contents of the DeclSecurity metadata table.
         /// </summary>
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private static void GetAttributeParentNameAndKind(MetadataReader metadataReader, Handle token, out string name, out SymbolKind kind)
+        private static void GetAttributeParentNameAndKind(MetadataReader metadataReader, EntityHandle token, out string name, out SymbolKind kind)
         {
             switch (token.Kind)
             {
@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 default:
                     throw TestExceptionUtilities.UnexpectedValue(token.Kind);
-
             }
         }
 

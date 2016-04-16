@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the referenced Compilation.
         /// </summary>
-        public new CSharpCompilation Compilation { get; private set; }
+        public new CSharpCompilation Compilation { get; }
 
         internal override Compilation CompilationCore
         {

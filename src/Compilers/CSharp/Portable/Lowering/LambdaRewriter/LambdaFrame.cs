@@ -15,135 +15,62 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly MethodSymbol topLevelMethod;
-        private readonly MethodSymbol constructor;
-        private readonly MethodSymbol staticConstructor;
-        private readonly FieldSymbol singletonCache;
+        private readonly MethodSymbol _topLevelMethod;
+        private readonly MethodSymbol _constructor;
+        private readonly MethodSymbol _staticConstructor;
+        private readonly FieldSymbol _singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
+        internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int methodOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
-            : base(MakeName(slotAllocatorOpt, compilationState, methodOrdinal, scopeOrdinal, isStatic), topLevelMethod)
+        internal LambdaFrame(MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), topLevelMethod)
         {
-            this.topLevelMethod = topLevelMethod;
-            this.constructor = new LambdaFrameConstructor(this);
+            _topLevelMethod = topLevelMethod;
+            _constructor = new LambdaFrameConstructor(this);
+            this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
-            if (isStatic)
+            if (scopeSyntaxOpt == null)
             {
-                this.staticConstructor = new SynthesizedStaticConstructor(this);
+                _staticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
-                singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
-                this.ScopeSyntaxOpt = null;
-            }
-            else
-            {
-                this.ScopeSyntaxOpt = scopeSyntax;
+                _singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
             }
 
-            AssertIsLambdaScopeSyntax(this.ScopeSyntaxOpt);
+            AssertIsClosureScopeSyntax(scopeSyntaxOpt);
+            this.ScopeSyntaxOpt = scopeSyntaxOpt;
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, int methodOrdinal, int scopeOrdinal, bool isStatic)
+        private static string MakeName(SyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
         {
-            // TODO: slotAllocatorOpt?.GetPrevious()
-
-            int generation = compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-
-            if (isStatic)
+            if (scopeSyntaxOpt == null)
             {
-                // Display class is shared among static non-generic lambdas and also accross generations, method ordinal is -1.
-                Debug.Assert(methodOrdinal >= -1);
-                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal, generation);
+                // Display class is shared among static non-generic lambdas across generations, method ordinal is -1 in that case.
+                // A new display class of a static generic lambda is created for each method and each generation.
+                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation);
             }
 
-            Debug.Assert(methodOrdinal >= 0);
-            return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, generation, scopeOrdinal);
+            Debug.Assert(methodId.Ordinal >= 0);
+            return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureId.Ordinal, closureId.Generation);
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntax)
+        private static void AssertIsClosureScopeSyntax(CSharpSyntaxNode syntaxOpt)
         {
             // See C# specification, chapter 3.7 Scopes.
 
             // static lambdas technically have the class scope so the scope syntax is null 
-            if (syntax == null)
+            if (syntaxOpt == null)
             {
                 return;
             }
 
-            // block:
-            if (syntax.IsKind(SyntaxKind.Block))
+            if (LambdaUtilities.IsClosureScope(syntaxOpt))
             {
                 return;
             }
 
-            // switch block:
-            if (syntax.IsKind(SyntaxKind.SwitchStatement))
-            {
-                return;
-            }
-
-            // expression-bodied member:
-            if (syntax.IsKind(SyntaxKind.ArrowExpressionClause))
-            {
-                return;
-            }
-
-            // catch clause (including filter):
-            if (syntax.IsKind(SyntaxKind.CatchClause))
-            {
-                return;
-            }
-
-            // class/struct containing a field/property with a declaration expression
-            if (syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration))
-            {
-                return;
-            }
-
-            // lambda in a let clause, 
-            // e.g. from item in array let a = new Func<int>(() => item)
-            if (syntax.IsKind(SyntaxKind.LetClause))
-            {
-                return;
-            }
-
-            if (IsStatementWithEmbeddedStatementBody(syntax.Kind()))
-            {
-                return;
-            }
-
-            // lambda bodies:
-            if (SyntaxFacts.IsLambdaBody(syntax))
-            {
-                return;
-            }
-
-            // TODO: EE expression
-            if (syntax is ExpressionSyntax && syntax.Parent.Parent == null)
-            {
-                return;
-            }
-            
-            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-        }
-
-        private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)
-        {
-            switch (syntax)
-            {
-                case SyntaxKind.IfStatement:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.UsingStatement:
-                case SyntaxKind.FixedStatement:
-                case SyntaxKind.LockStatement:
-                    return true;
-            }
-
-            return false;
+            throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
         }
 
         public override TypeKind TypeKind
@@ -153,20 +80,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override MethodSymbol Constructor
         {
-            get { return this.constructor; }
+            get { return _constructor; }
         }
 
         internal MethodSymbol StaticConstructor
         {
-            get { return this.staticConstructor; }
+            get { return _staticConstructor; }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
             var members = base.GetMembers();
-            if ((object)this.staticConstructor != null)
+            if ((object)_staticConstructor != null)
             {
-                members = ImmutableArray.Create<Symbol>(this.staticConstructor, this.singletonCache).AddRange(members);
+                members = ImmutableArray.Create<Symbol>(_staticConstructor, _singletonCache).AddRange(members);
             }
 
             return members;
@@ -174,18 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal FieldSymbol SingletonCache
         {
-            get { return this.singletonCache; }
+            get { return _singletonCache; }
         }
 
         // display classes for static lambdas do not have any data and can be serialized.
         internal override bool IsSerializable
         {
-            get { return (object)this.singletonCache != null;}
+            get { return (object)_singletonCache != null; }
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return topLevelMethod.ContainingSymbol; }
+            get { return _topLevelMethod.ContainingSymbol; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
@@ -199,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
         {
-            get { return topLevelMethod; }
+            get { return _topLevelMethod; }
         }
     }
 }

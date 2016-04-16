@@ -117,16 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expressionSyntax,
                     rewrittenExpression,
                     node.IDisposableConversion.Kind,
-                    this.compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
 
-                boundTemp = this.factory.StoreToTemp(tempInit, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
             }
             else
             {
                 // ResourceType temp = expr;
-                boundTemp = this.factory.StoreToTemp(rewrittenExpression, out tempAssignment, syntaxOpt: usingSyntax, kind: SynthesizedLocalKind.Using);
+                boundTemp = _factory.StoreToTemp(rewrittenExpression, out tempAssignment, syntaxOpt: usingSyntax, kind: SynthesizedLocalKind.Using);
             }
 
             BoundStatement expressionStatement = new BoundExpressionStatement(expressionSyntax, tempAssignment);
@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declarationSyntax,
                     boundLocal,
                     idisposableConversion,
-                    compilation.GetSpecialType(SpecialType.System_IDisposable),
+                    _compilation.GetSpecialType(SpecialType.System_IDisposable),
                     @checked: false);
 
                 BoundAssignmentOperator tempAssignment;
-                BoundLocal boundTemp = this.factory.StoreToTemp(tempInit, out tempAssignment);
+                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression disposeCall;
 
             MethodSymbol disposeMethodSymbol;
-            if (TryGetSpecialTypeMember(syntax, SpecialMember.System_IDisposable__Dispose, out disposeMethodSymbol))
+            if (Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethodSymbol))
             {
                 disposeCall = BoundCall.Synthesized(syntax, disposedExpression, disposeMethodSymbol);
             }
@@ -308,9 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isNullableValueType)
             {
-                MethodSymbol hasValue = GetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_get_HasValue);
                 // local.HasValue
-                ifCondition = BoundCall.Synthesized(syntax, local, hasValue);
+                ifCondition = MakeNullableHasValue(syntax, local);
             }
             else if (local.Type.IsValueType)
             {

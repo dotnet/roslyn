@@ -8,21 +8,21 @@ namespace Microsoft.CodeAnalysis
 {
     internal class CommonModuleCompilationState
     {
-        private bool frozen;
+        private bool _frozen;
 
         internal void Freeze()
         {
-            Debug.Assert(!frozen);
+            Debug.Assert(!_frozen);
 
             // make sure that values from all threads are visible:
             Interlocked.MemoryBarrier();
 
-            frozen = true;
+            _frozen = true;
         }
 
         internal bool Frozen
         {
-            get { return frozen; }
+            get { return _frozen; }
         }
     }
 
@@ -33,20 +33,20 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps an async/iterator method to the synthesized state machine type that implements the method. 
         /// </summary>
-        private Dictionary<TMethodSymbol, TNamedTypeSymbol> lazyStateMachineTypes;
+        private Dictionary<TMethodSymbol, TNamedTypeSymbol> _lazyStateMachineTypes;
 
-        internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMatchineClass)
+        internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMachineClass)
         {
             Debug.Assert(!Frozen);
 
-            if (lazyStateMachineTypes == null)
+            if (_lazyStateMachineTypes == null)
             {
-                Interlocked.CompareExchange(ref lazyStateMachineTypes, new Dictionary<TMethodSymbol, TNamedTypeSymbol>(), null);
+                Interlocked.CompareExchange(ref _lazyStateMachineTypes, new Dictionary<TMethodSymbol, TNamedTypeSymbol>(), null);
             }
 
-            lock (lazyStateMachineTypes)
+            lock (_lazyStateMachineTypes)
             {
-                lazyStateMachineTypes.Add(method, stateMatchineClass);
+                _lazyStateMachineTypes.Add(method, stateMachineClass);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(Frozen);
 
             stateMachineType = null;
-            return lazyStateMachineTypes != null && lazyStateMachineTypes.TryGetValue(method, out stateMachineType);
+            return _lazyStateMachineTypes != null && _lazyStateMachineTypes.TryGetValue(method, out stateMachineType);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -22,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SourceText.From(newFullText);
         }
 
-        internal static SourceText WithReplaceFirst(this SourceText text, string oldText, string newText)
+        public static SourceText WithReplaceFirst(this SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText);
+            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
             int length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SourceText WithReplace(this SourceText text, int startIndex, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText, startIndex); // Use an offset to find the first element to replace at
+            int offset = oldFullText.IndexOf(oldText, startIndex, StringComparison.Ordinal); // Use an offset to find the first element to replace at
             int length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SourceText WithInsertBefore(this SourceText text, string existingText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(existingText);
+            int offset = oldFullText.IndexOf(existingText, StringComparison.Ordinal);
             var span = new TextSpan(offset, 0);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(offset);
             return SourceText.From(newFullText);

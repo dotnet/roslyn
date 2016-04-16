@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct Directive
     {
-        private readonly DirectiveTriviaSyntax node;
+        private readonly DirectiveTriviaSyntax _node;
 
         internal Directive(DirectiveTriviaSyntax node)
         {
-            this.node = node;
+            _node = node;
         }
 
         public SyntaxKind Kind
         {
             get
             {
-                return this.node.Kind;
+                return _node.Kind;
             }
         }
 
@@ -66,18 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal string GetDebuggerDisplay()
         {
             var writer = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
-            this.node.WriteTo(writer, false, false);
+            _node.WriteTo(writer, false, false);
             return writer.ToString();
         }
 
         internal string GetIdentifier()
         {
-            switch (this.node.Kind)
+            switch (_node.Kind)
             {
                 case SyntaxKind.DefineDirectiveTrivia:
-                    return ((DefineDirectiveTriviaSyntax)this.node).Name.ValueText;
+                    return ((DefineDirectiveTriviaSyntax)_node).Name.ValueText;
                 case SyntaxKind.UndefDirectiveTrivia:
-                    return ((UndefDirectiveTriviaSyntax)this.node).Name.ValueText;
+                    return ((UndefDirectiveTriviaSyntax)_node).Name.ValueText;
                 default:
                     return null;
             }
@@ -85,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal bool IsActive
         {
-            get { return this.node.IsActive; }
+            get { return _node.IsActive; }
         }
 
         internal bool BranchTaken
         {
             get
             {
-                var branching = this.node as BranchingDirectiveTriviaSyntax;
+                var branching = _node as BranchingDirectiveTriviaSyntax;
                 if (branching != null)
                 {
                     return branching.BranchTaken;
@@ -116,18 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
         public static readonly DirectiveStack Null = new DirectiveStack(null);
 
-        private readonly ConsList<Directive> directives;
+        private readonly ConsList<Directive> _directives;
 
         private DirectiveStack(ConsList<Directive> directives)
         {
-            this.directives = directives;
+            _directives = directives;
         }
 
         public bool IsNull
         {
             get
             {
-                return this.directives == null;
+                return _directives == null;
             }
         }
 
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return this.directives == ConsList<Directive>.Empty;
+                return _directives == ConsList<Directive>.Empty;
             }
         }
 
         public DefineState IsDefined(string id)
         {
-            for (var current = this.directives; current != null && current.Any(); current = current.Tail)
+            for (var current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 switch (current.Head.Kind)
                 {
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // true if any previous section of the closest #if has its branch taken
         public bool PreviousBranchTaken()
         {
-            for (var current = this.directives; current != null && current.Any(); current = current.Tail)
+            for (var current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 if (current.Head.BranchTaken)
                 {
@@ -201,19 +201,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool HasUnfinishedIf()
         {
-            var prev = GetPreviousIfElifElseOrRegion(this.directives);
+            var prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && prev.Head.Kind != SyntaxKind.RegionDirectiveTrivia;
         }
 
         public bool HasPreviousIfOrElif()
         {
-            var prev = GetPreviousIfElifElseOrRegion(this.directives);
+            var prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && (prev.Head.Kind == SyntaxKind.IfDirectiveTrivia || prev.Head.Kind == SyntaxKind.ElifDirectiveTrivia);
         }
 
         public bool HasUnfinishedRegion()
         {
-            var prev = GetPreviousIfElifElseOrRegion(this.directives);
+            var prev = GetPreviousIfElifElseOrRegion(_directives);
             return prev != null && prev.Any() && prev.Head.Kind == SyntaxKind.RegionDirectiveTrivia;
         }
 
@@ -222,24 +222,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (directive.Kind)
             {
                 case SyntaxKind.EndIfDirectiveTrivia:
-                    var prevIf = GetPreviousIf(this.directives);
+                    var prevIf = GetPreviousIf(_directives);
                     if (prevIf == null || !prevIf.Any())
                     {
                         goto default; // no matching if directive !! leave directive alone
                     }
 
                     bool tmp;
-                    return new DirectiveStack(CompleteIf(this.directives, out tmp));
+                    return new DirectiveStack(CompleteIf(_directives, out tmp));
                 case SyntaxKind.EndRegionDirectiveTrivia:
-                    var prevRegion = GetPreviousRegion(this.directives);
+                    var prevRegion = GetPreviousRegion(_directives);
                     if (prevRegion == null || !prevRegion.Any())
                     {
                         goto default; // no matching region directive !! leave directive alone
                     }
 
-                    return new DirectiveStack(CompleteRegion(this.directives)); // remove region directives from stack but leave everything else
+                    return new DirectiveStack(CompleteRegion(_directives)); // remove region directives from stack but leave everything else
                 default:
-                    return new DirectiveStack(new ConsList<Directive>(directive, this.directives != null ? this.directives : ConsList<Directive>.Empty));
+                    return new DirectiveStack(new ConsList<Directive>(directive, _directives != null ? _directives : ConsList<Directive>.Empty));
             }
         }
 
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private string GetDebuggerDisplay()
         {
             var sb = new StringBuilder();
-            for (var current = this.directives; current != null && current.Any(); current = current.Tail)
+            for (var current = _directives; current != null && current.Any(); current = current.Tail)
             {
                 if (sb.Length > 0)
                 {
@@ -366,8 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public bool IncrementallyEquivalent(DirectiveStack other)
         {
-            var mine = SkipInsignificantDirectives(this.directives);
-            var theirs = SkipInsignificantDirectives(other.directives);
+            var mine = SkipInsignificantDirectives(_directives);
+            var theirs = SkipInsignificantDirectives(other._directives);
             bool mineHasAny = mine != null && mine.Any();
             bool theirsHasAny = theirs != null && theirs.Any();
             while (mineHasAny && theirsHasAny)

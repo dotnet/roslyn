@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _position As Integer
             Private ReadOnly _factory As BinderFactory
 
-            Sub New(factory As BinderFactory)
+            Public Sub New(factory As BinderFactory)
                 Me._factory = factory
             End Sub
 
@@ -134,15 +134,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitModuleBlock(ByVal moduleSyntax As ModuleBlockSyntax) As Binder
-                Return GetBinderForNodeAndUsage(moduleSyntax.Begin, NodeUsage.TypeBlockFull, moduleSyntax.Parent, _position)
+                Return GetBinderForNodeAndUsage(moduleSyntax.BlockStatement, NodeUsage.TypeBlockFull, moduleSyntax.Parent, _position)
             End Function
 
             Public Overrides Function VisitClassBlock(ByVal classSyntax As ClassBlockSyntax) As Binder
-                Return GetBinderForNodeAndUsage(classSyntax.Begin, NodeUsage.TypeBlockFull, classSyntax.Parent, _position)
+                Return GetBinderForNodeAndUsage(classSyntax.BlockStatement, NodeUsage.TypeBlockFull, classSyntax.Parent, _position)
             End Function
 
             Public Overrides Function VisitStructureBlock(ByVal structureSyntax As StructureBlockSyntax) As Binder
-                Return GetBinderForNodeAndUsage(structureSyntax.Begin, NodeUsage.TypeBlockFull, structureSyntax.Parent, _position)
+                Return GetBinderForNodeAndUsage(structureSyntax.BlockStatement, NodeUsage.TypeBlockFull, structureSyntax.Parent, _position)
             End Function
 
             Public Overrides Function VisitAttribute(node As AttributeSyntax) As Binder
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitInterfaceBlock(ByVal interfaceSyntax As InterfaceBlockSyntax) As Binder
-                Return GetBinderForNodeAndUsage(interfaceSyntax.Begin, NodeUsage.TypeBlockFull, interfaceSyntax.Parent, _position)
+                Return GetBinderForNodeAndUsage(interfaceSyntax.BlockStatement, NodeUsage.TypeBlockFull, interfaceSyntax.Parent, _position)
             End Function
 
             Public Overrides Function VisitEnumBlock(enumBlockSyntax As EnumBlockSyntax) As Binder
@@ -213,19 +213,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As Binder
-                Return VisitMethodBlockBase(node, node.Begin)
+                Return VisitMethodBlockBase(node, node.BlockStatement)
             End Function
 
             Public Overrides Function VisitConstructorBlock(node As ConstructorBlockSyntax) As Binder
-                Return VisitMethodBlockBase(node, node.Begin)
+                Return VisitMethodBlockBase(node, node.BlockStatement)
             End Function
 
             Public Overrides Function VisitOperatorBlock(node As OperatorBlockSyntax) As Binder
-                Return VisitMethodBlockBase(node, node.Begin)
+                Return VisitMethodBlockBase(node, node.BlockStatement)
             End Function
 
             Public Overrides Function VisitAccessorBlock(node As AccessorBlockSyntax) As Binder
-                Return VisitMethodBlockBase(node, node.Begin)
+                Return VisitMethodBlockBase(node, node.BlockStatement)
             End Function
 
             Public Overrides Function VisitPropertyBlock(node As PropertyBlockSyntax) As Binder

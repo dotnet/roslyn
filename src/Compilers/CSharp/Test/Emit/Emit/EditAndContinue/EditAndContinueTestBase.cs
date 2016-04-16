@@ -1,22 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Test.MetadataUtilities;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -35,6 +32,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return result.ToString();
         }
 
+        internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null)
+        {
+            return new SourceWithMarkedNodes(markedSource, s => Parse(s, fileName, options), s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null));
+        }
+
+        internal static Func<SyntaxNode, SyntaxNode> GetSyntaxMapFromMarkers(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1)
+        {
+            return SourceWithMarkedNodes.GetSyntaxMap(source0, source1);
+        }
+
         internal static ImmutableArray<SyntaxNode> GetAllLocals(MethodSymbol method)
         {
             var sourceMethod = method as SourceMethodSymbol;
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             return newNode =>
             {
-                foreach (SyntaxKind kind in kinds) 
+                foreach (SyntaxKind kind in kinds)
                 {
                     if (newNode.IsKind(kind))
                     {
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
         }
 
-        internal static Handle Handle(int rowNumber, TableIndex table)
+        internal static EntityHandle Handle(int rowNumber, TableIndex table)
         {
             return MetadataTokens.Handle(table, rowNumber);
         }
@@ -176,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return false;
         }
 
-        internal static void CheckEncMap(MetadataReader reader, params Handle[] handles)
+        internal static void CheckEncMap(MetadataReader reader, params EntityHandle[] handles)
         {
             AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
         }
@@ -209,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 row.Operation);
         }
 
-        internal static string EncMapRowToString(Handle handle)
+        internal static string EncMapRowToString(EntityHandle handle)
         {
             TableIndex tableIndex;
             MetadataTokens.TryGetTableIndex(handle.Kind, out tableIndex);
@@ -240,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static CSharpCompilation WithSource(this CSharpCompilation compilation, string newSource)
         {
             return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpTestBase.Parse(newSource));
+        }
+
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree newTree)
+        {
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTree);
         }
     }
 }

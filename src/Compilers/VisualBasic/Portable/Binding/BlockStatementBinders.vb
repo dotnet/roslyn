@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.EventStatement,
                     SyntaxKind.OperatorStatement
                     ' the last two are not real exit statements, they are used specifically in
-                    ' block events and operators to indicte that there is a return label, but
+                    ' block events and operators to indicate that there is a return label, but
                     ' no ExitXXX statement should be able to bind to it.
 
                     Return _exitLabel

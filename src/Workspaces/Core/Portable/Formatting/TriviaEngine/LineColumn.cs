@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal struct LineColumn
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // absolute line number from first token
         public int Line { get; private set; }
 
-        // absolute column from begining of a line
+        // absolute column from beginning of a line
         public int Column { get; private set; }
 
         // there is only whitespace on this line

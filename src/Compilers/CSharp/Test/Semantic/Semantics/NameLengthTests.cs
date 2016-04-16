@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class NameLengthTests : CSharpTestBase
     {
         // Longest legal symbol name.
-        private static readonly string LongSymbolName = new string('A', MetadataWriter.NameLengthLimit);
+        private static readonly string s_longSymbolName = new string('A', MetadataWriter.NameLengthLimit);
         // Longest legal path name.
-        private static readonly string LongPathName = new string('A', MetadataWriter.PathLengthLimit);
+        private static readonly string s_longPathName = new string('A', MetadataWriter.PathLengthLimit);
         // Longest legal local name.
-        private static readonly string LongLocalName = new string('A', MetadataWriter.PdbLengthLimit);
+        private static readonly string s_longLocalName = new string('A', MetadataWriter.PdbLengthLimit);
 
         [Fact]
         public void UnmangledMemberNames()
@@ -62,114 +62,114 @@ class Methods
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongSymbolName);
+            var source = string.Format(sourceTemplate, s_longSymbolName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
                 // Uninteresting
 
                 // (6,9): warning CS0169: The field 'Fields.LongSymbolName' is never used
                 //     int LongSymbolName;    // Fine
-                Diagnostic(ErrorCode.WRN_UnreferencedField, LongSymbolName).WithArguments("Fields." + LongSymbolName).WithLocation(6, 9),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, s_longSymbolName).WithArguments("Fields." + s_longSymbolName).WithLocation(6, 9),
                 // (7,9): warning CS0169: The field 'Fields.LongSymbolName + 1' is never used
                 //     int LongSymbolName + 1;   // Too long
-                Diagnostic(ErrorCode.WRN_UnreferencedField, LongSymbolName + 1).WithArguments("Fields." + LongSymbolName + 1).WithLocation(7, 9),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, s_longSymbolName + 1).WithArguments("Fields." + s_longSymbolName + 1).WithLocation(7, 9),
                 // (12,18): warning CS0067: The event 'FieldLikeEvents.LongSymbolName' is never used
                 //     event Action LongSymbolName;   // Fine
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, LongSymbolName).WithArguments("FieldLikeEvents." + LongSymbolName).WithLocation(12, 18),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, s_longSymbolName).WithArguments("FieldLikeEvents." + s_longSymbolName).WithLocation(12, 18),
                 // (13,18): warning CS0067: The event 'FieldLikeEvents.LongSymbolName + 1' is never used
                 //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, LongSymbolName + 1).WithArguments("FieldLikeEvents." + LongSymbolName + 1).WithLocation(13, 18));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, s_longSymbolName + 1).WithArguments("FieldLikeEvents." + s_longSymbolName + 1).WithLocation(13, 18));
             comp.VerifyEmitDiagnostics(
                 // (7,9): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1;   // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(7, 9),
                 // (12,18): error CS7013: Name 'add_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName;   // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName).WithArguments("add_" + LongSymbolName).WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName).WithArguments("add_" + s_longSymbolName).WithLocation(12, 18),
                 // (12,18): error CS7013: Name 'remove_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName;   // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName).WithArguments("remove_" + LongSymbolName).WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName).WithArguments("remove_" + s_longSymbolName).WithLocation(12, 18),
                 // (13,18): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(13, 18),
                 // (13,18): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(13, 18), // Would be nice not to report on the backing field.
-                // (13,18): error CS7013: Name 'add_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
-                //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments("add_" + LongSymbolName + 1).WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(13, 18), // Would be nice not to report on the backing field.
+                                                                                                                                              // (13,18): error CS7013: Name 'add_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
+                                                                                                                                              //     event Action LongSymbolName + 1;  // Too long
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments("add_" + s_longSymbolName + 1).WithLocation(13, 18),
                 // (13,18): error CS7013: Name 'remove_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments("remove_" + LongSymbolName + 1).WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments("remove_" + s_longSymbolName + 1).WithLocation(13, 18),
                 // (18,1044): error CS7013: Name 'add_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName { add { } remove { } }   // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "add").WithArguments("add_" + LongSymbolName).WithLocation(18, 1044),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "add").WithArguments("add_" + s_longSymbolName).WithLocation(18, 1044),
                 // (18,1052): error CS7013: Name 'remove_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName { add { } remove { } }   // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "remove").WithArguments("remove_" + LongSymbolName).WithLocation(18, 1052),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "remove").WithArguments("remove_" + s_longSymbolName).WithLocation(18, 1052),
                 // (19,18): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1 { add { } remove { } }  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(19, 18),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(19, 18),
                 // (19,1045): error CS7013: Name 'add_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1 { add { } remove { } }  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "add").WithArguments("add_" + LongSymbolName + 1).WithLocation(19, 1045),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "add").WithArguments("add_" + s_longSymbolName + 1).WithLocation(19, 1045),
                 // (19,1053): error CS7013: Name 'remove_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1 { add { } remove { } }  // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "remove").WithArguments("remove_" + LongSymbolName + 1).WithLocation(19, 1053),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "remove").WithArguments("remove_" + s_longSymbolName + 1).WithLocation(19, 1053),
                 // (24,9): error CS7013: Name '<LongSymbolName>k__BackingField' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName { get; set; }     // Fine (except accessors and backing field)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName).WithArguments("<" + LongSymbolName + ">k__BackingField").WithLocation(24, 9),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName).WithArguments("<" + s_longSymbolName + ">k__BackingField").WithLocation(24, 9),
                 // (24,1035): error CS7013: Name 'get_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName { get; set; }     // Fine (except accessors and backing field)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + LongSymbolName).WithLocation(24, 1035),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + s_longSymbolName).WithLocation(24, 1035),
                 // (24,1040): error CS7013: Name 'set_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName { get; set; }     // Fine (except accessors and backing field)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + LongSymbolName).WithLocation(24, 1040),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + s_longSymbolName).WithLocation(24, 1040),
                 // (25,9): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get; set; }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(25, 9),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(25, 9),
                 // (25,9): error CS7013: Name '<LongSymbolName + 1>k__BackingField' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get; set; }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments("<" + LongSymbolName + "1>k__BackingField").WithLocation(25, 9),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments("<" + s_longSymbolName + "1>k__BackingField").WithLocation(25, 9),
                 // (25,1036): error CS7013: Name 'get_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get; set; }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + LongSymbolName + 1).WithLocation(25, 1036),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + s_longSymbolName + 1).WithLocation(25, 1036),
                 // (25,1041): error CS7013: Name 'set_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get; set; }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + LongSymbolName + 1).WithLocation(25, 1041),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + s_longSymbolName + 1).WithLocation(25, 1041),
                 // (30,1035): error CS7013: Name 'get_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName { get { return 0; } set { } }     // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + LongSymbolName).WithLocation(30, 1035),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + s_longSymbolName).WithLocation(30, 1035),
                 // (30,1053): error CS7013: Name 'set_LongSymbolName' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName { get { return 0; } set { } }     // Fine (except accessors)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + LongSymbolName).WithLocation(30, 1053),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + s_longSymbolName).WithLocation(30, 1053),
                 // (31,9): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get { return 0; } set { } }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(31, 9),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(31, 9),
                 // (31,1036): error CS7013: Name 'get_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get { return 0; } set { } }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + LongSymbolName + 1).WithLocation(31, 1036),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "get").WithArguments("get_" + s_longSymbolName + 1).WithLocation(31, 1036),
                 // (31,1054): error CS7013: Name 'set_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int LongSymbolName + 1 { get { return 0; } set { } }    // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + LongSymbolName + 1).WithLocation(31, 1054),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "set").WithArguments("set_" + s_longSymbolName + 1).WithLocation(31, 1054),
                 // (37,10): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     void LongSymbolName + 1() { }   // Too long
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(37, 10),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(37, 10),
 
                 // Uninteresting
 
                 // (6,9): warning CS0169: The field 'Fields.LongSymbolName' is never used
                 //     int LongSymbolName;    // Fine
-                Diagnostic(ErrorCode.WRN_UnreferencedField, LongSymbolName).WithArguments("Fields." + LongSymbolName).WithLocation(6, 9),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, s_longSymbolName).WithArguments("Fields." + s_longSymbolName).WithLocation(6, 9),
                 // (7,9): warning CS0169: The field 'Fields.LongSymbolName + 1' is never used
                 //     int LongSymbolName + 1;   // Too long
-                Diagnostic(ErrorCode.WRN_UnreferencedField, LongSymbolName + 1).WithArguments("Fields." + LongSymbolName + 1).WithLocation(7, 9),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, s_longSymbolName + 1).WithArguments("Fields." + s_longSymbolName + 1).WithLocation(7, 9),
                 // (12,18): warning CS0067: The event 'FieldLikeEvents.LongSymbolName' is never used
                 //     event Action LongSymbolName;   // Fine
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, LongSymbolName).WithArguments("FieldLikeEvents." + LongSymbolName).WithLocation(12, 18),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, s_longSymbolName).WithArguments("FieldLikeEvents." + s_longSymbolName).WithLocation(12, 18),
                 // (13,18): warning CS0067: The event 'FieldLikeEvents.LongSymbolName + 1' is never used
                 //     event Action LongSymbolName + 1;  // Too long
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, LongSymbolName + 1).WithArguments("FieldLikeEvents." + LongSymbolName + 1).WithLocation(13, 18));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, s_longSymbolName + 1).WithArguments("FieldLikeEvents." + s_longSymbolName + 1).WithLocation(13, 18));
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace {0} {{ }}     // Fine.
 namespace {0}1 {{ }}    // Too long, but not checked.
 ";
 
-            var source = string.Format(sourceTemplate, LongSymbolName);
+            var source = string.Format(sourceTemplate, s_longSymbolName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
@@ -210,9 +210,9 @@ interface {2}<T> {{ }}  // Fine
 interface {2}1<T> {{ }} // Too long after appending '`1'
 ";
 
-            var substring0 = LongSymbolName;
-            var substring1 = LongSymbolName.Substring(1);
-            var substring2 = LongSymbolName.Substring(2);
+            var substring0 = s_longSymbolName;
+            var substring1 = s_longSymbolName.Substring(1);
+            var substring2 = s_longSymbolName.Substring(2);
             var source = string.Format(sourceTemplate, substring0, substring1, substring2);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
@@ -260,8 +260,8 @@ class C : I, N.J<C>
 }}
 ";
 
-            var name0 = LongSymbolName.Substring(2); // Space for "I."
-            var name1 = LongSymbolName.Substring(7); // Space for "N.J<C>."
+            var name0 = s_longSymbolName.Substring(2); // Space for "I."
+            var name1 = s_longSymbolName.Substring(7); // Space for "N.J<C>."
             var source = string.Format(sourceTemplate, name0, name1);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
@@ -305,16 +305,16 @@ class C3
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongSymbolName);
+            var source = string.Format(sourceTemplate, s_longSymbolName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (9,24):
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(9, 24),
                 // (17,24):
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Short2").WithArguments(LongSymbolName + 1).WithLocation(17, 24),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Short2").WithArguments(s_longSymbolName + 1).WithLocation(17, 24),
                 // (25,24):
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(25, 24));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(25, 24));
         }
 
         [Fact]
@@ -332,22 +332,22 @@ class C
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongSymbolName);
+            var source = string.Format(sourceTemplate, s_longSymbolName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (5,17): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     void M(long LongSymbolName + 1) { }
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(5, 17),
                 // (7,19): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     int this[long LongSymbolName + 1] { get { return 0; } }
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(7, 19),
                 // (9,27): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     delegate void D2(long LongSymbolName + 1);
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(9, 27),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(9, 27),
                 // (9,27): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     delegate void D2(long LongSymbolName + 1);
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(9, 27)); // Second report is for Invoke method.  Not ideal, but not urgent.
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(9, 27)); // Second report is for Invoke method.  Not ideal, but not urgent.
         }
 
         [Fact]
@@ -366,22 +366,22 @@ class E
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongSymbolName);
+            var source = string.Format(sourceTemplate, s_longSymbolName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (2,1034): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 // class C<LongSymbolName, LongSymbolName + 1>
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(2, 1034),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(2, 1034),
                 // (6,1042): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 // delegate void D<LongSymbolName, LongSymbolName + 1>();
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(6, 1042),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(6, 1042),
                 // (10,1037): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     void M<LongSymbolName, LongSymbolName + 1>() { }
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, LongSymbolName + 1).WithArguments(LongSymbolName + 1).WithLocation(10, 1037));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(10, 1037));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Locals()
         {
             var sourceTemplate = @"
@@ -396,16 +396,16 @@ class C
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongLocalName);
+            var source = string.Format(sourceTemplate, s_longLocalName);
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,13): warning CS8029: Local name 'LongLocalName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
                 //         int LongSymbolName + 1 = 1;
-                Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, LongLocalName + 1).WithArguments(LongLocalName + 1).WithLocation(7, 13));
+                Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 13));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstantLocals()
         {
             var sourceTemplate = @"
@@ -420,13 +420,13 @@ class C
 }}
 ";
 
-            var source = string.Format(sourceTemplate, LongLocalName);
+            var source = string.Format(sourceTemplate, s_longLocalName);
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,19): warning CS8029: Local name 'LongSymbolName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
                 //         const int LongSymbolName + 1 = 1;
-                Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, LongLocalName + 1).WithArguments(LongLocalName + 1).WithLocation(7, 19));
+                Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 19));
         }
 
         [Fact]
@@ -448,8 +448,8 @@ class C
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0).Length - 1;
-            string longName = LongSymbolName.Substring(padding);
+            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0, 0).Length - 1;
+            string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
@@ -472,8 +472,8 @@ class C
 }}
 ";
             int padding = GeneratedNames.MakeAnonymousTypeBackingFieldName("A").Length - 1;
-            string longName = LongSymbolName.Substring(padding);
-            var source = string.Format(sourceTemplate, longName); 
+            string longName = s_longSymbolName.Substring(padding);
+            var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics();
 
@@ -520,7 +520,7 @@ class Async
 }}
 ";
             int padding = GeneratedNames.MakeStateMachineTypeName("A", 0, 0).Length - 1;
-            string longName = LongSymbolName.Substring(padding);
+            string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
@@ -532,7 +532,7 @@ class Async
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<" + longName + 1 + ">d__1").WithLocation(1, 1));
         }
 
-        [WorkItem(531484, "DevDiv")]
+        [WorkItem(531484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531484")]
         [Fact]
         public void TestFixedSizeBuffers()
         {
@@ -544,7 +544,7 @@ unsafe struct S
 }}
 ";
             int padding = GeneratedNames.MakeFixedFieldImplementationName("A").Length - 1;
-            string longName = LongSymbolName.Substring(padding);
+            string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
@@ -563,21 +563,21 @@ unsafe struct S
             var resources = new[]
             {
                 new ResourceDescription("name1", "path1", dataProvider, false),   //fine
-                new ResourceDescription(LongSymbolName, "path2", dataProvider, false), //fine
-                new ResourceDescription("name2", LongPathName, dataProvider, false), //fine
-                new ResourceDescription(LongSymbolName + 1, "path3", dataProvider, false), //name error
-                new ResourceDescription("name3", LongPathName + 2, dataProvider, false), //path error
-                new ResourceDescription(LongSymbolName + 3, LongPathName + 4, dataProvider, false), //name and path errors
+                new ResourceDescription(s_longSymbolName, "path2", dataProvider, false), //fine
+                new ResourceDescription("name2", s_longPathName, dataProvider, false), //fine
+                new ResourceDescription(s_longSymbolName + 1, "path3", dataProvider, false), //name error
+                new ResourceDescription("name3", s_longPathName + 2, dataProvider, false), //path error
+                new ResourceDescription(s_longSymbolName + 3, s_longPathName + 4, dataProvider, false), //name and path errors
             };
             comp.VerifyEmitDiagnostics(resources,
                 // error CS7013: Name 'LongSymbolName1' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(LongSymbolName + 1).WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(s_longSymbolName + 1).WithLocation(1, 1),
                 // error CS7013: Name 'LongPathName2' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(LongPathName + 2).WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(s_longPathName + 2).WithLocation(1, 1),
                 // error CS7013: Name 'LongSymbolName3' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(LongSymbolName + 3).WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(s_longSymbolName + 3).WithLocation(1, 1),
                 // error CS7013: Name 'LongPathName4' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(LongPathName + 4).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments(s_longPathName + 4).WithLocation(1, 1));
         }
     }
 }

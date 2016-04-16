@@ -14,20 +14,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal abstract class AbstractTriviaFormatter<TTrivia> where TTrivia : struct
+    internal abstract class AbstractTriviaFormatter
     {
         #region Caches
-        private static readonly string[] SpaceCache;
+        private static readonly string[] s_spaceCache;
 
         /// <summary>
         /// set up space string caches
         /// </summary>
         static AbstractTriviaFormatter()
         {
-            SpaceCache = new string[20];
+            s_spaceCache = new string[20];
             for (int i = 0; i < 20; i++)
             {
-                SpaceCache[i] = new string(' ', i);
+                s_spaceCache[i] = new string(' ', i);
             }
         }
         #endregion
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly SyntaxToken Token1;
         protected readonly SyntaxToken Token2;
 
-        private readonly string language;
-        private readonly int indentation;
-        private readonly bool firstLineBlank;
+        private readonly string _language;
+        private readonly int _indentation;
+        private readonly bool _firstLineBlank;
 
         public AbstractTriviaFormatter(
             FormattingContext context,
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (token1 == default(SyntaxToken))
             {
-                this.language = token2.Language;
+                _language = token2.Language;
             }
             else
             {
-                this.language = token1.Language;
+                _language = token1.Language;
             }
 
             this.LineBreaks = lineBreaks;
@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             //
             // ex) [indentation]/** */ token2
             //     [spaces            ]
-            this.indentation = (this.LineBreaks > 0) ? GetIndentation() : -1;
+            _indentation = (this.LineBreaks > 0) ? GetIndentation() : -1;
 
             // check whether first line between two tokens contains only whitespace
             // depends on this we decide where to insert blank lines at the end
-            this.firstLineBlank = FirstLineBlank();
+            _firstLineBlank = FirstLineBlank();
         }
 
         /// <summary>
@@ -158,11 +158,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// check whether given char is new line char
         /// </summary>
         protected abstract bool IsNewLine(char ch);
-
-        /// <summary>
-        /// convert common syntax trivia to SyntaxTrivia
-        /// </summary>
-        protected abstract TTrivia Convert(SyntaxTrivia trivia);
 
         /// <summary>
         /// create whitespace trivia
@@ -232,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         protected string Language
         {
-            get { return this.language; }
+            get { return _language; }
         }
 
         protected TokenStream TokenStream
@@ -240,19 +235,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             get { return this.Context.TokenStream; }
         }
 
-        public List<TTrivia> FormatToSyntaxTrivia(CancellationToken cancellationToken)
+        public List<SyntaxTrivia> FormatToSyntaxTrivia(CancellationToken cancellationToken)
         {
             var changes = ListPool<SyntaxTrivia>.Allocate();
 
             var lineColumn = FormatTrivia(Format, AddWhitespaceTrivia, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
             {
-                var temp = new List<TTrivia>(changes.Select(Convert));
+                var temp = new List<SyntaxTrivia>(changes);
                 ListPool<SyntaxTrivia>.Free(changes);
 
                 return temp;
@@ -261,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             ListPool<SyntaxTrivia>.Free(changes);
 
             var triviaList = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
-            return new List<TTrivia>(triviaList.Select(Convert));
+            return new List<SyntaxTrivia>(triviaList);
         }
 
         public List<TextChange> FormatToTextChanges(CancellationToken cancellationToken)
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var lineColumn = FormatTrivia(Format, AddWhitespaceTextChange, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
@@ -523,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             LineColumn lineColumnBeforeTrivia1, SyntaxTrivia trivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
         {
             // we do not touch spaces adjacent to missing token
-            // [missing token] [whitespace] [trivia] or [trivia] [whitepsace] [missing token] case
+            // [missing token] [whitespace] [trivia] or [trivia] [whitespace] [missing token] case
             if ((this.Token1.IsMissing && trivia1.RawKind == 0) ||
                 (trivia2.RawKind == 0 && this.Token2.IsMissing))
             {
@@ -558,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         return this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart);
 
                     case LineColumnRule.IndentationOperations.Given:
-                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, this.indentation);
+                        return (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation);
 
                     case LineColumnRule.IndentationOperations.Follow:
                         return Math.Max(0, lineColumnBeforeTrivia1.Column);
@@ -637,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // first line is blank or there is no changes. 
             // just insert at the head
-            if (this.firstLineBlank ||
+            if (_firstLineBlank ||
                 changes.Count == 0)
             {
                 return 0;
@@ -727,7 +722,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // first line is blank or there is no changes. 
             // just insert at the head
-            if (this.firstLineBlank ||
+            if (_firstLineBlank ||
                 changes.Count == 0)
             {
                 return new TextSpan(this.StartPosition, 0);
@@ -743,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // well, give up and insert at the top
-            return new TextSpan(this.firstLineBlank ? this.StartPosition : this.EndPosition, 0);
+            return new TextSpan(_firstLineBlank ? this.StartPosition : this.EndPosition, 0);
         }
 
         private void AddWhitespaceTrivia(
@@ -786,18 +781,18 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
-
             // space indicates space between two noisy trivia or tokens
-            changes.Add(CreateWhitespace(GetSpacesOrTabs(lineColumn.Column, delta.Spaces, useTabs && !useTabOnlyForIndentation, tabSize)));
+            changes.Add(CreateWhitespace(GetSpaces(delta.Spaces)));
         }
 
         private string GetWhitespaceString(LineColumn lineColumn, LineColumnDelta delta)
         {
             var sb = StringBuilderPool.Allocate();
+
+            var newLine = this.OptionSet.GetOption(FormattingOptions.NewLine, this.Language);
             for (int i = 0; i < delta.Lines; i++)
             {
-                sb.AppendLine();
+                sb.Append(newLine);
             }
 
             if (delta.Spaces == 0)
@@ -811,14 +806,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             // space indicates indentation
             if (delta.Lines > 0 || lineColumn.Column == 0)
             {
-                sb.Append(delta.Spaces.CreateIndentationString(useTabs, tabSize));
+                sb.AppendIndentationString(delta.Spaces, useTabs, tabSize);
                 return StringBuilderPool.ReturnAndFree(sb);
             }
 
-            var useTabOnlyForIndentation = this.OptionSet.GetOption(FormattingOptions.UseTabOnlyForIndentation, this.Language);
-
             // space indicates space between two noisy trivia or tokens
-            sb.Append(GetSpacesOrTabs(lineColumn.Column, delta.Spaces, useTabs && !useTabOnlyForIndentation, tabSize));
+            sb.Append(' ', repeatCount: delta.Spaces);
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
@@ -872,7 +865,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return LineColumnDelta.Default;
                 }
 
-                // if there was alrady new lines, ignore elastic
+                // if there was already new lines, ignore elastic
                 var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
                 var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||
@@ -948,23 +941,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.InitialLineColumn.With(delta).Column;
         }
 
-        private static string GetSpacesOrTabs(int initialColumn, int space, bool useTab, int tabSize)
+        private static string GetSpaces(int space)
         {
-            if (useTab)
-            {
-                var preceedingTabs = initialColumn / tabSize;
-                var preceedingSpace = initialColumn % tabSize;
-
-                var column = initialColumn + space;
-                var numberOfTabs = column / tabSize;
-                var numberOfSpaces = column % tabSize;
-                var numberOfTabsToIntroduce = numberOfTabs - preceedingTabs;
-                return new string('\t', numberOfTabsToIntroduce) + new string(' ', numberOfTabsToIntroduce == 0 ? numberOfSpaces - preceedingSpace : numberOfSpaces);
-            }
-
             if (space >= 0 && space < 20)
             {
-                return SpaceCache[space];
+                return s_spaceCache[space];
             }
 
             return new string(' ', space);

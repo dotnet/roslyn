@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -9,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SubstitutedParameterSymbol : WrappedParameterSymbol
     {
         // initially set to map which is only used to get the type, which is once computed is stored here.
-        private object mapOrType;
+        private object _mapOrType;
 
-        private readonly Symbol containingSymbol;
+        private readonly Symbol _containingSymbol;
 
         internal SubstitutedParameterSymbol(MethodSymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
             this((Symbol)containingSymbol, map, originalParameter)
@@ -27,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(originalParameter)
         {
             Debug.Assert(originalParameter.IsDefinition);
-            this.containingSymbol = containingSymbol;
-            this.mapOrType = map;
+            _containingSymbol = containingSymbol;
+            _mapOrType = map;
         }
 
         public override ParameterSymbol OriginalDefinition
@@ -38,23 +39,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol
         {
-            get { return containingSymbol; }
+            get { return _containingSymbol; }
         }
 
         public override TypeSymbol Type
         {
             get
             {
-                var mapOrType = this.mapOrType;
+                var mapOrType = _mapOrType;
                 var type = mapOrType as TypeSymbol;
                 if (type != null)
                 {
                     return type;
                 }
 
-                type = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
-                this.mapOrType = type;
+                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
+
+                type = substituted.Type;
+
+                if (substituted.CustomModifiers.IsDefaultOrEmpty)
+                {
+                    _mapOrType = type;
+                }
+
                 return type;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                var map = _mapOrType as TypeMap;
+                return map != null ? map.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers) : this.underlyingParameter.CustomModifiers;
             }
         }
 

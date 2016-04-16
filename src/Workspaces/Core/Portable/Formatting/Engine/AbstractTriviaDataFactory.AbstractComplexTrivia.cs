@@ -10,25 +10,25 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract partial class AbstractTriviaDataFactory
     {
-        protected abstract class AbstractComplexTrivia<TToken, TTrivia> : TriviaDataWithList<TTrivia>
+        protected abstract class AbstractComplexTrivia : TriviaDataWithList
         {
-            private readonly SyntaxToken token1;
-            private readonly SyntaxToken token2;
+            private readonly SyntaxToken _token1;
+            private readonly SyntaxToken _token2;
 
-            public TreeData TreeInfo { get; private set; }
-            public string OriginalString { get; private set; }
+            public TreeData TreeInfo { get; }
+            public string OriginalString { get; }
 
-            private readonly bool treatAsElastic;
+            private readonly bool _treatAsElastic;
 
             public AbstractComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2) :
                 base(optionSet, token1.Language)
             {
                 Contract.ThrowIfNull(treeInfo);
 
-                this.token1 = token1;
-                this.token2 = token2;
+                _token1 = token1;
+                _token2 = token2;
 
-                this.treatAsElastic = CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(token1, token2);
+                _treatAsElastic = CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(token1, token2);
 
                 this.TreeInfo = treeInfo;
                 this.OriginalString = this.TreeInfo.GetTextBetween(token1, token2);
@@ -41,54 +41,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.Spaces = spaces;
             }
 
-            protected abstract TToken ConvertToken(SyntaxToken token);
-            protected abstract SyntaxTrivia ConvertTrivia(TTrivia trivia);
-
             protected abstract void ExtractLineAndSpace(string text, out int lines, out int spaces);
             protected abstract TriviaData CreateComplexTrivia(int line, int space);
             protected abstract TriviaData CreateComplexTrivia(int line, int space, int indentation);
-            protected abstract TriviaDataWithList<TTrivia> Format(FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken);
+            protected abstract TriviaDataWithList Format(FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken);
             protected abstract bool ContainsSkippedTokensOrText(TriviaList list);
 
-            public TToken Token1
-            {
-                get
-                {
-                    return ConvertToken(this.token1);
-                }
-            }
+            public SyntaxToken Token1 => _token1;
 
-            public TToken Token2
-            {
-                get
-                {
-                    return ConvertToken(this.token2);
-                }
-            }
+            public SyntaxToken Token2 => _token2;
 
-            public override bool TreatAsElastic
-            {
-                get
-                {
-                    return this.treatAsElastic;
-                }
-            }
+            public override bool TreatAsElastic => _treatAsElastic;
 
-            public override bool IsWhitespaceOnlyTrivia
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool IsWhitespaceOnlyTrivia => false;
 
-            public override bool ContainsChanges
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool ContainsChanges => false;
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             {
@@ -168,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // do expansive check
                 // we need to actually format here to find out indentation
-                var list = new TriviaList(token1.TrailingTrivia, token2.LeadingTrivia);
+                var list = new TriviaList(_token1.TrailingTrivia, _token2.LeadingTrivia);
                 Contract.ThrowIfFalse(list.Count > 0);
 
                 if (ContainsSkippedTokensOrText(list))
@@ -188,15 +155,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
-            private string CreateString(TriviaDataWithList<TTrivia> triviaData, CancellationToken cancellationToken)
+            private string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
             {
                 // create string from given trivia data
                 var sb = StringBuilderPool.Allocate();
 
                 foreach (var trivia in triviaData.GetTriviaList(cancellationToken))
                 {
-                    var commonTrivia = ConvertTrivia(trivia);
-                    sb.Append(commonTrivia.ToFullString());
+                    sb.Append(trivia.ToFullString());
                 }
 
                 return StringBuilderPool.ReturnAndFree(sb);

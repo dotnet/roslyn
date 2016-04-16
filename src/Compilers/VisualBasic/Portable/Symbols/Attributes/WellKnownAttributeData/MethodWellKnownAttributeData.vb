@@ -15,45 +15,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
 #Region "STAThreadAttribute"
-        Private m_hasSTAThreadAttribute As Boolean = False
+        Private _hasSTAThreadAttribute As Boolean = False
         Friend Property HasSTAThreadAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_hasSTAThreadAttribute
+                Return Me._hasSTAThreadAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_hasSTAThreadAttribute = value
+                Me._hasSTAThreadAttribute = value
                 SetDataStored()
             End Set
         End Property
 #End Region
 
 #Region "MTAThreadAttribute"
-        Private m_hasMTAThreadAttribute As Boolean = False
+        Private _hasMTAThreadAttribute As Boolean = False
         Friend Property HasMTAThreadAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_hasMTAThreadAttribute
+                Return Me._hasMTAThreadAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_hasMTAThreadAttribute = value
+                Me._hasMTAThreadAttribute = value
                 SetDataStored()
             End Set
         End Property
 #End Region
 
 #Region "DebuggerHiddenAttribute"
-        Private m_isPropertyAccessorWithDebuggerHiddenAttribute As Boolean = False
+        Private _isPropertyAccessorWithDebuggerHiddenAttribute As Boolean = False
         Friend Property IsPropertyAccessorWithDebuggerHiddenAttribute As Boolean
             Get
                 VerifySealed(expected:=True)
-                Return Me.m_isPropertyAccessorWithDebuggerHiddenAttribute
+                Return Me._isPropertyAccessorWithDebuggerHiddenAttribute
             End Get
             Set(value As Boolean)
                 VerifySealed(expected:=False)
-                Me.m_isPropertyAccessorWithDebuggerHiddenAttribute = value
+                Me._isPropertyAccessorWithDebuggerHiddenAttribute = value
                 SetDataStored()
             End Set
         End Property

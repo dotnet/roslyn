@@ -25,16 +25,16 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class AnnotationTable<TAnnotation> where TAnnotation : class
     {
-        private int globalId = 0;
+        private int _globalId;
 
-        private readonly Dictionary<TAnnotation, SyntaxAnnotation> realAnnotationMap = new Dictionary<TAnnotation, SyntaxAnnotation>();
-        private readonly Dictionary<string, TAnnotation> annotationMap = new Dictionary<string, TAnnotation>();
+        private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new Dictionary<TAnnotation, SyntaxAnnotation>();
+        private readonly Dictionary<string, TAnnotation> _annotationMap = new Dictionary<string, TAnnotation>();
 
-        private readonly string annotationKind;
+        private readonly string _annotationKind;
 
         public AnnotationTable(string annotationKind)
         {
-            this.annotationKind = annotationKind;
+            _annotationKind = annotationKind;
         }
 
         private IEnumerable<SyntaxAnnotation> GetOrCreateRealAnnotations(TAnnotation[] annotations)
@@ -48,14 +48,14 @@ namespace Roslyn.Utilities
         private SyntaxAnnotation GetOrCreateRealAnnotation(TAnnotation annotation)
         {
             SyntaxAnnotation realAnnotation;
-            if (!this.realAnnotationMap.TryGetValue(annotation, out realAnnotation))
+            if (!_realAnnotationMap.TryGetValue(annotation, out realAnnotation))
             {
-                var id = Interlocked.Increment(ref globalId);
+                var id = Interlocked.Increment(ref _globalId);
                 var idString = id.ToString();
 
-                realAnnotation = new SyntaxAnnotation(annotationKind, idString);
-                this.annotationMap.Add(idString, annotation);
-                this.realAnnotationMap.Add(annotation, realAnnotation);
+                realAnnotation = new SyntaxAnnotation(_annotationKind, idString);
+                _annotationMap.Add(idString, annotation);
+                _realAnnotationMap.Add(annotation, realAnnotation);
             }
 
             return realAnnotation;
@@ -76,7 +76,7 @@ namespace Roslyn.Utilities
         private SyntaxAnnotation GetRealAnnotation(TAnnotation annotation)
         {
             SyntaxAnnotation realAnnotation;
-            this.realAnnotationMap.TryGetValue(annotation, out realAnnotation);
+            _realAnnotationMap.TryGetValue(annotation, out realAnnotation);
             return realAnnotation;
         }
 
@@ -125,7 +125,7 @@ namespace Roslyn.Utilities
             foreach (var ra in realAnnotations)
             {
                 TAnnotation annotation;
-                if (this.annotationMap.TryGetValue(ra.Data, out annotation))
+                if (_annotationMap.TryGetValue(ra.Data, out annotation))
                 {
                     yield return annotation;
                 }
@@ -134,22 +134,22 @@ namespace Roslyn.Utilities
 
         public IEnumerable<TAnnotation> GetAnnotations(SyntaxNode node)
         {
-            return GetAnnotations(node.GetAnnotations(this.annotationKind));
+            return GetAnnotations(node.GetAnnotations(_annotationKind));
         }
 
         public IEnumerable<TAnnotation> GetAnnotations(SyntaxToken token)
         {
-            return GetAnnotations(token.GetAnnotations(this.annotationKind));
+            return GetAnnotations(token.GetAnnotations(_annotationKind));
         }
 
         public IEnumerable<TAnnotation> GetAnnotations(SyntaxTrivia trivia)
         {
-            return GetAnnotations(trivia.GetAnnotations(this.annotationKind));
+            return GetAnnotations(trivia.GetAnnotations(_annotationKind));
         }
 
         public IEnumerable<TAnnotation> GetAnnotations(SyntaxNodeOrToken nodeOrToken)
         {
-            return GetAnnotations(nodeOrToken.GetAnnotations(this.annotationKind));
+            return GetAnnotations(nodeOrToken.GetAnnotations(_annotationKind));
         }
 
         public IEnumerable<TSpecificAnnotation> GetAnnotations<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
@@ -174,22 +174,22 @@ namespace Roslyn.Utilities
 
         public bool HasAnnotations(SyntaxNode node)
         {
-            return node.HasAnnotations(this.annotationKind);
+            return node.HasAnnotations(_annotationKind);
         }
 
         public bool HasAnnotations(SyntaxToken token)
         {
-            return token.HasAnnotations(this.annotationKind);
+            return token.HasAnnotations(_annotationKind);
         }
 
         public bool HasAnnotations(SyntaxTrivia trivia)
         {
-            return trivia.HasAnnotations(this.annotationKind);
+            return trivia.HasAnnotations(_annotationKind);
         }
 
         public bool HasAnnotations(SyntaxNodeOrToken nodeOrToken)
         {
-            return nodeOrToken.HasAnnotations(this.annotationKind);
+            return nodeOrToken.HasAnnotations(_annotationKind);
         }
 
         public bool HasAnnotations<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
@@ -234,42 +234,42 @@ namespace Roslyn.Utilities
 
         public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens(SyntaxNode node)
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind);
+            return node.GetAnnotatedNodesAndTokens(_annotationKind);
         }
 
         public IEnumerable<SyntaxNode> GetAnnotatedNodes(SyntaxNode node)
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind).Where(nt => nt.IsNode).Select(nt => nt.AsNode());
+            return node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode).Select(nt => nt.AsNode());
         }
 
         public IEnumerable<SyntaxToken> GetAnnotatedTokens(SyntaxNode node)
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind).Where(nt => nt.IsToken).Select(nt => nt.AsToken());
+            return node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsToken).Select(nt => nt.AsToken());
         }
 
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(SyntaxNode node)
         {
-            return node.GetAnnotatedTrivia(this.annotationKind);
+            return node.GetAnnotatedTrivia(_annotationKind);
         }
 
         public IEnumerable<SyntaxNodeOrToken> GetAnnotatedNodesAndTokens<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind).Where(nt => this.HasAnnotations<TSpecificAnnotation>(nt));
+            return node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => this.HasAnnotations<TSpecificAnnotation>(nt));
         }
 
         public IEnumerable<SyntaxNode> GetAnnotatedNodes<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind).Where(nt => nt.IsNode && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsNode());
+            return node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsNode());
         }
 
         public IEnumerable<SyntaxToken> GetAnnotatedTokens<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
         {
-            return node.GetAnnotatedNodesAndTokens(this.annotationKind).Where(nt => nt.IsToken && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsToken());
+            return node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsToken && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsToken());
         }
 
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
         {
-            return node.GetAnnotatedTrivia(this.annotationKind).Where(tr => this.HasAnnotations<TSpecificAnnotation>(tr));
+            return node.GetAnnotatedTrivia(_annotationKind).Where(tr => this.HasAnnotations<TSpecificAnnotation>(tr));
         }
     }
 }

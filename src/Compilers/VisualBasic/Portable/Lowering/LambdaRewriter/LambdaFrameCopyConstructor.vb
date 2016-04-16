@@ -19,17 +19,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class SynthesizedLambdaCopyConstructor
         Inherits SynthesizedLambdaConstructor
 
-        Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
         Friend Sub New(syntaxNode As VisualBasicSyntaxNode, containingType As LambdaFrame)
             MyBase.New(syntaxNode, containingType)
 
-            m_parameters = ImmutableArray.Create(Of ParameterSymbol)(New SourceSimpleParameterSymbol(Me, "arg0", 0, containingType, Nothing))
+            _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SourceSimpleParameterSymbol(Me, "arg0", 0, containingType, Nothing))
         End Sub
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_parameters
+                Return _parameters
             End Get
         End Property
 

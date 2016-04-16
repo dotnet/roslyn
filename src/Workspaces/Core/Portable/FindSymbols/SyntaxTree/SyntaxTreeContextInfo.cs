@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// hold context info in memory. since context info is quite small (less than 30 bytes per a document),
         /// holding this in memory should be fine.
         /// </summary>
-        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>> cache =
+        private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>>();
 
-        private readonly int predefinedTypes;
-        private readonly int predefinedOperators;
-        private readonly ContainingNodes containingNodes;
+        private readonly int _predefinedTypes;
+        private readonly int _predefinedOperators;
+        private readonly ContainingNodes _containingNodes;
 
         internal SyntaxTreeContextInfo(
             VersionStamp version,
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SyntaxTreeContextInfo(VersionStamp version, int predefinedTypes, int predefinedOperators, ContainingNodes containingNodes) :
             base(version)
         {
-            this.predefinedTypes = predefinedTypes;
-            this.predefinedOperators = predefinedOperators;
-            this.containingNodes = containingNodes;
+            _predefinedTypes = predefinedTypes;
+            _predefinedOperators = predefinedOperators;
+            _containingNodes = containingNodes;
         }
 
         private static ContainingNodes ConvertToContainingNodeFlag(
@@ -85,19 +85,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsPredefinedType(PredefinedType type)
         {
-            return (predefinedTypes & (int)type) == (int)type;
+            return (_predefinedTypes & (int)type) == (int)type;
         }
 
         public bool ContainsPredefinedOperator(PredefinedOperator op)
         {
-            return (predefinedOperators & (int)op) == (int)op;
+            return (_predefinedOperators & (int)op) == (int)op;
         }
 
         public bool ContainsForEachStatement
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsForEachStatement) == ContainingNodes.ContainsForEachStatement;
+                return (_containingNodes & ContainingNodes.ContainsForEachStatement) == ContainingNodes.ContainsForEachStatement;
             }
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
+                return (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
             }
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsUsingStatement) == ContainingNodes.ContainsUsingStatement;
+                return (_containingNodes & ContainingNodes.ContainsUsingStatement) == ContainingNodes.ContainsUsingStatement;
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsQueryExpression) == ContainingNodes.ContainsQueryExpression;
+                return (_containingNodes & ContainingNodes.ContainsQueryExpression) == ContainingNodes.ContainsQueryExpression;
             }
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsThisConstructorInitializer) == ContainingNodes.ContainsThisConstructorInitializer;
+                return (_containingNodes & ContainingNodes.ContainsThisConstructorInitializer) == ContainingNodes.ContainsThisConstructorInitializer;
             }
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsBaseConstructorInitializer) == ContainingNodes.ContainsBaseConstructorInitializer;
+                return (_containingNodes & ContainingNodes.ContainsBaseConstructorInitializer) == ContainingNodes.ContainsBaseConstructorInitializer;
             }
         }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsElementAccessExpression) == ContainingNodes.ContainsElementAccessExpression;
+                return (_containingNodes & ContainingNodes.ContainsElementAccessExpression) == ContainingNodes.ContainsElementAccessExpression;
             }
         }
 
@@ -153,16 +153,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             get
             {
-                return (this.containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
+                return (_containingNodes & ContainingNodes.ContainsIndexerMemberCref) == ContainingNodes.ContainsIndexerMemberCref;
             }
         }
 
         public void WriteTo(ObjectWriter writer)
         {
             // TODO: convert these set to use bit array rather than enum hashset
-            writer.WriteInt32(this.predefinedTypes);
-            writer.WriteInt32(this.predefinedOperators);
-            writer.WriteInt32((int)this.containingNodes);
+            writer.WriteInt32(_predefinedTypes);
+            writer.WriteInt32(_predefinedOperators);
+            writer.WriteInt32((int)_containingNodes);
         }
 
         private static SyntaxTreeContextInfo ReadFrom(ObjectReader reader, VersionStamp version)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task<SyntaxTreeContextInfo> LoadAsync(Document document, CancellationToken cancellationToken)
         {
-            var infoTable = cache.GetValue(document.Project.Solution.BranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
+            var infoTable = s_cache.GetValue(document.Project.Solution.BranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
             var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // first look to see if we already have the info in the cache
@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             infoTable.Remove(document.Id);
 
             // check primary cache to see whether we have valid info there
-            var primaryInfoTable = cache.GetValue(document.Project.Solution.Workspace.PrimaryBranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
+            var primaryInfoTable = s_cache.GetValue(document.Project.Solution.Workspace.PrimaryBranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
             if (primaryInfoTable.TryGetValue(document.Id, out info) && info.Version == version)
             {
                 return info;
             }
 
-            // check whether we can get it from peristence service
+            // check whether we can get it from persistence service
             info = await LoadAsync(document, PersistenceName, SerializationFormat, ReadFrom, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public async Task<bool> SaveAsync(Document document, CancellationToken cancellationToken)
         {
-            var infoTable = cache.GetValue(document.Project.Solution.BranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
+            var infoTable = s_cache.GetValue(document.Project.Solution.BranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
 
             // if it is forked document, no reason to persist
             if (await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false))
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // if it is not forked document, save it and cache to primary branch cache
-            var primaryInfoTable = cache.GetValue(document.Project.Solution.Workspace.PrimaryBranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
+            var primaryInfoTable = s_cache.GetValue(document.Project.Solution.Workspace.PrimaryBranchId, _ => new ConditionalWeakTable<DocumentId, SyntaxTreeContextInfo>());
             primaryInfoTable.Remove(document.Id);
             primaryInfoTable.GetValue(document.Id, _ => this);
 

@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class VisualBasicDefinitionMap
         Inherits DefinitionMap(Of VisualBasicSymbolMatcher)
 
-        Private ReadOnly metadataDecoder As MetadataDecoder
+        Private ReadOnly _metadataDecoder As MetadataDecoder
 
         Public Sub New([module] As PEModule,
                        edits As IEnumerable(Of SemanticEdit),
@@ -30,8 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New([module], edits, mapToMetadata, mapToPrevious)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
-            Me.metadataDecoder = metadataDecoder
+            Me._metadataDecoder = metadataDecoder
         End Sub
+
+        Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
+            Get
+                Return VisualBasic.MessageProvider.Instance
+            End Get
+        End Property
 
         Friend Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Return Me.mapToPrevious.TryGetAnonymousTypeName(template, name, index)
@@ -92,12 +97,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Protected Overrides Function TryGetStateMachineType(methodHandle As Handle) As ITypeSymbol
+        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbol
             Dim typeName As String = Nothing
-            If metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
-               metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
+            If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
+               _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
 
-                Return metadataDecoder.GetTypeSymbolForSerializedType(typeName)
+                Return _metadataDecoder.GetTypeSymbolForSerializedType(typeName)
             End If
 
             Return Nothing
@@ -106,10 +111,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbol,
                                                                     localSlotDebugInfo As ImmutableArray(Of LocalSlotDebugInfo),
                                                                     <Out> ByRef hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
-                                                                    <Out> ByRef awaiterMap As IReadOnlyDictionary(Of ITypeReference, Integer),
+                                                                    <Out> ByRef awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, Integer),
                                                                     <Out> ByRef awaiterSlotCount As Integer)
+            ' we are working with PE symbols
+            Debug.Assert(TypeOf stateMachineType.ContainingAssembly Is PEAssemblySymbol)
+
             Dim hoistedLocals = New Dictionary(Of EncHoistedLocalInfo, Integer)()
-            Dim awaiters = New Dictionary(Of ITypeReference, Integer)
+            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)
             Dim maxAwaiterSlotIndex = -1
 
             For Each member In stateMachineType.GetMembers()
@@ -121,10 +129,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Case GeneratedNameKind.StateMachineAwaiterField
 
                             If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
-                                Dim field = TryCast(member, IFieldSymbol)
+                                Dim field = DirectCast(member, IFieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters(TryCast(field.Type, Cci.ITypeReference)) = slotIndex
+                                awaiters(DirectCast(field.Type, Cci.ITypeReference)) = slotIndex
 
                                 If slotIndex > maxAwaiterSlotIndex Then
                                     maxAwaiterSlotIndex = slotIndex
@@ -137,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             Dim _name As String = Nothing
                             If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
                                GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
-                                Dim field = TryCast(member, IFieldSymbol)
+                                Dim field = DirectCast(member, IFieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
                                     Continue For
@@ -159,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)
             Dim slotMetadata As ImmutableArray(Of LocalInfo(Of TypeSymbol)) = Nothing
-            If Not metadataDecoder.TryGetLocals(handle, slotMetadata) Then
+            If Not _metadataDecoder.TryGetLocals(handle, slotMetadata) Then
                 Return Nothing
             End If
 
@@ -209,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             ' Populate any remaining locals that were Not matched to source.
-            For i = 0 To result.Count - 1
+            For i = 0 To result.Length - 1
                 If result(i).IsDefault Then
                     result(i) = New EncLocalInfo(slotMetadata(i).SignatureOpt)
                 End If

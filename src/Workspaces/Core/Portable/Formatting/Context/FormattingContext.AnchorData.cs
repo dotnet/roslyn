@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private class AnchorData
         {
-            private readonly AnchorIndentationOperation operation;
+            private readonly AnchorIndentationOperation _operation;
 
             public AnchorData(AnchorIndentationOperation operation, int originalColumn)
             {
-                this.operation = operation;
+                _operation = operation;
                 this.OriginalColumn = originalColumn;
             }
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return this.operation.TextSpan;
+                    return _operation.TextSpan;
                 }
             }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return this.operation.AnchorToken;
+                    return _operation.AnchorToken;
                 }
             }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return this.operation.StartToken;
+                    return _operation.StartToken;
                 }
             }
 
@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 get
                 {
-                    return this.operation.EndToken;
+                    return _operation.EndToken;
                 }
             }
 
-            public int OriginalColumn { get; private set; }
+            public int OriginalColumn { get; }
         }
 
         int IIntervalIntrospector<AnchorData>.GetStart(AnchorData value)

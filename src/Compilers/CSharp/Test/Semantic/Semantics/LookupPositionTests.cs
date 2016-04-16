@@ -45,7 +45,7 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Pop);
+                s_pop);
 
             TestLookupNames(text, expectedNames, experimental: true);
         }
@@ -104,7 +104,7 @@ class C
                         "System.Int32 System.ValueType.GetHashCode()",
                         "System.String System.ValueType.ToString()")),
                 Add("System.Int32 value"), //C.S.set
-                Pop, //C.S.set
+                s_pop, //C.S.set
                 Combine( //C.S.I
                     Remove(
                         "void C.S.M()",
@@ -113,9 +113,9 @@ class C
                         "System.String System.ValueType.ToString()"),
                     Add(
                         "void C.S.I.M()")),
-                Combine(Pop, Pop), //C.S.I
-                Combine(Pop, Pop), //C.S
-                Pop //C
+                Combine(s_pop, s_pop), //C.S.I
+                Combine(s_pop, s_pop), //C.S
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
@@ -181,18 +181,18 @@ class C
                     "T",
                     "Z"),
                 Add(class_C_members), //"<T, Z>" : C members are in scope in Type parameter list 
-                Pop, //C members are not in scope in Base declaration list
+                s_pop, //C members are not in scope in Base declaration list
                 Add(class_C_members), //C<T> body
                 Add("U"), //C.S decl
                 Combine( //"<U, Z>" : C.S members are in scope in Type parameter list 
                     Remove("void C<T, Z>.M()"),
                     Add(struct_S_members)),
-                Combine(Pop, Pop), //C.S members are not in scope in Base declaration list
+                Combine(s_pop, s_pop), //C.S members are not in scope in Base declaration list
                 Combine( //C.S body
                     Remove("void C<T, Z>.M()"),
                     Add(struct_S_members)),
                 Add("System.Int32 value"), //C.S.set
-                Pop, //C.S.set
+                s_pop, //C.S.set
                 Add("V"), //C.S.I decl 
                 Combine( //"<V, Z>" : C.S.I members are in scope in Type parameter list 
                     Remove(
@@ -201,7 +201,7 @@ class C
                         "System.Int32 System.ValueType.GetHashCode()",
                         "System.String System.ValueType.ToString()"),
                     Add(interface_I_member)),
-                Combine(Pop, Pop), //C.S.I members are not in scope in Base declaration list
+                Combine(s_pop, s_pop), //C.S.I members are not in scope in Base declaration list
                 Combine( //C.S.I body
                     Remove(
                         "void C<T, Z>.S<U, Z>.M()",
@@ -209,9 +209,9 @@ class C
                         "System.Int32 System.ValueType.GetHashCode()",
                         "System.String System.ValueType.ToString()"),
                     Add(interface_I_member)),
-                Combine(Pop, Pop, Pop), //C.S.I decl and body
-                Combine(Pop, Pop, Pop), //C.S body and decl
-                Combine(Pop, Pop) //C body and decl
+                Combine(s_pop, s_pop, s_pop), //C.S.I decl and body
+                Combine(s_pop, s_pop, s_pop), //C.S body and decl
+                Combine(s_pop, s_pop) //C body and decl
             );
 
             TestLookupNames(text, expectedNames);
@@ -246,22 +246,22 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("T"), Pop, //C.M return type
+                Add("T"), s_pop, //C.M return type
                 Add("T"), //C.M after name
                 Add("T t"), //C.M body
-                Combine(Pop, Pop), //C.M
-                Add("T"), Pop, //C.N return type
+                Combine(s_pop, s_pop), //C.M
+                Add("T"), s_pop, //C.N return type
                 Add("T"), //C.N after name
-                Pop, //C.N
+                s_pop, //C.N
                 Add("System.Int32 t"), //C.O
-                Pop, //C.O
-                Pop //C
+                s_pop, //C.O
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        private static readonly string[] CommonDelegateTypeMembers = new string[] {
+        private static readonly string[] s_commonDelegateTypeMembers = new string[] {
                 "System.Boolean System.Delegate.Equals(System.Object obj)",
                 "System.Boolean System.MulticastDelegate.Equals(System.Object obj)",
                 "System.Delegate System.Delegate.Combine(params System.Delegate[] delegates)",
@@ -297,7 +297,7 @@ class C
                 "void System.MulticastDelegate.GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)",
             };
 
-        private static readonly string[] CommonEnumTypeMembers = new string[] {
+        private static readonly string[] s_commonEnumTypeMembers = new string[] {
                 "System.Array System.Enum.GetValues(System.Type enumType)",
                 "System.Boolean System.Enum.Equals(System.Object obj)",
                 "System.Boolean System.Enum.HasFlag(System.Enum flag)",
@@ -331,7 +331,7 @@ class C
                 "System.TypeCode System.Enum.GetTypeCode()",
             };
 
-        [Fact, WorkItem(545556, "DevDiv")]
+        [Fact, WorkItem(545556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545556")]
         public void TestAssortedMembers()
         {
             var text = @"
@@ -403,29 +403,29 @@ public abstract `class C`<T`> : NS.I
                 "System.IAsyncResult C<T>.D1.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D1.EndInvoke(System.IAsyncResult result)",
                 "void C<T>.D1.Invoke()"
-            }.Concat(CommonDelegateTypeMembers).ToArray();
+            }.Concat(s_commonDelegateTypeMembers).ToArray();
 
             string[] delegate_d2_members = new string[]{
                 "System.IAsyncResult C<T>.D2.BeginInvoke(System.Int32 t, System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D2.EndInvoke(System.IAsyncResult result)",
                 "void C<T>.D2.Invoke(System.Int32 t)"
-            }.Concat(CommonDelegateTypeMembers).ToArray();
+            }.Concat(s_commonDelegateTypeMembers).ToArray();
 
             string[] delegate_d3_members = new string[]{
                 "System.IAsyncResult C<T>.D3<U>.BeginInvoke(System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D3<U>.EndInvoke(System.IAsyncResult result)",
                 "void C<T>.D3<U>.Invoke()"
-            }.Concat(CommonDelegateTypeMembers).ToArray();
+            }.Concat(s_commonDelegateTypeMembers).ToArray();
 
             string[] delegate_d4_members = new string[]{
                 "System.IAsyncResult C<T>.D4<V>.BeginInvoke(V t, System.AsyncCallback callback, System.Object @object)",
                 "void C<T>.D4<V>.EndInvoke(System.IAsyncResult result)",
                 "void C<T>.D4<V>.Invoke(V t)"
-            }.Concat(CommonDelegateTypeMembers).ToArray();
+            }.Concat(s_commonDelegateTypeMembers).ToArray();
 
             string[] enum_e_members = new string[]{
                 "C<T>.E.A"
-            }.Concat(CommonEnumTypeMembers).ToArray();
+            }.Concat(s_commonEnumTypeMembers).ToArray();
 
             var expectedNames = MakeExpectedSymbols(
                 Add( //Global
@@ -443,34 +443,34 @@ public abstract `class C`<T`> : NS.I
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Pop, //NS.I
-                Pop, //NS
+                s_pop, //NS.I
+                s_pop, //NS
                 Add("T"), //C<T> decl
                 Add(class_C_members), //"<T>" : C<T> members are in scope in Type parameter list 
-                Pop, // ": NS.I" : C<T> members are not in scope in Base declaration list
+                s_pop, // ": NS.I" : C<T> members are not in scope in Base declaration list
                 Add(class_C_members), //C<T> body
                 Add(delegate_d1_members), //C<T>.D1
-                Pop, //C<T>.D1
+                s_pop, //C<T>.D1
                 Add(delegate_d2_members), //C<T>.D2
-                Pop, //C<T>.D2
+                s_pop, //C<T>.D2
                 Combine( //C<T>.D3<U>
                     Add("U"), //C<T>.D3<U>
                     Add(delegate_d3_members)), //C<T>.D3<U> members are in scope in delegate declaration
-                Combine (Pop, Pop), //C<T>.D3<U>
+                Combine(s_pop, s_pop), //C<T>.D3<U>
                 Combine( //C<T>.D4<V>
                     Add("V"), //C<T>.D4<V>
                     Add(delegate_d4_members)), //C<T>.D4<V> members are in scope in delegate declaration
-                Combine(Pop, Pop), //C<T>.D4<V>
+                Combine(s_pop, s_pop), //C<T>.D4<V>
                 Add(enum_e_members), //C<T>.E
-                Pop, //C<T>.E
-                Add("T t"), Pop, //C<T>..ctor(T)
-                Add("System.Int32 t"), Pop, //C<T>..ctor(int)
-                Add("System.Int32 value"), Pop, //C<T>.Q.set
-                Add("System.Int32 z"), Pop, //C<T>.this[int].get
-                Add("System.Int32 z", "System.Int32 value"), Pop, //C<T>.this[int].set
-                Add("W"), Pop, //C<T>.M<W> return type
-                Add("W"), Pop, //C<T>.M<W> after name
-                Combine(Pop, Pop) //C<T>
+                s_pop, //C<T>.E
+                Add("T t"), s_pop, //C<T>..ctor(T)
+                Add("System.Int32 t"), s_pop, //C<T>..ctor(int)
+                Add("System.Int32 value"), s_pop, //C<T>.Q.set
+                Add("System.Int32 z"), s_pop, //C<T>.this[int].get
+                Add("System.Int32 z", "System.Int32 value"), s_pop, //C<T>.this[int].set
+                Add("W"), s_pop, //C<T>.M<W> return type
+                Add("W"), s_pop, //C<T>.M<W> after name
+                Combine(s_pop, s_pop) //C<T>
             );
 
             TestLookupNames(text, expectedNames);
@@ -647,48 +647,48 @@ class C
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
                 Add("System.Object a"), //C.M
-                Add("System.Int32 b"), Pop, //block
-                Add("System.Int32 c"), Pop, //while
-                Add("System.Int32 d"), Pop, //do-while
+                Add("System.Int32 b"), s_pop, //block
+                Add("System.Int32 c"), s_pop, //while
+                Add("System.Int32 d"), s_pop, //do-while
                 Add("System.Int32 e"), //for decl
                 Add("System.Int32 f"), //for body
-                Combine(Pop, Pop), //for decl & body
-                Add("System.Int32 f"), Pop, //second for body
+                Combine(s_pop, s_pop), //for decl & body
+                Add("System.Int32 f"), s_pop, //second for body
                 Add("System.Int32 g", "System.Int32 h"), //foreach
-                Pop, //foreach
+                s_pop, //foreach
                 Add("System.IDisposable i"), //using decl
                 Add("System.Int32 j"), //using body
-                Combine(Pop, Pop), //using decl & body
-                Add("System.Int32 k"), Pop, //checked
-                Add("System.Int32 l"), Pop, //unchecked
-                Add("System.Int32 m"), Pop, //lock
-                Add("System.Int32 n"), Pop, //if
-                Add("System.Int32 o"), Pop, //if-else if part
-                Add("System.Int32 p"), Pop, //if-else else part
-                Add("System.Int32 q"), Pop, //if-elseif if part
-                Add("System.Int32 r"), Pop, //if-elseif elseif part
-                Add("System.Int32 s", "System.Int32 t", "System.Int32 u"), Pop, //switch
-                Add("System.Int32 v"), Pop, //try1 try part
+                Combine(s_pop, s_pop), //using decl & body
+                Add("System.Int32 k"), s_pop, //checked
+                Add("System.Int32 l"), s_pop, //unchecked
+                Add("System.Int32 m"), s_pop, //lock
+                Add("System.Int32 n"), s_pop, //if
+                Add("System.Int32 o"), s_pop, //if-else if part
+                Add("System.Int32 p"), s_pop, //if-else else part
+                Add("System.Int32 q"), s_pop, //if-elseif if part
+                Add("System.Int32 r"), s_pop, //if-elseif elseif part
+                Add("System.Int32 s", "System.Int32 t", "System.Int32 u"), s_pop, //switch
+                Add("System.Int32 v"), s_pop, //try1 try part
                 Add("System.Int32 w"), //try1 catch
-                Pop, //try1 catch
-                Add("System.Int32 x"), Pop, //try2 try part
+                s_pop, //try1 catch
+                Add("System.Int32 x"), s_pop, //try2 try part
                 Add("System.Exception y", "System.Int32 z"), //try2 catch
-                Pop, //try2 catch
-                Add("System.Int32 aa"), Pop, //try3 try part
+                s_pop, //try2 catch
+                Add("System.Int32 aa"), s_pop, //try3 try part
                 Add("System.InvalidCastException bb", "System.Int32 cc"), //try3 first catch
-                Pop, //try3 first catch
+                s_pop, //try3 first catch
                 Add("System.InvalidOperationException dd", "System.Int32 ee"), //try3 second catch
-                Pop, //try3 second catch
+                s_pop, //try3 second catch
                 Add("System.Int32 ff"), //try3 third catch
-                Pop, //try3 third catch
-                Add("System.Int32 gg"), Pop, //try4 try part
-                Add("System.Int32 hh"), Pop, //try4 finally part
-                Add("System.Int32 ii"), Pop, //try5 try part
+                s_pop, //try3 third catch
+                Add("System.Int32 gg"), s_pop, //try4 try part
+                Add("System.Int32 hh"), s_pop, //try4 finally part
+                Add("System.Int32 ii"), s_pop, //try5 try part
                 Add("System.InvalidCastException jj", "System.Int32 kk"), //try5 catch
-                Pop, //try5 catch
-                Add("System.Int32 ll"), Pop, //try5 finally part
-                Pop, //C.M
-                Pop //C
+                s_pop, //try5 catch
+                Add("System.Int32 ll"), s_pop, //try5 finally part
+                s_pop, //C.M
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
@@ -728,17 +728,17 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Int32 x"), Pop, //f1
+                Add("System.Int32 x"), s_pop, //f1
                 Add("System.Int32 x"), //f2 lambda parameters
                 Add("System.Int32 y"), //f2 lambda body
-                Combine(Pop, Pop), //f2 lambda parameters and body
+                Combine(s_pop, s_pop), //f2 lambda parameters and body
                 Add("System.Func<System.Int32, System.Int32> g1", "System.Func<System.Int32, System.Int32> g2"), //C.M
-                Add("System.Int32 x"), Pop, //g1
+                Add("System.Int32 x"), s_pop, //g1
                 Add("System.Int32 x"), //g2 lambda parameters
                 Add("System.Int32 y"), //g2 lambda body
-                Combine(Pop, Pop), //g2 lambda parameters and body
-                Pop, //C.M
-                Pop //C
+                Combine(s_pop, s_pop), //g2 lambda parameters and body
+                s_pop, //C.M
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
@@ -780,33 +780,33 @@ class C
                     "System.Type System.Object.GetType()"),
                 Add("System.Int32 x"), //f1 outer
                 Add("System.Int32 y"), //f1 inner
-                Combine(Pop, Pop), //f1
+                Combine(s_pop, s_pop), //f1
                 Add("System.Int32 x"), //f2 outer
                 Add("System.Int32 y"), //f2 outer block 1
                 Add("System.Int32 z"), //f2 outer block 2
-                Add("System.Int32 a"), Pop, //f2 inner
-                Pop, //f2 outer block 2
-                Combine(Pop, Pop), //f2 outer block 1 and outer
+                Add("System.Int32 a"), s_pop, //f2 inner
+                s_pop, //f2 outer block 2
+                Combine(s_pop, s_pop), //f2 outer block 1 and outer
                 Add( //C.M
                     "System.Func<System.Int32, System.Func<System.Int32, System.Int32>> g1",
                     "System.Func<System.Int32, System.Func<System.Int32, System.Int32>> g2"),
                 Add("System.Int32 x"), //g1 outer
                 Add("System.Int32 y"), //g1 inner
-                Combine(Pop, Pop), //g1
+                Combine(s_pop, s_pop), //g1
                 Add("System.Int32 x"), //g2 outer
                 Add("System.Int32 y"), //g2 outer block 1
                 Add("System.Int32 z"), //g2 outer block 2
-                Add("System.Int32 a"), Pop, //g2 inner
-                Pop, //g2 outer block 2
-                Combine(Pop, Pop), //g2 outer block 1 and outer
-                Pop, //C.M
-                Pop //C
+                Add("System.Int32 a"), s_pop, //g2 inner
+                s_pop, //g2 outer block 2
+                Combine(s_pop, s_pop), //g2 outer block 1 and outer
+                s_pop, //C.M
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540633, "DevDiv")]
+        [WorkItem(540633, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540633")]
         [Fact]
         public void TestConstructorInitializers()
         {
@@ -838,8 +838,8 @@ class D : C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Int32 x"), Pop, //C.C(int)
-                Pop, //C
+                Add("System.Int32 x"), s_pop, //C.C(int)
+                s_pop, //C
                 Add( //D
                     "System.Boolean System.Object.Equals(System.Object obj)",
                     "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
@@ -849,15 +849,15 @@ class D : C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Int32 a", "System.Int32 b"), Pop, //D.D(int, int)
-                Add("System.Int32 c"), Pop, //D.D(int)
-                Pop //D
+                Add("System.Int32 a", "System.Int32 b"), s_pop, //D.D(int, int)
+                Add("System.Int32 c"), s_pop, //D.D(int)
+                s_pop //D
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540888, "DevDiv")]
+        [WorkItem(540888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
         [Fact]
         public void TestLambdaInConstructorInitializer()
         {
@@ -889,17 +889,17 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Func<System.Int32, System.Int32> x"), Pop, //C.C(Func)
-                Add("System.Int32 a"), Pop, //C.C() ctor initializer lambda
-                Add("System.Int32 b"), Pop, //C.C() ctor body lambda
-                Add("System.Func<System.Int32, System.Int32> f"), Pop, //C.M(Func)
-                Pop //C
+                Add("System.Func<System.Int32, System.Int32> x"), s_pop, //C.C(Func)
+                Add("System.Int32 a"), s_pop, //C.C() ctor initializer lambda
+                Add("System.Int32 b"), s_pop, //C.C() ctor body lambda
+                Add("System.Func<System.Int32, System.Int32> f"), s_pop, //C.M(Func)
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestLambdaAtEof()
         {
@@ -927,14 +927,14 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Func<System.Int32, System.Int32> f"), Pop, //C.M(Func)
+                Add("System.Func<System.Int32, System.Int32> f"), s_pop, //C.M(Func)
                 Add("System.Int32 b") //C.C() ctor body lambda
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestLambdaWithMissingBody()
         {
@@ -964,15 +964,15 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("System.Func<System.Int32, System.Int32> f"), Pop, //C.M(Func)
-                Add("System.Int32 b"), Pop, //C.C() ctor body lambda
-                Pop //C
+                Add("System.Func<System.Int32, System.Int32> f"), s_pop, //C.M(Func)
+                Add("System.Int32 b"), s_pop, //C.C() ctor body lambda
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters1()
         {
@@ -1001,7 +1001,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters2()
         {
@@ -1025,13 +1025,13 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()")
-                //NB: can't see x because we're in the parameter list until we see another token
+            //NB: can't see x because we're in the parameter list until we see another token
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters3()
         {
@@ -1061,7 +1061,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(540890, "DevDiv")]
+        [WorkItem(540890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540890")]
         [Fact]
         public void TestIncompleteConstructorParameters4()
         {
@@ -1091,7 +1091,7 @@ class C
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(542360, "DevDiv")]
+        [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
         [Fact]
         public void TestMethodParameterAndTypeParameterScope()
         {
@@ -1118,17 +1118,17 @@ class C
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),
-                Add("T"), Pop, //C.C(int) return type
+                Add("T"), s_pop, //C.C(int) return type
                 Add("T"), //C.C(int) between name and body
                 Add("System.Int32 x"), //C.C(int) body
-                Combine(Pop, Pop), //C.C(int)
-                Pop //C
+                Combine(s_pop, s_pop), //C.C(int)
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(529406, "DevDiv")]
+        [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
         [Fact]
         public void TestLeftToRightDeclarators()
         {
@@ -1178,17 +1178,17 @@ unsafe class C
                 Add( //C.M
                     "System.Object o1",
                     "System.Object o2"),
-                Add("System.Int32* p", "System.Int32* q"), Pop, //fixed stmt
-                Add("System.IDisposable d1", "System.IDisposable d2"), Pop, //using stmt
-                Add("System.Int32 i", "System.Int32 j"), Pop, //for loop
-                Pop, //C.M
-                Pop //C
+                Add("System.Int32* p", "System.Int32* q"), s_pop, //fixed stmt
+                Add("System.IDisposable d1", "System.IDisposable d2"), s_pop, //using stmt
+                Add("System.Int32 i", "System.Int32 j"), s_pop, //for loop
+                s_pop, //C.M
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "DevDiv")]
+        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForEachLoops()
         {
@@ -1224,16 +1224,16 @@ class C
                     "System.Type System.Object.GetType()"),
                 Add("System.String[] args"), //C.Main
                 Add("System.String arg"), //outer foreach
-                Add("var ch"), Pop, //inner foreach // NOTE: inference failed because the expression didn't bind.
-                Pop, //outer foreach
-                Pop, //C.Main
-                Pop //C
+                Add("var ch"), s_pop, //inner foreach // NOTE: inference failed because the expression didn't bind.
+                s_pop, //outer foreach
+                s_pop, //C.Main
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "DevDiv")]
+        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForEachLoops_Embedded()
         {
@@ -1265,15 +1265,15 @@ class C
                     "System.Type System.Object.GetType()"),
                 Add("System.String[] args"), //C.Main
                 Add("System.String arg"), //outer foreach
-                Pop, //outer foreach
-                Pop, //C.Main
-                Pop //C
+                s_pop, //outer foreach
+                s_pop, //C.Main
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "DevDiv")]
+        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedForLoops_Embedded()
         {
@@ -1306,15 +1306,15 @@ class C
                 Add("System.String[] args"), //C.Main
                 Add("System.Int32 i"), //outer for
                 Add("System.Int32 j"), //inner for
-                Combine(Pop, Pop), //outer for, inner for
-                Pop, //C.Main
-                Pop //C
+                Combine(s_pop, s_pop), //outer for, inner for
+                s_pop, //C.Main
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "DevDiv")]
+        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedFixedStatements_Embedded()
         {
@@ -1347,15 +1347,15 @@ unsafe class C
                 Add("System.String[] args"), //C.Main
                 Add("System.Char* p"), //outer fixed
                 Add("System.Char* q"), //inner fixed
-                Combine(Pop, Pop), //outer fixed, inner fixed
-                Pop, //C.Main
-                Pop //C
+                Combine(s_pop, s_pop), //outer fixed, inner fixed
+                s_pop, //C.Main
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
         }
 
-        [WorkItem(782871, "DevDiv")]
+        [WorkItem(782871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782871")]
         [Fact]
         public void NestedUsingStatements_Embedded()
         {
@@ -1388,9 +1388,9 @@ class C
                 Add("System.String[] args"), //C.Main
                 Add("System.IDisposable d1"), //outer using
                 Add("System.IDisposable d2"), //inner using
-                Combine(Pop, Pop), //outer using, inner using
-                Pop, //C.Main
-                Pop //C
+                Combine(s_pop, s_pop), //outer using, inner using
+                s_pop, //C.Main
+                s_pop //C
             );
 
             TestLookupNames(text, expectedNames);
@@ -1416,16 +1416,16 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source,references: new[]{LinqAssemblyRef});
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { LinqAssemblyRef });
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
-            var symbols = model.LookupLabels(source.ToString().IndexOf("label1;"));
+            var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
         }
 
-        [WorkItem(586815, "DevDiv")]
-        [WorkItem(598371, "DevDiv")]
+        [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
+        [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]
         public void Cref()
         {
@@ -1499,16 +1499,16 @@ class Derived : Base<int>
                     "Derived"),
                 Add("T"), //Base decl
                 Add(baseMembers), //"<T>" : Base members are in scope in type parameter list 
-                Pop, //Base members are not in scope in Base declaration list
+                s_pop, //Base members are not in scope in Base declaration list
                 Add(baseMembers), //Base<T> body
-                Combine(Pop, Pop), //Base<T> body
+                Combine(s_pop, s_pop), //Base<T> body
                 Add(inaccessibleGlobalMembers), // Start of cref
-                Add(derivedInheritedMembers), Pop, // cref return type
-                Add(derivedInheritedMembers), Pop, // cref parameter type
-                Pop, // end cref
+                Add(derivedInheritedMembers), s_pop, // cref return type
+                Add(derivedInheritedMembers), s_pop, // cref parameter type
+                s_pop, // end cref
                 Add(derivedMembers), //Derived body
-                Add("Derived d"), Pop, //Derived.op_Explicit body
-                Pop //Derived body
+                Add("Derived d"), s_pop, //Derived.op_Explicit body
+                s_pop //Derived body
             );
 
             TestLookupNames(text, expectedNames);
@@ -1596,7 +1596,7 @@ class Derived : Base<int>
             Array.Sort(actualSymbols);
 
             SyntaxToken token = model.SyntaxTree.GetCompilationUnitRoot().FindToken(position, findInsideTrivia: true);
-            AssertEx.Equal(expectedSymbols, actualSymbols, 
+            AssertEx.Equal(expectedSymbols, actualSymbols,
                 message: string.Format("Lookup({0}) - '{1}' in '{2}' after {3}th '{4}' - \"-->\" found but not expected, \"++>\" expected but not found",
                          position, token.ToString(), token.Parent.ToString(), keyPositionNum, KeyPositionMarker));
         }
@@ -1649,6 +1649,6 @@ class Derived : Base<int>
             };
         }
 
-        private static readonly Action<Stack<string[]>> Pop = stack => stack.Pop();
+        private static readonly Action<Stack<string[]>> s_pop = stack => stack.Pop();
     }
 }

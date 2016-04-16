@@ -2,7 +2,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -24,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CorLibrary.GuidTest2,
-                                ProprietaryTestResources.NetFX.v4_0_21006.mscorlib
+                                TestResources.NetFX.v4_0_21006.mscorlib
                              })
 
             Assert.Same(assemblies(1), DirectCast(assemblies(0).Modules(0), PEModuleSymbol).CorLibrary)
         End Sub
 
-        <Fact, WorkItem(760148, "DevDiv")>
+        <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_1()
             Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
 <compilation>
@@ -60,7 +59,7 @@ End Namespace
             Assert.Same(obj, consumer.GetSpecialType(SpecialType.System_Object))
         End Sub
 
-        <Fact, WorkItem(760148, "DevDiv")>
+        <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_2()
             Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
 <compilation>

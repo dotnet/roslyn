@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class OptionServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void OptionWithNullOrWhitepace()
+        public void OptionWithNullOrWhitespace()
         {
             var optionService = TestOptionService.GetService();
             var optionSet = optionService.GetOptions();
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 var option2 = new Option<bool>("Test Feature", null, false);
             });
-                      
+
             Assert.Throws<System.ArgumentNullException>(delegate
             {
                 var option3 = new Option<bool>(" ", "Test Name", false);

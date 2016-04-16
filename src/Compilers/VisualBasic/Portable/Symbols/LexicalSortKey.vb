@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' A location not in source.
         Public Shared ReadOnly NotInSource As LexicalSortKey = New LexicalSortKey(SyntaxTreeKind.None, -1, 0)
 
-        ' A lexical sork key is not initialized yet
+        ' A lexical sort key is not initialized yet
         Public Shared ReadOnly NotInitialized As LexicalSortKey = New LexicalSortKey() With {._embeddedKind = SyntaxTreeKind.None, ._treeOrdinal = -1, ._position = -1}
 
         Private Sub New(embeddedKind As SyntaxTreeKind, treeOrdinal As Integer, location As Integer)
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' WARNING: Only use this if the node is obtainable without allocating it (even if cached later). E.g., only
         ''' if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
-        ''' call on a SyntacReference.
+        ''' call on a SyntaxReference.
         ''' </summary>
         Public Sub New(node As VisualBasicSyntaxNode, compilation As VisualBasicCompilation)
             Me.New(node.SyntaxTree, node.SpanStart, compilation)

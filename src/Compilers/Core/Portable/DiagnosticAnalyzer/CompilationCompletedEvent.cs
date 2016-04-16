@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// The last event placed into a compilation's event queue.
     /// </summary>
-    public sealed class CompilationCompletedEvent : CompilationEvent
+    internal sealed class CompilationCompletedEvent : CompilationEvent
     {
         public CompilationCompletedEvent(Compilation compilation) : base(compilation) { }
         public override string ToString()

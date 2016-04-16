@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{B5A6057A-EB4C-49FB-987D-943137E72E47}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>CommonNetCoreReferences_DoNotUse</AssemblyName>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LargeAddressAware>true</LargeAddressAware>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <OutDir>$(OutDir)\CoreClrTest</OutDir>
+    <RestorePackages>true</RestorePackages>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj">
+      <Project>{1b665337-9d6a-451a-aeac-f7bf1af95ffb}</Project>
+      <Name>CommonCoreClrRuntime</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+  <!-- Override the defaults and make this dnxcore50 -->
+  <PropertyGroup>
+    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+  </PropertyGroup>
+</Project>

@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             List<ValueTuple<ISymbol, IReferenceFinder>> documentQueue,
             ProgressWrapper wrapper)
         {
-            this.progress.OnFindInDocumentStarted(document);
+            _progress.OnFindInDocumentStarted(document);
 
             SemanticModel model = null;
             try
             {
-                model = await document.GetSemanticModelAsync(this.cancellationToken).ConfigureAwait(false);
+                model = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
 
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 FindReferenceCache.Stop(model);
 
-                this.progress.OnFindInDocumentCompleted(document);
+                _progress.OnFindInDocumentCompleted(document);
             }
         }
 
-        private static readonly Func<Document, ISymbol, string> logDocument = (d, s) =>
+        private static readonly Func<Document, ISymbol, string> s_logDocument = (d, s) =>
         {
             return (d.Name != null && s.Name != null) ? string.Format("{0} - {1}", d.Name, s.Name) : string.Empty;
         };
@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IReferenceFinder finder,
             ProgressWrapper wrapper)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, logDocument, document, symbol, this.cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, _cancellationToken))
             {
                 try
                 {
-                    var references = await finder.FindReferencesInDocumentAsync(symbol, document, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
+                    var references = await finder.FindReferencesInDocumentAsync(symbol, document, _cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
                     foreach (var location in references)
                     {
                         HandleLocation(symbol, location);

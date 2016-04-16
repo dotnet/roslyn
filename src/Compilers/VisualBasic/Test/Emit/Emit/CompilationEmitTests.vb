@@ -70,14 +70,14 @@ End Module
             ' Compilation with quoted Rootnamespace and MainTypename still produces diagnostics.
             ' we do not unquote the options on WithRootnamespace or WithMainTypeName functions 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""Test""").WithMainTypeName("""Test.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""Test""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """Test""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""Test.Module1""").WithLocation(1, 1))
 
             ' Use of Cyrillic rootnamespace and maintypename
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("решения").WithMainTypeName("решения.Module1")).VerifyDiagnostics()
 
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe.WithRootNamespace("""решения""").WithMainTypeName("""решения.Module1""")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("""решения""", "RootNamespace").WithLocation(1, 1),
+                Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("RootNamespace", """решения""").WithLocation(1, 1),
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("""решения.Module1""").WithLocation(1, 1))
 
         End Sub
@@ -316,7 +316,7 @@ End Module
             CompileAndVerify(compilation)
         End Sub
 
-        <WorkItem(540643, "DevDiv")>
+        <WorkItem(540643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540643")>
         <Fact>
         Public Sub Bug6981()
             ' tests different casing of the method
@@ -790,7 +790,7 @@ End Module
             Assert.Equal(CType(&H8560, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
-        <WorkItem(764418, "DevDiv")>
+        <WorkItem(764418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/764418")>
         <Fact()>
         Public Sub CheckDllCharacteristicsWinRtApp()
             Dim source =
@@ -1064,10 +1064,10 @@ Imports System
             Next
         End Sub
 
-        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As Handle
+        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As EntityHandle
             Select Case entry.ParentKind
                 Case SymbolKind.Assembly
-                    Return Handle.AssemblyDefinition
+                    Return EntityHandle.AssemblyDefinition
 
                 Case SymbolKind.NamedType
                     Return GetTokenForType(metadataReader, entry.ParentNameOpt)
@@ -1756,22 +1756,22 @@ end namespace
                     Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
-                    Dim securityAttribute As Microsoft.Cci.SecurityAttribute = assemblySecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.RequestOptional, securityAttribute.Action)
+                    Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
+                    Assert.Equal(DeclarativeSecurityAction.RequestOptional, securityAttribute.Action)
                     Dim typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(securityPermissionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.RequestOptional))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.RequestOptional))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "RemotingConfiguration", TypedConstantKind.Primitive, True)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode:=true)>
                     securityAttribute = assemblySecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.RequestMinimum, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(securityPermissionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.RequestMinimum))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.RequestMinimum))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "UnmanagedCode", TypedConstantKind.Primitive, True)
 
@@ -1787,21 +1787,21 @@ end namespace
 
                     ' Verify <PrincipalPermission(SecurityAction.Demand, Role:="User1")>
                     securityAttribute = typeSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Demand))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Demand))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1")
 
                     ' Verify <PrincipalPermission(SecurityAction.RequestOptional, Role:="User2")>
                     securityAttribute = typeSecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Assert))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Assert))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2")
 
@@ -1812,21 +1812,21 @@ end namespace
 
                     ' Verify <PrincipalPermission(SecurityAction.Demand, Role:="User3")>
                     securityAttribute = methodSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action)
                     Dim methodAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass)
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length)
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Demand))
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Demand))
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length)
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User3")
 
                     ' Verify PrincipalPermission(SecurityAction.RequestOptional, Role:="User4")
                     securityAttribute = methodSecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action)
                     methodAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass)
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length)
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Assert))
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Assert))
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length)
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User4")
                 End Sub
@@ -2034,7 +2034,7 @@ End Class
             Dim result = compilation.Emit(New MemoryStream(), options:=New EmitOptions(outputNameOverride:=" "))
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttribute_Fixup()
             Dim tempDir = Temp.CreateDirectory()
@@ -2100,7 +2100,7 @@ End Class
                         hexFileContent})
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeInvalidFile()
             Dim source =
@@ -2108,7 +2108,7 @@ End Class
     <file name="a.vb">
 imports System.Security.Permissions
 
-&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistantFile.xml")&gt;
+&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:=nothing)&gt;
 public class AClass 
 end class
@@ -2118,7 +2118,7 @@ end class
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
-                    Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File"),
+                    Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File"),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=nothing").WithArguments("<empty>", "File"))
         End Sub
 
@@ -2129,7 +2129,7 @@ end class
     <file name="a.vb">
 imports System.Security.Permissions
 
-&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistantFile.xml")&gt;
+&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
 public class AClass 
 end class
     </file>
@@ -2137,10 +2137,10 @@ end class
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
-                Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(3, 46))
+                Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(3, 46))
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve()
             Dim source =
@@ -2159,7 +2159,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve2()
             Dim source =
@@ -2178,7 +2178,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(546074, "DevDiv")>
+        <WorkItem(546074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546074")>
         <Fact()>
         Public Sub ReDimPreserve3()
             Dim source =
@@ -2199,7 +2199,7 @@ End Module
             CompileAndVerify(comp)
         End Sub
 
-        <WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")>
+        <WorkItem(545084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545084"), WorkItem(529492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529492")>
         <Fact>
         Public Sub PermissionSetAttributeFileReadError()
             Dim tempDir = Temp.CreateDirectory()
@@ -2252,7 +2252,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem(654522, "DevDiv")>
+        <WorkItem(654522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654522")>
         <Fact>
         Public Sub Bug654522()
             Dim refSource =
@@ -2292,7 +2292,7 @@ Public Interface I(Of W As Structure) : End Interface
             CompileAndVerify(comp, symbolValidator:=metadataValidator)
         End Sub
 
-        <WorkItem(546450, "DevDiv")>
+        <WorkItem(546450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")>
         <Fact>
         Public Sub EmitNetModuleWithReferencedNetModule()
             Dim source1 =
@@ -2750,7 +2750,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact, WorkItem(769741, "DevDiv"), WorkItem(1001945)>
+        <Fact, WorkItem(769741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741"), WorkItem(1001945, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1001945")>
         Public Sub Bug769741()
             Dim source =
 <compilation>
@@ -2760,7 +2760,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation, verify:=False)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
             compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub
@@ -2819,6 +2819,134 @@ End interface
 
             Assert.NotEqual(0, P1RVA)
             Assert.Equal(P2RVA, P1RVA)
+        End Sub
+
+        Private Shared Function SequenceMatches(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Boolean
+            For i = 0 To pattern.Length - 1
+                If buffer(startIndex + i) <> pattern(i) Then Return False
+            Next
+            Return True
+        End Function
+
+        Private Shared Function IndexOfPattern(buffer As Byte(), startIndex As Integer, pattern As Byte()) As Integer
+            Dim [end] = buffer.Length - pattern.Length
+            For i = startIndex To [end] - 1
+                If SequenceMatches(buffer, i, pattern) Then Return i
+            Next
+            Return -1
+        End Function
+
+        <Fact, WorkItem(1669, "https://github.com/dotnet/roslyn/issues/1669")>
+        Public Sub FoldMethods2()
+            ' Verifies that IL folding eliminates duplicate copies of small method bodies by
+            ' examining the emitted binary.
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C
+    Function M() As ULong
+        Return &amp;H8675309ABCDE4225UL
+    End Function
+    ReadOnly Property P As Long 
+        Get
+            Return -8758040459200282075
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Using stream As Stream = compilation.EmitToStream()
+                Dim len As Integer = CType(stream.Length, Integer)
+                Dim bytes(len) As Byte
+                Assert.Equal(len, stream.Read(bytes, 0, len))
+
+                ' The constant should appear exactly once
+                Dim pattern() As Byte = {&H25, &H42, &HDE, &HBC, &H9A, &H30, &H75, &H86}
+                Dim firstMatch = IndexOfPattern(bytes, 0, pattern)
+                Assert.True(firstMatch >= 0, "Couldn't find the expected byte pattern in the output.")
+                Dim secondMatch = IndexOfPattern(bytes, firstMatch + 1, pattern)
+                Assert.True(secondMatch < 0, "Expected to find just one occurrence of the pattern in the output.")
+            End Using
+
+        End Sub
+
+        ''' <summary>
+        ''' Ordering of anonymous type definitions
+        ''' in metadata should be deterministic.
+        ''' </summary>
+        <Fact>
+        Public Sub AnonymousTypeMetadataOrder()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Private F As Object = New With {.C = 1, .D = 2}
+End Class
+Class C2
+    Private F As Object = New With {.A = 3, .B = 4}
+End Class
+Class C3
+    Private F As Object = New With {.AB = 5}
+End Class
+Class C4
+    Private F As Object = New With {.E = 6, .F = 2}
+End Class
+Class C5
+    Private F As Object = New With {.E = 7, .F = 8}
+End Class
+Class C6
+    Private F As Object = New With {.AB = 9}
+End Class
+    </file>
+</compilation>
+            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll)
+            Dim bytes = compilation.EmitToArray()
+            Using metadata = ModuleMetadata.CreateFromImage(bytes)
+                Dim reader = metadata.MetadataReader
+                Dim actualNames = reader.GetTypeDefNames().Select(Function(h) reader.GetString(h))
+                Dim expectedNames = {
+                    "<Module>",
+                    "VB$AnonymousType_0`2",
+                    "VB$AnonymousType_1`2",
+                    "VB$AnonymousType_2`1",
+                    "VB$AnonymousType_3`2",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "C5",
+                    "C6"
+                    }
+                AssertEx.Equal(expectedNames, actualNames)
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub FailingEmitter()
+            ' Check that Compilation.Emit actually produces compilation errors.
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb">
+Module M1
+    Sub Main()
+    End Sub
+End Module
+    </file>
+    </compilation>)
+
+            Dim emitResult As EmitResult
+
+            Using output = New BrokenStream()
+                output.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+                emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
+
+                CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics,
+<expected>
+BC37256: An error occurred while writing the output file: <%= output.ThrownException.ToString() %>
+</expected>)
+            End Using
         End Sub
     End Class
 End Namespace

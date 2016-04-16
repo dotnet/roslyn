@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -89,23 +91,13 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct SecurityAttribute
     {
-        private readonly SecurityAction action;
-        private readonly ICustomAttribute attribute;
+        public DeclarativeSecurityAction Action { get; }
+        public ICustomAttribute Attribute { get; }
 
-        public SecurityAttribute(SecurityAction action, ICustomAttribute attribute)
+        public SecurityAttribute(DeclarativeSecurityAction action, ICustomAttribute attribute)
         {
-            this.attribute = attribute;
-            this.action = action;
-        }
-
-        public SecurityAction Action
-        {
-            get { return action; }
-        }
-
-        public ICustomAttribute Attribute
-        {
-            get { return attribute; }
+            Action = action;
+            Attribute = attribute;
         }
     }
 
@@ -115,7 +107,7 @@ namespace Microsoft.Cci
     internal interface IMarshallingInformation
     {
         /// <summary>
-        /// <see cref="ITypeReference"/> or a string (ususally a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
+        /// <see cref="ITypeReference"/> or a string (usually a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
         /// </summary>
         object GetCustomMarshaller(EmitContext context);
 
@@ -137,7 +129,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Specifies the index of the parameter that contains the value of the Inteface Identifier (IID) of the marshalled object.
+        /// Specifies the index of the parameter that contains the value of the Interface Identifier (IID) of the marshalled object.
         /// -1 if it should be omitted from the marshal blob.
         /// </summary>
         int IidParameterIndex
@@ -146,7 +138,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The unmanaged type to which the managed type will be marshalled. This can be be UnmanagedType.CustomMarshaler, in which case the unmanaged type
+        /// The unmanaged type to which the managed type will be marshalled. This can be UnmanagedType.CustomMarshaler, in which case the unmanaged type
         /// is decided at runtime.
         /// </summary>
         System.Runtime.InteropServices.UnmanagedType UnmanagedType { get; }
@@ -284,6 +276,9 @@ namespace Microsoft.Cci
     {
         internal ResourceSection(byte[] sectionBytes, uint[] relocations)
         {
+            Debug.Assert(sectionBytes != null);
+            Debug.Assert(relocations != null);
+
             SectionBytes = sectionBytes;
             Relocations = relocations;
         }
@@ -306,7 +301,6 @@ namespace Microsoft.Cci
         string TypeName
         {
             get;
-
             // ^ requires this.TypeId < 0;
         }
 
@@ -324,7 +318,6 @@ namespace Microsoft.Cci
         string Name
         {
             get;
-
             // ^ requires this.Id < 0; 
         }
 

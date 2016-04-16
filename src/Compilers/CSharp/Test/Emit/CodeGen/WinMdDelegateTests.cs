@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class WinMdDelegateTests : CSharpTestBase
     {
-         delegate void VerifyType(bool isWinMd, params string[] expectedMembers);
+        private delegate void VerifyType(bool isWinMd, params string[] expectedMembers);
 
         /// <summary>
         /// When the output type is .winmdobj, delegate types shouldn't output Begin/End invoke 
         /// members.
         /// </summary>
-        [Fact(), WorkItem(1003193)]
+        [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
         public void SimpleDelegateMembersTest()
         {
             const string libSrc =
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     var actualMembers =
                         m.GlobalNamespace.GetMember<NamespaceSymbol>("Test").
                         GetMember<NamedTypeSymbol>("voidDelegate").GetMembers().ToArray();
-    
+
                     AssertEx.SetEqual(actualMembers.Select(s => s.Name), expectedMembers);
                 };
             };
 
-           
+
             VerifyType verify = (winmd, expected) =>
             {
                 var validator = getValidator(expected);
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             };
 
             // Test winmd
-            verify(true, 
-                WellKnownMemberNames.InstanceConstructorName, 
+            verify(true,
+                WellKnownMemberNames.InstanceConstructorName,
                 WellKnownMemberNames.DelegateInvokeName);
 
             // Test normal
-            verify(false, 
+            verify(false,
                 WellKnownMemberNames.InstanceConstructorName,
                 WellKnownMemberNames.DelegateInvokeName,
                 WellKnownMemberNames.DelegateBeginInvokeName,
@@ -130,7 +130,7 @@ namespace WinRTDelegateLibrary
     public unsafe delegate E1* pointerDelegate3(E1* ep);
 }";
             // We need the 4.5 refs here
-            var coreRefs45 = new[] { 
+            var coreRefs45 = new[] {
                 MscorlibRef_v4_0_30316_17626,
                 SystemCoreRef_v4_0_30319_17929
             };

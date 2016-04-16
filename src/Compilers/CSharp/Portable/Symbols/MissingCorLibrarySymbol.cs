@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Lazily filled by GetDeclaredSpecialType method.
         /// </summary>
         /// <remarks></remarks>
-        private NamedTypeSymbol[] lazySpecialTypes;
+        private NamedTypeSymbol[] _lazySpecialTypes;
 
         private MissingCorLibrarySymbol()
             : base(new AssemblyIdentity("<Missing Core Assembly>"))
@@ -44,20 +44,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
 
-            if (lazySpecialTypes == null)
+            if (_lazySpecialTypes == null)
             {
-                Interlocked.CompareExchange(ref lazySpecialTypes,
+                Interlocked.CompareExchange(ref _lazySpecialTypes,
                     new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
             }
 
-            if ((object)lazySpecialTypes[(int)type] == null)
+            if ((object)_lazySpecialTypes[(int)type] == null)
             {
                 MetadataTypeName emittedFullName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding: true);
                 NamedTypeSymbol corType = new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedFullName, type);
-                Interlocked.CompareExchange(ref lazySpecialTypes[(int)type], corType, null);
+                Interlocked.CompareExchange(ref _lazySpecialTypes[(int)type], corType, null);
             }
 
-            return lazySpecialTypes[(int)type];
+            return _lazySpecialTypes[(int)type];
         }
     }
 }

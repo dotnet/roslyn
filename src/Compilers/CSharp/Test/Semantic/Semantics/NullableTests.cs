@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class NullableSemanticTests : SemanticModelTestBase
     {
-
-        [Fact, WorkItem(651624, "DevDiv")]
+        [Fact, WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
         public void NestedNullableWithAttemptedConversion()
         {
             var src =
@@ -41,7 +40,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "int??", "int?"));
         }
 
-        [Fact, WorkItem(544152, "DevDiv")]
+        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
         public void TestBug12347()
         {
             string source = @"
@@ -66,7 +65,7 @@ Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Sys
                 );
         }
 
-        [Fact, WorkItem(529269, "DevDiv")]
+        [Fact, WorkItem(529269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529269")]
         public void TestLiftedIncrementOperatorBreakingChanges01()
         {
             // The native compiler not only *allows* this to compile, it lowers to:
@@ -108,11 +107,11 @@ class C
                 );
         }
 
-        [Fact, WorkItem(543954, "DevDiv")]
+        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
         public void TestLiftedIncrementOperatorBreakingChanges02()
         {
             // Now here we have a case where the compilation *should* succeed, and does, but 
-            // the native compiler and Roslyn produce opposite behaviour. Again, the native
+            // the native compiler and Roslyn produce opposite behavior. Again, the native
             // compiler lowers this to:
             //
             // C temp1 = c;
@@ -173,7 +172,7 @@ class C
             verifier = CompileAndVerify(source: source3, expectedOutput: "1");
         }
 
-        [Fact, WorkItem(543954, "DevDiv")]
+        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
         public void TestLiftedIncrementOperatorBreakingChanges03()
         {
             // Let's in fact verify that this works correctly for all possible conversions to built-in types:
@@ -493,7 +492,7 @@ class C
   }
 }";
 
-            string expected = 
+            string expected =
 @"!TTTFF
 -TTFF1TTFF2TTFF3TTFF4TTFF
 +TFTF1TTF2TFTF3TTF4TFTF5TFTF6TFTF
@@ -568,7 +567,7 @@ TF-x";
             var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
         public void TestLiftedComparison()
         {
             TestNullableComparison("==", "FFTFF1FTFFTF2FFTFFT3TFFTFF4FTFFTF5FFTFFT",
@@ -595,7 +594,6 @@ TF-x";
             string expected,
             params string[] types)
         {
-
             string source = @"
 using System;
 struct S 
@@ -673,7 +671,7 @@ class C
   }
 }
 ";
-            var zeros = new Dictionary<string, string>() 
+            var zeros = new Dictionary<string, string>()
             {
                 { "int", "0" },
                 { "uint", "0" },
@@ -691,7 +689,7 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions.None" },
                 { "S", "new S(0)" }
             };
-            var ones = new Dictionary<string, string>() 
+            var ones = new Dictionary<string, string>()
             {
                 { "int", "1" },
                 { "uint", "1" },
@@ -720,8 +718,8 @@ class C
         [Fact]
         public void TestLiftedBuiltInBinaryArithmetic()
         {
-            string[,] enumAddition = 
-            { 
+            string[,] enumAddition =
+            {
                 //{ "sbyte", "Base64FormattingOptions"},
                 { "byte", "Base64FormattingOptions"},
                 //{ "short", "Base64FormattingOptions"},
@@ -749,8 +747,8 @@ class C
                 //{ "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-            string[,] enumSubtraction = 
-            { 
+            string[,] enumSubtraction =
+            {
                 { "Base64FormattingOptions", "sbyte" },
                 //{ "Base64FormattingOptions", "byte" },
                 { "Base64FormattingOptions", "short" },
@@ -766,8 +764,8 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions"},
             };
 
-            string[,] numerics1 = 
-            { 
+            string[,] numerics1 =
+            {
                 { "sbyte", "sbyte" },
                 { "sbyte", "byte" },
                 //{ "sbyte", "short" },
@@ -793,7 +791,7 @@ class C
                 { "byte", "decimal" },
                 //{ "byte", "double" },
                 { "byte", "float" },
-            
+
                 { "short", "sbyte" },
                 { "short", "byte" },
                 { "short", "short" },
@@ -808,8 +806,8 @@ class C
                 { "short", "float" },
             };
 
-            string[,] numerics2 = 
-            { 
+            string[,] numerics2 =
+            {
                 //{ "ushort", "sbyte" },
                 //{ "ushort", "byte" },
                 { "ushort", "short" },
@@ -850,8 +848,8 @@ class C
                 { "uint", "float" },
             };
 
-            string[,] numerics3 = 
-            { 
+            string[,] numerics3 =
+            {
                 { "long", "sbyte" },
                 { "long", "byte" },
                 //{ "long", "short" },
@@ -879,8 +877,8 @@ class C
                 //{ "ulong", "float" },
             };
 
-            string[,] numerics4 = 
-            { 
+            string[,] numerics4 =
+            {
                 { "char", "sbyte" },
                 { "char", "byte" },
                 { "char", "short" },
@@ -908,8 +906,8 @@ class C
                 //{ "decimal", "float" },
             };
 
-            string[,] numerics5 = 
-            { 
+            string[,] numerics5 =
+            {
                 //{ "double", "sbyte" },
                 { "double", "byte" },
                 { "double", "short" },
@@ -938,8 +936,8 @@ class C
            };
 
 
-            string[,] shift1 = 
-            { 
+            string[,] shift1 =
+            {
                 { "sbyte", "sbyte" },
                 { "sbyte", "byte" },
                 { "sbyte", "short" },
@@ -969,9 +967,8 @@ class C
                 { "ushort", "char" },
             };
 
-            string[,] shift2 = 
+            string[,] shift2 =
             {
-
                 { "int", "sbyte" },
                 { "int", "byte" },
                 { "int", "short" },
@@ -1008,8 +1005,8 @@ class C
                 { "char", "char" },
             };
 
-            string[,] logical1 = 
-            { 
+            string[,] logical1 =
+            {
                 { "sbyte", "sbyte" },
                 //{ "sbyte", "byte" },
                 { "sbyte", "short" },
@@ -1041,8 +1038,8 @@ class C
                 { "short", "char" },
             };
 
-            string[,] logical2 = 
-            { 
+            string[,] logical2 =
+            {
                 //{ "ushort", "sbyte" },
                 { "ushort", "byte" },
                 { "ushort", "short" },
@@ -1074,8 +1071,8 @@ class C
                 { "uint", "char" },
             };
 
-            string[,] logical3 = 
-            { 
+            string[,] logical3 =
+            {
                 //{ "long", "sbyte" },
                 { "long", "byte" },
                 //{ "long", "short" },
@@ -1110,8 +1107,8 @@ class C
             };
 
 
-              // Use 2 instead of 0 so that we don't get divide by zero errors.
-            var twos = new Dictionary<string, string>() 
+            // Use 2 instead of 0 so that we don't get divide by zero errors.
+            var twos = new Dictionary<string, string>()
             {
                 { "int", "2" },
                 { "uint", "2" },
@@ -1127,7 +1124,7 @@ class C
                 { "char", "'\\u0002'" },
                 { "Base64FormattingOptions", "Base64FormattingOptions.None" },
             };
-            var ones = new Dictionary<string, string>() 
+            var ones = new Dictionary<string, string>()
             {
                 { "int", "1" },
                 { "uint", "1" },
@@ -1144,7 +1141,7 @@ class C
                 { "Base64FormattingOptions", "Base64FormattingOptions.InsertLineBreaks" },
             };
 
-            var names = new Dictionary<string, string>() 
+            var names = new Dictionary<string, string>()
             {
                 { "+", "plus" },
                 { "-", "minus" },
@@ -1620,9 +1617,9 @@ class C
             var verifier = CompileAndVerify(source: source, expectedOutput: "123");
         }
 
-#region "Regression"
+        #region "Regression"
 
-        [Fact, WorkItem(543837, "DevDiv")]
+        [Fact, WorkItem(543837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
         public void Test11827()
         {
             string source2 = @"
@@ -1638,7 +1635,7 @@ class Program
             var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
         }
 
-        [Fact, WorkItem(544001, "DevDiv")]
+        [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
         public void NullableUsedInUsingStatement()
         {
             string source = @"
@@ -1664,7 +1661,7 @@ struct S : IDisposable
             CompileAndVerify(source: source, expectedOutput: @"S123");
         }
 
-        [Fact, WorkItem(544002, "DevDiv")]
+        [Fact, WorkItem(544002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
         public void NullableUserDefinedUnary02()
         {
             string source = @"
@@ -1704,7 +1701,7 @@ struct S
             CompileAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
         }
 
-        [Fact, WorkItem(544005, "DevDiv")]
+        [Fact, WorkItem(544005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
         public void NoNullableValueFromOptionalParam()
         {
             string source = @"
@@ -1736,7 +1733,7 @@ class Test
             var verifier = CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(544006, "DevDiv")]
+        [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
         public void ConflictImportedMethodWithNullableOptionalParam()
         {
             string source = @"
@@ -1767,7 +1764,7 @@ public class Test
                 assemblyName: "TestDLL");
 
             var comp = CreateCompilationWithMscorlib(
-                source2, 
+                source2,
                 references: new MetadataReference[] { complib.EmitToImageReference() },
                 options: TestOptions.ReleaseExe,
                 assemblyName: "TestEXE");
@@ -1784,7 +1781,7 @@ public class Test
             CompileAndVerify(comp, expectedOutput: @"0");
         }
 
-        [Fact, WorkItem(544258, "DevDiv")]
+        [Fact, WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
         public void BindDelegateToObjectMethods()
         {
             string source = @"
@@ -1803,7 +1800,7 @@ public class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(544909, "DevDiv")]
+        [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
         public void OperationOnEnumNullable()
         {
             string source = @"
@@ -1840,7 +1837,7 @@ public class NullableTest
             CompileAndVerify(source, expectedOutput: "tfffttt");
         }
 
-        [Fact, WorkItem(544583, "DevDiv")]
+        [Fact, WorkItem(544583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
         public void ShortCircuitOperatorsOnNullable()
         {
             string source = @"
@@ -2001,7 +1998,7 @@ ttttfnnnn";
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(529530, "DevDiv"), WorkItem(1036392, "DevDiv")]
+        [Fact, WorkItem(529530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
         public void NullableEnumMinusNull()
         {
             var source = @"
@@ -2041,7 +2038,7 @@ public struct S
             CompileAndVerify(source, expectedOutput: "False");
         }
 
-        [Fact, WorkItem(545166, "DevDiv")]
+        [Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]
         public void Op_ExplicitImplicitOnNullable()
         {
             var source = @"
@@ -2070,7 +2067,6 @@ class Test
             );
         }
 
-#endregion
-
+        #endregion
     }
 }

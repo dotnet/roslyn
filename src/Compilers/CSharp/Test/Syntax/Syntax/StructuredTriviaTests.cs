@@ -147,7 +147,7 @@ using Blah;
             Assert.Equal("a", directives[2].File.Value);
         }
 
-        [WorkItem(546207, "DevDiv")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_SingleLine()
         {
@@ -163,7 +163,7 @@ class Program
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
-        [WorkItem(546207, "DevDiv")]
+        [WorkItem(546207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546207")]
         [Fact]
         public void DocumentationCommentsLocation_MultiLine()
         {
@@ -183,7 +183,7 @@ class Program
         public void TestTriviaList_getItemFailures()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(" class foo {}");
-            
+
             var trivia = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia();
             var t1 = trivia[0];
             Assert.Equal(1, trivia.Count);

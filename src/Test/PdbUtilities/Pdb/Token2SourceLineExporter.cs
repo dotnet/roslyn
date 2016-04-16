@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -18,7 +16,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private class PdbSource
         {
-            internal string name;
+            internal readonly string name;
             internal Guid doctype;
             internal Guid language;
             internal Guid vendor;
@@ -34,12 +32,12 @@ namespace Roslyn.Test.PdbUtilities
 
         private class PdbTokenLine
         {
-            internal uint token;
-            internal uint file_id;
-            internal uint line;
-            internal uint column;
-            internal uint endLine;
-            internal uint endColumn;
+            internal readonly uint token;
+            internal readonly uint file_id;
+            internal readonly uint line;
+            internal readonly uint column;
+            internal readonly uint endLine;
+            internal readonly uint endColumn;
             internal PdbSource sourceFile;
             internal PdbTokenLine/*?*/ nextLine;
 
@@ -58,56 +56,56 @@ namespace Roslyn.Test.PdbUtilities
         {
             internal BitAccess(int capacity)
             {
-                this.buffer = new byte[capacity];
+                _buffer = new byte[capacity];
             }
 
             internal byte[] Buffer
             {
-                get { return buffer; }
+                get { return _buffer; }
             }
-            private byte[] buffer;
+            private byte[] _buffer;
 
             internal void FillBuffer(Stream stream, int capacity)
             {
                 MinCapacity(capacity);
-                stream.Read(buffer, 0, capacity);
-                offset = 0;
+                stream.Read(_buffer, 0, capacity);
+                _offset = 0;
             }
 
             internal void Append(Stream stream, int count)
             {
-                int newCapacity = offset + count;
-                if (buffer.Length < newCapacity)
+                int newCapacity = _offset + count;
+                if (_buffer.Length < newCapacity)
                 {
                     byte[] newBuffer = new byte[newCapacity];
-                    Array.Copy(buffer, newBuffer, buffer.Length);
-                    buffer = newBuffer;
+                    Array.Copy(_buffer, newBuffer, _buffer.Length);
+                    _buffer = newBuffer;
                 }
-                stream.Read(buffer, offset, count);
-                offset += count;
+                stream.Read(_buffer, _offset, count);
+                _offset += count;
             }
 
             internal int Position
             {
-                get { return offset; }
-                set { offset = value; }
+                get { return _offset; }
+                set { _offset = value; }
             }
-            private int offset;
+            private int _offset;
 
             internal void MinCapacity(int capacity)
             {
-                if (buffer.Length < capacity)
+                if (_buffer.Length < capacity)
                 {
-                    buffer = new byte[capacity];
+                    _buffer = new byte[capacity];
                 }
-                offset = 0;
+                _offset = 0;
             }
 
             internal void Align(int alignment)
             {
-                while ((offset % alignment) != 0)
+                while ((_offset % alignment) != 0)
                 {
-                    offset++;
+                    _offset++;
                 }
             }
 
@@ -115,94 +113,94 @@ namespace Roslyn.Test.PdbUtilities
             {
                 unchecked
                 {
-                    value = (short)((buffer[offset + 0] & 0xFF) |
-                                          (buffer[offset + 1] << 8));
+                    value = (short)((_buffer[_offset + 0] & 0xFF) |
+                                          (_buffer[_offset + 1] << 8));
                 }
-                offset += 2;
+                _offset += 2;
             }
 
             internal void ReadInt8(out sbyte value)
             {
                 unchecked
                 {
-                    value = (sbyte)buffer[offset];
+                    value = (sbyte)_buffer[_offset];
                 }
-                offset += 1;
+                _offset += 1;
             }
 
             internal void ReadInt32(out int value)
             {
                 unchecked
                 {
-                    value = (int)((buffer[offset + 0] & 0xFF) |
-                                        (buffer[offset + 1] << 8) |
-                                        (buffer[offset + 2] << 16) |
-                                        (buffer[offset + 3] << 24));
+                    value = (int)((_buffer[_offset + 0] & 0xFF) |
+                                        (_buffer[_offset + 1] << 8) |
+                                        (_buffer[_offset + 2] << 16) |
+                                        (_buffer[_offset + 3] << 24));
                 }
-                offset += 4;
+                _offset += 4;
             }
 
             internal void ReadInt64(out long value)
             {
                 unchecked
                 {
-                    value = (long)(((ulong)buffer[offset + 0] & 0xFF) |
-                                       ((ulong)buffer[offset + 1] << 8) |
-                                       ((ulong)buffer[offset + 2] << 16) |
-                                       ((ulong)buffer[offset + 3] << 24) |
-                                       ((ulong)buffer[offset + 4] << 32) |
-                                       ((ulong)buffer[offset + 5] << 40) |
-                                       ((ulong)buffer[offset + 6] << 48) |
-                                       ((ulong)buffer[offset + 7] << 56));
+                    value = (long)(((ulong)_buffer[_offset + 0] & 0xFF) |
+                                       ((ulong)_buffer[_offset + 1] << 8) |
+                                       ((ulong)_buffer[_offset + 2] << 16) |
+                                       ((ulong)_buffer[_offset + 3] << 24) |
+                                       ((ulong)_buffer[_offset + 4] << 32) |
+                                       ((ulong)_buffer[_offset + 5] << 40) |
+                                       ((ulong)_buffer[_offset + 6] << 48) |
+                                       ((ulong)_buffer[_offset + 7] << 56));
                 }
-                offset += 8;
+                _offset += 8;
             }
 
             internal void ReadUInt16(out ushort value)
             {
                 unchecked
                 {
-                    value = (ushort)((buffer[offset + 0] & 0xFF) |
-                                           (buffer[offset + 1] << 8));
+                    value = (ushort)((_buffer[_offset + 0] & 0xFF) |
+                                           (_buffer[_offset + 1] << 8));
                 }
-                offset += 2;
+                _offset += 2;
             }
 
             internal void ReadUInt8(out byte value)
             {
                 unchecked
                 {
-                    value = (byte)((buffer[offset + 0] & 0xFF));
+                    value = (byte)((_buffer[_offset + 0] & 0xFF));
                 }
-                offset += 1;
+                _offset += 1;
             }
 
             internal void ReadUInt32(out uint value)
             {
                 unchecked
                 {
-                    value = (uint)((buffer[offset + 0] & 0xFF) |
-                                         (buffer[offset + 1] << 8) |
-                                         (buffer[offset + 2] << 16) |
-                                         (buffer[offset + 3] << 24));
+                    value = (uint)((_buffer[_offset + 0] & 0xFF) |
+                                         (_buffer[_offset + 1] << 8) |
+                                         (_buffer[_offset + 2] << 16) |
+                                         (_buffer[_offset + 3] << 24));
                 }
-                offset += 4;
+                _offset += 4;
             }
 
             internal void ReadUInt64(out ulong value)
             {
                 unchecked
                 {
-                    value = (ulong)(((ulong)buffer[offset + 0] & 0xFF) |
-                                       ((ulong)buffer[offset + 1] << 8) |
-                                       ((ulong)buffer[offset + 2] << 16) |
-                                       ((ulong)buffer[offset + 3] << 24) |
-                                       ((ulong)buffer[offset + 4] << 32) |
-                                       ((ulong)buffer[offset + 5] << 40) |
-                                       ((ulong)buffer[offset + 6] << 48) |
-                                       ((ulong)buffer[offset + 7] << 56));
+                    value = (ulong)(((ulong)_buffer[_offset + 0] & 0xFF) |
+                                       ((ulong)_buffer[_offset + 1] << 8) |
+                                       ((ulong)_buffer[_offset + 2] << 16) |
+                                       ((ulong)_buffer[_offset + 3] << 24) |
+                                       ((ulong)_buffer[_offset + 4] << 32) |
+                                       ((ulong)_buffer[_offset + 5] << 40) |
+                                       ((ulong)_buffer[_offset + 6] << 48) |
+                                       ((ulong)_buffer[_offset + 7] << 56));
                 }
-                offset += 8;
+                _offset += 8;
             }
 
             internal void ReadInt32(int[] values)
@@ -225,21 +223,21 @@ namespace Roslyn.Test.PdbUtilities
             {
                 for (int i = 0; i < bytes.Length; i++)
                 {
-                    bytes[i] = buffer[offset++];
+                    bytes[i] = _buffer[_offset++];
                 }
             }
 
             internal float ReadFloat()
             {
-                float result = BitConverter.ToSingle(buffer, offset);
-                offset += 4;
+                float result = BitConverter.ToSingle(_buffer, _offset);
+                _offset += 4;
                 return result;
             }
 
             internal double ReadDouble()
             {
-                double result = BitConverter.ToDouble(buffer, offset);
-                offset += 8;
+                double result = BitConverter.ToDouble(_buffer, _offset);
+                _offset += 8;
                 return result;
             }
 
@@ -254,29 +252,29 @@ namespace Roslyn.Test.PdbUtilities
             {
                 ushort len;
                 this.ReadUInt16(out len);
-                value = Encoding.UTF8.GetString(buffer, offset, len);
-                offset += len;
+                value = Encoding.UTF8.GetString(_buffer, _offset, len);
+                _offset += len;
             }
 
             internal void ReadCString(out string value)
             {
                 int len = 0;
-                while (offset + len < buffer.Length && buffer[offset + len] != 0)
+                while (_offset + len < _buffer.Length && _buffer[_offset + len] != 0)
                 {
                     len++;
                 }
-                value = Encoding.UTF8.GetString(buffer, offset, len);
-                offset += len + 1;
+                value = Encoding.UTF8.GetString(_buffer, _offset, len);
+                _offset += len + 1;
             }
 
             internal void SkipCString(out string value)
             {
                 int len = 0;
-                while (offset + len < buffer.Length && buffer[offset + len] != 0)
+                while (_offset + len < _buffer.Length && _buffer[_offset + len] != 0)
                 {
                     len++;
                 }
-                offset += len + 1;
+                _offset += len + 1;
                 value = null;
             }
 
@@ -306,18 +304,18 @@ namespace Roslyn.Test.PdbUtilities
                 ReadUInt8(out j);
                 ReadUInt8(out k);
 
-                guid = new Guid(a, b, c, d, e, f, g, h, i, j, k);
+                guid = unchecked(new Guid((int)a, (short)b, (short)c, d, e, f, g, h, i, j, k));
             }
 
             internal string ReadString()
             {
                 int len = 0;
-                while (offset + len < buffer.Length && buffer[offset + len] != 0)
+                while (_offset + len < _buffer.Length && _buffer[_offset + len] != 0)
                 {
                     len += 2;
                 }
-                string result = Encoding.Unicode.GetString(buffer, offset, len);
-                offset += len + 2;
+                string result = Encoding.Unicode.GetString(_buffer, _offset, len);
+                _offset += len + 2;
                 return result;
             }
         }
@@ -326,16 +324,16 @@ namespace Roslyn.Test.PdbUtilities
         {
             internal BitSet(BitAccess bits)
             {
-                bits.ReadInt32(out size);    // 0..3 : Number of words
-                words = new uint[size];
-                bits.ReadUInt32(words);
+                bits.ReadInt32(out _size);    // 0..3 : Number of words
+                _words = new uint[_size];
+                bits.ReadUInt32(_words);
             }
 
             internal bool IsSet(int index)
             {
                 int word = index / 32;
-                if (word >= this.size) return false;
-                return ((words[word] & GetBit(index)) != 0);
+                if (word >= _size) return false;
+                return ((_words[word] & GetBit(index)) != 0);
             }
 
             private static uint GetBit(int index)
@@ -345,16 +343,16 @@ namespace Roslyn.Test.PdbUtilities
 
             internal bool IsEmpty
             {
-                get { return size == 0; }
+                get { return _size == 0; }
             }
 
-            private int size;
-            private uint[] words;
+            private readonly int _size;
+            private readonly uint[] _words;
         }
 
         private class IntHashTable
         {
-            private static readonly int[] primes = {
+            private static readonly int[] s_primes = {
                 3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
                 1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
                 17519, 21023, 25229, 30293, 36353, 43627, 52361, 62851, 75431, 90523, 108631, 130363, 156437,
@@ -367,9 +365,9 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     throw new ArgumentException("Arg_HTCapacityOverflow");
                 }
-                for (int i = 0; i < primes.Length; i++)
+                for (int i = 0; i < s_primes.Length; i++)
                 {
-                    int size = primes[i];
+                    int size = s_primes[i];
                     if (size >= minSize)
                     {
                         return size;
@@ -381,7 +379,7 @@ namespace Roslyn.Test.PdbUtilities
             // Deleted entries have their key set to buckets
 
             // The hash table data.
-            // This cannot be serialised
+            // This cannot be serialized
             private struct bucket
             {
                 internal int key;
@@ -389,18 +387,18 @@ namespace Roslyn.Test.PdbUtilities
                 internal Object val;
             }
 
-            private bucket[] buckets;
+            private bucket[] _buckets;
 
             // The total number of entries in the hash table.
-            private int count;
+            private int _count;
 
             // The total number of collision bits set in the hashtable
-            private int occupancy;
+            private int _occupancy;
 
-            private int loadsize;
-            private int loadFactorPerc;    // 100 = 1.0
+            private int _loadsize;
+            private readonly int _loadFactorPerc;    // 100 = 1.0
 
-            private int version;
+            private int _version;
 
             // Constructs a new hashtable. The hashtable is created with an initial
             // capacity of zero and a load factor of 1.0.
@@ -413,19 +411,19 @@ namespace Roslyn.Test.PdbUtilities
             internal IntHashTable(int capacity, int loadFactorPerc)
             {
                 if (capacity < 0)
-                    throw new ArgumentOutOfRangeException("capacity", "ArgumentOutOfRange_NeedNonNegNum");
+                    throw new ArgumentOutOfRangeException(nameof(capacity), "ArgumentOutOfRange_NeedNonNegNum");
                 if (!(loadFactorPerc >= 10 && loadFactorPerc <= 100))
-                    throw new ArgumentOutOfRangeException("loadFactorPerc", String.Format("ArgumentOutOfRange_IntHashTableLoadFactor", 10, 100));
+                    throw new ArgumentOutOfRangeException(nameof(loadFactorPerc), String.Format("ArgumentOutOfRange_IntHashTableLoadFactor", 10, 100));
 
                 // Based on perf work, .72 is the optimal load factor for this table.
-                this.loadFactorPerc = (loadFactorPerc * 72) / 100;
+                _loadFactorPerc = (loadFactorPerc * 72) / 100;
 
-                int hashsize = GetPrime((int)(capacity / this.loadFactorPerc));
-                buckets = new bucket[hashsize];
+                int hashsize = GetPrime((int)(capacity / _loadFactorPerc));
+                _buckets = new bucket[hashsize];
 
-                loadsize = (int)(this.loadFactorPerc * hashsize) / 100;
-                if (loadsize >= hashsize)
-                    loadsize = hashsize - 1;
+                _loadsize = (int)(_loadFactorPerc * hashsize) / 100;
+                if (_loadsize >= hashsize)
+                    _loadsize = hashsize - 1;
             }
 
             private static uint InitHash(int key, int hashsize, out uint seed, out uint incr)
@@ -459,7 +457,7 @@ namespace Roslyn.Test.PdbUtilities
                     uint seed;
                     uint incr;
                     // Take a snapshot of buckets, in case another thread does a resize
-                    bucket[] lbuckets = buckets;
+                    bucket[] lbuckets = _buckets;
                     uint hashcode = InitHash(key, lbuckets.Length, out seed, out incr);
                     int ntry = 0;
 
@@ -487,18 +485,18 @@ namespace Roslyn.Test.PdbUtilities
 
             private void expand()
             {
-                rehash(GetPrime(1 + buckets.Length * 2));
+                rehash(GetPrime(1 + _buckets.Length * 2));
             }
 
             private void rehash()
             {
-                rehash(buckets.Length);
+                rehash(_buckets.Length);
             }
 
             private void rehash(int newsize)
             {
                 // reset occupancy
-                occupancy = 0;
+                _occupancy = 0;
 
                 // Don't replace any internal state until we've finished adding to the
                 // new bucket[].  This serves two purposes:
@@ -510,9 +508,9 @@ namespace Roslyn.Test.PdbUtilities
 
                 // rehash table into new buckets
                 int nb;
-                for (nb = 0; nb < buckets.Length; nb++)
+                for (nb = 0; nb < _buckets.Length; nb++)
                 {
-                    bucket oldb = buckets[nb];
+                    bucket oldb = _buckets[nb];
                     if (oldb.val != null)
                     {
                         putEntry(newBuckets, oldb.key, oldb.val, oldb.hash_coll & 0x7FFFFFFF);
@@ -520,13 +518,13 @@ namespace Roslyn.Test.PdbUtilities
                 }
 
                 // New bucket[] is good to go - replace buckets and other internal state.
-                version++;
-                buckets = newBuckets;
-                loadsize = (int)(loadFactorPerc * newsize) / 100;
+                _version++;
+                _buckets = newBuckets;
+                _loadsize = (int)(_loadFactorPerc * newsize) / 100;
 
-                if (loadsize >= newsize)
+                if (_loadsize >= newsize)
                 {
-                    loadsize = newsize - 1;
+                    _loadsize = newsize - 1;
                 }
 
                 return;
@@ -540,13 +538,13 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 if (nvalue == null)
                 {
-                    throw new ArgumentNullException("nvalue", "ArgumentNull_Value");
+                    throw new ArgumentNullException(nameof(nvalue), "ArgumentNull_Value");
                 }
-                if (count >= loadsize)
+                if (_count >= _loadsize)
                 {
                     expand();
                 }
-                else if (occupancy > loadsize && count > 100)
+                else if (_occupancy > _loadsize && _count > 100)
                 {
                     rehash();
                 }
@@ -555,14 +553,14 @@ namespace Roslyn.Test.PdbUtilities
                 uint incr;
                 // Assume we only have one thread writing concurrently.  Modify
                 // buckets to contain new data, as long as we insert in the right order.
-                uint hashcode = InitHash(key, buckets.Length, out seed, out incr);
+                uint hashcode = InitHash(key, _buckets.Length, out seed, out incr);
                 int ntry = 0;
                 int emptySlotNumber = -1; // We use the empty slot number to cache the first empty slot. We chose to reuse slots
                 // create by remove that have the collision bit set over using up new slots.
 
                 do
                 {
-                    int bucketNumber = (int)(seed % (uint)buckets.Length);
+                    int bucketNumber = (int)(seed % (uint)_buckets.Length);
 
                     // Set emptySlot number to current bucket if it is the first available bucket that we have seen
                     // that once contained an entry and also has had a collision.
@@ -572,7 +570,7 @@ namespace Roslyn.Test.PdbUtilities
                     // Insert the key/value pair into this bucket if this bucket is empty and has never contained an entry
                     // OR
                     // This bucket once contained an entry but there has never been a collision
-                    if (buckets[bucketNumber].val == null)
+                    if (_buckets[bucketNumber].val == null)
                     {
                         // If we have found an available bucket that has never had a collision, but we've seen an available
                         // bucket in the past that has the collision bit set, use the previous bucket instead
@@ -583,26 +581,26 @@ namespace Roslyn.Test.PdbUtilities
 
                         // We pretty much have to insert in this order.  Don't set hash
                         // code until the value & key are set appropriately.
-                        buckets[bucketNumber].val = nvalue;
-                        buckets[bucketNumber].key = key;
-                        buckets[bucketNumber].hash_coll |= (int)hashcode;
-                        count++;
-                        version++;
+                        _buckets[bucketNumber].val = nvalue;
+                        _buckets[bucketNumber].key = key;
+                        _buckets[bucketNumber].hash_coll |= (int)hashcode;
+                        _count++;
+                        _version++;
                         return;
                     }
 
                     // The current bucket is in use
                     // OR
                     // it is available, but has had the collision bit set and we have already found an available bucket
-                    if (((buckets[bucketNumber].hash_coll & 0x7FFFFFFF) == hashcode) &&
-                                key == buckets[bucketNumber].key)
+                    if (((_buckets[bucketNumber].hash_coll & 0x7FFFFFFF) == hashcode) &&
+                                key == _buckets[bucketNumber].key)
                     {
                         if (add)
                         {
-                            throw new ArgumentException("Argument_AddingDuplicate__" + buckets[bucketNumber].key);
+                            throw new ArgumentException("Argument_AddingDuplicate__" + _buckets[bucketNumber].key);
                         }
-                        buckets[bucketNumber].val = nvalue;
-                        version++;
+                        _buckets[bucketNumber].val = nvalue;
+                        _version++;
                         return;
                     }
 
@@ -611,27 +609,26 @@ namespace Roslyn.Test.PdbUtilities
                     // we have remembered an available slot previously.
                     if (emptySlotNumber == -1)
                     {// We don't need to set the collision bit here since we already have an empty slot
-                        if (buckets[bucketNumber].hash_coll >= 0)
+                        if (_buckets[bucketNumber].hash_coll >= 0)
                         {
-                            buckets[bucketNumber].hash_coll |= unchecked((int)0x80000000);
-                            occupancy++;
+                            _buckets[bucketNumber].hash_coll |= unchecked((int)0x80000000);
+                            _occupancy++;
                         }
                     }
                     seed += incr;
-                } while (++ntry < buckets.Length);
+                } while (++ntry < _buckets.Length);
 
                 // This code is here if and only if there were no buckets without a collision bit set in the entire table
                 if (emptySlotNumber != -1)
                 {
                     // We pretty much have to insert in this order.  Don't set hash
                     // code until the value & key are set appropriately.
-                    buckets[emptySlotNumber].val = nvalue;
-                    buckets[emptySlotNumber].key = key;
-                    buckets[emptySlotNumber].hash_coll |= (int)hashcode;
-                    count++;
-                    version++;
+                    _buckets[emptySlotNumber].val = nvalue;
+                    _buckets[emptySlotNumber].key = key;
+                    _buckets[emptySlotNumber].hash_coll |= (int)hashcode;
+                    _count++;
+                    _version++;
                     return;
-
                 }
 
                 // If you see this assert, make sure load factor & count are reasonable.
@@ -660,7 +657,7 @@ namespace Roslyn.Test.PdbUtilities
                     if (newBuckets[bucketNumber].hash_coll >= 0)
                     {
                         newBuckets[bucketNumber].hash_coll |= unchecked((int)0x80000000);
-                        occupancy++;
+                        _occupancy++;
                     }
                     seed += incr;
                 } while (true);
@@ -682,15 +679,15 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadUInt32(out relocCrc);
             }
 
-            internal short section;                    // 0..1
-            internal short pad1;                       // 2..3
-            internal int offset;                     // 4..7
-            internal int size;                       // 8..11
-            internal uint flags;                      // 12..15
-            internal short module;                     // 16..17
-            internal short pad2;                       // 18..19
-            internal uint dataCrc;                    // 20..23
-            internal uint relocCrc;                   // 24..27
+            internal readonly short section;                    // 0..1
+            internal readonly short pad1;                       // 2..3
+            internal readonly int offset;                     // 4..7
+            internal readonly int size;                       // 8..11
+            internal readonly uint flags;                      // 12..15
+            internal readonly short module;                     // 16..17
+            internal readonly short pad2;                       // 18..19
+            internal readonly uint dataCrc;                    // 20..23
+            internal readonly uint relocCrc;                   // 24..27
         }
 
         private class DbiModuleInfo
@@ -722,19 +719,19 @@ namespace Roslyn.Test.PdbUtilities
                 bits.Align(4);
             }
 
-            internal int opened;                 //  0..3
-            internal ushort flags;                  // 32..33
-            internal short stream;                 // 34..35
-            internal int cbSyms;                 // 36..39
-            internal int cbOldLines;             // 40..43
-            internal int cbLines;                // 44..57
-            internal short files;                  // 48..49
-            internal short pad1;                   // 50..51
-            internal uint offsets;
-            internal int niSource;
-            internal int niCompiler;
-            internal string moduleName;
-            internal string objectName;
+            internal readonly int opened;                 //  0..3
+            internal readonly ushort flags;                  // 32..33
+            internal readonly short stream;                 // 34..35
+            internal readonly int cbSyms;                 // 36..39
+            internal readonly int cbOldLines;             // 40..43
+            internal readonly int cbLines;                // 44..57
+            internal readonly short files;                  // 48..49
+            internal readonly short pad1;                   // 50..51
+            internal readonly uint offsets;
+            internal readonly int niSource;
+            internal readonly int niCompiler;
+            internal readonly string moduleName;
+            internal readonly string objectName;
         }
 
         private struct DbiHeader
@@ -763,26 +760,26 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadInt32(out reserved);
             }
 
-            internal int sig;                        // 0..3
-            internal int ver;                        // 4..7
-            internal int age;                        // 8..11
-            internal short gssymStream;                // 12..13
-            internal ushort vers;                       // 14..15
-            internal short pssymStream;                // 16..17
-            internal ushort pdbver;                     // 18..19
-            internal short symrecStream;               // 20..21
-            internal ushort pdbver2;                    // 22..23
-            internal int gpmodiSize;                 // 24..27
-            internal int secconSize;                 // 28..31
-            internal int secmapSize;                 // 32..35
-            internal int filinfSize;                 // 36..39
-            internal int tsmapSize;                  // 40..43
-            internal int mfcIndex;                   // 44..47
-            internal int dbghdrSize;                 // 48..51
-            internal int ecinfoSize;                 // 52..55
-            internal ushort flags;                      // 56..57
-            internal ushort machine;                    // 58..59
-            internal int reserved;                   // 60..63
+            internal readonly int sig;                        // 0..3
+            internal readonly int ver;                        // 4..7
+            internal readonly int age;                        // 8..11
+            internal readonly short gssymStream;                // 12..13
+            internal readonly ushort vers;                       // 14..15
+            internal readonly short pssymStream;                // 16..17
+            internal readonly ushort pdbver;                     // 18..19
+            internal readonly short symrecStream;               // 20..21
+            internal readonly ushort pdbver2;                    // 22..23
+            internal readonly int gpmodiSize;                 // 24..27
+            internal readonly int secconSize;                 // 28..31
+            internal readonly int secmapSize;                 // 32..35
+            internal readonly int filinfSize;                 // 36..39
+            internal readonly int tsmapSize;                  // 40..43
+            internal readonly int mfcIndex;                   // 44..47
+            internal readonly int dbghdrSize;                 // 48..51
+            internal readonly int ecinfoSize;                 // 52..55
+            internal readonly ushort flags;                      // 56..57
+            internal readonly ushort machine;                    // 58..59
+            internal readonly int reserved;                   // 60..63
         }
 
         private struct DbiDbgHdr
@@ -802,17 +799,17 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadUInt16(out snSectionHdrOrig);
             }
 
-            internal ushort snFPO;                 // 0..1
-            internal ushort snException;           // 2..3 (deprecated)
-            internal ushort snFixup;               // 4..5
-            internal ushort snOmapToSrc;           // 6..7
-            internal ushort snOmapFromSrc;         // 8..9
-            internal ushort snSectionHdr;          // 10..11
-            internal ushort snTokenRidMap;         // 12..13
-            internal ushort snXdata;               // 14..15
-            internal ushort snPdata;               // 16..17
-            internal ushort snNewFPO;              // 18..19
-            internal ushort snSectionHdrOrig;      // 20..21
+            internal readonly ushort snFPO;                 // 0..1
+            internal readonly ushort snException;           // 2..3 (deprecated)
+            internal readonly ushort snFixup;               // 4..5
+            internal readonly ushort snOmapToSrc;           // 6..7
+            internal readonly ushort snOmapFromSrc;         // 8..9
+            internal readonly ushort snSectionHdr;          // 10..11
+            internal readonly ushort snTokenRidMap;         // 12..13
+            internal readonly ushort snXdata;               // 14..15
+            internal readonly ushort snPdata;               // 16..17
+            internal readonly ushort snNewFPO;              // 18..19
+            internal readonly ushort snSectionHdrOrig;      // 20..21
         }
 
         private class PdbFileHeader
@@ -839,11 +836,11 @@ namespace Roslyn.Test.PdbUtilities
 
             internal readonly byte[] magic;
             internal readonly int pageSize;
-            internal int freePageMap;
-            internal int pagesUsed;
-            internal int directorySize;
+            internal readonly int freePageMap;
+            internal readonly int pagesUsed;
+            internal readonly int directorySize;
             internal readonly int zero;
-            internal int[] directoryRoot;
+            internal readonly int[] directoryRoot;
         }
 
         private class PdbReader
@@ -954,8 +951,8 @@ namespace Roslyn.Test.PdbUtilities
                 get { return contentSize; }
             }
 
-            internal int contentSize;
-            internal int[] pages;
+            internal readonly int contentSize;
+            internal readonly int[] pages;
         }
 
         private class MsfDirectory
@@ -1006,7 +1003,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            internal DataStream[] streams;
+            internal readonly DataStream[] streams;
         }
 
         private struct CV_FileCheckSum
@@ -1146,63 +1143,54 @@ namespace Roslyn.Test.PdbUtilities
         {
         }
 
-        public static int Main2(string[] args)
+        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
-            if (args.Length != 1)
-            {
-                Console.WriteLine("A single command line argument is expected: PDB-file name");
-                return 1;
-            }
-
-            using (Stream stream = File.OpenRead(args[0]))
-            {
-                Console.WriteLine(TokenToSourceMap2Xml(stream));
-            }
-            return 0;
-        }
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            IndentChars = "  ",
+            NewLineChars = "\r\n",
+        };
 
         public static string TokenToSourceMap2Xml(Stream read, bool maskToken = false)
         {
-            // Get a Text Writer to spew the PDB to.
-            XmlDocument doc = new XmlDocument();
+            var builder = new StringBuilder();
 
-            XmlWriter writer = doc.CreateNavigator().AppendChild();
-            writer.WriteStartElement("token-map");
-
-            List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
-            list.Sort(
-                (x, y) =>
-                {
-                    int result = x.line.CompareTo(y.line);
-                    if (result != 0) return result;
-                    result = x.column.CompareTo(y.column);
-                    if (result != 0) return result;
-                    result = x.endLine.CompareTo(y.endLine);
-                    if (result != 0) return result;
-                    result = x.endColumn.CompareTo(y.endColumn);
-                    if (result != 0) return result;
-                    return x.token.CompareTo(y.token);
-                });
-
-            foreach (var rec in list)
+            using (var writer = XmlWriter.Create(builder, s_xmlWriterSettings))
             {
-                writer.WriteStartElement("token-location");
+                writer.WriteStartElement("token-map");
 
-                writer.WriteAttributeString("token", Token2String(rec.token, maskToken));
-                writer.WriteAttributeString("file", rec.sourceFile.name);
-                writer.WriteAttributeString("start-line", rec.line.ToString());
-                writer.WriteAttributeString("start-column", rec.column.ToString());
-                writer.WriteAttributeString("end-line", rec.endLine.ToString());
-                writer.WriteAttributeString("end-column", rec.endColumn.ToString());
+                List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
+                list.Sort(
+                    (x, y) =>
+                    {
+                        int result = x.line.CompareTo(y.line);
+                        if (result != 0) return result;
+                        result = x.column.CompareTo(y.column);
+                        if (result != 0) return result;
+                        result = x.endLine.CompareTo(y.endLine);
+                        if (result != 0) return result;
+                        result = x.endColumn.CompareTo(y.endColumn);
+                        if (result != 0) return result;
+                        return x.token.CompareTo(y.token);
+                    });
 
-                writer.WriteEndElement(); // "token-location";
+                foreach (var rec in list)
+                {
+                    writer.WriteStartElement("token-location");
+
+                    writer.WriteAttributeString("token", Token2String(rec.token, maskToken));
+                    writer.WriteAttributeString("file", rec.sourceFile.name);
+                    writer.WriteAttributeString("start-line", rec.line.ToString());
+                    writer.WriteAttributeString("start-column", rec.column.ToString());
+                    writer.WriteAttributeString("end-line", rec.endLine.ToString());
+                    writer.WriteAttributeString("end-column", rec.endColumn.ToString());
+
+                    writer.WriteEndElement(); // "token-location";
+                }
+
+                writer.WriteEndElement(); // "token-map";
             }
 
-            writer.WriteEndElement(); // "token-map";
-            writer.Close();
-
-            StringBuilder builder = new StringBuilder();
-            doc.Save(new StringWriter(builder, System.Globalization.CultureInfo.InvariantCulture));
             return builder.ToString();
         }
 
@@ -1236,8 +1224,6 @@ namespace Roslyn.Test.PdbUtilities
 
             dir.streams[3].Read(reader, bits);
             LoadDbiStream(bits, out modules, out header, true);
-
-            ArrayList funcList = new ArrayList();
 
             if (modules != null)
             {
@@ -1320,8 +1306,8 @@ namespace Roslyn.Test.PdbUtilities
             return result;
         }
 
-        private static readonly Guid MsilMetaData =
-            new Guid(0xc6ea3fc9, 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
+        private static readonly Guid s_msilMetaData =
+            new Guid(unchecked((int)0xc6ea3fc9), 0x59b3, 0x49d6, 0xbc, 0x25, 0x09, 0x02, 0xbb, 0xab, 0xb4, 0x60);
 
         private static void LoadTokenToSourceInfo(
             BitAccess bits, DbiModuleInfo module, IntHashTable names, MsfDirectory dir,
@@ -1357,7 +1343,7 @@ namespace Roslyn.Test.PdbUtilities
                         bits.ReadUInt32(out oem.typind);
                         // internal byte[]   rgl;        // user data, force 4-byte alignment
 
-                        if (oem.idOem == MsilMetaData)
+                        if (oem.idOem == s_msilMetaData)
                         {
                             string name = bits.ReadString();
                             if (name == "TSLI")
@@ -1410,6 +1396,8 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
+        private static readonly Guid s_symDocumentTypeGuid = new Guid("{5a869d0b-6611-11d3-bd2a-0000f80849bd}");
+
         private static IntHashTable ReadSourceFileInfo(
             BitAccess bits, uint limit, IntHashTable names, MsfDirectory dir,
             Dictionary<string, int> nameIndex, PdbReader reader)
@@ -1437,8 +1425,7 @@ namespace Roslyn.Test.PdbUtilities
                             bits.ReadUInt32(out chk.name);
                             bits.ReadUInt8(out chk.len);
                             bits.ReadUInt8(out chk.type);
-
-                            PdbSource src = new PdbSource(/*(uint)ni,*/ (string)names[(int)chk.name], SymDocumentType.Text, Guid.Empty, Guid.Empty);
+                            PdbSource src = new PdbSource(/*(uint)ni,*/ (string)names[(int)chk.name], s_symDocumentTypeGuid, Guid.Empty, Guid.Empty);
                             checks.Add(ni, src);
                             bits.Position += chk.len;
                             bits.Align(4);
@@ -1508,7 +1495,7 @@ namespace Roslyn.Test.PdbUtilities
             header = new DbiDbgHdr();
 
             // Read gpmod section.
-            ArrayList modList = new ArrayList();
+            var modList = new List<DbiModuleInfo>();
             int end = bits.Position + dh.gpmodiSize;
             while (bits.Position < end)
             {
@@ -1522,7 +1509,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (modList.Count > 0)
             {
-                modules = (DbiModuleInfo[])modList.ToArray(typeof(DbiModuleInfo));
+                modules = modList.ToArray();
             }
             else
             {

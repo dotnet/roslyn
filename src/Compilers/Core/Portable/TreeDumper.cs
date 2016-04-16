@@ -55,18 +55,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class TreeDumper
     {
-        private readonly StringBuilder sb;
+        private readonly StringBuilder _sb;
 
         private TreeDumper()
         {
-            this.sb = new StringBuilder();
+            _sb = new StringBuilder();
         }
 
         public static string DumpCompact(TreeDumperNode root)
         {
             var dumper = new TreeDumper();
             dumper.DoDumpCompact(root, string.Empty);
-            return dumper.sb.ToString();
+            return dumper._sb.ToString();
         }
 
         private void DoDumpCompact(TreeDumperNode node, string indent)
@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis
 
             // Precondition: indentation and prefix has already been output
             // Precondition: indent is correct for node's *children*
-            sb.Append(node.Text);
+            _sb.Append(node.Text);
             if (node.Value != null)
             {
-                sb.AppendFormat(": {0}", DumperString(node.Value));
+                _sb.AppendFormat(": {0}", DumperString(node.Value));
             }
 
-            sb.AppendLine();
+            _sb.AppendLine();
             var children = node.Children.ToList();
             for (int i = 0; i < children.Count; ++i)
             {
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                sb.Append(indent);
-                sb.Append(i == children.Count - 1 ? '└' : '├');
-                sb.Append('─');
+                _sb.Append(indent);
+                _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
+                _sb.Append('\u2500');
 
                 // First precondition met; now work out the string needed to indent 
                 // the child node's children:
-                DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "│ "));
+                DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
             }
         }
 
@@ -106,35 +106,35 @@ namespace Microsoft.CodeAnalysis
         {
             var dumper = new TreeDumper();
             dumper.DoDumpXML(root, string.Empty, string.IsNullOrEmpty(indent) ? string.Empty : indent);
-            return dumper.sb.ToString();
+            return dumper._sb.ToString();
         }
 
         private void DoDumpXML(TreeDumperNode node, string indent, string relativeIndent)
         {
             Debug.Assert(node != null);
-            if (!node.Children.Any(child => child != null))
+            if (node.Children.All(child => child == null))
             {
-                sb.Append(indent);
+                _sb.Append(indent);
                 if (node.Value != null)
                 {
-                    sb.AppendFormat("<{0}>{1}</{0}>", node.Text, DumperString(node.Value));
+                    _sb.AppendFormat("<{0}>{1}</{0}>", node.Text, DumperString(node.Value));
                 }
                 else
                 {
-                    sb.AppendFormat("<{0} />", node.Text);
+                    _sb.AppendFormat("<{0} />", node.Text);
                 }
-                sb.AppendLine();
+                _sb.AppendLine();
             }
             else
             {
-                sb.Append(indent);
-                sb.AppendFormat("<{0}>", node.Text);
-                sb.AppendLine();
+                _sb.Append(indent);
+                _sb.AppendFormat("<{0}>", node.Text);
+                _sb.AppendLine();
                 if (node.Value != null)
                 {
-                    sb.Append(indent);
-                    sb.AppendFormat("{0}", DumperString(node.Value));
-                    sb.AppendLine();
+                    _sb.Append(indent);
+                    _sb.AppendFormat("{0}", DumperString(node.Value));
+                    _sb.AppendLine();
                 }
 
                 var childIndent = indent + relativeIndent;
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis
                     DoDumpXML(child, childIndent, relativeIndent);
                 }
 
-                sb.Append(indent);
-                sb.AppendFormat("</{0}>", node.Text);
-                sb.AppendLine();
+                _sb.Append(indent);
+                _sb.AppendFormat("</{0}>", node.Text);
+                _sb.AppendLine();
             }
         }
 
@@ -161,37 +161,37 @@ namespace Microsoft.CodeAnalysis
             return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) && (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, SpecializedCollections.EmptyObjects);
         }
 
-        private string DumperString(object o)
+        private static string DumperString(object o)
         {
-            string result;
-
             if (o == null)
             {
-                result = "(null)";
-            }
-            else if (o is string)
-            {
-                result = (string)o;
-            }
-            else if (IsDefaultImmutableArray(o))
-            {
-                result = "(null)";
-            }
-            else if (o is IEnumerable)
-            {
-                IEnumerable seq = (IEnumerable)o;
-                result = string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(DumperString).ToArray()));
-            }
-            else if (o is ISymbol)
-            {
-                result = ((ISymbol)o).ToDisplayString(SymbolDisplayFormat.TestFormat);
-            }
-            else
-            {
-                result = o.ToString();
+                return "(null)";
             }
 
-            return result;
+            var str = o as string;
+            if (str != null)
+            {
+                return str;
+            }
+
+            if (IsDefaultImmutableArray(o))
+            {
+                return "(null)";
+            }
+
+            var seq = o as IEnumerable;
+            if (seq != null)
+            {
+                return string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(DumperString).ToArray()));
+            }
+
+            var symbol = o as ISymbol;
+            if (symbol != null)
+            {
+                return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+            }
+
+            return o.ToString();
         }
     }
 
@@ -208,14 +208,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TreeDumperNode(string text) : this(text, null, null) { }
-        public object Value { get; private set; }
-        public string Text { get; private set; }
-        public IEnumerable<TreeDumperNode> Children { get; private set; }
+        public object Value { get; }
+        public string Text { get; }
+        public IEnumerable<TreeDumperNode> Children { get; }
         public TreeDumperNode this[string child]
         {
             get
             {
-                return Children.Where(c=>c.Text == child).FirstOrDefault();
+                return Children.FirstOrDefault(c => c.Text == child);
             }
         }
 

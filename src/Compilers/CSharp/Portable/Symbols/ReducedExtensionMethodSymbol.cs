@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ReducedExtensionMethodSymbol : MethodSymbol
     {
-        private readonly MethodSymbol reducedFrom;
-        private readonly TypeMap typeMap;
-        private readonly ImmutableArray<TypeParameterSymbol> typeParameters;
-        private readonly ImmutableArray<TypeSymbol> typeArguments;
-        private ImmutableArray<ParameterSymbol> lazyParameters;
+        private readonly MethodSymbol _reducedFrom;
+        private readonly TypeMap _typeMap;
+        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         /// <summary>
         /// Return the extension method in reduced form if the extension method
@@ -91,21 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(reducedFrom.ConstructedFrom == reducedFrom);
             Debug.Assert(reducedFrom.ParameterCount > 0);
 
-            this.reducedFrom = reducedFrom;
-            this.typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out this.typeParameters);
-            this.typeArguments = this.typeMap.SubstituteTypes(reducedFrom.TypeArguments);
+            _reducedFrom = reducedFrom;
+            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
+            _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(reducedFrom.TypeArguments);
         }
 
         internal override MethodSymbol CallsiteReducedFromMethod
         {
-            get { return this.reducedFrom.ConstructIfGeneric(this.typeArguments); }
+            get { return _reducedFrom.ConstructIfGeneric(_typeArguments); }
         }
 
         public override TypeSymbol ReceiverType
         {
             get
             {
-                return this.reducedFrom.Parameters[0].Type;
+                return _reducedFrom.Parameters[0].Type;
             }
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new System.ArgumentNullException();
             }
 
-            if (reducedFromTypeParameter.ContainingSymbol != this.reducedFrom)
+            if (reducedFromTypeParameter.ContainingSymbol != _reducedFrom)
             {
                 throw new System.ArgumentException();
             }
@@ -126,101 +126,101 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodSymbol ReducedFrom
         {
-            get { return this.reducedFrom; }
+            get { return _reducedFrom; }
         }
 
         public override MethodSymbol ConstructedFrom
         {
             get
             {
-                Debug.Assert(this.reducedFrom.ConstructedFrom == this.reducedFrom);
+                Debug.Assert(_reducedFrom.ConstructedFrom == _reducedFrom);
                 return this;
             }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return this.typeParameters; }
+            get { return _typeParameters; }
         }
 
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
-            get { return this.typeArguments; }
+            get { return _typeArguments; }
         }
 
         internal override Microsoft.Cci.CallingConvention CallingConvention
         {
-            get { return this.reducedFrom.CallingConvention; }
+            get { return _reducedFrom.CallingConvention; }
         }
 
         public override int Arity
         {
-            get { return this.reducedFrom.Arity; }
+            get { return _reducedFrom.Arity; }
         }
 
         public override string Name
         {
-            get { return this.reducedFrom.Name; }
+            get { return _reducedFrom.Name; }
         }
 
         internal override bool HasSpecialName
         {
-            get { return this.reducedFrom.HasSpecialName; }
+            get { return _reducedFrom.HasSpecialName; }
         }
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
-            get { return this.reducedFrom.ImplementationAttributes; }
+            get { return _reducedFrom.ImplementationAttributes; }
         }
 
         internal override bool RequiresSecurityObject
         {
-            get { return this.reducedFrom.RequiresSecurityObject; }
+            get { return _reducedFrom.RequiresSecurityObject; }
         }
 
         public override DllImportData GetDllImportData()
         {
-            return this.reducedFrom.GetDllImportData();
+            return _reducedFrom.GetDllImportData();
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
-            get { return this.reducedFrom.ReturnValueMarshallingInformation; }
+            get { return _reducedFrom.ReturnValueMarshallingInformation; }
         }
 
         internal override bool HasDeclarativeSecurity
         {
-            get { return this.reducedFrom.HasDeclarativeSecurity; }
+            get { return _reducedFrom.HasDeclarativeSecurity; }
         }
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            return this.reducedFrom.GetSecurityInformation();
+            return _reducedFrom.GetSecurityInformation();
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            return this.reducedFrom.GetAppliedConditionalSymbols();
+            return _reducedFrom.GetAppliedConditionalSymbols();
         }
 
         public override AssemblySymbol ContainingAssembly
         {
-            get { return this.reducedFrom.ContainingAssembly; }
+            get { return _reducedFrom.ContainingAssembly; }
         }
 
         public override ImmutableArray<Location> Locations
         {
-            get { return this.reducedFrom.Locations; }
+            get { return _reducedFrom.Locations; }
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { return this.reducedFrom.DeclaringSyntaxReferences; }
+            get { return _reducedFrom.DeclaringSyntaxReferences; }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return this.reducedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return _reducedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         public override MethodSymbol OriginalDefinition
@@ -230,27 +230,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern
         {
-            get { return this.reducedFrom.IsExtern; }
+            get { return _reducedFrom.IsExtern; }
         }
 
         public override bool IsSealed
         {
-            get { return this.reducedFrom.IsSealed; }
+            get { return _reducedFrom.IsSealed; }
         }
 
         public override bool IsVirtual
         {
-            get { return this.reducedFrom.IsVirtual; }
+            get { return _reducedFrom.IsVirtual; }
         }
 
         public override bool IsAbstract
         {
-            get { return this.reducedFrom.IsAbstract; }
+            get { return _reducedFrom.IsAbstract; }
         }
 
         public override bool IsOverride
         {
-            get { return this.reducedFrom.IsOverride; }
+            get { return _reducedFrom.IsOverride; }
         }
 
         public override bool IsStatic
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync
         {
-            get { return this.reducedFrom.IsAsync; }
+            get { return _reducedFrom.IsAsync; }
         }
 
         public override bool IsExtensionMethod
@@ -288,22 +288,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
-            get { return reducedFrom.ObsoleteAttributeData; }
+            get { return _reducedFrom.ObsoleteAttributeData; }
         }
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return this.reducedFrom.DeclaredAccessibility; }
+            get { return _reducedFrom.DeclaredAccessibility; }
         }
 
         public override Symbol ContainingSymbol
         {
-            get { return this.reducedFrom.ContainingSymbol; }
+            get { return _reducedFrom.ContainingSymbol; }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.reducedFrom.GetAttributes();
+            return _reducedFrom.GetAttributes();
         }
 
         public override Symbol AssociatedSymbol
@@ -318,48 +318,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.reducedFrom.ReturnsVoid; }
+            get { return _reducedFrom.ReturnsVoid; }
         }
 
         public override bool IsGenericMethod
         {
-            get { return this.reducedFrom.IsGenericMethod; }
+            get { return _reducedFrom.IsGenericMethod; }
         }
 
         public override bool IsVararg
         {
-            get { return this.reducedFrom.IsVararg; }
+            get { return _reducedFrom.IsVararg; }
         }
 
         public override TypeSymbol ReturnType
         {
-            get { return this.typeMap.SubstituteType(this.reducedFrom.ReturnType); }
+            get { return _typeMap.SubstituteType(_reducedFrom.ReturnType).Type; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
-            get { return this.reducedFrom.ReturnTypeCustomModifiers; }
+            get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.ReturnType, _reducedFrom.ReturnTypeCustomModifiers); }
         }
 
         internal override int ParameterCount
         {
-            get { return this.reducedFrom.ParameterCount - 1; }
+            get { return _reducedFrom.ParameterCount - 1; }
         }
 
         internal override bool GenerateDebugInfo
         {
-            get { return this.reducedFrom.GenerateDebugInfo; }
+            get { return _reducedFrom.GenerateDebugInfo; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get
             {
-                if (this.lazyParameters.IsDefault)
+                if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref this.lazyParameters, this.MakeParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.MakeParameters(), default(ImmutableArray<ParameterSymbol>));
                 }
-                return this.lazyParameters;
+                return _lazyParameters;
             }
         }
 
@@ -380,12 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)
         {
-            return this.reducedFrom.CallsAreOmitted(syntaxTree);
+            return _reducedFrom.CallsAreOmitted(syntaxTree);
         }
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
-            var reducedFromParameters = this.reducedFrom.Parameters;
+            var reducedFromParameters = _reducedFrom.Parameters;
             int count = reducedFromParameters.Length;
 
             if (count <= 1)
@@ -415,28 +415,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == obj) return true;
 
             ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
-            return (object)other != null && reducedFrom.Equals(other.reducedFrom);
+            return (object)other != null && _reducedFrom.Equals(other._reducedFrom);
         }
 
         public override int GetHashCode()
         {
-            return reducedFrom.GetHashCode();
+            return _reducedFrom.GetHashCode();
         }
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {
-            private readonly ReducedExtensionMethodSymbol containingMethod;
+            private readonly ReducedExtensionMethodSymbol _containingMethod;
 
             public ReducedExtensionMethodParameterSymbol(ReducedExtensionMethodSymbol containingMethod, ParameterSymbol underlyingParameter) :
                 base(underlyingParameter)
             {
                 Debug.Assert(underlyingParameter.Ordinal > 0);
-                this.containingMethod = containingMethod;
+                _containingMethod = containingMethod;
             }
 
             public override Symbol ContainingSymbol
             {
-                get { return this.containingMethod; }
+                get { return _containingMethod; }
             }
 
             public override int Ordinal
@@ -446,7 +446,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbol Type
             {
-                get { return this.containingMethod.typeMap.SubstituteType(this.underlyingParameter.Type); }
+                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type).Type; }
+            }
+
+            public override ImmutableArray<CustomModifier> CustomModifiers
+            {
+                get
+                {
+                    return _containingMethod._typeMap.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers);
+                }
             }
         }
     }

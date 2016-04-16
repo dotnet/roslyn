@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var writer = new ObjectWriter(stream);
             writer.WriteString(text);
             writer.Dispose();
-            
+
             stream.Position = 0;
             var reader = new ObjectReader(stream);
             var readText = reader.ReadString();
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var readValues = (T[])reader.ReadValue();
             reader.Dispose();
 
-            Assert.Equal(true, values.SequenceEqual(readValues));        
+            Assert.Equal(true, values.SequenceEqual(readValues));
         }
 
         [Fact]
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var instances = new List<WritableClass>();
 
                 // We need enough items to exercise all sizes of ObjectRef
-                for(int i = 0; i < ushort.MaxValue + 1; i++)
+                for (int i = 0; i < ushort.MaxValue + 1; i++)
                 {
                     instances.Add(new WritableClass(i, i.ToString()));
                 }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using(var reader = new ObjectReader(stream, binder: binder))
+                using (var reader = new ObjectReader(stream, binder: binder))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
@@ -547,19 +547,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestRoundTripGraph()
         {
             var oneNode = new Node("one");
-            TestRoundTripGraph(oneNode);
+            TestRoundTripGraphCore(oneNode);
 
-            TestRoundTripGraph(new Node("a", new Node("b"), new Node("c")));
-            TestRoundTripGraph(new Node("x", oneNode, oneNode, oneNode, oneNode));
-
+            TestRoundTripGraphCore(new Node("a", new Node("b"), new Node("c")));
+            TestRoundTripGraphCore(new Node("x", oneNode, oneNode, oneNode, oneNode));
 #if false  // cycles not supported
-            var cylicNode = new Node("cyclic", oneNode);
-            cylicNode.Children[0] = cylicNode;
-            TestRoundTripGraph(cylicNode);
+            var cyclicNode = new Node("cyclic", oneNode);
+            cyclicNode.Children[0] = cyclicNode;
+            TestRoundTripGraph(cyclicNode);
 #endif
         }
 
-        private void TestRoundTripGraph(Node graph)
+        private void TestRoundTripGraphCore(Node graph)
         {
             var stream = new MemoryStream();
             var writer = new ObjectWriter(stream);
@@ -592,7 +591,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 this.Children = (Node[])reader.ReadValue();
             }
 
-            private static readonly Func<ObjectReader, object> CreateInstance = r => new Node(r);
+            private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
 
             public void WriteTo(ObjectWriter writer)
             {

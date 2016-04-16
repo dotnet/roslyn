@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion ExplicitDynamic = new Conversion(ConversionKind.ExplicitDynamic);
         internal static readonly Conversion InterpolatedString = new Conversion(ConversionKind.InterpolatedString);
 
-        private readonly MethodSymbol methodGroupConversionMethod;
-        private readonly UserDefinedConversionResult conversionResult; //no effect on Equals/GetHashCode
+        private readonly MethodSymbol _methodGroupConversionMethod;
+        private readonly UserDefinedConversionResult _conversionResult; //no effect on Equals/GetHashCode
 
         internal readonly ConversionKind Kind;
-        private readonly byte flags;
+        private readonly byte _flags;
 
         private const byte IsExtensionMethodMask = 1 << 0;
         private const byte IsArrayIndexMask = 1 << 1;
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
         {
             this.Kind = kind;
-            this.conversionResult = conversionResult;
-            this.methodGroupConversionMethod = methodGroupConversionMethod;
+            _conversionResult = conversionResult;
+            _methodGroupConversionMethod = methodGroupConversionMethod;
 
-            this.flags = isExtensionMethod ? IsExtensionMethodMask : (byte)0;
+            _flags = isExtensionMethod ? IsExtensionMethodMask : (byte)0;
             if (isArrayIndex)
             {
-                flags |= IsArrayIndexMask;
+                _flags |= IsArrayIndexMask;
             }
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-            this.conversionResult = conversionResult;
+            _conversionResult = conversionResult;
         }
 
         internal Conversion(ConversionKind kind)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (flags & IsExtensionMethodMask) != 0;
+                return (_flags & IsExtensionMethodMask) != 0;
             }
         }
 
@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (flags & IsArrayIndexMask) != 0;
+                return (_flags & IsArrayIndexMask) != 0;
             }
         }
 
 
         internal Conversion ToArrayIndexConversion()
         {
-            return new Conversion(this.Kind, this.IsExtensionMethod, true, this.conversionResult, this.methodGroupConversionMethod);
+            return new Conversion(this.Kind, this.IsExtensionMethod, true, _conversionResult, _methodGroupConversionMethod);
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this()
         {
             this.Kind = kind;
-            this.methodGroupConversionMethod = methodGroupConversionMethod;
+            _methodGroupConversionMethod = methodGroupConversionMethod;
             if (isExtensionMethod)
             {
-                this.flags = IsExtensionMethodMask;
+                _flags = IsExtensionMethodMask;
             }
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Exists && (!this.IsUserDefined || (object)this.Method != null || this.conversionResult.Kind == UserDefinedConversionResultKind.Valid);
+                return this.Exists && (!this.IsUserDefined || (object)this.Method != null || _conversionResult.Kind == UserDefinedConversionResultKind.Valid);
             }
         }
 
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.methodGroupConversionMethod ?? UserDefinedConversion;
+                return _methodGroupConversionMethod ?? UserDefinedConversion;
             }
         }
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                switch (this.conversionResult.Kind)
+                switch (_conversionResult.Kind)
                 {
                     case UserDefinedConversionResultKind.Valid:
                         return LookupResultKind.Viable;
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case UserDefinedConversionResultKind.NoBestTargetType:
                         return LookupResultKind.OverloadResolutionFailure;
                     case UserDefinedConversionResultKind.NoApplicableOperators:
-                        if (this.conversionResult.Results.IsDefaultOrEmpty)
+                        if (_conversionResult.Results.IsDefaultOrEmpty)
                         {
                             return this.Kind == ConversionKind.NoConversion ? LookupResultKind.Empty : LookupResultKind.Viable;
                         }
@@ -462,8 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return LookupResultKind.OverloadResolutionFailure;
                         }
                     default:
-                        Debug.Assert(false, "Unknown UserDefinedConversionResultKind " + this.conversionResult.Kind);
-                        return LookupResultKind.OverloadResolutionFailure;
+                        throw ExceptionUtilities.UnexpectedValue(_conversionResult.Kind);
                 }
             }
         }
@@ -506,13 +505,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the IDE wants information about the *inferred* method, not the original unconstructed
                 // generic method.
 
-                if (this.conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
+                if (_conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
                 {
                     return ImmutableArray<MethodSymbol>.Empty;
                 }
 
                 var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var analysis in this.conversionResult.Results)
+                foreach (var analysis in _conversionResult.Results)
                 {
                     builder.Add(analysis.Operator);
                 }
@@ -533,9 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                if (_conversionResult.Kind == UserDefinedConversionResultKind.Valid)
                 {
-                    UserDefinedConversionAnalysis analysis = this.conversionResult.Results[this.conversionResult.Best];
+                    UserDefinedConversionAnalysis analysis = _conversionResult.Results[_conversionResult.Best];
                     return analysis;
                 }
 

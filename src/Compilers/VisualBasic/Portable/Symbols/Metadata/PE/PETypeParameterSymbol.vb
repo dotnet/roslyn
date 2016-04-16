@@ -18,22 +18,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class PETypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private ReadOnly m_ContainingSymbol As Symbol ' Could be PENamedType or a PEMethod
-        Private ReadOnly m_Handle As GenericParameterHandle
-        Private m_lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
+        Private ReadOnly _containingSymbol As Symbol ' Could be PENamedType or a PEMethod
+        Private ReadOnly _handle As GenericParameterHandle
+        Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
 #Region "Metadata"
-        Private ReadOnly m_Name As String
-        Private ReadOnly m_Ordinal As UShort ' 0 for first, 1 for second, ...
-        Private ReadOnly m_Flags As GenericParameterAttributes
+        Private ReadOnly _name As String
+        Private ReadOnly _ordinal As UShort ' 0 for first, 1 for second, ...
+        Private ReadOnly _flags As GenericParameterAttributes
 #End Region
 
-        Private m_lazyConstraintTypes As ImmutableArray(Of TypeSymbol)
+        Private _lazyConstraintTypes As ImmutableArray(Of TypeSymbol)
 
         ''' <summary>
         ''' First error calculating bounds.
         ''' </summary>
-        Private m_lazyBoundsErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyBoundsErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -64,26 +64,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(ordinal >= 0)
             Debug.Assert(Not handle.IsNil)
 
-            m_ContainingSymbol = definingSymbol
+            _containingSymbol = definingSymbol
 
             Dim flags As GenericParameterAttributes
 
             Try
-                moduleSymbol.Module.GetGenericParamPropsOrThrow(handle, m_Name, flags)
+                moduleSymbol.Module.GetGenericParamPropsOrThrow(handle, _name, flags)
             Catch mrEx As BadImageFormatException
-                If m_Name Is Nothing Then
-                    m_Name = String.Empty
+                If _name Is Nothing Then
+                    _name = String.Empty
                 End If
 
-                m_lazyBoundsErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                _lazyBoundsErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
             End Try
 
             ' Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             ' set since '.ctor' is redundant in that case.
-            m_Flags = If((flags And GenericParameterAttributes.NotNullableValueTypeConstraint) = 0, flags, flags And Not GenericParameterAttributes.DefaultConstructorConstraint)
+            _flags = If((flags And GenericParameterAttributes.NotNullableValueTypeConstraint) = 0, flags, flags And Not GenericParameterAttributes.DefaultConstructorConstraint)
 
-            m_Ordinal = ordinal
-            m_Handle = handle
+            _ordinal = ordinal
+            _handle = handle
         End Sub
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
@@ -96,46 +96,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return m_Ordinal
+                Return _ordinal
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_Name
+                Return _name
             End Get
         End Property
 
         Friend ReadOnly Property Handle As GenericParameterHandle
             Get
-                Return Me.m_Handle
+                Return Me._handle
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return m_ContainingSymbol
+                Return _containingSymbol
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_ContainingSymbol.ContainingAssembly
+                Return _containingSymbol.ContainingAssembly
             End Get
         End Property
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            If m_lazyCustomAttributes.IsDefault Then
+            If _lazyCustomAttributes.IsDefault Then
                 Dim containingPEModuleSymbol = DirectCast(ContainingModule(), PEModuleSymbol)
-                containingPEModuleSymbol.LoadCustomAttributes(m_Handle, m_lazyCustomAttributes)
+                containingPEModuleSymbol.LoadCustomAttributes(_handle, _lazyCustomAttributes)
             End If
-            Return m_lazyCustomAttributes
+            Return _lazyCustomAttributes
         End Function
 
         Friend Overrides ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 EnsureAllConstraintsAreResolved()
-                Return m_lazyConstraintTypes
+                Return _lazyConstraintTypes
             End Get
         End Property
 
@@ -157,21 +157,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim containingMethod As PEMethodSymbol = Nothing
             Dim containingType As PENamedTypeSymbol
 
-            If m_ContainingSymbol.Kind = SymbolKind.Method Then
-                containingMethod = DirectCast(m_ContainingSymbol, PEMethodSymbol)
+            If _containingSymbol.Kind = SymbolKind.Method Then
+                containingMethod = DirectCast(_containingSymbol, PEMethodSymbol)
                 containingType = DirectCast(containingMethod.ContainingSymbol, PENamedTypeSymbol)
             Else
-                containingType = DirectCast(m_ContainingSymbol, PENamedTypeSymbol)
+                containingType = DirectCast(_containingSymbol, PENamedTypeSymbol)
             End If
 
             Dim moduleSymbol = containingType.ContainingPEModule
-            Dim constraints() As Handle
+            Dim constraints() As EntityHandle
 
             Try
-                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(m_Handle)
+                constraints = moduleSymbol.Module.GetGenericParamConstraintsOrThrow(_handle)
             Catch mrEx As BadImageFormatException
                 constraints = Nothing
-                Interlocked.CompareExchange(m_lazyBoundsErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me), ErrorFactory.EmptyErrorInfo)
+                Interlocked.CompareExchange(_lazyBoundsErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me), ErrorFactory.EmptyErrorInfo)
             End Try
 
             If constraints IsNot Nothing AndAlso constraints.Length > 0 Then
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Dim typeSymbol As typeSymbol = tokenDecoder.GetTypeOfToken(constraint)
 
                     ' Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                    If ((m_Flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0) AndAlso
+                    If ((_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0) AndAlso
                         (typeSymbol.SpecialType = Microsoft.CodeAnalysis.SpecialType.System_ValueType) Then
                         Continue For
                     End If
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_ContainingSymbol.Locations
+                Return _containingSymbol.Locations
             End Get
         End Property
 
@@ -212,33 +212,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property HasConstructorConstraint As Boolean
             Get
-                Return (m_Flags And GenericParameterAttributes.DefaultConstructorConstraint) <> 0
+                Return (_flags And GenericParameterAttributes.DefaultConstructorConstraint) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasReferenceTypeConstraint As Boolean
             Get
-                Return (m_Flags And GenericParameterAttributes.ReferenceTypeConstraint) <> 0
+                Return (_flags And GenericParameterAttributes.ReferenceTypeConstraint) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
             Get
-                Return (m_Flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0
+                Return (_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) <> 0
             End Get
         End Property
 
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
-                Return CType((m_Flags And GenericParameterAttributes.VarianceMask), VarianceKind)
+                Return CType((_flags And GenericParameterAttributes.VarianceMask), VarianceKind)
             End Get
         End Property
 
         Friend Overrides Sub EnsureAllConstraintsAreResolved()
-            If m_lazyConstraintTypes.IsDefault Then
-                Dim typeParameters = If(m_ContainingSymbol.Kind = SymbolKind.Method,
-                                        DirectCast(m_ContainingSymbol, PEMethodSymbol).TypeParameters,
-                                        DirectCast(m_ContainingSymbol, PENamedTypeSymbol).TypeParameters)
+            If _lazyConstraintTypes.IsDefault Then
+                Dim typeParameters = If(_containingSymbol.Kind = SymbolKind.Method,
+                                        DirectCast(_containingSymbol, PEMethodSymbol).TypeParameters,
+                                        DirectCast(_containingSymbol, PENamedTypeSymbol).TypeParameters)
                 EnsureAllConstraintsAreResolved(typeParameters)
             End If
         End Sub
@@ -247,9 +247,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Debug.Assert(Not inProgress.Contains(Me))
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
-            If m_lazyConstraintTypes.IsDefault Then
+            If _lazyConstraintTypes.IsDefault Then
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
-                Dim inherited = (m_ContainingSymbol.Kind = SymbolKind.Method) AndAlso DirectCast(m_ContainingSymbol, MethodSymbol).IsOverrides
+                Dim inherited = (_containingSymbol.Kind = SymbolKind.Method) AndAlso DirectCast(_containingSymbol, MethodSymbol).IsOverrides
 
                 ' Check direct constraints on the type parameter to generate any use-site errors
                 ' (for example, the cycle in ".class public A<(!T)T>"). It's necessary to check for such
@@ -265,17 +265,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim errorInfo = If(diagnosticsBuilder.Count > 0, diagnosticsBuilder(0).DiagnosticInfo, Nothing)
                 diagnosticsBuilder.Free()
 
-                Interlocked.CompareExchange(m_lazyBoundsErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
-                ImmutableInterlocked.InterlockedInitialize(m_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
+                Interlocked.CompareExchange(_lazyBoundsErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
             End If
 
-            Debug.Assert(m_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            Debug.Assert(_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
         End Sub
 
         Friend Overrides Function GetConstraintsUseSiteErrorInfo() As DiagnosticInfo
             EnsureAllConstraintsAreResolved()
-            Debug.Assert(m_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
-            Return m_lazyBoundsErrorInfo
+            Debug.Assert(_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            Return _lazyBoundsErrorInfo
         End Function
 
         ''' <remarks>

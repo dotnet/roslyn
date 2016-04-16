@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private abstract class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
         {
-            private readonly NamedTypeSymbol containigType;
-            private readonly string name;
+            private readonly NamedTypeSymbol _containingType;
+            private readonly string _name;
 
-            public SynthesizedMethodBase(NamedTypeSymbol containigType, string name)
+            public SynthesizedMethodBase(NamedTypeSymbol containingType, string name)
             {
-                this.containigType = containigType;
-                this.name = name;
+                _containingType = containingType;
+                _name = name;
             }
 
             internal sealed override bool GenerateDebugInfo
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override Symbol ContainingSymbol
             {
-                get { return this.containigType; }
+                get { return _containingType; }
             }
 
             public override NamedTypeSymbol ContainingType
             {
                 get
                 {
-                    return this.containigType;
+                    return _containingType;
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override string Name
             {
-                get { return this.name; }
+                get { return _name; }
             }
 
             internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    AnonymousTypeTemplateSymbol template = this.containigType as AnonymousTypeTemplateSymbol;
-                    return ((object)template != null) ? template.Manager : ((AnonymousTypePublicSymbol)this.containigType).Manager;
+                    AnonymousTypeTemplateSymbol template = _containingType as AnonymousTypeTemplateSymbol;
+                    return ((object)template != null) ? template.Manager : ((AnonymousTypePublicSymbol)_containingType).Manager;
                 }
             }
 

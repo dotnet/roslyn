@@ -1,0 +1,570 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ElementIsNotValid" xml:space="preserve">
+    <value>Element is not valid.</value>
+  </data>
+  <data name="YouMustSelectAtLeastOneMember" xml:space="preserve">
+    <value>You must select at least one member.</value>
+  </data>
+  <data name="InterfaceNameConflictsWithTypeName" xml:space="preserve">
+    <value>Interface name conflicts with an existing type name.</value>
+  </data>
+  <data name="InterfaceNameIsNotAValidIdentifier" xml:space="preserve">
+    <value>Interface name is not a valid {0} identifier.</value>
+  </data>
+  <data name="IllegalCharactersInPath" xml:space="preserve">
+    <value>Illegal characters in path.</value>
+  </data>
+  <data name="FileNameMustHaveTheExtension" xml:space="preserve">
+    <value>File name must have the "{0}" extension.</value>
+  </data>
+  <data name="Debugger" xml:space="preserve">
+    <value>Debugger</value>
+  </data>
+  <data name="DeterminingBreakpointLocation" xml:space="preserve">
+    <value>Determining breakpoint location...</value>
+  </data>
+  <data name="DeterminingAutos" xml:space="preserve">
+    <value>Determining autos...</value>
+  </data>
+  <data name="ResolvingBreakpointLocation" xml:space="preserve">
+    <value>Resolving breakpoint location...</value>
+  </data>
+  <data name="ValidatingBreakpointLocation" xml:space="preserve">
+    <value>Validating breakpoint location...</value>
+  </data>
+  <data name="GettingDataTipText" xml:space="preserve">
+    <value>Getting DataTip text...</value>
+  </data>
+  <data name="PreviewUnavailable" xml:space="preserve">
+    <value>Preview unavailable</value>
+  </data>
+  <data name="Overrides" xml:space="preserve">
+    <value>Overrides</value>
+  </data>
+  <data name="OverriddenBy" xml:space="preserve">
+    <value>Overridden By</value>
+  </data>
+  <data name="Inherits" xml:space="preserve">
+    <value>Inherits</value>
+  </data>
+  <data name="InheritedBy" xml:space="preserve">
+    <value>Inherited By</value>
+  </data>
+  <data name="Implements" xml:space="preserve">
+    <value>Implements</value>
+  </data>
+  <data name="ImplementedBy" xml:space="preserve">
+    <value>Implemented By</value>
+  </data>
+  <data name="MaximumNumberOfDocumentsAreOpen" xml:space="preserve">
+    <value>Maximum number of documents are open.</value>
+  </data>
+  <data name="FailedToCreateDocumentInMiscellaneousFiles" xml:space="preserve">
+    <value>Failed to create document in miscellaneous files project.</value>
+  </data>
+  <data name="InvalidAccess" xml:space="preserve">
+    <value>Invalid access.</value>
+  </data>
+  <data name="ReferencesNotFound" xml:space="preserve">
+    <value>The following references were not found. {0}Please locate and add them manually.</value>
+  </data>
+  <data name="EndPositionMustBeGreaterThanStart" xml:space="preserve">
+    <value>End position must be &gt;= start position</value>
+  </data>
+  <data name="NotAValidValue" xml:space="preserve">
+    <value>Not a valid value</value>
+  </data>
+  <data name="WorkspaceUndoNotSupported" xml:space="preserve">
+    <value>given workspace doesn't support undo</value>
+  </data>
+  <data name="AddAReference" xml:space="preserve">
+    <value>Add a reference to '{0}'</value>
+  </data>
+  <data name="EventTypeIsInvalid" xml:space="preserve">
+    <value>Event type is invalid</value>
+  </data>
+  <data name="MemberInsertionFailed" xml:space="preserve">
+    <value>Can't find where to insert member</value>
+  </data>
+  <data name="ElementRenameFailed" xml:space="preserve">
+    <value>Can't rename 'other' elements</value>
+  </data>
+  <data name="UnknownRenameType" xml:space="preserve">
+    <value>Unknown rename type</value>
+  </data>
+  <data name="SymbolTypeIdInvalid" xml:space="preserve">
+    <value>IDs are not supported for this symbol type.</value>
+  </data>
+  <data name="CreateNodeIdFailed" xml:space="preserve">
+    <value>Can't create a node id for this symbol kind: '{0}'</value>
+  </data>
+  <data name="Library_ProjectReferences" xml:space="preserve">
+    <value>Project References</value>
+  </data>
+  <data name="Library_BaseTypes" xml:space="preserve">
+    <value>Base Types</value>
+  </data>
+  <data name="MiscellaneousFiles" xml:space="preserve">
+    <value>Miscellaneous Files</value>
+  </data>
+  <data name="CouldNotFindProject" xml:space="preserve">
+    <value>Could not find project '{0}'</value>
+  </data>
+  <data name="CouldNotFindLocationOfFol" xml:space="preserve">
+    <value>Could not find location of folder on disk</value>
+  </data>
+  <data name="ErrorWhileReading" xml:space="preserve">
+    <value>Error while reading '{0}': {1}</value>
+  </data>
+  <data name="Library_Assembly" xml:space="preserve">
+    <value>Assembly </value>
+  </data>
+  <data name="Library_Exceptions" xml:space="preserve">
+    <value>Exceptions:</value>
+  </data>
+  <data name="Library_MemberOf" xml:space="preserve">
+    <value>Member of {0}</value>
+  </data>
+  <data name="Library_Parameters" xml:space="preserve">
+    <value>Parameters:</value>
+  </data>
+  <data name="Library_Project" xml:space="preserve">
+    <value>Project </value>
+  </data>
+  <data name="Library_Remarks" xml:space="preserve">
+    <value>Remarks:</value>
+  </data>
+  <data name="Library_Returns" xml:space="preserve">
+    <value>Returns:</value>
+  </data>
+  <data name="Library_Summary" xml:space="preserve">
+    <value>Summary:</value>
+  </data>
+  <data name="Library_TypeParameters" xml:space="preserve">
+    <value>Type Parameters:</value>
+  </data>
+  <data name="FileAlreadyExists" xml:space="preserve">
+    <value>File already exists</value>
+  </data>
+  <data name="FilePathCannotUseReservedKeywords" xml:space="preserve">
+    <value>File path cannot use reserved keywords</value>
+  </data>
+  <data name="IllegalPathForDocument" xml:space="preserve">
+    <value>DocumentPath is illegal</value>
+  </data>
+  <data name="IllegalPathForProject" xml:space="preserve">
+    <value>Project Path is illegal</value>
+  </data>
+  <data name="PathCannotHaveEmptyFileName" xml:space="preserve">
+    <value>Path cannot have empty filename</value>
+  </data>
+  <data name="DocumentIdNotFromWorkspace" xml:space="preserve">
+    <value>The given DocumentId did not come from the Visual Studio workspace.</value>
+  </data>
+  <data name="ProjectNavBarTooltipWithShortcut" xml:space="preserve">
+    <value>Project: {0} ({1})
+
+Use the dropdown to view and switch to other projects this file may belong to.</value>
+  </data>
+  <data name="NavBarTooltip" xml:space="preserve">
+    <value>{0}
+
+Use the dropdown to view and navigate to other items in this file.</value>
+  </data>
+  <data name="ProjectNavBarTooltipWithoutShortcut" xml:space="preserve">
+    <value>Project: {0}
+
+Use the dropdown to view and switch to other projects this file may belong to.</value>
+  </data>
+  <data name="ERR_CantReadRulesetFileTitle" xml:space="preserve">
+    <value>ErrorReadingRuleset</value>
+  </data>
+  <data name="ERR_CantReadRulesetFileMessage" xml:space="preserve">
+    <value>Error reading ruleset file {0} - {1}</value>
+  </data>
+  <data name="WRN_AnalyzerChangedTitle" xml:space="preserve">
+    <value>AnalyzerChangedOnDisk</value>
+  </data>
+  <data name="WRN_AnalyzerChangedMessage" xml:space="preserve">
+    <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
+  </data>
+  <data name="DiagnosticsTableSourceName" xml:space="preserve">
+    <value>C#/VB Diagnostics Table Data Source</value>
+  </data>
+  <data name="TodoTableSourceName" xml:space="preserve">
+    <value>C#/VB Todo List Table Data Source</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="DeselectAll" xml:space="preserve">
+    <value>_Deselect All</value>
+  </data>
+  <data name="ExtractInterface" xml:space="preserve">
+    <value>Extract Interface</value>
+  </data>
+  <data name="GeneratedName" xml:space="preserve">
+    <value>Generated name:</value>
+  </data>
+  <data name="NewFileName" xml:space="preserve">
+    <value>New _file name:</value>
+  </data>
+  <data name="NewInterfaceName" xml:space="preserve">
+    <value>New _interface name:</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>_Select All</value>
+  </data>
+  <data name="SelectPublicMembersToFormInterface" xml:space="preserve">
+    <value>Select public _members to form interface</value>
+  </data>
+  <data name="Access" xml:space="preserve">
+    <value>_Access:</value>
+  </data>
+  <data name="AddToExistingFile" xml:space="preserve">
+    <value>Add to _existing file</value>
+  </data>
+  <data name="ChangeSignature" xml:space="preserve">
+    <value>Change Signature</value>
+  </data>
+  <data name="CreateNewFile" xml:space="preserve">
+    <value>_Create new file</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="FileName" xml:space="preserve">
+    <value>File Name:</value>
+  </data>
+  <data name="GenerateType" xml:space="preserve">
+    <value>Generate Type</value>
+  </data>
+  <data name="Kind" xml:space="preserve">
+    <value>_Kind:</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="Modifier" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Parameter" xml:space="preserve">
+    <value>Parameter</value>
+  </data>
+  <data name="Parameters" xml:space="preserve">
+    <value>Parameters:</value>
+  </data>
+  <data name="PreviewMethodSignature" xml:space="preserve">
+    <value>Preview method signature:</value>
+  </data>
+  <data name="PreviewReferenceChanges" xml:space="preserve">
+    <value>Preview reference changes</value>
+  </data>
+  <data name="Project" xml:space="preserve">
+    <value>_Project:</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="TypeDetails" xml:space="preserve">
+    <value>Type Details:</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Re_move</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>_Restore</value>
+  </data>
+  <data name="LearnMoreLinkText" xml:space="preserve">
+    <value>More about {0}</value>
+  </data>
+  <data name="NavigationMustBePerformedOnTheForegroundThread" xml:space="preserve">
+    <value>Navigation must be performed on the foreground thread.</value>
+  </data>
+  <data name="PreviewChangesAddedPrefix" xml:space="preserve">
+    <value>[+] </value>
+  </data>
+  <data name="PreviewChangesDeletedPrefix" xml:space="preserve">
+    <value>[-] </value>
+  </data>
+  <data name="PreviewChangesMetadataReference" xml:space="preserve">
+    <value>Reference to '{0}' in project '{1}'</value>
+  </data>
+  <data name="PreviewChangesUnknownReferenceName" xml:space="preserve">
+    <value>&lt;Unknown&gt;</value>
+  </data>
+  <data name="PreviewChangesAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference to '{0}' in project '{1}'</value>
+  </data>
+  <data name="PreviewChangesProjectReference" xml:space="preserve">
+    <value>Project reference to '{0}' in project '{1}'</value>
+  </data>
+  <data name="WRN_AnalyzerDependencyConflictTitle" xml:space="preserve">
+    <value>AnalyzerDependencyConflict</value>
+  </data>
+  <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
+    <value>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</value>
+  </data>
+  <data name="ReferenceCountPlural" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="ReferenceCountSingular" xml:space="preserve">
+    <value>1 reference</value>
+  </data>
+  <data name="CodefixOrRefactoringEncounteredError" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="EnableAndIgnore" xml:space="preserve">
+    <value>Enable and ignore future errors</value>
+  </data>
+  <data name="NoChanges" xml:space="preserve">
+    <value>No Changes</value>
+  </data>
+  <data name="DiagnosticIdHyperlinkTooltipText" xml:space="preserve">
+    <value>Get help for '{0}'{1}{2}{3}</value>
+  </data>
+  <data name="FromBing" xml:space="preserve">
+    <value> from Bing</value>
+  </data>
+  <data name="CurrentBlock" xml:space="preserve">
+    <value>Current block</value>
+  </data>
+  <data name="DeterminingCurrentBlock" xml:space="preserve">
+    <value>Determining current block.</value>
+  </data>
+  <data name="WorkspaceOutputPaneTitle" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
+  <data name="BuildTableSourceName" xml:space="preserve">
+    <value>C#/VB Build Table Data Source</value>
+  </data>
+  <data name="WRN_MissingAnalyzerReferenceTitle" xml:space="preserve">
+    <value>MissingAnalyzerReference</value>
+  </data>
+  <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
+    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
+  </data>
+  <data name="SuppressionStateColumnHeader" xml:space="preserve">
+    <value>Suppression State</value>
+  </data>
+  <data name="SuppressionStateActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="SuppressionStateSuppressed" xml:space="preserve">
+    <value>Suppressed</value>
+  </data>
+  <data name="SuppressMultipleOccurrences" xml:space="preserve">
+    <value>Suppress diagnostics</value>
+  </data>
+  <data name="ComputingSuppressionFix" xml:space="preserve">
+    <value>Computing suppressions fix...</value>
+  </data>
+  <data name="ApplyingSuppressionFix" xml:space="preserve">
+    <value>Applying suppressions fix...</value>
+  </data>
+  <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
+    <value>Remove suppressions</value>
+  </data>
+  <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
+    <value>Computing remove suppressions fix...</value>
+  </data>
+  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
+    <value>Applying remove suppressions fix...</value>
+  </data>
+  <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
+    <value>This workspace only supports opening documents on the UI thread.</value>
+  </data>
+  <data name="SynchronizeClassView" xml:space="preserve">
+    <value>Synchronize {0}</value>
+  </data>
+  <data name="SynchronizingWithClassView" xml:space="preserve">
+    <value>Synchronizing with {0}...</value>
+  </data>
+  <data name="FullSolutionAnalysisOff" xml:space="preserve">
+    <value>Low memory detected. Full solution analysis disabled for this solution.</value>
+  </data>
+  <data name="Installing_0" xml:space="preserve">
+    <value>Installing '{0}'</value>
+  </data>
+  <data name="Installing_0_completed" xml:space="preserve">
+    <value>Installing '{0}' completed</value>
+  </data>
+  <data name="Package_install_failed_0" xml:space="preserve">
+    <value>Package install failed: {0}</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>&lt;Unknown&gt;</value>
+  </data>
+  <data name="Install_0" xml:space="preserve">
+    <value>Install '{0}'</value>
+  </data>
+  <data name="Uninstalling_0" xml:space="preserve">
+    <value>Uninstalling '{0}'</value>
+  </data>
+  <data name="Uninstalling_0_completed" xml:space="preserve">
+    <value>Uninstalling '{0}' completed</value>
+  </data>
+  <data name="Uninstall_0" xml:space="preserve">
+    <value>Uninstall '{0}'</value>
+  </data>
+  <data name="Package_uninstall_failed_0" xml:space="preserve">
+    <value>Package uninstall failed: {0}</value>
+  </data>
+  <data name="IntellisenseBuildFailedMessage" xml:space="preserve">
+    <value>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</value>
+  </data>
+  <data name="IntellisenseBuildFailedTitle" xml:space="preserve">
+    <value>Project loading failed.</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescription" xml:space="preserve">
+    <value>To see what caused the issue, please try below.
+
+1. Close Visual Studio
+2. Open a Visual Studio Developer Command Prompt
+3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
+4. Delete .vs directory/.suo file
+5. Restart VS from the command prompt you set the environment varaible (devenv)
+6. Open the solution
+7. Check '{0}' and look for the failed tasks (FAILED)</value>
+  </data>
+  <data name="IntellisenseBuildFailedDescriptionExtra" xml:space="preserve">
+    <value>Additional information:</value>
+  </data>
+  <data name="Installing_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Installing '{0}' failed.
+
+Additional information: {1}</value>
+  </data>
+  <data name="Uninstalling_0_failed_Additional_information_1" xml:space="preserve">
+    <value>Uninstalling '{0}' failed.
+
+Additional information: {1}</value>
+  </data>
+</root>

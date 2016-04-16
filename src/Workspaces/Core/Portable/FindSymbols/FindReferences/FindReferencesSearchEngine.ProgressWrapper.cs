@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private class ProgressWrapper
         {
-            private readonly IFindReferencesProgress progress;
-            private readonly int maximum;
-            private int current;
+            private readonly IFindReferencesProgress _progress;
+            private readonly int _maximum;
+            private int _current;
 
             public ProgressWrapper(IFindReferencesProgress progress, int maximum)
             {
-                this.progress = progress;
-                this.maximum = maximum;
+                _progress = progress;
+                _maximum = maximum;
             }
 
             public void Increment()
             {
-                var result = Interlocked.Increment(ref current);
-                progress.ReportProgress(current, maximum);
+                var result = Interlocked.Increment(ref _current);
+                _progress.ReportProgress(_current, _maximum);
             }
         }
     }

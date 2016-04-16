@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    partial class DynamicTypeSymbol :
+    internal partial class DynamicTypeSymbol :
         Cci.ITypeReference,
         Cci.INamedTypeReference,
         Cci.INamespaceTypeReference

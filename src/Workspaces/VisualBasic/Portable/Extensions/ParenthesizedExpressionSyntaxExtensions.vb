@@ -3,7 +3,6 @@
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module ParenthesizedExpressionSyntaxExtensions
@@ -69,6 +68,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            ' Case:
+            '   ($"")
+            If expression.IsKind(SyntaxKind.InterpolatedStringExpression) Then
+                Return True
+            End If
+
             ' Cases:
             '   (Me)
             '   (MyBase)
@@ -111,9 +116,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Cases:
             '   List(Of Integer()) From {({1})} -to- {({1})}
             '   List(Of Integer()) From {{({1})}} -to- {{{1}}}
+            '   $"{ ({1}) } - to- $"{ {1} }"
             '   {({1})} -to- {({1})}
             '   ({1}) -to- {1}
             If expression.IsKind(SyntaxKind.CollectionInitializer) Then
+
+                If node.IsParentKind(SyntaxKind.Interpolation) Then
+                    Dim interpolation = DirectCast(node.Parent, InterpolationSyntax)
+
+                    If interpolation.OpenBraceToken.Span.End = node.OpenParenToken.Span.Start AndAlso
+                       node.OpenParenToken.Span.End = expression.Span.Start Then
+
+                        ' In an interpolation, we need to be careful not to remove a parenthesis if it touches a curly brace
+                        ' on the left and the right. Otherwise, code will parse differently.
+
+                        Return False
+                    End If
+                End If
+
                 If Not node.IsParentKind(SyntaxKind.CollectionInitializer) Then
                     ' Standalone parenthesized array literal.
                     ' Parentheses are insignificant.
@@ -156,10 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             ' Cases:
+            '   (<xml/>)
+            '   (<xml></xml>)
             '   (<x/>.@a)
             '   (<x/>...<b>)
             '   (<x/>.<a>)
-            If expression.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
+            If expression.IsKind(SyntaxKind.XmlEmptyElement) OrElse
+               expression.IsKind(SyntaxKind.XmlElement) OrElse
+               expression.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
                expression.IsKind(SyntaxKind.XmlDescendantAccessExpression) OrElse
                expression.IsKind(SyntaxKind.XmlElementAccessExpression) Then
                 Return True

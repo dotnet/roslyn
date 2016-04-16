@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxListTests
 
@@ -202,6 +204,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause))
             Assert.False(list.Any(SyntaxKind.WhereClause))
+        End Sub
+
+        <Fact>
+        Public Sub WithLotsOfChildrenTest()
+            Dim alphabet = "abcdefghijklmnopqrstuvwxyz"
+            Dim commaSeparatedList = String.Join(",", DirectCast(alphabet, IEnumerable(Of Char)))
+            Dim parsedArgumentList = SyntaxFactory.ParseArgumentList("(" & commaSeparatedList & ")")
+            Assert.Equal(alphabet.Length, parsedArgumentList.Arguments.Count)
+
+            Dim openParen = ChildSyntaxList.ChildThatContainsPosition(parsedArgumentList, 0)
+            Assert.True(openParen.IsKind(SyntaxKind.OpenParenToken))
+            Assert.Equal(1, openParen.FullWidth)
+
+            ' Start at 1 and stop one short to skip the open/close paren tokens
+            For position = 1 To parsedArgumentList.FullWidth - 2
+
+                Dim item = ChildSyntaxList.ChildThatContainsPosition(parsedArgumentList, position)
+                Assert.Equal(position, item.Position)
+                Assert.Equal(1, item.FullWidth)
+
+                If position Mod 2 = 1 Then
+                    ' Odd. We should get a node
+                    Assert.True(item.IsNode)
+                    Assert.True(item.IsKind(SyntaxKind.SimpleArgument))
+                    Dim expectedArgName As String = ChrW(AscW("a") + (position \ 2)).ToString()
+                    Assert.Equal(expectedArgName, CType(item, SimpleArgumentSyntax).Expression.ToString())
+                Else
+                    ' Even. We should get a comma
+                    Assert.True(item.IsToken)
+                    Assert.True(item.IsKind(SyntaxKind.CommaToken))
+                    Assert.Equal(position, item.AsToken.Index)
+                End If
+            Next
         End Sub
 
     End Class

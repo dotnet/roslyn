@@ -3,9 +3,10 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class Binder
+    internal partial class Binder
     {
         protected enum OverflowChecks
         {

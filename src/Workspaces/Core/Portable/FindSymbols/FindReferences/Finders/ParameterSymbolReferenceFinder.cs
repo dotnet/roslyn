@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (parameter.ContainingSymbol.IsAnonymousFunction())
             {
-                var parameterNode = parameter.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
+                var parameterNode = parameter.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                 if (parameterNode != null)
                 {
                     var document = solution.GetDocument(parameterNode.SyntaxTree);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
+                            var lambdaNode = parameter.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                             var convertedType = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                             if (convertedType != null)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(parameter.ContainingSymbol, symbol.ContainingSymbol, syntaxFacts.IsCaseSensitive) &&
                         ParameterNamesMatch(syntaxFacts, (IMethodSymbol)parameter.ContainingSymbol, (IMethodSymbol)symbol.ContainingSymbol))
                     {
-                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
+                        var lambdaNode = symbol.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                         var convertedType2 = semanticModel.GetTypeInfo(lambdaNode, cancellationToken).ConvertedType;
 
                         if (convertedType1.Equals(convertedType2))
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var namedType = containingMethod.ContainingType as INamedTypeSymbol;
                     if (namedType != null && namedType.IsDelegateType() && namedType.AssociatedSymbol != null)
                     {
-                        var eventNode = namedType.AssociatedSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).FirstOrDefault();
+                        var eventNode = namedType.AssociatedSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                         if (eventNode != null)
                         {
                             var document = solution.GetDocument(eventNode.SyntaxTree);

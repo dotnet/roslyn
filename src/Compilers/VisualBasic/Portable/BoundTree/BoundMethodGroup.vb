@@ -10,7 +10,7 @@ Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundMethodGroup
+    Friend Partial Class BoundMethodGroup
 
         Public Sub New(
             syntax As VisualBasicSyntaxNode,
@@ -36,21 +36,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Class ExtensionMethodGroup
-        Private ReadOnly m_LookupBinder As Binder
-        Private ReadOnly m_LookupOptions As LookupOptions
-        Private m_lazyMethods As ImmutableArray(Of MethodSymbol)
-        Private m_lasyUseSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        Private ReadOnly _lookupBinder As Binder
+        Private ReadOnly _lookupOptions As LookupOptions
+        Private _lazyMethods As ImmutableArray(Of MethodSymbol)
+        Private _lazyUseSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
         Public Sub New(lookupBinder As Binder, lookupOptions As LookupOptions)
             Debug.Assert(lookupBinder IsNot Nothing)
-            m_LookupBinder = lookupBinder
-            m_LookupOptions = lookupOptions
+            _lookupBinder = lookupBinder
+            _lookupOptions = lookupOptions
         End Sub
 
         Public Function LazyLookupAdditionalExtensionMethods(group As BoundMethodGroup, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of MethodSymbol)
             Debug.Assert(group.PendingExtensionMethodsOpt Is Me)
 
-            If m_lazyMethods.IsDefault Then
+            If _lazyMethods.IsDefault Then
                 Dim receiverOpt As BoundExpression = group.ReceiverOpt
                 Dim methods As ImmutableArray(Of MethodSymbol) = ImmutableArray(Of MethodSymbol).Empty
                 Dim localUseSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -58,11 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If receiverOpt IsNot Nothing AndAlso receiverOpt.Type IsNot Nothing Then
                     Dim lookup = LookupResult.GetInstance()
 
-                    m_LookupBinder.LookupExtensionMethods(lookup,
+                    _lookupBinder.LookupExtensionMethods(lookup,
                                                     receiverOpt.Type,
                                                     group.Methods(0).Name,
                                                     If(group.TypeArgumentsOpt Is Nothing, 0, group.TypeArgumentsOpt.Arguments.Length),
-                                                    m_LookupOptions,
+                                                    _lookupOptions,
                                                     localUseSiteDiagnostics)
 
                     If lookup.IsGood Then
@@ -72,21 +72,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     lookup.Free()
                 End If
 
-                Interlocked.CompareExchange(m_lasyUseSiteDiagnostics, localUseSiteDiagnostics, Nothing)
-                ImmutableInterlocked.InterlockedCompareExchange(m_lazyMethods, methods, Nothing)
+                Interlocked.CompareExchange(_lazyUseSiteDiagnostics, localUseSiteDiagnostics, Nothing)
+                ImmutableInterlocked.InterlockedCompareExchange(_lazyMethods, methods, Nothing)
             End If
 
-            If Not m_lasyUseSiteDiagnostics.IsNullOrEmpty Then
+            If Not _lazyUseSiteDiagnostics.IsNullOrEmpty Then
                 If useSiteDiagnostics Is Nothing Then
                     useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
                 End If
 
-                For Each info In m_lasyUseSiteDiagnostics
+                For Each info In _lazyUseSiteDiagnostics
                     useSiteDiagnostics.Add(info)
                 Next
             End If
 
-            Return m_lazyMethods
+            Return _lazyMethods
         End Function
 
     End Class

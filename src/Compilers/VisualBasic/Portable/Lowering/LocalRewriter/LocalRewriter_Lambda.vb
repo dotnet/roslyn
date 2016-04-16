@@ -12,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
             ' we only make a note that lambdas are present
             ' they will be dealt with in a different rewriter.
-            Me.hasLambdas = True
+            Me._hasLambdas = True
 
-            Dim originalMethodOrLambda = Me.currentMethodOrLambda
-            Me.currentMethodOrLambda = node.LambdaSymbol
+            Dim originalMethodOrLambda = Me._currentMethodOrLambda
+            Me._currentMethodOrLambda = node.LambdaSymbol
 
             Dim result = MyBase.VisitLambda(node)
 
-            Me.currentMethodOrLambda = originalMethodOrLambda
+            Me._currentMethodOrLambda = originalMethodOrLambda
 
             Return result
         End Function

@@ -1258,11 +1258,11 @@ End Structure
             VerifyDiagnostics(compilation1)
         End Sub
 
-        <WorkItem(543059, "DevDiv")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
-        Public Sub MultileResource()
+        Public Sub MultipleResource()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Imports System
@@ -1303,11 +1303,11 @@ BC30203: Identifier expected.
 </expected>)
         End Sub
 
-        <WorkItem(543059, "DevDiv")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
-        Public Sub MultileResource_1()
+        Public Sub MultipleResource_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Option Strict On
@@ -1341,7 +1341,7 @@ End Class
             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem(528963, "DevDiv")>
+        <WorkItem(528963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528963")>
         <Fact()>
         Public Sub InitWithMultipleDeclarators()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -1470,7 +1470,7 @@ End Class
         End Sub
 
         'Anonymous Delegate in using block
-        <WorkItem(528974, "DevDiv")>
+        <WorkItem(528974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528974")>
         <Fact()>
         Public Sub AnonymousDelegateInUsing()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -1541,7 +1541,7 @@ End Class
 
         End Sub
 
-        <WorkItem(528975, "DevDiv")>
+        <WorkItem(528975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528975")>
         <Fact>
         Public Sub InitMultipleResourceWithUsingDecl()
             CompileAndVerify(
@@ -1570,11 +1570,11 @@ End Class
 </compilation>)
         End Sub
 
-        <WorkItem(543059, "DevDiv")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
-        Public Sub MultipleResource()
+        Public Sub MultipleResource_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Class Program
@@ -1605,11 +1605,11 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingResourceVarNeedsInitializer, "x"))
         End Sub
 
-        <WorkItem(543059, "DevDiv")>
+        <WorkItem(543059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543059")>
         <Fact()>
-        Public Sub MultipleResource_1()
+        Public Sub MultipleResource_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Option Strict On
@@ -1643,9 +1643,9 @@ End Class
                                             Diagnostic(ERRID.ERR_UsingRequiresDisposePattern, "foo3").WithArguments("Object"))
         End Sub
 
-        <WorkItem(529046, "DevDiv")>
+        <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
-        Sub UsingOutOfMethod()
+        Public Sub UsingOutOfMethod()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
@@ -1658,9 +1658,9 @@ End Class
                                 Diagnostic(ERRID.ERR_EndUsingWithoutUsing, "End Using"))
         End Sub
 
-        <WorkItem(529046, "DevDiv")>
+        <WorkItem(529046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529046")>
         <Fact>
-        Sub UsingOutOfMethod_1()
+        Public Sub UsingOutOfMethod_1()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">

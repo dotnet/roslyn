@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Services provided by the host environment.
     /// </summary>
-    public abstract class HostServices 
+    public abstract class HostServices
     {
         /// <summary>
         /// Creates a new workspace service. 

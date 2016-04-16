@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override object DefaultVisit(Symbol symbol, StringBuilder builder)
-        { 
+        {
             // We need to return something to API users, but this should never happen within Roslyn.
             return null;
         }

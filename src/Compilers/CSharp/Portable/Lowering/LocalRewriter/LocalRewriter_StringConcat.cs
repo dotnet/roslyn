@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// The strategy of this rewrite is to do rewrite "locally".
-        /// We analyze arguments of the concat in a shallow fasion assuming that 
+        /// We analyze arguments of the concat in a shallow fashion assuming that 
         /// lowering and optimizations (including this one) is already done for the arguments.
         /// Based on the arguments we select the most appropriate pattern for the current node.
         /// 
@@ -40,10 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorKind == BinaryOperatorKind.StringAndObjectConcatenation ||
                 operatorKind == BinaryOperatorKind.ObjectAndStringConcatenation);
 
-            if (inExpressionLambda)
+            if (_inExpressionLambda)
             {
                 return RewriteStringConcatInExpressionLambda(syntax, operatorKind, loweredLeft, loweredRight, type);
             }
+
+            // avoid run time boxing and ToString operations if we can reasonably convert to a string at compile time
+            loweredLeft = ConvertConcatExprToStringIfPossible(syntax, loweredLeft);
+            loweredRight = ConvertConcatExprToStringIfPossible(syntax, loweredRight);
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (leftFlattened.Count)
             {
                 case 0:
-                    result = factory.StringLiteral(string.Empty);
+                    result = _factory.StringLiteral(string.Empty);
                     break;
 
                 case 1:
@@ -122,19 +126,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
-                        if ((object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
                         {
                             flattened.AddRange(boundCall.Arguments);
                             return;
                         }
 
-                        if ((object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
-                            (object)method == (object)this.compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
+                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
+                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
                             if (args != null)
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue concatenated = TryFoldTwoConcatConsts(leftConst, rightConst);
                 if (concatenated != null)
                 {
-                    return factory.StringLiteral(concatenated);
+                    return _factory.StringLiteral(concatenated);
                 }
             }
 
@@ -201,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsNullOrEmptyStringConstant(loweredRight))
                 {
-                    return factory.Literal((string)null + (string)null);
+                    return _factory.Literal((string)null + (string)null);
                 }
 
                 return RewriteStringConcatenationOneExpr(syntax, loweredRight);
@@ -253,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loweredOperand.Type.SpecialType == SpecialType.System_String)
             {
                 // loweredOperand ?? ""
-                return factory.Coalesce(loweredOperand, factory.Literal(""));
+                return _factory.Coalesce(loweredOperand, _factory.Literal(""));
             }
 
             var method = GetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
@@ -325,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = GetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                var array = factory.Array(elementType, loweredArgs);
+                var array = _factory.ArrayOrEmpty(elementType, loweredArgs);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
             }
@@ -347,5 +351,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
         }
 
+        /// <summary>
+        /// Checks whether the expression represents a boxing conversion of a special value type.
+        /// If it does, it tries to return a string-based representation instead in order
+        /// to avoid allocations.  If it can't, the original expression is returned.
+        /// </summary>
+        private BoundExpression ConvertConcatExprToStringIfPossible(CSharpSyntaxNode syntax, BoundExpression expr)
+        {
+            if (expr.Kind == BoundKind.Conversion)
+            {
+                BoundConversion conv = (BoundConversion)expr;
+                if (conv.ConversionKind == ConversionKind.Boxing)
+                {
+                    BoundExpression operand = conv.Operand;
+                    if (operand != null)
+                    {
+                        // Is the expression a literal char?  If so, we can
+                        // simply make it a literal string instead and avoid any 
+                        // allocations for converting the char to a string at run time.
+                        if (operand.Kind == BoundKind.Literal)
+                        {
+                            ConstantValue cv = ((BoundLiteral)operand).ConstantValue;
+                            if (cv != null && cv.SpecialType == SpecialType.System_Char)
+                            {
+                                return _factory.StringLiteral(cv.CharValue.ToString());
+                            }
+                        }
+
+                        // Can the expression be optimized with a ToString call?
+                        // If so, we can synthesize a ToString call to avoid boxing.
+                        if (ConcatExprCanBeOptimizedWithToString(operand.Type))
+                        {
+                            var toString = GetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+
+                            var type = (NamedTypeSymbol)operand.Type;
+                            var toStringMembers = type.GetMembers(toString.Name);
+                            foreach (var member in toStringMembers)
+                            {
+                                var toStringMethod = member as MethodSymbol;
+                                if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)
+                                {
+                                    return BoundCall.Synthesized(syntax, operand, toStringMethod);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Optimization not possible; just return the original expression.
+            return expr;
+        }
+
+        /// <summary>
+        /// Gets whether the type of an argument used in string concatenation can
+        /// be optimized by first calling ToString on it before passing the argument
+        /// to the String.Concat function.
+        /// </summary>
+        /// <param name="symbol">The type symbol of the argument.</param>
+        /// <returns>
+        /// true if ToString may be used; false if using ToString could lead to observable differences in behavior.
+        /// </returns>
+        private static bool ConcatExprCanBeOptimizedWithToString(TypeSymbol symbol)
+        {
+            // There are several constraints applied here in support of backwards compatibility:
+            // - This optimization potentially changes the order in which ToString is called
+            //   on the arguments.  That's a a compatibility issue if one argument's ToString
+            //   depends on state mutated by another, such as current culture.
+            // - For value types, this optimization causes ToString to be called on the original
+            //   value rather than on a boxed copy.  That means a mutating ToString implementation
+            //   could change the original rather than the copy.
+            // For these reasons, this optimization is currently restricted to primitives
+            // known to have a non-mutating ToString implementation that is independent
+            // of externally mutable state.  Common value types such as Int32 and Double
+            // do not meet this bar.
+
+            switch (symbol.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_IntPtr:
+                case SpecialType.System_UIntPtr:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }

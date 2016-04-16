@@ -3,9 +3,12 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -13,9 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly m_PreviousGeneration As EmitBaseline
-        Private ReadOnly m_PreviousDefinitions As VisualBasicDefinitionMap
-        Private ReadOnly m_Changes As SymbolChanges
+        Private ReadOnly _previousGeneration As EmitBaseline
+        Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
+        Private ReadOnly _changes As SymbolChanges
+        Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
@@ -26,17 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        edits As IEnumerable(Of SemanticEdit),
                        isAddedSymbol As Func(Of ISymbol, Boolean))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
+            Dim initialBaseline = previousGeneration.InitialBaseline
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
-            Dim [module] = previousGeneration.OriginalMetadata
-            Dim compilation = sourceAssembly.DeclaringCompilation
-            Dim metadataAssembly = compilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create([module]), MetadataImportOptions.All)
-            Dim metadataDecoder = New Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder(metadataAssembly.PrimaryModule)
 
-            previousGeneration = EnsureInitialized(previousGeneration, metadataDecoder)
+            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
+            ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
+            Dim metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(previousGeneration.AnonymousTypeMap, sourceAssembly, context, metadataAssembly)
+            Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
+            Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
+            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly)
 
             Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
             If previousGeneration.Ordinal > 0 Then
@@ -52,20 +57,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
             End If
 
-            Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            Me.m_PreviousGeneration = previousGeneration
-            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits, isAddedSymbol)
+            _previousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
+            _previousGeneration = previousGeneration
+            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+
+            ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
+            ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
+            ' so that next generation can look variables up and reuse their slots if possible.
+            '
+            ' When we are about to allocate a slot for a lifted variable while compiling the next generation
+            ' we map its type to the previous generation and then check the slot types that we stashed earlier.
+            ' If the variable type matches we reuse it. In order to compare the previous variable type with the current one
+            ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
+            ' Generic arguments are not translated until they are needed by metadata writer. 
+            '
+            ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
+            ' that translates the symbol recursively.
+            _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub
+
+        Friend Overrides Function EncTranslateLocalVariableType(type As TypeSymbol, diagnostics As DiagnosticBag) As ITypeReference
+            ' Note: The translator is Not aware of synthesized types. If type is a synthesized type it won't get mapped.
+            ' In such case use the type itself. This can only happen for variables storing lambda display classes.
+            Dim visited = DirectCast(_deepTranslator.Visit(type), TypeSymbol)
+            Debug.Assert(visited IsNot Nothing OrElse TypeOf type Is LambdaFrame OrElse TypeOf DirectCast(type, NamedTypeSymbol).ConstructedFrom Is LambdaFrame)
+            Return Translate(If(visited, type), Nothing, diagnostics)
+        End Function
 
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
-                Return m_PreviousGeneration.Ordinal + 1
+                Return _previousGeneration.Ordinal + 1
             End Get
         End Property
 
-        Private Overloads Shared Function GetAnonymousTypeMapFromMetadata(
-                                                   reader As MetadataReader,
-                                                   metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Private Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
+            If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
+                Return initialBaseline.LazyMetadataSymbols
+            End If
+
+            Dim originalMetadata = initialBaseline.OriginalMetadata
+
+            ' The purpose of this compilation is to provide PE symbols for original metadata.
+            ' We need to transfer the references from the current source compilation but don't need its syntax trees.
+            Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
+
+            Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
+            Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
+            Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
+            Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap)
+
+            Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
+        End Function
+
+        ' friend for testing
+        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
@@ -81,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim index As Integer = 0
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
-                    Dim key = New AnonymousTypeKey(GetAnonymousTypeKeyFields(type))
+                    Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type)
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
@@ -94,16 +140,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Private Shared Function GetAnonymousTypeKeyFields(type As NamedTypeSymbol) As ImmutableArray(Of String)
+        Private Shared Function GetAnonymousTypeKey(type As NamedTypeSymbol) As AnonymousTypeKey
             ' The key is the set of properties that correspond to type parameters.
             ' For each type parameter, get the name of the property of that type.
             Dim n = type.TypeParameters.Length
             If n = 0 Then
-                Return ImmutableArray(Of String).Empty
+                Return New AnonymousTypeKey(ImmutableArray(Of AnonymousTypeKeyField).Empty)
             End If
 
-            ' Names of properties indexed by type parameter ordinal.
-            Dim propertyNames = New String(n - 1) {}
+            ' Properties indexed by type parameter ordinal.
+            Dim properties = New AnonymousTypeKeyField(n - 1) {}
             For Each member In type.GetMembers()
                 If member.Kind <> SymbolKind.Property Then
                     Continue For
@@ -115,13 +161,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim typeParameter = DirectCast(propertyType, TypeParameterSymbol)
                     Debug.Assert(typeParameter.ContainingSymbol = type)
                     Dim index = typeParameter.Ordinal
-                    Debug.Assert(propertyNames(index) Is Nothing)
-                    propertyNames(index) = [property].Name
+                    Debug.Assert(properties(index).Name Is Nothing)
+                    ' ReadOnly anonymous type properties were 'Key' properties.
+                    properties(index) = New AnonymousTypeKeyField([property].Name, isKey:=[property].IsReadOnly, ignoreCase:=True)
                 End If
             Next
 
-            Debug.Assert(propertyNames.All(Function(f) Not String.IsNullOrEmpty(f)))
-            Return ImmutableArray.Create(propertyNames)
+            Debug.Assert(properties.All(Function(f) Not String.IsNullOrEmpty(f.Name)))
+            Return New AnonymousTypeKey(ImmutableArray.Create(properties))
         End Function
 
         Private Shared Function GetAnonymousDelegateKey(type As NamedTypeSymbol) As AnonymousTypeKey
@@ -132,32 +179,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim members = type.GetMembers(WellKnownMemberNames.DelegateInvokeName)
             Debug.Assert(members.Length = 1 AndAlso members(0).Kind = SymbolKind.Method)
             Dim method = DirectCast(members(0), MethodSymbol)
-            Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
-            Dim parameterNames = ArrayBuilder(Of String).GetInstance()
-            parameterNames.AddRange(method.Parameters.SelectAsArray(Function(p) p.Name))
-            parameterNames.Add(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub))
-            Return New AnonymousTypeKey(parameterNames.ToImmutableAndFree(), isDelegate:=True)
-        End Function
-
-        Private Shared Function EnsureInitialized(previousGeneration As EmitBaseline,
-                                                  metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As EmitBaseline
-            If previousGeneration.AnonymousTypeMap IsNot Nothing Then
-                Return previousGeneration
-            End If
-
-            Dim anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder)
-            Return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap)
+            Debug.Assert(method.Parameters.Length + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
+            Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
+            parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=p.IsByRef, ignoreCase:=True)))
+            parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False, ignoreCase:=True))
+            Return New AnonymousTypeKey(parameters.ToImmutableAndFree(), isDelegate:=True)
         End Function
 
         Friend ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return m_PreviousGeneration
+                Return _previousGeneration
             End Get
         End Property
 
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
-                Return m_PreviousDefinitions
+                Return _previousDefinitions
             End Get
         End Property
 
@@ -172,35 +209,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
             Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
-            Debug.Assert(m_PreviousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
+            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
             Return anonymousTypes
         End Function
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol) As VariableSlotAllocator
-            Return m_PreviousDefinitions.TryCreateVariableSlotAllocator(m_PreviousGeneration, method)
+        Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method, topLevelMethod)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(m_PreviousGeneration.AnonymousTypeMap.Keys)
+            Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return m_PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As NamedTypeSymbol, <Out()> ByRef name As String, <Out()> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
-            Return m_PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
+            Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Friend ReadOnly Property Changes As SymbolChanges
             Get
-                Return m_Changes
+                Return _changes
             End Get
         End Property
 
         Friend Overrides Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return m_Changes.GetTopLevelTypes(context)
+            Return _changes.GetTopLevelTypes(context)
         End Function
 
         Friend Sub OnCreatedIndices(diagnostics As DiagnosticBag) Implements IPEDeltaAssemblyBuilder.OnCreatedIndices
@@ -215,6 +252,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
             Get
                 Return True
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property LinkedAssembliesDebugInfo As IEnumerable(Of String)
+            Get
+                ' This debug information is only emitted for the benefit of legacy EE.
+                ' Since EnC requires Roslyn and Roslyn doesn't need this information we don't emit it during EnC.
+                Return SpecializedCollections.EmptyEnumerable(Of String)()
             End Get
         End Property
     End Class

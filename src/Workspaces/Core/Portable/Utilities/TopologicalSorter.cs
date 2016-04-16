@@ -70,8 +70,8 @@ namespace Roslyn.Utilities
                     {
                         foreach (var itemAfter in naturalItemsAfter)
                         {
-                            var itemAftersBeforeList = itemToItemsBefore[itemAfter];
-                            itemAftersBeforeList.Add(item);
+                            var itemsAfterBeforeList = itemToItemsBefore[itemAfter];
+                            itemsAfterBeforeList.Add(item);
                         }
                     }
                 }

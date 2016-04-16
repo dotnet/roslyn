@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -12,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         internal void AdjustStack(int stackAdjustment)
         {
-            this.emitState.AdjustStack(stackAdjustment);
+            _emitState.AdjustStack(stackAdjustment);
         }
 
         internal bool IsStackEmpty
         {
-            get { return this.emitState.CurStack == 0; }
+            get { return _emitState.CurStack == 0; }
         }
 
         internal void EmitOpCode(ILOpCode code)
@@ -30,22 +31,22 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!code.IsControlTransfer(),
                 "Control transferring opcodes should not be emitted directly. Use special methods such as EmitRet().");
 
-            WriteOpCode(this.GetCurrentStream(), code);
+            WriteOpCode(this.GetCurrentWriter(), code);
 
-            this.emitState.AdjustStack(stackAdjustment);
-            this.emitState.InstructionAdded();
+            _emitState.AdjustStack(stackAdjustment);
+            _emitState.InstructionAdded();
         }
 
         internal void EmitToken(string value)
         {
-            uint token = module == null ? 0xFFFF : module.GetFakeStringTokenForIL(value);
-            this.GetCurrentStream().WriteUint(token);
+            uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            uint token = module == null ? 0xFFFF : module.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics);
-            this.GetCurrentStream().WriteUint(token);
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -84,23 +85,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //the evaluation stack at X be empty.          
 
             LabelInfo labelInfo;
-            if (labelInfos.TryGetValue(label, out labelInfo))
+            if (_labelInfos.TryGetValue(label, out labelInfo))
             {
                 Debug.Assert(labelInfo.bb == null, "duplicate use of a label");
                 int labelStack = labelInfo.stack;
 
-                var curStack = this.emitState.CurStack;
+                var curStack = _emitState.CurStack;
 
                 // we have already seen a branch to this label so we know its stack.
-                // Now we will require that fallthrough must agree with that stack value.
+                // Now we will require that fall-through must agree with that stack value.
                 // For the purpose of this assert we assume that all codepaths are reachable. 
                 // This is a minor additional burden for languages to makes sure that stack is balanced 
                 // even at labels that follow unconditional branches.
                 // What we get is an invariant that satisfies 1.7.5 in reachable code 
                 // even though we do not know yet what is reachable.
-                Debug.Assert(curStack == labelStack, "forward branches and fallthrough must agree on stack depth");
+                Debug.Assert(curStack == labelStack, "forward branches and fall-through must agree on stack depth");
 
-                labelInfos[label] = labelInfo.WithNewTarget(block);
+                _labelInfos[label] = labelInfo.WithNewTarget(block);
             }
             else
             {
@@ -117,11 +118,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // so label will assume current value and all other branches to this label 
                 // will have to agree on that for consistency.
 
-                var curStack = this.emitState.CurStack;
-                labelInfos[label] = new LabelInfo(block, curStack, false);
+                var curStack = _emitState.CurStack;
+                _labelInfos[label] = new LabelInfo(block, curStack, false);
             }
 
-            this.instructionCountAtLastLabel = this.emitState.InstructionsEmitted;
+            _instructionCountAtLastLabel = _emitState.InstructionsEmitted;
         }
 
         internal void EmitBranch(ILOpCode code, object label, ILOpCode revOpCode = ILOpCode.Nop)
@@ -132,31 +133,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranchToLabel());
             Debug.Assert(!code.HasVariableStackBehavior());
 
-            this.emitState.AdjustStack(code.NetStackBehavior());
+            _emitState.AdjustStack(code.NetStackBehavior());
 
             bool isConditional = code.IsConditionalBranch();
 
             LabelInfo labelInfo;
-            if (!labelInfos.TryGetValue(label, out labelInfo))
+            if (!_labelInfos.TryGetValue(label, out labelInfo))
             {
-                labelInfos.Add(label, new LabelInfo(this.emitState.CurStack, isConditional));
+                _labelInfos.Add(label, new LabelInfo(_emitState.CurStack, isConditional));
             }
             else
             {
-                Debug.Assert(labelInfo.stack == this.emitState.CurStack, "branches to same label with different stacks");
+                Debug.Assert(labelInfo.stack == _emitState.CurStack, "branches to same label with different stacks");
             }
 
             var block = this.GetCurrentBlock();
 
             // If this is a special block at the end of an exception handler,
             // the branch should be to the block itself.
-            Debug.Assert((code != ILOpCode.Nop) || (block == labelInfos[label].bb));
+            Debug.Assert((code != ILOpCode.Nop) || (block == _labelInfos[label].bb));
 
             block.SetBranch(label, code, revOpCode);
 
             if (code != ILOpCode.Nop)
             {
-                this.emitState.InstructionAdded();
+                _emitState.InstructionAdded();
             }
 
             this.EndBlock();
@@ -231,15 +232,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Method to emit the virtual switch instruction
         internal void EmitSwitch(object[] labels)
         {
-            this.emitState.AdjustStack(-1);
-            int curStack = this.emitState.CurStack;
+            _emitState.AdjustStack(-1);
+            int curStack = _emitState.CurStack;
 
             foreach (object label in labels)
             {
                 LabelInfo ld;
-                if (!labelInfos.TryGetValue(label, out ld))
+                if (!_labelInfos.TryGetValue(label, out ld))
                 {
-                    labelInfos.Add(label, new LabelInfo(curStack, true));
+                    _labelInfos.Add(label, new LabelInfo(curStack, true));
                 }
                 else
                 {
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     if (!ld.targetOfConditionalBranches)
                     {
-                        labelInfos[label] = ld.SetTargetOfConditionalBranches();
+                        _labelInfos[label] = ld.SetTargetOfConditionalBranches();
                     }
                 }
             }
@@ -264,13 +265,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             if (!isVoid)
             {
-                this.emitState.AdjustStack(-1);
+                _emitState.AdjustStack(-1);
             }
 
             var block = this.GetCurrentBlock();
             block.SetBranchCode(ILOpCode.Ret);
 
-            this.emitState.InstructionAdded();
+            _emitState.InstructionAdded();
             this.EndBlock();
         }
 
@@ -284,10 +285,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             else
             {
                 block.SetBranchCode(ILOpCode.Throw);
-                this.emitState.AdjustStack(-1);
+                _emitState.AdjustStack(-1);
             }
 
-            this.emitState.InstructionAdded();
+            _emitState.InstructionAdded();
             this.EndBlock();
         }
 
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayCreation(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var ctor = module.ArrayMethods.GetArrayConstructor(arrayType);
 
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementLoad(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var load = module.ArrayMethods.GetArrayGet(arrayType);
 
@@ -344,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementAddress(Microsoft.Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var address = module.ArrayMethods.GetArrayAddress(arrayType);
 
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void EmitArrayElementStore(Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(arrayType.Rank > 1, "should be used only with multidimensional arrays");
+            Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
             var store = module.ArrayMethods.GetArraySet(arrayType);
 
@@ -679,32 +680,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitInt8(sbyte int8)
         {
-            this.GetCurrentStream().WriteSbyte(int8);
+            this.GetCurrentWriter().WriteSByte(int8);
         }
 
         private void EmitInt32(int int32)
         {
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitInt64(long int64)
         {
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
         private void EmitFloat(float floatValue)
         {
             int int32 = BitConverter.ToInt32(BitConverter.GetBytes(floatValue), 0);
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitDouble(double doubleValue)
         {
             long int64 = BitConverter.DoubleToInt64Bits(doubleValue);
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Microsoft.Cci.BinaryWriter writer, ILOpCode code)
+        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -724,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Microsoft.Cci.BinaryWriter GetCurrentStream()
+        private Cci.BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

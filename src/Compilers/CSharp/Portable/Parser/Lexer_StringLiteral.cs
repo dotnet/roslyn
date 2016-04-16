@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (quoteCharacter == '\'' || quoteCharacter == '"')
             {
                 TextWindow.AdvanceChar();
-                this.builder.Length = 0;
+                _builder.Length = 0;
                 while (true)
                 {
                     char ch = TextWindow.PeekChar();
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // normal string & char constants can have escapes
                         char c2;
                         ch = this.ScanEscapeSequence(out c2);
-                        this.builder.Append(ch);
+                        _builder.Append(ch);
                         if (c2 != SlidingTextWindow.InvalidCharacter)
                         {
-                            this.builder.Append(c2);
+                            _builder.Append(c2);
                         }
                     }
                     else if (ch == quoteCharacter)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         TextWindow.AdvanceChar();
-                        this.builder.Append(ch);
+                        _builder.Append(ch);
                     }
                 }
 
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (quoteCharacter == '\'')
                 {
                     info.Kind = SyntaxKind.CharacterLiteralToken;
-                    if (this.builder.Length != 1)
+                    if (_builder.Length != 1)
                     {
-                        this.AddError((this.builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
+                        this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
                     }
 
-                    if (this.builder.Length > 0)
+                    if (_builder.Length > 0)
                     {
-                        info.StringValue = TextWindow.Intern(this.builder);
+                        info.StringValue = TextWindow.Intern(_builder);
                         info.CharValue = info.StringValue[0];
                     }
                     else
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     info.Kind = SyntaxKind.StringLiteralToken;
-                    if (this.builder.Length > 0)
+                    if (_builder.Length > 0)
                     {
-                        info.StringValue = TextWindow.Intern(this.builder);
+                        info.StringValue = TextWindow.Intern(_builder);
                     }
                     else
                     {
@@ -153,14 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines = true)
         {
-            this.builder.Length = 0;
+            _builder.Length = 0;
 
             if (TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"')
             {
                 TextWindow.AdvanceChar(2);
                 bool done = false;
                 char ch;
-                this.builder.Length = 0;
+                _builder.Length = 0;
                 while (!done)
                 {
                     switch (ch = TextWindow.PeekChar())
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // Doubled quote -- skip & put the single quote in the string
                                 TextWindow.AdvanceChar();
-                                this.builder.Append(ch);
+                                _builder.Append(ch);
                             }
                             else
                             {
@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                             TextWindow.AdvanceChar();
-                            this.builder.Append(ch);
+                            _builder.Append(ch);
                             break;
                     }
                 }
 
                 info.Kind = SyntaxKind.StringLiteralToken;
                 info.Text = TextWindow.GetText(false);
-                info.StringValue = this.builder.ToString();
+                info.StringValue = _builder.ToString();
             }
             else
             {
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private class InterpolatedStringScanner
         {
-            public Lexer lexer;
+            public readonly Lexer lexer;
             public bool isVerbatim;
             public bool allowNewlines;
             public SyntaxDiagnosticInfo error;
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.allowNewlines = isVerbatim;
             }
 
-            bool IsAtEnd()
+            private bool IsAtEnd()
             {
                 return IsAtEnd(isVerbatim && allowNewlines);
             }
@@ -641,7 +641,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             continue;
                     }
                 }
-
             }
 
             private void ScanInterpolatedStringLiteralNestedComment()

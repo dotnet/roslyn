@@ -15,45 +15,50 @@ namespace Microsoft.CodeAnalysis
     {
         private partial class CompilationTracker
         {
-            // An empty compilation 
-            // Used as a base class to hold the SkeletonReference property used by derived types.
+            /// <summary>
+            /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see cref="CompilationTracker" />
+            /// starts at <see cref="Empty"/>, and then will progress through the other states until it finally reaches
+            /// <see cref="FinalState" />.
+            /// </summary>
             private class State
             {
-                public static readonly State Empty = new State();
+                /// <summary>
+                /// The base <see cref="State"/> that starts with everything empty.
+                /// </summary>
+                public static readonly State Empty = new State(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: null);
 
-                // strong reference to declaration only compilation. 
-                // this doesn't make any expensive information such as symbols or references alive. just
-                // things like decleration table alive.
-                public Compilation DeclarationOnlyCompilation { get; private set; }
+                /// <summary>
+                /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
+                /// nor does it have any references. It just holds the declaration table alive.
+                /// </summary>
+                public Compilation DeclarationOnlyCompilation { get; }
 
-                // The compilation available.  May be an InProgress, Full Declaration, or Final compilation
-                public ValueSource<Compilation> Compilation { get; private set; }
+                /// <summary>
+                /// The best compilation that is available.  May be an in-progress, full declaration, or a final compilation.
+                /// </summary>
+                public ValueSource<Compilation> Compilation { get; }
 
-                // The Final compilation if available, otherwise an empty IValueSource
+                /// <summary>
+                /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
+                /// null if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
+                /// </summary>
+                public virtual bool? HasSuccessfullyLoadedTransitively => null;
+
+                /// <summary>
+                /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
+                /// </summary>
                 public virtual ValueSource<Compilation> FinalCompilation
                 {
                     get { return ConstantValueSource<Compilation>.Empty; }
-                }
-
-                private State()
-                    : this(ConstantValueSource<Compilation>.Empty, null)
-                {
-                }
-
-                protected State(ValueSource<Compilation> compilation)
-                    : this(compilation, null)
-                {
-                }
-
-                protected State(Compilation declarationOnlyCompilation)
-                    : this(ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation)
-                {
                 }
 
                 protected State(ValueSource<Compilation> compilation, Compilation declarationOnlyCompilation)
                 {
                     this.Compilation = compilation;
                     this.DeclarationOnlyCompilation = declarationOnlyCompilation;
+
+                    // Declaration-only compilations should never have any references
+                    Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
                 }
 
                 public static State Create(
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now.
                     return intermediateProjects.Length == 0
-                        ? (State)new FullDeclarationState(compilation)
+                        ? new FullDeclarationState(compilation)
                         : (State)new InProgressState(compilation, intermediateProjects);
                 }
 
@@ -75,21 +80,23 @@ namespace Microsoft.CodeAnalysis
                     SolutionServices services)
                 {
                     return services.SupportsCachingRecoverableObjects
-                        ? (ValueSource<Compilation>)new WeakConstantValueSource<Compilation>(compilation)
+                        ? new WeakConstantValueSource<Compilation>(compilation)
                         : (ValueSource<Compilation>)new ConstantValueSource<Compilation>(compilation);
                 }
             }
 
-            // A previously built compilation that we can incrementally build a 
-            // DeclarationCompilation from by iteratively processing IntermediateProjects
+            /// <summary>
+            /// A state where we are holding onto a previously built compilation, and have a known set of transformations
+            /// that could get us to a more final state.
+            /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; private set; }
+                public ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> IntermediateProjects { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,
                     ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
-                    : base(new ConstantValueSource<Compilation>(inProgressCompilation))
+                    : base(compilation: new ConstantValueSource<Compilation>(inProgressCompilation), declarationOnlyCompilation: null)
                 {
                     Contract.ThrowIfNull(inProgressCompilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -99,17 +106,21 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // declaration only state that has no associated references or symbols. just declaration table only.
+            /// <summary>
+            /// Declaration-only state that has no associated references or symbols. just declaration table only.
+            /// </summary>
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(declarationOnlyCompilation)
+                    : base(compilation: ConstantValueSource<Compilation>.Empty, declarationOnlyCompilation: declarationOnlyCompilation)
                 {
                 }
             }
 
-            // A built compilation for the tracker that contains the fully built DeclarationTable,
-            // but may not have references initialized
+            /// <summary>
+            /// A built compilation for the tracker that contains the fully built DeclarationTable,
+            /// but may not have references initialized
+            /// </summary>
             private sealed class FullDeclarationState : State
             {
                 public FullDeclarationState(Compilation declarationCompilation)
@@ -118,17 +129,21 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // The final built compilation for the tracker containing the DeclarationTable and references
+            /// <summary>
+            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is available,
+            /// as well as the real <see cref="State.FinalCompilation"/>.
+            /// </summary>
             private sealed class FinalState : State
             {
-                public override ValueSource<Compilation> FinalCompilation
-                {
-                    get { return this.Compilation; }
-                }
+                private readonly bool _hasSuccessfullyLoadedTransitively;
 
-                public FinalState(ValueSource<Compilation> finalCompilationSource)
+                public override bool? HasSuccessfullyLoadedTransitively => _hasSuccessfullyLoadedTransitively;
+                public override ValueSource<Compilation> FinalCompilation => this.Compilation;
+
+                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasSuccessfullyLoadedTransitively)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())
                 {
+                    _hasSuccessfullyLoadedTransitively = hasSuccessfullyLoadedTransitively;
                 }
             }
         }

@@ -35,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new StructuredTrivia(trivia, initialColumn);
         }
 
-        private readonly SyntaxNode root;
-        private readonly SyntaxToken firstToken;
-        private readonly SyntaxToken lastToken;
+        private readonly SyntaxNode _root;
+        private readonly SyntaxToken _firstToken;
+        private readonly SyntaxToken _lastToken;
 
         public TreeData(SyntaxNode root)
         {
             Contract.ThrowIfNull(root);
-            this.root = root;
+            _root = root;
 
-            this.firstToken = this.root.GetFirstToken(includeZeroWidth: true);
-            this.lastToken = this.root.GetLastToken(includeZeroWidth: true);
+            _firstToken = _root.GetFirstToken(includeZeroWidth: true);
+            _lastToken = _root.GetLastToken(includeZeroWidth: true);
         }
 
         public abstract string GetTextBetween(SyntaxToken token1, SyntaxToken token2);
@@ -53,17 +53,17 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public SyntaxNode Root
         {
-            get { return this.root; }
+            get { return _root; }
         }
 
         public bool IsFirstToken(SyntaxToken token)
         {
-            return this.firstToken == token;
+            return _firstToken == token;
         }
 
         public bool IsLastToken(SyntaxToken token)
         {
-            return this.lastToken == token;
+            return _lastToken == token;
         }
 
         public int StartPosition

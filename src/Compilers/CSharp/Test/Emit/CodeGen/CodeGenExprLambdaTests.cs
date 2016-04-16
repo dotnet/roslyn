@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10,8 +11,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenExprLambdaTests : CSharpTestBase
     {
+        //TODO: 4.6 should be the default for most testcases
+        //      for now I do not want to do such a large change at once
+        //      when 4.6 is the default, this override and ExpressionAssemblyRef below will not be needed.
+        protected override Compilation GetCompilationForEmit(
+            IEnumerable<string> source,
+            IEnumerable<MetadataReference> additionalRefs,
+            CompilationOptions options,
+            ParseOptions parseOptions)
+        {
+            return CreateCompilationWithMscorlib46(
+                Parse(source, options: (CSharpParseOptions)parseOptions),
+                references: additionalRefs,
+                options: (CSharpCompilationOptions)options,
+                assemblyName: GetUniqueName());
+        }
+
+        /// <summary>
+        /// Reference to an assembly that defines Expression Trees.
+        /// </summary>
+        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+
+
         #region A string containing expression-tree dumping utilities
-        const string ExpressionTestLibrary = @"
+        private const string ExpressionTestLibrary = @"
 using System;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -366,7 +389,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 ";
         #endregion A string containing expression-tree dumping utilities
 
-        [WorkItem(544283, "DevDiv")]
+        [WorkItem(544283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544283")]
         [Fact]
         public void MissingLibrary()
         {
@@ -397,7 +420,7 @@ namespace System.Linq.Expressions
                 );
         }
 
-        [WorkItem(543322, "DevDiv")]
+        [WorkItem(543322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
         [Fact]
         public void CaptureParameterCallAddition()
         {
@@ -424,12 +447,12 @@ class Program : TestBase
 }";
             CompileAndVerify(
                 sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { SystemCoreRef },
+                additionalRefs: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
 
-        [WorkItem(543322, "DevDiv")]
+        [WorkItem(543322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543322")]
         [Fact]
         public void ExpressionConversionInExpression()
         {
@@ -457,7 +480,7 @@ class Program : TestBase
 }";
             CompileAndVerify(
                 sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { SystemCoreRef },
+                additionalRefs: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -531,10 +554,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544027, "DevDiv")]
+        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [Fact]
-        void AnonymousCreation()
+
+        public void AnonymousCreation()
         {
             var source =
 @"using System;
@@ -554,10 +577,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544028, "DevDiv")]
+        [WorkItem(544028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544028")]
         [Fact]
-        void ArrayIndex()
+
+        public void ArrayIndex()
         {
             var source =
 @"using System;
@@ -581,10 +604,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544029, "DevDiv")]
+        [WorkItem(544029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544029")]
         [Fact]
-        void ArrayCreation()
+
+        public void ArrayCreation()
         {
             var source =
 @"using System;
@@ -607,10 +630,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544030, "DevDiv")]
+        [WorkItem(544030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544030")]
         [Fact]
-        void ArrayInitialization()
+
+        public void ArrayInitialization()
         {
             var source =
 @"using System;
@@ -630,10 +653,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544112, "DevDiv")]
+        [WorkItem(544112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544112")]
         [Fact]
-        void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
+
+        public void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
             var source =
 @"using System;
@@ -651,10 +674,10 @@ class Program
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, "new[,] {{ i }}")
                 );
         }
-
-        [WorkItem(544031, "DevDiv")]
+        [WorkItem(544031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544031")]
         [Fact]
-        void ArrayLength()
+
+        public void ArrayLength()
         {
             var source =
 @"using System;
@@ -677,10 +700,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
         }
-
-        [WorkItem(544032, "DevDiv")]
+        [WorkItem(544032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544032")]
         [Fact]
-        void AsOperator()
+
+        public void AsOperator()
         {
             var source =
 @"using System;
@@ -700,10 +723,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544034, "DevDiv")]
+        [WorkItem(544034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544034")]
         [Fact]
-        void BaseReference()
+
+        public void BaseReference()
         {
             var source =
 @"using System;
@@ -733,32 +756,33 @@ class Program : Program0
                 );
         }
 
-        [Fact(Skip = "BadTestCode")]
-        void AsyncLambda()
+        [Fact]
+        public void AsyncLambda()
         {
             var source =
-@"using System;
+@"
+using System;
+using System.Threading.Tasks;
 
 class Program : TestBase
 {
     public static void Main(string[] args)
     {
         Check<Task<int>, Task<int>>(
-            async x => (await x), "");
+            async x => (await x), """");
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerify(
-                new[] { source, ExpressionTestLibrary },
-                new[] { ExpressionAssemblyRef }).VerifyDiagnostics(
-                // error CS1989: Async lambda expressions cannot be converted to expression trees
-                Diagnostic((ErrorCode)1989)
+            CreateCompilationWithMscorlib46(new[] { Parse(source), Parse(ExpressionTestLibrary) }, new[] { ExpressionAssemblyRef }).VerifyDiagnostics(
+                // (10,13): error CS1989: Async lambda expressions cannot be converted to expression trees
+                //             async x => (await x), "");
+                Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async x => (await x)").WithLocation(10, 13)
                 );
         }
 
-        [WorkItem(544035, "DevDiv")]
+        [WorkItem(544035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544035")]
         [Fact]
-        void Multiply()
+        public void Multiply()
         {
             var source =
 @"using System;
@@ -808,10 +832,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544036, "DevDiv")]
+        [WorkItem(544036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544036")]
         [Fact]
-        void Subtract()
+
+        public void Subtract()
         {
             var source =
 @"using System;
@@ -864,10 +888,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544037, "DevDiv")]
+        [WorkItem(544037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544037")]
         [Fact]
-        void Divide()
+
+        public void Divide()
         {
             var source =
 @"using System;
@@ -917,10 +941,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544038, "DevDiv")]
+        [WorkItem(544038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544038")]
         [Fact]
-        void Remainder()
+
+        public void Remainder()
         {
             var source =
 @"using System;
@@ -970,10 +994,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544041, "DevDiv")]
+        [WorkItem(544041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544041")]
         [Fact]
-        void And()
+
+        public void And()
         {
             var source =
 @"using System;
@@ -1023,10 +1047,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544042, "DevDiv")]
+        [WorkItem(544042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544042")]
         [Fact]
-        void ExclusiveOr()
+
+        public void ExclusiveOr()
         {
             var source =
 @"using System;
@@ -1076,10 +1100,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544043, "DevDiv")]
+        [WorkItem(544043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544043")]
         [Fact]
-        void BitwiseOr()
+
+        public void BitwiseOr()
         {
             var source =
 @"using System;
@@ -1129,10 +1153,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544039, "DevDiv"), WorkItem(544040, "DevDiv")]
+        [WorkItem(544039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544039"), WorkItem(544040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544040")]
         [Fact]
-        void MoreBinaryOperators()
+
+        public void MoreBinaryOperators()
         {
             var source =
 @"using System;
@@ -1176,10 +1200,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544059, "DevDiv")]
+        [WorkItem(544059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544059")]
         [Fact]
-        void UnaryOperators()
+
+        public void UnaryOperators()
         {
             var source =
 @"using System;
@@ -1226,9 +1250,9 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [Fact]
-        void GrabBag01()
+
+        public void GrabBag01()
         {
             var source =
 @"using System;
@@ -1289,10 +1313,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "123k");
         }
-
-        [WorkItem(546147, "DevDiv")]
+        [WorkItem(546147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546147")]
         [Fact]
-        void DelegateInvoke()
+
+        public void DelegateInvoke()
         {
             var source =
 @"using System;
@@ -1314,9 +1338,9 @@ class P
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
-
         [Fact]
-        void GrabBag02()
+
+        public void GrabBag02()
         {
             var source =
 @"using System;
@@ -1414,9 +1438,9 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
         [Fact]
-        void UnsafeExprTree()
+
+        public void UnsafeExprTree()
         {
             var source =
 @"using System;
@@ -1443,10 +1467,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "sizeof(S)")
             );
         }
-
-        [WorkItem(544044, "DevDiv")]
+        [WorkItem(544044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544044")]
         [Fact]
-        void CollectionInitialization()
+
+        public void CollectionInitialization()
         {
             var source =
 @"using System;
@@ -1466,10 +1490,10 @@ class Program : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544390, "DevDiv")]
+        [WorkItem(544390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544390")]
         [Fact]
-        void ObjectInitialization()
+
+        public void ObjectInitialization()
         {
             var source =
 @"using System;
@@ -1535,9 +1559,9 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssign
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }
-
         [Fact]
-        void Lambda()
+
+        public void Lambda()
         {
             var source =
 @"using System;
@@ -1565,10 +1589,10 @@ partial class Program
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
         }
-
-        [WorkItem(544218, "DevDiv")]
+        [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
-        void Linq()
+
+        public void Linq()
         {
             var source =
 @"using System;
@@ -1591,9 +1615,9 @@ class A
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
-
         [Fact]
-        void Enum()
+
+        public void Enum()
         {
             var source =
 @"using System;
@@ -1698,7 +1722,7 @@ S");
 
         #region Regression Tests
 
-        [WorkItem(544159, "DevDiv")]
+        [WorkItem(544159, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544159")]
         [Fact]
         public void BinaryAddOperandTypesEnumAndInt()
         {
@@ -1720,7 +1744,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Green");
         }
 
-        [WorkItem(544207, "DevDiv")]
+        [WorkItem(544207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544207")]
         [Fact]
         public void BinaryAddOperandTypesStringAndString()
         {
@@ -1742,7 +1766,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Hello World!");
         }
 
-        [WorkItem(544226, "DevDiv")]
+        [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
         [Fact]
         public void BinaryAddOperandTypesDelegate()
         {
@@ -1763,7 +1787,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => Convert((x + y))");
         }
 
-        [WorkItem(544187, "DevDiv")]
+        [WorkItem(544187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544187")]
         [Fact]
         public void EnumLogicalOperators()
         {
@@ -1793,7 +1817,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Red, Green, Green");
         }
 
-        [WorkItem(544171, "DevDiv")]
+        [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
         [Fact]
         public void GenericInterfacePropertyAccess()
         {
@@ -1817,7 +1841,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544171, "DevDiv")]
+        [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
         [Fact]
         public void GenericFieldAccess()
         {
@@ -1841,7 +1865,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544185, "DevDiv")]
+        [WorkItem(544185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544185")]
         [Fact]
         public void UnaryPlusOperandNullableInt()
         {
@@ -1879,7 +1903,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544213, "DevDiv")]
+        [WorkItem(544213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544213")]
         [Fact]
         public void DelegateInvocation()
         {
@@ -1928,7 +1952,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544220, "DevDiv")]
+        [WorkItem(544220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544220")]
         [Fact]
         public void CoalesceWithLiftedImplicitUDC()
         {
@@ -1955,7 +1979,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544222, "DevDiv")]
+        [WorkItem(544222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
         [Fact]
         public void CoalesceWithImplicitUDC()
         {
@@ -1988,7 +2012,7 @@ class A
                 new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => (x ?? Convert(y))");
         }
 
-        [WorkItem(546156, "DevDiv"), WorkItem(546157, "DevDiv")]
+        [WorkItem(546156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546156"), WorkItem(546157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546157")]
         [Fact]
         public void CoalesceWithImplicitUDCFromNullable01()
         {
@@ -2037,7 +2061,7 @@ CT0
 Coalesce(Parameter(c1 Type:System.Nullable`1[CT3]) Parameter(c2 Type:System.Nullable`1[CT0]) Conversion:Lambda((Parameter(p Type:CT3)) => Convert(Convert(Parameter(p Type:CT3) Lifted LiftedToNull Type:System.Nullable`1[CT3]) Method:[System.Nullable`1[CT0] op_Implicit(System.Nullable`1[CT3])] Type:System.Nullable`1[CT0]) ReturnType:System.Nullable`1[CT0] Type:System.Func`2[CT3,System.Nullable`1[CT0]]) Type:System.Nullable`1[CT0])");
         }
 
-        [WorkItem(544248, "DevDiv")]
+        [WorkItem(544248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544248")]
         [Fact]
         public void CoalesceWithImplicitUDC2()
         {
@@ -2070,7 +2094,7 @@ Coalesce(Parameter(x Type:System.Nullable`1[SampStruct]) Parameter(y Type:System
             );
         }
 
-        [Fact, WorkItem(544223, "DevDiv"), WorkItem(546146, "DevDiv")]
+        [Fact, WorkItem(544223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544223"), WorkItem(546146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546146")]
         public void CoalesceWithLiftedImplicitPDC()
         {
             var text =
@@ -2111,7 +2135,7 @@ ConvertChecked(ConvertChecked(Parameter(x Type:System.Int32) Type:System.Int64) 
                 new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544228, "DevDiv")]
+        [WorkItem(544228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544228")]
         [Fact]
         public void NewOfDecimal()
         {
@@ -2144,7 +2168,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544241, "DevDiv")]
+        [WorkItem(544241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
         [Fact]
         public void ArrayIndexTypeLong()
         {
@@ -2167,7 +2191,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544240, "DevDiv")]
+        [WorkItem(544240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544240")]
         [Fact]
         public void EventAssignment()
         {
@@ -2199,7 +2223,7 @@ public class D : C
             );
         }
 
-        [WorkItem(544233, "DevDiv")]
+        [WorkItem(544233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544233")]
         [Fact]
         public void UnsafePointerAddition()
         {
@@ -2226,7 +2250,7 @@ class Program
         }
 
 
-        [WorkItem(544276, "DevDiv")]
+        [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
         [Fact]
         public void UnsafeParamTypeInDelegate()
         {
@@ -2250,7 +2274,7 @@ unsafe public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544246, "DevDiv")]
+        [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
         [Fact]
         public void MethodCallWithParams()
         {
@@ -2261,6 +2285,7 @@ using System.Linq.Expressions;
 public class Test
 {
     public static int ModAdd2(params int[] b) { return 0; }
+    public static int NoParams() { return 0; }
 
     static void Main()
     {
@@ -2268,14 +2293,79 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
+            // no Array.Empty in the expression tree !!!
+            // we should not lose the expressiveness of an empty array creation
             string expectedOutput = @"() => ModAdd2(new [] {})";
 
+            // the IL, however can and should use Array.Empty when calling into ET APIs.
             CompileAndVerify(
                 text,
-                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+                new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput).
+                    VerifyIL("Test.Main",
+                    @"
+{
+  // Code size       66 (0x42)
+  .maxstack  7
+  IL_0000:  ldnull
+  IL_0001:  ldtoken    ""int Test.ModAdd2(params int[])""
+  IL_0006:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0010:  ldc.i4.1
+  IL_0011:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldtoken    ""int""
+  IL_001d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0022:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_0027:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_002c:  stelem.ref
+  IL_002d:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0032:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_0037:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003c:  call       ""void System.Console.WriteLine(object)""
+  IL_0041:  ret
+}
+                    ");
+
+            var comp45 = CreateCompilationWithMscorlib45(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                TestOptions.ReleaseExe);
+
+            // no use Array.Empty here since it is not available
+            CompileAndVerify(
+                comp45,
+                expectedOutput: expectedOutput).
+                    VerifyIL("Test.Main",
+                    @"
+{
+  // Code size       68 (0x44)
+  .maxstack  7
+  IL_0000:  ldnull
+  IL_0001:  ldtoken    ""int Test.ModAdd2(params int[])""
+  IL_0006:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_000b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0010:  ldc.i4.1
+  IL_0011:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldtoken    ""int""
+  IL_001d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0022:  ldc.i4.0
+  IL_0023:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0028:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_002d:  stelem.ref
+  IL_002e:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_0033:  ldc.i4.0
+  IL_0034:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0039:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003e:  call       ""void System.Console.WriteLine(object)""
+  IL_0043:  ret
+}
+                    ");
         }
 
-        [WorkItem(544270, "DevDiv")]
+        [WorkItem(544270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544270")]
         [Fact]
         public void MethodCallWithParams2()
         {
@@ -2322,7 +2412,7 @@ public class Test
                 );
         }
 
-        [WorkItem(544419, "DevDiv")]
+        [WorkItem(544419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544419")]
         [Fact]
         public void ExplicitUDC2()
         {
@@ -2380,7 +2470,7 @@ Lambda:
         }
 
 
-        [WorkItem(544027, "DevDiv")]
+        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
         [Fact]
         public void AnonTypes1()
         {
@@ -2420,7 +2510,7 @@ public class Test
                 expectedOutput: "New([Void .ctor(System.String, System.Decimal, Int32)](Constant(Bill Type:System.String), Constant(6950.85 Type:System.Decimal), Constant(45 Type:System.Int32)){System.String Name System.Decimal Salary Int32 Age} Type:<>f__AnonymousType0`3[System.String,System.Decimal,System.Int32])");
         }
 
-        [WorkItem(544252, "DevDiv")]
+        [WorkItem(544252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544252")]
         [Fact]
         public void EqualsWithOperandsNullableStructAndNull()
         {
@@ -2441,7 +2531,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "False");
         }
 
-        [WorkItem(544254, "DevDiv")]
+        [WorkItem(544254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544254")]
         [Fact]
         public void GreaterThanUD1()
         {
@@ -2473,7 +2563,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "True");
         }
 
-        [WorkItem(544255, "DevDiv")]
+        [WorkItem(544255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544255")]
         [Fact]
         public void ExpressionTreeAndOperatorOverloading()
         {
@@ -2518,7 +2608,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "0");
         }
 
-        [WorkItem(544269, "DevDiv")]
+        [WorkItem(544269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544269")]
         [Fact]
         public void CheckedImplicitConversion()
         {
@@ -2573,7 +2663,85 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544304, "DevDiv")]
+        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [Fact]
+        public void GenericField01()
+        {
+            var text =
+@"
+using System;
+
+public class M
+{
+
+    public class S<T>
+    {
+        public T x;
+    }
+
+    public static object SomeFunc<A>(System.Linq.Expressions.Expression<Func<object, A>> selector)
+    { return null; }
+
+    public static void CallIt<T>(T t)
+    {
+        Func<object, object> goodF = xs => SomeFunc<S<T>>(e => new S<T>());
+        var z1 = goodF(3);
+
+        Func<object, object> badF = xs => SomeFunc<S<T>>(e => new S<T> { x = t });
+        var z2 = badF(3);
+    }
+
+    public static void Main()
+    {
+        CallIt<int>(3);
+    }
+}
+";
+            CompileAndVerify(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef }, expectedOutput: "");
+        }
+
+        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [Fact]
+        public void GenericProperty01()
+        {
+            var text =
+@"
+using System;
+
+public class M
+{
+
+    public class S<T>
+    {
+        public T x{get; set;}
+    }
+
+    public static object SomeFunc<A>(System.Linq.Expressions.Expression<Func<object, A>> selector)
+    { return null; }
+
+    public static void CallIt<T>(T t)
+    {
+        Func<object, object> goodF = xs => SomeFunc<S<T>>(e => new S<T>());
+        var z1 = goodF(3);
+
+        Func<object, object> badF = xs => SomeFunc<S<T>>(e => new S<T> { x = t });
+        var z2 = badF(3);
+    }
+
+    public static void Main()
+    {
+        CallIt<int>(3);
+    }
+}
+";
+            CompileAndVerify(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef }, expectedOutput: "");
+        }
+
+        [WorkItem(544304, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544304")]
         [Fact]
         public void CheckedEnumAddition()
         {
@@ -2595,7 +2763,7 @@ class Test : TestBase
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
-        [WorkItem(544275, "DevDiv")]
+        [WorkItem(544275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544275")]
         [Fact]
         public void SizeOf()
         {
@@ -2614,7 +2782,7 @@ public class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => 4");
         }
 
-        [WorkItem(544285, "DevDiv")]
+        [WorkItem(544285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544285")]
         [Fact]
         public void ImplicitReferenceConversion()
         {
@@ -2650,7 +2818,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544287, "DevDiv")]
+        [WorkItem(544287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544287")]
         [Fact]
         public void ExplicitIdentityConversion()
         {
@@ -2692,7 +2860,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544411, "DevDiv")]
+        [WorkItem(544411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544411")]
         [Fact]
         public void ExplicitConvIntToNullableInt()
         {
@@ -2734,7 +2902,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544277, "DevDiv")]
+        [WorkItem(544277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544277")]
         [Fact]
         public void ConvertExtensionMethodToDelegate()
         {
@@ -2755,7 +2923,7 @@ class A
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544306, "DevDiv")]
+        [WorkItem(544306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544306")]
         [Fact]
         public void ExplicitConversionNullToNullableType()
         {
@@ -2794,7 +2962,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544295, "DevDiv")]
+        [WorkItem(544295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544295")]
         [Fact]
         public void LiftedEquality()
         {
@@ -2814,7 +2982,7 @@ class Program
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544396, "DevDiv")]
+        [WorkItem(544396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544396")]
         [Fact]
         public void UserDefinedOperatorWithPointerType()
         {
@@ -2843,13 +3011,12 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                emitOptions: TestEmitters.RefEmitBug,
                 verify: false);
 
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(544398, "DevDiv")]
+        [WorkItem(544398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544398")]
         [Fact]
         public void BitwiseComplementOnNullableShort()
         {
@@ -2896,7 +3063,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544400, "DevDiv")]
+        [WorkItem(544400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544400")]
         [Fact]
         public void ExpressionTreeWithIterators()
         {
@@ -2930,7 +3097,7 @@ namespace ConsoleApplication2
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544401, "DevDiv")]
+        [WorkItem(544401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544401")]
         [Fact]
         public void AnonMethodInsideExprTree()
         {
@@ -2948,13 +3115,13 @@ public class A
 }";
             CreateCompilationWithMscorlibAndSystemCore(text)
                 .VerifyDiagnostics(
-                // (9,39): error CS1945: An expression tree may not contain an anonymous method expressio
+                // (9,39): error CS1945: An expression tree may not contain an anonymous method expression
                 //        Expression<Func<D>> f = () => delegate() { };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate() { }")
                 );
         }
 
-        [WorkItem(544403, "DevDiv")]
+        [WorkItem(544403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
         [Fact]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
@@ -2977,7 +3144,7 @@ public class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544413, "DevDiv")]
+        [WorkItem(544413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544413")]
         [Fact]
         public void ExplicitConversionLambdaToExprTree()
         {
@@ -3042,7 +3209,85 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544442, "DevDiv")]
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeConvertedNullOnLHS()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<object>> testExpr = () => null ?? ""hello"";
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
+                //     Expression<Func<object>> testExpr = () => null ?? new object();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47));
+        }
+
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeNullableInt()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int?>> testExpr = () => (int?)null ?? (int?)5;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(testExpr);
+        Console.Write(ev.toStr);
+    }
+}";
+            var expectedOutput = @"
+Lambda:
+    Type->System.Func`1[System.Nullable`1[System.Int32]]
+    Parameters->
+    Body->
+    Coalesce:
+        Type->System.Nullable`1[System.Int32]
+        Method->
+        IsLifted->False
+        IsLiftedToNull->False
+        Left->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Object
+                        Value->
+        Right->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Int32
+                        Value->5
+                        Conversion->
+";
+
+            //CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CompileAndVerify(
+                new[] { text, TreeWalkerLib },
+                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
+
+        [WorkItem(544442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544442")]
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeFieldInitCoalesceWithNullOnLHS()
         {
@@ -3076,7 +3321,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null"));
         }
 
-        [WorkItem(544429, "DevDiv")]
+        [WorkItem(544429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544429")]
         [Fact]
         public void ExtraConversionInDelegateCreation()
         {
@@ -3103,13 +3348,26 @@ class Program
     }
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
-            CompileAndVerify(
+
+            var comp = CreateCompilationWithMscorlib(
+                new[] { source, ExpressionTestLibrary },
+                new[] { SystemCoreRef },
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            //NOTE: different shape of delegate creation in 45+ is bydesign and matches behavior of the with old compiler.
+            string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
+
+            var comp45 = CreateCompilationWithMscorlib45(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
-                expectedOutput: expectedOutput);
+                TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp45, expectedOutput: expectedOutput45);
         }
 
-        [WorkItem(544430, "DevDiv")]
+        [WorkItem(544430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544430")]
         [Fact]
         public void ExtraConversionInLiftedUserDefined()
         {
@@ -3144,7 +3402,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(529420, "DevDiv")]
+        [WorkItem(529420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529420")]
         [Fact]
         public void HalfLiftedLeftShift()
         {
@@ -3169,7 +3427,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544451, "DevDiv")]
+        [WorkItem(544451, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544451")]
         [Fact]
         public void BinaryOnLiftedByteEnum()
         {
@@ -3227,7 +3485,7 @@ class Program : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(544458, "DevDiv")]
+        [WorkItem(544458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544458")]
         [Fact]
         public void EmptyCollectionInit()
         {
@@ -3251,7 +3509,7 @@ public class Parent
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544485, "DevDiv")]
+        [WorkItem(544485, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544485")]
         [Fact]
         public void EmptyObjectInitForPredefinedType()
         {
@@ -3289,7 +3547,7 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544546, "DevDiv")]
+        [WorkItem(544546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
         [Fact]
         public void BadExprTreeLambdaInNSDecl()
         {
@@ -3335,7 +3593,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()"));
         }
 
-        [WorkItem(544548, "DevDiv")]
+        [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
         public void NSaliasSystemIsGlobal()
         {
@@ -3379,7 +3637,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "System").WithArguments("System", "<global namespace>"));
         }
 
-        [WorkItem(544586, "DevDiv")]
+        [WorkItem(544586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544586")]
         [Fact]
         public void ExprTreeInsideAnonymousMethod()
         {
@@ -3414,7 +3672,7 @@ class Test
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544598, "DevDiv")]
+        [WorkItem(544598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544598")]
         [Fact]
         public void ConstructorWithParamsParameter()
         {
@@ -3440,7 +3698,7 @@ class MyClass
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(544599, "DevDiv")]
+        [WorkItem(544599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544599")]
         [Fact]
         public void ExplicitEnumToDecimal()
         {
@@ -3721,7 +3979,7 @@ Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:
 }");
         }
 
-        [WorkItem(544955, "DevDiv")]
+        [WorkItem(544955, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544955")]
         [Fact]
         public void FirstOperandOfConditionalOperatorImplementsOperatorTrue()
         {
@@ -3759,7 +4017,7 @@ class MyClass
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545042, "DevDiv")]
+        [WorkItem(545042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545042")]
         [Fact]
         public void AnonMethodInExprTree()
         {
@@ -3783,7 +4041,7 @@ public class Program
             );
         }
 
-        [WorkItem(545122, "DevDiv")]
+        [WorkItem(545122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545122")]
         [Fact]
         public void CollInitAddMethodWithParams()
         {
@@ -3827,7 +4085,7 @@ public class B : IEnumerable
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-        [WorkItem(545189, "DevDiv")]
+        [WorkItem(545189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545189")]
         [Fact]
         public void ExprTreeInTypeArgument()
         {
@@ -3862,7 +4120,7 @@ public class MemberInitializerTest
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
         }
 
-        [WorkItem(545191, "DevDiv")]
+        [WorkItem(545191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545191")]
         [Fact]
         public void ObjectInitializersValueType()
         {
@@ -3904,7 +4162,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545396, "DevDiv")]
+        [WorkItem(545396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545396")]
         [Fact]
         public void LongLengthArrayProperty()
         {
@@ -3930,7 +4188,7 @@ public class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545457, "DevDiv")]
+        [WorkItem(545457, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545457")]
         [Fact]
         public void NullableDecimalToNullableEnumExplicitConv()
         {
@@ -3969,7 +4227,7 @@ three";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(545461, "DevDiv")]
+        [WorkItem(545461, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545461")]
         [Fact]
         public void LiftedUserDefinedConversionWithNullArg()
         {
@@ -4000,7 +4258,7 @@ public struct C
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546731, "DevDiv")]
+        [WorkItem(546731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546731")]
         [Fact]
         public void CallLeastDerivedOverride()
         {
@@ -4041,7 +4299,7 @@ TestClass1
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(530529, "DevDiv")]
+        [WorkItem(530529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
         [Fact]
         public void BoxTypeParameter()
         {
@@ -4069,6 +4327,48 @@ class Test
         var r1 = f(default(T));
         Expression<Func<T, int>> e = x => x.M() + x.P + x.P;
         var r2 = e.Compile()(default(T));
+        Console.WriteLine(r1!=r2 ? ""pass"" : ""fail"");
+    }
+    static void Main()
+    {
+        Test1<S>();
+    }
+}";
+
+            string expectedOutput = @"pass";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(530529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530529")]
+        [Fact]
+        public void BoxTypeParameter1()
+        {
+            string source =
+@"using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+interface I
+{
+    int P();
+}
+struct S : I
+{
+    int _p;
+    public int P() => _p++;
+}
+class Test
+{
+    public static void Test1<T>() where T : I
+    {
+        Func<T, int> f = x => x.P() + x.P();
+        var r1 = f(default(T));
+        Expression<Func<T, int>> e = x => x.P() + x.P();
+        var r2 = e.Compile()(default(T));
         Console.WriteLine(r1==r2 ? ""pass"" : ""fail"");
     }
     static void Main()
@@ -4085,7 +4385,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546601, "DevDiv")]
+        [WorkItem(546601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546601")]
         [Fact]
         public void NewArrayInitInAsAndIs()
         {
@@ -4119,8 +4419,8 @@ TypeAs(Parameter(t Type:Test) Type:System.Object)";
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531047, "DevDiv")]
-        [Fact, WorkItem(531047, "DevDiv")]
+        [WorkItem(531047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
+        [Fact, WorkItem(531047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531047")]
         public void NullIsRegression()
         {
             string source =
@@ -4141,7 +4441,480 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(546618, "DevDiv")]
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCast()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: class, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass1()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: C1, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass2()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: C1
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass3()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: class
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastStruct()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public struct C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: struct, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality001()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == YesNo.Yes;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(Yes Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality002()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == x.YesNo;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality003()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == x.YesNo;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality004()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == (YesNo)1;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(No Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(7241, "https://github.com/dotnet/roslyn/issues/7241")]
+        public void EnumEquality005()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == (YesNo?)null;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(546618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546618")]
         [Fact]
         public void TildeNullableEnum()
         {
@@ -4174,9 +4947,9 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(531382, "DevDiv")]
+        [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
         [Fact]
-        public void IndexerIsIndexedPropoperty()
+        public void IndexerIsIndexedProperty()
         {
             var source1 =
 @"<System.Runtime.InteropServices.ComImport>
@@ -4213,7 +4986,7 @@ class Program
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(579711, "DevDiv")]
+        [WorkItem(579711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
         [Fact]
         public void CheckedEnumConversion()
         {
@@ -4245,7 +5018,7 @@ x => ConvertChecked(x)";
                 new[] { ExpressionAssemblyRef }, expectedOutput: expected);
         }
 
-        [WorkItem(717364, "DevDiv")]
+        [WorkItem(717364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/717364")]
         [Fact]
         public void NullAs()
         {
@@ -4266,7 +5039,7 @@ class Test
             CompileAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => (null As String)");
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Type__GetTypeFromHandle()
         {
@@ -4316,7 +5089,7 @@ class C
             }
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
         {
@@ -4382,7 +5155,7 @@ class B<T>
             }
         }
 
-        [WorkItem(797996, "DevDiv")]
+        [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
         public void MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
         {
@@ -4461,7 +5234,7 @@ class B<T>
             }
         }
 
-        [WorkItem(957927, "DevDiv")]
+        [WorkItem(957927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957927")]
         [Fact]
         public void Bug957927()
         {
@@ -4492,7 +5265,7 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1090404, "DevDiv")]
+        [WorkItem(1090404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
         [Fact]
         public void Bug1090404()
         {
@@ -4530,7 +5303,7 @@ public class Foo
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1090404, "DevDiv")]
+        [WorkItem(1090404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090404")]
         [Fact]
         public void Bug1090404_2()
         {
@@ -4568,11 +5341,11 @@ public class Foo
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1089777, "DevDiv")]
+        [WorkItem(1089777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089777")]
         [Fact]
         public void Bug1089777()
         {
-            const string source =@"
+            const string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4600,7 +5373,7 @@ class A
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636()
         {
@@ -4636,7 +5409,7 @@ namespace VS2013Compatibility
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_2()
         {
@@ -4671,7 +5444,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_3()
         {
@@ -4700,7 +5473,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_4()
         {
@@ -4732,7 +5505,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_5()
         {
@@ -4764,7 +5537,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_6()
         {
@@ -4791,7 +5564,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_7()
         {
@@ -4832,7 +5605,7 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
-        [WorkItem(1009636, "DevDiv")]
+        [WorkItem(1009636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009636")]
         [Fact]
         public void Bug1009636_8()
         {
@@ -4866,7 +5639,377 @@ class C : TestBase
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }
-           
+
+        [WorkItem(1098521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098521")]
+        [Fact]
+        public void InterpolationUsesOverloadResolution()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C : TestBase
+{
+    static void M<T>()
+        where T : struct
+    {
+            Expression<Func<string>> f;
+            f = () => $"""";
+            Check<string>(f, ""Constant( Type:System.String)"");
+            f = () => $""{1}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object)](Constant({0} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object)](Constant({0}{1} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object, System.Object, System.Object)](Constant({0}{1}{2} Type:System.String), Convert(Constant(1 Type:System.Int32) Type:System.Object), Convert(Constant(2 Type:System.Int32) Type:System.Object), Convert(Constant(3 Type:System.Int32) Type:System.Object)) Type:System.String)"");
+            f = () => $""{1}{2}{3}{4}"";
+            Check<string>(f, ""Call(null.[System.String Format(System.String, System.Object[])](Constant({0}{1}{2}{3} Type:System.String), NewArrayInit([Convert(Constant(1 Type:System.Int32) Type:System.Object) Convert(Constant(2 Type:System.Int32) Type:System.Object) Convert(Constant(3 Type:System.Int32) Type:System.Object) Convert(Constant(4 Type:System.Int32) Type:System.Object)] Type:System.Object[])) Type:System.String)"");
+            Console.WriteLine(""DONE"");
+    }
+
+    static void Main()
+    {
+        M<S>();
+    }
+}";
+
+            const string expectedOutput = @"DONE";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LiftedIntPtrConversion()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Check(() => (IntPtr?)M(), ""Convert(Call(null.[System.Nullable`1[System.Int32] M()]() Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[IntPtr op_Explicit(Int32)] Type:System.Nullable`1[System.IntPtr])"");
+        Console.WriteLine(""DONE"");
+    }
+
+    static int? M() { return 0; }
+}
+";
+
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: "DONE");
+        }
+
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static Expression Constant(object o, Type t) { return null; }
+        protected static Expression Convert(object e, Type t) { return null; }
+        public static Expression Convert(Expression e, object t) { return null; }
+        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify();
+            }
+        }
+
+
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [Fact]
+        public void NameofInExpressionTree()
+        {
+            string program = @"
+using System;
+using System.Linq.Expressions;
+
+public class Program
+{
+    public static void Main()
+    {
+        Expression<Func<string>> func = () => nameof(Main);
+        Console.WriteLine(func.Compile().Invoke());
+    }
+}
+";
+            CompileAndVerify(
+                sources: new string[] { program },
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput: @"Main")
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions001()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => E1.b == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (1 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => (43 - E1.b) == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (42 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions003()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Expression<Func<int>> e = () => foo((int)E1.b);
+
+            System.Console.WriteLine(e);
+        }
+
+        static int foo(int x)
+        {
+            return x;
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => foo(1)";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")]
+        [Fact]
+        public void CapturedThis001()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication6
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = new Program();
+            v.test();
+        }
+
+        public int P1
+        {
+            get
+            {
+                return 42;
+            }
+        }
+
+        public void test()
+        {
+            var local = 0;
+            Func<Expression<Func<int>>> f =
+                () =>
+                {
+                    System.Console.WriteLine(P1 + local);
+                    return () => P1;
+                };
+
+            System.Console.WriteLine((f().Body as MemberExpression).Expression);
+        }
+    }
+}
+";
+
+            const string expectedOutput = @"42
+value(ConsoleApplication6.Program)";
+
+            CompileAndVerify(
+                new[] {
+                    source,
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(6416, "https://github.com/dotnet/roslyn/issues/6416")]
+        [Fact]
+        public void CapturedThis002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication6
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = new Program();
+            v.test();
+        }
+
+        public int P1
+        {
+            get
+            {
+                return 42;
+            }
+        }
+
+        public void test()
+        {
+            var local = 0;
+
+         Func<Expression<Func<Expression<Func<int>>>>> ff = () =>
+         {
+             Func<Expression<Func<int>>> f =
+                    () =>
+                    {
+                        System.Console.WriteLine(P1 + local);
+                        return () => P1;
+                    };
+
+                return () => f();
+            };
+
+            System.Console.WriteLine((ff().Compile()().Body as MemberExpression).Expression);
+        }
+    }
+}
+";
+
+            const string expectedOutput = @"42
+value(ConsoleApplication6.Program)";
+
+            CompileAndVerify(
+                new[] {
+                    source,
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         #endregion Regression Tests
 
         #region helpers
@@ -4885,7 +6028,7 @@ class C : TestBase
             return trimmedOutput;
         }
 
-        const string TreeWalkerLib = @"
+        private const string TreeWalkerLib = @"
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -5203,7 +6346,7 @@ public class ExpressionVisitor
 
     internal virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding)
     {
-        toStr = toStr + ""Initiailizers->"" + ""\n"";
+        toStr = toStr + ""Initializers->"" + ""\n"";
         IEnumerable<ElementInit> initializers = this.VisitElementInitializerList(binding.Initializers);
 
         if (initializers != binding.Initializers)

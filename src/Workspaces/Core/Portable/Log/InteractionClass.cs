@@ -27,16 +27,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     internal class PerfGoalAttribute : Attribute
     {
-        private readonly InteractionClass interactionClass;
+        private readonly InteractionClass _interactionClass;
 
         public PerfGoalAttribute(InteractionClass interactionClass)
         {
-            this.interactionClass = interactionClass;
+            _interactionClass = interactionClass;
         }
 
         public InteractionClass InteractionClass
         {
-            get { return this.interactionClass; }
+            get { return _interactionClass; }
         }
     }
 }

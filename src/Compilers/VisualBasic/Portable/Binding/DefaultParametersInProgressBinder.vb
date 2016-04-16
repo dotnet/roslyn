@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' This binder keeps track of the set of parameterss that are currently being evaluated
+    ''' This binder keeps track of the set of parameters that are currently being evaluated
     ''' so that the set can be passed into the next call to ParameterSymbol.DefaultConstantValue (and
     ''' its callers).
     ''' </summary>

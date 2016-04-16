@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -10,27 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         internal static readonly SymbolFactory Instance = new SymbolFactory();
 
-        internal override TypeSymbol GetArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType)
+        internal override TypeSymbol GetMDArrayTypeSymbol(PEModuleSymbol moduleSymbol, int rank, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+                                                          ImmutableArray<int> sizes, ImmutableArray<int> lowerBounds)
         {
             if (elementType is UnsupportedMetadataTypeSymbol)
             {
                 return elementType;
             }
 
-            if (rank == 1)
-            {
-                // We do not support multi-dimensional arrays of rank 1, cannot distinguish
-                // them from SZARRAY.
-                // TODO(ngafter): what is the correct diagnostic for this situation?
-                return new UnsupportedMetadataTypeSymbol(); // Found a multi-dimensional array of rank 1 in metadata
-            }
-
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, elementType, rank, sizes, lowerBounds, CSharpCustomModifier.Convert(customModifiers));
         }
 
-        internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType)
+        internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
         {
-            return new ByRefReturnErrorTypeSymbol(referencedType);
+            return new ByRefReturnErrorTypeSymbol(referencedType, countOfCustomModifiersPrecedingByRef);
         }
 
         internal override TypeSymbol GetSpecialType(PEModuleSymbol moduleSymbol, SpecialType specialType)
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
+            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
         }
 
         internal override TypeSymbol GetUnsupportedMetadataTypeSymbol(PEModuleSymbol moduleSymbol, BadImageFormatException exception)
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override TypeSymbol SubstituteTypeParameters(
             PEModuleSymbol moduleSymbol,
             TypeSymbol genericTypeDef,
-            ImmutableArray<TypeSymbol> arguments,
+            ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments,
             ImmutableArray<bool> refersToNoPiaLocalType)
         {
             if (genericTypeDef is UnsupportedMetadataTypeSymbol)
@@ -97,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Let's return unsupported metadata type if any argument is unsupported metadata type 
             foreach (var arg in arguments)
             {
-                if (arg.Kind == SymbolKind.ErrorType &&
-                    arg is UnsupportedMetadataTypeSymbol)
+                if (arg.Key.Kind == SymbolKind.ErrorType &&
+                    arg.Key is UnsupportedMetadataTypeSymbol)
                 {
                     return new UnsupportedMetadataTypeSymbol();
                 }
@@ -135,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (refersToNoPiaLocalType[i] ||
                         (!linkedAssemblies.IsDefaultOrEmpty &&
-                        MetadataDecoder.IsOrClosedOverATypeFromAssemblies(arguments[i], linkedAssemblies)))
+                        MetadataDecoder.IsOrClosedOverATypeFromAssemblies(arguments[i].Key, linkedAssemblies)))
                     {
                         noPiaIllegalGenericInstantiation = true;
                         break;
@@ -153,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            TypeMap substitution = new TypeMap(typeParameters, arguments);
+            TypeMap substitution = new TypeMap(typeParameters, arguments.SelectAsArray(arg => new TypeWithModifiers(arg.Key, CSharpCustomModifier.Convert(arg.Value))));
 
             NamedTypeSymbol constructedType = substitution.SubstituteNamedType(genericType);
 

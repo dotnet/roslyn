@@ -12,15 +12,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract class CryptographicHashProvider
     {
-        private ImmutableArray<byte> lazySHA1Hash;
-        private ImmutableArray<byte> lazySHA256Hash;
-        private ImmutableArray<byte> lazySHA384Hash;
-        private ImmutableArray<byte> lazySHA512Hash;
-        private ImmutableArray<byte> lazyMD5Hash;
-
-        public CryptographicHashProvider()
-        {
-        }
+        private ImmutableArray<byte> _lazySHA1Hash;
+        private ImmutableArray<byte> _lazySHA256Hash;
+        private ImmutableArray<byte> _lazySHA384Hash;
+        private ImmutableArray<byte> _lazySHA512Hash;
+        private ImmutableArray<byte> _lazyMD5Hash;
 
         internal abstract ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm);
 
@@ -38,19 +34,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     case AssemblyHashAlgorithm.None:
                     case AssemblyHashAlgorithm.Sha1:
-                        return GetHash(ref lazySHA1Hash, algorithm);
+                        return GetHash(ref _lazySHA1Hash, algorithm);
 
                     case AssemblyHashAlgorithm.Sha256:
-                        return GetHash(ref lazySHA256Hash, algorithm);
+                        return GetHash(ref _lazySHA256Hash, algorithm);
 
                     case AssemblyHashAlgorithm.Sha384:
-                        return GetHash(ref lazySHA384Hash, algorithm);
+                        return GetHash(ref _lazySHA384Hash, algorithm);
 
                     case AssemblyHashAlgorithm.Sha512:
-                        return GetHash(ref lazySHA512Hash, algorithm);
+                        return GetHash(ref _lazySHA512Hash, algorithm);
 
                     case AssemblyHashAlgorithm.MD5:
-                        return GetHash(ref lazyMD5Hash, algorithm);
+                        return GetHash(ref _lazyMD5Hash, algorithm);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(algorithmId);

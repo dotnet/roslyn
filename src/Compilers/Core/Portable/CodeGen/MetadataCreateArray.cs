@@ -12,55 +12,34 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MetadataCreateArray : Cci.IMetadataCreateArray
     {
-        private readonly Cci.IArrayTypeReference arrayType;
-        private readonly Cci.ITypeReference elementType;
-        private ImmutableArray<Cci.IMetadataExpression> initializers;
+        private readonly Cci.IArrayTypeReference _arrayType;
+        private readonly Cci.ITypeReference _elementType;
+        private ImmutableArray<Cci.IMetadataExpression> _initializers;
 
         public MetadataCreateArray(Cci.IArrayTypeReference arrayType, Cci.ITypeReference elementType, ImmutableArray<Cci.IMetadataExpression> initializers)
         {
-            this.arrayType = arrayType;
-            this.elementType = elementType;
-            this.initializers = initializers;
+            _arrayType = arrayType;
+            _elementType = elementType;
+            _initializers = initializers;
         }
 
         /// <summary>
         /// The element type of the array.
         /// </summary>
-        Cci.ITypeReference Cci.IMetadataCreateArray.ElementType
-        {
-            get
-            {
-                return this.elementType;
-            }
-        }
+        Cci.ITypeReference Cci.IMetadataCreateArray.ElementType => _elementType;
 
-        uint Cci.IMetadataCreateArray.ElementCount
-        {
-            get
-            {
-                return (uint)this.initializers.Length;
-            }
-        }
+        uint Cci.IMetadataCreateArray.ElementCount => (uint)_initializers.Length;
 
         /// <summary>
         /// The initial values of the array elements. May be empty.
         /// </summary>
-        IEnumerable<Cci.IMetadataExpression> Cci.IMetadataCreateArray.Elements
-        {
-            get
-            {
-                return this.initializers;
-            }
-        }
+        IEnumerable<Cci.IMetadataExpression> Cci.IMetadataCreateArray.Elements => _initializers;
 
         void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        Cci.ITypeReference Cci.IMetadataExpression.Type
-        {
-            get { return this.arrayType; }
-        }
+        Cci.ITypeReference Cci.IMetadataExpression.Type => _arrayType;
     }
 }

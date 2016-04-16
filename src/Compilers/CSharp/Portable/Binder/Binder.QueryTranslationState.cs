@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            int nextTransparentIdentifierNumber = 0;
+            private int _nextTransparentIdentifierNumber;
 
             internal string TransparentRangeVariableName()
             {
-                return transparentIdentifierPrefix + nextTransparentIdentifierNumber++;
+                return transparentIdentifierPrefix + _nextTransparentIdentifierNumber++;
             }
 
             internal RangeVariableSymbol TransparentRangeVariable(Binder binder)

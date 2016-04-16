@@ -105,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Friend Function IsCharArrayRankOne(type As TypeSymbol) As Boolean
+        Friend Function IsCharSZArray(type As TypeSymbol) As Boolean
             If type.IsArrayType() Then
                 Dim array = DirectCast(type, ArrayTypeSymbol)
 
-                If array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
+                If array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
                     Return True
                 End If
             End If
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim array1 = DirectCast(t1, ArrayTypeSymbol)
                 Dim array2 = DirectCast(t2, ArrayTypeSymbol)
 
-                Return array1.Rank = array2.Rank AndAlso
+                Return array1.HasSameShapeAs(array2) AndAlso
                        array1.ElementType.IsSameTypeIgnoringCustomModifiers(array2.ElementType)
 
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
@@ -201,11 +201,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t1IsDefinition = t1.IsDefinition
                 Dim t2IsDefinition = t2.IsDefinition
 
-                If (t1IsDefinition <> t2IsDefinition) Then
+                If (t1IsDefinition <> t2IsDefinition) AndAlso
+                   Not (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers) Then
                     Return False
                 End If
 
-                If Not t1IsDefinition Then ' This is a generic instantiation
+                If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
                     If t1.OriginalDefinition <> t2.OriginalDefinition Then
                         Return False ' different definition
@@ -475,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Dig through possibly jugged array type to the ultimate element type
+        ''' Dig through possibly jagged array type to the ultimate element type
         ''' </summary>
         <Extension()>
         Public Function DigThroughArrayType(possiblyArrayType As TypeSymbol) As TypeSymbol
@@ -706,10 +707,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Sub CollectReferencedTypeParameters(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol))
-            VisitType(this, AddIfTypeParameterFunc, typeParameters)
+            VisitType(this, s_addIfTypeParameterFunc, typeParameters)
         End Sub
 
-        Private ReadOnly AddIfTypeParameterFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf AddIfTypeParameter
+        Private ReadOnly s_addIfTypeParameterFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf AddIfTypeParameter
 
         Private Function AddIfTypeParameter(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
             If type.TypeKind = TypeKind.TypeParameter Then
@@ -720,11 +721,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function ReferencesTypeParameterNotInTheSet(this As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
-            Dim typeParameter = VisitType(this, IsTypeParameterNotInSetFunc, typeParameters)
+            Dim typeParameter = VisitType(this, s_isTypeParameterNotInSetFunc, typeParameters)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsTypeParameterNotInSetFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf IsTypeParameterNotInSet
+        Private ReadOnly s_isTypeParameterNotInSetFunc As Func(Of TypeSymbol, HashSet(Of TypeParameterSymbol), Boolean) = AddressOf IsTypeParameterNotInSet
 
         Private Function IsTypeParameterNotInSet(type As TypeSymbol, typeParameters As HashSet(Of TypeParameterSymbol)) As Boolean
             Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
@@ -733,11 +734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function ReferencesMethodsTypeParameter(this As TypeSymbol, method As MethodSymbol) As Boolean
-            Dim typeParameter = VisitType(this, IsMethodTypeParameterFunc, method)
+            Dim typeParameter = VisitType(this, s_isMethodTypeParameterFunc, method)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsMethodTypeParameterFunc As Func(Of TypeSymbol, MethodSymbol, Boolean) = AddressOf IsMethodTypeParameter
+        Private ReadOnly s_isMethodTypeParameterFunc As Func(Of TypeSymbol, MethodSymbol, Boolean) = AddressOf IsMethodTypeParameter
 
         Private Function IsMethodTypeParameter(type As TypeSymbol, method As MethodSymbol) As Boolean
             Return (type.TypeKind = TypeKind.TypeParameter) AndAlso
@@ -752,11 +753,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Friend Function IsOrRefersToTypeParameter(this As TypeSymbol) As Boolean
-            Dim typeParameter = VisitType(this, IsTypeParameterFunc, Nothing)
+            Dim typeParameter = VisitType(this, s_isTypeParameterFunc, Nothing)
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly IsTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
+        Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
 
         ''' <summary>
         ''' Visit the given type and, in the case of compound types, visit all "sub type"
@@ -827,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If type.IsArrayType Then
                 Dim arrayType = DirectCast(type, ArrayTypeSymbol)
-                If arrayType.Rank <> 1 Then
+                If Not arrayType.IsSZArray Then
                     Return False
                 End If
                 type = arrayType.ElementType
@@ -869,17 +870,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Sub CheckTypeArguments(typeArguments As ImmutableArray(Of TypeSymbol), expectedCount As Integer)
             If typeArguments.IsDefault Then
-                Throw New Global.System.ArgumentNullException("typeArguments")
+                Throw New Global.System.ArgumentNullException(NameOf(typeArguments))
             End If
 
             For Each typeArg In typeArguments
                 If typeArg Is Nothing Then
-                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, "typeArguments")
+                    Throw New ArgumentException(VBResources.TypeArgumentCannotBeNothing, NameOf(typeArguments))
                 End If
             Next
 
             If typeArguments.Length = 0 OrElse typeArguments.Length <> expectedCount Then
-                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, "typeArguments")
+                Throw New ArgumentException(VBResources.WrongNumberOfTypeArguments, NameOf(typeArguments))
             End If
         End Sub
 
@@ -913,7 +914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check for type arguments equal to type parameters of this type,
             ' but not contained by it ("cross-pollination"). Replace them with 
-            ' this type type parameters.
+            ' this types' type parameters.
             Dim newTypeArguments As TypeSymbol() = Nothing
             Dim i As Integer = 0
             Dim typeArgument As TypeSymbol
@@ -1116,6 +1117,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End While
 
             Return typeArguments
+        End Function
+
+        ''' <summary>
+        ''' Return all of the type arguments and their modifiers in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Function GetAllTypeArgumentsWithModifiers(type As NamedTypeSymbol) As ImmutableArray(Of TypeWithModifiers)
+            Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
+            Dim typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers
+
+            While True
+                type = type.ContainingType
+                If type Is Nothing Then
+                    Exit While
+                End If
+                typeArguments = type.TypeArgumentsNoUseSiteDiagnostics.Concat(typeArguments)
+                typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers.Concat(typeArgumentsCustomModifiers)
+            End While
+
+            Return ImmutableArray.CreateRange(typeArguments.Zip(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m)))
         End Function
 
         ''' <summary>

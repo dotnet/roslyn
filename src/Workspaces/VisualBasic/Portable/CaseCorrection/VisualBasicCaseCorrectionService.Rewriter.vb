@@ -9,13 +9,13 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
-    Partial Class VisualBasicCaseCorrectionService
+    Friend Partial Class VisualBasicCaseCorrectionService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly createAliasSet As Func(Of ImmutableHashSet(Of String)) =
+            Private ReadOnly _createAliasSet As Func(Of ImmutableHashSet(Of String)) =
                 Function()
-                    Dim model = DirectCast(Me.semanticModel.GetOriginalSemanticModel(), SemanticModel)
+                    Dim model = DirectCast(Me._semanticModel.GetOriginalSemanticModel(), SemanticModel)
 
                     ' root should be already available
                     If Not model.SyntaxTree.HasCompilationUnitRoot Then
@@ -38,25 +38,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                     Return [set].ToImmutable()
                 End Function
 
-            Private ReadOnly syntaxFactsService As ISyntaxFactsService
-            Private ReadOnly semanticModel As SemanticModel
-            Private ReadOnly aliasSet As Lazy(Of ImmutableHashSet(Of String))
-            Private ReadOnly cancellationToken As CancellationToken
+            Private ReadOnly _syntaxFactsService As ISyntaxFactsService
+            Private ReadOnly _semanticModel As SemanticModel
+            Private ReadOnly _aliasSet As Lazy(Of ImmutableHashSet(Of String))
+            Private ReadOnly _cancellationToken As CancellationToken
 
-            Sub New(syntaxFactsService As ISyntaxFactsService, semanticModel As SemanticModel, cancellationToken As CancellationToken)
+            Public Sub New(syntaxFactsService As ISyntaxFactsService, semanticModel As SemanticModel, cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
-                Me.syntaxFactsService = syntaxFactsService
-                Me.semanticModel = semanticModel
-                Me.aliasSet = New Lazy(Of ImmutableHashSet(Of String))(createAliasSet)
-                Me.cancellationToken = cancellationToken
+                Me._syntaxFactsService = syntaxFactsService
+                Me._semanticModel = semanticModel
+                Me._aliasSet = New Lazy(Of ImmutableHashSet(Of String))(_createAliasSet)
+                Me._cancellationToken = cancellationToken
             End Sub
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Dim newToken = MyBase.VisitToken(token)
 
-                If syntaxFactsService.IsIdentifier(newToken) Then
+                If _syntaxFactsService.IsIdentifier(newToken) Then
                     Return VisitIdentifier(token, newToken)
-                ElseIf syntaxFactsService.IsKeyword(newToken) OrElse syntaxFactsService.IsContextualKeyword(newToken) Then
+                ElseIf _syntaxFactsService.IsKeyword(newToken) OrElse _syntaxFactsService.IsContextualKeyword(newToken) Then
                     Return VisitKeyword(newToken)
                 ElseIf token.IsNumericLiteral() Then
                     Return VisitNumericLiteral(newToken)
@@ -68,14 +68,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             End Function
 
             Private Function VisitIdentifier(token As SyntaxToken, newToken As SyntaxToken) As SyntaxToken
-                If newToken.IsMissing OrElse TypeOf newToken.Parent Is ArgumentSyntax OrElse semanticModel Is Nothing Then
+                If newToken.IsMissing OrElse TypeOf newToken.Parent Is ArgumentSyntax OrElse _semanticModel Is Nothing Then
                     Return newToken
                 End If
 
                 If token.Parent.IsPartOfStructuredTrivia() Then
                     Dim identifierSyntax = TryCast(token.Parent, IdentifierNameSyntax)
                     If identifierSyntax IsNot Nothing Then
-                        Dim preprocessingSymbolInfo = semanticModel.GetPreprocessingSymbolInfo(identifierSyntax)
+                        Dim preprocessingSymbolInfo = _semanticModel.GetPreprocessingSymbolInfo(identifierSyntax)
                         If preprocessingSymbolInfo.Symbol IsNot Nothing Then
                             Dim name = preprocessingSymbolInfo.Symbol.Name
                             If Not String.IsNullOrEmpty(name) AndAlso name <> token.ValueText Then
@@ -127,8 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                     End If
                 End If
 
-                Dim symbol = GetAliasOrAnySymbol(semanticModel, token.Parent, cancellationToken)
+                Dim symbol = GetAliasOrAnySymbol(_semanticModel, token.Parent, _cancellationToken)
                 If symbol Is Nothing Then
+                    Return newToken
+                End If
+
+                Dim expression = TryCast(token.Parent, ExpressionSyntax)
+                If expression IsNot Nothing AndAlso SyntaxFacts.IsInNamespaceOrTypeContext(expression) AndAlso Not IsNamespaceOrTypeRelatedSymbol(symbol) Then
                     Return newToken
                 End If
 
@@ -150,9 +155,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return CaseCorrectIdentifierIfNamesDiffer(token, newToken, symbol)
             End Function
 
+            Private Shared Function IsNamespaceOrTypeRelatedSymbol(symbol As ISymbol) As Boolean
+                Return TypeOf symbol Is INamespaceOrTypeSymbol OrElse
+                    (TypeOf symbol Is IAliasSymbol AndAlso TypeOf DirectCast(symbol, IAliasSymbol).Target Is INamespaceOrTypeSymbol) OrElse
+                    (symbol.IsKind(SymbolKind.Method) AndAlso DirectCast(symbol, IMethodSymbol).MethodKind = MethodKind.Constructor)
+            End Function
+
             Private Function GetAliasOrAnySymbol(model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISymbol
                 Dim identifier = TryCast(node, IdentifierNameSyntax)
-                If identifier IsNot Nothing AndAlso Me.aliasSet.Value.Contains(identifier.Identifier.ValueText) Then
+                If identifier IsNot Nothing AndAlso Me._aliasSet.Value.Contains(identifier.Identifier.ValueText) Then
                     Dim [alias] = model.GetAliasInfo(identifier, cancellationToken)
                     If [alias] IsNot Nothing Then
                         Return [alias]
@@ -182,9 +193,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
             Private Function GetOtherPartOfPartialMethod(methodDeclaration As MethodStatementSyntax, <Out> ByRef definitionPart As IMethodSymbol) As IMethodSymbol
                 Contract.ThrowIfNull(methodDeclaration)
-                Contract.ThrowIfNull(semanticModel)
+                Contract.ThrowIfNull(_semanticModel)
 
-                Dim methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken)
+                Dim methodSymbol = _semanticModel.GetDeclaredSymbol(methodDeclaration, _cancellationToken)
                 If methodSymbol IsNot Nothing Then
                     definitionPart = If(methodSymbol.PartialDefinitionPart, methodSymbol)
                     Return If(methodSymbol.PartialDefinitionPart, methodSymbol.PartialImplementationPart)
@@ -195,8 +206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
             Private Shared Function GetCorrectedName(token As SyntaxToken, symbol As ISymbol) As String
                 If symbol.IsAttribute Then
-                    If String.Equals(token.ValueText & AttributeSuffix, symbol.Name, StringComparison.OrdinalIgnoreCase) Then
-                        Return symbol.Name.Substring(0, symbol.Name.Length - AttributeSuffix.Length)
+                    If String.Equals(token.ValueText & s_attributeSuffix, symbol.Name, StringComparison.OrdinalIgnoreCase) Then
+                        Return symbol.Name.Substring(0, symbol.Name.Length - s_attributeSuffix.Length)
                     End If
                 End If
 
@@ -222,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 End If
 
                 If symbol.IsAttribute() Then
-                    If symbol.Name = token.ValueText & AttributeSuffix Then
+                    If symbol.Name = token.ValueText & s_attributeSuffix Then
                         Return False
                     End If
                 End If
@@ -233,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             Private Function VisitKeyword(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
                     Dim actualText = token.ToString()
-                    Dim expectedText = syntaxFactsService.GetText(token.Kind)
+                    Dim expectedText = _syntaxFactsService.GetText(token.Kind)
 
                     If Not String.IsNullOrWhiteSpace(expectedText) AndAlso actualText <> expectedText Then
                         Return SyntaxFactory.Token(token.LeadingTrivia, token.Kind, token.TrailingTrivia, expectedText)
@@ -270,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                     ' For character literals, we case correct the type character to "c".
                     Dim actualText = token.ToString()
 
-                    If actualText.EndsWith("C") Then
+                    If actualText.EndsWith("C", StringComparison.Ordinal) Then
                         Dim expectedText = actualText.Substring(0, actualText.Length - 1) & "c"
                         Return SyntaxFactory.ParseToken(expectedText).WithLeadingTrivia(token.LeadingTrivia).WithTrailingTrivia(token.TrailingTrivia)
                     End If
@@ -284,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
                 If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Width >= 3 Then
                     Dim remText = trivia.ToString().Substring(0, 3)
-                    Dim remKeywordText As String = syntaxFactsService.GetText(SyntaxKind.REMKeyword)
+                    Dim remKeywordText As String = _syntaxFactsService.GetText(SyntaxKind.REMKeyword)
                     If remText <> remKeywordText AndAlso SyntaxFacts.GetKeywordKind(remText) = SyntaxKind.REMKeyword Then
                         Dim expectedText = remKeywordText & trivia.ToString().Substring(3)
                         Return SyntaxFactory.CommentTrivia(expectedText)

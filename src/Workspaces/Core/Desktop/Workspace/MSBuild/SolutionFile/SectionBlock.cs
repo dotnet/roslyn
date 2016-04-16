@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal sealed partial class SectionBlock
     {
-        private readonly string type;
-        private readonly string parenthesizedName;
-        private readonly string value;
-        private readonly IEnumerable<KeyValuePair<string, string>> keyValuePairs;
+        private readonly string _type;
+        private readonly string _parenthesizedName;
+        private readonly string _value;
+        private readonly IEnumerable<KeyValuePair<string, string>> _keyValuePairs;
 
         public SectionBlock(string type, string parenthesizedName, string value, IEnumerable<KeyValuePair<string, string>> keyValuePairs)
         {
@@ -40,30 +40,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentException(string.Format(WorkspacesResources.StringIsNullOrEmpty, "value"));
             }
 
-            this.type = type;
-            this.parenthesizedName = parenthesizedName;
-            this.value = value;
-            this.keyValuePairs = keyValuePairs.ToList().AsReadOnly();
+            _type = type;
+            _parenthesizedName = parenthesizedName;
+            _value = value;
+            _keyValuePairs = keyValuePairs.ToList().AsReadOnly();
         }
 
         public string Type
         {
-            get { return type; }
+            get { return _type; }
         }
 
         public string ParenthesizedName
         {
-            get { return parenthesizedName; }
+            get { return _parenthesizedName; }
         }
 
         public string Value
         {
-            get { return value; }
+            get { return _value; }
         }
 
         public IEnumerable<KeyValuePair<string, string>> KeyValuePairs
         {
-            get { return keyValuePairs; }
+            get { return _keyValuePairs; }
         }
 
         internal string GetText(int indent)

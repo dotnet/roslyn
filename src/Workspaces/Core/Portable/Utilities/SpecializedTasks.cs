@@ -42,12 +42,12 @@ namespace Roslyn.Utilities
 
         private static class FromResultCache<T> where T : class
         {
-            private static readonly ConditionalWeakTable<T, Task<T>> fromResultCache = new ConditionalWeakTable<T, Task<T>>();
-            private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback taskCreationCallback = Task.FromResult<T>;
+            private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new ConditionalWeakTable<T, Task<T>>();
+            private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
 
             public static Task<T> FromResult(T t)
             {
-                return fromResultCache.GetValue(t, taskCreationCallback);
+                return s_fromResultCache.GetValue(t, s_taskCreationCallback);
             }
         }
     }

@@ -19,7 +19,7 @@ Public Module SyntaxTreeExtensions
     <System.Runtime.CompilerServices.Extension()>
     Friend Function WithReplaceFirst(syntaxTree As SyntaxTree, oldText As String, newText As String) As SyntaxTree
         Dim oldFullText = syntaxTree.GetText().ToString()
-        Dim offset As Integer = oldFullText.IndexOf(oldText)
+        Dim offset As Integer = oldFullText.IndexOf(oldText, StringComparison.Ordinal)
         Dim length As Integer = oldText.Length
         Return WithReplace(syntaxTree, offset, length, newText)
     End Function
@@ -27,7 +27,7 @@ Public Module SyntaxTreeExtensions
     <System.Runtime.CompilerServices.Extension()>
     Public Function WithReplace(syntaxTree As SyntaxTree, startIndex As Integer, oldText As String, newText As String) As SyntaxTree
         Dim oldFullText = syntaxTree.GetText().ToString()
-        Dim offset As Integer = oldFullText.IndexOf(oldText, startIndex)
+        Dim offset As Integer = oldFullText.IndexOf(oldText, startIndex, StringComparison.Ordinal)
         Dim length As Integer = oldText.Length
         Return WithReplace(syntaxTree, offset, length, newText)
     End Function
@@ -40,7 +40,7 @@ Public Module SyntaxTreeExtensions
     <System.Runtime.CompilerServices.Extension()>
     Public Function WithInsertBefore(syntaxTree As SyntaxTree, existingText As String, newText As String) As SyntaxTree
         Dim oldFullText = syntaxTree.GetText().ToString()
-        Dim offset As Integer = oldFullText.IndexOf(existingText)
+        Dim offset As Integer = oldFullText.IndexOf(existingText, StringComparison.Ordinal)
         Return WithReplace(syntaxTree, offset, 0, newText)
     End Function
 

@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Options.Providers
     [ExportOptionProvider, Shared]
     internal class ExportedOptionProvider : IOptionProvider
     {
-        private readonly IEnumerable<Lazy<IOption>> options;
+        private readonly IEnumerable<Lazy<IOption>> _options;
 
         [ImportingConstructor]
         public ExportedOptionProvider([ImportMany] IEnumerable<Lazy<IOption>> options)
         {
-            this.options = options;
+            _options = options;
         }
 
         public IEnumerable<IOption> GetOptions()
         {
-            return options.Select(lazy => lazy.Value);
+            return _options.Select(lazy => lazy.Value);
         }
     }
 }

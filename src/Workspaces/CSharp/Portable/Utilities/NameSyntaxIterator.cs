@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal class NameSyntaxIterator : IEnumerable<NameSyntax>
     {
-        private readonly NameSyntax name;
+        private readonly NameSyntax _name;
 
         public NameSyntaxIterator(NameSyntax name)
         {
@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 throw new ArgumentNullException(@"name");
             }
 
-            this.name = name;
+            _name = name;
         }
 
         public IEnumerator<NameSyntax> GetEnumerator()
         {
             var nodes = new LinkedList<NameSyntax>();
 
-            var currentNode = name;
+            var currentNode = _name;
             while (true)
             {
                 if (currentNode.Kind() == SyntaxKind.QualifiedName)

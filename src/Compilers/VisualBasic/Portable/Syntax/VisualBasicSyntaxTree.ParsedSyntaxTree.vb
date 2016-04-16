@@ -3,12 +3,11 @@
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Instrumentation
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class VisualBasicSyntaxTree
+    Public Partial Class VisualBasicSyntaxTree
 
         ''' <summary>
         ''' A SyntaxTree is a tree of nodes that represents an entire file of VB
@@ -45,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)
 
                 _lazyText = textOpt
-                _encodingOpt = encodingOpt
+                _encodingOpt = If(encodingOpt, textOpt?.Encoding)
                 _checksumAlgorithm = checksumAlgorithm
                 _options = options
                 _path = path
@@ -68,10 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
                 If _lazyText Is Nothing Then
-                    Using Logger.LogBlock(FunctionId.VisualBasic_SyntaxTree_GetText, message:=Me.FilePath, cancellationToken:=cancellationToken)
-                        Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
-                        Interlocked.CompareExchange(_lazyText, treeText, Nothing)
-                    End Using
+                    Dim treeText = Me.GetRoot(cancellationToken).GetText(_encodingOpt, _checksumAlgorithm)
+                    Interlocked.CompareExchange(_lazyText, treeText, Nothing)
                 End If
 
                 Return _lazyText
@@ -81,6 +78,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 text = _lazyText
                 Return text IsNot Nothing
             End Function
+
+            Public Overrides ReadOnly Property Encoding As Encoding
+                Get
+                    Return _encodingOpt
+                End Get
+            End Property
 
             Public Overrides ReadOnly Property Length As Integer
                 Get
@@ -118,13 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Public Overrides Function GetReference(node As SyntaxNode) As SyntaxReference
                 Return New SimpleSyntaxReference(Me, node)
-            End Function
-
-            ''' <summary>
-            ''' Returns a <see cref="String" /> that represents the source code of this parsed tree.
-            ''' </summary>
-            Public Overrides Function ToString() As String
-                Return Me.GetText().ToString()
             End Function
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree

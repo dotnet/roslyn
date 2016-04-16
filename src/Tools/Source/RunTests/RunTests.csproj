@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <NonShipping>True</NonShipping>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RunTests</RootNamespace>
+    <AssemblyName>RunTests</AssemblyName>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <SignAssembly>false</SignAssembly>
+    <OutDir>$(OutDir)RunTests\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <PropertyGroup>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyScheduler.cs" />
+    <Compile Include="Cache\ContentUtil.cs" />
+    <Compile Include="Cache\CachingTestExecutor.cs" />
+    <Compile Include="Cache\ContentFile.cs" />
+    <Compile Include="Cache\EmptyDataStorage.cs" />
+    <Compile Include="Cache\WebDataStorage.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="CrashDumps.cs" />
+    <Compile Include="FileUtil.cs" />
+    <Compile Include="Cache\IDataStorage.cs" />
+    <Compile Include="ITestExecutor.cs" />
+    <Compile Include="Cache\LocalDataStorage.cs" />
+    <Compile Include="Logger.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="ProcessRunner.cs" />
+    <Compile Include="ProcessTestExecutor.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="TestRunner.cs" />
+    <Compile Include="ConsoleUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\Metadata\Metadata.csproj">
+      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
+      <Name>Metadata</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

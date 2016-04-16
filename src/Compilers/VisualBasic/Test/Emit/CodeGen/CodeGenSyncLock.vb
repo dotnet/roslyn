@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub SimpleSyncLock()
+        Public Sub SimpleSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -66,7 +66,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockOldMonitorEnter()
+        Public Sub SimpleSyncLockOldMonitorEnter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -118,7 +118,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockTypeParameter()
+        Public Sub SimpleSyncLockTypeParameter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -181,7 +181,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockObjectType()
+        Public Sub SimpleSyncLockObjectType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -239,7 +239,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockPropertyAccess()
+        Public Sub SimpleSyncLockPropertyAccess()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -270,7 +270,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockNothing()
+        Public Sub SimpleSyncLockNothing()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -319,7 +319,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockInterface()
+        Public Sub SimpleSyncLockInterface()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -369,7 +369,7 @@ End Interface
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockSharedObject()
+        Public Sub SimpleSyncLockSharedObject()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -416,7 +416,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockDelegate()
+        Public Sub SimpleSyncLockDelegate()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -465,7 +465,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CallMonitorExitInSyncLock()
+        Public Sub CallMonitorExitInSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -512,7 +512,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CallMonitorExitInSyncLock_1()
+        Public Sub CallMonitorExitInSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -564,7 +564,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockMe()
+        Public Sub SyncLockMe()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -608,7 +608,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockString()
+        Public Sub SyncLockString()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -652,7 +652,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock()
+        Public Sub NestedSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -726,7 +726,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock_1()
+        Public Sub NestedSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -801,7 +801,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TryAndSyncLock()
+        Public Sub TryAndSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -867,13 +867,14 @@ End Module
         End Sub
 
         <Fact()>
-        Sub TryAndSyncLock_1()
+        Public Sub TryAndSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
 Module M1
     Sub Main()
         Try
+            Dim o = Nothing
         Catch
         Finally
 lab1:
@@ -891,49 +892,49 @@ End Module
   // Code size       44 (0x2c)
   .maxstack  2
   .locals init (Object V_0,
-  Boolean V_1)
+                Boolean V_1)
   .try
-{
-  .try
-{
-  IL_0000:  leave.s    IL_002a
-}
-  catch System.Exception
-{
-  IL_0002:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0007:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_000c:  leave.s    IL_002a
-}
-}
+  {
+    .try
+    {
+      IL_0000:  leave.s    IL_002a
+    }
+    catch System.Exception
+    {
+      IL_0002:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+      IL_0007:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+      IL_000c:  leave.s    IL_002a
+    }
+  }
   finally
-{
-  IL_000e:  ldsfld     "String.Empty As String"
-  IL_0013:  stloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.1
-  .try
-{
-  IL_0016:  ldloc.0
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
-  IL_001e:  leave.s    IL_000e
-}
-  finally
-{
-  IL_0020:  ldloc.1
-  IL_0021:  brfalse.s  IL_0029
-  IL_0023:  ldloc.0
-  IL_0024:  call       "Sub System.Threading.Monitor.Exit(Object)"
-  IL_0029:  endfinally
-}
-}
+  {
+    IL_000e:  ldsfld     "String.Empty As String"
+    IL_0013:  stloc.0
+    IL_0014:  ldc.i4.0
+    IL_0015:  stloc.1
+    .try
+    {
+      IL_0016:  ldloc.0
+      IL_0017:  ldloca.s   V_1
+      IL_0019:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+      IL_001e:  leave.s    IL_000e
+    }
+    finally
+    {
+      IL_0020:  ldloc.1
+      IL_0021:  brfalse.s  IL_0029
+      IL_0023:  ldloc.0
+      IL_0024:  call       "Sub System.Threading.Monitor.Exit(Object)"
+      IL_0029:  endfinally
+    }
+  }
   IL_002a:  br.s       IL_002a
 }
 ]]>)
         End Sub
 
         <Fact()>
-        Sub JumpFormOneCaseToAnotherCase()
+        Public Sub JumpFormOneCaseToAnotherCase()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1001,7 +1002,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CustomerApplication()
+        Public Sub CustomerApplication()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1039,7 +1040,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CustomerApplication_2()
+        Public Sub CustomerApplication_2()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1122,7 +1123,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockNoCheckForSyncLockOnValueType()
+        Public Sub SyncLockNoCheckForSyncLockOnValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1168,7 +1169,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SyncLockWithCheckForSyncLockOnValueType()
+        Public Sub SyncLockWithCheckForSyncLockOnValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1215,8 +1216,8 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(811916, "DevDiv")>
-        Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
+        <Fact, WorkItem(811916, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/811916")>
+        Public Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1268,6 +1269,181 @@ End Class
   IL_0026:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+
+            CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+
+            CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_03()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_04()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_05()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")>
+        Public Sub Bug1106943_06()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
         End Sub
 
     End Class

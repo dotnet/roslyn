@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpParseOptions.Default;
             }
 
-            public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, SyntaxNode node, Encoding encoding)
+            public override SyntaxTree CreateSyntaxTree(string fileName, ParseOptions options, Encoding encoding, SyntaxNode root)
             {
                 options = options ?? GetDefaultParseOptions();
-                return SyntaxFactory.SyntaxTree(node, options, fileName, encoding);
+                return SyntaxFactory.SyntaxTree(root, options, fileName, encoding);
             }
 
             public override SyntaxTree ParseSyntaxTree(string fileName, ParseOptions options, SourceText text, CancellationToken cancellationToken)
@@ -48,9 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
             }
 
-            public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions optionsOpt, ValueSource<TextAndVersion> text, SyntaxNode root)
+            public override bool CanCreateRecoverableTree(SyntaxNode root)
             {
-                return RecoverableSyntaxTree.CreateRecoverableTree(this, cacheKey, filePath, optionsOpt ?? GetDefaultParseOptions(), text, (CompilationUnitSyntax)root);
+                var cu = root as CompilationUnitSyntax;
+                return base.CanCreateRecoverableTree(root) && cu != null && cu.AttributeLists.Count == 0;
+            }
+
+            public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root)
+            {
+                System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
+                return RecoverableSyntaxTree.CreateRecoverableTree(this, cacheKey, filePath, options ?? GetDefaultParseOptions(), text, encoding, (CompilationUnitSyntax)root);
             }
         }
     }

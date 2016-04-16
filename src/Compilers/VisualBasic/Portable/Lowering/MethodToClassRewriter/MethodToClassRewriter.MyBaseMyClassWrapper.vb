@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
-        Inherits BoundTreeRewriter
 
         Private Function SubstituteMethodForMyBaseOrMyClassCall(receiverOpt As BoundExpression, originalMethodBeingCalled As MethodSymbol) As MethodSymbol
             If (originalMethodBeingCalled.IsMetadataVirtual OrElse Me.IsInExpressionLambda) AndAlso
@@ -149,12 +148,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend NotInheritable Class SynthesizedWrapperMethod
             Inherits SynthesizedMethod
 
-            Private ReadOnly m_wrappedMethod As MethodSymbol
-            Private ReadOnly m_typeMap As TypeSubstitution
-            Private ReadOnly m_typeParameters As ImmutableArray(Of TypeParameterSymbol)
-            Private ReadOnly m_parameters As ImmutableArray(Of ParameterSymbol)
-            Private ReadOnly m_returnType As TypeSymbol
-            Private ReadOnly m_locations As ImmutableArray(Of Location)
+            Private ReadOnly _wrappedMethod As MethodSymbol
+            Private ReadOnly _typeMap As TypeSubstitution
+            Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _returnType As TypeSymbol
+            Private ReadOnly _locations As ImmutableArray(Of Location)
 
             ''' <summary>
             ''' Creates a symbol for a method that wraps the call to a method through MyBase/MyClass receiver.
@@ -170,43 +169,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 MyBase.New(syntax, containingType, wrapperName, False)
 
-                Me.m_locations = ImmutableArray.Create(Of Location)(syntax.GetLocation())
+                Me._locations = ImmutableArray.Create(Of Location)(syntax.GetLocation())
 
-                Me.m_typeMap = Nothing
+                Me._typeMap = Nothing
 
                 If Not methodToWrap.IsGenericMethod Then
-                    Me.m_typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
-                    Me.m_wrappedMethod = methodToWrap
+                    Me._typeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
+                    Me._wrappedMethod = methodToWrap
                 Else
-                    Me.m_typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(methodToWrap.OriginalDefinition.TypeParameters, Me, CreateTypeParameter)
+                    Me._typeParameters = SynthesizedClonedTypeParameterSymbol.MakeTypeParameters(methodToWrap.OriginalDefinition.TypeParameters, Me, CreateTypeParameter)
 
-                    Dim typeArgs(Me.m_typeParameters.Length - 1) As TypeSymbol
-                    For ind = 0 To Me.m_typeParameters.Length - 1
-                        typeArgs(ind) = Me.m_typeParameters(ind)
+                    Dim typeArgs(Me._typeParameters.Length - 1) As TypeSymbol
+                    For ind = 0 To Me._typeParameters.Length - 1
+                        typeArgs(ind) = Me._typeParameters(ind)
                     Next
 
                     Dim newConstructedWrappedMethod As MethodSymbol = methodToWrap.Construct(typeArgs.AsImmutableOrNull())
 
-                    Me.m_typeMap = TypeSubstitution.Create(newConstructedWrappedMethod.OriginalDefinition,
+                    Me._typeMap = TypeSubstitution.Create(newConstructedWrappedMethod.OriginalDefinition,
                                                            newConstructedWrappedMethod.OriginalDefinition.TypeParameters,
                                                            typeArgs.AsImmutableOrNull())
 
-                    Me.m_wrappedMethod = newConstructedWrappedMethod
+                    Me._wrappedMethod = newConstructedWrappedMethod
                 End If
 
-                Dim params(Me.m_wrappedMethod.ParameterCount - 1) As ParameterSymbol
-                For i = 0 To params.Count - 1
-                    Dim curParam = Me.m_wrappedMethod.Parameters(i)
-                    params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me.m_typeMap), curParam)
+                Dim params(Me._wrappedMethod.ParameterCount - 1) As ParameterSymbol
+                For i = 0 To params.Length - 1
+                    Dim curParam = Me._wrappedMethod.Parameters(i)
+                    params(i) = SynthesizedMethod.WithNewContainerAndType(Me, curParam.Type.InternalSubstituteTypeParameters(Me._typeMap).Type, curParam)
                 Next
-                Me.m_parameters = params.AsImmutableOrNull()
+                Me._parameters = params.AsImmutableOrNull()
 
-                Me.m_returnType = Me.m_wrappedMethod.ReturnType.InternalSubstituteTypeParameters(Me.m_typeMap)
+                Me._returnType = Me._wrappedMethod.ReturnType.InternalSubstituteTypeParameters(Me._typeMap).Type
             End Sub
 
             Friend Overrides ReadOnly Property TypeMap As TypeSubstitution
                 Get
-                    Return Me.m_typeMap
+                    Return Me._typeMap
                 End Get
             End Property
 
@@ -223,13 +222,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property WrappedMethod As MethodSymbol
                 Get
-                    Return Me.m_wrappedMethod
+                    Return Me._wrappedMethod
                 End Get
             End Property
 
             Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
                 Get
-                    Return m_typeParameters
+                    Return _typeParameters
                 End Get
             End Property
 
@@ -246,19 +245,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
                 Get
-                    Return m_locations
+                    Return _locations
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                 Get
-                    Return m_parameters
+                    Return _parameters
                 End Get
             End Property
 
             Public Overrides ReadOnly Property ReturnType As TypeSymbol
                 Get
-                    Return m_returnType
+                    Return _returnType
                 End Get
             End Property
 
@@ -270,19 +269,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property IsSub As Boolean
                 Get
-                    Return Me.m_wrappedMethod.IsSub
+                    Return Me._wrappedMethod.IsSub
                 End Get
             End Property
 
             Public Overrides ReadOnly Property IsVararg As Boolean
                 Get
-                    Return Me.m_wrappedMethod.IsVararg
+                    Return Me._wrappedMethod.IsVararg
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Arity As Integer
                 Get
-                    Return m_typeParameters.Length
+                    Return _typeParameters.Length
                 End Get
             End Property
 
@@ -294,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Overrides ReadOnly Property ParameterCount As Integer
                 Get
-                    Return Me.m_parameters.Length
+                    Return Me._parameters.Length
                 End Get
             End Property
 

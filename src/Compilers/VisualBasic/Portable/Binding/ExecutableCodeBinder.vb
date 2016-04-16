@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Shared EmptyLabelMap As MultiDictionary(Of String, SourceLabelSymbol) = New MultiDictionary(Of String, SourceLabelSymbol)(0, IdentifierComparison.Comparer)
+        Private Shared ReadOnly s_emptyLabelMap As MultiDictionary(Of String, SourceLabelSymbol) = New MultiDictionary(Of String, SourceLabelSymbol)(0, IdentifierComparison.Comparer)
 
         Private Shared Function BuildLabelsMap(labels As ImmutableArray(Of SourceLabelSymbol)) As MultiDictionary(Of String, SourceLabelSymbol)
             If Not labels.IsEmpty Then
@@ -91,8 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 ' Return an empty map if there aren't any labels.
                 ' LookupLabelByNameToken and other methods assumes a non null map 
-                ' is returnd from the LabelMap property.
-                Return EmptyLabelMap
+                ' is returned from the LabelMap property.
+                Return s_emptyLabelMap
             End If
         End Function
 
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case labels.Count
                     Case 0
                         ' Not found
-                    
+
                     Case 1
                         lookupResult.SetFrom(SingleLookupResult.Good(labels.Single()))
 
@@ -241,21 +241,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 #End If
 
-        Class LabelVisitor
+        Public Class LabelVisitor
             Inherits StatementSyntaxWalker
 
-            Private ReadOnly labels As ArrayBuilder(Of SourceLabelSymbol)
-            Private ReadOnly containingMethod As MethodSymbol
-            Private ReadOnly binder As Binder
+            Private ReadOnly _labels As ArrayBuilder(Of SourceLabelSymbol)
+            Private ReadOnly _containingMethod As MethodSymbol
+            Private ReadOnly _binder As Binder
 
-            Sub New(labels As ArrayBuilder(Of SourceLabelSymbol), containingMethod As MethodSymbol, binder As Binder)
-                Me.labels = labels
-                Me.containingMethod = containingMethod
-                Me.binder = binder
+            Public Sub New(labels As ArrayBuilder(Of SourceLabelSymbol), containingMethod As MethodSymbol, binder As Binder)
+                Me._labels = labels
+                Me._containingMethod = containingMethod
+                Me._binder = binder
             End Sub
 
             Public Overrides Sub VisitLabelStatement(node As LabelStatementSyntax)
-                labels.Add(New SourceLabelSymbol(node.LabelToken, containingMethod, binder))
+                _labels.Add(New SourceLabelSymbol(node.LabelToken, _containingMethod, _binder))
             End Sub
         End Class
     End Class

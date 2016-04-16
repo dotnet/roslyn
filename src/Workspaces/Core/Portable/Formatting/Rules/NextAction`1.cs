@@ -10,20 +10,22 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal struct NextAction<TArgument>
     {
-        private readonly int index;
-        private readonly SyntaxNode node;
-        private readonly IActionHolder<TArgument> actionCache;
+        private readonly int _index;
+        private readonly SyntaxNode _node;
+        private readonly SyntaxToken _lastToken;
+        private readonly IActionHolder<TArgument> _actionCache;
 
-        public NextAction(int index, SyntaxNode node, IActionHolder<TArgument> actionCache)
+        public NextAction(int index, SyntaxNode node, SyntaxToken lastToken, IActionHolder<TArgument> actionCache)
         {
-            this.index = index;
-            this.node = node;
-            this.actionCache = actionCache;
+            _index = index;
+            _node = node;
+            _lastToken = lastToken;
+            _actionCache = actionCache;
         }
 
         public void Invoke(List<TArgument> arguments)
         {
-            this.actionCache.Continuation(this.index, arguments, this.node, this.actionCache);
+            _actionCache.Continuation(_index, arguments, _node, _lastToken, _actionCache);
         }
     }
 }

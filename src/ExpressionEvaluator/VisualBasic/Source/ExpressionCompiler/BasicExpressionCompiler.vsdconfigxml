@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="VisualBasicExpressionCompilerId" Value="3E921230-F90B-4FEB-8476-9269C61D2E0A"/>
+  <ManagedComponent
+    ComponentId="VisualBasicExpressionCompilerId"
+    ComponentLevel="9991500"
+    Synchronized="true"
+    AssemblyName="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler">
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicExpressionCompiler">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+          </Filter>
+          <Interface Name="IDkmClrExpressionCompiler"/>
+          <Interface Name="IDkmClrExpressionCompilerCallback"/>
+        </InterfaceGroup>
+        <InterfaceGroup
+          CallOnlyWhenLoaded="true">
+          <NoFilter/>
+          <Interface Name="IDkmModuleModifiedNotification"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFrameDecoder">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+          </Filter>
+          <Interface Name="IDkmLanguageFrameDecoder"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicLanguageInstructionDecoder">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+          </Filter>
+          <Interface Name="IDkmLanguageInstructionDecoder"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

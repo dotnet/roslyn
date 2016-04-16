@@ -13,31 +13,40 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public struct QueryClauseInfo : IEquatable<QueryClauseInfo>
     {
-        private readonly SymbolInfo castInfo;
-        private readonly SymbolInfo operationInfo;
+        private readonly SymbolInfo _castInfo;
+        private readonly SymbolInfo _operationInfo;
 
         internal QueryClauseInfo(SymbolInfo castInfo, SymbolInfo operationInfo)
         {
-            this.castInfo = castInfo;
-            this.operationInfo = operationInfo;
+            _castInfo = castInfo;
+            _operationInfo = operationInfo;
         }
 
         /// <summary>
-        /// The .Cast&lt;T&gt;() operation generated from the query range variable's type restriction.
-        /// If you want the type restriction, when this is non-null use Cast.TypeArguments[0].
+        /// The .Cast&lt;T&gt;() operation generated from the query range variable's type restriction,
+        /// or null if the type restriction isn't specified. 
         /// </summary>
+        /// <remarks>
+        /// The operation, when present is implemented via <see cref="IMethodSymbol"/>.
+        /// To access the type, when this is non-null use <see cref="IMethodSymbol.TypeArguments"/>[0].
+        /// If it is an extension method, it is returned in reduced form.
+        /// </remarks>
         public SymbolInfo CastInfo
         {
-            get { return castInfo; }
+            get { return _castInfo; }
         }
 
         /// <summary>
         /// The operation (e.g. Select(), Where(), etc) that implements the given clause.
-        /// If it is an extension method, it is returned in reduced form.
         /// </summary>
+        /// <remarks>
+        /// The clause can be implemented via <see cref="IMethodSymbol"/>, or 
+        /// <see cref="IFieldSymbol"/> or <see cref="IPropertySymbol"/> that return a delegate.
+        /// If it is an extension method, it is returned in reduced form.
+        /// </remarks>
         public SymbolInfo OperationInfo
         {
-            get { return operationInfo; }
+            get { return _operationInfo; }
         }
 
         public override bool Equals(object obj)
@@ -47,13 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(QueryClauseInfo other)
         {
-            return this.castInfo.Equals(other.castInfo)
-                && this.operationInfo.Equals(other.operationInfo);
+            return _castInfo.Equals(other._castInfo)
+                && _operationInfo.Equals(other._operationInfo);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.CastInfo.GetHashCode(), this.operationInfo.GetHashCode());
+            return Hash.Combine(this.CastInfo.GetHashCode(), _operationInfo.GetHashCode());
         }
     }
 }

@@ -445,7 +445,7 @@ Class Test1
 
     End Sub
 
-    Sub NotAConstrucstor()
+    Sub NotAConstructor()
         PassByRef(x)
 
         Dim y1 As System.Action(Of Integer) = Sub(v)
@@ -509,7 +509,7 @@ Class Test3
 
     End Sub
 
-    Sub NotAConstrucstor()
+    Sub NotAConstructor()
         PassByRef(x)
 
         Dim y1 As System.Action(Of Integer) = Sub(v)
@@ -1324,7 +1324,7 @@ BC42105: Function '<anonymous method>' doesn't return a value on all code paths.
 </expected>)
         End Sub
 
-        <WorkItem(539777, "DevDiv")>
+        <WorkItem(539777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539777")>
         <Fact>
         Public Sub TestOverloadResolutionWithStrictOff()
 
@@ -1359,7 +1359,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="abc")
         End Sub
 
-        <WorkItem(539608, "DevDiv")>
+        <WorkItem(539608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539608")>
         <Fact>
         Public Sub InvokeOffOfLambda()
 
@@ -1387,7 +1387,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="12")
         End Sub
 
-        <WorkItem(539519, "DevDiv")>
+        <WorkItem(539519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539519")>
         <Fact>
         Public Sub ParseIncompleteMultiLineLambdaWithExpressionAfterAsClause()
             ' This looks like a single line lambda with an as clause but it is in fact a badly formed multi-line lambda
@@ -1519,7 +1519,7 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
 </expected>)
         End Sub
 
-        <WorkItem(540867, "DevDiv")>
+        <WorkItem(540867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540867")>
         <Fact>
         Public Sub LambdaForSub2()
             Dim source =
@@ -1542,7 +1542,7 @@ End Module
             CompileAndVerify(source, expectedOutput:="Hello World.")
         End Sub
 
-        <WorkItem(528344, "DevDiv")>
+        <WorkItem(528344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528344")>
         <Fact()>
         Public Sub DelegateParametersCanBeOmittedInLambda()
             Dim source =
@@ -1562,7 +1562,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528346, "DevDiv")>
+        <WorkItem(528346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528346")>
         <Fact()>
         Public Sub ParameterTypesCanBeRelaxedInLambda()
             Dim source =
@@ -1582,7 +1582,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528347, "DevDiv")>
+        <WorkItem(528347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528347")>
         <Fact()>
         Public Sub ReturnTypeCanBeRelaxedInLambda()
             Dim source =
@@ -1605,7 +1605,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528348, "DevDiv")>
+        <WorkItem(528348, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528348")>
         <Fact()>
         Public Sub ReturnValueOfLambdaCanBeIgnored()
             Dim source =
@@ -1625,7 +1625,7 @@ End Module
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(528355, "DevDiv")>
+        <WorkItem(528355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528355")>
         <Fact()>
         Public Sub OverloadResolutionWithNestedLambdas()
             Dim source =
@@ -1652,7 +1652,7 @@ End Class
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-        <WorkItem(541008, "DevDiv")>
+        <WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")>
         <Fact>
         Public Sub LambdaInFieldInitializer()
             Dim source =
@@ -1675,7 +1675,7 @@ End Class
             CompileAndVerify(comp2, expectedOutput:="C")
         End Sub
 
-        <WorkItem(541894, "DevDiv")>
+        <WorkItem(541894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541894")>
         <Fact()>
         Public Sub InvokeLambda01()
             Dim source =
@@ -1699,7 +1699,7 @@ End Module
             CompileAndVerify(comp2, expectedOutput:="123")
         End Sub
 
-        <WorkItem(528678, "DevDiv")>
+        <WorkItem(528678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528678")>
         <Fact>
         Public Sub LambdaInsideParens()
             Dim source =
@@ -1732,7 +1732,7 @@ End Module
 
         End Sub
 
-        <WorkItem(542665, "DevDiv")>
+        <WorkItem(542665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542665")>
         <Fact>
         Public Sub DimInSingleLineIfInSingleLineLambda()
 
@@ -1755,7 +1755,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub FunctionValueOfLamdbdaDoesNotHavaAName()
+        Public Sub FunctionValueOfLambdaDoesNotHaveAName()
 
             Dim compilationDef =
 <compilation>
@@ -1781,7 +1781,7 @@ End Module
             CompileAndVerify(compilationDef).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(546167, "DevDiv")>
+        <WorkItem(546167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546167")>
         <Fact()>
         Public Sub ImplicitlyDeclaredVariableInsideLambdaReused()
 
@@ -1823,7 +1823,7 @@ BC42104: Variable 'implicit2' is used before it has been assigned a value. A nul
 </expected>)
         End Sub
 
-        <WorkItem(760094, "DevDiv")>
+        <WorkItem(760094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760094")>
         <Fact()>
         Public Sub Bug760094_OneTopLevelLambda()
 
@@ -1899,7 +1899,7 @@ Done.
   IL_0011:  ldarg.0
   IL_0012:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_0017:  ldarg.0
-  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__2-1(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__2-0(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_001e:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_0023:  ldnull
   IL_0024:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
@@ -1907,7 +1907,7 @@ Done.
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__2-1",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__2-0",
             <![CDATA[
 {
   // Code size       31 (0x1f)
@@ -1919,13 +1919,13 @@ Done.
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__2-0.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2-0._Lambda$__2(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2-0._Lambda$__1(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2-0._Lambda$__2",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -1941,7 +1941,7 @@ Done.
 ]]>)
         End Sub
 
-        <WorkItem(760094, "DevDiv")>
+        <WorkItem(760094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760094")>
         <Fact()>
         Public Sub Bug760094_TwoTopLevelLambdas()
 
@@ -2015,14 +2015,14 @@ End Class
   IL_0011:  ldarg.0
   IL_0012:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_0017:  ldarg.0
-  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-1(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-0(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_001e:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_0023:  ldnull
   IL_0024:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
   IL_0029:  ldarg.0
   IL_002a:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_002f:  ldarg.0
-  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-3(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-2(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_0036:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_003b:  ldnull
   IL_003c:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
@@ -2030,7 +2030,7 @@ End Class
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-1",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-0",
             <![CDATA[
 {
   // Code size       31 (0x1f)
@@ -2042,13 +2042,13 @@ End Class
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1-0.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-0._Lambda$__2(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-0._Lambda$__1(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-3",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-2",
             <![CDATA[
 {
   // Code size       31 (0x1f)
@@ -2060,13 +2060,13 @@ End Class
   IL_000c:  dup
   IL_000d:  ldarg.1
   IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1-1.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-1._Lambda$__4(Object)"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-1._Lambda$__3(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-0._Lambda$__2",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -2081,7 +2081,7 @@ End Class
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-1._Lambda$__4",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-1._Lambda$__3",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -2094,6 +2094,71 @@ End Class
   IL_0011:  callvirt   "Sub OnePropertyPathBinding.RemoveNotify(Integer)"
   IL_0016:  ret
 }
+]]>)
+        End Sub
+
+        <WorkItem(1207506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1207506"), WorkItem(4899, "https://github.com/dotnet/roslyn/issues/4899")>
+        <Fact()>
+        Public Sub InitClosureInsideABlockInAConstructor()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim f As New FpB(100, 100)
+        System.Console.WriteLine(f.FPixels.Length)
+    End Sub
+
+End Module
+
+Public Class FpB
+    Public Property FPixels() As FloatPointF(,)
+        Get
+            System.Console.WriteLine("In getter")
+            Return m_FPixels
+        End Get
+        Set(value As FloatPointF(,))
+            m_FPixels = value
+        End Set
+    End Property
+    Private m_FPixels As FloatPointF(,)
+
+
+    Public Sub New(width As Integer, height As Integer)
+        Try
+            Dim w As Integer = width
+            Dim h As Integer = height
+            Me.FPixels = New FloatPointF(w - 1, h - 1) {}
+            CallDelegate(Sub(y)
+                             Dim x = Math.Min(0, w - 1)
+                         End Sub)
+        Catch ex As Exception
+            System.Console.WriteLine(ex.Message)
+        End Try
+    End Sub
+
+    Sub CallDelegate(d As Action(Of Integer))
+        d(1)
+    End Sub
+End Class
+
+Public Structure FloatPointF
+    Public X As Single
+    Public Y As Single
+End Structure
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+In getter
+10000
 ]]>)
         End Sub
 

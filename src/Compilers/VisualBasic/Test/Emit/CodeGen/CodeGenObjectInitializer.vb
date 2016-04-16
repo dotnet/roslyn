@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub ObjectInitializerAsRefTypeEqualsNew()
+        Public Sub ObjectInitializerAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -78,7 +78,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewRefType()
+        Public Sub ObjectInitializerAsNewRefType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -146,7 +146,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsValueTypeEqualsNew()
+        Public Sub ObjectInitializerAsValueTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -214,7 +214,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueType()
+        Public Sub ObjectInitializerAsNewValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -261,7 +261,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloc.0
@@ -279,7 +279,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsValueTypeEqualsNewOneParameterContructor()
+        Public Sub ObjectInitializerAsValueTypeEqualsNewOneParameterConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -352,7 +352,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeOneParameterContructor()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -404,7 +404,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloc.0
@@ -422,7 +422,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeInTryCatch()
+        Public Sub ObjectInitializerAsNewValueTypeInTryCatch()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -465,45 +465,45 @@ End Class
   .maxstack  2
   .locals init (S2 V_0) //x
   .try
-{
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "S2"
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.s   23
-  IL_000c:  stfld      "S2.Field As Integer"
-  IL_0011:  ldloca.s   V_0
-  IL_0013:  ldc.i4.s   42
-  IL_0015:  call       "Sub S2.set_AProperty(Integer)"
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
-  IL_001d:  ldfld      "S2.Field As Integer"
-  IL_0022:  stfld      "S2.Field2 As Integer"
-  IL_0027:  ldloc.0
-  IL_0028:  ldfld      "S2.Field As Integer"
-  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0032:  ldloca.s   V_0
-  IL_0034:  call       "Function S2.get_AProperty() As Integer"
-  IL_0039:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_003e:  ldloc.0
-  IL_003f:  ldfld      "S2.Field2 As Integer"
-  IL_0044:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0049:  leave.s    IL_0061
-}
+  {
+    IL_0000:  ldloca.s   V_0
+    IL_0002:  initobj    "S2"
+    IL_0008:  ldloca.s   V_0
+    IL_000a:  ldc.i4.s   23
+    IL_000c:  stfld      "S2.Field As Integer"
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  ldc.i4.s   42
+    IL_0015:  call       "Sub S2.set_AProperty(Integer)"
+    IL_001a:  ldloca.s   V_0
+    IL_001c:  ldloc.0
+    IL_001d:  ldfld      "S2.Field As Integer"
+    IL_0022:  stfld      "S2.Field2 As Integer"
+    IL_0027:  ldloc.0
+    IL_0028:  ldfld      "S2.Field As Integer"
+    IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0032:  ldloca.s   V_0
+    IL_0034:  call       "Function S2.get_AProperty() As Integer"
+    IL_0039:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_003e:  ldloc.0
+    IL_003f:  ldfld      "S2.Field2 As Integer"
+    IL_0044:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0049:  leave.s    IL_0061
+  }
   catch System.Exception
-{
-  IL_004b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0050:  ldstr      "failed"
-  IL_0055:  call       "Sub System.Console.WriteLine(String)"
-  IL_005a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_005f:  leave.s    IL_0061
-}
+  {
+    IL_004b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0050:  ldstr      "failed"
+    IL_0055:  call       "Sub System.Console.WriteLine(String)"
+    IL_005a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_005f:  leave.s    IL_0061
+  }
   IL_0061:  ret
 }
 ]]>)
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeOneParameterContructorMultipleVariables()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterConstructorMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -552,7 +552,7 @@ End Class
   // Code size      147 (0x93)
   .maxstack  2
   .locals init (S2 V_0, //x
-  S2 V_1) //y
+                S2 V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub S2..ctor(Integer)"
@@ -563,7 +563,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloca.s   V_1
@@ -603,7 +603,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeMultipleVariables()
+        Public Sub ObjectInitializerAsNewValueTypeMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -648,7 +648,7 @@ End Class
   // Code size      147 (0x93)
   .maxstack  2
   .locals init (S2 V_0, //x
-  S2 V_1) //y
+                S2 V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S2"
   IL_0008:  ldloca.s   V_0
@@ -658,7 +658,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloca.s   V_1
@@ -697,7 +697,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewRefTypeMultipleVariables()
+        Public Sub ObjectInitializerAsNewRefTypeMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -796,7 +796,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterNewConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterNewConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -856,7 +856,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterStuctureConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterStructureConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewTypeParameterClassConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterClassConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -967,7 +967,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerNestedAsRefTypeEqualsNew()
+        Public Sub ObjectInitializerNestedAsRefTypeEqualsNew()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1042,7 +1042,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerRefTypeIntoArrayElement()
+        Public Sub ObjectInitializerRefTypeIntoArrayElement()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1123,7 +1123,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerValueTypeIntoArrayElement()
+        Public Sub ObjectInitializerValueTypeIntoArrayElement()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1203,7 +1203,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerRefTypeIntoField()
+        Public Sub ObjectInitializerRefTypeIntoField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1271,7 +1271,7 @@ Nothing
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerValueTypeIntoField()
+        Public Sub ObjectInitializerValueTypeIntoField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1339,7 +1339,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerAsNewValueTypeMultipleVariablesOfField()
+        Public Sub ObjectInitializerAsNewValueTypeMultipleVariablesOfField()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1411,7 +1411,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerPropertyInitializer()
+        Public Sub ObjectInitializerPropertyInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1486,7 +1486,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub ObjectInitializerFieldInitializer()
+        Public Sub ObjectInitializerFieldInitializer()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1615,7 +1615,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub InitTemp001()
+        Public Sub InitTemp001()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1670,7 +1670,7 @@ False
         End Sub
 
         <Fact()>
-        Sub InitTemp002()
+        Public Sub InitTemp002()
             Dim source =
 <compilation>
     <file name="a.vb">

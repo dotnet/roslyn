@@ -169,7 +169,6 @@ namespace Microsoft.Cci
         IMarshallingInformation MarshallingInformation
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -179,7 +178,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> MarshallingDescriptor
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -189,7 +187,6 @@ namespace Microsoft.Cci
         uint Offset
         {
             get;
-
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
         }
     }
@@ -199,7 +196,6 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IFieldReference : ITypeMemberReference
     { // TODO: add custom modifiers
-
         /// <summary>
         /// The type of value that is stored in this field.
         /// </summary>
@@ -319,8 +315,8 @@ namespace Microsoft.Cci
     internal class AsyncMethodBodyDebugInfo
     {
         /// <summary>
-       ///  Original async method transformed into MoveNext() 
-       /// </summary>
+        ///  Original async method transformed into MoveNext() 
+        /// </summary>
         public readonly IMethodDefinition KickoffMethod;
 
         /// <summary> 
@@ -354,7 +350,7 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// A metadata (IL) level represetation of the body of a method or of a property/event accessor.
+    /// A metadata (IL) level representation of the body of a method or of a property/event accessor.
     /// </summary>
     internal interface IMethodBody
     {
@@ -382,7 +378,6 @@ namespace Microsoft.Cci
         ImmutableArray<ExceptionHandlerRegion> ExceptionRegions
         {
             get;
-
             // ^ requires !this.MethodDefinition.IsAbstract && !this.MethodDefinition.IsExternal && this.MethodDefinition.IsCil;
         }
 
@@ -400,10 +395,7 @@ namespace Microsoft.Cci
         /// The definition of the method whose body this is.
         /// If this is the body of an event or property accessor, this will hold the corresponding adder/remover/setter or getter method.
         /// </summary>
-        IMethodDefinition MethodDefinition
-        {
-            get;
-        }
+        IMethodDefinition MethodDefinition { get; }
 
         /// <summary>
         /// Debugging information associated with an async method to support EE.
@@ -415,22 +407,12 @@ namespace Microsoft.Cci
         /// </summary>
         ushort MaxStack { get; }
 
-        byte[] IL { get; }
+        ImmutableArray<byte> IL { get; }
         bool HasAnySequencePoints { get; }
-        ImmutableArray<SequencePoint> GetSequencePoints();
-        ImmutableArray<SequencePoint> GetLocations();
+        void GetSequencePoints(ArrayBuilder<SequencePoint> builder);
 
         /// <summary>
-        /// The PDB content for custom debug information is different between Visual Basic and CSharp.
-        /// E.g. CS always includes a CustomMetadata Header (MD2) that contains the namespace scope counts, where 
-        /// as VB only outputs namespace imports into the namespace scopes. CS defines forwards in that header, VB includes
-        /// them into the scopes list.
-        /// This enum is used to distinguish which style to pick while writing the PDB information.
-        /// </summary>
-        NamespaceScopeEncoding NamespaceScopeEncoding { get; }
-
-        /// <summary>
-        /// Returns true if there is atleast one dynamic local within the MethodBody
+        /// Returns true if there is at least one dynamic local within the MethodBody
         /// </summary>
         bool HasDynamicLocalVariables { get; }
 
@@ -440,12 +422,19 @@ namespace Microsoft.Cci
         ImmutableArray<LocalScope> LocalScopes { get; }
 
         /// <summary>
-        /// Returns zero or more namespace scopes into which the namespace type containing the given method body has been nested.
-        /// These scopes determine how simple names are looked up inside the method body. There is a separate scope for each dotted
-        /// component in the namespace type name. For istance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
-        /// is for the y.
+        /// Returns an import scope the method is declared within, or null if there is none 
+        /// (e.g. the method doesn't contain user code).
         /// </summary>
-        ImmutableArray<NamespaceScope> NamespaceScopes { get; }
+        /// <remarks>
+        /// The chain is a spine of a tree in a forest of import scopes. A tree of import scopes is created by the language for each source file
+        /// based on namespace declarations. In VB each tree is trivial single-node tree that declares the imports of a file.
+        /// In C# the tree copies the nesting of namespace declarations in the file. There is a separate scope for each dotted component in 
+        /// the namespace type name. For instance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
+        /// is for the y.
+        /// </remarks>
+        IImportScope ImportScope { get; }
+
+        DebugId MethodId { get; }
 
         /// <summary>
         /// Returns debug information for local variables hoisted to state machine fields, 
@@ -468,7 +457,7 @@ namespace Microsoft.Cci
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
         string StateMachineTypeName { get; }
-      
+
         /// <summary>
         /// Returns information relevant to EnC on slots of local variables hoisted to state machine fields, 
         /// or null if the method isn't the kickoff method of a state machine.
@@ -480,15 +469,9 @@ namespace Microsoft.Cci
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
         ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
-    }
 
-    /// <summary>
-    /// This enum is used to distinguish which style to pick while writing the PDB information.
-    /// </summary>
-    internal enum NamespaceScopeEncoding
-    {
-        InPlace,
-        Forwarding
+        ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
+        ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
     }
 
     /// <summary>
@@ -510,7 +493,6 @@ namespace Microsoft.Cci
         IEnumerable<IGenericMethodParameter> GenericParameters
         {
             get;
-
             // ^ requires this.IsGeneric;
         }
 
@@ -610,7 +592,6 @@ namespace Microsoft.Cci
         IPlatformInvokeInformation PlatformInvokeData
         {
             get;
-
             // ^ requires this.IsPlatformInvoke;
         }
 
@@ -636,7 +617,6 @@ namespace Microsoft.Cci
         IMarshallingInformation ReturnValueMarshallingInformation
         {
             get;
-
             // ^ requires this.ReturnValueIsMarshalledExplicitly;
         }
 
@@ -646,7 +626,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> ReturnValueMarshallingDescriptor
         {
             get;
-
             // ^ requires this.ReturnValueIsMarshalledExplicitly;
         }
 
@@ -654,6 +633,12 @@ namespace Microsoft.Cci
         /// Declarative security actions for this method.
         /// </summary>
         IEnumerable<SecurityAttribute> SecurityAttributes { get; }
+
+        /// <summary>
+        /// Namespace containing this method.
+        /// TODO: Ideally we would expose INamespace on INamespaceTypeDefinition. Right now we can only get the qualified namespace name.
+        /// </summary>
+        INamespace ContainingNamespace { get; }
     }
 
     /// <summary>
@@ -688,7 +673,6 @@ namespace Microsoft.Cci
         bool IsOptional
         {
             get;
-
             // ^ result ==> this.HasDefaultValue;
         }
 
@@ -703,7 +687,6 @@ namespace Microsoft.Cci
         IMarshallingInformation MarshallingInformation
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
 
@@ -713,7 +696,6 @@ namespace Microsoft.Cci
         ImmutableArray<byte> MarshallingDescriptor
         {
             get;
-
             // ^ requires this.IsMarshalledExplicitly;
         }
     }
@@ -735,7 +717,6 @@ namespace Microsoft.Cci
         IMetadataConstant DefaultValue
         {
             get;
-
             // ^ requires this.HasDefaultValue;
         }
 
@@ -915,7 +896,6 @@ namespace Microsoft.Cci
         ushort GenericParameterCount
         {
             get;
-
             // ^ ensures !this.IsGeneric ==> result == 0;
             // ^ ensures this.IsGeneric ==> result > 0;
         }

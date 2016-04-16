@@ -17,21 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceFieldLikeEventSymbol : SourceEventSymbol
     {
-        private readonly string name;
-        private readonly TypeSymbol type;
-        private readonly SourceEventFieldSymbol associatedField;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol addMethod;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol removeMethod;
+        private readonly string _name;
+        private readonly TypeSymbol _type;
+        private readonly SourceEventFieldSymbol _associatedField;
+        private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
+        private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, null, declaratorSyntax.Identifier, diagnostics)
         {
-            this.name = declaratorSyntax.Identifier.ValueText;
+            _name = declaratorSyntax.Identifier.ValueText;
 
 
             var declaratorDiagnostics = DiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
-            this.type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
+            _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
 
             // The runtime will not treat the accessors of this event as overrides or implementations
             // of those of another event unless both the signatures and the custom modifiers match.
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 EventSymbol overriddenEvent = this.OverriddenEvent;
                 if ((object)overriddenEvent != null)
                 {
-                    CopyEventCustomModifiers(overriddenEvent, ref this.type);
+                    CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                 }
             }
 
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // whether or not the initializer is legal.
             if (hasInitializer || !(inInterfaceType || this.IsExtern || this.IsAbstract))
             {
-                this.associatedField = MakeAssociatedField(declaratorSyntax);
+                _associatedField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
             // Accessors will assume that Type is available.
-            this.addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
-            this.removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
+            _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -98,27 +98,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override FieldSymbol AssociatedField
         {
-            get { return this.associatedField; }
+            get { return _associatedField; }
         }
 
         public override string Name
         {
-            get { return this.name; }
+            get { return _name; }
         }
 
         public override TypeSymbol Type
         {
-            get { return this.type; }
+            get { return _type; }
         }
 
         public override MethodSymbol AddMethod
         {
-            get { return this.addMethod; }
+            get { return _addMethod; }
         }
 
         public override MethodSymbol RemoveMethod
         {
-            get { return this.removeMethod; }
+            get { return _removeMethod; }
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)associatedField != null ?
+                return (object)_associatedField != null ?
                     AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
                     AttributeLocation.Event | AttributeLocation.Method;
             }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var field = new SourceEventFieldSymbol(this, declaratorSyntax, discardedDiagnostics);
             discardedDiagnostics.Free();
 
-            Debug.Assert(field.Name == this.name);
+            Debug.Assert(field.Name == _name);
             return field;
         }
 

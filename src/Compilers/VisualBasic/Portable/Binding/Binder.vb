@@ -3,6 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -46,58 +47,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend MustInherit Class Binder
 
-        Private Shared ReadOnly NoTypes As ImmutableArray(Of TypeSymbol) = ImmutableArray(Of TypeSymbol).Empty
-        Private Shared ReadOnly NoArguments As ImmutableArray(Of BoundExpression) = ImmutableArray(Of BoundExpression).Empty
+        Private Shared ReadOnly s_noTypes As ImmutableArray(Of TypeSymbol) = ImmutableArray(Of TypeSymbol).Empty
+        Private Shared ReadOnly s_noArguments As ImmutableArray(Of BoundExpression) = ImmutableArray(Of BoundExpression).Empty
 
         Protected ReadOnly m_containingBinder As Binder
 
         ' Caching these items in the nearest binder is a performance win.
-        Private ReadOnly m_syntaxTree As SyntaxTree
-        Private ReadOnly m_compilation As VisualBasicCompilation
-        Private ReadOnly m_sourceModule As SourceModuleSymbol
-        Private ReadOnly m_isEarlyAttributeBinder As Boolean
-        Private ReadOnly m_ignoreBaseClassesInLookup As Boolean
-        Private ReadOnly m_basesBeingResolved As ConsList(Of Symbol)
+        Private ReadOnly _syntaxTree As SyntaxTree
+        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _sourceModule As SourceModuleSymbol
+        Private ReadOnly _isEarlyAttributeBinder As Boolean
+        Private ReadOnly _ignoreBaseClassesInLookup As Boolean
+        Private ReadOnly _basesBeingResolved As ConsList(Of Symbol)
 
         Protected Sub New(containingBinder As Binder)
             m_containingBinder = containingBinder
 
             If containingBinder IsNot Nothing Then
-                m_syntaxTree = containingBinder.SyntaxTree
-                m_compilation = containingBinder.Compilation
-                m_sourceModule = containingBinder.SourceModule
-                m_isEarlyAttributeBinder = containingBinder.IsEarlyAttributeBinder
-                m_ignoreBaseClassesInLookup = containingBinder.IgnoreBaseClassesInLookup
-                m_basesBeingResolved = containingBinder.BasesBeingResolved
+                _syntaxTree = containingBinder.SyntaxTree
+                _compilation = containingBinder.Compilation
+                _sourceModule = containingBinder.SourceModule
+                _isEarlyAttributeBinder = containingBinder.IsEarlyAttributeBinder
+                _ignoreBaseClassesInLookup = containingBinder.IgnoreBaseClassesInLookup
+                _basesBeingResolved = containingBinder.BasesBeingResolved
             End If
         End Sub
 
         Protected Sub New(containingBinder As Binder, syntaxTree As SyntaxTree)
             Me.New(containingBinder)
-            m_syntaxTree = syntaxTree
+            _syntaxTree = syntaxTree
         End Sub
 
         Protected Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol, compilation As VisualBasicCompilation)
             Me.New(containingBinder)
-            m_sourceModule = sourceModule
-            m_compilation = compilation
+            _sourceModule = sourceModule
+            _compilation = compilation
         End Sub
 
         Protected Sub New(containingBinder As Binder, Optional isEarlyAttributeBinder As Boolean? = Nothing, Optional ignoreBaseClassesInLookup As Boolean? = Nothing)
             Me.New(containingBinder)
 
             If isEarlyAttributeBinder.HasValue Then
-                m_isEarlyAttributeBinder = isEarlyAttributeBinder.Value
+                _isEarlyAttributeBinder = isEarlyAttributeBinder.Value
             End If
 
             If ignoreBaseClassesInLookup.HasValue Then
-                m_ignoreBaseClassesInLookup = ignoreBaseClassesInLookup.Value
+                _ignoreBaseClassesInLookup = ignoreBaseClassesInLookup.Value
             End If
         End Sub
 
         Protected Sub New(containingBinder As Binder, basesBeingResolved As ConsList(Of Symbol))
             Me.New(containingBinder)
-            m_basesBeingResolved = basesBeingResolved
+            _basesBeingResolved = basesBeingResolved
         End Sub
 
         Public ReadOnly Property ContainingBinder As Binder
@@ -114,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_containingBinder.BinderSpecificLookupOptions(options)
         End Function
 
-        Protected ReadOnly Property IgnoresAccessibility As Boolean
+        Friend ReadOnly Property IgnoresAccessibility As Boolean
             Get
                 Return (BinderSpecificLookupOptions(Nothing) And LookupOptions.IgnoreAccessibility) =
                     LookupOptions.IgnoreAccessibility
@@ -326,6 +327,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend ReadOnly Property ContainingModule As ModuleSymbol
+            Get
+                ' If there's a containing member, it either is or has a containing module.
+                ' Otherwise, we'll just use the compilation's source module.
+                Dim containingMember = Me.ContainingMember
+                Return If(TryCast(containingMember, ModuleSymbol), If(containingMember?.ContainingModule, Me.Compilation.SourceModule))
+            End Get
+        End Property
+
         ''' <summary>
         ''' Tells whether binding is happening in a query context.
         ''' </summary>
@@ -404,11 +414,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="node">Where to report the error, if any.</param>
         Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag) As NamedTypeSymbol
             Dim reportedAnError As Boolean = False
-            Return GetSpecialType(typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
+            Return GetSpecialType(SourceModule.ContainingAssembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
+        End Function
+
+        Public Shared Function GetSpecialType(assembly As AssemblySymbol, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim reportedAnError As Boolean = False
+            Return GetSpecialType(assembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError:=False)
         End Function
 
         Public Function GetSpecialType(typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
-            Dim symbol As NamedTypeSymbol = SourceModule.ContainingAssembly.GetSpecialType(typeId)
+            Return GetSpecialType(SourceModule.ContainingAssembly, typeId, node, diagBag, reportedAnError, suppressUseSiteError)
+        End Function
+
+        Public Shared Function GetSpecialType(assembly As AssemblySymbol, typeId As SpecialType, node As SyntaxNodeOrToken, diagBag As DiagnosticBag, ByRef reportedAnError As Boolean, suppressUseSiteError As Boolean) As NamedTypeSymbol
+            Dim symbol As NamedTypeSymbol = assembly.GetSpecialType(typeId)
 
             If diagBag IsNot Nothing Then
                 Dim info = GetUseSiteErrorForSpecialType(symbol, suppressUseSiteError)
@@ -437,7 +456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' type isn't found.
         ''' </summary>
         Friend Function GetWellKnownType(type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
-            Dim typeSymbol As NamedTypeSymbol = Me.Compilation.GetWellKnownType(type)
+            Return GetWellKnownType(Me.Compilation, type, syntax, diagBag)
+        End Function
+
+        Friend Shared Function GetWellKnownType(compilation As VisualBasicCompilation, type As WellKnownType, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim typeSymbol As NamedTypeSymbol = compilation.GetWellKnownType(type)
             Debug.Assert(typeSymbol IsNot Nothing)
 
             Dim useSiteError = GetUseSiteErrorForWellKnownType(typeSymbol)
@@ -452,13 +475,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return type.GetUseSiteErrorInfo()
         End Function
 
+        Private Function GetInternalXmlHelperType(syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim typeSymbol = GetInternalXmlHelperType()
+
+            Dim useSiteError = GetUseSiteErrorForWellKnownType(typeSymbol)
+            If useSiteError IsNot Nothing Then
+                ReportDiagnostic(diagBag, syntax, useSiteError)
+            End If
+
+            Return typeSymbol
+        End Function
+
+        Private Function GetInternalXmlHelperType() As NamedTypeSymbol
+            Const globalMetadataName = "My.InternalXmlHelper"
+            Dim metadataName = globalMetadataName
+
+            Dim rootNamespace = Me.Compilation.Options.RootNamespace
+            If Not String.IsNullOrEmpty(rootNamespace) Then
+                metadataName = $"{rootNamespace}.{metadataName}"
+            End If
+
+            Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
+            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+        End Function
+
+        ''' <summary>
+        ''' WARN: Retrieves the symbol but does not check its viability (accessibility, etc).
+        ''' </summary>
+        Private Function GetInternalXmlHelperValueExtensionProperty() As PropertySymbol
+            For Each candidate As Symbol In GetInternalXmlHelperType().GetMembers("Value")
+                If Not candidate.IsShared OrElse candidate.Kind <> SymbolKind.Property Then
+                    Continue For
+                End If
+
+                Dim candidateProperty = DirectCast(candidate, PropertySymbol)
+                If candidateProperty.Type.SpecialType <> SpecialType.System_String OrElse
+                    candidateProperty.TypeCustomModifiers.Length > 0 OrElse
+                    candidateProperty.ParameterCount <> 1 Then
+
+                    Continue For
+                End If
+
+                Dim parameter = candidateProperty.Parameters(0)
+                If parameter.CustomModifiers.Length > 0 Then
+                    Continue For
+                End If
+
+                Dim parameterType = parameter.Type
+                If parameterType.OriginalDefinition.SpecialType <> SpecialType.System_Collections_Generic_IEnumerable_T OrElse
+                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
+                    Continue For
+                End If
+
+                ' Only one symbol can match the criteria above, so we don't have to worry about ambiguity.
+                Return candidateProperty
+            Next
+
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' This is a layer on top of the assembly version that generates a diagnostic if the well-known
         ''' member isn't found.
         ''' </summary>
         Friend Function GetSpecialTypeMember(member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
+            Return GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, syntax, diagnostics)
+        End Function
+
+        Friend Shared Function GetSpecialTypeMember(assembly As AssemblySymbol, member As SpecialMember, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(Me.ContainingMember.ContainingAssembly, member, useSiteError)
+            Dim specialMemberSymbol As Symbol = GetSpecialTypeMember(assembly, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagnostics, syntax, useSiteError)
@@ -485,8 +571,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' member isn't found.
         ''' </summary>
         Friend Function GetWellKnownTypeMember(member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
+            Return GetWellKnownTypeMember(Me.Compilation, member, syntax, diagBag)
+        End Function
+
+        Friend Shared Function GetWellKnownTypeMember(compilation As VisualBasicCompilation, member As WellKnownMember, syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As Symbol
             Dim useSiteError As DiagnosticInfo = Nothing
-            Dim memberSymbol As Symbol = GetWellKnownTypeMember(Me.Compilation, member, useSiteError)
+            Dim memberSymbol As Symbol = GetWellKnownTypeMember(compilation, member, useSiteError)
 
             If useSiteError IsNot Nothing Then
                 ReportDiagnostic(diagBag, syntax, useSiteError)
@@ -518,7 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property SourceModule As SourceModuleSymbol
             Get
-                Return m_sourceModule
+                Return _sourceModule
             End Get
         End Property
 
@@ -527,7 +617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property Compilation As VisualBasicCompilation
             Get
-                Return m_compilation
+                Return _compilation
             End Get
         End Property
 
@@ -564,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property SyntaxTree As SyntaxTree
             Get
-                Return m_syntaxTree
+                Return _syntaxTree
             End Get
         End Property
 
@@ -575,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns>Nothing if no bases being resolved, otherwise the set of bases being resolved.</returns>
         Public Function BasesBeingResolved() As ConsList(Of Symbol)
-            Return m_basesBeingResolved
+            Return _basesBeingResolved
         End Function
 
         Friend Overridable ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
@@ -596,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IgnoreBaseClassesInLookup As Boolean
             Get
-                Return m_ignoreBaseClassesInLookup
+                Return _ignoreBaseClassesInLookup
             End Get
         End Property
 
@@ -689,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Disallow additonal local variable declaration and report delayed shadowing diagnostics.
+        ''' Disallow additional local variable declaration and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>
         Public Overridable Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As DiagnosticBag)
@@ -864,7 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property IsEarlyAttributeBinder As Boolean
             Get
-                Return m_isEarlyAttributeBinder
+                Return _isEarlyAttributeBinder
             End Get
         End Property
 
@@ -966,7 +1056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a placeholder substitute for a With statement placeholder specified or Nothing if not found
         '''
         ''' Note: 'placeholder' is needed to make sure the binder can check that the placeholder is
-        ''' associated with the stement.
+        ''' associated with the statement.
         ''' </summary>
         Friend Overridable Function GetWithStatementPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Return m_containingBinder.GetWithStatementPlaceholderSubstitute(placeholder)

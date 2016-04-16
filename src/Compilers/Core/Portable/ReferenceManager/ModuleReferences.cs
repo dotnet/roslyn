@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis
         where TAssemblySymbol : class, IAssemblySymbol
     {
         /// <summary>
-        /// Identities of referenced assemblies (those that are or will be emitted to metadada).
+        /// Identities of referenced assemblies (those that are or will be emitted to metadata).
         /// </summary>
         /// <remarks>
         /// Names[i] is the identity of assembly Symbols[i].
         /// </remarks>
-        public readonly ImmutableArray<AssemblyIdentity> Names;
+        public readonly ImmutableArray<AssemblyIdentity> Identities;
 
         /// <summary>
         /// Assembly symbols that the identities are resolved against.
@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis
         public readonly ImmutableArray<UnifiedAssembly<TAssemblySymbol>> UnifiedAssemblies;
 
         public ModuleReferences(
-            ImmutableArray<AssemblyIdentity> names,
+            ImmutableArray<AssemblyIdentity> identities,
             ImmutableArray<TAssemblySymbol> symbols,
             ImmutableArray<UnifiedAssembly<TAssemblySymbol>> unifiedAssemblies)
         {
-            Debug.Assert(!names.IsDefault);
+            Debug.Assert(!identities.IsDefault);
             Debug.Assert(!symbols.IsDefault);
-            Debug.Assert(names.Length == symbols.Length);
+            Debug.Assert(identities.Length == symbols.Length);
             Debug.Assert(!unifiedAssemblies.IsDefault);
 
-            this.Names = names;
+            this.Identities = identities;
             this.Symbols = symbols;
             this.UnifiedAssemblies = unifiedAssemblies;
         }

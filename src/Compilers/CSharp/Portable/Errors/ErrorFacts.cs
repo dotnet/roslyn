@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
-        private static readonly string TitleSuffix = "_Title";
-        private static readonly string DescriptionSuffix = "_Description";
-        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
-        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
+        private static readonly string s_titleSuffix = "_Title";
+        private static readonly string s_descriptionSuffix = "_Description";
+        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
+        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
 
         private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
         {
@@ -87,18 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static LocalizableResourceString GetTitle(ErrorCode code)
         {
-            return new LocalizableResourceString(code.ToString() + TitleSuffix, ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(code.ToString() + s_titleSuffix, ResourceManager, typeof(ErrorFacts));
         }
 
         public static LocalizableResourceString GetDescription(ErrorCode code)
         {
-            return new LocalizableResourceString(code.ToString() + DescriptionSuffix, ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(code.ToString() + s_descriptionSuffix, ResourceManager, typeof(ErrorFacts));
         }
 
         public static string GetHelpLink(ErrorCode code)
         {
             string helpLink;
-            if (helpLinksMap.Value.TryGetValue(code, out helpLink))
+            if (s_helpLinksMap.Value.TryGetValue(code, out helpLink))
             {
                 return helpLink;
             }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetCategory(ErrorCode code)
         {
             string category;
-            if (categoriesMap.Value.TryGetValue(code, out category))
+            if (s_categoriesMap.Value.TryGetValue(code, out category))
             {
                 return category;
             }
@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResourceManager.GetString(id.ToString(), culture);
         }
 
-        private static System.Resources.ResourceManager resourceManager;
+        private static System.Resources.ResourceManager s_resourceManager;
         private static System.Resources.ResourceManager ResourceManager
         {
             get
             {
-                if (resourceManager == null)
+                if (s_resourceManager == null)
                 {
-                    resourceManager = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(ErrorCode).GetTypeInfo().Assembly);
+                    s_resourceManager = new System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpResources", typeof(ErrorCode).GetTypeInfo().Assembly);
                 }
 
-                return resourceManager;
+                return s_resourceManager;
             }
         }
 

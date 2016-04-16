@@ -10,20 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CatchClauseBinder : LocalScopeBinder
     {
-        private readonly CatchClauseSyntax syntax;
+        private readonly CatchClauseSyntax _syntax;
 
         public CatchClauseBinder(Binder enclosing, CatchClauseSyntax syntax)
             : base(enclosing, (enclosing.Flags | BinderFlags.InCatchBlock) & ~BinderFlags.InNestedFinallyBlock)
         {
             Debug.Assert(syntax != null);
-            this.syntax = syntax;
+            _syntax = syntax;
         }
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
             SourceLocalSymbol local = null;
 
-            var declarationOpt = syntax.Declaration;
+            var declarationOpt = _syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
                 local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            if (node == syntax)
+            if (node == _syntax)
             {
                 return this.Locals;
             }

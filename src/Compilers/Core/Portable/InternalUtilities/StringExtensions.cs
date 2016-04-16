@@ -9,15 +9,15 @@ namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
-        private static ImmutableArray<string> lazyNumerals;
+        private static ImmutableArray<string> s_lazyNumerals;
 
         internal static string GetNumeral(int number)
         {
-            var numerals = lazyNumerals;
+            var numerals = s_lazyNumerals;
             if (numerals.IsDefault)
             {
                 numerals = ImmutableArray.Create("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
-                ImmutableInterlocked.InterlockedInitialize(ref lazyNumerals, numerals);
+                ImmutableInterlocked.InterlockedInitialize(ref s_lazyNumerals, numerals);
             }
 
             Debug.Assert(number >= 0);
@@ -28,24 +28,15 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             if (separator == null)
             {
-                throw new ArgumentNullException("separator");
+                throw new ArgumentNullException(nameof(separator));
             }
 
             return string.Join(separator, source);
-        }
-
-        /// <summary>
-        /// Used to indicate places where we are hard-coding strings that will later need to be
-        /// localized.  This way, we can use a "Find All References" to find and fix these.
-        /// </summary>
-        public static string NeedsLocalization(this string value)
-        {
-            return value;
         }
 
         public static bool LooksLikeInterfaceName(this string name)
@@ -58,21 +49,21 @@ namespace Roslyn.Utilities
             return name.Length >= 3 && name[0] == 'T' && char.IsUpper(name[1]) && char.IsLower(name[2]);
         }
 
-        private static readonly Func<char, char> toLower = char.ToLower;
-        private static readonly Func<char, char> toUpper = char.ToUpper;
+        private static readonly Func<char, char> s_toLower = char.ToLower;
+        private static readonly Func<char, char> s_toUpper = char.ToUpper;
 
         public static string ToPascalCase(
             this string shortName,
             bool trimLeadingTypePrefix = true)
         {
-            return ConvertCase(shortName, trimLeadingTypePrefix, toUpper);
+            return ConvertCase(shortName, trimLeadingTypePrefix, s_toUpper);
         }
 
         public static string ToCamelCase(
             this string shortName,
             bool trimLeadingTypePrefix = true)
         {
-            return ConvertCase(shortName, trimLeadingTypePrefix, toLower);
+            return ConvertCase(shortName, trimLeadingTypePrefix, s_toLower);
         }
 
         private static string ConvertCase(

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         protected class Whitespace : TriviaData
         {
-            private readonly bool elastic;
+            private readonly bool _elastic;
 
             public Whitespace(OptionSet optionSet, int space, bool elastic, string language) :
                 this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             public Whitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language)
                 : base(optionSet, language)
             {
-                this.elastic = elastic;
+                _elastic = elastic;
 
                 // space and line breaks can be negative during formatting. but at the end, should be normalized
                 // to >= 0
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public override bool TreatAsElastic
             {
-                get { return elastic; }
+                get { return _elastic; }
             }
 
             public override bool IsWhitespaceOnlyTrivia

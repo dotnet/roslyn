@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -19,5 +20,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="context"></param>
         public abstract void Initialize(AnalysisContext context);
+
+        public sealed override bool Equals(object obj)
+        {
+            return (object)this == obj;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            return ReferenceEqualityComparer.GetHashCode(this);
+        }
+
+        public sealed override string ToString()
+        {
+            return this.GetType().ToString();
+        }
     }
 }

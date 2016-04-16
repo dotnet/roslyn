@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Methods
 
-        [WorkItem(545796, "DevDiv")]
+        [WorkItem(545796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545796")]
         [Fact]
         public void MethodOverloadResolutionHidesByNameStatic()
         {
@@ -70,7 +70,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void MethodOverloadResolutionHidesByNameInstance()
         {
             var il = @"
@@ -200,7 +200,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void MethodOverloadResolutionHidesByNameParams()
         {
             var il = @"
@@ -373,7 +373,7 @@ public class C : B, I
 
         #region Indexers
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IndexerOverloadResolutionHidesByNameInstance()
         {
             var il = @"
@@ -446,7 +446,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IndexerOverloadResolutionHidesByNameOverride()
         {
             var il = @"
@@ -534,7 +534,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IndexerOverloadResolutionHidesByNameParams()
         {
             var il = @"
@@ -609,7 +609,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgCount, "new B()[1, 2]").WithArguments("this", "2"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IndexerOverridingHidesByName()
         {
             var il = @"
@@ -675,7 +675,7 @@ public class C : B
             CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IndexerInterfaceImplementationHidesByName()
         {
             var il = @"
@@ -747,7 +747,7 @@ public class C : B, I
 
         #endregion Indexers
 
-        [Fact, WorkItem(897971, "DevDiv")]
+        [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
         public void LocalHideFieldByName()
         {
             CreateCompilationWithMscorlib(@"

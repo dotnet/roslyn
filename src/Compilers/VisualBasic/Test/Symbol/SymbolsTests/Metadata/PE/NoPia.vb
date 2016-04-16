@@ -1013,7 +1013,7 @@ End interface
             GC.KeepAlive(tc7)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_1()
             Dim ilSource =
             <![CDATA[
@@ -1080,7 +1080,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_2()
             Dim ilSource =
             <![CDATA[
@@ -1151,7 +1151,7 @@ Derived
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(546735, "DevDiv")>
+        <Fact(), WorkItem(546735, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546735")>
         Public Sub Bug16689_3()
 
             Dim i3Def =
@@ -1162,7 +1162,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Comilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
@@ -1230,9 +1230,9 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(compilationDef, ilSource.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
-                             dependencies:={New ModuleData(i3Comilation.Assembly.Identity,
+                             dependencies:={New ModuleData(i3Compilation.Assembly.Identity,
                                                             OutputKind.DynamicallyLinkedLibrary,
-                                                            i3Comilation.EmitToArray(),
+                                                            i3Compilation.EmitToArray(),
                                                             Nothing,
                                                             False)},
                              expectedOutput:=

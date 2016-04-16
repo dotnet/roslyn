@@ -17,37 +17,37 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal class ContextIntervalTree<T> : SimpleIntervalTree<T>
     {
-        private readonly Func<T, int, int, bool> edgeExclusivePredicate;
-        private readonly Func<T, int, int, bool> edgeInclusivePredicate;
-        private readonly Func<T, int, int, bool> containPredicate;
+        private readonly Func<T, int, int, bool> _edgeExclusivePredicate;
+        private readonly Func<T, int, int, bool> _edgeInclusivePredicate;
+        private readonly Func<T, int, int, bool> _containPredicate;
 
         public ContextIntervalTree(IIntervalIntrospector<T> introspector)
-            : base(introspector)
+            : base(introspector, values: null)
         {
-            this.edgeExclusivePredicate = ContainsEdgeExclusive;
-            this.edgeInclusivePredicate = ContainsEdgeInclusive;
-            this.containPredicate = (value, start, end) => Contains(value, start, end, Introspector, skipZeroLengthIntervals: true);
+            _edgeExclusivePredicate = ContainsEdgeExclusive;
+            _edgeInclusivePredicate = ContainsEdgeInclusive;
+            _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
         }
 
         public void AddIntervalInPlace(T value)
         {
-            var newNode = new Node(Introspector, value);
-            this.root = Insert(root, newNode, Introspector, inPlace: true);
+            var newNode = new Node(value);
+            this.root = Insert(root, newNode, Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
         {
-            return GetSmallestContainingIntervalWorker(start, length, edgeExclusivePredicate);
+            return GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
         }
 
         public T GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
         {
-            return GetSmallestContainingIntervalWorker(start, length, edgeInclusivePredicate);
+            return GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
         }
 
         public T GetSmallestContainingInterval(int start, int length)
         {
-            return GetSmallestContainingIntervalWorker(start, length, containPredicate);
+            return GetSmallestContainingIntervalWorker(start, length, _containPredicate);
         }
 
         private bool ContainsEdgeExclusive(T value, int start, int length)

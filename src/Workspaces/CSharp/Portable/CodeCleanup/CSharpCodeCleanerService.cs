@@ -9,20 +9,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     internal class CSharpCodeCleanerService : AbstractCodeCleanerService
     {
-        private static readonly IEnumerable<ICodeCleanupProvider> defaultProviders;
+        private static readonly IEnumerable<ICodeCleanupProvider> s_defaultProviders;
 
         static CSharpCodeCleanerService()
         {
             // TODO : move it down to service and add this - GetService<IOrganizingService>(LanguageNames.VisualBasic)
 
-            defaultProviders = ImmutableArray.Create<ICodeCleanupProvider>(
+            s_defaultProviders = ImmutableArray.Create<ICodeCleanupProvider>(
                 new SimplificationCodeCleanupProvider(),
                 new FormatCodeCleanupProvider());
         }
 
         public override IEnumerable<ICodeCleanupProvider> GetDefaultProviders()
         {
-            return defaultProviders;
+            return s_defaultProviders;
         }
     }
 }

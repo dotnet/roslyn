@@ -35,12 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             catch (BadImageFormatException)
             {
-                // TODO:
+                // TODO (https://github.com/dotnet/roslyn/issues/8910):
                 // return MakeEmitResult(success: false, diagnostics: ..., baseline: null);
                 throw;
             }
 
-            var pdbName = FileNameUtilities.ChangeExtension(compilation.SourceModule.Name, "pdb");
             var diagnostics = DiagnosticBag.GetInstance();
 
             var emitOptions = EmitOptions.Default;
@@ -48,15 +47,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, moduleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
-            var moduleBeingBuilt = new PEDeltaAssemblyBuilder(
-                compilation.SourceAssembly,
-                emitOptions: emitOptions,
-                outputKind: compilation.Options.OutputKind,
-                serializationProperties: serializationProperties,
-                manifestResources: manifestResources,
-                previousGeneration: baseline,
-                edits: edits,
-                isAddedSymbol: isAddedSymbol);
+            PEDeltaAssemblyBuilder moduleBeingBuilt;
+            try
+            {
+                moduleBeingBuilt = new PEDeltaAssemblyBuilder(
+                    compilation.SourceAssembly,
+                    emitOptions: emitOptions,
+                    outputKind: compilation.Options.OutputKind,
+                    serializationProperties: serializationProperties,
+                    manifestResources: manifestResources,
+                    previousGeneration: baseline,
+                    edits: edits,
+                    isAddedSymbol: isAddedSymbol);
+            }
+            catch (NotSupportedException)
+            {
+                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
+                return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+            }
 
             if (testData != null)
             {
@@ -64,16 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 testData.Module = moduleBeingBuilt;
             }
 
-            baseline = moduleBeingBuilt.PreviousGeneration;
-
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
             var changes = moduleBeingBuilt.Changes;
+
+            EmitBaseline newBaseline = null;
 
             if (compilation.Compile(
                 moduleBeingBuilt,
                 win32Resources: null,
                 xmlDocStream: null,
-                generateDebugInfo: true,
+                emittingPdb: true,
                 diagnostics: diagnostics,
                 filterOpt: changes.RequiresCompilation,
                 cancellationToken: cancellationToken))
@@ -81,47 +90,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling above since synthesized definitions
                 // (generated when compiling method bodies) may be required.
-                baseline = MapToCompilation(compilation, moduleBeingBuilt);
+                var mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt);
 
-                using (var pdbWriter = new Cci.PdbWriter(pdbName, pdbStream, (testData != null) ? testData.SymWriterFactory : null))
-                {
-                    var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
-                    var encId = Guid.NewGuid();
-
-                    try
-                    {
-                        var writer = new DeltaMetadataWriter(
-                            context,
-                            compilation.MessageProvider,
-                            baseline,
-                            encId,
-                            definitionMap,
-                            changes,
-                            cancellationToken);
-
-                        Cci.MetadataSizes metadataSizes;
-                        writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
-                        writer.GetMethodTokens(updatedMethods);
-
-                        bool hasErrors = diagnostics.HasAnyErrors();
-
-                        return new EmitDifferenceResult(
-                            success: !hasErrors,
-                            diagnostics: diagnostics.ToReadOnlyAndFree(),
-                            baseline: hasErrors ? null : writer.GetDelta(baseline, compilation, encId, metadataSizes));
-                    }
-                    catch (Cci.PdbWritingException e)
-                    {
-                        diagnostics.Add(ErrorCode.FTL_DebugEmitFailure, Location.None, e.Message);
-                    }
-                    catch (PermissionSetFileReadException e)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message);
-                    }
-                }
+                newBaseline = compilation.SerializeToDeltaStreams(
+                    moduleBeingBuilt,
+                    mappedBaseline,
+                    definitionMap,
+                    changes,
+                    metadataStream,
+                    ilStream,
+                    pdbStream,
+                    updatedMethods,
+                    diagnostics,
+                    testData?.SymWriterFactory,
+                    cancellationToken);
             }
 
-            return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
+            return new EmitDifferenceResult(
+                success: newBaseline != null,
+                diagnostics: diagnostics.ToReadOnlyAndFree(),
+                baseline: newBaseline);
         }
 
         /// <summary>
@@ -164,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
 
-            // TODO: can we reuse some data from the previos matcher?
+            // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
                 sourceAssembly,

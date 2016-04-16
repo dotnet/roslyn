@@ -47,7 +47,7 @@ class Program
             // When doing overload resolution, we must find the best applicable method.
             //
             // When tiebreaking between two applicable candidate methods, we examine each conversion from the
-            // argument to the corresponding parameter type to detemine which method is better *in that parameter*.
+            // argument to the corresponding parameter type to determine which method is better *in that parameter*.
             // If a method is *not worse* in every parameter and better in at least one, then that method
             // wins. Under what circumstances is one conversion better than another?
             //
@@ -64,9 +64,9 @@ class Program
             // types that are more specific than others. We did not correctly update the C# 4 compiler to handle this 
             // situation.
             // 
-            // Unfortunately, real-world code exists that depends on this bad behaviour, so we are going to preserve it.
+            // Unfortunately, real-world code exists that depends on this bad behavior, so we are going to preserve it.
             //
-            // The essence of the bug is: the correct behaviour is to do the first tiebreaker first, and the second tiebreaker
+            // The essence of the bug is: the correct behavior is to do the first tiebreaker first, and the second tiebreaker
             // if necessary. The native compiler, and now Roslyn, does this wrong. It says "is the argument a lambda?" If so,
             // then it applies the second tiebreaker and ignores the first. Otherwise, it applies the first tiebreaker and 
             // ignores the second.
@@ -76,11 +76,11 @@ class Program
             // On the first call, the native compiler and Roslyn agree that overload 2 is better. (Remember, Action<T> is 
             // contravariant, so Action<object> is more specific than Action<string>. Every action that takes an object 
             // is also an action that takes a string, so an action that takes an object is more specific.) This is the correct
-            // behaviour. The compiler uses the first tiebreaker.
+            // behavior. The compiler uses the first tiebreaker.
 
             // On the second call, the native compiler incorrectly believes that overload 3 is better, because it 
             // does not correctly determine that Action<object> is more specific than Action<string> when the argument is 
-            // a lambda. The correct behaviour according to the spec would be to produce an ambiguity error. (Why? 
+            // a lambda. The correct behavior according to the spec would be to produce an ambiguity error. (Why? 
             // because overload 3 is more specific in its first parameter type, and less specific in its second parameter type.
             // And vice-versa for overload 4. No overload is not-worse in all parameters.)
 
@@ -116,7 +116,7 @@ class P
 
             // Now let's look at some ambiguity errors:
             //
-            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behaviour according
+            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behavior according
             // to the specification is to choose overload 2, because it is more specific. Because the argument is a lambda
             // we incorrectly skip the first tiebreaker entirely and go straight to the second tiebreaker. We are now in a situation
             // where we have two delegate types that are both void returning, and so by the second tiebreaker, neither is better.
@@ -164,7 +164,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("P.M4(System.Func<object
 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("P.M6(System.Action<object>, string, object)", "P.M6(System.Action<string>, object, string)")
                 );
 
-            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguious,
+            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguous,
             // M(null) is unambiguous. But M((string)null, q=>{}) is unambiguous, M((string)null, null) is ambiguous!
 
             string source3 = @"
@@ -228,13 +228,11 @@ static class P
 }";
 
             CompileAndVerify(source3, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"BB");
-
         }
 
         [Fact]
         public void DeviationFromSpec()
         {
-
             string source1 = @"
 using System;
 class P
@@ -343,7 +341,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA)", "P.M1(P.DB
         [Fact]
         public void ExactlyMatchingNestedLambda()
         {
-
             string source1 = @"
 using System;
 class P
@@ -386,9 +383,8 @@ class P
         }
 
         [Fact]
-        public void ParametersImplicitlyConvertableToEachOther()
+        public void ParametersImplicitlyConvertibleToEachOther()
         {
-
             string source1 = @"
 using System;
 
@@ -438,7 +434,6 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(CA)", "P.M1(CB)")
         [Fact]
         public void BetterTaskType()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -477,9 +472,8 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
-        public void BetterDelegateType()
+        public void BetterDelegateType_01()
         {
-
             string source1 = @"
 using System;
 
@@ -526,12 +520,67 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("P.M2(System.Func<int>, 
                 );
         }
 
+        [Fact, WorkItem(6560, "https://github.com/dotnet/roslyn/issues/6560")]
+        public void BetterDelegateType_02()
+        {
+            string source1 = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Run1(() => MethodReturnsVoid());
+        Run1(MethodReturnsVoid);
+        Run2(() => MethodReturnsVoid());
+        Run2(MethodReturnsVoid);
+    }
+
+    public static object Run1(Action action)
+    {
+        Console.WriteLine(""Run1(Action action)"");
+        action();
+        return null;
+    }
+
+    public static object Run1(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run1(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Func<object> action, bool optional = false)
+    {
+        Console.WriteLine(""Run2(Func<object> action, bool optional = false)"");
+        return action();
+    }
+
+    public static object Run2(Action action)
+    {
+        Console.WriteLine(""Run2(Action action)"");
+        action();
+        return null;
+    }
+
+    private static void MethodReturnsVoid()
+    {
+    }
+}
+";
+
+            CompileAndVerify(source1, expectedOutput:
+@"Run1(Action action)
+Run1(Action action)
+Run2(Action action)
+Run2(Action action)");
+        }
+
         [Fact]
         public void TestBug9851()
         {
             // We should ensure that we do not report "no method M takes n parameters" if in fact
             // there is any method M that could take n parameters.
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -541,17 +590,17 @@ class C
     {
         J(123.0, 456.0m);
     }
-}",
-"'J' error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly."
-
-);
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (8,9): error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         J(123.0, 456.0m);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "J").WithArguments("C.J<T>(T, T)").WithLocation(8, 9));
         }
 
         [Fact]
         public void TestLambdaErrorReporting()
         {
-
-            TestAllErrors(
+            var source =
 @"
 using System;
 class C
@@ -598,35 +647,68 @@ class C
 
         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
     }
-}",
-          "'ToStrign' error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)",
-          "'y / 4.5' error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'",
-          "'y == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'",
-          "'z - 4.5' error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'",
-          "'z == string.Empty' error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'"
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (26,36): error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         J(x=>{ Console.WriteLine(x.ToStrign(), x.Length, x * 2); });
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToStrign").WithArguments("string", "ToStrign").WithLocation(26, 36),
+                // (30,34): error CS0019: Operator '==' cannot be applied to operands of type 'int' and 'string'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y == string.Empty").WithArguments("==", "int", "string").WithLocation(30, 34),
+                // (30,53): error CS0019: Operator '/' cannot be applied to operands of type 'string' and 'double'
+                //         J(y=>{ Console.WriteLine(y == string.Empty, y / 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y / 4.5").WithArguments("/", "string", "double").WithLocation(30, 53),
+                // (45,53): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'double'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z - 4.5").WithArguments("-", "string", "double").WithLocation(45, 53),
+                // (45,34): error CS0019: Operator '==' cannot be applied to operands of type 'double' and 'string'
+                //         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "z == string.Empty").WithArguments("==", "double", "string").WithLocation(45, 34));
+        }
 
-);
+        [Fact]
+        public void TestRefOutAnonymousDelegate()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+class p
+{
+    static void Foo<T>(ref Func<T,T> a) { }
+    static void Bar<T>(out Func<T, T> a) { a = null; }
+
+    static void Foo2<T>(ref Expression<Func<T,T>> a) { }
+    static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
+
+    static void Main()
+    {
+        Foo<string>(x => x);
+        Bar<string>(x => x);
+        Foo2<string>(x => x);
+        Bar2<string>(x => x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+                // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
+                //         Foo<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
+                // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
+                //         Bar<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
+                // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
+                //         Foo2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
+                // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
+                //         Bar2<string>(x => x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(17, 22));
         }
 
 
-        [Fact]
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void TestOverloadResolutionTiebreaker()
         {
-            // The native compiler gets this one wrong, giving an ambiguity error. 
-            // The correct analysis is that there are four candidates:
-            // 0: X(params string[]) in normal form
-            // 1: X(params string[]) in expanded form
-            // 2: X<string>(string)
-            // 3: X(string, object) with default value for second parameter
-            //
-            // Candidate 0 is obviously inapplicable. The other three have identical formal parameter types
-            // corresponding to the given arguments, so we must go to tiebreaker round. The tiebreakers are:
-            // * Nongeneric beats generic, and then
-            // * applicable in normal form beats applicable only in expanded form, then
-            // * more parameters declared beats fewer parameters declared
-            // By these rules: 1 beats 2, 3 beats 1, 3 beats 2. 3 is unbeaten and beats at least one
-            // other candidate. No other candidate has this property, so candidate 3 should win.
-
+            // Testing that we get the same ambiguity error as the one reported by the native compiler. 
             string source = @"
 class C 
 {
@@ -639,12 +721,17 @@ class C
     }
 }";
 
-            TestOverloadResolutionWithDiff(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics(
+    // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<T>(T)'
+    //         X((string)null); //-C.X(string, object)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "X").WithArguments("C.X(params string[])", "C.X<T>(T)").WithLocation(9, 9)
+                );
         }
 
-
         [Fact]
-        void TestConstraintViolationApplicabilityErrors()
+        public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
             // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
@@ -656,7 +743,7 @@ class C
             // error to report. We only report the violation on the formal parameter if the constraint
             // is not violated on the method type parameter.
 
-            TestAllErrors(
+            var source =
 @"
 class C
 {
@@ -725,20 +812,35 @@ class C
     static void Test4(object x) {}
     static void Test5<Y>(Y y, N<Y> ny) { }
     static void Test6<Z>(N<Z> nz) where Z : struct {}
-}",
-"'ny' error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'Test1<string>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'",
-"'Test2' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'",
-"'Test4' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'",
-"'Test5' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'",
-"'string' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'",
-"'Test6<L<string>>' error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'");
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //     static void Test5<Y>(Y y, N<Y> ny) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
+                // (17,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'
+                //         Test1<string>(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test1<string>").WithArguments("C.Test1<U>(U, C.N<U>)", "U", "string").WithLocation(17, 9),
+                // (21,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'
+                //         Test2(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test2").WithArguments("C.Test2<V>(V, C.N<V>)", "V", "string").WithLocation(21, 9),
+                // (36,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'
+                //         Test4(s);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test4").WithArguments("C.Test4<X>(X)", "X", "string").WithLocation(36, 9),
+                // (47,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //         Test5(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test5").WithArguments("C.N<T>", "T", "string").WithLocation(47, 9),
+                // (58,17): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("C.L<S>", "S", "string").WithLocation(58, 17),
+                // (58,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
         }
-
         [Fact]
-        void TestBug9583()
+
+        public void TestBug9583()
         {
-            TestErrors(
+            var source =
 @"
 class C
 {
@@ -747,16 +849,17 @@ class C
         Foo();
     }
     static void Foo<T>(params T[] x) { }
-}",
-
-"'Foo' error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.");
-
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Foo();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(params T[])").WithLocation(6, 9));
         }
 
         [Fact]
         public void TestMoreOverloadResolutionErrors()
         {
-            TestErrors(@"
+            var source = @"
 class C 
 { 
     static void VoidReturning() {}
@@ -765,15 +868,18 @@ class C
         byte b = new byte(1);
         System.Console.WriteLine(VoidReturning());
     }
-}",
-"'byte' error CS1729: 'byte' does not contain a constructor that takes 1 arguments",
-//"'System.Console.WriteLine' error CS1502: The best overloaded method match for 'System.Console.WriteLine(bool)' has some invalid arguments",  //specifically omitted by roslyn
-"'VoidReturning()' error CS1503: Argument 1: cannot convert from 'void' to 'bool'"
-               );
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (7,22): error CS1729: 'byte' does not contain a constructor that takes 1 arguments
+                //         byte b = new byte(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "byte").WithArguments("byte", "1").WithLocation(7, 22),
+                // (8,34): error CS1503: Argument 1: cannot convert from 'void' to 'bool'
+                //         System.Console.WriteLine(VoidReturning());
+                Diagnostic(ErrorCode.ERR_BadArgType, "VoidReturning()").WithArguments("1", "void", "bool").WithLocation(8, 34));
         }
-
         [Fact]
-        void TestBug6156()
+
+        public void TestBug6156()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -817,11 +923,11 @@ class Out2 : Ref2
     // C# says this overrides SLOT2
 }");
         }
-
-
-
         [Fact]
-        void TestGenericMethods()
+
+
+
+        public void TestGenericMethods()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -842,10 +948,10 @@ class C
     }
 }");
         }
-
-
         [Fact]
-        void TestDelegateBetterness()
+
+
+        public void TestDelegateBetterness()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -905,9 +1011,9 @@ class C
 }
 ");
         }
-
         [Fact]
-        void TestTieBreakers()
+
+        public void TestTieBreakers()
         {
             TestOverloadResolutionWithDiff(
 @"
@@ -979,7 +1085,7 @@ class C
 ");
         }
 
-        [WorkItem(540153, "DevDiv")]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
         [Fact]
         public void TestOverridingMismatchedParamsErrorCase_Source()
         {
@@ -1082,9 +1188,9 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
 
-        [WorkItem(540153, "DevDiv")]
-        [WorkItem(540406, "DevDiv")]
-        [Fact]
+        [WorkItem(540153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540153")]
+        [WorkItem(540406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540406")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
             // Tests:
@@ -1176,10 +1282,10 @@ class Test2
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers()
+
+        public void TestBaseAccessForAbstractMembers()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1231,10 +1337,10 @@ class Base4<U, V> : Base3<U, V>
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers1()
+
+        public void TestBaseAccessForAbstractMembers1()
         {
             // Tests:
             // Override virtual member with abstract member – override this abstract member in further derived class
@@ -1258,10 +1364,10 @@ class Base2<A, B> : Base<A, B>
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"));
         }
-
         [WorkItem(6353, "DevDiv_Projects/Roslyn")]
         [Fact()]
-        void TestBaseAccessForAbstractMembers2()
+
+        public void TestBaseAccessForAbstractMembers2()
         {
             var source = @"
 namespace A
@@ -1339,7 +1445,6 @@ public class B
 int
 long
 ");
-
         }
 
         [Fact]
@@ -1377,10 +1482,9 @@ public class B
 int
 long
 ");
-
         }
 
-        [Fact, WorkItem(546694, "DevDiv")]
+        [Fact, WorkItem(546694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546694")]
         public void Bug16581_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1416,10 +1520,9 @@ class B: A
 ";
             CompileAndVerify(source, expectedOutput: @"PASS
 PASS");
-
         }
 
-        [Fact, WorkItem(529847, "DevDiv")]
+        [Fact, WorkItem(529847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529847")]
         public void Bug14585_ConstructorOverloadResolution_BaseClass()
         {
             var source = @"
@@ -1446,7 +1549,6 @@ class Test
                 // (17,21): error CS0122: 'Base.Base()' is inaccessible due to its protection level
                 //         var a = new Base();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base.Base()"));
-
         }
 
         [Fact]
@@ -1483,7 +1585,6 @@ public class B
             CompileAndVerify(source, expectedOutput: @"int
 long
 ");
-
         }
 
         [Fact]
@@ -1596,7 +1697,7 @@ class Test
             CompileAndVerify(source, expectedOutput: @"20");
         }
 
-        [WorkItem(546733, "DevDiv")]
+        [WorkItem(546733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546733")]
         [Fact]
         public void RefOmittedComCall_Iterator()
         {
@@ -1906,7 +2007,7 @@ class Test
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530747, "DevDiv")]
+        [Fact, WorkItem(530747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530747")]
         public void RefOmittedComCall_Unsafe()
         {
             // Native compiler generates invalid IL for ref omitted argument of pointer type, while Roslyn generates correct IL.
@@ -2173,7 +2274,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(7, 26));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void TestComImportOverloadResolutionCantOmitRef()
         {
             string source = @"
@@ -2208,7 +2309,7 @@ class D : C
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_BaseTypeComImport()
         {
             string source = @"
@@ -2315,7 +2416,7 @@ class J : I
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("I", "M"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_DerivedComImport()
         {
             string source = @"
@@ -2366,7 +2467,7 @@ class C: B
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_TypeParameterConstrainedToComImportType()
         {
             string source = @"
@@ -2396,7 +2497,7 @@ class H<T> where T: K, new()
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod1()
         {
             string source = @"
@@ -2428,7 +2529,7 @@ class Y
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(546122, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
         public void RefOmittedComCall_StaticMethod2()
         {
             string source = @"
@@ -2467,7 +2568,7 @@ class Y
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E").WithLocation(22, 11));
         }
 
-        [Fact, WorkItem(546122, "DevDiv"), WorkItem(842476, "DevDiv")]
+        [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122"), WorkItem(842476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842476")]
         public void RefOmittedComCall_ExtensionMethod()
         {
             string source = @"
@@ -3027,7 +3128,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("1", "ref long", "ref char"));
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties()
         {
             var source1 =
@@ -3786,7 +3887,7 @@ class Test
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact, WorkItem(546176, "DevDiv")]
+        [Fact, WorkItem(546176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546176")]
         public void RefOmittedComCall_OverloadResolution_SingleArgument_IndexedProperties_ErrorCases()
         {
             var source1 =
@@ -5630,8 +5731,8 @@ public class AggTest {
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("AggTest.B1.M3<S, T>(G1<G2<S, T>>)"));
         }
 
-        [WorkItem(528425, "DevDiv")]
-        [WorkItem(528425, "DevDiv")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
+        [WorkItem(528425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528425")]
         [Fact(Skip = "528425")]
         public void ExactInaccessibleMatch()
         {
@@ -5662,7 +5763,7 @@ public class D
                 Diagnostic(ErrorCode.ERR_BadAccess, "d.M"));
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503a()
         {
@@ -5714,18 +5815,17 @@ class baz
     }
 }
 ";
-            // TODO: We could do a better job of choosing which two methods are the ambiguous ones.
-
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-// (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(sbyte, bar)'
-//         overload1(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(sbyte, bar)"),
-// (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(sbyte, bar)'
-//         overload2(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(sbyte, bar)"));
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(int, baz)'
+    //         overload1(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
+    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, foo)'
+    //         overload2(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, foo)").WithLocation(7, 9)
+                );
         }
 
-        [WorkItem(545382, "DevDiv")]
+        [WorkItem(545382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545382")]
         [Fact]
         public void Whidbey133503b()
         {
@@ -5799,11 +5899,10 @@ public class Q
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Ambig.F(P1)", "Ambig.F(P2)"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda1()
         {
-
             // ACASEY: EricLi's comment provides good context on the
             // nature of the problems that arise in such situations and the behavior of the native
             // compiler.  However, the comments about Roslyn's behavior are no longer accurate.
@@ -5817,7 +5916,7 @@ public class Q
 
             // ERICLI: This test illustrates an unfortunate situation where neither Roslyn nor the
             // native compiler are compliant with the specification, and the native compiler's 
-            // behaviour is unusual. In this particular situation, the native compiler is 
+            // behavior is unusual. In this particular situation, the native compiler is 
             // getting the right answer completely by accident; it is the confluence of two incorrect
             // decisions adding up accidentally to a correct decision.
             //
@@ -5827,7 +5926,7 @@ public class Q
             // converted to the parameter type of the user-defined implicit conversion. Unfortunately, the
             // specification does not say that null literal conversions, constant numeric conversions,
             // method group conversions, or lambda conversions are "standard" conversions. It seems reasonable
-            // that these be allowed; we will probably emend the specification to allow them.
+            // that these be allowed; we will probably amend the specification to allow them.
             //
             // Now we get to the unusual part. The native compiler allows null literal and constant numeric
             // conversions to be counted as standard conversions; this is contrary to the exact wording of 
@@ -5863,7 +5962,7 @@ public class Q
             // for the wrong reason.  Suppose we have a simplified version of the code below: r = r + (x=>x);
             // What happens?
             //
-            // The correct behaviour according to the spec is to say that there are two possible operators,
+            // The correct behavior according to the spec is to say that there are two possible operators,
             // MC + EXPR and MC + MC.  Are either of them *applicable*? Clearly both are good in their left
             // hand operand. Can the right-hand operand, a lambda, be converted via implicit conversion to 
             // the expression tree type? Obviously yes. Can the lambda be converted to MainClass?  
@@ -5886,7 +5985,7 @@ public class Q
             //
             // In Roslyn, there are now two operators in the candidate set of applicable operators. Which one wins?
             //
-            // The correct behaviour is to say that the more specific one wins. Since there is an implicit conversion
+            // The correct behavior is to say that the more specific one wins. Since there is an implicit conversion
             // from EXPR to MC but not from MC to EXPR, the MC + EXPR candidate must be better, so it wins.
             //
             // But that is not what Roslyn does; remember, Roslyn is being bug-compatible with the native compiler.
@@ -5927,7 +6026,7 @@ class MainClass
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda2()
         {
@@ -5961,7 +6060,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda3()
         {
@@ -6008,7 +6107,7 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + (y => y)").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(545467, "DevDiv")]
+        [WorkItem(545467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545467")]
         [Fact]
         public void ClassPlusLambda4()
         {
@@ -6042,8 +6141,8 @@ class MainClass
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)))").WithArguments("+", "MainClass", "lambda expression"));
         }
 
-        [WorkItem(546875, "DevDiv")]
-        [WorkItem(530930, "DevDiv")]
+        [WorkItem(546875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546875")]
+        [WorkItem(530930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530930")]
         [Fact]
         public void BigVisitor()
         {
@@ -6067,7 +6166,7 @@ public class Test
             Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
 
-        [WorkItem(546730, "DevDiv"), WorkItem(546739, "DevDiv")]
+        [WorkItem(546730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546730"), WorkItem(546739, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546739")]
         [Fact]
         public void TestNamedParamsParam()
         {
@@ -6095,7 +6194,7 @@ class C
 }", expectedOutput: "2").VerifyDiagnostics();
         }
 
-        [WorkItem(531173, "DevDiv")]
+        [WorkItem(531173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531173")]
         [Fact]
         public void InvokeMethodOverridingNothing()
         {
@@ -6119,8 +6218,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Override").WithArguments("C.Override<T>(T)"));
         }
 
-        [WorkItem(547186, "DevDiv")]
-        [Fact, WorkItem(531613, "DevDiv")]
+        [WorkItem(547186, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547186")]
+        [Fact, WorkItem(531613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531613")]
         public void IndexerWithoutAccessors()
         {
             var source = @"
@@ -6210,7 +6309,7 @@ public class C
             TestOverloadResolutionWithDiff(source);
         }
 
-        [Fact, WorkItem(624410, "DevDiv")]
+        [Fact, WorkItem(624410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624410")]
         public void DynamicTypeInferenceAndPointer()
         {
             string source = @"
@@ -6235,7 +6334,7 @@ class D<T>
             CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(598032, "DevDiv")]
+        [Fact, WorkItem(598032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598032"), WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
         public void GenericVsOptionalParameter()
         {
             string source = @"
@@ -6245,20 +6344,18 @@ class C
     public static int Foo(int x, string y = null) { return 1; }
     public static int Foo<T>(T x) { return 0; }
 
-    public static int M()
+    public static void Main()
     {
-        return Foo(0);  //-C.Foo(int, string)
+        System.Console.WriteLine(Foo(0));
     }
 }
 ";
-            // Roslyn is correctly following the spec here. Dev11 compares the two methods' parameter lists without first 
-            // removing the parameters for which optional arguments are used. This is incorrect. It then concludes that the 
-            // parameter lists are different and decides not to use part of the tie-breaker rules, 
-            // but does use the "least number of optional args" tie-breaker.
-            TestOverloadResolutionWithDiff(source);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: "0");
         }
 
-        [WorkItem(598029, "DevDiv")]
+        [WorkItem(598029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598029")]
         [Fact]
         public void TypeParameterInterfaceVersusNonInterface()
         {
@@ -6283,7 +6380,7 @@ class C : IA
             TestOverloadResolutionWithDiff(source);
         }
 
-        [WorkItem(649807, "DevDiv")]
+        [WorkItem(649807, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649807")]
         [Fact]
         public void OverloadResolution649807()
         {
@@ -6320,7 +6417,7 @@ public class Test
                 );
         }
 
-        [WorkItem(662641, "DevDiv")]
+        [WorkItem(662641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/662641")]
         [Fact]
         public void GenericMethodConversionToDelegateWithDynamic()
         {
@@ -6355,7 +6452,7 @@ public struct start
                 );
         }
 
-        [WorkItem(690966, "DevDiv")]
+        [WorkItem(690966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690966")]
         [Fact]
         public void OptionalParameterInDelegateConversion()
         {
@@ -6387,7 +6484,7 @@ class C
                 model.GetSymbolInfo(callSyntax).Symbol.ToTestDisplayString());
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasOptionalParameter()
         {
@@ -6426,7 +6523,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(718294, "DevDiv")]
+        [WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         [Fact]
         public void MethodGroupConversion_BetterCandidateHasParameterArray()
         {
@@ -6465,7 +6562,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "v.Add").WithArguments("Extensions.Add(IViewable2)", "A"));
         }
 
-        [WorkItem(709114, "DevDiv")]
+        [WorkItem(709114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709114")]
         [Fact]
         public void RenameTypeParameterInOverride()
         {
@@ -6498,7 +6595,7 @@ public class Derived : Base
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritanceAsync()
         {
             string source = @"
@@ -6536,7 +6633,7 @@ class TestCase : Test
         }
 
         [Fact]
-        [WorkItem(675327, "DevDiv")]
+        [WorkItem(675327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/675327")]
         public void OverloadInheritance001()
         {
             string source = @"
@@ -6564,7 +6661,7 @@ class TestCase : Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(718294, "DevDiv")]
+        [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
         public void ResolveExtensionMethodGroupOverloadWithOptional()
         {
             string source = @"
@@ -6601,7 +6698,7 @@ static class Extensions
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(667132, "DevDiv")]
+        [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
         public void ExtensionMethodOnComInterfaceMissingRefToken()
         {
             string source = @"using System;
@@ -6632,7 +6729,7 @@ static class Program
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971a()
         {
             var source = @"
@@ -6673,7 +6770,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(737971, "DevDiv")]
+        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
         public void Repro737971b()
         {
             var source = @"
@@ -6714,7 +6811,7 @@ public class Test
         }
 
         [Fact]
-        [WorkItem(754406, "DevDiv")]
+        [WorkItem(754406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754406")]
         public void TestBug754406()
         {
             string source =
@@ -6743,7 +6840,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(528811, "DevDiv")]
+        [WorkItem(528811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528811")]
         public void TestBug528811()
         {
             string source =
@@ -6830,7 +6927,7 @@ class Program
 
 
         [Fact]
-        [WorkItem(655409, "DevDiv")]
+        [WorkItem(655409, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655409")]
         public void TestBug655409()
         {
             string source =
@@ -6861,10 +6958,9 @@ class C
                 );
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_01()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6883,10 +6979,9 @@ class C
 2");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_02()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6910,10 +7005,9 @@ class C
 1");
         }
 
-        [Fact, WorkItem(30)]
+        [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
         public void BugCodePlex_30_03()
         {
-
             string source1 = @"
 using System;
 class C
@@ -6938,7 +7032,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_01()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -6974,7 +7067,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_02()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -7007,7 +7099,6 @@ class C
         [Fact]
         public void ExactlyMatchingAsyncLambda_03()
         {
-
             string source1 = @"
 using System;
 using System.Threading.Tasks;
@@ -7032,7 +7123,7 @@ class C
         }
 
         [Fact]
-        [WorkItem(1079899, "DevDiv")]
+        [WorkItem(1079899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079899")]
         [WorkItem(364, "CodePlex")]
         public void TestBug1079899()
         {
@@ -7083,10 +7174,9 @@ namespace C
             Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_0()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7122,10 +7212,9 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_1()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7165,10 +7254,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_2()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7204,10 +7292,9 @@ namespace ConsoleApplication2
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_3()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7247,10 +7334,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_4()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7290,10 +7376,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_5()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7333,10 +7418,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        [Fact, WorkItem(1080896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1080896"), WorkItem(367, "Devdiv")]
         public void Bug1080896_6()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7374,10 +7458,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_0()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7414,10 +7497,9 @@ namespace ConsoleApplication2
 IfNotNull<T, U>(this T? source, Func<T, U> selector)");
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_1()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7459,10 +7541,9 @@ namespace ConsoleApplication2
                 );
         }
 
-        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        [Fact, WorkItem(1081302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081302"), WorkItem(371, "Devdiv")]
         public void Bug1081302_2()
         {
-
             string source1 = @"
 using System;
 namespace ConsoleApplication2
@@ -7507,7 +7588,6 @@ namespace ConsoleApplication2
         [Fact]
         public void ExactParameterMatchAndOptionals()
         {
-
             string source1 = @"
 
 class CTest
@@ -7540,7 +7620,7 @@ class CTest
         }
 
         [Fact]
-        [WorkItem(1034429, "DevDiv")]
+        [WorkItem(1034429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1034429")]
         public void TestBug1034429()
         {
             string source =
@@ -7621,6 +7701,705 @@ public class C : CodeAccessSecurityAttribute
                 // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
+        }
+
+        [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
+        [Fact]
+        public void TestRefMethodGroup()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void M()
+    {
+        Console.WriteLine(""pass"");
+    }
+
+    public static void Main(string[] args)
+    {
+        Action a1 = new Action(ref M);
+        a1();
+        Action a2 = new Action(out a1);
+        a2();
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"pass
+pass").VerifyDiagnostics();
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+                // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
+                //         Action a1 = new Action(ref M);
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
+                // (14,36): error CS0149: Method name expected
+                //         Action a2 = new Action(out a1);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "a1").WithLocation(14, 36)
+                );
+        }
+
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void ParamsAndOptionals()
+        {
+            string source1 = @"
+
+using System;
+using System.Collections.Generic;
+using VS2015CompilerBug;
+
+
+public static class Extensions
+{
+    //extension with params keyword
+    public static int Properties(this IFirstInterface source, params int[] x)
+    {
+        System.Console.WriteLine(""int Properties(this IFirstInterface source, params int[] x)"");
+        return 0;
+    }
+    public static bool Properties(this ISecondInterface source, int x = 0, params int[] y)
+    {
+        System.Console.WriteLine(""bool Properties(this ISecondInterface source, int x = 0, params int[] y)"");
+        return true;
+    }
+
+    //extension without params keyword
+    public static int Properties2(this IFirstInterface source)
+    {
+        System.Console.WriteLine(""int Properties2(this IFirstInterface source)"");
+        return 0;
+    }
+    public static bool Properties2(this ISecondInterface source, int x = 0)
+    {
+        System.Console.WriteLine(""bool Properties2(this ISecondInterface source, int x = 0)"");
+        return true;
+    }
+}
+
+namespace VS2015CompilerBug
+{
+    public interface IFirstInterface
+    {
+
+    }
+    public interface ISecondInterface
+    {
+
+    }
+
+    public interface IFinalInterface : ISecondInterface, IFirstInterface
+    {
+
+    }
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            IFinalInterface x = default(IFinalInterface);
+            var properties = x.Properties();  
+            var properties2 = x.Properties2();  
+
+
+            (new VS2015CompilerBug()).Test2(); 
+        }
+
+        private void Test2(int x = 5, params int[] y)
+        {
+            System.Console.WriteLine(""void Test2(int x = 5, params int[] y)"");
+        }
+        private void Test2(params int[] x)
+        {
+            System.Console.WriteLine(""void Test2(params int[] x)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"int Properties(this IFirstInterface source, params int[] x)
+int Properties2(this IFirstInterface source)
+void Test2(params int[] x)");
+        }
+
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_01()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1);   
+            (new VS2015CompilerBug()).Test2(1, 2);   
+            (new VS2015CompilerBug()).Test2(1, 2, 3);   
+            (new VS2015CompilerBug()).Test3(1, 2);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3, 4);   
+        }
+
+        private void Test2(int x, params int[] y)
+        {
+            System.Console.WriteLine(""void Test2(int x, params int[] y)"");
+        }
+        private void Test2(params int[] x)
+        {
+            System.Console.WriteLine(""void Test2(params int[] x)"");
+        }
+
+        private void Test3(int x, int y, params int[] z)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y, params int[] z)"");
+        }
+        private void Test3(int x, params int[] y)
+        {
+            System.Console.WriteLine(""void Test3(int x, params int[] y)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"void Test2(int x, params int[] y)
+void Test2(int x, params int[] y)
+void Test2(int x, params int[] y)
+void Test3(int x, int y, params int[] z)
+void Test3(int x, int y, params int[] z)
+void Test3(int x, int y, params int[] z)");
+        }
+
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_02()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1, 2);   
+            (new VS2015CompilerBug()).Test3(1, 2, 3);   
+        }
+
+        private void Test2(int x = 0, int y = 0)
+        {
+            System.Console.WriteLine(""void Test2(int x = 0, int y = 0)"");
+        }
+        private void Test2(int x, int y = 0, int z = 0)
+        {
+            System.Console.WriteLine(""void Test2(int x, int y = 0, int z = 0)"");
+        }
+
+        private void Test3(int x, int y, int z = 0, int u = 0)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y, int z = 0, int u = 0)"");
+        }
+        private void Test3(int x, int y = 0, int z = 0)
+        {
+            System.Console.WriteLine(""void Test3(int x, int y = 0, int z = 0)"");
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"void Test2(int x = 0, int y = 0)
+void Test3(int x, int y = 0, int z = 0)");
+        }
+
+        [Fact, WorkItem(1157097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1157097"), WorkItem(2298, "https://github.com/dotnet/roslyn/issues/2298")]
+        public void TieBreakOnNumberOfDeclaredParameters_03()
+        {
+            string source1 = @"
+
+namespace VS2015CompilerBug
+{
+    public class VS2015CompilerBug
+    {
+        public static void Main()
+        {
+            (new VS2015CompilerBug()).Test2(1);   
+            (new VS2015CompilerBug()).Test3(1, 2);   
+        }
+
+        private void Test2(int x = 0, int y = 0)
+        {
+        }
+        private void Test2(int x, int y = 0, int z = 0)
+        {
+        }
+
+        private void Test3(int x, int y, int z = 0, int u = 0)
+        {
+        }
+        private void Test3(int x, int y = 0, int z = 0)
+        {
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
+    //             (new VS2015CompilerBug()).Test2(1);   
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test2").WithArguments("VS2015CompilerBug.VS2015CompilerBug.Test2(int, int)", "VS2015CompilerBug.VS2015CompilerBug.Test2(int, int, int)").WithLocation(9, 39),
+    // (10,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test3(int, int, int, int)' and 'VS2015CompilerBug.Test3(int, int, int)'
+    //             (new VS2015CompilerBug()).Test3(1, 2);   
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Test3").WithArguments("VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int, int)", "VS2015CompilerBug.VS2015CompilerBug.Test3(int, int, int)").WithLocation(10, 39)
+                );
+        }
+
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_04()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s, object o2 = null) 
+    { 
+        System.Console.WriteLine(""void M1(object o, object o1, string s, object o2 = null) "");
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+        System.Console.WriteLine(""void M1(string s, object o1, object o2)"");
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"void M1(string s, object o1, object o2)");
+        }
+
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_05()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s) 
+    { 
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.M1(object, object, string)' and 'Test.M1(string, object, object)'
+    //         M1("M", null, null);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Test.M1(object, object, string)", "Test.M1(string, object, object)").WithLocation(14, 9)
+                );
+        }
+
+        [Fact, WorkItem(4424, "https://github.com/dotnet/roslyn/issues/4424")]
+        public void TieBreakOnNumberOfDeclaredParameters_06()
+        {
+            string source1 = @"
+class Test
+{
+    static void Fn(string x = """", string y = """", params object[] p) 
+    { 
+        System.Console.WriteLine(1); 
+    }
+
+    static void Fn(string x, params object[] p)
+    { 
+        System.Console.WriteLine(2); 
+    }
+
+    static void Main()
+    { Fn(""Hello"", p: ""World""); }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"2");
+        }
+
+        [Fact, WorkItem(1099752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1099752"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
+        public void BetterErrorMessage_01()
+        {
+            string source1 = @"
+class C
+{
+    static void F1(object x, object y) { }
+    static void F1(object x, object w, object z) { }
+
+    static void F2(object x, object w, object z) { }
+    static void F2(object x, object y) { }
+
+    static void Main()
+    {
+        F1(x: 1, y: 2, z: 3);
+        F2(x: 1, y: 2, z: 3);
+
+        M1(0, x: 1);
+
+        M2(0, x: 1);
+        M3(0, x: 1);
+
+        M4(0, x: 1);
+        M5(0, x: 1);
+        M6(0, x: 1);
+
+        M7(0, x: 1);
+        M9(0, x: 1);
+        M8(0, x: 1);
+        M10(0, x: 1);
+
+        M11(x: 1, y: 2, z: 3);
+
+        M12(1, 2, 3, 4);
+        M13(1, 2, 3, 4);
+
+        M14(1, 2, 3);
+
+        M15(1, z: 0);
+        M16(1, z: 0);
+
+        M17(1, x: 2, y: 3);
+        M18(1, x: 2, y: 3);
+        M19(1, x: 2, y: 3);
+    }
+
+    static void M1() { }
+
+    static void M2() { }
+    static void M2(int u, int w) { }
+
+    static void M3(int u, int w) { }
+    static void M3() { }
+
+    static void M4() { }
+    static void M4(int u, int w) { }
+    static void M4(int x) { }
+
+    static void M5() { }
+    static void M5(int x) { }
+    static void M5(int u, int w) { }
+
+    static void M6(int x) { }
+    static void M6() { }
+    static void M6(int u, int w) { }
+
+    static void M7() { }
+    static void M7(int u, int w) { }
+    static void M7(int x) { }
+    static void M7(int u, int x, int w) { }
+
+    static void M8() { }
+    static void M8(int u, int w) { }
+    static void M8(int u, int x, int w) { }
+    static void M8(int x) { }
+
+    static void M9() { }
+    static void M9(int u, int x, int w) { }
+    static void M9(int u, int w) { }
+    static void M9(int x) { }
+
+    static void M10(int u, int x, int w) { }
+    static void M10() { }
+    static void M10(int u, int w) { }
+    static void M10(int x) { }
+
+    static void M11(object x, int y) { }
+    static void M11(object x, short y) { }
+
+    static void M12(object x, object y) { }
+    static void M12(object x, object y, object z) { }
+
+    static void M13(object x, object y, object z) { }
+    static void M13(object x, object y) { }
+
+    static void M14(object x, int y) { }
+    static void M14(object x, short y) { }
+
+    static void M15(object x, int y, object z = null) { }
+    static void M15(object x, short y, object z = null) { }
+
+    static void M16(object x, int y, object z = null) { }
+    static void M16(object x, short y, object z = null) { }
+
+    static void M17(object x, int y, int z) { }
+    static void M17(object y, short x, int z) { }
+
+    static void M18(object y, int x, int z) { }
+    static void M18(object x, short y, int z) { }
+
+    static void M19(object x, int y, int z) { }
+    static void M19(object x, short y, int z) { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1);
+
+            compilation.VerifyDiagnostics(
+    // (12,24): error CS1739: The best overload for 'F1' does not have a parameter named 'z'
+    //         F1(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F1", "z").WithLocation(12, 24),
+    // (13,24): error CS1739: The best overload for 'F2' does not have a parameter named 'z'
+    //         F2(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("F2", "z").WithLocation(13, 24),
+    // (15,9): error CS1501: No overload for method 'M1' takes 2 arguments
+    //         M1(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M1").WithArguments("M1", "2").WithLocation(15, 9),
+    // (17,15): error CS1739: The best overload for 'M2' does not have a parameter named 'x'
+    //         M2(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M2", "x").WithLocation(17, 15),
+    // (18,15): error CS1739: The best overload for 'M3' does not have a parameter named 'x'
+    //         M3(0, x: 1);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M3", "x").WithLocation(18, 15),
+    // (20,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M4(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(20, 15),
+    // (21,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M5(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(21, 15),
+    // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M6(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
+    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    //         M7(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
+    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    //         M9(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
+    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    //         M8(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
+    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    //         M10(0, x: 1);
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
+    // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
+    //         M11(x: 1, y: 2, z: 3);
+    Diagnostic(ErrorCode.ERR_BadNamedArgument, "z").WithArguments("M11", "z").WithLocation(29, 25),
+    // (31,9): error CS1501: No overload for method 'M12' takes 4 arguments
+    //         M12(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M12").WithArguments("M12", "4").WithLocation(31, 9),
+    // (32,9): error CS1501: No overload for method 'M13' takes 4 arguments
+    //         M13(1, 2, 3, 4);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M13").WithArguments("M13", "4").WithLocation(32, 9),
+    // (34,9): error CS1501: No overload for method 'M14' takes 3 arguments
+    //         M14(1, 2, 3);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M14").WithArguments("M14", "3").WithLocation(34, 9),
+    // (36,9): error CS1501: No overload for method 'M15' takes 2 arguments
+    //         M15(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M15").WithArguments("M15", "2").WithLocation(36, 9),
+    // (37,9): error CS1501: No overload for method 'M16' takes 2 arguments
+    //         M16(1, z: 0);
+    Diagnostic(ErrorCode.ERR_BadArgCount, "M16").WithArguments("M16", "2").WithLocation(37, 9),
+    // (39,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M17(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(39, 22),
+    // (40,22): error CS1744: Named argument 'y' specifies a parameter for which a positional argument has already been given
+    //         M18(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "y").WithArguments("y").WithLocation(40, 22),
+    // (41,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+    //         M19(1, x: 2, y: 3);
+    Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(41, 16)
+                );
+        }
+
+        [Fact, WorkItem(2631, "https://github.com/dotnet/roslyn/issues/2631")]
+        public void ArglistCompilerCrash()
+        {
+            var source =
+@"class Program
+{
+    static void M(object x) { }
+    static void M(object x, object y) { }
+    static void M(object x, object y, object z) { }
+    static void M(object x, object y, object z, __arglist) { }
+    static void M(object x, params object[] args) { }
+    static void Main(string[] args)
+    {
+        M(x: 1, y: 2, z: 3);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1171723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171723"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        public void BetterErrorMessage_02()
+        {
+            string source1 = @"
+using FluentAssertions;
+using Extensions;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+
+namespace FluentAssertions
+{
+    public static class AssertionExtensions
+    {
+        public static object Should(this object actualValue) { throw null; }
+        public static object Should(this IEnumerable actualValue) { throw null; }
+        public static object Should<T>(this IEnumerable<T> actualValue) { throw null; }
+        public static object Should<TKey, TValue>(this IDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace Extensions
+{
+    public static class TestExtensions
+    {
+        public static object Should<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace ClassLibraryOverloadResolution
+{    
+    public class Class1
+    {
+        void foo()
+        {
+            Dictionary<String, String> dict = null;
+            dict.Should();
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source1);
+
+            compilation.VerifyDiagnostics(
+    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
+    //             dict.Should();
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
+                );
+        }
+
+        [Fact, WorkItem(4970, "https://github.com/dotnet/roslyn/issues/4970")]
+        public void GenericExtensionMethodWithConstraintsAsADelegate()
+        {
+            var source =
+@"
+using System;
+
+public interface IDetail<T>
+{
+
+}
+
+public interface IMaster<T>
+{
+
+}
+
+public class MyClass
+{
+    static void Main()
+    {
+        Principal aPrincipal = new Principal();
+        Test(aPrincipal.RemoveDetail);
+        Test(aPrincipal.RemoveDetail<Principal,Permission>);
+
+        Action<Permission> a;
+        a = aPrincipal.RemoveDetail;
+        a(null);
+        a = aPrincipal.RemoveDetail<Principal,Permission>;
+        a(null);
+    }
+
+    static void Test(Action<Permission> a)
+    {
+        a(null);
+    }    
+}
+
+public class Permission : IDetail<Principal>
+{
+
+}
+
+public class Principal : IMaster<Permission>
+{
+}
+
+public static class Class
+{
+    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
+        where TMaster : class, IMaster<TChild>
+        where TChild : class, IDetail<TMaster>
+    {
+        System.Console.WriteLine(""RemoveDetail"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"RemoveDetail
+RemoveDetail
+RemoveDetail
+RemoveDetail");
+        }
+
+        [Fact, WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")]
+        public void GetSymbolOnfo_Inaccessible()
+        {
+            var source =
+@"
+class C
+{
+    private void M(D d)
+    {
+        d.M(1);
+    }
+}
+
+class D
+{
+    private void M(int i) { }
+    private void M(double d) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+
+            compilation.VerifyDiagnostics(
+    // (6,11): error CS0122: 'D.M(int)' is inaccessible due to its protection level
+    //         d.M(1);
+    Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("D.M(int)").WithLocation(6, 11)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(callSyntax);
+
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(2, candidates.Length);
+            Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
+            Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
         }
     }
 }

@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public partial class CodeGenMscorlibTests : EmitMetadataTestBase
     {
-        [WorkItem(544591, "DevDiv")]
-        [WorkItem(544609, "DevDiv")]
-        [WorkItem(544595, "DevDiv")]
-        [WorkItem(544596, "DevDiv")]
-        [WorkItem(544624, "DevDiv")]
-        [WorkItem(544592, "DevDiv")]
-        [WorkItem(544927, "DevDiv")]
+        [WorkItem(544591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
+        [WorkItem(544609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
+        [WorkItem(544595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
+        [WorkItem(544596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
+        [WorkItem(544624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
+        [WorkItem(544592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
+        [WorkItem(544927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
         [Fact]
         public void CoreLibrary1()
         {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             c.VerifyDiagnostics();
         }
 
-        [WorkItem(544918, "DevDiv")]
+        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
         [Fact]
         public void CoreLibrary2()
         {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [WorkItem(546832, "DevDiv")]
+        [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
         [Fact]
         public void CoreLibrary3()
         {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Report CS0518 for missing System.Void
         /// when generating synthesized .ctor.
         /// </summary>
-        [WorkItem(530859, "DevDiv")]
+        [WorkItem(530859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
         [Fact()]
         public void NoVoidForSynthesizedCtor()
         {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion), 
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
                 );
         }
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Report CS0656 for missing Decimal to int conversion.
         /// </summary>
-        [WorkItem(530860, "DevDiv")]
-        [Fact(Skip = "530860")]
+        [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
+        [Fact]
         public void NoDecimalConversion()
         {
             var source1 =
@@ -248,11 +248,132 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
+
+            // no errors for compat reasons.
             compilation2.VerifyDiagnostics();
-            var verifier = CompileAndVerify(compilation2);
+
+            // The bug has been resolved as Won't Fix for being extremely niche scenario and being a compat concern.
+            // uncomment the following code if we are fixing this
+            //var verifier = CompileAndVerify(compilation2);
         }
 
-        [WorkItem(530861, "DevDiv")]
+        [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]
+        public void NoTypedRef()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static T Read<T>()
+    {
+        T result = default(T);
+        var refresult = __makeref(result);
+
+        // ... method body
+
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+    //         var refresult = __makeref(result);
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(7, 25)
+);
+        }
+
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+        public void NoTypedRefBox()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+    //         var refresult = __makeref(result);
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(9, 25)
+);
+        }
+
+        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+        public void NoTypedRefBox1()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Decimal { }
+    public struct TypedReference { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var source2 =
+@"    
+public class C1
+{
+    public static object rrr;
+
+    public static T Read<T>() where T : new()
+    {
+        T result = new T();
+        var refresult = __makeref(result);
+        rrr = refresult;
+        rrr = (object)__makeref(result);
+        return result;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+    //         rrr = refresult;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+    //         rrr = (object)__makeref(result);
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+);
+        }
+
+        [WorkItem(530861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
         [Fact]
         public void MissingStringLengthForEach()
         {
@@ -316,7 +437,7 @@ namespace System.Collections
           );
         }
 
-        [WorkItem(631443, "DevDiv")]
+        [WorkItem(631443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
         [Fact]
         public void CoreLibrary4()
         {
@@ -420,15 +541,15 @@ namespace System.Collections
         }
     }
 }";
-        var comp = CreateCompilation(
-                text,
-                options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
+            var comp = CreateCompilation(
+                    text,
+                    options: TestOptions.ReleaseDll)
+                .VerifyDiagnostics();
 
 
-        //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
-        CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
-            VerifyIL("int.CompareTo(int)", @"
+            //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
+            CompileAndVerify(comp, verify: false).
+                VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -448,8 +569,8 @@ namespace System.Collections
   IL_000f:  ret
 }
 "
-            ).
-            VerifyIL("int.Equals(object)", @"
+                ).
+                VerifyIL("int.Equals(object)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -466,8 +587,8 @@ namespace System.Collections
   IL_0014:  ret
 }
 "
-            ).
-            VerifyIL("int.GetHashCode()", @"
+                ).
+                VerifyIL("int.GetHashCode()", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -476,7 +597,7 @@ namespace System.Collections
   IL_0002:  ret
 }
 "
-            );      
+                );
         }
 
         [Fact]
@@ -564,10 +685,10 @@ namespace System
                 .VerifyDiagnostics();
 
 
-            //IMPORTANT: we shoud NOT delegate E1.GetHashCode() to int.GetHashCode()
+            //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false).
+            CompileAndVerify(comp, verify: false).
                 VerifyIL("program.Main()",
 @"
 {
@@ -685,7 +806,7 @@ namespace System
 }";
             var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            //IMPORTANT: we shoud NOT load fields of clr-confusing structs off the field value.
+            //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 
             //           the following snippet  (note ldargA, not ldarg) -
             //      IL_0000:  ldarga.s   V_0
@@ -693,9 +814,9 @@ namespace System
             //
             //           it may seem redundant since in general we can load the filed off the value
             //           but see the bug see VSW #396011, JIT needs references when loading
-            //           fields of certain clr-ambiguous structs (only possible when building mscolib)
+            //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitUnsupported, verify: false).
+            CompileAndVerify(comp, verify: false).
                 VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)
@@ -779,7 +900,6 @@ namespace System
   IL_0016:  ret
 }
 ");
-        }       
-
+        }
     }
 }

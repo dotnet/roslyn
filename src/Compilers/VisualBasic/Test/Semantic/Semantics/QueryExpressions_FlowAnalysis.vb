@@ -108,14 +108,14 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact>
@@ -155,14 +155,14 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact>
@@ -202,15 +202,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q, y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -253,15 +253,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal("z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal("y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("y, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -304,15 +304,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, y, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, y, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, y, s1, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1, s1, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -345,26 +345,26 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
 
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Dim flowsIn = dataFlowAnalysisResults.DataFlowsIn(0)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
 
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Same(flowsIn, dataFlowAnalysisResults.ReadInside(0))
 
-            Assert.Equal("q, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
 
-            Assert.Equal("args, Me, q, q1, s1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("Me, args, q, q1, s1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
             Dim ss = dataFlowAnalysisResults.WrittenOutside.Where(Function(s) s.Name.Equals("s1", StringComparison.OrdinalIgnoreCase))
             Assert.Equal(ss(0).Name, ss(1).Name)
             Assert.NotEqual(ss(0), ss(1))
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -397,16 +397,16 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal("s1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal("s1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.NotSame(dataFlowAnalysisResults.VariablesDeclared(0), dataFlowAnalysisResults.VariablesDeclared(1))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q, s1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("s1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q, s1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -439,16 +439,16 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.NotSame(dataFlowAnalysisResults.ReadInside(0), GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside)(1))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.NotSame(dataFlowAnalysisResults.ReadInside(0), GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside)(1))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -481,15 +481,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -522,15 +522,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -563,15 +563,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -604,15 +604,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -645,15 +645,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -686,15 +686,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, q1, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -750,15 +750,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -814,15 +814,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -878,15 +878,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact()>
@@ -1013,15 +1013,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q, s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q, s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact()>
@@ -1214,15 +1214,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("s", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1269,15 +1269,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1324,15 +1324,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1379,15 +1379,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1434,15 +1434,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1489,15 +1489,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1544,15 +1544,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("x, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1600,15 +1600,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, x", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, x, y, z", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, z, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1644,15 +1644,15 @@ End Class
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("args, Me, q, q1, s1, y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("y", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("y, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("Me, args, q, y, q1, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
 
@@ -1695,15 +1695,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("MaxValue, q, q1, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, MaxValue, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1751,15 +1751,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1807,15 +1807,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1863,15 +1863,15 @@ End Namespace
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1915,15 +1915,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qi, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -1967,15 +1967,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2019,15 +2019,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2071,15 +2071,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4, s5", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4, s5", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2123,15 +2123,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2173,15 +2173,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("q, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q, q1, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("q", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("q, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("q, q1, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("q", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2232,15 +2232,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2291,15 +2291,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qs", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qs", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qs", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qs", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2350,15 +2350,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qu", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qu", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2408,15 +2408,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4, s5", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4, s5", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2466,15 +2466,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, s1, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2524,15 +2524,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, s1, s2, s3", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, s1, s2, s3", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2589,15 +2589,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("i1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, Count, Group, i1, k1, q1, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s1, i1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, i1, k1, Group, Count, c1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2654,15 +2654,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("c1, Count, Group, i1, k1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("i1, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("c1, Count, Group, i1, k1, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s1, i1, k1, Group, Count, c1", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, s1, i1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1, i1, k1, Group, Count, c1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2719,15 +2719,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("i1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("i1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, Count, Group, i1, k1, q1, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("i1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("i1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, i1, k1, Group, Count, c1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2783,15 +2783,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, Count, Group, k1, q1, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, k1, Group, Count, c1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2854,15 +2854,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, c2, Group, q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2925,15 +2925,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qs", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qs", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, c2, Group, q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qs", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qs", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -2996,15 +2996,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, c2, Group, q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qu", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qu", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3067,15 +3067,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, c2, Group, q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3138,15 +3138,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c1, c2, Group, q1, qb, qi, ql, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, qs, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1, s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3209,15 +3209,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("c1, c2, Group, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb, qi, qs, qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb, qi, qs, qu, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("c1, c2, Group, s1, s2, s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi, ql, qs, qu", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi, qb, qs, qu", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, qb, qs, qu, s1, s2, s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1, s2, s3, c1, c2, s4, Group", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, qs, qu, ql, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3264,15 +3264,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3319,15 +3319,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3374,15 +3374,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3429,15 +3429,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3484,15 +3484,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3539,15 +3539,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3594,15 +3594,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("Count, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("Count, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3649,15 +3649,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("c, Count, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("c, Count, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3706,15 +3706,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3763,15 +3763,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3820,15 +3820,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qb, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3877,15 +3877,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qb, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3934,15 +3934,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -3991,15 +3991,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -4048,15 +4048,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -4105,15 +4105,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("qb, qi, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("c, Count, q1, qb, qi, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("qi, qb, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1, t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -4162,15 +4162,15 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("Count, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("Count, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi, qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, qb, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("t1, s1, s2, Count", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
         <Fact>
@@ -4219,18 +4219,18 @@ End Module
             ]]></file>
         </compilation>)
 
-            Assert.Equal("c, Count, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal("qb, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal("qb, qi, s1, s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("c, Count, s1, s2, t1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("q1, qb, qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal("qi", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal("t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal("qi, qb", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal("qi, qb, s1, s2", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal("t1, s1, s2, Count, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("qi, qb, q1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("qi", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-        <WorkItem(543164, "DevDiv")>
+        <WorkItem(543164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543164")>
         <Fact()>
         Public Sub LambdaFunctionInsideSkipClause()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -4255,18 +4255,18 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
                                      ~~~~~~~~~~~~~
                         </errors>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("arr", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("arr, q2, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("arr", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("arr, q2, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-        <WorkItem(543164, "DevDiv")>
+        <WorkItem(543164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543164")>
         <Fact()>
         Public Sub LambdaFunctionInsideSkipClause2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
@@ -4288,15 +4288,15 @@ BC30451: 's1' is not declared. It may be inaccessible due to its protection leve
                                      ~~
                         </errors>)
 
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.VariablesDeclared))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("arr", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("arr, q2, s1", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.WrittenOutside))
-            Assert.Equal(Nothing, GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.Captured))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
+            Assert.Equal("arr", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("arr, q2, s1", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
     End Class

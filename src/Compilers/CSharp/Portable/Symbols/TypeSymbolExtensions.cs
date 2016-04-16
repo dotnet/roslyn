@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.Kind == SymbolKind.ArrayType)
             {
                 var arrayType = (ArrayTypeSymbol)type;
-                if (arrayType.Rank != 1)
+                if (!arrayType.IsSZArray)
                 {
                     return TypedConstantKind.Error;
                 }
@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array;
         }
 
-        public static bool IsSingleDimensionalArray(this TypeSymbol type)
+        public static bool IsSZArray(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).Rank == 1;
+            return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.Arity == 1 &&
                 type.MangleName &&
                 type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, expressionsNamespaceName);
+                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName);
         }
 
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
+        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
 
         private static bool CheckFullName(Symbol symbol, string[] names)
         {
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 case Accessibility.Private:
                                     // if s2 is private and within a subclass of s1's parent,
-                                    // or withing the same assembly as s1
+                                    // or within the same assembly as s1
                                     // then this is at least as restrictive as s1's internal protected.
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
                                     {
@@ -685,7 +685,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         throw ExceptionUtilities.UnexpectedValue(acc1);
                 }
-
             }
             return false;
         }
@@ -709,22 +708,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsTypeParameter(this TypeSymbol type, TypeParameterSymbol parameter = null)
         {
-            var result = type.VisitType(ContainsTypeParameterPredicate, parameter);
+            var result = type.VisitType(s_containsTypeParameterPredicate, parameter);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> ContainsTypeParameterPredicate =
+        private static readonly Func<TypeSymbol, TypeParameterSymbol, bool, bool> s_containsTypeParameterPredicate =
             (type, parameter, unused) => type.TypeKind == TypeKind.TypeParameter && ((object)parameter == null || type == parameter);
 
         public static bool ContainsTypeParameter(this TypeSymbol type, MethodSymbol parameterContainer)
         {
             Debug.Assert((object)parameterContainer != null);
 
-            var result = type.VisitType(IsTypeParameterWithSpecificContainerPredicate, parameterContainer);
+            var result = type.VisitType(s_isTypeParameterWithSpecificContainerPredicate, parameterContainer);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, Symbol, bool, bool> IsTypeParameterWithSpecificContainerPredicate =
+        private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
         /// <summary>
@@ -732,11 +731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsDynamic(this TypeSymbol type)
         {
-            var result = type.VisitType(ContainsDynamicPredicate, null);
+            var result = type.VisitType(s_containsDynamicPredicate, null);
             return (object)result != null;
         }
 
-        private static readonly Func<TypeSymbol, object, bool, bool> ContainsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
+        private static readonly Func<TypeSymbol, object, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -761,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Guess the non-error typekind that the given type was intended to represent,
+        /// Guess the non-error type kind that the given type was intended to represent,
         /// if possible. If not, return TypeKind.Error.
         /// </summary>
         internal static TypeKind GetNonErrorTypeKindGuess(this TypeSymbol type)
