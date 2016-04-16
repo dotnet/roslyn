@@ -2526,8 +2526,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return switchStatement;
             }
 
-            return statement.WithSections(
-                statement.Sections.InsertRange(index, switchSections.Cast<SwitchSectionSyntax>()));
+            var newSections = statement.Sections.InsertRange(index, switchSections.Cast<SwitchSectionSyntax>());
+            return AddMissingTokens(statement, recurse: false).WithSections(newSections);
+        }
+
+        private static TNode AddMissingTokens<TNode>(TNode node, bool recurse)
+            where TNode : CSharpSyntaxNode
+        {
+            var rewriter = new AddMissingTokensRewriter(recurse);
+            return (TNode)rewriter.Visit(node);
+        }
+
+        private class AddMissingTokensRewriter : CSharpSyntaxRewriter
+        {
+            private readonly bool _recurse;
+            private bool firstVisit = true;
+
+            public AddMissingTokensRewriter(bool recurse)
+            {
+                _recurse = recurse;
+            }
+
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                if (!_recurse && !firstVisit)
+                {
+                    return node;
+                }
+
+                firstVisit = false;
+                return base.Visit(node);
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken token)
+            {
+                var rewrittenToken = base.VisitToken(token);
+                if (!rewrittenToken.IsMissing || !SyntaxFacts.IsPunctuationOrKeyword(token.Kind()))
+                {
+                    return rewrittenToken;
+                }
+
+                return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
+            }
         }
 
         private BaseParameterListSyntax GetParameterList(SyntaxNode declaration)

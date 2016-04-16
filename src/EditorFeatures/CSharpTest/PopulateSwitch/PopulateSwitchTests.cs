@@ -893,5 +893,42 @@ namespace ConsoleApplication1
     }
 ", index: 2);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task AllMissingTokens()
+        {
+            await TestAsync(
+            @"
+enum MyEnum
+{
+    Fizz
+}
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        switch ([|e|])
+    }
+}
+",
+            @"
+enum MyEnum
+{
+    Fizz
+}
+class MyClass
+{
+    void Method()
+    {
+        var e = MyEnum.Fizz;
+        switch (e)
+        {
+            case MyEnum.Fizz:
+                break;
+        }
+    }
+");
+        }
     }
 }
