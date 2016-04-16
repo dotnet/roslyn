@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var constantValue = label.SwitchCaseLabelConstant;
                     if (constantValue != null)
                     {
-                        // Case labels with a non-null constant value are indexed on their ConstantValue.                    
+                        // Case labels with a non-null constant value are indexed on their ConstantValue.
                         key = constantValue;
                     }
                     else if (labelKind == SyntaxKind.DefaultSwitchLabel)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.CaseSwitchLabel:
                     // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
-                    // Diagnostics will be reported during binding.                        
+                    // Diagnostics will be reported during binding.
                     var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                     Debug.Assert(caseLabel.Value != null);
                     DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();

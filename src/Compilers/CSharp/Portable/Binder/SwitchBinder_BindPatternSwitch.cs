@@ -71,22 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         return new BoundPatternSwitchLabel(node,
-                            sectionBinder.BindPattern(matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics),
+                            sectionBinder.BindPattern(matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitch: true),
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null, node.HasErrors);
                     }
 
                 case SyntaxKind.CaseSwitchLabel:
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        var boundLabelExpression = sectionBinder.BindValue(caseLabelSyntax.Value, diagnostics, BindValueKind.RValue);
-                        // TODO: check compatibility of the bound switch expression with the label
-                        // TODO: check that it is a constant.
-                        if ((object)boundLabelExpression.Type == null && boundLabelExpression.ConstantValue?.IsNull == true)
-                        {
-                            // until we've implemeneted covnersions for the case expressions, ensure each has a type.
-                            boundLabelExpression = sectionBinder.CreateConversion(boundLabelExpression, sectionBinder.GetSpecialType(SpecialType.System_Object, diagnostics, node), diagnostics);
-                        }
-                        var pattern = new BoundConstantPattern(node, boundLabelExpression, node.HasErrors);
+                        bool wasExpression;
+                        var pattern = sectionBinder.BindConstantPattern(node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitch: true);
                         return new BoundPatternSwitchLabel(node, pattern, null, node.HasErrors);
                     }
 
@@ -98,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, "default");
                         }
+
                         defaultLabel = defaultLabelSyntax;
                         return new BoundPatternSwitchLabel(node, pattern, null, node.HasErrors); // note that this is semantically last!
                     }
