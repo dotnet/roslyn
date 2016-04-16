@@ -56,14 +56,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             ISwitchStatement switchStatement,
             out bool missingCases, out bool missingDefaultCase)
         {
-            missingDefaultCase = !PopulateSwitchHelpers.HasDefaultCase(switchStatement);
-            missingCases = false;
-
-            var switchExpression = switchStatement.Value;
-            var switchExpressionType = switchExpression?.Type;
-
             var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
+
             missingCases = missingEnumMembers.Count > 0;
+            missingDefaultCase = !PopulateSwitchHelpers.HasDefaultCase(switchStatement);
 
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
