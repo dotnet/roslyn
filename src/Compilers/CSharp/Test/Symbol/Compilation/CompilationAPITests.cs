@@ -432,8 +432,8 @@ namespace A.B {
             comp = CSharpCompilation.Create("APP2",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
-                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}"
-                    ) },
+                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
+                    options: TestOptions.ExperimentalParseOptions) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 

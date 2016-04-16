@@ -198,7 +198,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "{1, 2}");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -236,7 +236,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: "2");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "2");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -269,7 +269,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{, }");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "{, }");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -302,7 +302,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{1, {2, {3, 4}}}");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "{1, {2, {3, 4}}}");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -346,7 +346,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -392,7 +392,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -438,7 +438,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -484,7 +484,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -538,7 +538,7 @@ class C
 
 " + trivial3uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello, 2}");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"{1, hello, 2}");
         }
 
         [Fact]
@@ -554,7 +554,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
                 //         (int, string) x = (1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", 2)").WithArguments("(int, string, int)", "(int, string)").WithLocation(6, 27));
@@ -574,7 +574,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (6,54): error CS0029: Cannot implicitly convert type '(string, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(string, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
@@ -597,7 +597,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
@@ -633,7 +633,7 @@ class C
     }
 }
 " + trivial2uple;
-            var comp = CompileAndVerify(source, expectedOutput: @"1
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"1
 hello");
         }
 
@@ -650,7 +650,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (6,9): error CS8204: Tuple member names must all be provided, if any one is provided.
                 //         (int, string a) x = (b: 1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, "(int, string a)").WithLocation(6, 9),
@@ -689,7 +689,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"4");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"4");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -746,7 +746,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -785,8 +785,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"42");
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -903,8 +902,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"42");
+            CompileAndVerifyExperimental(source, expectedOutput: @"42", options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -919,7 +917,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
@@ -947,7 +945,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp");
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyEmitDiagnostics(
                 // (11,24): error CS8205: Member '.ctor' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int, int) x = (1, 2);
@@ -968,7 +966,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8203: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
@@ -996,7 +994,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8201: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
@@ -1026,7 +1024,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
@@ -1056,7 +1054,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"0
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"0
 null");
         }
 
@@ -1073,7 +1071,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8203: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
@@ -1097,7 +1095,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8201: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
@@ -1149,7 +1147,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -1182,7 +1180,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -1206,7 +1204,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source);
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
@@ -1229,7 +1227,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source);
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
@@ -1250,7 +1248,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions);
             comp.VerifyDiagnostics(
                 // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static (T1 first, T2 second) M<T1, T2>()
@@ -1279,7 +1277,7 @@ class C
     }
 }
 " + trivial2uple;
-            var comp = CompileAndVerify(source, expectedOutput: @"0 False");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"0 False");
         }
 
         [Fact]
@@ -1312,7 +1310,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -1330,7 +1328,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -1348,7 +1346,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -1367,7 +1365,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -1388,7 +1386,7 @@ static class C
 " + trivial2uple;
 
             // PROTOTYPE(tuples): this should probably fail with diagnostics. No extension methods on tuple types (but you can on ValueTuple)
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"42 Alice");
+            CompileAndVerifyExperimental(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -1401,7 +1399,7 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (4,41): error CS1736: Default parameter value for 'y' must be a compile-time constant
                 //     void M(int x, (int a, string b) y = (42, "Alice"))
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(42, ""Alice"")").WithArguments("y").WithLocation(4, 41));
@@ -1444,7 +1442,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42 Alice");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"42 Alice");
         }
 
         [Fact]
@@ -1477,7 +1475,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -1500,7 +1498,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef });
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef });
             verifier.VerifyDiagnostics();
         }
 
@@ -1530,7 +1528,7 @@ class C
                 Assert.Equal("System.ValueTuple<System.String, System.Int32>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerifyExperimental(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -1552,7 +1550,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello}");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"{1, hello}");
         }
 
         [Fact]
@@ -1594,9 +1592,9 @@ class C3
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1);
-            var comp2 = CreateCompilationWithMscorlib(source2);
-            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp1 = CreateCompilationWithMscorlib(source1, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp2 = CreateCompilationWithMscorlib(source2, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
@@ -1632,9 +1630,9 @@ class C3
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1);
-            var comp2 = CreateCompilationWithMscorlib(source2);
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp1 = CreateCompilationWithMscorlib(source1, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp2 = CreateCompilationWithMscorlib(source2, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.ExperimentalParseOptions);
 
             // PROTOTYPE(tuples) this error is misleading or worse.
             comp.VerifyDiagnostics(
@@ -1656,10 +1654,10 @@ class C3
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1", parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp2 = CreateCompilationWithMscorlib(trivial2uple, parseOptions: TestOptions.ExperimentalParseOptions);
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
                 // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
@@ -1675,10 +1673,10 @@ class C3
     public void M((int, int) x) { }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1");
-            var comp2 = CreateCompilationWithMscorlib(trivial2uple);
+            var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1", parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp2 = CreateCompilationWithMscorlib(trivial2uple, parseOptions: TestOptions.ExperimentalParseOptions);
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp = CompileAndVerifyExperimental(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
                 // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
@@ -1732,9 +1730,9 @@ class C3
 }
 " + trivial2uple;
 
-            var comp1 = CreateCompilationWithMscorlib(source1);
-            var comp2 = CreateCompilationWithMscorlib(source2);
-            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp1 = CreateCompilationWithMscorlib(source1, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp2 = CreateCompilationWithMscorlib(source2, parseOptions: TestOptions.ExperimentalParseOptions);
+            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.ExperimentalParseOptions);
         }
 
         [Fact]
@@ -2183,7 +2181,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: "12345678901234567890123456789012345");
         }
 
         [Fact]
@@ -2202,7 +2200,7 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (9,30): error CS0029: Cannot implicitly convert type '(byte, string)' to '(short, string)'
                 //         (short, string) x2 = ((byte, string))(1, "hello");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"((byte, string))(1, ""hello"")").WithArguments("(byte, string)", "(short, string)").WithLocation(9, 30)
@@ -2239,8 +2237,8 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<Func<(short, short)>>)' and 'C.Test(Func<Func<(byte, byte>>)'
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
+                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<Func<(short, short)>>)' and 'C.Test(Func<Func<(byte, byte)>>)'
                 //         Test(()=>()=>(1,1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<System.Func<(short, short)>>)", "C.Test(System.Func<System.Func<(byte, byte)>>)").WithLocation(23, 9)
             );
@@ -2276,7 +2274,7 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9)
@@ -2315,7 +2313,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 second
 first
 third
@@ -2353,7 +2351,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 third
 7
 ");
@@ -2385,7 +2383,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.Double]]
 {1, 2}
 ");
@@ -2423,7 +2421,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 second
 first
 third
@@ -2457,7 +2455,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
 {1, }
 ");
@@ -2490,7 +2488,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 1
 8
 System.ValueTuple`8[System.Int32,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.ValueTuple`3[System.Int32,System.Int32,System.Int32]]
@@ -2533,7 +2531,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerifyExperimental(source, expectedOutput: @"
 first
 first
 fourth
@@ -2560,7 +2558,7 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
                 // (8,29): error CS0029: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(8, 29),
@@ -2588,7 +2586,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2620,7 +2618,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2649,7 +2647,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2678,7 +2676,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2713,7 +2711,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2742,7 +2740,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2779,7 +2777,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2808,7 +2806,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2843,7 +2841,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2878,7 +2876,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2907,7 +2905,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2936,7 +2934,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2965,7 +2963,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -3000,7 +2998,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -3029,7 +3027,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -3080,7 +3078,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -3127,7 +3125,7 @@ class C
 }
 " + trivial2uple + trivial3uple;
 
-            var tree = Parse(source);
+            var tree = Parse(source, options: TestOptions.ExperimentalParseOptions);
             var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);

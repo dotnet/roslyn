@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLocalFunctions:
                 case MessageID.IDS_FeatureRefLocalsReturns:
                 case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureTuples:
                     // in "demo" mode enable proposed new C# 7 language features.
                     if (PreprocessorSymbols.Contains("__DEMO__") ||
                         PreprocessorSymbols.Contains("__DEMO_EXPERIMENTAL__"))

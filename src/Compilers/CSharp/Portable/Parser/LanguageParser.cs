@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 try
                 {
                     bool shouldHaveName = false;
-                tryAgain:
+tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -2148,8 +2148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.ImplicitKeyword:
                 case SyntaxKind.ExplicitKeyword:
-                case SyntaxKind.OpenParenToken:    //tuple
                     return true;
+                case SyntaxKind.OpenParenToken:    //tuple
+                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples);
 
                 case SyntaxKind.RefKeyword:
                     return IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns);
@@ -2466,27 +2467,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return _syntaxFactory.IncompleteMember(attributes, modifiers.ToTokenList(), refKeyword, type);
                 }
 
-            parse_member_name:;
+parse_member_name:;
                 // If we've seen the ref keyword, we know we must have an indexer, method, or property.
                 if (refKeyword == null)
                 {
-                // Check here for operators
-                // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                if (IsOperatorKeyword())
-                {
-                    return this.ParseOperatorDeclaration(attributes, modifiers, type);
-                }
-
-                if (IsFieldDeclaration(isEvent: false))
-                {
-                    if (acceptStatement)
+                    // Check here for operators
+                    // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
+                    if (IsOperatorKeyword())
                     {
-                        // if we are script at top-level then statements can occur
-                        _termState |= TerminatorState.IsPossibleStatementStartOrStop;
+                        return this.ParseOperatorDeclaration(attributes, modifiers, type);
                     }
 
-                    return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
-                }
+                    if (IsFieldDeclaration(isEvent: false))
+                    {
+                        if (acceptStatement)
+                        {
+                            // if we are script at top-level then statements can occur
+                            _termState |= TerminatorState.IsPossibleStatementStartOrStop;
+                        }
+
+                        return this.ParseNormalFieldDeclaration(attributes, modifiers, type, parentKind);
+                    }
                 }
 
                 // At this point we can either have indexers, methods, or 
@@ -3415,7 +3416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
             {
                 refKeyword = this.EatToken();
-        }
+            }
 
             return _syntaxFactory.ArrowExpressionClause(arrowToken, refKeyword, this.ParseExpressionCore());
         }
@@ -3932,7 +3933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != closeKind)
                 {
-                tryAgain:
+tryAgain:
                     int mustBeLastIndex = -1;
                     bool mustBeLastHadParams = false;
                     bool hasParams = false;
@@ -4027,10 +4028,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenBracketToken: // attribute
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                case SyntaxKind.OpenParenToken:   // tuple
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
                     return true;
+                case SyntaxKind.OpenParenToken:   // tuple
+                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples) || IsPredefinedType(this.CurrentToken.Kind);
+
                 case SyntaxKind.ThisKeyword:
                     return allowThisKeyword;
                 case SyntaxKind.IdentifierToken:
@@ -4555,13 +4558,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             LocalFunctionStatementSyntax localFunction;
             ParseVariableDeclarators(
-                type, 
-                flags, 
-                variables, 
-                variableDeclarationsExpected, 
-                false, 
-                default(SyntaxList<SyntaxToken>), 
-                default(SyntaxToken), 
+                type,
+                flags,
+                variables,
+                variableDeclarationsExpected,
+                false,
+                default(SyntaxList<SyntaxToken>),
+                default(SyntaxToken),
                 out localFunction);
 
             Debug.Assert(localFunction == null);
@@ -4579,12 +4582,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             variables.Add(
                 this.ParseVariableDeclarator(
-                    type, 
-                    flags, 
-                    isFirst: true, 
-                    allowLocalFunctions: allowLocalFunctions, 
-                    mods: mods, 
-                    refTokenOpt: refTokenOpt, 
+                    type,
+                    flags,
+                    isFirst: true,
+                    allowLocalFunctions: allowLocalFunctions,
+                    mods: mods,
+                    refTokenOpt: refTokenOpt,
                     localFunction: out localFunction));
 
             if (localFunction != null)
@@ -4605,11 +4608,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     variables.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     variables.Add(
                         this.ParseVariableDeclarator(
-                            type, 
-                            flags, 
-                            isFirst: false, 
+                            type,
+                            flags,
+                            isFirst: false,
                             allowLocalFunctions: false,
-                            mods: mods, 
+                            mods: mods,
                             refTokenOpt: refTokenOpt,
                             localFunction: out localFunction));
                 }
@@ -4851,7 +4854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var equals = this.EatToken();
 
                     SyntaxToken refKeyword = null;
-                    if (isLocal && !isConst && 
+                    if (isLocal && !isConst &&
                         this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
                         IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                     {
@@ -5038,7 +5041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
             {
                 refKeyword = this.EatToken();
-            }            
+            }
 
             var type = this.ParseReturnType();
 
@@ -5140,7 +5143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-            tryAgain:
+tryAgain:
 
                 if (this.IsPossibleEnumMemberDeclaration() || this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                 {
@@ -6187,7 +6190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && IsFeatureEnabled(MessageID.IDS_FeatureTuples))
             {
                 lastTokenOfType = this.EatToken();
 
@@ -6564,7 +6567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return this.ParseQualifiedName();
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && IsFeatureEnabled(MessageID.IDS_FeatureTuples))
             {
                 return this.ParseTupleType();
             }
@@ -7322,14 +7325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var @fixed = this.EatToken(SyntaxKind.FixedKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                var saveTerm = _termState;
-                _termState |= TerminatorState.IsEndOfFixedStatement;
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfFixedStatement;
             var decl = ParseVariableDeclaration();
-                _termState = saveTerm;
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                StatementSyntax statement = this.ParseEmbeddedStatement(false);
-                return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
-            }
+            _termState = saveTerm;
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            StatementSyntax statement = this.ParseEmbeddedStatement(false);
+            return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
+        }
 
         private bool IsEndOfFixedStatement()
         {
@@ -7746,7 +7749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-            tryAgain:
+tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -7884,10 +7887,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return null;
             }
 
-                var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
-                var elseStatement = this.ParseEmbeddedStatement(false);
+            var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
+            var elseStatement = this.ParseEmbeddedStatement(false);
             return _syntaxFactory.ElseClause(elseToken, elseStatement);
-            }
+        }
 
         private LockStatementSyntax ParseLockStatement()
         {
@@ -8246,7 +8249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 SyntaxToken refKeyword = null;
                 if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns)) 
+                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
                 {
                     refKeyword = this.EatToken();
                 }
@@ -8455,9 +8458,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(
-            SyntaxList<SyntaxToken> modifiers, 
+            SyntaxList<SyntaxToken> modifiers,
             SyntaxToken refTokenOpt,
-            TypeSyntax type, 
+            TypeSyntax type,
             SyntaxToken identifier)
         {
             // This may potentially be an ambiguous parse until very far into the token stream, so we may have to backtrack.
@@ -9385,7 +9388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != closeKind && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
-                tryAgain:
+tryAgain:
                     if (list.IsNull)
                     {
                         list = _pool.AllocateSeparated<ArgumentSyntax>();
@@ -9598,8 +9601,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
                 && this.PeekToken(2).Kind == SyntaxKind.CommaToken)
             {
+                if (!IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                {
+                    return true;
+                }
+
                 int curTk = 3;
-                while(true)
+                while (true)
                 {
                     var tk = this.PeekToken(curTk++);
 
@@ -9765,22 +9773,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                     var expression = this.ParseSubExpression(Precedence.Expression);
 
-                    //  ( <expr>,    must be a tuple
-                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
-                    }
+                        //  ( <expr>,    must be a tuple
+                        if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                        {
+                            var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                            return ParseTupleExpressionTail(openParen, firstArg);
+                        }
 
-                    // ( name: 
-                    if (expression.Kind == SyntaxKind.IdentifierName &&
-                        this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                    {
-                        var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = ParseSubExpression(0);
+                        // ( name:
+                        if (expression.Kind == SyntaxKind.IdentifierName &&
+                            this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                        {
+                            var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
+                            expression = ParseSubExpression(0);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
-                        return ParseTupleExpressionTail(openParen, firstArg);
+                            var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                            return ParseTupleExpressionTail(openParen, firstArg);
+                        }
                     }
 
                     var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -10028,7 +10039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-            tryAgain:
+tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -10257,7 +10268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-            tryAgain:
+tryAgain:
                 if (this.IsInitializerMember() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // We have at least one initializer expression.
@@ -10398,7 +10409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-            tryAgain:
+tryAgain:
                 if (this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first argument
@@ -10488,7 +10499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                tryAgain:
+tryAgain:
                     if (this.IsPossibleVariableInitializer(false) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         list.Add(this.ParseVariableInitializer(false));
@@ -10689,7 +10700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                 {
-                tryAgain:
+tryAgain:
                     if (this.IsPossibleLambdaParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter
@@ -10742,8 +10753,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                case SyntaxKind.OpenParenToken:   // tuple
                     return true;
+                case SyntaxKind.OpenParenToken:   // tuple
+                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples) || IsPredefinedType(this.CurrentToken.Kind);
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
                 default:

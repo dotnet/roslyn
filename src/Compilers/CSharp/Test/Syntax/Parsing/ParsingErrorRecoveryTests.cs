@@ -5259,7 +5259,7 @@ class C
         public void TestSemicolonAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.ExperimentalParseOptions);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5320,7 +5320,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.ExperimentalParseOptions);
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());

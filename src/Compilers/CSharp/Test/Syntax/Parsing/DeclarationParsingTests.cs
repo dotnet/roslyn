@@ -5557,7 +5557,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5578,7 +5578,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
             Assert.Equal(0, file.Errors().Length);
         }
     }
