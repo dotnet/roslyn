@@ -78,9 +78,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchStatement = (ISwitchStatement)model.GetOperation(switchNode, cancellationToken);
             var enumType = switchStatement.Value.Type;
 
-            var containsDefaultCase = PopulateSwitchHelpers.HasDefaultCase(switchStatement);
-            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
-
             var generator = SyntaxGenerator.GetGenerator(document);
 
             var sectionStatements = new[] { generator.ExitSwitchStatement() };
@@ -89,6 +86,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             if (includeMissingCases)
             {
+                var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
                 var missingSections =
                     from e in missingEnumMembers
                     let caseLabel = generator.MemberAccessExpression(generator.TypeExpression(enumType), e.Name).WithAdditionalAnnotations(Simplifier.Annotation)
