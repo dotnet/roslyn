@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public static bool HasDefaultCase(ISwitchStatement switchStatement)
         {
-            foreach (var switchCase in switchStatement.Cases)
+            for (var index = switchStatement.Cases.Length - 1; index >= 0; index--)
             {
-                if (HasDefaultCase(switchCase))
+                if (HasDefaultCase(switchStatement.Cases[index]))
                 {
                     return true;
                 }
