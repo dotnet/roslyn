@@ -246,6 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
+                case WellKnownMemberNames.IsOperatorName:
+                    // The requirements for 'operator is' are more complex and checked elsewhere
+                    return true;
                 case WellKnownMemberNames.IncrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
@@ -562,9 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ParameterCount == 0)
             {
-                // PROTOTYPE(patterns): need an error message for this.
-                // PROTOTYPE(patterns): ensure we have coverage for negative scenarios.
-                diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_OperatorIsNoParameters, this.Locations[0]);
             }
             else
             {
@@ -576,15 +577,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // (both reject null) we disallow "operator is" from confusingly taking the former.
                         if (p.Type.IsNullableType())
                         {
-                            // PROTOTYPE(patterns): need to ensure the specification describes this scenario.
-                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
-                            // Error: User-defined 'operator is' may not accept a Nullable type as its first argument.
                             diagnostics.Add(ErrorCode.ERR_OperatorIsNullable, p.Locations[0]);
                         }
 
                         if (p.RefKind != RefKind.None)
                         {
-                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
                             diagnostics.Add(ErrorCode.ERR_IllegalRefParam, p.Locations[0]);
                             break;
                         }
@@ -593,7 +590,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (p.RefKind != RefKind.Out)
                         {
-                            // PROTOTYPE(patterns): ensure we have coverage for positive and negative cases.
                             // Error: Non-initial parameters of user-defined 'operator is' require the 'out' modifier.
                             diagnostics.Add(ErrorCode.ERR_OperatorIsRequiresOut, p.Locations[0]);
                             break;

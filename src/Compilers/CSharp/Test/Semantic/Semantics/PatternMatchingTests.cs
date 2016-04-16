@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
                     .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
                     .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
+        private static CSharpParseOptions experimentalParseOptions =
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeatureInferPositionalPattern.RequiredFeature(), "true");
 
         [Fact]
         public void DemoModes()
@@ -143,10 +148,25 @@ public class Vec
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
                 );
 
-            // additionally enables let, match, throw, and recursive patterns
+            // additionally enables let, match, throw, and operator is
             var experimentalParseOptions = regularParseOptions
                 .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions).VerifyDiagnostics(
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
+                // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
+                //         int i2 = 23_554; // digit separators
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
+                // (9,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                );
+
+            // additionally enables let, match, throw, and inferred recursive patterns
+            var unsupportedParseOptions = regularParseOptions
+                .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__", "__DEMO_UNSUPPORTED__" });
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: unsupportedParseOptions).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
@@ -359,7 +379,7 @@ public class X
 @"1 2 3 6
 True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -14071,7 +14091,9 @@ public class X : Expression
 ";
             var compilation = CreateCompilationWithMscorlib(source,
                 options: TestOptions.ReleaseExe,
-                parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
+                parseOptions: patternParseOptions
+                    .WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeatureInferPositionalPattern.RequiredFeature(), "true"));
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: @"22");
         }
@@ -14951,6 +14973,12 @@ public class X
     // (82,19): error CS1525: Invalid expression term 'case'
     //                 : case byte x15:
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "case").WithArguments("case").WithLocation(82, 19),
+    // (17,22): error CS0030: Cannot convert type 'int' to 'short'
+    //                 case short x1:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "short").WithArguments("int", "short").WithLocation(17, 22),
+    // (19,22): error CS0030: Cannot convert type 'int' to 'byte'
+    //                 case byte x1:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "byte").WithArguments("int", "byte").WithLocation(19, 22),
     // (30,26): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 case int x3:
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(30, 26),
@@ -14971,7 +14999,10 @@ public class X
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(70, 27),
     // (72,13): error CS0103: The name 'x10' does not exist in the current context
     //             x10
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(72, 13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(72, 13),
+    // (82,24): error CS0030: Cannot convert type 'int' to 'byte'
+    //                 : case byte x15:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "byte").WithArguments("int", "byte").WithLocation(82, 24)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -15248,6 +15279,63 @@ True
 True
 True
 null");
+        }
+
+        [Fact]
+        public void OperatorIsMissingArgument()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,33): error CS8161: The declaration of 'operator is' must have at least one value parameter.
+                //     public static void operator is() { }
+                Diagnostic(ErrorCode.ERR_OperatorIsNoParameters, "is").WithLocation(5, 33)
+                );
+        }
+
+        [Fact]
+        public void OperatorIsNullable()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is(int? self) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,41): error CS8158: The declaration of 'operator is' may not have a Nullable value type as its first parameter.
+                //     public static void operator is(int? self) { }
+                Diagnostic(ErrorCode.ERR_OperatorIsNullable, "self").WithLocation(5, 41)
+                );
+        }
+
+        [Fact]
+        public void OperatorIsRef()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is(ref int self) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,44): error CS0631: ref and out are not valid in this context
+                //     public static void operator is(ref int self) { }
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "self").WithLocation(5, 44)
+                );
         }
     }
 }

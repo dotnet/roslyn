@@ -4869,4 +4869,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorIsMustReturnBoolOrVoid" xml:space="preserve">
     <value>The return type of 'operator is' must be 'bool' or 'void'.</value>
   </data>
+  <data name="ERR_OperatorIsNoParameters" xml:space="preserve">
+    <value>The declaration of 'operator is' must have at least one value parameter.</value>
+  </data>
+  <data name="ERR_OperatorIsNullable" xml:space="preserve">
+    <value>The declaration of 'operator is' may not have a Nullable value type as its first parameter.</value>
+  </data>
 </root>

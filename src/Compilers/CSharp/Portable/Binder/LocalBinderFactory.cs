@@ -286,7 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitGlobalStatement(GlobalStatementSyntax node)
         {
-            // PROTOTYPE(patterns): Should we create a binder for pattern locals?
             Visit(node.Statement);
         }
 

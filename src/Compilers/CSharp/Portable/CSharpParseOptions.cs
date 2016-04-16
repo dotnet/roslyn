@@ -231,6 +231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
                     break;
+                case MessageID.IDS_FeatureInferPositionalPattern:
+                    // in "unsupported" mode enable possible new C# 7 language features not well supported
+                    if (PreprocessorSymbols.Contains("__DEMO_UNSUPPORTED__"))
+                    {
+                        return true;
+                    }
+                    break;
                 default:
                     break;
             }

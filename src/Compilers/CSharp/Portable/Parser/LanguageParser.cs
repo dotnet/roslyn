@@ -6705,9 +6705,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var tk = this.CurrentToken.ContextualKind;
             if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
             {
-                // accept a let statement if it begins with the contextual keyword 'let'.
-                // PROTOTYPE(patterns): Note that we do not make any accomodation for the possible use of 'let' as the name
-                // of a type. For the strictest possible backward compatibility, we should.
+                // Accept a let statement if it begins with the contextual keyword 'let'.
+                // It is understood that this may break compatiblity with a hypothetical user-defined
+                // type named 'let'.
                 return true;
             }
 
