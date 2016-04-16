@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
-                !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
+                    !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
                 {
                     return SpecializedCollections.EmptyCollection<ISymbol>();
                 }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
                         case CaseKind.SingleValue:
                             var value = ((ISingleValueCaseClause)clause).Value;
-                            if (!value.ConstantValue.HasValue)
+                            if (value == null || !value.ConstantValue.HasValue)
                             {
                                 // We had a case which didn't resolve properly.  
                                 // Assume the switch is complete.
