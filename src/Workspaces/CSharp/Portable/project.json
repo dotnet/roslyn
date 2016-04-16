@@ -1,6 +1,9 @@
 {
   "dependencies": { },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {
+      // Microsoft.Composition isn't compat with netstandard
+      "imports": [ "portable-net452", "dotnet5.4" ]
+    }
   }
 }

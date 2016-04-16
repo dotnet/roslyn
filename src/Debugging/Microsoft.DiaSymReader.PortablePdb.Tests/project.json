@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-rc3-24011-00",
     "System.Collections": "4.0.11-rc3-24011-00",
     "System.Diagnostics.Debug": "4.0.11-rc3-24011-00",
     "System.Runtime": "4.1.0-rc3-24011-00",
@@ -10,6 +10,7 @@
   },
   "frameworks": {
     "netstandard1.3": {
+      // xunit isn't compat with netstandard
       "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }

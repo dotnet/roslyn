@@ -4,7 +4,8 @@
   },
   "frameworks": {
     "dnxcore50": {
-      "imports": "portable-net452"
+        // xunit isn't compat with netstandard
+        "imports": "portable-net452"
     }
   },
   "runtimes": {

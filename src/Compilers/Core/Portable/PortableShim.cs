@@ -68,6 +68,10 @@ namespace Roslyn.Utilities
             Touch(MD5.Type);
         }
 
+        // TODO: Workaroudn for a bug in netstandard packages:
+        // https://github.com/dotnet/roslyn/issues/10309
+        internal static string BaseDirectory => AppContext.BaseDirectory;
+
         private static void Touch(Type type)
         {
             // Do nothing.

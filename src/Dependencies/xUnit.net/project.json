@@ -5,6 +5,8 @@
     "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": {}
+    "netstandard1.3": {
+      "imports": [ "portable-net452" ]
+    }
   }
 }

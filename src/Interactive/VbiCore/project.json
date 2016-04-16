@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": { 
-    "System.AppContext": "4.1.0-rc3-24011-00"
   },
   "frameworks": {
     "dnxcore50": {
