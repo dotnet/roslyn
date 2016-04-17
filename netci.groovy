@@ -30,7 +30,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
   Utilities.addArchival(myJob, includePattern, excludePattern)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
-  def isPr = branchName = 'prtest'
+  def isPr = branchName == 'prtest'
   def defaultBranch = "*/${branchName}"
   Utilities.standardJobSetup(myJob, jobName, isPr, defaultBranch)
 
