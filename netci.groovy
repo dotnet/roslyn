@@ -57,31 +57,6 @@ static void addWrappers(def myJob) {
   }
 }
 
-static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
-  myJob.with {
-    publishers {
-      flexiblePublish {
-        conditionalAction {
-          condition {
-            status('ABORTED', 'FAILURE')
-          }
-
-          publishers {
-            archiveArtifacts {
-              allowEmpty(true)
-              defaultExcludes(false)
-              exclude(excludeString)
-              fingerprint(false)
-              onlyIfSuccessful(false)
-              pattern(patternString)
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
@@ -173,7 +148,7 @@ static void addStandardJob(def myJob, String jobName, String branchName, String 
 
   def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  addArtifactArchiving(myJob, includePattern, excludePattern)
+  Utilities.addArchival(myJob, includePattern, excludePattern)
 
   if (branchName == 'prtest') {
     addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
