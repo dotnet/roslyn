@@ -552,7 +552,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
+        [Fact, WorkItem(8778, "https://github.com/dotnet/roslyn/issues/8778")]
         public void PatternInExpressionBodiedLocalFunction()
         {
             var source =
@@ -585,7 +585,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8778")]
+        [Fact, WorkItem(8778, "https://github.com/dotnet/roslyn/issues/8778")]
         public void PatternInExpressionBodiedLambda()
         {
             var source =
@@ -598,7 +598,7 @@ public class X
         object o2 = 10;
         object o3 = 1.2;
         Func<object, bool> B1 = o => M(o, (o is int x && x >= 5));
-        B(o1);
+        B1(o1);
         Func<bool> B2 = () => M(o2, (o2 is int x && x >= 5));
         B2();
         Func<bool> B3 = () => M(o3, (o3 is int x && x >= 5));
@@ -1344,7 +1344,7 @@ interface I3 : I1, I2 { }
             Assert.Equal("I2", si.CandidateSymbols[1].ContainingSymbol.Name);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9284"), WorkItem(9284, "https://github.com/dotnet/roslyn/issues/9284")]
+        [Fact, WorkItem(9284, "https://github.com/dotnet/roslyn/issues/9284")]
         public void StaticNamedProperty()
         {
             var source =
@@ -7731,6 +7731,9 @@ public class X
     // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
     //             case y10:
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
+                // (89,18): error CS0150: A constant value is expected
+                //             case y10:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
     // (98,17): error CS0103: The name 'y11' does not exist in the current context
     //         switch (y11 + 11 is var x11 ? x11 : 0)
     Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
@@ -7740,6 +7743,9 @@ public class X
     // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
     //             case y11:
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
+                // (102,18): error CS0150: A constant value is expected
+                //             case y11:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
     // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
     //                   2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
@@ -7749,12 +7755,18 @@ public class X
     // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
     //             case y15: 
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+                // (127,18): error CS0150: A constant value is expected
+                //             case y15: 
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y15").WithLocation(127, 18),
     // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
     //             case 0 when y16 > 0:
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
     // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
     //             case y16: 
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18),
+                // (140,18): error CS0150: A constant value is expected
+                //             case y16: 
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y16").WithLocation(140, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -15279,6 +15291,107 @@ True
 True
 True
 null");
+        }
+
+        [Fact, WorkItem(10459, "https://github.com/dotnet/roslyn/issues/10459")]
+        public void Typeswitch_01()
+        {
+            var source =
+@"
+using System;
+public class X
+{
+    public static void Main(string[] args)
+    {
+        switch (args.GetType())
+        {
+            case typeof(string):
+                Console.WriteLine(""string"");
+                break;
+            case typeof(string[]):
+                Console.WriteLine(""string[]"");
+                break;
+            case null:
+                Console.WriteLine(""null"");
+                break;
+            default:
+                Console.WriteLine(""default"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (9,18): error CS0150: A constant value is expected
+                //             case typeof(string):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string)").WithLocation(9, 18),
+                // (12,18): error CS0150: A constant value is expected
+                //             case typeof(string[]):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
+                );
+            // If we decide to support switching on System.Type, the following line would be appropriate.
+            // CompileAndVerify(compilation, expectedOutput: @"string[]");
+        }
+
+        [Fact, WorkItem(10364, "https://github.com/dotnet/roslyn/issues/10364")]
+        public void CrossAssemblyOpIs()
+        {
+            var source1 = @"
+namespace TypeDeclarations
+{
+    public class A
+    {
+        public int Prop1 { get; set; }
+    }
+
+    public class B
+    {
+        public static bool operator is(A a) => a.Prop1 == 0;
+    }
+
+    public class C
+    {
+        public int Prop2 { get; set; }
+
+        public static bool operator is(A a, out C c)
+        {
+            c = a.Prop1 != 0 ? new C { Prop2 = a.Prop1 } : null;
+            return a.Prop1 != 0;
+        }
+    }
+}";
+            var source2 = @"
+using System;
+using TypeDeclarations;
+
+namespace IsOperatorBugDemo
+{
+    static class Program
+    {
+        static void Main()
+        {
+            Console.WriteLine(Pattern1(new A()));
+            Console.WriteLine(Pattern2(new A()));
+            Console.WriteLine(Pattern1(new A { Prop1 = 1 }));
+            Console.WriteLine(Pattern2(new A { Prop1 = 1 }));
+            Console.ReadLine();
+        }
+        private static int Pattern1(A a) => a is C(var c) ? c.Prop2 : 0;
+
+        private static int Pattern2(A a) =>
+            a match (
+                case C(var c) : c.Prop2
+                case B() : 0
+            );
+    }
+}";
+            var reference = CreateCompilationWithMscorlib45(source1, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }, parseOptions: patternParseOptions, options: TestOptions.DebugDll).EmitToImageReference();
+            var comp = CreateCompilationWithMscorlib45(source2, new[] { reference }, parseOptions: patternParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"0
+0
+1
+1");
         }
 
         [Fact]

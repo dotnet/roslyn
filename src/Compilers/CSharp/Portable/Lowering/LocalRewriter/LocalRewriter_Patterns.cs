@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression LowerConstantPattern(BoundConstantPattern pattern, BoundExpression input)
         {
-            return CompareWithConstant(input, pattern.Value);
+            return CompareWithConstant(input, VisitExpression(pattern.Value));
         }
 
         private BoundExpression LowerPropertyPattern(BoundPropertyPattern pattern, ref BoundExpression input)
