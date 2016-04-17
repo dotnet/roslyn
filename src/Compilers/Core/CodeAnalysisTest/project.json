@@ -5,7 +5,7 @@
     "Moq": "4.2.1402.2112",
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win7": { }
