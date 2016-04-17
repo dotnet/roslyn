@@ -1,7 +1,7 @@
 C# Design Meeting Notes for Feb 4, 2015
 ========================================
 
-Discussion on these notes can be found at https://github.com/dotnet/roslyn/issues/396.
+Discussion thread on these notes can be found at https://github.com/dotnet/roslyn/issues/396.
 
 Agenda
 ------
