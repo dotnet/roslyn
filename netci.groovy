@@ -29,13 +29,14 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
   Utilities.addArchival(myJob, includePattern, excludePattern)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
+  def projectName = 'dotnet/roslyn'
   def isPr = branchName == 'prtest'
   def defaultBranch = "*/${branchName}"
-  Utilities.standardJobSetup(myJob, jobName, isPr, defaultBranch)
+  Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
 
   // Need to setup the triggers for the job
   if (isPr) {
-    Utilities.addGithubPRTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly)
+    Utilities.addGithubPRTrigger(myJob, projectName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
