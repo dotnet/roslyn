@@ -240,6 +240,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(-8L, Int64Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Int64Value)
         End Sub
 
+        <Fact>
+        <WorkItem(193333, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=193333")>
+        Public Sub EnumWithPrivateValueField()
+
+            Dim ilSource = "
+.class public auto ansi sealed TestEnum
+       extends [mscorlib]System.Enum
+{
+  .field private specialname rtspecialname int32 value__
+  .field public static literal valuetype TestEnum Value1 = int32(0x00000000)
+  .field public static literal valuetype TestEnum Value2 = int32(0x00000001)
+} // end of class TestEnum
+"
+
+            Dim vbSource =
+<compilation>
+    <file>
+Module Module1
+    Sub Main()
+        Dim val as TestEnum = TestEnum.Value1
+        System.Console.WriteLine(val.ToString())
+        val =  TestEnum.Value2
+        System.Console.WriteLine(val.ToString())
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, includeVbRuntime:=True, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Value1
+Value2")
+        End Sub
 
     End Class
 
