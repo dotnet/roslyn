@@ -1,6 +1,8 @@
 @echo off
 @setlocal
 
+REM change to trigger PR builds.  DO NOT MERGE
+
 set NuGetExe="%~dp0NuGet.exe"
 set NuGetAdditionalCommandLineArgs=-verbosity quiet -configfile "%~dp0nuget.config" -Project2ProjectTimeOut 1200
 
