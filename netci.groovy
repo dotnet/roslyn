@@ -34,7 +34,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
   Utilities.standardJobSetup(myJob, jobName, isPr, defaultBranch)
 
   // Need to setup the triggers for the job
-  if (isPR) {
+  if (isPr) {
     Utilities.addGithubPRTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
