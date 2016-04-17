@@ -87,7 +87,6 @@ set TMP=%TEMP%
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
                 // Generic throttling for Windows, no category
-                addConcurrentBuild(myJob)
                 break;
               case 'linux':
                 myJob.with {
@@ -96,7 +95,6 @@ set TMP=%TEMP%
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob)
                 break;
               case 'mac':
                 myJob.with {
@@ -105,7 +103,6 @@ set TMP=%TEMP%
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob)
                 triggerPhraseOnly = true;
                 break;
             }
@@ -134,7 +131,6 @@ set TMP=%TEMP%
   }
 
   Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
-  addConcurrentBuild(determinismJob)
   addRoslynJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 
