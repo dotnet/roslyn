@@ -6,57 +6,6 @@ import static Constants.*;
 
 def project = GithubProject
 
-class Constants {
-    // Number of minutes a build job is given to complete.
-    static final BuildTimeLimit = 120;
-}
-
-static void addLogRotator(def myJob) {
-  myJob.with {
-    logRotator {
-      daysToKeep(90)
-      numToKeep(-1)
-      artifactDaysToKeep(21)
-      artifactNumToKeep(-1)
-    }
-  }
-}
-
-static void addConcurrentBuild(def myJob) {
-  myJob.with {
-    concurrentBuild()
-  }
-}
-
-static void addScm(def myJob, String branchName, String refspecName = '') {
-  myJob.with {
-    scm {
-      git {
-        remote {
-          github('dotnet/roslyn', 'https', 'github.com')
-          name('')
-          refspec(refspecName)
-        }
-        branch(branchName)
-        wipeOutWorkspace(true)
-        shallowClone(true)
-      }
-    }
-  }
-}
-
-static void addWrappers(def myJob) {
-  myJob.with {
-    wrappers {
-      timeout {
-        absolute(BuildTimeLimit)
-        abortBuild()
-      }
-      timestamps()
-    }
-  }
-}
-
 // Email the results of aborted / failed jobs to our infrastructure alias
 static void addEmailPublisher(def myJob) {
   myJob.with {
@@ -69,56 +18,27 @@ static void addEmailPublisher(def myJob) {
   }
 }
 
-static void addPushTrigger(def myJob) {
-  myJob.with {
-    triggers {
-      githubPush()
-    }
-  }
-}
-
 // Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
 //  test win32 please
 static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
     return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
 }
 
-static void addPullRequestTrigger(def myJob, String jobName, String triggerPhraseText, Boolean triggerPhraseOnly = false) {
-  myJob.with {
-    triggers {
-      pullRequest {
-        admin('Microsoft')
-        useGitHubHooks(true)
-        triggerPhrase(triggerPhraseText)
-        onlyTriggerPhrase(triggerPhraseOnly)
-        autoCloseFailedPullRequests(false)
-        orgWhitelist('Microsoft')
-        allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(true)
-        extensions {
-          commitStatus {
-            context(jobName.replace('_', '/').substring(7))
-          }
-        }
-      }
-    }
-  }
-}
-
-static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
-  addLogRotator(myJob)
-  addWrappers(myJob)
-
+static void addRoslynJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
   def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
   Utilities.addArchival(myJob, includePattern, excludePattern)
 
-  if (branchName == 'prtest') {
-    addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
-    addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
+  // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
+  def isPr = branchName = 'prtest'
+  def defaultBranch = "*/${branchName}"
+  Utilities.standardJobSetup(myJob, jobName, isPr, defaultBranch)
+
+  // Need to setup the triggers for the job
+  if (isPR) {
+    Utilities.addGithubPRTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly)
   } else {
-    addPushTrigger(myJob)
-    addScm(myJob, "*/${branchName}")
+    Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
   }
 }
@@ -191,7 +111,7 @@ set TMP=%TEMP%
             }
 
             Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly)
+            addRoslynJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly)
           }
         }
       }
@@ -215,6 +135,6 @@ set TMP=%TEMP%
 
   Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
   addConcurrentBuild(determinismJob)
-  addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
+  addRoslynJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 
