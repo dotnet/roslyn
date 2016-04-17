@@ -57,50 +57,13 @@ static void addWrappers(def myJob) {
   }
 }
 
+// Email the results of aborted / failed jobs to our infrastructure alias
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
       extendedEmail('$DEFAULT_RECIPIENTS, cc:mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
         trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
         trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
-      }
-    }
-  }
-}
-
-static void addUnitPublisher(def myJob) {
-  myJob.with {
-    configure { node ->
-      node / 'publishers' << {
-      'xunit'('plugin': 'xunit@1.97') {
-      'types' {
-        'XUnitDotNetTestType' {
-          'pattern'('**/xUnitResults/*.xml')
-            'skipNoTestFiles'(false)
-            'failIfNotNew'(true)
-            'deleteOutputFiles'(true)
-            'stopProcessingIfError'(true)
-          }
-        }
-        'thresholds' {
-          'org.jenkinsci.plugins.xunit.threshold.FailedThreshold' {
-            'unstableThreshold'('')
-            'unstableNewThreshold'('')
-            'failureThreshold'('0')
-            'failureNewThreshold'('')
-          }
-          'org.jenkinsci.plugins.xunit.threshold.SkippedThreshold' {
-              'unstableThreshold'('')
-              'unstableNewThreshold'('')
-              'failureThreshold'('')
-              'failureNewThreshold'('')
-            }
-          }
-          'thresholdMode'('1')
-          'extraConfiguration' {
-            testTimeMargin('3000')
-          }
-        }
       }
     }
   }
@@ -227,8 +190,8 @@ set TMP=%TEMP%
                 break;
             }
 
-            addUnitPublisher(myJob)
-            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly);
+            Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly)
           }
         }
       }
