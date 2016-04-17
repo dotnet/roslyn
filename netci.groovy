@@ -22,17 +22,9 @@ static void addLogRotator(def myJob) {
   }
 }
 
-static void addConcurrentBuild(def myJob, String category) {
+static void addConcurrentBuild(def myJob) {
   myJob.with {
-    concurrentBuild(true)
-    if (category != null)  {
-      throttleConcurrentBuilds {
-        throttleDisabled(false)
-        maxTotal(0)
-        maxPerNode(1)
-        categories([category])
-      }
-    }
+    concurrentBuild()
   }
 }
 
@@ -237,7 +229,7 @@ set TMP=%TEMP%
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
                 // Generic throttling for Windows, no category
-                addConcurrentBuild(myJob, null)
+                addConcurrentBuild(myJob)
                 break;
               case 'linux':
                 myJob.with {
@@ -246,7 +238,7 @@ set TMP=%TEMP%
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/lin/unit')
+                addConcurrentBuild(myJob)
                 break;
               case 'mac':
                 myJob.with {
@@ -255,7 +247,7 @@ set TMP=%TEMP%
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/mac/unit')
+                addConcurrentBuild(myJob)
                 triggerPhraseOnly = true;
                 break;
             }
@@ -284,7 +276,7 @@ set TMP=%TEMP%
   }
 
   Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
-  addConcurrentBuild(determinismJob, null)
+  addConcurrentBuild(determinismJob)
   addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 
