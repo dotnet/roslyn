@@ -36,7 +36,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
 
   // Need to setup the triggers for the job
   if (isPr) {
-    Utilities.addGithubPRTrigger(myJob, projectName, triggerPhrase, triggerPhraseOnly)
+    def contextName = jobName.replace('_', '/').substring(7)
+    Utilities.addGithubPRTrigger(myJob, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
