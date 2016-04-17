@@ -2,7 +2,6 @@
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
 import jobs.generation.Utilities;
-import static Constants.*;
 
 def project = GithubProject
 
