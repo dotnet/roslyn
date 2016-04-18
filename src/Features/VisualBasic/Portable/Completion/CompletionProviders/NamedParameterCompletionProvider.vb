@@ -12,15 +12,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
-        Inherits CompletionListProvider
+        Inherits CommonCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Kind = SyntaxKind.CommaToken Then
                 For Each n In argumentList.Arguments.GetWithSeparators()
                     If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
-                        context.MakeExclusive(True)
+                        context.IsExclusive = True
                         Exit For
                     End If
                 Next
@@ -67,16 +67,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             For Each parameter In unspecifiedParameters
                 context.AddItem(
-                    New SymbolCompletionItem(
-                        Me,
-                        parameter.Name & s_colonEquals,
-                        parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                        CompletionUtilities.GetTextChangeSpan(text, position),
-                        position,
-                        {parameter}.ToList(),
-                        Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False),
-                        rules:=ItemRules.Instance))
+                    SymbolCompletionItem.Create(
+                        displayText:=parameter.Name & s_colonEquals,
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        span:=context.DefaultItemSpan,
+                        symbol:=parameter,
+                        descriptionPosition:=position,
+                        contextPosition:=position,
+                        isArgumentName:=True,
+                        rules:=CompletionItemRules.Default))
             Next
+        End Function
+
+        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
         End Function
 
         Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
@@ -194,5 +198,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             invocableNode = Nothing
             argumentList = Nothing
         End Sub
+
+        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            Dim symbolItem = selectedItem
+            Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
+            Dim change As TextChange
+            If ch.HasValue AndAlso ch.Value = ":"c Then
+                change = New TextChange(symbolItem.Span, insertionText.Substring(0, insertionText.Length - s_colonEquals.Length))
+            ElseIf ch.HasValue AndAlso ch.Value = "="c Then
+                change = New TextChange(selectedItem.Span, insertionText.Substring(0, insertionText.Length - (s_colonEquals.Length - 1)))
+            Else
+                change = New TextChange(symbolItem.Span, insertionText)
+            End If
+            Return Task.FromResult(Of TextChange?)(change)
+        End Function
+
     End Class
 End Namespace
