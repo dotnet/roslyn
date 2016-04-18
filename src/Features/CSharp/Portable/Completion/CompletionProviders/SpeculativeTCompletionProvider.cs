@@ -13,19 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class SpeculativeTCompletionProvider : CompletionListProvider
+    internal class SpeculativeTCompletionProvider : CommonCompletionProvider
     {
-        private TextSpan GetTextChangeSpan(SourceText text, int position)
-        {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -38,10 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (showSpeculativeT)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var filterSpan = this.GetTextChangeSpan(text, position);
 
                 const string T = nameof(T);
-                context.AddItem(new CompletionItem(this, T, filterSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+                context.AddItem(CommonCompletionItem.Create(T, context.DefaultItemSpan, glyph: Glyph.TypeParameter));
             }
         }
 

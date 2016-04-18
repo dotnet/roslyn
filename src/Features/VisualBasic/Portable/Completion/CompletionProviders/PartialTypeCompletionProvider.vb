@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -13,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class PartialTypeCompletionProvider
-        Inherits CompletionListProvider
+        Inherits CommonCompletionProvider
 
         Private ReadOnly _partialNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -26,11 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                token.IsChildToken(Of ModuleStatementSyntax)(Function(stmt) stmt.DeclarationKeyword) Then
 
                 If token.GetAncestor(Of TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword) Then
-                    Dim items = Await CreateItemsAsync(document, position, token, cancellationToken).ConfigureAwait(False)
+                    Dim items = Await CreateItemsAsync(document, position, context.DefaultItemSpan, token, cancellationToken).ConfigureAwait(False)
 
                     If items?.Any() Then
                         context.AddItems(items)
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Async Function CreateItemsAsync(document As Document, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
+        Private Async Function CreateItemsAsync(document As Document, position As Integer, span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
 
             ' Unless the enclosing symbol is already the global namespace, we want to get it's enclosing symbol
@@ -70,7 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim displayService = document.GetLanguageService(Of ISymbolDisplayService)()
 
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim textSpan = CompletionUtilities.GetTextChangeSpan(text, position)
 
             Dim compilation = semanticModel.Compilation
             Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 .OfType(Of INamedTypeSymbol)() _
                 .Where(Function(s) NotNewDeclaredMember(s, token)) _
                 .Where(Function(s) MatchesTypeKind(s, token) AndAlso InSameProject(s, compilation)) _
-                .Select(Function(s) CreateCompletionItem(s, textSpan, displayService, token.SpanStart, context))
+                .Select(Function(s) CreateCompletionItem(s, span, displayService, token.SpanStart, context))
         End Function
 
         Private Function MatchesTypeKind(symbol As INamedTypeSymbol, token As SyntaxToken) As Boolean
@@ -124,19 +124,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText = displayAndInsertionText.Item2
             End If
 
-            Return New SymbolCompletionItem(
-                Me,
-                displayText,
-                insertionText,
-                textSpan,
-                position,
-                {DirectCast(symbol, ISymbol)}.ToList(),
-                context,
-                rules:=ItemRules.Instance)
+            Return SymbolCompletionItem.Create(
+                displayText:=displayText,
+                insertionText:=insertionText,
+                span:=textSpan,
+                symbol:=symbol,
+                contextPosition:=context.Position,
+                descriptionPosition:=position,
+                rules:=CompletionItemRules.Default)
+        End Function
+
+        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
         End Function
 
         Private Function NotNewDeclaredMember(s As INamedTypeSymbol, token As SyntaxToken) As Boolean
             Return Not s.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).All(Function(a) a.Span.IntersectsWith(token.Span))
+        End Function
+
+        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
+            Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
         End Function
 
     End Class
