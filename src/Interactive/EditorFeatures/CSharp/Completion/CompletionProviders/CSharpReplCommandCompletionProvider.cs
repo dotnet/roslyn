@@ -17,17 +17,11 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
-    [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
+    [ExportCompletionProviderMef1("ReplCommandCompletionProvider", LanguageNames.CSharp)]
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     internal class CSharpReplCommandCompletionProvider : ReplCompletionProvider
     {
-        protected override async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
         protected override string GetCompletionString(string commandName)
         {
             return commandName;
@@ -56,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return false;
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }

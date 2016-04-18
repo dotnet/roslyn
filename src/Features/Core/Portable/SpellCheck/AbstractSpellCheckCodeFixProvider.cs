@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            var completionList = await CompletionService.GetCompletionListAsync(
-                document, nameNode.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var service = CompletionService.GetService(document);
+            var completionList = await service.GetCompletionsAsync(
+                document, nameNode.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList == null)
             {
                 return;
             }
 
-            var completionRules = CompletionService.GetCompletionRules(document);
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                         continue;
                     }
 
-                    var insertionText = completionRules.GetTextChange(item).NewText;
+                    var change = await CompletionHelper.GetTextChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var insertionText = change.NewText;
                     results.Add(matchCost, insertionText);
                 }
             }
