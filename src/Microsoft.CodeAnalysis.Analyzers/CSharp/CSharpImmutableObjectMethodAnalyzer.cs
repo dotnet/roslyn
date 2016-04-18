@@ -29,32 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotIgnoreReturnValueDiagnosticRule);
 
-        private static readonly string s_solutionFullName = @"Microsoft.CodeAnalysis.Solution";
-        private static readonly string s_projectFullName = @"Microsoft.CodeAnalysis.Project";
-        private static readonly string s_documentFullName = @"Microsoft.CodeAnalysis.Document";
-        private static readonly string s_syntaxNodeFullName = @"Microsoft.CodeAnalysis.SyntaxNode";
-        private static readonly string s_compilationFullName = @"Microsoft.CodeAnalysis.Compilation";
-
-        private static readonly string s_Add = "Add";
-        private static readonly string s_Remove = "Remove";
-        private static readonly string s_Replace = "Replace";
-        private static readonly string s_With = "With";
+        private const string SolutionFullName = @"Microsoft.CodeAnalysis.Solution";
+        private const string ProjectFullName = @"Microsoft.CodeAnalysis.Project";
+        private const string DocumentFullName = @"Microsoft.CodeAnalysis.Document";
+        private const string SyntaxNodeFullName = @"Microsoft.CodeAnalysis.SyntaxNode";
+        private const string CompilationFullName = @"Microsoft.CodeAnalysis.Compilation";
 
         private static readonly ImmutableArray<string> s_immutableMethodNames = ImmutableArray.Create(
-            s_Add,
-            s_Remove,
-            s_Replace,
-            s_With);
+            "Add",
+            "Remove",
+            "Replace",
+            "With");
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_solutionFullName);
-                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_projectFullName);
-                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_documentFullName);
-                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_syntaxNodeFullName);
-                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_compilationFullName);
+                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(SolutionFullName);
+                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(ProjectFullName);
+                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(DocumentFullName);
+                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(SyntaxNodeFullName);
+                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(CompilationFullName);
 
                 ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 //Only register our node action if we can find the symbols for our immutable types

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Analyzers.FixAnalyzers
     {
         #region CSharp tests
 
-        private static readonly string s_CSharpCustomCodeActions = @"
+        private const string CSharpCustomCodeActions = @"
 public class MyCodeActionNoEquivalenceKey : CodeAction
 {
     public override string Title
@@ -56,7 +56,7 @@ public class MyCodeActionWithEquivalenceKey : CodeAction
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + s_CSharpCustomCodeActions;
+                sourceSuffix = sourceSuffix + CSharpCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
@@ -247,7 +247,7 @@ class C1 : CodeFixProvider
 
         #region VisualBasic tests
 
-        private static readonly string s_VisualBasicCustomCodeActions = @"
+        private const string VisualBasicCustomCodeActions = @"
 
 Public Class MyCodeActionNoEquivalenceKey
 	Inherits CodeAction
@@ -286,7 +286,7 @@ End Class
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + s_VisualBasicCustomCodeActions;
+                sourceSuffix = sourceSuffix + VisualBasicCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.

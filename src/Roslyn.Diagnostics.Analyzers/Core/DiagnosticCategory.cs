@@ -4,9 +4,9 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     internal static class DiagnosticCategory
     {
-        public static readonly string ApiDesign = "ApiDesign";
-        public static readonly string Performance = "Performance";
-        public static readonly string Reliability = "Reliability";
-        public static readonly string Usage = "Usage";
+        public const string ApiDesign = "ApiDesign";
+        public const string Performance = "Performance";
+        public const string Reliability = "Reliability";
+        public const string Usage = "Usage";
     }
 }

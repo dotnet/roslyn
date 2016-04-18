@@ -29,9 +29,9 @@
       <Project>{f8502e24-5eb1-4cdc-8887-1a0cc8008d96}</Project>
       <Name>Analyzer.Utilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj">
+    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj">
       <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
-      <Name>Roslyn.Diagnostics.Analyzers</Name>
+      <Name>Roslyn.Diagnostics.Analyzers.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
