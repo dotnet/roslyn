@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (candidate.Kind != SymbolKind.Property && candidate.Kind != SymbolKind.Field) continue;
                         if ((candidate as PropertySymbol)?.IsIndexedProperty == true) continue;
                         if (!IsAccessible(candidate, useSiteDiagnostics: ref useSiteDiagnostics)) continue;
-                        if (correspondingMember != null)
+                        if (correspondingMember != (object)null)
                         {
                             // We have two candidates for this property. Cannot use the constructor.
                             goto tryAnotherConstructor;
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         correspondingMember = candidate;
                     }
 
-                    if (correspondingMember == null) goto tryAnotherConstructor;
+                    if (correspondingMember == (object)null) goto tryAnotherConstructor;
                     correspondingMembersForCtor.Add(correspondingMember);
                 }
                 Debug.Assert(correspondingMembersForCtor.Count == node.PatternList.SubPatterns.Count);
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryAnotherConstructor:;
             }
 
-            if (correspondingMembers == null)
+            if (correspondingMembers.IsDefault)
             {
                 // PROTOTYPE(patterns): If we decide to support this, we need a properly i18n'd diagnostic.
                 Error(diagnostics, ErrorCode.ERR_FeatureIsUnimplemented, node,
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
                 return true;
             }
-            else if (operand != null && (object)operandType == null && !operand.HasAnyErrors)
+            else if (operand != null && operandType == (object)null && !operand.HasAnyErrors)
             {
                 // It is an error to use pattern-matching with a null, method group, or lambda
                 Error(diagnostics, ErrorCode.ERR_BadIsPatternExpression, operand.Syntax);
@@ -617,14 +617,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null || (object)operandType != null);
+            Debug.Assert(operand != null || operandType != (object)null);
             var typeSyntax = node.Type;
             var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
             TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
-            if (isVar && operandType != null) declType = operandType;
+            if (isVar && operandType != (object)null) declType = operandType;
             if (declType == (object)null)
             {
                 Debug.Assert(hasErrors);
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
-            if ((object)localSymbol == null)
+            if (localSymbol == (object)null)
             {
                 localSymbol = SourceLocalSymbol.MakeLocal(
                     ContainingMemberOrLambda,
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < n; i++)
             {
                 var e = cases[i].Expression;
-                if (e.Type != null && !types.Contains(e.Type)) types.Add(e.Type);
+                if (e.Type != (object)null && !types.Contains(e.Type)) types.Add(e.Type);
             }
 
             var allTypes = types.ToImmutableAndFree();
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversions,
                     ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
-                if ((object)bestType == null)
+                if (bestType == (object)null)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigMatch1, node.MatchToken.GetLocation());
                     bestType = CreateErrorType();
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // In error scenarios with misplaced code, it is possible we can't bind the local.
                 // This occurs through the semantic model.  In that case concoct a plausible result.
-                if ((object)localSymbol == null)
+                if (localSymbol == (object)null)
                 {
                     localSymbol = SourceLocalSymbol.MakeLocal(
                         ContainingMemberOrLambda,

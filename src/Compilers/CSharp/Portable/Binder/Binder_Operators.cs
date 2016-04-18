@@ -2552,8 +2552,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnboundLambda:
                 case BoundKind.Lambda:
                 case BoundKind.MethodGroup:  // New in Roslyn - see DevDiv #864740.
-                    // operand for an is or as expression cannot be a lambda expression or method group
-                    Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                                             // operand for an is or as expression cannot be a lambda expression or method group
+                    if (!operand.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    }
+
                     return true;
             }
 
@@ -2963,8 +2967,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnboundLambda:
                 case BoundKind.Lambda:
                 case BoundKind.MethodGroup:  // New in Roslyn - see DevDiv #864740.
-                    // operand for an is or as expression cannot be a lambda expression or method group
-                    Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                                             // operand for an is or as expression cannot be a lambda expression or method group
+                    if (!operand.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    }
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
