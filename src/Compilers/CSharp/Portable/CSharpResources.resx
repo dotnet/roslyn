@@ -4861,7 +4861,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Ambiguous 'operator is' declarations found in type '{0}'.</value>
   </data>
   <data name="ERR_OperatorIsParameterCount" xml:space="preserve">
-    <value>No 'operator is' declaration in '{0}' was found with {1} out parameters</value>
+    <value>No 'operator is' declaration in '{0}' was found with {1} out parameter(s)</value>
   </data>
   <data name="ERR_OperatorIsRequiresOut" xml:space="preserve">
     <value>All but the first parameter of user-defined 'operator is' require the 'out' modifier.</value>

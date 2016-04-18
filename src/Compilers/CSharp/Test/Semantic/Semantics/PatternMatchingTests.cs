@@ -101,7 +101,7 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (12,13): warning CS0168: The variable 'var' is declared but never used
@@ -134,7 +134,7 @@ public class Vec
                 // (12,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
@@ -152,7 +152,7 @@ public class Vec
             var experimentalParseOptions = regularParseOptions
                 .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions).VerifyDiagnostics(
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used

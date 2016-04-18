@@ -178,10 +178,10 @@ class C
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions)
             .VerifyDiagnostics(
-                // (13,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameters
+                // (13,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameter(s)
                 //             case System.Collections.ArrayList(2):
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "System.Collections.ArrayList(2)").WithArguments("System.Collections.ArrayList", "1").WithLocation(13, 18),
-                // (20,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameters
+                // (20,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameter(s)
                 //             case System.Collections.ArrayList(2): x
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "System.Collections.ArrayList(2)").WithArguments("System.Collections.ArrayList", "1").WithLocation(20, 18)
                 )
