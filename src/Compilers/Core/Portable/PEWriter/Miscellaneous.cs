@@ -3,11 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -166,7 +163,7 @@ namespace Microsoft.Cci
         /// (The element type of a safe array is VARIANT. The "sub type" specifies the value of all of the tag fields (vt) of the element values. )
         /// -1 if it should be omitted from the marshal blob.
         /// </summary>
-        System.Runtime.InteropServices.VarEnum SafeArrayElementSubtype
+        VarEnum SafeArrayElementSubtype
         {
             get;
         }

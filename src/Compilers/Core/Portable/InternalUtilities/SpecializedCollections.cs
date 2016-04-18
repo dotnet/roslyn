@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
 
         public static T[] EmptyArray<T>()
         {
-            return Empty.Array<T>.Instance;
+            return System.Array.Empty<T>();
         }
 
         public static IEnumerator<T> EmptyEnumerator<T>()

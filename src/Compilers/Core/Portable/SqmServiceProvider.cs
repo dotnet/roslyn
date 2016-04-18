@@ -67,7 +67,9 @@ namespace Microsoft.VisualStudio.Shell.Interop
                 if (vssqmdll != IntPtr.Zero)
                 {
                     IntPtr queryServicePtr = SqmServiceProvider.GetProcAddress(vssqmdll, "QueryService");
+#pragma warning disable CS0618 // API is obsolete (https://github.com/dotnet/roslyn/issues/10637)
                     return (QueryServiceDelegate)Marshal.GetDelegateForFunctionPointer(queryServicePtr, typeof(QueryServiceDelegate));
+#pragma warning restore CS0618
                 }
             }
             catch (Exception e)

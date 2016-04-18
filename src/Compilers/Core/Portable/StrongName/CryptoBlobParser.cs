@@ -213,8 +213,10 @@ namespace Microsoft.CodeAnalysis
 
         private unsafe static bool TryGetPublicKeyFromPublicKeyBlob(byte* blob, int blobLen, out ImmutableArray<byte> publicKey)
         {
+#pragma warning disable CS0618 // API is obsolete (https://github.com/dotnet/roslyn/issues/10637)
             var header = (BlobHeader)Marshal.PtrToStructure((IntPtr)blob, typeof(BlobHeader));
             var rsaPubKey = (RsaPubKey)Marshal.PtrToStructure((IntPtr)(blob + sizeof(BlobHeader)), typeof(RsaPubKey));
+#pragma warning restore CS0618
             var modulus = new byte[rsaPubKey.BitLen >> 3];
 
             // The key blob data just contains the modulus

@@ -70,7 +70,7 @@ namespace Roslyn.Utilities
             s_transformFinalBlock.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
         }
 
-        public byte[] Hash => (byte[])s_hash.GetMethod.Invoke(_hashInstance, new object[] { });
+        public byte[] Hash => (byte[])s_hash.GetMethod.Invoke(_hashInstance, Array.Empty<object>());
 
         public void Dispose()
         {

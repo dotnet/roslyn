@@ -142,17 +142,24 @@ namespace Microsoft.VisualStudio.Shell.Interop
     [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IVsSqmMulti
     {
+#pragma warning disable CS0618 // API is obsolete (https://github.com/dotnet/roslyn/issues/10637)
         [return: MarshalAs(UnmanagedType.VariantBool)]
+#pragma warning restore CS0618
         bool GetOptInStatus();
+
         void UnloadSessions(
             );
         void EndAllSessionsAndAbortUploads(
             );
+
+#pragma warning disable CS0618 // API is obsolete (https://github.com/dotnet/roslyn/issues/10637)
         void BeginSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionType,
             [In, MarshalAs(UnmanagedType.VariantBool)] System.Boolean alwaysSend,
             [Out, MarshalAs(UnmanagedType.U4)] out System.UInt32 sessionHandle
             );
+#pragma warning restore CS0618
+
         void EndSession(
             [In, MarshalAs(UnmanagedType.U4)] System.UInt32 sessionHandle
             );

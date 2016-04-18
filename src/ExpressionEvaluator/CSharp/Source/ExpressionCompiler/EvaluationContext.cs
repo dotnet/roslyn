@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
+        private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(Array.Empty<byte>());
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
             ArrayBuilder<LocalAndMethod> locals,

@@ -1192,8 +1192,8 @@ namespace Microsoft.CodeAnalysis
         {
             switch (comInterfaceType)
             {
-                case (int)ComInterfaceType.InterfaceIsDual:
-                case (int)ComInterfaceType.InterfaceIsIDispatch:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsDual:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsIDispatch:
                 case (int)ComInterfaceType.InterfaceIsIInspectable:
                 case (int)ComInterfaceType.InterfaceIsIUnknown:
                     return true;
