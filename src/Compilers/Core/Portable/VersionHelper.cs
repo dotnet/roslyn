@@ -75,36 +75,58 @@ namespace Microsoft.CodeAnalysis
             bool parseError = false;
             for (int i = 0; i < lastExplicitValue; i++)
             {
-                
-                if (allowPartialParse)
-                {
-                    //Shorten the version string until we are at the shortest possible string that can be represented as a ushort
-                    while (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]))
-                    {
-                        parseError = true;
-                        if (elements[i].Length <= 1)
-                        {
-                            break;
-                        }
 
-                        elements[i] = elements[i].Substring(0, elements[i].Length - 1);
-                    }
-                }
-                else
+                if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
                 {
-                    if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
+                    if (!allowPartialParse)
                     {
                         version = new Version(0, 0, 0, 0);
                         return false;
                     }
-                }
 
-                if (parseError)
-                {
+                    parseError = true;
+
+                    if (values[i] > maxValue || string.IsNullOrWhiteSpace(elements[i]))
+                    {
+                        values[i] = 0;
+                        break;
+                    }
+
+                    bool invalidFormat = false;
+                    System.Numerics.BigInteger number = 0;
+
+                    //There could be an invalid character in the input so check for the presence of one and
+                    //parse up to that point. examples of invalid characters are alphas and punctuation
+                    for (var idx = 0; idx < elements[i].Length; idx++)
+                    {
+                        if (!char.IsDigit(elements[i][idx]))
+                        {
+                            invalidFormat = true;
+
+                            TryGetValue(elements[i].Substring(0, idx), out values[i]);
+                            break;
+                        }
+                    }
+
+                    if (!invalidFormat)
+                    {
+                        //if we made it here then there weren't any alpha or punctuation chars in the input so the
+                        //element is either greater than ushort.MaxValue or possibly a fullwidth unicode digit.
+                        if (TryGetValue(elements[i], out values[i]))
+                        {
+                            //For this scenario the old compiler would continue processing the remaining version elements
+                            //so continue processing
+                            continue;
+                        }
+                    }
+
                     //Don't process any more of the version elements
                     break;
                 }
             }
+
+
+
 
             if (hasWildcard)
             {
@@ -116,6 +138,23 @@ namespace Microsoft.CodeAnalysis
 
             version = new Version(values[0], values[1], values[2], values[3]);
             return !parseError;
+        }
+
+        private static bool TryGetValue(string s, out ushort value)
+        {
+            System.Numerics.BigInteger number;
+            if (System.Numerics.BigInteger.TryParse(s, NumberStyles.None, CultureInfo.InvariantCulture, out number))
+            {
+                //The old compiler would take the 16 least significant bits and use their value as the output
+                //so we'll do that too.
+                value = (ushort)(number % 65536);
+                return true;
+            }
+
+            //One case that will cause us to end up here is when the input is a Fullwidth unicode digit
+            //so we'll always return zero
+            value = 0;
+            return false;
         }
 
         /// <summary>
