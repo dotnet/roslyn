@@ -12,19 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        public static IEnumerable<DocumentId> GetOpenDocumentIds(this ITextBuffer buffer)
-        {
-            var container = buffer.AsTextContainer();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
-            {
-                return workspace.GetRelatedDocumentIds(container);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<DocumentId>();
-        }
-
         internal static OptionSet TryGetOptions(this ITextBuffer textBuffer)
         {
             Workspace workspace;
