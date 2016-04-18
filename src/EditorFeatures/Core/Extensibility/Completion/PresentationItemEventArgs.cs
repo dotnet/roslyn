@@ -5,13 +5,13 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class CompletionItemEventArgs : EventArgs
+    internal class PresentationItemEventArgs : EventArgs
     {
-        public CompletionItem CompletionItem { get; }
+        public PresentationItem PresentationItem { get; }
 
-        public CompletionItemEventArgs(CompletionItem completionItem)
+        public PresentationItemEventArgs(PresentationItem presentationItem)
         {
-            this.CompletionItem = completionItem;
+            this.PresentationItem = presentationItem;
         }
     }
 }
