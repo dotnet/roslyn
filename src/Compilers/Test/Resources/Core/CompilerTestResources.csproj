@@ -13,7 +13,8 @@
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -130,6 +131,10 @@
     <EmbeddedResource Include="NetFX\aacorlib\aacorlib.v15.0.3928.cs" />
     <Content Include="NetFX\aacorlib\build.cmd" />
     <Content Include="NetFX\aacorlib\Key.snk" />
+    <EmbeddedResource Include="$(NuGetPackageRoot)\System.Runtime\$(SystemRuntimeVersion)\ref\netstandard1.3\System.Runtime.dll">
+      <LogicalName>NetFX.NetStandard13.System.Runtime.dll</LogicalName>
+      <Link>NetFX\NetStandard13\System.Runtime.dll</Link>
+    </EmbeddedResource>
     <EmbeddedResource Include="NetFX\Minimal\minasync.dll" />
     <EmbeddedResource Include="NetFX\Minimal\mincorlib.dll" />
     <Content Include="NetFX\Minimal\build.cmd" />
