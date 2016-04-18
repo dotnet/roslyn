@@ -1,7 +1,9 @@
 ﻿{
-  "dependencies": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.1.24720"
+  },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
     "win7": { }

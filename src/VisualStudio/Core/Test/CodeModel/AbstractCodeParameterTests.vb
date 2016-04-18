@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports EnvDTE
 Imports EnvDTE80
 
@@ -63,25 +64,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
         End Function
 
-        Protected Async Function TestParameterKind(code As XElement, kind As vsCMParameterKind) As Threading.Tasks.Task
+        Protected Async Function TestParameterKind(code As XElement, kind As vsCMParameterKind) As Task
             Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(kind, codeElement.ParameterKind)
                 End Sub)
         End Function
 
-        Protected Async Function TestDefaultValue(code As XElement, expectedValue As String) As Threading.Tasks.Task
+        Protected Async Function TestDefaultValue(code As XElement, expectedValue As String) As Task
             Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expectedValue, codeElement.DefaultValue)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Threading.Tasks.Task
+        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
             Await TestSetParameterKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
         End Function
 
-        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind)) As Threading.Tasks.Task
+        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind)) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim parameterKindSetter = GetParameterKindSetter(codeElement)
@@ -89,11 +90,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String) As Threading.Tasks.Task
+        Protected Async Function TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String) As Task
             Await TestSetDefaultValue(code, expected, defaultValue, NoThrow(Of String)())
         End Function
 
-        Protected Async Function TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String)) As Threading.Tasks.Task
+        Protected Async Function TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String)) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim defaultValueSetter = GetDefaultValueSetter(codeElement)
