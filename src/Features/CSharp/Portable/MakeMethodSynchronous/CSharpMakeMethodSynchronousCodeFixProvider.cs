@@ -28,29 +28,30 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             return node.IsKind(SyntaxKind.MethodDeclaration) || node.IsAnyLambdaOrAnonymousMethod();
         }
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(
+            IMethodSymbol methodSymbolOpt, SyntaxNode node, bool changeReturnType)
         {
             return node.TypeSwitch(
-                (MethodDeclarationSyntax method) => FixMethod(methodSymbolOpt, method, taskType, taskOfTType),
+                (MethodDeclarationSyntax method) => FixMethod(methodSymbolOpt, method, changeReturnType),
                 (AnonymousMethodExpressionSyntax method) => FixAnonymousMethod(method),
                 (ParenthesizedLambdaExpressionSyntax lambda) => FixParenthesizedLambda(lambda),
                 (SimpleLambdaExpressionSyntax lambda) => FixSimpleLambda(lambda),
                 _ => node);
         }
 
-        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        private SyntaxNode FixMethod(
+            IMethodSymbol methodSymbol, MethodDeclarationSyntax method, bool changeReturnType)
         {
             var newReturnType = method.ReturnType;
 
             // If the return type is Task<T>, then make the new return type "T".
             // If it is Task, then make the new return type "void".
-            if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskType))
+            if (changeReturnType)
             {
-                newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(method.ReturnType);
-            }
-            else if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType))
-            {
-                newReturnType = methodSymbol.ReturnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(method.ReturnType);
+                var typeArguments = methodSymbol.ReturnType.GetTypeArguments();
+                newReturnType = typeArguments.Length == 0
+                    ? SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(method.ReturnType)
+                    : methodSymbol.ReturnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(method.ReturnType);
             }
 
             var asyncTokenIndex = method.Modifiers.IndexOf(SyntaxKind.AsyncKeyword);

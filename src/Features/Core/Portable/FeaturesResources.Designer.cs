@@ -1529,6 +1529,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make method synchronous (changing return type).
+        /// </summary>
+        internal static string Make_method_synchronous_changing_return_type {
+            get {
+                return ResourceManager.GetString("Make_method_synchronous_changing_return_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {

@@ -19,10 +19,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
     internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixProvider
     {
-        public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
+        public static readonly string MakeMethodSynchronousKey = FeaturesResources.Make_method_synchronous;
+        public static readonly string MakeMethodSynchronousChangingReturnTypeKey = FeaturesResources.Make_method_synchronous_changing_return_type;
 
         protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(
+            IMethodSymbol methodSymbolOpt, SyntaxNode node, bool changeReturnType);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -35,17 +37,39 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var token = diagnostic.Location.FindToken(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             var node = token.GetAncestor(IsMethodOrAnonymousFunction);
-            if (node != null)
+            if (node == null)
             {
-                context.RegisterCodeFix(new MyCodeAction(c => FixNodeAsync(context.Document, node, c)), diagnostic);
+                return;
             }
+
+            var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary)
+            {
+                var compilation = semanticModel.Compilation;
+                var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+                var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+
+                var returnType = methodSymbolOpt.ReturnType.OriginalDefinition;
+                if (returnType.Equals(taskType) || returnType.Equals(taskOfTType))
+                {
+                    context.RegisterCodeFix(new MyCodeAction(
+                        FeaturesResources.Make_method_synchronous_changing_return_type,
+                        c => FixNodeAsync(context.Document, node, changeReturnType: true, cancellationToken: c),
+                        MakeMethodSynchronousChangingReturnTypeKey), diagnostic);
+                }
+            }
+
+            context.RegisterCodeFix(new MyCodeAction(
+                FeaturesResources.Make_method_synchronous,
+                c => FixNodeAsync(context.Document, node, changeReturnType: false, cancellationToken: c),
+                MakeMethodSynchronousKey), diagnostic);
         }
 
         private const string AsyncSuffix = "Async";
 
-        private async Task<Solution> FixNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<Solution> FixNodeAsync(
+            Document document, SyntaxNode node, bool changeReturnType, CancellationToken cancellationToken)
         {
             // See if we're on an actual method declaration (otherwise we're on a lambda declaration).
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
@@ -53,19 +77,27 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary &&
-                methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
-                methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+            if (methodSymbolOpt != null)
             {
-                return await RenameThenRemoveAsyncTokenAsync(document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
+                var shouldRenameIfEndsWithAsync = changeReturnType || methodSymbolOpt.ReturnsVoid;
+
+                if (shouldRenameIfEndsWithAsync &&
+                    methodSymbolOpt.MethodKind == MethodKind.Ordinary &&
+                    methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
+                    methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+                {
+                    return await RenameThenRemoveAsyncTokenAsync(
+                        document, node, methodSymbolOpt, changeReturnType, cancellationToken).ConfigureAwait(false);
+                }
             }
-            else
-            {
-                return await RemoveAsyncTokenAsync(document, methodSymbolOpt, node, cancellationToken).ConfigureAwait(false);
-            }
+
+            return await RemoveAsyncTokenAsync(
+                document, methodSymbolOpt, node, changeReturnType, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> RenameThenRemoveAsyncTokenAsync(Document document, SyntaxNode node, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+        private async Task<Solution> RenameThenRemoveAsyncTokenAsync(
+            Document document, SyntaxNode node, IMethodSymbol methodSymbol, bool changeReturnType, 
+            CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
             var newName = name.Substring(0, name.Length - AsyncSuffix.Length);
@@ -85,19 +117,21 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             {
                 var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var newMethod = (IMethodSymbol)semanticModel.GetDeclaredSymbol(newNode, cancellationToken);
-                return await RemoveAsyncTokenAsync(newDocument, newMethod, newNode, cancellationToken).ConfigureAwait(false);
+                return await RemoveAsyncTokenAsync(newDocument, newMethod, newNode, changeReturnType, cancellationToken).ConfigureAwait(false);
             }
 
             return newSolution;
         }
 
-        private async Task<Solution> RemoveAsyncTokenAsync(Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<Solution> RemoveAsyncTokenAsync(
+            Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, bool changeReturnType,
+            CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
             var taskOfTType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType)
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, changeReturnType)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -109,8 +143,11 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(FeaturesResources.Make_method_synchronous, createChangedSolution, AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey)
+            public MyCodeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string equivalenceKey)
+                : base(title, createChangedSolution, equivalenceKey)
             {
             }
         }
