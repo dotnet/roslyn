@@ -212,6 +212,7 @@ Microsoft.CodeAnalysis.CompilationOptions.ModuleName.get -> string
 Microsoft.CodeAnalysis.CompilationOptions.OptimizationLevel.get -> Microsoft.CodeAnalysis.OptimizationLevel
 Microsoft.CodeAnalysis.CompilationOptions.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind
 Microsoft.CodeAnalysis.CompilationOptions.Platform.get -> Microsoft.CodeAnalysis.Platform
+Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.ScriptClassName.get -> string
 Microsoft.CodeAnalysis.CompilationOptions.SourceReferenceResolver.get -> Microsoft.CodeAnalysis.SourceReferenceResolver
@@ -225,6 +226,7 @@ Microsoft.CodeAnalysis.CompilationOptions.WithMetadataReferenceResolver(Microsof
 Microsoft.CodeAnalysis.CompilationOptions.WithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel value) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithOutputKind(Microsoft.CodeAnalysis.OutputKind kind) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithPlatform(Microsoft.CodeAnalysis.Platform platform) -> Microsoft.CodeAnalysis.CompilationOptions
+Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithReportSuppressedDiagnostics(bool value) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithSourceReferenceResolver(Microsoft.CodeAnalysis.SourceReferenceResolver resolver) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationOptions.WithSpecificDiagnosticOptions(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Microsoft.CodeAnalysis.ReportDiagnostic>> value) -> Microsoft.CodeAnalysis.CompilationOptions
@@ -234,6 +236,7 @@ Microsoft.CodeAnalysis.CompilationOptions.WithXmlReferenceResolver(Microsoft.Cod
 Microsoft.CodeAnalysis.CompilationOptions.XmlReferenceResolver.get -> Microsoft.CodeAnalysis.XmlReferenceResolver
 Microsoft.CodeAnalysis.CompilationReference
 Microsoft.CodeAnalysis.CompilationReference.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool
 Microsoft.CodeAnalysis.CompilationReference.WithAliases(System.Collections.Generic.IEnumerable<string> aliases) -> Microsoft.CodeAnalysis.CompilationReference
 Microsoft.CodeAnalysis.CompilationReference.WithAliases(System.Collections.Immutable.ImmutableArray<string> aliases) -> Microsoft.CodeAnalysis.CompilationReference
 Microsoft.CodeAnalysis.CompilationReference.WithEmbedInteropTypes(bool value) -> Microsoft.CodeAnalysis.CompilationReference
@@ -270,6 +273,7 @@ Microsoft.CodeAnalysis.DiagnosticSeverity.Warning = 2 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSymbolAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action, params Microsoft.CodeAnalysis.SymbolKind[] symbolKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerFileReference(string fullPath, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader assemblyLoader) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AnalyzerLoadFailed -> System.EventHandler<Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs>
@@ -316,6 +320,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.Compilation.get ->
 Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.CompilationAnalysisContext(Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
@@ -323,6 +329,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.CompilationSt
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSymbolAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext> action, params Microsoft.CodeAnalysis.SymbolKind[] symbolKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterSyntaxNodeAction<TLanguageKindEnum>(System.Action<Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.AnalysisOptions.get -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
@@ -343,6 +351,10 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDia
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree tree, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.AnalyzerExceptionFilter.get -> System.Func<System.Exception, bool>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics, System.Func<System.Exception, bool> analyzerExceptionFilter) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.ConcurrentAnalysis.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.LogAnalyzerExecutionTime.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.OnAnalyzerException.get -> System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic>
@@ -353,12 +365,18 @@ Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute.DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute.Languages.get -> string[]
 Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze = 1 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 2 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.SemanticModelAnalysisContext(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>
+Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>.SourceTextValueProvider(System.Func<Microsoft.CodeAnalysis.Text.SourceText, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.Text.SourceText> sourceTextComparer = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.Attribute.get -> Microsoft.CodeAnalysis.AttributeData
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.Id.get -> string
@@ -371,10 +389,13 @@ Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.Symbol.get -> Microsoft
 Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.SymbolAnalysisContext(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.SyntaxNodeAnalysisContext(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.ISymbol containingSymbol, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.SyntaxNodeAnalysisContext(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
@@ -382,6 +403,8 @@ Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.Options.get -> Micr
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.SyntaxTreeAnalysisContext(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.Tree.get -> Microsoft.CodeAnalysis.SyntaxTree
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>.SyntaxTreeValueProvider(System.Func<Microsoft.CodeAnalysis.SyntaxTree, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.SyntaxTree> syntaxTreeComparer = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.CodeBlockActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.CodeBlockEndActionsCount.get -> int
@@ -484,6 +507,7 @@ Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementType.get -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.IArrayTypeSymbol.Equals(Microsoft.CodeAnalysis.IArrayTypeSymbol other) -> bool
 Microsoft.CodeAnalysis.IArrayTypeSymbol.Rank.get -> int
 Microsoft.CodeAnalysis.IAssemblySymbol
+Microsoft.CodeAnalysis.IAssemblySymbol.GetMetadata() -> Microsoft.CodeAnalysis.AssemblyMetadata
 Microsoft.CodeAnalysis.IAssemblySymbol.GetTypeByMetadataName(string fullyQualifiedMetadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.IAssemblySymbol.GivesAccessTo(Microsoft.CodeAnalysis.IAssemblySymbol toAssembly) -> bool
 Microsoft.CodeAnalysis.IAssemblySymbol.GlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
@@ -494,6 +518,8 @@ Microsoft.CodeAnalysis.IAssemblySymbol.Modules.get -> System.Collections.Generic
 Microsoft.CodeAnalysis.IAssemblySymbol.NamespaceNames.get -> System.Collections.Generic.ICollection<string>
 Microsoft.CodeAnalysis.IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.IAssemblySymbol.TypeNames.get -> System.Collections.Generic.ICollection<string>
+Microsoft.CodeAnalysis.ICompilationUnitSyntax
+Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.IDynamicTypeSymbol
 Microsoft.CodeAnalysis.IErrorTypeSymbol
 Microsoft.CodeAnalysis.IErrorTypeSymbol.CandidateReason.get -> Microsoft.CodeAnalysis.CandidateReason
@@ -556,6 +582,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.ReturnsVoid.get -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.TypeArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
 Microsoft.CodeAnalysis.IMethodSymbol.TypeParameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeParameterSymbol>
 Microsoft.CodeAnalysis.IModuleSymbol
+Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata() -> Microsoft.CodeAnalysis.ModuleMetadata
 Microsoft.CodeAnalysis.IModuleSymbol.GetModuleNamespace(Microsoft.CodeAnalysis.INamespaceSymbol namespaceSymbol) -> Microsoft.CodeAnalysis.INamespaceSymbol
 Microsoft.CodeAnalysis.IModuleSymbol.GlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
 Microsoft.CodeAnalysis.IModuleSymbol.ReferencedAssemblies.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AssemblyIdentity>
@@ -625,6 +652,8 @@ Microsoft.CodeAnalysis.IPropertySymbol.SetMethod.get -> Microsoft.CodeAnalysis.I
 Microsoft.CodeAnalysis.IPropertySymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.TypeCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
 Microsoft.CodeAnalysis.IRangeVariableSymbol
+Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax
+Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 Microsoft.CodeAnalysis.IStructuredTriviaSyntax
 Microsoft.CodeAnalysis.IStructuredTriviaSyntax.ParentTrivia.get -> Microsoft.CodeAnalysis.SyntaxTrivia
 Microsoft.CodeAnalysis.ISymbol
@@ -707,6 +736,8 @@ Microsoft.CodeAnalysis.LocationKind.SourceFile = 1 -> Microsoft.CodeAnalysis.Loc
 Microsoft.CodeAnalysis.LocationKind.XmlFile = 3 -> Microsoft.CodeAnalysis.LocationKind
 Microsoft.CodeAnalysis.Metadata
 Microsoft.CodeAnalysis.Metadata.Copy() -> Microsoft.CodeAnalysis.Metadata
+Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
+Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataImageKind
 Microsoft.CodeAnalysis.MetadataImageKind.Assembly = 0 -> Microsoft.CodeAnalysis.MetadataImageKind
 Microsoft.CodeAnalysis.MetadataImageKind.Module = 1 -> Microsoft.CodeAnalysis.MetadataImageKind
@@ -1162,6 +1193,7 @@ Microsoft.CodeAnalysis.SyntaxNode.DescendantTrivia(Microsoft.CodeAnalysis.Text.T
 Microsoft.CodeAnalysis.SyntaxNode.DescendantTrivia(System.Func<Microsoft.CodeAnalysis.SyntaxNode, bool> descendIntoChildren = null, bool descendIntoTrivia = false) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>
 Microsoft.CodeAnalysis.SyntaxNode.FindNode(Microsoft.CodeAnalysis.Text.TextSpan span, bool findInsideTrivia = false, bool getInnermostNodeForTie = false) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.SyntaxNode.FindToken(int position, bool findInsideTrivia = false) -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, bool findInsideTrivia = false) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Microsoft.CodeAnalysis.SyntaxNode.FirstAncestorOrSelf<TNode>(System.Func<TNode, bool> predicate = null, bool ascendOutOfTrivia = true) -> TNode
 Microsoft.CodeAnalysis.SyntaxNode.FullSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
@@ -1804,6 +1836,8 @@ override Microsoft.CodeAnalysis.CommandLineAnalyzerReference.GetHashCode() -> in
 override Microsoft.CodeAnalysis.CommandLineReference.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CommandLineReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CompilationReference.Display.get -> string
+override Microsoft.CodeAnalysis.CompilationReference.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.CompilationReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.DesktopStrongNameProvider.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Diagnostic.ToString() -> string
@@ -2163,6 +2197,8 @@ static Microsoft.CodeAnalysis.XmlFileResolver.Default.get -> Microsoft.CodeAnaly
 virtual Microsoft.CodeAnalysis.Diagnostic.DefaultSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 virtual Microsoft.CodeAnalysis.Diagnostic.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 virtual Microsoft.CodeAnalysis.DiagnosticFormatter.Format(Microsoft.CodeAnalysis.Diagnostic diagnostic, System.IFormatProvider formatter = null) -> string
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.Display.get -> string
 virtual Microsoft.CodeAnalysis.Location.GetLineSpan() -> Microsoft.CodeAnalysis.FileLinePositionSpan
 virtual Microsoft.CodeAnalysis.Location.GetMappedLineSpan() -> Microsoft.CodeAnalysis.FileLinePositionSpan
