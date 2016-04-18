@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(CS1061, CS0103, CS0117, CS0539, CS0246, CS0120);
 
-        protected override bool IsCandidate(SyntaxNode node, Diagnostic diagnostic)
+        protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
             return node is SimpleNameSyntax || node is PropertyDeclarationSyntax || node is MemberBindingExpressionSyntax;
         }

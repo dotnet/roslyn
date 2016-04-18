@@ -116,13 +116,15 @@
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchCodeFixProvider.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchDiagnosticAnalyzer.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryImports\RemoveUnnecessaryImportsCodeFixProvider.vb" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.vb" />
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\Spellcheck\SpellcheckCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
@@ -367,6 +369,7 @@
     <Compile Include="Organizing\Organizers\TypeBlockOrganizer.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
+    <Compile Include="PopulateSwitch\VisualBasicPopulateSwitchHelpers.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
