@@ -45,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim optionService = document.Project.Solution.Workspace.Services.GetService(Of IOptionService)()
-                If Not (isExplicitFormat OrElse optionService.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
                     Return
                 End If
 

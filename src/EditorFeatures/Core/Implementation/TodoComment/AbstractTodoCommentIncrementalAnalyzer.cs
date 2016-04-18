@@ -22,14 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private readonly TodoCommentIncrementalAnalyzerProvider _owner;
         private readonly Workspace _workspace;
-        private readonly IOptionService _optionService;
         private readonly TodoCommentTokens _todoCommentTokens;
         private readonly TodoCommentState _state;
 
-        public TodoCommentIncrementalAnalyzer(Workspace workspace, IOptionService optionService, TodoCommentIncrementalAnalyzerProvider owner, TodoCommentTokens todoCommentTokens)
+        public TodoCommentIncrementalAnalyzer(Workspace workspace, TodoCommentIncrementalAnalyzerProvider owner, TodoCommentTokens todoCommentTokens)
         {
             _workspace = workspace;
-            _optionService = optionService;
 
             _owner = owner;
             _todoCommentTokens = todoCommentTokens;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             // but, can be called concurrently for different documents in future if we choose to.
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
-            if (!_optionService.GetOption(InternalFeatureOnOffOptions.TodoComments))
+            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.TodoComments))
             {
                 return;
             }

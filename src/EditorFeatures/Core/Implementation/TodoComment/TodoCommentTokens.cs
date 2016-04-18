@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         public ImmutableArray<TodoCommentDescriptor> GetTokens(Workspace workspace)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            var optionText = optionService.GetOption(TodoCommentOptions.TokenList);
+            var optionText = workspace.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
             if (lastInfo != null && lastInfo.OptionText == optionText)

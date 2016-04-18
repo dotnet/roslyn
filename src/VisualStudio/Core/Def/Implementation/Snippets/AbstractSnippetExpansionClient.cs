@@ -174,8 +174,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-                        var tabSize = optionService.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                        var options = document.Project.Solution.Workspace.Options;
+                        var tabSize = options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                         indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
                     }
                     else
@@ -525,8 +525,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var optionService = documentWithImports.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            var placeSystemNamespaceFirst = optionService.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, documentWithImports.Project.Language);
+            var options = documentWithImports.Project.Solution.Workspace.Options;
+            var placeSystemNamespaceFirst = options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, documentWithImports.Project.Language);
             documentWithImports = AddImports(documentWithImports, snippetNode, placeSystemNamespaceFirst, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }

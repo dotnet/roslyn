@@ -30,8 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.DesignerAttribute
         End Sub
 
         Public Function CreatePerLanguageIncrementalAnalyzer(workspace As Workspace, provider As IIncrementalAnalyzerProvider) As IIncrementalAnalyzer Implements IPerLanguageIncrementalAnalyzerProvider.CreatePerLanguageIncrementalAnalyzer
-            Dim optionService = workspace.Services.GetService(Of IOptionService)()
-            Return New DesignerAttributeIncrementalAnalyzer(Me._serviceProvider, optionService, Me._notificationService, Me._asyncListeners)
+            Return New DesignerAttributeIncrementalAnalyzer(Me._serviceProvider, Me._notificationService, Me._asyncListeners)
         End Function
 
         Private Class DesignerAttributeIncrementalAnalyzer
@@ -39,10 +38,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.DesignerAttribute
 
             Public Sub New(
                 serviceProvider As IServiceProvider,
-                optionService As IOptionService,
                 notificationService As IForegroundNotificationService,
                 asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-                MyBase.New(serviceProvider, optionService, notificationService, asyncListeners)
+                MyBase.New(serviceProvider, notificationService, asyncListeners)
             End Sub
 
             Protected Overrides Function GetAllTopLevelTypeDefined(node As SyntaxNode) As IEnumerable(Of SyntaxNode)

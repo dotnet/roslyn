@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out workspace))
             {
-                var service = workspace.Services.GetService<IOptionService>();
-
-                if (service != null)
-                {
-                    return service.GetOptions();
-                }
+                return workspace.Options;
             }
 
             return null;
@@ -52,14 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return option.DefaultValue;
                 }
 
-                var service = workspace.Services.GetService<IOptionService>();
-                if (service == null)
-                {
-                    return option.DefaultValue;
-                }
-
                 var language = workspace.Services.GetLanguageServices(buffer).Language;
-                return service.GetOption(option, language);
+                return workspace.Options.GetOption(option, language);
             }
             catch (Exception e) when (FatalError.Report(e))
             {

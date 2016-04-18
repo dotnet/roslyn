@@ -33,8 +33,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
 
-            Dim optionService = Workspace.Services.GetService(Of IOptionService)()
-            optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.Snippets, True))
+            Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,

@@ -73,9 +73,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(""))
             {
-                var optionService = workspace.GetService<IOptionService>();
-                var optionSet = optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
+                var optionSet = workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
 
                 var serviceProvider = new MockServiceProvider(workspace.ExportProvider);
                 using (var viewModel = new SpacingViewModel(optionSet, serviceProvider))
@@ -100,10 +98,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
                     var initial = checkbox.IsChecked;
                     checkbox.IsChecked = !checkbox.IsChecked;
 
-                    var optionService = workspace.GetService<IOptionService>();
-                    var optionSet = optionService.GetOptions();
-
-                    var changedOptions = viewModel.ApplyChangedOptions(optionSet);
+                    var changedOptions = viewModel.ApplyChangedOptions(workspace.Options);
                     Assert.NotEqual(changedOptions.GetOption(CSharpFormattingOptions.SpacingAfterMethodDeclarationName), initial);
                 }
             }

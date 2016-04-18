@@ -39,9 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent2()
             Using workspace = New TestWorkspace()
-                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-                Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
-                Assert.Equal(True, initialState)
+                Assert.Equal(True, workspace.Options.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
 
                 Dim provider = New SmartIndentProvider()
 
@@ -63,11 +61,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent3()
             Using workspace = New TestWorkspace()
-                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-                Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
-                Assert.Equal(True, initialState)
+                Assert.Equal(True, workspace.Options.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
 
-                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False))
+                workspace.Options = workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)
 
                 Dim provider = New SmartIndentProvider()
 
@@ -80,8 +76,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
                 textView.SetupGet(Function(x) x.TextBuffer).Returns(subjectBuffer)
 
                 Dim smartIndenter = provider.CreateSmartIndent(textView.Object)
-
-                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, True))
 
                 Assert.Null(smartIndenter)
             End Using

@@ -231,8 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                 var visualStudioWorkspace = componentModel.GetService<VisualStudioWorkspace>();
 
-                var optionService = visualStudioWorkspace.Services.GetService<IOptionService>();
-                optionService.SetOptions(optionService.GetOptions().WithChangedOption(optionKey, value));
+                visualStudioWorkspace.Options = visualStudioWorkspace.Options.WithChangedOption(optionKey, value);
             }
         }
     }
