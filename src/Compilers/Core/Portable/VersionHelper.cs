@@ -86,10 +86,19 @@ namespace Microsoft.CodeAnalysis
 
                     parseError = true;
 
-                    if (values[i] > maxValue || string.IsNullOrWhiteSpace(elements[i]))
+                    if (string.IsNullOrWhiteSpace(elements[i]))
                     {
                         values[i] = 0;
                         break;
+                    }
+
+                    
+                    if(values[i] > maxValue)
+                    {
+                        //The only way this can happen is if the value was 65536
+                        //The old compiler would continue parsing from here
+                        values[i] = 0;
+                        continue;
                     }
 
                     bool invalidFormat = false;

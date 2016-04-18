@@ -198,6 +198,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(new Version(1, 1, 31073, 0), version);
             Assert.False(VersionHelper.TryParse("1.1.18446744073709551617999999999999999999999999900001.23garbage", out version));
             Assert.Equal(new Version(1, 1, 31073, 23), version);
+            Assert.False(VersionHelper.TryParse("65536.2.65536.1", out version));
+            Assert.Equal(new Version(0, 2, 0, 1), version);
         }
     }
 }
