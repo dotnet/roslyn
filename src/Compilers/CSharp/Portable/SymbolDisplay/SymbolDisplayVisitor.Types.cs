@@ -385,26 +385,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
         {
-            var tupleType = (TupleTypeSymbol)symbol;
+            var tupleType = symbol as TupleTypeSymbol;
+            if (tupleType == null)
+            {
+                return;
+            }
+
             bool hasNames = tupleType.HasFriendlyNames;
 
             AddPunctuation(SyntaxKind.OpenParenToken);
 
             bool first = true;
-            foreach (var member in tupleType.GetMembers().OfType<IFieldSymbol>())
+            foreach (var field in tupleType.Fields)
             {
                 if (!first)
                 {
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
+
                 first = false;
 
-                member.Type.Accept(this.NotFirstVisitor);
+                field.Type.Accept(this.NotFirstVisitor);
                 if (hasNames)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, member.Name));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, field.Name));
                 }
             }
 

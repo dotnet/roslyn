@@ -548,6 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal ImmutableArray<TupleFieldSymbol> Fields => _fields;
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
