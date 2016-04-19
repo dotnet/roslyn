@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             var allProviders = GetProviders();
             if (allProviders == null)
             {
+                nextHandler();
                 return;
             }
 
