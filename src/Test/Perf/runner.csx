@@ -8,114 +8,52 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
-InitUtilities();
-
-var testDirectory = Path.Combine(MyWorkingDirectory(), "Tests");
-
-var allResults = new List<Tuple<string, List<Tuple<int, string, object>>>>();
-var failed = false;
-
-var traceManager = TraceManagerFactory.GetTraceManager();
+var directoryInfo = new RelativeDirectory();
+var testDirectory = Path.Combine(directoryInfo.MyWorkingDirectory, "tests");
 
 // Print message at startup
 Log("Starting Performance Test Run");
 Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
 Log("time: " + DateTime.Now.ToString());
 
-traceManager.Setup();
+var testInstances = new List<dynamic>();
 
-for(int i = 0; i < traceManager.Iterations; ++ i)
+// Find all the tests from inside of the csx files.
+foreach (var script in GetAllCsxRecursive(testDirectory))
 {
-    traceManager.Start();
-
-    // Run all the scripts that we've found and populate allResults.
-    foreach (var script in GetAllCsxRecursive(testDirectory))
-    {
-        var scriptName = Path.GetFileNameWithoutExtension(script);
-        Log("\nRunning " + scriptName);
-        try
-        {
-            traceManager.StartScenario(scriptName, "csc");
-            traceManager.StartEvent();
-
-            var state = await RunFile(script);
-
-            traceManager.EndEvent();
-            traceManager.EndScenario();
-
-            var metrics = (List<Tuple<int, string, object>>) state.GetVariable("Metrics").Value;
-            allResults.Add(Tuple.Create(scriptName, metrics));
-        }
-        catch (Exception e)
-        {
-            Log("Test Failed: " + scriptName);
-            Log(e.ToString());
-            return 1;
-        }
-    }
-
-    traceManager.EndScenarios();
-    traceManager.WriteScenariosFileToDisk();
-
-    traceManager.Stop();
-
-    traceManager.ResetScenarioGenerator();
+    var scriptName = Path.GetFileNameWithoutExtension(script);
+    Log($"Collecting tests from {scriptName}");
+    var state = await RunFile(script);
+    object[] tests = (object[]) state.GetVariable("resultTests").Value;
+    testInstances.AddRange(tests);
 }
 
-traceManager.Cleanup();
-
-Log("\nALL RESULTS");
-
-// Write to separate csv files depending on the metric
-// that they are recording
-var compileTimeBuilder = new System.Text.StringBuilder();
-var runTimeBuilder = new System.Text.StringBuilder();
-var fileSizeBuilder = new System.Text.StringBuilder();
-foreach (var testResult in allResults)
+var traceManager = TraceManagerFactory.GetTraceManager();
+traceManager.Initialize();
+foreach (dynamic test in testInstances)
 {
-    var test = testResult.Item1;
-    var cases = testResult.Item2;
-    foreach (var testCase in cases)
+    test.Setup();
+    traceManager.Setup();
+    
+    var iterations = traceManager.HasWarmUpIteration ? 
+                     test.Iterations + 1 :
+                     test.Iterations;
+                     
+    for (int i = 0; i < iterations; i++)
     {
-        var reportKind = testCase.Item1;
-        var caseDescription = testCase.Item2;
-        var caseValue = testCase.Item3;
-        System.Text.StringBuilder builder = null;
-
-        switch((ReportKind) reportKind)
-        {
-            case ReportKind.CompileTime:
-                builder = compileTimeBuilder;
-                break;
-            case ReportKind.RunTime:
-                builder = runTimeBuilder;
-                break;
-            case ReportKind.FileSize:
-                builder = fileSizeBuilder;
-                break;
-            default:
-                throw new Exception("test specified an invalid report kind");
-        }
-
-        if (builder.Length != 0)
-        {
-            builder.AppendLine();
-        }
-        builder.Append($"{test}, {caseDescription}, {caseValue}");
+        traceManager.StartScenarios();
+        traceManager.Start();
+        traceManager.StartScenario(test.Name + i, test.MeasuredProc);
+        traceManager.StartEvent();
+        test.Test();
+        traceManager.EndEvent();
+        traceManager.EndScenario();
+        
+        traceManager.EndScenarios();
+        traceManager.WriteScenariosFileToDisk();
+        traceManager.Stop();
+        traceManager.ResetScenarioGenerator();
     }
+
+    traceManager.Cleanup();
 }
-
-Log("Compiler Time:");
-var cts = compileTimeBuilder.ToString();
-File.WriteAllText(Path.Combine(MyTempDirectory(), "compiler_time.csv"), cts);
-Log("\t" + cts.Replace("\n", "\n\t"));
-
-Log("Run Time:");
-var rts = runTimeBuilder.ToString();
-File.WriteAllText(Path.Combine(MyTempDirectory(), "run_time.csv"), rts);
-Log("\t" + rts.Replace("\n", "\n\t"));
-
-Log("File Size:");
-var fss = fileSizeBuilder.ToString();
-File.WriteAllText(Path.Combine(MyTempDirectory(), "file_size.csv"), fss);
-Log("\t" + fss.Replace("\n", "\n\t"));

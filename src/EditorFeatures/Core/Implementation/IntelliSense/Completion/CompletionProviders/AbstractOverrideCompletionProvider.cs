@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        protected override ISymbol GenerateMember(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, MemberInsertionCompletionItem completionItem, CancellationToken cancellationToken)
+        protected override async Task<ISymbol> GenerateMemberAsync(ISymbol newOverriddenMember, INamedTypeSymbol newContainingType, Document newDocument, MemberInsertionCompletionItem completionItem, CancellationToken cancellationToken)
         {
             // Figure out what to insert, and do it. Throw if we've somehow managed to get this far and can't.
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var modifiers = completionItem.Modifiers.WithIsUnsafe(completionItem.Modifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
             if (newOverriddenMember.Kind == SymbolKind.Method)
             {
-                return syntaxFactory.OverrideMethod((IMethodSymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken);
+                return await syntaxFactory.OverrideMethodAsync((IMethodSymbol)newOverriddenMember,
+                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
             }
             else if (newOverriddenMember.Kind == SymbolKind.Property)
             {
-                return syntaxFactory.OverrideProperty((IPropertySymbol)newOverriddenMember,
-                    modifiers, newContainingType, newDocument, cancellationToken);
+                return await syntaxFactory.OverridePropertyAsync((IPropertySymbol)newOverriddenMember,
+                    modifiers, newContainingType, newDocument, cancellationToken).ConfigureAwait(false);
             }
             else
             {

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports EnvDTE80
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
@@ -78,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return codeElement.AddAttribute(data.Name, data.Value, data.Position)
         End Function
 
-        Protected Async Function TestIsPropertyStyleEvent(code As XElement, expected As Boolean) As Threading.Tasks.Task
+        Protected Async Function TestIsPropertyStyleEvent(code As XElement, expected As Boolean) As Task
             Await TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsPropertyStyleEvent)
