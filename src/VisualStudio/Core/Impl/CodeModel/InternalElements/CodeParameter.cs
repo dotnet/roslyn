@@ -201,12 +201,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         int IParameterKind.GetParameterArrayCount()
         {
-            var type = ParameterSymbol.Type;
-            int count = 0;
-            while (type?.TypeKind == TypeKind.Array)
+            var arrayType = ParameterSymbol.Type as IArrayTypeSymbol;
+            var count = 0;
+
+            while (arrayType != null)
             {
                 count++;
-                type = ((IArrayTypeSymbol)type).ElementType;
+                arrayType = arrayType.ElementType as IArrayTypeSymbol;
             }
 
             return count;
@@ -214,7 +215,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         int IParameterKind.GetParameterArrayDimensions(int index)
         {
-            throw new NotImplementedException();
+            if (index < 0)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
+            var arrayType = ParameterSymbol.Type as IArrayTypeSymbol;
+            var count = 0;
+
+            while (count < index && arrayType != null)
+            {
+                count++;
+                arrayType = arrayType.ElementType as IArrayTypeSymbol;
+            }
+
+            if (arrayType == null)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
+            return arrayType.Rank;
         }
 
         PARAMETER_PASSING_MODE IParameterKind.GetParameterPassingMode()

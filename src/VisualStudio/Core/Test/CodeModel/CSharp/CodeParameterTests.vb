@@ -1044,6 +1044,94 @@ class C
 
 #End Region
 
+#Region "IParameterKind.GetParameterArrayDimensions tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_1() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_2() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[,] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_3() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[,,] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=3)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_1_1() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[,,][] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=1, expected:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_1_2() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[,,][,] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=1, expected:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_2_1() As Task
+            Dim code =
+<Code>
+class C
+{
+    void M(string[,,][,][] $$s) { }
+}
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=2, expected:=1)
+        End Function
+
+#End Region
+
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestTypeDescriptor_GetProperties() As Task
             Dim code =

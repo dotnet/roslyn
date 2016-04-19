@@ -142,5 +142,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Assert.Equal(expected, actual)
                 End Sub)
         End Function
+
+        Friend Async Function TestGetParameterArrayDimensions(code As XElement, index As Integer, expected As Integer) As Task
+            Await TestElement(code,
+                Sub(codeElement)
+                    Dim parameterKind = TryCast(codeElement, IParameterKind)
+                    Assert.NotNull(parameterKind)
+
+                    Dim actual = parameterKind.GetParameterArrayDimensions(index)
+                    Assert.Equal(expected, actual)
+                End Sub)
+        End Function
     End Class
 End Namespace
