@@ -8,9 +8,18 @@
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <OutputPath>bin</OutputPath>
     <OutputType>Library</OutputType>
+    <IsPortable Condition="'$(IsPortable)' == ''">true</IsPortable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsPortable)' == 'true'">
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-  </PropertyGroup> 
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>    
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsPortable)' != 'true'">
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
   
 </Project>
