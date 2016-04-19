@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitMethodDefinitionToken(BoundMethodDefinitionToken node)
+        public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             return null;
         }
@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitInstrumentationPayload(BoundInstrumentationPayload node)
+        public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
         {
             return null;
         }

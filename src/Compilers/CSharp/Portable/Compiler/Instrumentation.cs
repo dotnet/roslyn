@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
 
                     // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
-                    int analysisKind = 0;
+                    const int analysisKind = 0;
                     TypeSymbol boolType = factory.SpecialType(SpecialType.System_Boolean);
                     TypeSymbol payloadElementType = boolType;
                     ArrayTypeSymbol payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                     //
-                    // var payload = PID.PayloadField[methodIndex];
+                    // var payload = PID.PayloadRootField[methodIndex];
                     // if (payload == null)
-                    //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadField[methodIndex], payloadLength);
+                    //     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadRootField[methodIndex], payloadLength);
 
-                    BoundStatement payloadInitialization = factory.Assignment(factory.Local(methodPayload), factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method))));
+                    BoundStatement payloadInitialization = factory.Assignment(factory.Local(methodPayload), factory.ArrayAccess(factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefIndex(method))));
                     BoundExpression mvid = factory.ModuleVersionId();
-                    BoundExpression methodToken = factory.MethodDefinitionToken(method);
-                    BoundExpression payloadSlot = factory.ArrayAccess(factory.InstrumentationPayload(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefinitionToken(method)));
+                    BoundExpression methodToken = factory.MethodDefIndex(method);
+                    BoundExpression payloadSlot = factory.ArrayAccess(factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(factory.MethodDefIndex(method)));
                     BoundStatement createPayloadCall = factory.Assignment(factory.Local(methodPayload), factory.Call(null, createPayload, mvid, methodToken, payloadSlot, factory.Literal(dynamicAnalysisSpans.Length)));
 
                     BoundExpression payloadNullTest = factory.Binary(BinaryOperatorKind.ObjectEqual, boolType, factory.Local(methodPayload), factory.Null(payloadType));

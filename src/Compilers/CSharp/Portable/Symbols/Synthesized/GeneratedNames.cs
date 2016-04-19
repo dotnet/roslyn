@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal static string MakeSynthesizedInstrumentationPayloadLocalName(int uniqueId)
+        internal static string MakeSynthesizedInstrumentationPayloadLocalFieldName(int uniqueId)
         {
             return SynthesizedLocalNamePrefix + "InstrumentationPayload" + StringExtensions.GetNumeral(uniqueId);
         }

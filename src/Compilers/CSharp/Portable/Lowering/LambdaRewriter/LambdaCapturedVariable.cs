@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
                 {
-                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalName(uniqueId++);
+                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
             }
 

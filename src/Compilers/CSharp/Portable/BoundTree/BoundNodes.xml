@@ -443,27 +443,30 @@
   <Node Name="BoundTypeOfPrivateImplementationDetails" Base="BoundTypeOf">
   </Node>
 
-   <!-- Represents the raw metadata token value for a method definition. Dynamic instrumentation depends on tracking method tokens. -->
-  <Node Name="BoundMethodDefinitionToken" Base="BoundExpression">
+   <!-- Represents the raw metadata token index value for a method definition.
+        Used by dynamic instrumentation to index into tables or arrays of per-method information. -->
+  <Node Name="BoundMethodDefIndex" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Method" Type="MethodSymbol"/>
   </Node>
 
-  <!-- Represents the greatest raw metadata token value for any method definition in the current module. -->
-  <Node Name="BoundGreatestMethodDefinitionToken" Base="BoundExpression">
+  <!-- Represents the maximum raw metadata token index value for any method definition in the current module. -->
+  <Node Name="BoundMaximumMethodDefIndex" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module. Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol. -->
-  <Node Name="BoundInstrumentationPayload" Base="BoundExpression">
+  <!-- Represents the dynamic analysis instrumentation payload array for the analysis kind in the current module.
+       Implemented as a reference to a field of PrivateImplementationDetails, which has no language-level symbol. -->
+  <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
     <Field Name="AnalysisKind" Type="int"/>
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
-  <!-- Represents the GUID that is the current module's MVID. Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
+  <!-- Represents the GUID that is the current module's MVID.
+       Implemented as a reference to PrivateImplementationDetails.MVID, which has no language-level symbol. -->
   <Node Name="BoundModuleVersionId" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

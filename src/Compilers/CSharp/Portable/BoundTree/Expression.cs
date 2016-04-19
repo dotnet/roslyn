@@ -1809,7 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundMethodDefinitionToken
+    internal partial class BoundMethodDefIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundInstrumentationPayload
+    internal partial class BoundInstrumentationPayloadRoot
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundGreatestMethodDefinitionToken
+    internal partial class BoundMaximumMethodDefIndex
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 

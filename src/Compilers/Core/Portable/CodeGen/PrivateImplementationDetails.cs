@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private ModuleVersionIdField _mvidField;
         // Dictionary that maps from analysis kind to instrumentation payload field.
-        private readonly ConcurrentDictionary<int, InstrumentationPayloadField> _instrumentationPayloadFields = new ConcurrentDictionary<int, InstrumentationPayloadField>();
+        private readonly ConcurrentDictionary<int, InstrumentationPayloadRootField> _instrumentationPayloadRootFields = new ConcurrentDictionary<int, InstrumentationPayloadRootField>();
 
         // synthesized methods
         private ImmutableArray<Cci.IMethodDefinition> _orderedSynthesizedMethods;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 fieldsBuilder.Add(_mvidField);
             }
-            fieldsBuilder.AddRange(_instrumentationPayloadFields.Values);
+            fieldsBuilder.AddRange(_instrumentationPayloadRootFields.Values);
             fieldsBuilder.Sort(FieldComparer.Instance);
             _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
 
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (_mvidField == null)
             {
+                Debug.Assert(!IsFrozen);
                 Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField(this, mvidType), null);
             }
 
@@ -173,33 +174,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _mvidField;
         }
 
-        internal Cci.IFieldReference GetInstrumentationPayload(int analysisKind, Cci.ITypeReference payloadType)
+        internal Cci.IFieldReference GetOrAddInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadRootType)
         {
-            InstrumentationPayloadField payloadField;
-            if (!_instrumentationPayloadFields.TryGetValue(analysisKind, out payloadField))
+            InstrumentationPayloadRootField payloadRootField;
+            if (!_instrumentationPayloadRootFields.TryGetValue(analysisKind, out payloadRootField))
             {
-                payloadField = new InstrumentationPayloadField(this, analysisKind, payloadType);
-                if (!_instrumentationPayloadFields.TryAdd(analysisKind, payloadField))
-                {
-                    // Another thread added the field.
-                    payloadField = _instrumentationPayloadFields[analysisKind];
-                }
+                Debug.Assert(!IsFrozen);
+                payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, (kind) => new InstrumentationPayloadRootField(this, kind, payloadRootType));
             }
 
-            return payloadField;
+            Debug.Assert(payloadRootField.Type.Equals(payloadRootType));
+            return payloadRootField;
         }
 
-        internal ImmutableArray<InstrumentationPayloadField> GetInstrumentationPayloads()
+        internal IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> GetInstrumentationPayloadRoots()
         {
             Debug.Assert(IsFrozen);
-            int payloadsLength = _instrumentationPayloadFields.Keys.Max() + 1;
-            ArrayBuilder<InstrumentationPayloadField> payloadsBuilder = ArrayBuilder<InstrumentationPayloadField>.GetInstance(payloadsLength, null);
-            foreach (KeyValuePair<int, InstrumentationPayloadField> payloads in _instrumentationPayloadFields)
-            {
-                payloadsBuilder[payloads.Key] = payloads.Value;
-            }
-
-            return payloadsBuilder.ToImmutableAndFree();
+            return (IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>>)_instrumentationPayloadRootFields;
         }
 
         // Add a new synthesized method indexed by its name if the method isn't already present.
@@ -444,10 +435,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
     }
 
-    internal sealed class InstrumentationPayloadField : SynthesizedStaticField
+    internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField
     {
-        internal InstrumentationPayloadField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
-            : base("Payload" + analysisIndex.ToString(), containingType, payloadType)
+        internal InstrumentationPayloadRootField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
+            : base("PayloadRoot" + analysisIndex.ToString(), containingType, payloadType)
         {
         }
 

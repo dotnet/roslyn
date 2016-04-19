@@ -977,9 +977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression MethodDefinitionToken(MethodSymbol method)
+        public BoundExpression MethodDefIndex(MethodSymbol method)
         {
-            return new BoundMethodDefinitionToken(
+            return new BoundMethodDefIndex(
                 Syntax,
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
@@ -995,14 +995,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression InstrumentationPayload(int analysisKind, TypeSymbol payloadType)
+        public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
         {
-            return new BoundInstrumentationPayload(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+            return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
         }
 
-        public BoundExpression GreatestMethodDefinitionToken()
+        public BoundExpression MaximumMethodDefIndex()
         {
-            return new BoundGreatestMethodDefinitionToken(
+            return new BoundMaximumMethodDefIndex(
                 Syntax,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
