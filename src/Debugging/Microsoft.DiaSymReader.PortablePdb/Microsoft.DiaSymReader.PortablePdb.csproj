@@ -15,7 +15,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -26,9 +27,6 @@
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Utilities\ReflectionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\PortableShim.cs">
-      <Link>Utilities\PortableShim.cs</Link>
     </Compile>
     <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
       <Link>System.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
@@ -86,6 +84,7 @@
     <Compile Include="SymMethod.cs" />
     <Compile Include="SymReader.cs" />
     <Compile Include="SymVariable.cs" />
+    <Compile Include="Utilities\PortableShim.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

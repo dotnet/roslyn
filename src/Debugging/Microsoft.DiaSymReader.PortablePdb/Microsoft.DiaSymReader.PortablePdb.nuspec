@@ -17,7 +17,6 @@
         <dependency id="System.Collections" version="4.0.11-rc3-24011-00" />
         <dependency id="System.Collections.Immutable" version="1.2.0-rc3-24011-00" />
         <dependency id="System.Diagnostics.Debug" version="4.0.11-rc3-24011-00" />
-        <dependency id="System.Globalization" version="4.0.0-rc3-24011-00" />
         <dependency id="System.IO" version="4.1.0-rc3-24011-00" />
         <dependency id="System.Linq" version="4.1.0-rc3-24011-00" />
         <dependency id="System.Reflection" version="4.1.0-rc3-24011-00" />
@@ -26,9 +25,7 @@
         <dependency id="System.Runtime" version="4.1.0-rc3-24011-00" />
         <dependency id="System.Runtime.Extensions" version="4.1.0-rc3-24011-00" />
         <dependency id="System.Runtime.InteropServices" version="4.1.0-rc3-24011-00" />
-        <dependency id="System.Text.Encoding" version="4.0.11-rc3-24011-00" />
         <dependency id="System.Threading" version="4.0.11-rc3-24011-00" />
-        <dependency id="System.Xml.XDocument" version="4.0.11-rc3-24011-00" />
       </group>
     </dependencies>
     <language>en-US</language>
