@@ -128,6 +128,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xUnit.net", "..\Dependencie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.net", "..\Dependencies\Moq.net\Moq.net.csproj", "{A32EAB7F-691C-4D00-98C4-F50C37BB4754}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Composition", "..\Dependencies\Composition\Composition.csproj", "{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -542,6 +544,18 @@ Global
 		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Release|x86.ActiveCfg = Debug|Any CPU
 		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Release|x86.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|x86.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|x86.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -601,5 +615,6 @@ Global
 		{B36C94C7-F34C-43BC-8834-0B9EEA6DD4DF} = {D14160E0-ACA0-4D2D-A670-CB72A57225F2}
 		{8635CB8F-D210-41ED-B4FF-71502CDB475C} = {D14160E0-ACA0-4D2D-A670-CB72A57225F2}
 		{A32EAB7F-691C-4D00-98C4-F50C37BB4754} = {D14160E0-ACA0-4D2D-A670-CB72A57225F2}
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491} = {D14160E0-ACA0-4D2D-A670-CB72A57225F2}
 	EndGlobalSection
 EndGlobal
