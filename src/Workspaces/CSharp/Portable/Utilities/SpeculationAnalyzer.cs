@@ -280,6 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // If replacing the node will result in a broken binary expression, we won't remove it.
                 return ReplacementBreaksBinaryExpression((BinaryExpressionSyntax)currentOriginalNode, (BinaryExpressionSyntax)currentReplacedNode);
             }
+            else if (currentOriginalNode.Kind() == SyntaxKind.LogicalNotExpression)
+            {
+                return !SymbolsAreCompatible(((PrefixUnaryExpressionSyntax)currentOriginalNode).Operand, ((PrefixUnaryExpressionSyntax)currentReplacedNode).Operand);
+            }
             else if (currentOriginalNode.Kind() == SyntaxKind.ConditionalAccessExpression)
             {
                 return ReplacementBreaksConditionalAccessExpression((ConditionalAccessExpressionSyntax)currentOriginalNode, (ConditionalAccessExpressionSyntax)currentReplacedNode);
