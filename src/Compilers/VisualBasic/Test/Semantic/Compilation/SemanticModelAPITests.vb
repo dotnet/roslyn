@@ -4063,6 +4063,27 @@ End Class
 
         <Fact()>
         <WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")>
+        Public Sub GetDependenceChainRegression_10211_working()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+                                Public Class Parent
+                                End Class
+
+                                Public Class Child
+                                    Inherits Parent
+                                End Class
+                            ]]></file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
+
+            ' Ensuring that this doesn't throw
+            semanticModel.GetMethodBodyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")>
         Public Sub GetDependenceChainRegression_10211()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
