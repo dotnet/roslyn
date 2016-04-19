@@ -22,6 +22,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

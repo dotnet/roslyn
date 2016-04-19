@@ -4,7 +4,7 @@
     "xunit.runner.console": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0",
     "Moq": "4.2.1402.2112",
-    "System.Collections.Immutable": "1.1.37"
+    "System.Collections.Immutable": "1.2.0-rc3-24005-00"
   },
   "frameworks": {
     "net46": { }

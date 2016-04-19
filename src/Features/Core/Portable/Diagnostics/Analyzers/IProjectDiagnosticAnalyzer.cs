@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,7 +13,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public abstract Task AnalyzeProjectAsync(Project project, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
 
-        public override void Initialize(AnalysisContext context)
+        /// <summary>
+        /// it is not allowed one to implement both ProjectDiagnosticAnalzyer and DiagnosticAnalyzer
+        /// </summary>
+        public sealed override void Initialize(AnalysisContext context)
         {
         }
     }

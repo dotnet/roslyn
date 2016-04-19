@@ -31,7 +31,10 @@ public class Vec
         object o = ""Pass"";
         int i1 = 0b001010; // binary literals
         int i2 = 23_554; // digit separators
-        int f() => 2; // local functions
+        // local functions
+        // Note: due to complexity and cost of parsing local functions we
+        // don't try to parse if the feature isn't enabled
+        int f() => 2;
         ref int i3 = ref i1; // ref locals
         string s = o is string k ? k : null; // pattern matching
         let var i4 = 3; // let
@@ -51,96 +54,102 @@ public class Vec
                 // (8,18): error CS8058: Feature 'digit separators' is experimental and unsupported; use '/features:digitSeparators' to enable.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(8, 18),
-                // (9,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int f() => 2;").WithArguments("local functions", "localFunctions").WithLocation(9, 9),
-                // (9,22): error CS1513: } expected
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 22),
-                // (10,22): error CS1525: Invalid expression term 'ref'
+                // (12,14): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "() => 2").WithLocation(12, 14),
+                // (12,14): error CS1003: Syntax error, '[' expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(12, 14),
+                // (12,21): error CS1003: Syntax error, ']' expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(12, 21),
+                // (12,22): error CS1513: } expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 22),
+                // (13,22): error CS1525: Invalid expression term 'ref'
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 22),
-                // (10,22): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 22),
+                // (13,22): error CS1003: Syntax error, ',' expected
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(10, 22),
-                // (10,26): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(13, 22),
+                // (13,26): error CS1002: ; expected
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(10, 26),
-                // (11,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(13, 26),
+                // (14,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(11, 20),
-                // (12,17): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(14, 20),
+                // (15,17): error CS1002: ; expected
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
-                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(15, 17),
+                // (16,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         int i5 = o match (case * : 7); // match
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
-                // (14,21): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(16, 18),
+                // (17,21): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is null").WithArguments("pattern matching", "patterns").WithLocation(14, 21),
-                // (14,38): error CS1525: Invalid expression term 'throw'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is null").WithArguments("pattern matching", "patterns").WithLocation(17, 21),
+                // (17,38): error CS1525: Invalid expression term 'throw'
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
-                // (15,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(17, 38),
+                // (18,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "q is Vec(3)").WithArguments("pattern matching", "patterns").WithLocation(15, 13),
-                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "q is Vec(3)").WithArguments("pattern matching", "patterns").WithLocation(18, 13),
+                // (18,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
-                // (10,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(18, 18),
+                // (13,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(10, 26),
-                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(13, 26),
+                // (15,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
-                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(15, 9),
+                // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
-                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
+                // (15,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(15, 13),
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
             var demoParseOptions = regularParseOptions
                 .WithPreprocessorSymbols(new[] { "__DEMO__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: demoParseOptions).VerifyDiagnostics(
-                // (12,17): error CS1002: ; expected
+                // (15,17): error CS1002: ; expected
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
-                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(15, 17),
+                // (16,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         int i5 = o match (case * : 7); // match
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
-                // (14,38): error CS1525: Invalid expression term 'throw'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(16, 18),
+                // (17,38): error CS1525: Invalid expression term 'throw'
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
-                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(17, 38),
+                // (18,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
-                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(18, 18),
+                // (15,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
-                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(15, 9),
+                // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                // (15,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(15, 13),
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // additionally enables let, match, throw, and recursive patterns
@@ -150,9 +159,9 @@ public class Vec
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
         }
 
@@ -3287,7 +3296,7 @@ public class X
             return;
         }
     }
-
+        
     static bool Dummy(params object[] x) {return true;}
 }
 ";
@@ -3538,7 +3547,7 @@ public class X
             VerifyNotAPatternLocal(model, x12Ref[1]);
             VerifyNotAPatternLocal(model, x12Ref[2]);
         }
-
+        
         [Fact]
         public void ScopeOfPatternVariables_Lambda_02()
         {
@@ -5826,7 +5835,7 @@ public class X
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
-
+        
 
         [Fact]
         public void ScopeOfPatternVariables_PropertyInitializers_02()
@@ -6178,7 +6187,7 @@ class Test : System.Attribute
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
-        
+
         [Fact]
         public void ScopeOfPatternVariables_Attribute_03()
         {
@@ -6488,7 +6497,7 @@ class C
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
                 );
         }
-        
+
         [Fact]
         public void ScopeOfPatternVariables_ConstructorInitializers_05()
         {
@@ -7684,65 +7693,65 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
-                // (19,15): error CS0103: The name 'x1' does not exist in the current context
-                //         Dummy(x1, 1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
-                // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         switch (4 is var x4 ? x4 : 0)
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
-                // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         switch (5 is var x5 ? x5 : 0)
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
-                // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
-                //         switch (x6 + 6 is var x6 ? x6 : 0)
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
-                // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 var x7 = 12;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
-                // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 switch (9 is var x9 ? x9 : 0)
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
-                // (85,17): error CS0103: The name 'y10' does not exist in the current context
-                //         switch (y10 + 10 is var x10 ? x10 : 0)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
-                // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
-                //             case 0 when y10:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
-                // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
-                //             case y10:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
+    // (19,15): error CS0103: The name 'x1' does not exist in the current context
+    //         Dummy(x1, 1);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
+    // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         switch (4 is var x4 ? x4 : 0)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
+    // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         switch (5 is var x5 ? x5 : 0)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
+    // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
+    //         switch (x6 + 6 is var x6 ? x6 : 0)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
+    // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 var x7 = 12;
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
+    // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //                 switch (9 is var x9 ? x9 : 0)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
+    // (85,17): error CS0103: The name 'y10' does not exist in the current context
+    //         switch (y10 + 10 is var x10 ? x10 : 0)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
+    // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
+    //             case 0 when y10:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
+    // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
+    //             case y10:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
                 // (89,18): error CS0150: A constant value is expected
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
-                // (98,17): error CS0103: The name 'y11' does not exist in the current context
-                //         switch (y11 + 11 is var x11 ? x11 : 0)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
-                // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
-                //             case 0 when y11 > 0:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
-                // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
-                //             case y11:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
+    // (98,17): error CS0103: The name 'y11' does not exist in the current context
+    //         switch (y11 + 11 is var x11 ? x11 : 0)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
+    // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
+    //             case 0 when y11 > 0:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
+    // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
+    //             case y11:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
                 // (102,18): error CS0150: A constant value is expected
                 //             case y11:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
-                // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
-                //                   2 is var x14, 
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
-                // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
-                //             case 0 when y15 > 0:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
-                // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
-                //             case y15: 
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+    // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
+    //                   2 is var x14, 
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
+    // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
+    //             case 0 when y15 > 0:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
+    // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
+    //             case y15: 
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
                 // (127,18): error CS0150: A constant value is expected
                 //             case y15: 
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y15").WithLocation(127, 18),
-                // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
-                //             case 0 when y16 > 0:
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
-                // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
-                //             case y16: 
+    // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
+    //             case 0 when y16 > 0:
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
+    // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
+    //             case y16: 
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18),
                 // (140,18): error CS0150: A constant value is expected
                 //             case y16: 
