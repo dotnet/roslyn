@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        IOperation
     End Enum
 
     Friend Module FeatureExtensions
@@ -42,6 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case feature.BinaryLiterals
                     Return "binaryLiterals"
+
+                Case Feature.IOperation
+                    Return "IOperation"
 
                 Case Else
                     Return Nothing
@@ -141,6 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.IOperation
+                    Return ERRID.FEATURE_IOperation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
