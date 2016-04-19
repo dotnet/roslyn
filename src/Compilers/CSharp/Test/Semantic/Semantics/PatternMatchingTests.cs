@@ -7725,7 +7725,7 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
                 // (102,18): error CS0150: A constant value is expected
                 //             case y11:
-                            Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
                 // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
                 //                   2 is var x14, 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
