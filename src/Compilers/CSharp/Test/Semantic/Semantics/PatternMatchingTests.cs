@@ -36,7 +36,10 @@ public class Vec
         object o = ""Pass"";
         int i1 = 0b001010; // binary literals
         int i2 = 23_554; // digit separators
-        int f() => 2; // local functions
+        // local functions
+        // Note: due to complexity and cost of parsing local functions we
+        // don't try to parse if the feature isn't enabled
+        int f() => 2;
         ref int i3 = ref i1; // ref locals
         string s = o is string k ? k : null; // pattern matching
         let var i4 = 3; // let
@@ -56,96 +59,102 @@ public class Vec
                 // (8,18): error CS8058: Feature 'digit separators' is experimental and unsupported; use '/features:digitSeparators' to enable.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(8, 18),
-                // (9,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int f() => 2;").WithArguments("local functions", "localFunctions").WithLocation(9, 9),
-                // (9,22): error CS1513: } expected
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 22),
-                // (10,22): error CS1525: Invalid expression term 'ref'
+                // (12,14): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "() => 2").WithLocation(12, 14),
+                // (12,14): error CS1003: Syntax error, '[' expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(12, 14),
+                // (12,21): error CS1003: Syntax error, ']' expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(12, 21),
+                // (12,22): error CS1513: } expected
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 22),
+                // (13,22): error CS1525: Invalid expression term 'ref'
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 22),
-                // (10,22): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 22),
+                // (13,22): error CS1003: Syntax error, ',' expected
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(10, 22),
-                // (10,26): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(13, 22),
+                // (13,26): error CS1002: ; expected
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(10, 26),
-                // (11,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(13, 26),
+                // (14,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(11, 20),
-                // (12,17): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(14, 20),
+                // (15,17): error CS1002: ; expected
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
-                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(15, 17),
+                // (16,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         int i5 = o match (case * : 7); // match
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
-                // (14,21): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(16, 18),
+                // (17,21): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is null").WithArguments("pattern matching", "patterns").WithLocation(14, 21),
-                // (14,38): error CS1525: Invalid expression term 'throw'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is null").WithArguments("pattern matching", "patterns").WithLocation(17, 21),
+                // (17,38): error CS1525: Invalid expression term 'throw'
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
-                // (15,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(17, 38),
+                // (18,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "q is Vec(3)").WithArguments("pattern matching", "patterns").WithLocation(15, 13),
-                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "q is Vec(3)").WithArguments("pattern matching", "patterns").WithLocation(18, 13),
+                // (18,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
-                // (10,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(18, 18),
+                // (13,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(10, 26),
-                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(13, 26),
+                // (15,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
-                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(15, 9),
+                // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
-                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
+                // (15,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(15, 13),
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
             var demoParseOptions = regularParseOptions
                 .WithPreprocessorSymbols(new[] { "__DEMO__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: demoParseOptions).VerifyDiagnostics(
-                // (12,17): error CS1002: ; expected
+                // (15,17): error CS1002: ; expected
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(12, 17),
-                // (13,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i4").WithLocation(15, 17),
+                // (16,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         int i5 = o match (case * : 7); // match
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(13, 18),
-                // (14,38): error CS1525: Invalid expression term 'throw'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o match (case * : 7)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(16, 18),
+                // (17,38): error CS1525: Invalid expression term 'throw'
                 //         object q = (o is null) ? o : throw null; // throw expressions
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(14, 38),
-                // (15,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw null").WithArguments("throw").WithLocation(17, 38),
+                // (18,18): error CS8058: Feature 'pattern matching experimental features' is experimental and unsupported; use '/features:patternsExperimental' to enable.
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(15, 18),
-                // (12,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "Vec(3)").WithArguments("pattern matching experimental features", "patternsExperimental").WithLocation(18, 18),
+                // (15,9): error CS0246: The type or namespace name 'let' could not be found (are you missing a using directive or an assembly reference?)
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(12, 9),
-                // (12,17): error CS0103: The name 'i4' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "let").WithArguments("let").WithLocation(15, 9),
+                // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(12, 17),
-                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (12,13): warning CS0168: The variable 'var' is declared but never used
+                // (15,13): warning CS0168: The variable 'var' is declared but never used
                 //         let var i4 = 3; // let
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(12, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "var").WithArguments("var").WithLocation(15, 13),
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // additionally enables let, match, throw, and operator is
@@ -158,9 +167,9 @@ public class Vec
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (9,13): warning CS0168: The variable 'f' is declared but never used
-                //         int f() => 2; // local functions
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
+                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // additionally enables let, match, throw, and inferred recursive patterns
@@ -15330,8 +15339,8 @@ public class X
                 //             case typeof(string[]):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
-            // If we decide to support switching on System.Type, the following line would be appropriate.
-            // CompileAndVerify(compilation, expectedOutput: @"string[]");
+            // If we support switching on System.Type as proposed, the expectation would be
+            // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
         }
 
         [Fact, WorkItem(10364, "https://github.com/dotnet/roslyn/issues/10364")]
@@ -15449,6 +15458,45 @@ public class X
                 //     public static void operator is(ref int self) { }
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "self").WithLocation(5, 44)
                 );
+        }
+
+        [Fact, WorkItem(10529, "https://github.com/dotnet/roslyn/issues/10529")]
+        public void MissingTypeAndProperty()
+        {
+            var source =
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        {
+            if (obj.Property is var o) { } // `obj` doesn't exist.
+        }
+        {
+            var obj = new object();
+            if (obj. is var o) { }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (11,22): error CS1001: Identifier expected
+                //             if (obj. is var o) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(11, 22),
+                // (7,17): error CS0103: The name 'obj' does not exist in the current context
+                //             if (obj.Property is var o) { } // `obj` doesn't exist.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "obj").WithArguments("obj").WithLocation(7, 17)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            foreach (var isExpression in tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>())
+            {
+                var symbolInfo = model.GetSymbolInfo(isExpression.Expression);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.True(symbolInfo.CandidateSymbols.IsDefaultOrEmpty);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            }
         }
     }
 }

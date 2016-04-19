@@ -27,12 +27,12 @@ class CSharpCompilerTest: PerfTest
         ShellOutVital(ReleaseCscPath, args, executeInDirectory);
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 2;
     public override string Name => "csharp " + _rspFile;
-    public override string MeasuredProc => "csc.exe";
+    public override string MeasuredProc => "csc";
 }
 
-return TestThisPlease(
+TestThisPlease(
     new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp"));

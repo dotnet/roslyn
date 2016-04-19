@@ -1,0 +1,1095 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="TitleLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="TitleLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TitleLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="TitleLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 3</value>
+  </data>
+  <data name="TitleLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 3</value>
+  </data>
+  <data name="TitleLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>30, 13</value>
+  </data>
+  <data name="TitleLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="TitleLabel.Text" xml:space="preserve">
+    <value>&amp;Title:</value>
+  </data>
+  <data name="&gt;&gt;TitleLabel.Name" xml:space="preserve">
+    <value>TitleLabel</value>
+  </data>
+  <data name="&gt;&gt;TitleLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TitleLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TitleLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TrademarkLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="TrademarkLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TrademarkLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 133</value>
+  </data>
+  <data name="TrademarkLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="TrademarkLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>61, 13</value>
+  </data>
+  <data name="TrademarkLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="TrademarkLabel.Text" xml:space="preserve">
+    <value>T&amp;rademark:</value>
+  </data>
+  <data name="&gt;&gt;TrademarkLabel.Name" xml:space="preserve">
+    <value>TrademarkLabel</value>
+  </data>
+  <data name="&gt;&gt;TrademarkLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TrademarkLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TrademarkLabel.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="CopyrightLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CopyrightLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CopyrightLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 107</value>
+  </data>
+  <data name="CopyrightLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="CopyrightLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>54, 13</value>
+  </data>
+  <data name="CopyrightLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="CopyrightLabel.Text" xml:space="preserve">
+    <value>C&amp;opyright:</value>
+  </data>
+  <data name="&gt;&gt;CopyrightLabel.Name" xml:space="preserve">
+    <value>CopyrightLabel</value>
+  </data>
+  <data name="&gt;&gt;CopyrightLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CopyrightLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CopyrightLabel.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="ProductLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="ProductLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ProductLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 81</value>
+  </data>
+  <data name="ProductLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="ProductLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>47, 13</value>
+  </data>
+  <data name="ProductLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="ProductLabel.Text" xml:space="preserve">
+    <value>&amp;Product:</value>
+  </data>
+  <data name="&gt;&gt;ProductLabel.Name" xml:space="preserve">
+    <value>ProductLabel</value>
+  </data>
+  <data name="&gt;&gt;ProductLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ProductLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ProductLabel.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="CompanyLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CompanyLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CompanyLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 55</value>
+  </data>
+  <data name="CompanyLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="CompanyLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>54, 13</value>
+  </data>
+  <data name="CompanyLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="CompanyLabel.Text" xml:space="preserve">
+    <value>&amp;Company:</value>
+  </data>
+  <data name="&gt;&gt;CompanyLabel.Name" xml:space="preserve">
+    <value>CompanyLabel</value>
+  </data>
+  <data name="&gt;&gt;CompanyLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompanyLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompanyLabel.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="DescriptionLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="DescriptionLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="DescriptionLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 29</value>
+  </data>
+  <data name="DescriptionLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="DescriptionLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 13</value>
+  </data>
+  <data name="DescriptionLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="DescriptionLabel.Text" xml:space="preserve">
+    <value>&amp;Description:</value>
+  </data>
+  <data name="&gt;&gt;DescriptionLabel.Name" xml:space="preserve">
+    <value>DescriptionLabel</value>
+  </data>
+  <data name="&gt;&gt;DescriptionLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DescriptionLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DescriptionLabel.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="Title.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Title.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 0</value>
+  </data>
+  <data name="Title.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 3</value>
+  </data>
+  <data name="Title.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Title.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;Title.Name" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="&gt;&gt;Title.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Title.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Title.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="Description.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Description.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 26</value>
+  </data>
+  <data name="Description.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="Description.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Description.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;Description.Name" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="&gt;&gt;Description.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Description.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Description.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="Company.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Company.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 52</value>
+  </data>
+  <data name="Company.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="Company.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Company.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;Company.Name" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="&gt;&gt;Company.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Company.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Company.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="Product.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Product.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 78</value>
+  </data>
+  <data name="Product.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="Product.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Product.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;Product.Name" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="&gt;&gt;Product.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Product.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Product.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="Copyright.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Copyright.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 104</value>
+  </data>
+  <data name="Copyright.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="Copyright.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Copyright.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;Copyright.Name" xml:space="preserve">
+    <value>Copyright</value>
+  </data>
+  <data name="&gt;&gt;Copyright.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Copyright.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Copyright.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="Trademark.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="Trademark.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 130</value>
+  </data>
+  <data name="Trademark.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="Trademark.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="Trademark.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;Trademark.Name" xml:space="preserve">
+    <value>Trademark</value>
+  </data>
+  <data name="&gt;&gt;Trademark.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Trademark.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Trademark.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="ComVisibleCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ComVisibleCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 263</value>
+  </data>
+  <data name="ComVisibleCheckBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 5, 0, 0</value>
+  </data>
+  <data name="ComVisibleCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>159, 17</value>
+  </data>
+  <data name="ComVisibleCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>20</value>
+  </data>
+  <data name="ComVisibleCheckBox.Text" xml:space="preserve">
+    <value>&amp;Make assembly COM-Visible</value>
+  </data>
+  <data name="&gt;&gt;ComVisibleCheckBox.Name" xml:space="preserve">
+    <value>ComVisibleCheckBox</value>
+  </data>
+  <data name="&gt;&gt;ComVisibleCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ComVisibleCheckBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ComVisibleCheckBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="NeutralLanguageLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="NeutralLanguageLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="NeutralLanguageLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 238</value>
+  </data>
+  <data name="NeutralLanguageLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="NeutralLanguageLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 13</value>
+  </data>
+  <data name="NeutralLanguageLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>18</value>
+  </data>
+  <data name="NeutralLanguageLabel.Text" xml:space="preserve">
+    <value>&amp;Neutral language:</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageLabel.Name" xml:space="preserve">
+    <value>NeutralLanguageLabel</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageLabel.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="AssemblyVersionLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="AssemblyVersionLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AssemblyVersionLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 159</value>
+  </data>
+  <data name="AssemblyVersionLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="AssemblyVersionLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 13</value>
+  </data>
+  <data name="AssemblyVersionLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="AssemblyVersionLabel.Text" xml:space="preserve">
+    <value>&amp;Assembly version:</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLabel.Name" xml:space="preserve">
+    <value>AssemblyVersionLabel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLabel.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionMajorTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionMinorTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionBuildTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionRevisionTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 156</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>174, 20</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLayoutPanel.Name" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionLayoutPanel.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="AssemblyVersionLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="AssemblyVersionMajorTextBox" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyVersionMinorTextBox" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyVersionBuildTextBox" Row="0" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyVersionRevisionTextBox" Row="0" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="FileVersionLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="FileVersionLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="FileVersionLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 185</value>
+  </data>
+  <data name="FileVersionLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="FileVersionLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 13</value>
+  </data>
+  <data name="FileVersionLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="FileVersionLabel.Text" xml:space="preserve">
+    <value>&amp;File version:</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLabel.Name" xml:space="preserve">
+    <value>FileVersionLabel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLabel.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="FileVersionLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="FileVersionLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="FileVersionMajorTextBox.AccessibleName" xml:space="preserve">
+    <value>Major</value>
+  </data>
+  <data name="FileVersionMajorTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="FileVersionMajorTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="FileVersionMajorTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="FileVersionMajorTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMajorTextBox.Name" xml:space="preserve">
+    <value>FileVersionMajorTextBox</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMajorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMajorTextBox.Parent" xml:space="preserve">
+    <value>FileVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMajorTextBox.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="FileVersionMinorTextBox.AccessibleName" xml:space="preserve">
+    <value>Minor</value>
+  </data>
+  <data name="FileVersionMinorTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>45, 0</value>
+  </data>
+  <data name="FileVersionMinorTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 0</value>
+  </data>
+  <data name="FileVersionMinorTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="FileVersionMinorTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMinorTextBox.Name" xml:space="preserve">
+    <value>FileVersionMinorTextBox</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMinorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMinorTextBox.Parent" xml:space="preserve">
+    <value>FileVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionMinorTextBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="FileVersionBuildTextBox.AccessibleName" xml:space="preserve">
+    <value>Build</value>
+  </data>
+  <data name="FileVersionBuildTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>90, 0</value>
+  </data>
+  <data name="FileVersionBuildTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 0</value>
+  </data>
+  <data name="FileVersionBuildTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="FileVersionBuildTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;FileVersionBuildTextBox.Name" xml:space="preserve">
+    <value>FileVersionBuildTextBox</value>
+  </data>
+  <data name="&gt;&gt;FileVersionBuildTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionBuildTextBox.Parent" xml:space="preserve">
+    <value>FileVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionBuildTextBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="FileVersionRevisionTextBox.AccessibleName" xml:space="preserve">
+    <value>Revision</value>
+  </data>
+  <data name="FileVersionRevisionTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>135, 0</value>
+  </data>
+  <data name="FileVersionRevisionTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="FileVersionRevisionTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="FileVersionRevisionTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;FileVersionRevisionTextBox.Name" xml:space="preserve">
+    <value>FileVersionRevisionTextBox</value>
+  </data>
+  <data name="&gt;&gt;FileVersionRevisionTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionRevisionTextBox.Parent" xml:space="preserve">
+    <value>FileVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionRevisionTextBox.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="FileVersionLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 182</value>
+  </data>
+  <data name="FileVersionLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="FileVersionLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="FileVersionLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>174, 20</value>
+  </data>
+  <data name="FileVersionLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>15</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLayoutPanel.Name" xml:space="preserve">
+    <value>FileVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;FileVersionLayoutPanel.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="FileVersionLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="FileVersionMajorTextBox" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="FileVersionMinorTextBox" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="FileVersionBuildTextBox" Row="0" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="FileVersionRevisionTextBox" Row="0" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="GuidTextBox.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="GuidTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 208</value>
+  </data>
+  <data name="GuidTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="GuidTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 20</value>
+  </data>
+  <data name="GuidTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="&gt;&gt;GuidTextBox.Name" xml:space="preserve">
+    <value>GuidTextBox</value>
+  </data>
+  <data name="&gt;&gt;GuidTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GuidTextBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GuidTextBox.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="GuidLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="GuidLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="GuidLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 211</value>
+  </data>
+  <data name="GuidLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="GuidLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>37, 13</value>
+  </data>
+  <data name="GuidLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="GuidLabel.Text" xml:space="preserve">
+    <value>&amp;GUID:</value>
+  </data>
+  <data name="&gt;&gt;GuidLabel.Name" xml:space="preserve">
+    <value>GuidLabel</value>
+  </data>
+  <data name="&gt;&gt;GuidLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GuidLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GuidLabel.ZOrder" xml:space="preserve">
+    <value>19</value>
+  </data>
+  <data name="NeutralLanguageComboBox.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="NeutralLanguageComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>91, 234</value>
+  </data>
+  <data name="NeutralLanguageComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="NeutralLanguageComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>380, 21</value>
+  </data>
+  <data name="NeutralLanguageComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>19</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageComboBox.Name" xml:space="preserve">
+    <value>NeutralLanguageComboBox</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageComboBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;NeutralLanguageComboBox.ZOrder" xml:space="preserve">
+    <value>20</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>471, 300</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="TitleLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ComVisibleCheckBox" Row="10" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="NeutralLanguageLabel" Row="9" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Title" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="DescriptionLabel" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Description" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="CompanyLabel" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Company" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="ProductLabel" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Product" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="CopyrightLabel" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Copyright" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="TrademarkLabel" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Trademark" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyVersionLabel" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AssemblyVersionLayoutPanel" Row="6" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="FileVersionLabel" Row="7" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="FileVersionLayoutPanel" Row="7" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="GuidTextBox" Row="8" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="GuidLabel" Row="8" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="NeutralLanguageComboBox" Row="9" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="AssemblyVersionMajorTextBox.AccessibleName" xml:space="preserve">
+    <value>Major</value>
+  </data>
+  <data name="AssemblyVersionMajorTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="AssemblyVersionMajorTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="AssemblyVersionMajorTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="AssemblyVersionMajorTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionMajorTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMajorTextBox.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="AssemblyVersionMinorTextBox.AccessibleName" xml:space="preserve">
+    <value>Minor</value>
+  </data>
+  <data name="AssemblyVersionMinorTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>45, 0</value>
+  </data>
+  <data name="AssemblyVersionMinorTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 0</value>
+  </data>
+  <data name="AssemblyVersionMinorTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="AssemblyVersionMinorTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionMinorTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionMinorTextBox.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="AssemblyVersionBuildTextBox.AccessibleName" xml:space="preserve">
+    <value>Build</value>
+  </data>
+  <data name="AssemblyVersionBuildTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>90, 0</value>
+  </data>
+  <data name="AssemblyVersionBuildTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 0</value>
+  </data>
+  <data name="AssemblyVersionBuildTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="AssemblyVersionBuildTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionBuildTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionBuildTextBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="AssemblyVersionRevisionTextBox.AccessibleName" xml:space="preserve">
+    <value>Revision</value>
+  </data>
+  <data name="AssemblyVersionRevisionTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>135, 0</value>
+  </data>
+  <data name="AssemblyVersionRevisionTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="AssemblyVersionRevisionTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>39, 20</value>
+  </data>
+  <data name="AssemblyVersionRevisionTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Name" xml:space="preserve">
+    <value>AssemblyVersionRevisionTextBox</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.Parent" xml:space="preserve">
+    <value>AssemblyVersionLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AssemblyVersionRevisionTextBox.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 13</value>
+  </data>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>471, 300</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>AssemblyInfoPropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.UserControl, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     internal enum ForegroundThreadDataKind
     {
         Wpf,
+        WinForms,
         StaUnitTest,
         JoinableTask,
         ForcedByPackageInitialize,
@@ -42,6 +43,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "Microsoft.VisualStudio.Threading.JoinableTask+JoinableTaskSynchronizationContext":
 
                     return JoinableTask;
+
+                case "System.Windows.Forms.WindowsFormsSynchronizationContext":
+
+                    return WinForms;
 
                 default:
 

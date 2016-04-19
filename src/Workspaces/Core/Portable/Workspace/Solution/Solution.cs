@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -1836,7 +1837,8 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>(documentId);
             }
 
-            return this.GetDocumentIdsWithFilePath(filePath);
+            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {

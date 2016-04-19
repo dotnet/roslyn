@@ -145,11 +145,16 @@ abstract class PerfTest: RelativeDirectory {
     public abstract string MeasuredProc { get; }
 }
 
-static PerfTest[] TestThisPlease(params PerfTest[] tests) 
+// This is a workaround for not being able to return
+// arbitrary objects from a csi script while not being
+// run under the runner script.
+static PerfTest[] resultTests = null;
+
+static void TestThisPlease(params PerfTest[] tests)
 {
     if (IsRunFromRunner()) 
     {
-        return tests;
+        resultTests = tests;
     }
     else 
     {
@@ -161,7 +166,6 @@ static PerfTest[] TestThisPlease(params PerfTest[] tests)
                 test.Test();
             }
         }
-        return new PerfTest[] {};
     }
 }
 

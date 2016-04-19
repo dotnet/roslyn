@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
-            preprocessorSymbols: other.PreprocessorSymbols)
+            preprocessorSymbols: other.PreprocessorSymbols,
+            features: other.Features.ToImmutableDictionary())
         {
         }
 

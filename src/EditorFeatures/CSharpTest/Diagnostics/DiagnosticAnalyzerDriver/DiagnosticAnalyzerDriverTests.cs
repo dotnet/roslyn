@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);

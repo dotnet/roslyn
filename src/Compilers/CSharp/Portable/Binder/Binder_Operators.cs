@@ -2553,7 +2553,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Lambda:
                 case BoundKind.MethodGroup:  // New in Roslyn - see DevDiv #864740.
                     // operand for an is or as expression cannot be a lambda expression or method group
-                    Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    if (!operand.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    }
+
                     return true;
             }
 
@@ -2603,7 +2607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool wasExpression;
                     var tempBag2 = DiagnosticBag.GetInstance();
                     var boundConstantPattern = BindConstantPattern(
-                        node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitch: false);
+                        node, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
                     if (wasExpression)
                     {
                         tempBag.Free();
@@ -2964,7 +2968,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Lambda:
                 case BoundKind.MethodGroup:  // New in Roslyn - see DevDiv #864740.
                     // operand for an is or as expression cannot be a lambda expression or method group
-                    Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    if (!operand.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
+                    }
+
                     return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
