@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField
 {
@@ -360,9 +361,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             // Make the first character upper case using the "en-US" culture.  See discussion at
             // https://github.com/dotnet/roslyn/issues/5524.
-            var firstCharacter = CompletionRules.EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
+            var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
             return firstCharacter.ToString() + baseName.Substring(1);
         }
+
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
         protected abstract Task<IEnumerable<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
