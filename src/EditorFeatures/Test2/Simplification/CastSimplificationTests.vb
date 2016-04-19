@@ -4908,6 +4908,162 @@ static void Main(string[] args)
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")>
+        Public Async Function TestCSharp_DontRemove_NecessaryCastOnNullLiteralPassedToParamsArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        TestParams({|Simplify:(object)null|});
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        TestParams((object)null);
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")>
+        Public Async Function TestCSharp_DontRemove_NecessaryCastOnArrayPassedToParamsArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        object[] args = { 1, 2, 3 };
+        TestParams({|Simplify:(object)args|});
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        object[] args = { 1, 2, 3 };
+        TestParams((object)args);
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastOnNullLiteralPassedToParamsArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        TestParams({|Simplify:(object[])null|});
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        TestParams(null);
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10220, "https://github.com/dotnet/roslyn/issues/10220")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastOnArrayPassedToParamsArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        object[] args = { 1, 2, 3 };
+        TestParams({|Simplify:(object[])args|});
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    static void Main(string[] args)
+    {
+        object[] args = { 1, 2, 3 };
+        TestParams(args);
+    }
+
+    static void TestParams(params object[] args) { }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
 #Region "Visual Basic tests"
