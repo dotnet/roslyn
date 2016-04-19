@@ -1,7 +1,6 @@
 ﻿{
   "dependencies": {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
-    "xunit": "2.1.0"
   },
   "frameworks": {
     "net45": {}
