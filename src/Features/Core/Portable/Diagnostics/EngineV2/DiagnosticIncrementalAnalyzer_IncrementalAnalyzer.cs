@@ -68,11 +68,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                // get stateSets that should be run for full analysis
+                // stateSet not included here will never be cached because result is unknown.
+                var stateSets = _stateManager.GetOrUpdateStateSets(project).Where(s => ShouldRunForFullProject(s.Analyzer, project));
 
-                // get analyzers that are not suppressed.
+                // PERF: get analyzers that are not suppressed.
+                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
-                var activeAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => !Owner.IsAnalyzerSuppressed(a, project)).ToImmutableArrayOrEmpty();
+                var activeAnalyzers = stateSets
+                                        .Select(s => s.Analyzer)
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project))
+                                        .ToImmutableArrayOrEmpty();
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
@@ -359,6 +365,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+        }
+
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
+
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
     }
 }

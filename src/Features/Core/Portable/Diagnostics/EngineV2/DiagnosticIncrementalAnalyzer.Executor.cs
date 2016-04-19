@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             return new ProjectAnalysisData(project.Id, version, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
                         }
 
-                        var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                        var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
 
                         return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
                     }
@@ -160,6 +160,89 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // check whether there is IDE specific project diagnostic analyzer
                 return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, stateSets, analyzerDriverOpt?.Compilation, result, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> ComputeDiagnosticsAsync(
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets,
+                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing, CancellationToken cancellationToken)
+            {
+                // PERF: check whether we can reduce number of analyzers we need to run.
+                //       this can happen since caller could have created the driver with different set of analyzers that are different
+                //       than what we used to create the cache.
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var analyzersToRun = ReduceAnalyzersToRun(analyzerDriverOpt, version, existing);
+                if (analyzersToRun != null)
+                {
+                    // it looks like we can reduce the set. create new CompilationWithAnalyzer.
+                    var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
+                        project, analyzersToRun.Value, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+
+                    var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    return MergeExistingDiagnostics(version, existing, result);
+                }
+
+                // we couldn't reduce the set.
+                return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+            }
+
+            private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> MergeExistingDiagnostics(
+                VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            {
+                // quick bail out.
+                if (existing.IsEmpty)
+                {
+                    return result;
+                }
+
+                foreach (var kv in existing)
+                {
+                    if (kv.Value.Version != version)
+                    {
+                        continue;
+                    }
+
+                    result = result.SetItem(kv.Key, kv.Value);
+                }
+
+                return result;
+            }
+
+            private ImmutableArray<DiagnosticAnalyzer>? ReduceAnalyzersToRun(
+                CompilationWithAnalyzers analyzerDriverOpt, VersionStamp version,
+                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing)
+            {
+                // we don't have analyzer driver, nothing to reduce.
+                if (analyzerDriverOpt == null)
+                {
+                    return null;
+                }
+
+                var analyzers = analyzerDriverOpt.Analyzers;
+                var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+                foreach (var analyzer in analyzers)
+                {
+                    AnalysisResult analysisResult;
+                    if (existing.TryGetValue(analyzer, out analysisResult) &&
+                        analysisResult.Version == version)
+                    {
+                        // we already have up to date result.
+                        continue;
+                    }
+
+                    // analyzer that is out of date.
+                    builder.Add(analyzer);
+                }
+
+                // if this condition is true, it shouldn't be called.
+                Contract.ThrowIfTrue(builder.Count == 0);
+
+                // all of analyzers are out of date.
+                if (builder.Count == analyzers.Length)
+                {
+                    return null;
+                }
+
+                return builder.ToImmutable();
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
