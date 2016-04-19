@@ -4,7 +4,6 @@
     "Microsoft.NETCore.Platforms": "1.0.1-rc3-24011-00",
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
-
     "Microsoft.Win32.Primitives": "4.0.1-rc3-24011-00",
     "System.Console": "4.0.0-rc3-24011-00",
     "System.Diagnostics.Tools": "4.0.1-rc3-24011-00",
