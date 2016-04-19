@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             private void ReadOutput(bool error)
             {
                 var buffer = new char[4096];
-                TextReader reader = error ? Process.StandardError : Process.StandardOutput;
+                StreamReader reader = error ? Process.StandardError : Process.StandardOutput;
                 try
                 {
-                    // loop until the output pipe is closed (process is killed):
-                    while (Process.IsAlive())
+                    // loop until the output pipe is closed and has no more data (process is killed):
+                    while (!reader.EndOfStream)
                     {
                         int count = reader.Read(buffer, 0, buffer.Length);
                         if (count == 0)
