@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
   <PropertyGroup>
-    <ProjectGuid>{030F8AB1-D06D-4526-ADEC-8E6010899C71}</ProjectGuid>
+    <ProjectGuid>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</ProjectGuid>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup>
