@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
         private readonly ImmutableArray<TypeSymbol> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
-        private readonly ImmutableArray<TypeSymbol> _argumentTypes;
         private readonly ImmutableArray<BoundExpression> _arguments;
 
         private readonly TypeSymbol[] _fixedResults;
@@ -232,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedContainingTypeOfMethod,
                 formalParameterTypes,
                 formalParameterRefKinds,
-                argumentTypes,
                 arguments);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
@@ -252,7 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol constructedContainingTypeOfMethod,
             ImmutableArray<TypeSymbol> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
-            ImmutableArray<TypeSymbol> argumentTypes,
             ImmutableArray<BoundExpression> arguments)
         {
             _conversions = conversions;
@@ -260,7 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _constructedContainingTypeOfMethod = constructedContainingTypeOfMethod;
             _formalParameterTypes = formalParameterTypes;
             _formalParameterRefKinds = formalParameterRefKinds;
-            _argumentTypes = argumentTypes;
             _arguments = arguments;
             _fixedResults = new TypeSymbol[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
@@ -299,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             sb.Append("\n");
 
-            sb.AppendFormat("Argument types ({0})\n", string.Join(", ", _argumentTypes));
+            sb.AppendFormat("Argument types ({0})\n", string.Join(", ", from a in _arguments select a.Type));
 
             if (_dependencies == null)
             {
@@ -775,14 +771,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
-                // TODO: VS can this be ever different from argument.Type ?
-                var argumentType = _argumentTypes[arg];
 
-                MakeOutputTypeInferences(binder, argument, argumentType, formalType, ref useSiteDiagnostics);
+                MakeOutputTypeInferences(binder, argument, formalType, ref useSiteDiagnostics);
             }
         }
 
-        private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeSymbol argumentType, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeSymbol formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (argument.Kind == BoundKind.TupleLiteral && (object)argument.Type == null)
             {
@@ -796,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //UNDONE: {
                     //UNDONE:     argumentType = GetTypeManager().GetErrorSym();
                     //UNDONE: }
-                    OutputTypeInference(binder, argument, argumentType, formalType, ref useSiteDiagnostics);
+                    OutputTypeInference(binder, argument, formalType, ref useSiteDiagnostics);
                 }
             }
         }
@@ -839,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var sourceArgument = sourceArguments[i];
                     var destType = destTypes[i];
-                    MakeOutputTypeInferences(binder, sourceArgument, sourceArgument.Type, destType, ref useSiteDiagnostics);
+                    MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
                 }
             }
             finally
@@ -1275,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         ////////////////////////////////////////////////////////////////////////////////
 
-        private void OutputTypeInference(Binder binder, BoundExpression expression, TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void OutputTypeInference(Binder binder, BoundExpression expression, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(expression != null);
             Debug.Assert((object)target != null);
@@ -1300,9 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
-            if ((object)source != null)
+            var sourceType = expression.Type;
+            if ((object)sourceType != null)
             {
-                LowerBoundInference(source, target, ref useSiteDiagnostics);
+                LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
             }
             // SPEC: * Otherwise, no inferences are made.
         }
@@ -2702,7 +2697,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFromMethod.ContainingType,
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
-                argumentTypes,
                 arguments);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))

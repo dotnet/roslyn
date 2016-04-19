@@ -3366,5 +3366,71 @@ second
 4
 ");
         }
+
+        [Fact(Skip = "PROTOTYPE(tuples): this should work, fix overload resolution]")]
+        public void Inference06()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1((() => ""qq"", null));
+    }
+
+    static void M1((Func<object> f, object o) a)
+    {
+        System.Console.WriteLine(1);
+    }
+
+    static void M1((Func<string> f, object o) a)
+    {
+        System.Console.WriteLine(2);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+2
+");
+        }
+
+        [Fact]
+        public void Inference07()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Test((x) => (x, x), (t) => 1);
+        Test1((x) => (x, x), (t) => 1);
+        Test2((a: 1, b: 2), (t) => (t.a, t.b));
+    }
+
+    static void Test<U>(Func<int, ValueTuple<U, U>> f1, Func<ValueTuple<U, U>, int> f2)
+    {
+        System.Console.WriteLine(f2(f1(1)));
+    }
+    static void Test1<U>(Func<int, (U, U)> f1, Func<(U, U), int> f2)
+    {
+        System.Console.WriteLine(f2(f1(1)));
+    }
+    static void Test2<U, T>(U f1, Func<U, (T x, T y)> f2)
+    {
+        System.Console.WriteLine(f2(f1).y);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+1
+1
+2
+");
+        }
     }
 }
