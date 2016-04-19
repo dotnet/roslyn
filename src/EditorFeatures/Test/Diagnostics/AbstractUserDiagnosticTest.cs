@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.NotNull(fixAllProvider);
 
                 var fixAllContext = GetFixAllContext(diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
-                var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
+                var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext, CancellationToken.None);
                 if (fixAllFix != null)
                 {
                     // Same fix applies to each diagnostic in scope.
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics.ToImmutableArray())));
-                return FixMultipleContext.Create(diagnosticsToFix, fixer, fixAllActionId, CancellationToken.None);
+                return FixMultipleContext.Create(diagnosticsToFix, fixer, fixAllActionId);
             }
 
             var diagnostic = diagnostics.First();
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
             var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
             return diagnostic.Location.IsInSource
-                ? new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None)
-                : new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
+                ? new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
+                : new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
         }
 
         protected async Task TestEquivalenceKeyAsync(string initialMarkup, string equivalenceKey)

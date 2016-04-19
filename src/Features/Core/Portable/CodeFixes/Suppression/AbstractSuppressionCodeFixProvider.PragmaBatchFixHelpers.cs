@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return CodeAction.Create(
                     ((CodeAction)pragmaActions[0]).Title,
                     createChangedDocument: ct =>
-                        BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, fixAllContext.CancellationToken),
+                        BatchPragmaFixesAsync(suppressionFixProvider, document, pragmaActions, pragmaDiagnostics, ct),
                     equivalenceKey: fixAllContext.CodeActionEquivalenceKey);
 #pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
             }

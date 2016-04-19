@@ -23,9 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected BatchSimplificationFixAllProvider() { }
 
-        public override async Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public override async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
-            var changedDocument = await AddSimplifierAnnotationsAsync(document, diagnostics, fixAllContext).ConfigureAwait(false);
+            var changedDocument = await AddSimplifierAnnotationsAsync(document, diagnostics, fixAllContext, cancellationToken).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllContext);
             var codeAction = new MyCodeAction(title, (c) => Task.FromResult(changedDocument));
             addFix(codeAction);
@@ -52,19 +54,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         /// <summary>
-        /// By default, this property returns false and <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllContext)"/> will just add <see cref="Simplifier.Annotation"/> to each node to simplify
+        /// By default, this property returns false and 
+        /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllContext, CancellationToken)"/> 
+        /// will just add <see cref="Simplifier.Annotation"/> to each node to simplify
         /// returned by <see cref="GetNodeToSimplify(SyntaxNode, SemanticModel, Diagnostic, Workspace, out string, CancellationToken)"/>.
         /// 
         /// Override this property to return true if the fix all provider needs to add simplify annotations/fixup any of the parent nodes of the nodes to simplify.
         /// This could be the case if simplifying certain nodes can enable cascaded simplifications, such as parentheses removal on parenting node.
-        /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllContext)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
+        /// <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllContext, CancellationToken)"/> will end up invoking <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> for each node to simplify.
         /// Ensure that you override <see cref="AddSimplifyAnnotationsAsync(Document, SyntaxNode, CancellationToken)"/> method when this property returns true.
         /// </summary>
         protected virtual bool NeedsParentFixup { get { return false; } }
 
-        private async Task<Document> AddSimplifierAnnotationsAsync(Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
+        private async Task<Document> AddSimplifierAnnotationsAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            FixAllContext fixAllContext, CancellationToken cancellationToken)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -35,9 +37,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return originalCodeFixProvider.FixableDiagnosticIds;
         }
 
+        [Obsolete("Use GetFixAsync(FixAllContext, CancellationToken) instead")]
+        public virtual Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        {
+            return GetFixAsync(fixAllContext, CancellationToken.None);
+        }
+
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
+        public virtual Task<CodeAction> GetFixAsync(FixAllContext fixAllContext, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

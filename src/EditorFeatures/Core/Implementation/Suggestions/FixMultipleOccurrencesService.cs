@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey);
             var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey);
             var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }

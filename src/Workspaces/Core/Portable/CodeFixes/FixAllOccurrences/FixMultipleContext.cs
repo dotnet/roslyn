@@ -25,17 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="diagnosticsToFix">Specific set of diagnostics to fix. Must be a non-empty set.</param>
         /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
-        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         public static FixMultipleContext Create(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
-            string codeActionEquivalenceKey,
-            CancellationToken cancellationToken)
+            string codeActionEquivalenceKey)
         {
             var triggerDocument = diagnosticsToFix.First().Key;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
-            return new FixMultipleContext(triggerDocument, codeFixProvider, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken);
+            return new FixMultipleContext(triggerDocument, codeFixProvider, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider);
         }
 
         /// <summary>
@@ -45,17 +43,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="diagnosticsToFix">Specific set of diagnostics to fix. Must be a non-empty set.</param>
         /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
-        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         public static FixMultipleContext Create(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
             CodeFixProvider codeFixProvider,
-            string codeActionEquivalenceKey,
-            CancellationToken cancellationToken)
+            string codeActionEquivalenceKey)
         {
             var triggerProject = diagnosticsToFix.First().Key;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
-            return new FixMultipleContext(triggerProject, codeFixProvider, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken);
+            return new FixMultipleContext(triggerProject, codeFixProvider, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider);
         }
 
         private FixMultipleContext(
@@ -63,9 +59,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeFixProvider codeFixProvider,
             string codeActionEquivalenceKey,
             ImmutableHashSet<string> diagnosticIds,
-            FixMultipleDiagnosticProvider diagnosticProvider,
-            CancellationToken cancellationToken)
-            : base(triggerDocument, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken)
+            FixMultipleDiagnosticProvider diagnosticProvider)
+            : base(triggerDocument, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider)
         {
             _diagnosticProvider = diagnosticProvider;
         }
@@ -75,9 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeFixProvider codeFixProvider,
             string codeActionEquivalenceKey,
             ImmutableHashSet<string> diagnosticIds,
-            FixMultipleDiagnosticProvider diagnosticProvider,
-            CancellationToken cancellationToken)
-            : base(triggerProject, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken)
+            FixMultipleDiagnosticProvider diagnosticProvider)
+            : base(triggerProject, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider)
         {
             _diagnosticProvider = diagnosticProvider;
         }
@@ -107,18 +101,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return ProjectDiagnosticsToFix[Project].First();
-        }
-
-        public new FixAllContext WithCancellationToken(CancellationToken cancellationToken)
-        {
-            if (this.CancellationToken == cancellationToken)
-            {
-                return this;
-            }
-
-            return Document != null ?
-                new FixMultipleContext(Document, CodeFixProvider, CodeActionEquivalenceKey, DiagnosticIds, _diagnosticProvider, cancellationToken) :
-                new FixMultipleContext(Project, CodeFixProvider, CodeActionEquivalenceKey, DiagnosticIds, _diagnosticProvider, cancellationToken);
         }
     }
 }

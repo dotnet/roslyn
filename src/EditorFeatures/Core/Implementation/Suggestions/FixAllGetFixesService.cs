@@ -30,37 +30,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return this;
         }
 
-        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
+        public async Task<Solution> GetFixAllChangedSolutionAsync(
+            FixAllProvider fixAllProvider, FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
+            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext, cancellationToken).ConfigureAwait(false);
             if (codeAction == null)
             {
                 return fixAllContext.Solution;
             }
 
-            fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-            return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, bool showPreviewChangesDialog)
+        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(
+            FixAllProvider fixAllProvider, FixAllContext fixAllContext, bool showPreviewChangesDialog,
+            CancellationToken cancellationToken)
         {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
+            var codeAction = await GetFixAllCodeActionAsync(
+                fixAllProvider, fixAllContext, cancellationToken).ConfigureAwait(false);
             if (codeAction == null)
             {
                 return null;
             }
 
-            return await GetFixAllOperationsAsync(codeAction, fixAllContext, showPreviewChangesDialog).ConfigureAwait(false);
+            return await GetFixAllOperationsAsync(
+                codeAction, fixAllContext, showPreviewChangesDialog, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
+        private async Task<CodeAction> GetFixAllCodeActionAsync(
+            FixAllProvider fixAllProvider, FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, fixAllContext.CancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, cancellationToken))
             {
                 CodeAction action = null;
                 try
                 {
-                    action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                    action = await fixAllProvider.GetFixAsync(fixAllContext, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -82,12 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, bool showPreviewChangesDialog)
+        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(
+            CodeAction codeAction, FixAllContext fixAllContext, bool showPreviewChangesDialog,
+            CancellationToken cancellationToken)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
 
-            var cancellationToken = fixAllContext.CancellationToken;
             var workspace = fixAllContext.Project.Solution.Workspace;
 
             cancellationToken.ThrowIfCancellationRequested();
