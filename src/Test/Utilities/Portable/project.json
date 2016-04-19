@@ -12,8 +12,6 @@
     "System.Threading.Thread": "4.0.0-rc2-23931",
     "System.Xml.XDocument": "4.0.10",
     "System.Xml.XmlDocument": "4.0.0",
-    "xunit": "2.1.0",
-    "xunit.extensibility.execution": "2.1.0"
   },
   "frameworks": {
     "netstandard1.3": {
