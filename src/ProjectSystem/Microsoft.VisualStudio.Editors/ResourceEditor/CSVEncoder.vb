@@ -179,7 +179,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 SortedResources.Add(resource.Name, resource)
             Next
 
-            Dim Results As New Text.StringBuilder()
+            Dim Results As New System.Text.StringBuilder()
             Dim Delimiter As Char
 
             Select Case EncodingType
