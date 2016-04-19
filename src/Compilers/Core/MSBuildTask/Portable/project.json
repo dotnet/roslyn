@@ -15,8 +15,7 @@
   },
   "frameworks": {
     "netstandard1.3": {
-      // Microsoft.Build.* isn't compat with netstandard
-      "imports": [ "portable-net452", "dotnet5.4" ]
+      "imports": [ "dotnet5.4" ]
     }
   }
 }

@@ -7,7 +7,6 @@
   },
   "frameworks": {
     "dnxcore50": {
-      // xunit isn't compat with netstandard
       "imports": "portable-net452"
     }
   },
