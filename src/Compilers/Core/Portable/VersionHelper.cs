@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
 
             if (string.IsNullOrWhiteSpace(s))
             {
-                version = new Version(0, 0, 0, 0);
+                version = AssemblyIdentity.NullVersion;
                 return false;
             }
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
 
             if ((hasWildcard && elements.Length < 3) || elements.Length > 4)
             {
-                version = new Version(0, 0, 0, 0);
+                version = AssemblyIdentity.NullVersion;
                 return false;
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (!allowPartialParse)
                     {
-                        version = new Version(0, 0, 0, 0);
+                        version = AssemblyIdentity.NullVersion;
                         return false;
                     }
 
