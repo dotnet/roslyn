@@ -153,5 +153,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Assert.Equal(expected, actual)
                 End Sub)
         End Function
+
+        Friend Async Function TestSetParameterArrayDimensions(code As XElement, expectedCode As XElement, dimensions As Integer) As Task
+            Await TestSetParameterArrayDimensions(code, expectedCode, dimensions, NoThrow(Of Integer)())
+        End Function
+
+        Friend Async Function TestSetParameterArrayDimensions(code As XElement, expectedCode As XElement, dimensions As Integer, action As SetterAction(Of Integer)) As Task
+            Await TestElementUpdate(code, expectedCode,
+                Sub(codeElement)
+                    Dim setter = Sub(d As Integer)
+                                     Dim parameterKind = TryCast(codeElement, IParameterKind)
+                                     Assert.NotNull(parameterKind)
+
+                                     parameterKind.SetParameterArrayDimensions(d)
+                                 End Sub
+
+                    action(dimensions, setter)
+                End Sub)
+        End Function
     End Class
 End Namespace

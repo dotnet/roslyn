@@ -191,17 +191,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         void IParameterKind.SetParameterPassingMode(PARAMETER_PASSING_MODE passingMode)
         {
-            ParameterKind = State.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
+            this.ParameterKind = this.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
         }
 
         void IParameterKind.SetParameterArrayDimensions(int dimensions)
         {
-            throw new NotImplementedException();
+            var type = this.ParameterSymbol.Type;
+            var compilation = this.FileCodeModel.GetCompilation();
+
+            var elementType = type is IArrayTypeSymbol
+                ? ((IArrayTypeSymbol)type).ElementType
+                : type;
+
+            // The original C# implementation had a weird behavior where it wold allow setting array dimensions
+            // to 0 to create an array with a single rank.
+            var rank = dimensions > 0
+                ? dimensions
+                : 1;
+
+            var newType = compilation.CreateArrayTypeSymbol(elementType, rank);
+
+            this.Type = CodeTypeRef.Create(this.State, this, GetProjectId(), newType);
         }
 
         int IParameterKind.GetParameterArrayCount()
         {
-            var arrayType = ParameterSymbol.Type as IArrayTypeSymbol;
+            var arrayType = this.ParameterSymbol.Type as IArrayTypeSymbol;
             var count = 0;
 
             while (arrayType != null)
@@ -220,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var arrayType = ParameterSymbol.Type as IArrayTypeSymbol;
+            var arrayType = this.ParameterSymbol.Type as IArrayTypeSymbol;
             var count = 0;
 
             while (count < index && arrayType != null)

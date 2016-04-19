@@ -1677,6 +1677,118 @@ End Class
 
 #End Region
 
+#Region "IParmeterKind.SetParameterArrayDimensions tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_0() As Task
+            ' The C# implementation had a weird behavior where it wold allow setting array dimensions
+            ' to 0 to create an array with a single rank.
+
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=0)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,))
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_1_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,))
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_1_2_WithInnerArray() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String()())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,)())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+        End Function
+
+#End Region
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.VisualBasic
