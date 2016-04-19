@@ -4077,7 +4077,9 @@ End Class
 
             Dim compilation = CreateCompilationWithoutReferences(source)
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
-            Dim diagnostics = semanticModel.GetMethodBodyDiagnostics()
+
+            ' Ensuring that this doesn't throw
+            semanticModel.GetMethodBodyDiagnostics()
         End Sub
 
         <WorkItem(859721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859721")>
