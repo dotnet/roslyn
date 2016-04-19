@@ -2,9 +2,9 @@
 
 Open design issues (needing LDM decisions)
 - [ ] Checked items on this list have decisions recorded herein. They will be removed from this list when the specification reflects the decisions.
-- [x] There would be an ambiguity with a hypothetical "type pattern" and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
+- [ ] There would be an ambiguity with a hypothetical "type pattern" (without an identifier) and the constant pattern. This is the reason we do not allow the latter in an is-pattern expression, and don't allow the former in a sub-property pattern. But that is irregular. Can we come up with name lookup rules that support both?
 
-  ```
+  ```cs
     class Color { }
     class D
     {
@@ -15,9 +15,10 @@ Open design issues (needing LDM decisions)
         // if x is Message { PayloadKind is OnedrivePayloadKinds.Request, Body is string req } ...
     }
   ```
-**Decision**: We do an ordinary lookup and use the thing we find, with the exception of a *type-pattern* on the right-hand-side of an `is` expression. In that case we look up a type, and only if we fail to find a type do we use the first-thing-found rule. In addition, the LDM approves of this hypothetical *type-pattern* (without an identifier).
-  - [x] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
-  **Decision**: It is not a constant expression; an *is-pattern-expression* is never a constant expression, even when we know the result statically. 
+**Decision**: We do an ordinary lookup and use the thing we find, with the exception of a *type* on the right-hand-side of an `is` expression. In that case we look up a type, and only if we fail to find a type do we use the first-thing-found rule and treat it as a pattern instead.
+- [ ] The LDM provisionally approved of a hypothetical *type-pattern* (without an identifier) on 2016-04-06, but has not specified how to resolve the syntactic ambiguities it would introduce, particularly in recursive pattern forms such as a hypothetical tuple pattern. This issue remains open (and the form without an identifier is not in the specification) until that is resolved. One possible resolution is to designate a *wildcard identifier* such as `_` and give it special meaning in a pattern.
+- [x] If we support `3 is 3`, is that a constant expression? Can a `match` expression be constant?
+**Decision**: It is not a constant expression; an *is-pattern-expression* is never a constant expression, even when we know the result statically.
 - [x] Do we want pattern-matching in the `switch` statement? Or do we want a separate statement-based construct instead? (#8821)
 **Decision**: we have not seen anything to make us want to reverse the decision to extend the existing `switch` statement to support pattern-matching, and similarly we continue to be happy retrofitting the existing `is` expression.
     - [x] What does `goto case` mean?
@@ -27,8 +28,8 @@ Open design issues (needing LDM decisions)
       - [x] Can a constant `case` label with a `when` clause be the target of `goto case`? **Decision**: no, to be a valid target of a `goto case`, it must have a constant label and no `when` clause.
     - [x] How do we write the rules for the switch-expression (conversion) and matching labels (i.e. constant patterns) so that it approximates the current behavior? **Decision**: For the constant cases, we allow the case expression to be converted by a user-defined conversion. If the constant is integral, then we seek an  integral conversion and ignore, for example, a conversion to `string`. For a `string` we consider a conversion to `string`. Similarly for enumeration types and other types that were switchable in C# 6. Other cases do not invoke a conversion. It is an error if there is more than one conversion used in the `switch` statement (i.e. one user-defined conversion used in one `case` and a different user-defined conversion for another). We do not consider user-defined conversions for pattern-matching in any other context or for any types not previously switchable.
     - [x] Do we allow multiple cases in the same `switch` block if one of them defines a pattern variable? **Decision**: It is allowed, but the variable will not be definitely  assigned in the switch block if any of the other labels are reachable. However, such variables would be usable in the `when` clause. In other words, the below would not work.
-    
-    ```
+
+    ```cs
     Expr IdentitySimplification(Expr src)
     {
       switch (src)
@@ -52,9 +53,9 @@ Open design issues (needing LDM decisions)
 - [ ] What do we think about the let statement?
   - [ ] Do we require the match be irrefutable? If not, do we give a warning? Or let definite-assignment issues alert the user to any problems?
   - [ ] Do we support an else?
-  - [ ] Is there a compatibility issue? (e.g. if the user has a type named `let`) 
+  - [ ] Is there a compatibility issue? (e.g. if the user has a type named `let`)
 - [ ] There are some scoping questions for pattern variables. #9452
-  - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452 
+  - [ ] Need to get LDM approval for design change around scope of pattern variables declared within a constructor initializer #9452
   - [ ] Also questions about multiple field initializers, local initializers, ctor-initializers (how far does the scope extend?)
 - [ ] Need detailed spec for name lookup of property in a property pattern #9255
   - [ ] [Pattern Matching] Should a property-pattern be capable of referencing an event? #9515
@@ -80,7 +81,7 @@ Open design issues (needing LDM decisions)
 
   ```
   Rectangle r;
-  if (r is Rectangle { Width is 100, Height is var height }) 
+  if (r is Rectangle { Width is 100, Height is var height })
   if (r is { Width is 100, Height is var height }) // slicker
   ```
 - [ ] Will the fact that `null` doesn't match against any type be confusing? This will often force folks to use `var`, even when their preferred coding style is to always use explicit types. I can see why this behavior is implied by the current behavior of "is", and it makes sense when doing checks based on runtime-type, but it feels ugly when doing pattern-matching in cases where all types are statically known.
@@ -108,7 +109,7 @@ Implementation progress checklist:
   - [x] Add tests for the parser, including precedence tests for the edge cases.
   - [ ] Augment `TestResource.AllInOneCSharpCode` to handle all pattern forms.
 - [x] Check for feature availability in the parser (error if feature not supported).
-  - [ ] Do not generate any new syntax nodes in C# 6 mode. 
+  - [ ] Do not generate any new syntax nodes in C# 6 mode.
 - [x] Error pattern matching to a nullable value type
 - [x] Implement pattern matching to a type that is an unconstrained type variable (requires a double type test)
 - [ ] Semantics and code-gen for all pattern forms
@@ -134,10 +135,10 @@ Implementation progress checklist:
 - [x] Test for name conflicts with locals in enclosing scopes for normal and "odd" contexts.
 - [ ] Need a custom diagnostic for accessing a static property in a property pattern. Are there other contexts where the diagnostics need improvement?
 - [ ] Data-flow analysis and region analysis should be modified to handle pattern variables, which are definitely assigned when a pattern match succeeds, and not definitely assigned in `case` blocks with more than one reachable case.
-  - [ ] Region analysis APIs versus pattern matching #9277 
+  - [ ] Region analysis APIs versus pattern matching #9277
   - [ ] Can't extract method on case expression in match/case clause. #9105
   - [ ] Consider pattern matching for extract method scenarios #9244
-  - [ ] PreciseAbstractFlowPass doesn't override visit for BoundMatchCase and BoundConstantPattern nodes #9422 
+  - [ ] PreciseAbstractFlowPass doesn't override visit for BoundMatchCase and BoundConstantPattern nodes #9422
 - [ ] Control-flow analysis should be modified to handle patterns that either always match or never match.
 - [ ] Lots more Tests and code coverage; #9542
   - [ ] Tests for error cases in a property pattern, such as when the named member
@@ -189,4 +190,3 @@ Related features possibly to be added at the same time as pattern-matching:
 - [ ] #6183 "out var" declarations
 - [ ] #188 Completeness checking for "match" and Algebraic Data Types
 - [x] #6400 destructuring assignment (let statement)
-

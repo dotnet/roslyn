@@ -15308,8 +15308,8 @@ public class X
                 //             case typeof(string[]):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "typeof(string[])").WithLocation(12, 18)
                 );
-            // If we decide to support switching on System.Type, the following line would be appropriate.
-            // CompileAndVerify(compilation, expectedOutput: @"string[]");
+            // If we support switching on System.Type as proposed, the expectation would be
+            // something like CompileAndVerify(compilation, expectedOutput: @"string[]");
         }
 
         [Fact, WorkItem(10364, "https://github.com/dotnet/roslyn/issues/10364")]
@@ -15370,6 +15370,45 @@ namespace IsOperatorBugDemo
 0
 1
 1");
+        }
+
+        [Fact, WorkItem(10529, "https://github.com/dotnet/roslyn/issues/10529")]
+        public void MissingTypeAndProperty()
+        {
+            var source =
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        {
+            if (obj.Property is var o) { } // `obj` doesn't exist.
+        }
+        {
+            var obj = new object();
+            if (obj. is var o) { }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (11,22): error CS1001: Identifier expected
+                //             if (obj. is var o) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "is").WithLocation(11, 22),
+                // (7,17): error CS0103: The name 'obj' does not exist in the current context
+                //             if (obj.Property is var o) { } // `obj` doesn't exist.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "obj").WithArguments("obj").WithLocation(7, 17)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            foreach (var isExpression in tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>())
+            {
+                var symbolInfo = model.GetSymbolInfo(isExpression.Expression);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.True(symbolInfo.CandidateSymbols.IsDefaultOrEmpty);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            }
         }
     }
 }

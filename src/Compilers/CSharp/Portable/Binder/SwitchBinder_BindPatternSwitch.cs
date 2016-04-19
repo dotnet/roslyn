@@ -70,8 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CasePatternSwitchLabel:
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
-                        return new BoundPatternSwitchLabel(node,
-                            sectionBinder.BindPattern(matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitch: true),
+                        var pattern = sectionBinder.BindPattern(
+                            matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitchCase: true);
+                        return new BoundPatternSwitchLabel(node, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null, node.HasErrors);
                     }
 
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         bool wasExpression;
-                        var pattern = sectionBinder.BindConstantPattern(node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitch: true);
+                        var pattern = sectionBinder.BindConstantPattern(
+                            node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         return new BoundPatternSwitchLabel(node, pattern, null, node.HasErrors);
                     }
 
