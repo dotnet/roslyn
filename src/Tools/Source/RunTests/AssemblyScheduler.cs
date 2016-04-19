@@ -44,6 +44,16 @@ namespace RunTests
 
     internal sealed class AssemblyScheduler
     {
+        /// <summary>
+        /// This is a test class inserted into assemblies to guard against a .NET desktop bug.  The tests
+        /// inside of it counteract the underlying issue.  If this test is included in any assembly it 
+        /// must be added to every partition to ensure the work around is present
+        /// 
+        /// https://github.com/dotnet/corefx/issues/3793
+        /// https://github.com/dotnet/roslyn/issues/8936
+        /// </summary>
+        private const string EventListenerGuardFullName = "Microsoft.CodeAnalysis.UnitTests.EventListenerGuard";
+
         private struct TypeInfo
         {
             internal readonly string FullName;
@@ -78,19 +88,22 @@ namespace RunTests
             private readonly string _assemblyPath;
             private readonly int _methodLimit;
             private readonly bool _useHtml;
+            private readonly bool _hasEventListenerGuard;
             private int _currentId;
             private List<TypeInfo> _currentTypeInfoList = new List<TypeInfo>();
 
-            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml)
+            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml, bool hasEventListenerGuard)
             {
                 _assemblyPath = assemblyPath;
                 _useHtml = useHtml;
                 _methodLimit = methodLimit;
+                _hasEventListenerGuard = hasEventListenerGuard;
             }
 
             internal static void Build(string assemblyPath, int methodLimit, bool useHtml, List<TypeInfo> typeInfoList, out List<Chunk> chunkList, out List<AssemblyInfo> assemblyInfoList)
             {
-                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml);
+                var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
+                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml, hasEventListenerGuard);
                 builder.Build(typeInfoList);
                 chunkList = builder._chunkList;
                 assemblyInfoList = builder._assemblyInfoList;
@@ -98,6 +111,8 @@ namespace RunTests
 
             private void Build(List<TypeInfo> typeInfoList)
             {
+                BeginChunk();
+
                 foreach (var typeInfo in typeInfoList)
                 {
                     _currentTypeInfoList.Add(typeInfo);
@@ -108,11 +123,30 @@ namespace RunTests
                 CheckForChunkLimit(done: true);
             }
 
+            private void BeginChunk()
+            {
+                _currentId++;
+                _currentTypeInfoList = new List<TypeInfo>();
+                _builder.Length = 0;
+
+                // Ensure the EventListenerGuard is in every chunk.
+                if (_hasEventListenerGuard)
+                {
+                    _builder.Append($@"-class ""{EventListenerGuardFullName}"" ");
+                }
+            }
+
             private void CheckForChunkLimit(bool done)
             {
-                if (done && _currentTypeInfoList.Count > 0)
+                if (done)
                 {
-                    CreateChunk();
+                    // The builder is done looking at types.  If there are any TypeInfo that have not
+                    // been added to a chunk then do it now.
+                    if (_currentTypeInfoList.Count > 0)
+                    {
+                        FinishChunk();
+                    }
+
                     return;
                 }
 
@@ -122,12 +156,12 @@ namespace RunTests
                 if (_currentTypeInfoList.Sum(x => x.MethodCount) >= _methodLimit ||
                     _builder.Length > 25000)
                 {
-                    CreateChunk();
-                    return;
+                    FinishChunk();
+                    BeginChunk();
                 }
             }
 
-            private void CreateChunk()
+            private void FinishChunk()
             {
                 var assemblyName = Path.GetFileName(_assemblyPath);
                 var displayName = $"{assemblyName}.{_currentId}";
@@ -141,13 +175,8 @@ namespace RunTests
 
                 _chunkList.Add(new Chunk(_assemblyPath, _currentId, _currentTypeInfoList));
                 _assemblyInfoList.Add(assemblyInfo);
-
-                _currentId++;
-                _currentTypeInfoList = new List<TypeInfo>();
-                _builder.Length = 0;
             }
         }
-
 
         /// <summary>
         /// Default number of methods to include per chunk.
