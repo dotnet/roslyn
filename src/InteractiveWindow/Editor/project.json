@@ -1,5 +1,12 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.Language.Intellisense": "14.1.24720",
+    "Microsoft.VisualStudio.Language.StandardClassification": "14.1.24720",
+    "Microsoft.VisualStudio.Text.Data": "14.1.24720",
+    "Microsoft.VisualStudio.Text.Logic": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.1.24720"
+  },
   "frameworks": {
     "net46": { }
   }

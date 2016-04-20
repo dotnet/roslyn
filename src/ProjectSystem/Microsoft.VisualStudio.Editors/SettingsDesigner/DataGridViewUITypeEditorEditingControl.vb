@@ -125,7 +125,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 End If
                 scs.ConnectionString = Text
                 Dim serializer As New SettingsValueSerializer()
-                Return serializer.Serialize(scs, Threading.Thread.CurrentThread.CurrentCulture)
+                Return serializer.Serialize(scs, System.Threading.Thread.CurrentThread.CurrentCulture)
             Else
                 Return Text
             End If
@@ -273,7 +273,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return DirectCast(ValueToFormat, SerializableConnectionString).ConnectionString
             Else
                 Dim serializer As New SettingsValueSerializer()
-                Return serializer.Serialize(ValueToFormat, Threading.Thread.CurrentThread.CurrentCulture)
+                Return serializer.Serialize(ValueToFormat, System.Threading.Thread.CurrentThread.CurrentCulture)
             End If
         End Function
 
@@ -289,7 +289,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 Return retVal
             Else
                 Dim serializer As New SettingsValueSerializer()
-                Return serializer.Deserialize(ValueType, SerializedRepresentation, Threading.Thread.CurrentThread.CurrentCulture)
+                Return serializer.Deserialize(ValueType, SerializedRepresentation, System.Threading.Thread.CurrentThread.CurrentCulture)
             End If
         End Function
 

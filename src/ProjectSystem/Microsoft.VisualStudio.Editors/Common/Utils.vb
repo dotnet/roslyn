@@ -333,7 +333,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
             If TypeOf ex Is NullReferenceException _
                 OrElse (Not IgnoreOutOfMemory AndAlso TypeOf ex Is OutOfMemoryException) _
                 OrElse TypeOf ex Is StackOverflowException _
-                OrElse TypeOf ex Is Threading.ThreadAbortException _
+                OrElse TypeOf ex Is System.Threading.ThreadAbortException _
                 OrElse TypeOf ex Is AccessViolationException _
             Then
                 Return True
