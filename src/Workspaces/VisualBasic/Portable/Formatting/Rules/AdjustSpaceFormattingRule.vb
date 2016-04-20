@@ -193,7 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' ? . [conditional access operator]
-            If previousToken.Kind = SyntaxKind.QuestionToken AndAlso currentToken.Kind = SyntaxKind.DotToken AndAlso
+            ' ? ! [conditional access operator]
+            If previousToken.Kind = SyntaxKind.QuestionToken AndAlso currentToken.IsKind(SyntaxKind.DotToken, SyntaxKind.ExclamationToken) AndAlso
                previousToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
