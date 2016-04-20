@@ -210,6 +210,10 @@
       <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
       <Name>DiaSymReader</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

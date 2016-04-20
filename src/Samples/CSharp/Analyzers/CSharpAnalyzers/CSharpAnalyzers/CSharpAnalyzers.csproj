@@ -54,6 +54,10 @@
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>Microsoft.CodeAnalysis.CSharp.Workspaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{02abb346-3cc8-4cc2-b6e4-72a60a3e1491}</Project>
+      <Name>Composition</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdditionalFileAnalyzers\SimpleAdditionalFileAnalyzer.cs" />
