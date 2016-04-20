@@ -3432,5 +3432,327 @@ class C
 2
 ");
         }
+
+        [Fact]
+        public void Inference08()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Test1((a: 1, b: 2), (c: 3, d: 4));
+        Test2((a: 1, b: 2), (c: 3, d: 4), t => t.Item2);
+        Test2((a: 1, b: 2), (a: 3, b: 4), t => t.a);
+        Test2((a: 1, b: 2), (c: 3, d: 4), t => t.a);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(""test1"");
+        System.Console.WriteLine(x);
+    }
+
+    static void Test2<T>(T x, T y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_1"");
+        System.Console.WriteLine(f(x));
+    }
+
+    static void Test2<T>(T x, object y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_2"");
+        System.Console.WriteLine(f(x));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+test1
+{1, 2}
+test2_1
+2
+test2_1
+1
+test2_2
+1
+");
+        }
+
+        [Fact]
+        public void Inference08t()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        var ab = (a: 1, b: 2);
+        var cd = (c: 3, d: 4);
+
+        Test1(ab, cd);
+        Test2(ab, cd, t => t.Item2);
+        Test2(ab, ab, t => t.a);
+        Test2(ab, cd, t => t.a);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(""test1"");
+        System.Console.WriteLine(x);
+    }
+
+    static void Test2<T>(T x, T y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_1"");
+        System.Console.WriteLine(f(x));
+    }
+
+    static void Test2<T>(T x, object y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_2"");
+        System.Console.WriteLine(f(x));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+test1
+{1, 2}
+test2_1
+2
+test2_1
+1
+test2_2
+1
+");
+        }
+
+        [Fact]
+        public void Inference09()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        // byval tuple, as a whole, sets a lower bound
+        Test1((a: 1, b: 2), (ValueType)1);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.ValueType
+");
+        }
+
+        [Fact]
+        public void Inference10()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        // byref tuple, as a whole, sets an exact bound
+        var t = (a: 1, b: 2);
+        Test1(ref t, (ValueType)1);
+    }
+
+    static void Test1<T>(ref T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1(ref t, (ValueType)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T>(ref T, T)").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference11()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // byref tuple, as a whole, sets an exact bound, names are honored (just like in the case of dynamic
+        //PROTOTYPE(tuples): consider if honoring names is the right way to do for explicit bounds.
+        var ab = (a: 1, b: 2);
+        var cd = (c: 1, d: 2);
+
+        // this is an error  since we have two exact bounds
+        Test3(ref ab, ref cd);
+
+        // these are ok, since one of the bounds is a lower bound
+        Test1(ref ab, cd);
+        Test2(ab, ref cd);
+}
+
+    static void Test1<T>(ref T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Test2<T>(T x, ref T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Test3<T>(ref T x, ref T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test3(ref ab, ref cd);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference12()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U) x, (T, U) y)
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Inference13()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U)? x, (T, U) y)
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Inference14()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U)? x, (T, U?) y) where U: struct
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(8, 9),
+                // (9,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference15()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        Test1((a: ""q"", b: null), (a: null, b: ""w""), (x) => x.z);
+    }
+
+    static void Test1<T, U>((T, U) x, (T, U) y, System.Func<(T x, U z), T> f)
+    {
+        System.Console.WriteLine(typeof(U));
+        System.Console.WriteLine(f(y));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
+System.String
+w
+");
+
+        }
     }
 }

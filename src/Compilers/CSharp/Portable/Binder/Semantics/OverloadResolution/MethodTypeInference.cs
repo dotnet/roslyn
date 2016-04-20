@@ -540,13 +540,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isExactInference = GetRefKind(arg) != RefKind.None;
 
                 TypeSymbol target = _formalParameterTypes[arg];
-                TypeSymbol source = _arguments[arg].Type;
-
-                MakeExplicitParameterTypeInferences(binder, argument, source, target, isExactInference, ref useSiteDiagnostics);
+                MakeExplicitParameterTypeInferences(binder, argument, target, isExactInference, ref useSiteDiagnostics);
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeSymbol source, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
             // error type, then we want to set it to the generic error type 
@@ -588,9 +586,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, no inference is made for this argument
 
+            var source = argument.Type;
+
             if (argument.Kind == BoundKind.UnboundLambda)
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
+            }
+            if (argument.Kind == BoundKind.TupleLiteral)
+            {
+                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics);
             }
             else if (IsReallyAType(source))
             {
@@ -603,14 +607,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LowerBoundInference(source, target, ref useSiteDiagnostics);
                 }
             }
-            else if (argument.Kind== BoundKind.TupleLiteral)
-            {
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, ref useSiteDiagnostics);
-            }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            // if tuple has a type we will try to match the type as a single input
+            // Example:
+            //      if   "(a: 1, b: 2)" is passed as   T arg
+            //      then T becomes (int a, int b)
+            var source = argument.Type;
+            if (IsReallyAType(source))
+            {
+                if (isExactInference)
+                {
+                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of
+                    // SPEC:   exact bounds for Xi.
+                    if (ExactTypeParameterInference(source, target))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    // SPEC: A lower-bound inference from a type U to a type V is made as follows:
+
+                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
+                    // SPEC:   lower bounds for Xi.
+
+                    if (LowerBoundTypeParameterInference(source, target))
+                    {
+                        return;
+                    }
+                }
+            }
+
+            // try match up element-wise to the destination tuple (ur underlying type)
+            // Example:
+            //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
+            //      then T becomes int and U becomes string
             if (target.Kind != SymbolKind.NamedType)
             {
                 // tuples can only cast to tuples or tuple underlying types.
@@ -624,12 +658,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
             }
 
-            Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
             if (!binder.Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
             {
+                // target is not a tuple of appropriate shape
                 return;
             }
 
@@ -643,11 +677,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                // NOTE: we are losing tuple element names when recursing into argument expressions.
+                //       that is ok, because we are inferring type parameters used in the matching elements, 
+                //       This is not the situation where entire tuple literal is used to infer a single type param
+
                 for (int i = 0; i < sourceArguments.Length; i++)
                 {
                     var sourceArgument = sourceArguments[i];
                     var destType = destTypes[i];
-                    MakeExplicitParameterTypeInferences(binder, sourceArgument, sourceArgument.Type, destType, isExactInference: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                    MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
                 }
             }
             finally
@@ -655,8 +693,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destTypes.Free();
             }
         }
-
-
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -1504,7 +1540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: PROTOTYPE(tuples): spec quote here
-
             if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
@@ -1560,20 +1595,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool LowerNullableInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)target != null);
-
-            if (!source.IsNullableType() || !target.IsNullableType())
-            {
-                return false;
-            }
-
-            LowerBoundInference(source.GetNullableUnderlyingType(), target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
-            return true;
-        }
-
         private bool ExactNullableInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
@@ -1588,6 +1609,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        //PROTOTYPE(tuples): inference from tuple type is exact since tuples are non-variant.
+        private bool ExactTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)target != null);
+
+            // SPEC: PROTOTYPE(tuples): would be nice to quote spec here
+
+            // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple type used to infer a single type param
+
+            bool hasTuples = false;
+            if (source.IsTupleType)
+            {
+                source = ((TupleTypeSymbol)source).UnderlyingTupleType;
+                hasTuples = true;
+            }
+
+            if (target.IsTupleType)
+            {
+                target = ((TupleTypeSymbol)target).UnderlyingTupleType;
+                hasTuples = true;
+            }
+
+            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
+            {
+                return false;
+            }
+
+            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            return true;
+        }
 
         private bool ExactConstructedInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -1683,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC ERROR: lower bounds of char and int, and choose int. If we make an exact
             // SPEC ERROR: inference of char then type inference fails.
 
-            if (LowerNullableInference(source, target, ref useSiteDiagnostics))
+            if (LowerBoundNullableInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1717,7 +1771,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: PROTOTYPE(tuples) spec quote here.
 
-            // NOTE: Tuple inference is exact since tuples are non-variant.
             if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
@@ -1825,52 +1878,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
 
-            // SPEC ISSUE: As noted above, the spec does not clearly call out how
-            // SPEC ISSUE: to do type inference to a nullable target. I propose the
-            // SPEC ISSUE: following:
-            // SPEC ISSUE:
-            // SPEC ISSUE: * Otherwise, if V is nullable type V1? and U is a 
-            // SPEC ISSUE:   non-nullable struct type then an exact inference is made from U to V1.
-
-            if (!target.IsNullableType() || !source.IsValueType || source.IsNullableType())
+            if (!source.IsNullableType() || !target.IsNullableType())
             {
                 return false;
             }
 
-            ExactInference(source, target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
-            return true;
-        }
-
-        private bool ExactTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)target != null);
-
-            // SPEC: PROTOTYPE(tuples): would be nice to quote spec here
-            
-            // NOTE: we are losing tuple element names when unwrapping tuples to underlying types.
-            //       that is ok, because ExactTypeArgumentInference only cares about 
-            //       type arguments, not the types themselves
-
-            bool hasTuples = false;
-            if (source.IsTupleType)
-            {
-                source = ((TupleTypeSymbol)source).UnderlyingTupleType;
-                hasTuples = true;
-            }
-
-            if (target.IsTupleType)
-            {
-                target = ((TupleTypeSymbol)target).UnderlyingTupleType;
-                hasTuples = true;
-            }
-
-            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
-            {
-                return false;
-            }
-            
-            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            LowerBoundInference(source.GetNullableUnderlyingType(), target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
             return true;
         }
 
@@ -2117,6 +2130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   then an exact inference is made from U1 to V1.
 
             if (ExactNullableInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
+            // SPEC: PROTOTYPE(tuples): spec quote here
+
+            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -2457,34 +2477,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // SPEC: * If among the remaining candidate types there is a unique type V to
-                // SPEC:   which there is an implicit conversion from all the other candidate
-                // SPEC:   types, then the parameter is fixed to V.
-
-                // SPEC: 4.7 The Dynamic Type
-                //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-                // This rule doesn't have to be implemented explicitly due to special handling of 
-                // conversions from dynamic in ImplicitConversionExists helper.
-
-                TypeSymbol best = null;
-                foreach (var candidate in candidates)
+            // SPEC: * If among the remaining candidate types there is a unique type V to
+            // SPEC:   which there is an implicit conversion from all the other candidate
+            // SPEC:   types, then the parameter is fixed to V.
+            TypeSymbol best = null;
+            foreach (var candidate in candidates)
+            {
+                foreach (var candidate2 in candidates)
                 {
-                    foreach (var candidate2 in candidates)
+                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                     {
-                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
-                        {
-                            goto OuterBreak;
-                        }
+                        goto OuterBreak;
+                    }
+                }
+
+                if ((object)best == null)
+                {
+                    best = candidate;
+                }
+                else if (best.Equals(candidate, ignoreDynamic: true))
+                {
+                    //PROTOTYPE(tuples): SPEC that when having a tuple candidate and another candidate that is a identity-convertable tuple
+                    //                   SPEC or its underlying ValueTuple type, the underlying type is inferred
+                    if (candidate.IsTupleType)
+                    {
+                        best = ((TupleTypeSymbol)candidate).UnderlyingTupleType;
+                        break;
                     }
 
-                    if ((object)best == null)
-                    {
-                        best = candidate;
-                    }
-                    else if (!(best.IsDynamic() && candidate.IsObjectType()))
-                    {
-                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+                    // SPEC: 4.7 The Dynamic Type
+                    //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                    //
+                    // This rule doesn't have to be implemented explicitly due to special handling of 
+                    // conversions from dynamic in ImplicitConversionExists helper.
+                    // 
+                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
 
                         // best candidate is not unique
                         return false;
