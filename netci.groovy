@@ -87,15 +87,14 @@ set TMP=%TEMP%
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
-                // Generic throttling for Windows, no category
                 break;
               case 'linux':
                 myJob.with {
-                  label('ubuntu-fast')
                   steps {
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
+                Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
                 break;
               case 'mac':
                 myJob.with {
