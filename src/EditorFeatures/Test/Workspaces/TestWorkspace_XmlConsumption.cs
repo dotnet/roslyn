@@ -344,6 +344,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 parseOptions = GetParseOptionsWithLanguageVersion(language, parseOptions, languageVersionAttribute);
             }
 
+            var featuresAttribute = projectElement.Attribute(FeaturesAttributeName);
+            if (featuresAttribute != null)
+            {
+                parseOptions = GetParseOptionsWithFeatures(parseOptions, featuresAttribute);
+            }
+
             var documentationMode = GetDocumentationMode(projectElement);
             if (documentationMode != null)
             {
@@ -368,6 +374,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 throw new ArgumentException("Unexpected language '{0}' for generating custom parse options.", language);
             }
+        }
+
+        private static ParseOptions GetParseOptionsWithFeatures(ParseOptions parseOptions, XAttribute featuresAttribute)
+        {
+            var entries = featuresAttribute.Value.Split(';');
+            var features = entries.Select(x =>
+            {
+                var split = x.Split('=');
+
+                var key = split[0];
+                var value = split.Length == 2 ? split[1] : "true";
+
+                return new KeyValuePair<string, string>(key, value);
+            });
+
+            return parseOptions.WithFeatures(features);
         }
 
         private static ParseOptions GetParseOptionsWithLanguageVersion(string language, ParseOptions parseOptions, XAttribute languageVersionAttribute)
