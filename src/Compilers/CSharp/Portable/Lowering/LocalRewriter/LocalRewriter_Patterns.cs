@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             input = _factory.Local(temp);
             foreach (var subpattern in pattern.Subpatterns)
             {
-                // PROTOTYPE(patterns): review and test this code path.
-                // https://github.com/dotnet/roslyn/issues/9542
-                // e.g. Can the `as` below result in `null`?
                 var subProperty = (subpattern.Member as BoundPropertyPatternMember)?.MemberSymbol;
                 var subPattern = subpattern.Pattern;
                 BoundExpression subExpression;
@@ -82,14 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         subExpression = _factory.Field(input, (FieldSymbol)subProperty);
                         break;
                     case SymbolKind.Property:
-                        // PROTOTYPE(patterns): review and test this code path.
-                        // https://github.com/dotnet/roslyn/issues/9542
-                        // e.g. https://github.com/dotnet/roslyn/pull/9505#discussion_r55320220
                         subExpression = _factory.Call(input, ((PropertySymbol)subProperty).GetMethod);
                         break;
                     case SymbolKind.Event:
-                    // PROTOTYPE(patterns): should a property pattern be capable of referencing an event?
-                    // https://github.com/dotnet/roslyn/issues/9515
                     default:
                         throw ExceptionUtilities.Unreachable;
                 }
@@ -160,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         BoundExpression LogicalAndForPatterns(BoundExpression left, BoundExpression right)
         {
-            // PROTOTYPE(patterns): can the generated code be improved further?
             return IsIrrefutablePatternTest(left) ? _factory.Sequence(left, right) : _factory.LogicalAnd(left, right);
         }
 
@@ -190,9 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
-            // We currently use "exact" type semantics.
-            // PROTOTYPE(patterns): We need to change this to be sensitive to conversions
-            // among integral types, so that the same value of different integral types are considered matching.
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
@@ -242,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Literal(true));
                 }
 
-                // PROTOTYPE(patterns): only assign t when returning true (avoid returning a new default value)
+                // It would be possible to improve this code by only assigning t when returning
+                // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
                 //     T? tmp = e as T?;
@@ -281,10 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMatchExpression(BoundMatchExpression node)
         {
-            // PROTOTYPE(patterns): find a better way to preserve the scope of pattern variables in a match.
-
-            // we translate a match expression into a sequence of conditionals.
-            // However, because we have no way to express the proper scope of the pattern
+            // We translate a match expression into a sequence of conditionals.
+            // However, because we have no easy way to express the proper scope of the pattern
             // variables, we lump them all together at the top.
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             BoundAssignmentOperator initialStore;

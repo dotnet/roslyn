@@ -353,8 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
-        /// Doesn't validate whether or not the node actually declares any captured variable.
+        /// Returns true if the specified node is of a kind that could represent a closure scope -- that
+        /// is, a scope of a captured variable.
+        /// Doesn't check whether or not the node actually declares any captured variable.
         /// </summary>
         internal static bool IsClosureScope(SyntaxNode node)
         {
@@ -379,9 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.
-                // PROTOTYPE(patterns): The set of statements below needs a clean-up. For example, checked
-                //                      statement doesn't introduce a scope. 
-                case SyntaxKind.CheckedStatement:
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.FixedStatement:

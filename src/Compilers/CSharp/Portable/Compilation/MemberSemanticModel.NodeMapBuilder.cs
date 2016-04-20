@@ -225,9 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundBlock block;
 
-                // PROTOTYPE(patterns): Need to confirm how extra compiler generated blocks affect caching.
-                //                      Do we actually benefit from adding them to the cache, or effect is negative or neutral.
-
                 // Do not add compiler generated nodes.
                 if (currentBoundNode.WasCompilerGenerated &&
                     (currentBoundNode.Kind != BoundKind.Block ||

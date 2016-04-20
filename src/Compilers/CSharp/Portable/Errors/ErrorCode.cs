@@ -1341,6 +1341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OperatorIsNullable = 8158,
         ERR_OperatorIsRequiresOut = 8159,
         ERR_OperatorIsMustReturnBoolOrVoid = 8160,
+        ERR_OperatorIsNoParameters = 8161,
 
         // huge gap here???
 

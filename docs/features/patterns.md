@@ -54,7 +54,7 @@ recursive_pattern
     ;
 
 positional_pattern
-    :  type '(' subpattern_list? ')'
+    :  type? '(' subpattern_list? ')'
     ;
 
 subpattern_list
@@ -67,7 +67,9 @@ subpattern
     ;
 
 property_pattern
-    :  type identifier? '{' property_subpattern_list? '}'
+    : type? '{' property_subpattern_list? '}'
+    | type identifier '{' property_subpattern_list? '}'
+    | var identifier '{' property_subpattern_list? '}'
     ;
 
 property_subpattern_list
@@ -80,7 +82,7 @@ property_subpattern
     ;
 ```
 
-> Note: There is technically an ambiguity between *type_pattern* (when an *identifier* is absent) and *constant_pattern*, either of which might be a valid parse of a qualified identifier. In practice the ambiguity doesn't matter, and we disambiguate when we bind the name. If we find both a type and a value (e.g. the Color-Color situation), we resolve it to whichever is in the innermost scope. The one exception to this is the `is`-expression, for which we try to bind it as a type for compatibility with previous versions of the language; only if that fails do we resolve it as we do in other contexts.
+> Note: There is technically an ambiguity between *type* in an `is-expression` and *constant_pattern*, either of which might be a valid parse of a qualified identifier. We try to bind it as a type for compatibility with previous versions of the language; only if that fails do we resolve it as we do in other contexts, to the first thing found (which must be either a constant or a type). This ambiguity is only present on the right-hand-side of an `is` expression.
 
 ### Type Pattern
 
@@ -146,21 +148,23 @@ An expression *e* matches the pattern `*` always. In other words, every expressi
 
 ### Positional Pattern
 
-A positional pattern enables the program to invoke an appropriate `operator is`, and (if the operator returns `true`) perform further pattern matching on the values that are returned from it. In the absence of an `operator is`, if the named type was defined with a *parameter list*, then the properties declared in the type's parameters are read to match subpatterns.
+A positional pattern enables the program to invoke an appropriate `operator is`, and (if the operator has a `void` return type, or returns `true`) perform further pattern matching on the values that are returned from it. It also supports a tuple-like pattern syntax when the static type is the same as the type containing `operator is`, or if the runtime type of the expression implements `ITuple`.
 
 ```antlr
 positional_pattern
-    : type '(' subpattern_list? ')'
+    : type? '(' subpattern_list? ')'
     ;
 ```
 
-Given a match of an expression *e* to the pattern *type* `(` *subpattern_list* `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
+If the *type* is omitted, we take it to be the static type of *e*. In this case it is an error if *e* does not have a type.
 
-- If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the positional pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
-- If no suitable `operator is` was found, and *type* designates a type that was defined with a parameter list, the number of subpatterns must be the same as the number of parameters of the type. In that case the properties declared in the type's parameter list are read and matched against the subpatterns, as above.
-- Otherwise it is an error.
+Given a match of an expression *e* to the pattern *type* `(` *subpattern_list* `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*.
 
-If a *subpattern* has an *argument_name*, then every subsequent *subpattern* must have an *argument_name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above, or of the type's parameter list in the second bullet). [Note: this needs to be made more precise.]
+- If a suitable `operator is` exists, it is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator. If the *type* is omitted, it is an error if the `operator is` found does not have the static type of *e* as its first parameter. At runtime the value of the expression is tested against the type of the first parameter as in a type pattern. If this fails then the positional pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is unspecified, and a failed match may not match all subpatterns.
+- If no suitable `operator is` exists, but the expression is *pattern compatible* with the type `System.ITuple`, and no *argument_name* appears among the subpatterns, then we match using `ITuple`. [Note: this needs to be made more precise.]
+- Otherwise the pattern is a compile-time error.
+
+If a *subpattern* has an *argument_name*, then every subsequent *subpattern* must have an *argument_name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above). [Note: this needs to be made more precise.]
 
 ### Property Pattern
 
@@ -168,7 +172,14 @@ A property pattern enables the program to recursively match values extracted by 
 
 ```antlr
 property_pattern
-    : type '{' property_subpattern+ '}'
+    : type? '{' property_subpattern_list? '}'
+    | type identifier '{' property_subpattern_list? '}'
+    | var identifier '{' property_subpattern_list? '}'
+    ;
+
+property_subpattern_list
+    : property_subpattern
+    | property_subpattern ',' property_subpattern_list
     ;
 
 property_subpattern
@@ -176,9 +187,11 @@ property_subpattern
     ;
 ```
 
-Given a match of an expression *e* to the pattern *type* `{` *property_pattern_list* `}`, it is a compile-time error if the expression *e* is not *pattern compatible* with the type *T* designated by *type*.
+Given a match of an expression *e* to the pattern *type* `{` *property_pattern_list* `}`, it is a compile-time error if the expression *e* is not *pattern compatible* with the type *T* designated by *type*. If the type is absent or designated by `var`, we take it to be the static type of *e*. If the *identifier* is present, it declares a pattern variable of type *type*. Each of the identifiers appearing on the left-hand-side of its *property_pattern_list* must designate a readable property or field of *T*. If the *identifier* of the *property_pattern* is present, it defines a pattern variable of type *T*.
 
-At runtime, the expression is tested against *T*. If this fails then the property pattern match fails and the result is `false`. If it succeeds, then each of the identifiers appearing on the left-hand-side of its *property_pattern_list* must designate a readable property or field of *T*. Each such field or property is matched against its corresponding pattern, and the result of the whole match is `false` only if the result of any of these is `false`. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns at runtime.
+At runtime, the expression is tested against *T*. If this fails then the property pattern match fails and the result is `false`. If it succeeds, then each *property_subpattern* field or property is read and its value matched against its corresponding pattern. The result of the whole match is `false` only if the result of any of these is `false`. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns at runtime. If the match succeeds and the *identifier* of the *property_pattern* is present, it is assigned the matched value.
+
+> Note: The property pattern can be used to pattern-match with anonymous types. 
 
 ### Scope of Pattern Variables
 
@@ -345,7 +358,7 @@ The flow-analysis rules are as follows:
 - For every variable *v*, *v* is definitely assigned before the *null_coalescing_expression* of a *throw_expression* iff it is definitely assigned before the *throw_expression*.
 - For every variable *v*, *v* is definitely assigned after *throw_expression*.
 
-A *throw expression* is allowed in only the following contexts:
+A *throw expression* is permitted in only the following syntactic contexts:
 - As the second or third operand of a ternary conditional operator `?:`
 - As the second operand of a null coalescing operator `??`
 - After the colon of a *match section*
@@ -362,9 +375,9 @@ block_statement
 
 let_statement
     : 'let' identifier '=' expression ';'
-    | 'let' complex_pattern '=' expression ';'
-    | 'let' complex_pattern '=' expression 'else' embedded_statement
-    | 'let' complex_pattern '=' expression 'when' expression 'else' embedded_statement
+    | 'let' pattern '=' expression ';'
+    | 'let' pattern '=' expression 'else' embedded_statement
+    | 'let' pattern '=' expression 'when' expression 'else' embedded_statement
     ;
 ```
 
@@ -515,13 +528,13 @@ The *let_statement* would apply to tuples as follows. Given
 public (int, int) Coordinates => …
 ```
 
-You could receive the results into a block scope thusly
+You could receive the results into a block scope this way
 
 ```cs
 	let (int x, int y) = Coordinates;
 ```
 
-(This assumes much about the tuple spec and the interaction of tuples and pattern-matching, all of which is unsettled.)
+(This assumes that the tuple types define an appropriate `operator is`.)
 
 ### Roslyn diagnostic analyzers
 

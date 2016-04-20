@@ -6848,7 +6848,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No &apos;operator is&apos; declaration in &apos;{0}&apos; was found with {1} out parameters.
+        ///   Looks up a localized string similar to The declaration of &apos;operator is&apos; must have at least one value parameter..
+        /// </summary>
+        internal static string ERR_OperatorIsNoParameters {
+            get {
+                return ResourceManager.GetString("ERR_OperatorIsNoParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The declaration of &apos;operator is&apos; may not have a Nullable value type as its first parameter..
+        /// </summary>
+        internal static string ERR_OperatorIsNullable {
+            get {
+                return ResourceManager.GetString("ERR_OperatorIsNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No &apos;operator is&apos; declaration in &apos;{0}&apos; was found with {1} out parameter(s).
         /// </summary>
         internal static string ERR_OperatorIsParameterCount {
             get {

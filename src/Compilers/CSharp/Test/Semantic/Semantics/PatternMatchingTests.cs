@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
                     .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
                     .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
+        private static CSharpParseOptions experimentalParseOptions =
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeatureInferPositionalPattern.RequiredFeature(), "true");
 
         [Fact]
         public void DemoModes()
@@ -105,7 +110,7 @@ public class Vec
                 // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
-                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
                 // (15,13): warning CS0168: The variable 'var' is declared but never used
@@ -138,7 +143,7 @@ public class Vec
                 // (15,17): error CS0103: The name 'i4' does not exist in the current context
                 //         let var i4 = 3; // let
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i4").WithArguments("i4").WithLocation(15, 17),
-                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameters
+                // (18,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
                 //         if (q is Vec(3)) {} // recursive pattern
                 Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(18, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
@@ -152,16 +157,31 @@ public class Vec
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
-            // additionally enables let, match, throw, and recursive patterns
+            // additionally enables let, match, throw, and operator is
             var experimentalParseOptions = regularParseOptions
                 .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__" });
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions).VerifyDiagnostics(
+                // (15,18): error CS8157: No 'operator is' declaration in 'Vec' was found with 1 out parameter(s)
+                //         if (q is Vec(3)) {} // recursive pattern
+                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "Vec(3)").WithArguments("Vec", "1").WithLocation(15, 18),
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
                 //         int f() => 2;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
+                );
+
+            // additionally enables let, match, throw, and inferred recursive patterns
+            var unsupportedParseOptions = regularParseOptions
+                .WithPreprocessorSymbols(new[] { "__DEMO_EXPERIMENTAL__", "__DEMO_UNSUPPORTED__" });
+            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: unsupportedParseOptions).VerifyDiagnostics(
+                // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
+                //         int i2 = 23_554; // digit separators
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
+                // (9,13): warning CS0168: The variable 'f' is declared but never used
+                //         int f() => 2; // local functions
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(9, 13)
                 );
         }
 
@@ -368,7 +388,7 @@ public class X
 @"1 2 3 6
 True
 False";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: experimentalParseOptions);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -3296,7 +3316,7 @@ public class X
             return;
         }
     }
-        
+
     static bool Dummy(params object[] x) {return true;}
 }
 ";
@@ -3547,7 +3567,7 @@ public class X
             VerifyNotAPatternLocal(model, x12Ref[1]);
             VerifyNotAPatternLocal(model, x12Ref[2]);
         }
-        
+
         [Fact]
         public void ScopeOfPatternVariables_Lambda_02()
         {
@@ -5835,7 +5855,7 @@ public class X
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
-        
+
 
         [Fact]
         public void ScopeOfPatternVariables_PropertyInitializers_02()
@@ -6187,7 +6207,7 @@ class Test : System.Attribute
             VerifyNotInScope(model, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
         }
-
+        
         [Fact]
         public void ScopeOfPatternVariables_Attribute_03()
         {
@@ -6497,7 +6517,7 @@ class C
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(15, 27)
                 );
         }
-
+        
         [Fact]
         public void ScopeOfPatternVariables_ConstructorInitializers_05()
         {
@@ -7693,65 +7713,65 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
-    // (19,15): error CS0103: The name 'x1' does not exist in the current context
-    //         Dummy(x1, 1);
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
-    // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         switch (4 is var x4 ? x4 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
-    // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         switch (5 is var x5 ? x5 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
-    // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
-    //         switch (x6 + 6 is var x6 ? x6 : 0)
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
-    // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 var x7 = 12;
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
-    // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //                 switch (9 is var x9 ? x9 : 0)
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
-    // (85,17): error CS0103: The name 'y10' does not exist in the current context
-    //         switch (y10 + 10 is var x10 ? x10 : 0)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
-    // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
-    //             case 0 when y10:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
-    // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
-    //             case y10:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
+                // (19,15): error CS0103: The name 'x1' does not exist in the current context
+                //         Dummy(x1, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(19, 15),
+                // (27,26): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         switch (4 is var x4 ? x4 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(27, 26),
+                // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         switch (5 is var x5 ? x5 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(37, 26),
+                // (47,17): error CS0841: Cannot use local variable 'x6' before it is declared
+                //         switch (x6 + 6 is var x6 ? x6 : 0)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(47, 17),
+                // (60,21): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 var x7 = 12;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(60, 21),
+                // (72,34): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                 switch (9 is var x9 ? x9 : 0)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(72, 34),
+                // (85,17): error CS0103: The name 'y10' does not exist in the current context
+                //         switch (y10 + 10 is var x10 ? x10 : 0)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y10").WithArguments("y10").WithLocation(85, 17),
+                // (87,25): error CS0841: Cannot use local variable 'y10' before it is declared
+                //             case 0 when y10:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(87, 25),
+                // (89,18): error CS0841: Cannot use local variable 'y10' before it is declared
+                //             case y10:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y10").WithArguments("y10").WithLocation(89, 18),
                 // (89,18): error CS0150: A constant value is expected
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
-    // (98,17): error CS0103: The name 'y11' does not exist in the current context
-    //         switch (y11 + 11 is var x11 ? x11 : 0)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
-    // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
-    //             case 0 when y11 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
-    // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
-    //             case y11:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
+                // (98,17): error CS0103: The name 'y11' does not exist in the current context
+                //         switch (y11 + 11 is var x11 ? x11 : 0)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y11").WithArguments("y11").WithLocation(98, 17),
+                // (100,25): error CS0841: Cannot use local variable 'y11' before it is declared
+                //             case 0 when y11 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(100, 25),
+                // (102,18): error CS0841: Cannot use local variable 'y11' before it is declared
+                //             case y11:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y11").WithArguments("y11").WithLocation(102, 18),
                 // (102,18): error CS0150: A constant value is expected
                 //             case y11:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y11").WithLocation(102, 18),
-    // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
-    //                   2 is var x14, 
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
-    // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
-    //             case 0 when y15 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
-    // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
-    //             case y15: 
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+                // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
+                //                   2 is var x14, 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
+                // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
+                //             case 0 when y15 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
+                // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
+                //             case y15: 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
                 // (127,18): error CS0150: A constant value is expected
                 //             case y15: 
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y15").WithLocation(127, 18),
-    // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
-    //             case 0 when y16 > 0:
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
-    // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
-    //             case y16: 
+                // (138,25): error CS0841: Cannot use local variable 'y16' before it is declared
+                //             case 0 when y16 > 0:
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(138, 25),
+                // (140,18): error CS0841: Cannot use local variable 'y16' before it is declared
+                //             case y16: 
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y16").WithArguments("y16").WithLocation(140, 18),
                 // (140,18): error CS0150: A constant value is expected
                 //             case y16: 
@@ -14092,7 +14112,9 @@ public class X : Expression
 ";
             var compilation = CreateCompilationWithMscorlib(source,
                 options: TestOptions.ReleaseExe,
-                parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
+                parseOptions: patternParseOptions
+                    .WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true")
+                    .WithFeature(MessageID.IDS_FeatureInferPositionalPattern.RequiredFeature(), "true"));
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: @"22");
         }
@@ -14972,6 +14994,12 @@ public class X
     // (82,19): error CS1525: Invalid expression term 'case'
     //                 : case byte x15:
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, "case").WithArguments("case").WithLocation(82, 19),
+    // (17,22): error CS0030: Cannot convert type 'int' to 'short'
+    //                 case short x1:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "short").WithArguments("int", "short").WithLocation(17, 22),
+    // (19,22): error CS0030: Cannot convert type 'int' to 'byte'
+    //                 case byte x1:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "byte").WithArguments("int", "byte").WithLocation(19, 22),
     // (30,26): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 case int x3:
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(30, 26),
@@ -14992,7 +15020,10 @@ public class X
     Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(70, 27),
     // (72,13): error CS0103: The name 'x10' does not exist in the current context
     //             x10
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(72, 13)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x10").WithArguments("x10").WithLocation(72, 13),
+    // (82,24): error CS0030: Cannot convert type 'int' to 'byte'
+    //                 : case byte x15:
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "byte").WithArguments("int", "byte").WithLocation(82, 24)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -15370,6 +15401,63 @@ namespace IsOperatorBugDemo
 0
 1
 1");
+        }
+
+        [Fact]
+        public void OperatorIsMissingArgument()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,33): error CS8161: The declaration of 'operator is' must have at least one value parameter.
+                //     public static void operator is() { }
+                Diagnostic(ErrorCode.ERR_OperatorIsNoParameters, "is").WithLocation(5, 33)
+                );
+        }
+
+        [Fact]
+        public void OperatorIsNullable()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is(int? self) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,41): error CS8158: The declaration of 'operator is' may not have a Nullable value type as its first parameter.
+                //     public static void operator is(int? self) { }
+                Diagnostic(ErrorCode.ERR_OperatorIsNullable, "self").WithLocation(5, 41)
+                );
+        }
+
+        [Fact]
+        public void OperatorIsRef()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main() { }
+    public static void operator is(ref int self) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (5,44): error CS0631: ref and out are not valid in this context
+                //     public static void operator is(ref int self) { }
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "self").WithLocation(5, 44)
+                );
         }
 
         [Fact, WorkItem(10529, "https://github.com/dotnet/roslyn/issues/10529")]

@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Lambda = MessageBase + 12531,
         IDS_FeaturePatternMatching = MessageBase + 12532,
         IDS_FeaturePatternMatching2 = MessageBase + 12533,
+        IDS_FeatureInferPositionalPattern = MessageBase + 12534,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -175,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "patterns";
                 case MessageID.IDS_FeaturePatternMatching2:
                     return "patternsExperimental";
+                case MessageID.IDS_FeatureInferPositionalPattern:
+                    return "patternsUnsupported";
                 default:
                     return null;
             }

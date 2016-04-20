@@ -419,7 +419,9 @@
     <Compile Include="MyExtensibility\INamedDescribedObject.vb" />
     <Compile Include="MyExtensibility\MyExtensibilityProjectService.vb" />
     <Compile Include="MyExtensibility\MyExtensibilityProjectSettings.vb" />
-    <Compile Include="MyExtensibility\MyExtensibilityPropPage.vb" />
+    <Compile Include="MyExtensibility\MyExtensibilityPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="MyExtensibility\MyExtensibilityPropPageComClass.vb" />
     <Compile Include="MyExtensibility\MyExtensibilitySettings.vb" />
     <Compile Include="MyExtensibility\MyExtensibilitySettingsHelper.vb" />
@@ -444,45 +446,81 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="package\vbpackage.vb" />
-    <Compile Include="PropPages\AdvancedServicesDialog.vb" />
-    <Compile Include="proppages\AdvBuildSettingsPropPage.vb" />
-    <Compile Include="proppages\AdvCompilerSettingsPropPage.vb" />
-    <Compile Include="proppages\ApplicationPropPage.vb" />
-    <Compile Include="proppages\ApplicationPropPageBase.vb" />
-    <Compile Include="proppages\ApplicationPropPageInternalBase.vb" />
-    <Compile Include="PropPages\ApplicationPropPageVBBase.vb" />
-    <Compile Include="PropPages\ApplicationPropPageVBWinForms.vb" />
-    <Compile Include="proppages\AssemblyInfoPropPage.vb" />
+    <Compile Include="PropPages\AdvancedServicesDialog.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\AdvBuildSettingsPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\AdvCompilerSettingsPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\ApplicationPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\ApplicationPropPageBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\ApplicationPropPageInternalBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPages\ApplicationPropPageVBBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PropPages\ApplicationPropPageVBWinForms.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\AssemblyInfoPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\BuildEventCommandLineDialog.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="proppages\BuildEventCommandLineDialogService.vb" />
-    <Compile Include="proppages\BuildEventsPropPage.vb" />
-    <Compile Include="proppages\BuildPropPage.vb" />
-    <Compile Include="proppages\BuildPropPageBase.vb" />
-    <Compile Include="proppages\CompilePropPage2.vb" />
+    <Compile Include="proppages\BuildEventsPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\BuildPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\BuildPropPageBase.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\CompilePropPage2.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\ComponentWrapper.vb">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="proppages\CSharpApplicationPropPage.vb" />
+    <Compile Include="proppages\CSharpApplicationPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\CSharpLanguageVersion.vb" />
     <Compile Include="proppages\CSharpLanguageVersionUtilities.vb" />
-    <Compile Include="proppages\DebugPropPage.vb" />
+    <Compile Include="proppages\DebugPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\InstallOtherFrameworksComboBoxValue.vb" />
     <Compile Include="proppages\OutputTypeComboBoxValue.vb" />
     <Compile Include="proppages\proppage.vb" />
     <Compile Include="proppages\ReferenceComponent.vb">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="proppages\ReferencePathsPropPage.vb" />
-    <Compile Include="proppages\ReferencePropPage.vb" />
+    <Compile Include="proppages\ReferencePathsPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="proppages\ReferencePropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\ServiceReferenceComponent.vb">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="proppages\ServicesAuthenticationForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="proppages\ServicesPropPage.vb" />
+    <Compile Include="proppages\ServicesPropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\ServicesPropPageConfigHelper.vb" />
     <Compile Include="proppages\SingleConfigPropertyControlData.vb" />
     <Compile Include="proppages\SKUMatrix.vb" />
@@ -494,7 +532,9 @@
     <Compile Include="PropPages\TargetFrameworkAssemblies.vb" />
     <Compile Include="PropPages\TargetFrameworkMoniker.vb" />
     <Compile Include="PropPages\TargetFrameworkPropertyControlData.vb" />
-    <Compile Include="proppages\UnusedReferencePropPage.vb" />
+    <Compile Include="proppages\UnusedReferencePropPage.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="proppages\UserPropertyDescriptor.vb" />
     <Compile Include="proppages\VBDescriptionAttribute.vb" />
     <Compile Include="proppages\VBDisplayNameAttribute.vb" />
@@ -508,7 +548,9 @@
     <Compile Include="PropPages\WPF\AppDotXamlErrorControl.vb">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="PropPages\WPF\ApplicationPropPageVBWPF.vb" />
+    <Compile Include="PropPages\WPF\ApplicationPropPageVBWPF.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="PropPages\WPF\XamlReadWriteException.vb" />
     <Compile Include="ResourceEditor\Category.vb" />
     <Compile Include="ResourceEditor\CategoryCollection.vb" />
