@@ -205,10 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             // The original C# implementation had a weird behavior where it wold allow setting array dimensions
             // to 0 to create an array with a single rank.
-            var rank = dimensions > 0
-                ? dimensions
-                : 1;
-
+            var rank = Math.Max(dimensions, 1);
             var newType = compilation.CreateArrayTypeSymbol(elementType, rank);
 
             this.Type = CodeTypeRef.Create(this.State, this, GetProjectId(), newType);
