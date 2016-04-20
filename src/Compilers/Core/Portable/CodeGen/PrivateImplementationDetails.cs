@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             if (!_instrumentationPayloadRootFields.TryGetValue(analysisKind, out payloadRootField))
             {
                 Debug.Assert(!IsFrozen);
-                payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, (kind) => new InstrumentationPayloadRootField(this, kind, payloadRootType));
+                payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, kind => new InstrumentationPayloadRootField(this, kind, payloadRootType));
             }
 
             Debug.Assert(payloadRootField.Type.Equals(payloadRootType));

@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -34,8 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // method can use the index portion of its own method definition token as an index into the payload array.
 
             IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> payloadRootFields = ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots();
+            Debug.Assert(payloadRootFields.Count > 0);
+
             ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance(2 + payloadRootFields.Count);
-            foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields)
+            foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields.OrderBy(analysis => analysis.Key))
             {
                 int analysisKind = payloadRoot.Key;
                 ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;
