@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ImmutableArray.Create(
                                 New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Int16),
                                                         TypedConstantKind.Primitive,
-                                                        CShort(Cci.Constants.ComInterfaceType_InterfaceIsIDispatch)))))
+                                                        CShort(ComInterfaceType.InterfaceIsIDispatch)))))
                     End If
 
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(

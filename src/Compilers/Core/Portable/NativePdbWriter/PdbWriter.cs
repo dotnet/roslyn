@@ -1262,9 +1262,7 @@ namespace Microsoft.Cci
         private unsafe void DefineLocalConstantImpl(string name, object value, uint sigToken)
         {
             VariantStructure variant = new VariantStructure();
-#pragma warning disable CS0618 // API is obsolete (https://github.com/dotnet/roslyn/issues/10637)
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
-#pragma warning restore CS0618
             _symWriter.DefineConstant2(name, variant, sigToken);
         }
 

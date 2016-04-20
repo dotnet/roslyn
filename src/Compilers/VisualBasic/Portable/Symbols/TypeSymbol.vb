@@ -27,6 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
         Friend Shared ReadOnly ImplicitTypeName As String = "<invalid-global-code>"
 
+        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = {}
+
         Private _lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
 
@@ -43,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared ReadOnly Property EmptyTypeSymbolsList As IList(Of TypeSymbol)
             Get
-                Return Array.Empty(Of TypeSymbol)
+                Return s_EmptyTypeSymbols
             End Get
         End Property
 

@@ -68,10 +68,6 @@ namespace Roslyn.Utilities
             Touch(MD5.Type);
         }
 
-        // TODO: Workaroudn for a bug in netstandard packages:
-        // https://github.com/dotnet/roslyn/issues/10309
-        internal static string BaseDirectory => AppContext.BaseDirectory;
-
         private static void Touch(Type type)
         {
             // Do nothing.
@@ -142,7 +138,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<string> GetTempFileName = (Func<string>)Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(GetTempFileName), paramTypes: new Type[] { })
                 .CreateDelegate(typeof(Func<string>));
         }
 
@@ -441,7 +437,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<object> GetCurrentProcess = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(GetCurrentProcess), paramTypes: new Type[] { })
                 .CreateDelegate<Func<object>>();
         }
 
@@ -455,7 +451,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Action EnsureSufficientExecutionStack = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(EnsureSufficientExecutionStack), paramTypes: new Type[] { })
                 .CreateDelegate<Action>();
         }
 
@@ -469,11 +465,11 @@ namespace Roslyn.Utilities
 
             private static readonly ConstructorInfo s_Ctor = Type
                 .GetTypeInfo()
-                .GetDeclaredConstructor(Array.Empty<Type>());
+                .GetDeclaredConstructor(new Type[] { });
 
             private static readonly MethodInfo s_ToString = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod("ToString", Array.Empty<Type>());
+                .GetDeclaredMethod("ToString", new Type[] { });
 
             internal static string GetString()
             {
@@ -603,7 +599,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -617,7 +613,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -631,7 +627,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -645,7 +641,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
                 .CreateDelegate<Func<IDisposable>>();
         }
 
@@ -659,7 +655,7 @@ namespace Roslyn.Utilities
 
             internal static readonly Func<IDisposable> Create = Type
                 .GetTypeInfo()
-                .GetDeclaredMethod(nameof(Create), Array.Empty<Type>())
+                .GetDeclaredMethod(nameof(Create), new Type[] { })
                 .CreateDelegate<Func<IDisposable>>();
         }
     }

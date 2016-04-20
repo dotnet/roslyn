@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-  },
-  "frameworks": {
-    "netstandard1.3": { }
-  }
-}

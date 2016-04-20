@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Does for locals what System.Runtime.CompilerServices.DynamicAttribute does for parameters, return types, and fields.
+        /// Does for locals what <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> does for parameters, return types, and fields.
         /// In particular, indicates which occurrences of <see cref="object"/> in the signature are really dynamic.
         /// </summary>
         /// <remarks>

@@ -8,7 +8,9 @@
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <OutputPath>bin</OutputPath>
     <OutputType>Library</OutputType>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
   </PropertyGroup> 
   
 </Project>

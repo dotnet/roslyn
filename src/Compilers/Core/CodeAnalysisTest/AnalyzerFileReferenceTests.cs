@@ -226,7 +226,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetFx.NetStandard13.SystemRuntime,
+                    SystemRuntimePP7Ref,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

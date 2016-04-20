@@ -2,9 +2,10 @@
   "dependencies": {
   },
   "frameworks": {
-    "net46": {}
+    "net45": {}
   },
   "runtimes": {
-    "win7": { }
+    "win7": { },
+    "win7-anycpu": {}
   }
 }

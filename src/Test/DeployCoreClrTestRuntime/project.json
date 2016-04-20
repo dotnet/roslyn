@@ -4,7 +4,7 @@
   },
   "frameworks": {
     "dnxcore50": {
-        "imports": "portable-net452"
+      "imports": "portable-net452"
     }
   },
   "runtimes": {

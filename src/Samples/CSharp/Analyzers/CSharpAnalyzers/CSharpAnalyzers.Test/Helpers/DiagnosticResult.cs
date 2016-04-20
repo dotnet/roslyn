@@ -45,7 +45,7 @@ namespace TestHelper
             {
                 if (this.locations == null)
                 {
-                    return Array.Empty<DiagnosticResultLocation>();
+                    this.locations = new DiagnosticResultLocation[] { };
                 }
                 return this.locations;
             }

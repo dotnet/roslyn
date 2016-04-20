@@ -3,7 +3,7 @@
         "Microsoft.Composition": "1.0.27"
     },
     "frameworks": {
-        "net46": {}
+        "net452": {}
     },
     "runtimes": {
       "win7": { }

@@ -2,6 +2,6 @@
   "supports": { },
   "dependencies": { },
   "frameworks": {
-    "netstandard1.3": {}
+    ".NETPortable,Version=v4.5,Profile=Profile7": {}
   }
 }
