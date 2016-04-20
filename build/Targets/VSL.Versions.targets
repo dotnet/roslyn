@@ -12,7 +12,6 @@
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
-    <SystemRuntimeVersion>4.1.0-rc3-24005-00</SystemRuntimeVersion>
   </PropertyGroup>
   
   <Choose>
