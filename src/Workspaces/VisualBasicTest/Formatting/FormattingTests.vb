@@ -4360,7 +4360,7 @@ End Class</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(8258, "https://github.com/dotnet/roslyn/issues/8258")>
         Public Async Function FormatDictionaryOperatorProperly() As Task
-            Dim code = <Code>
+            Dim code = "
 Class C
     Public Shared Sub AutoFormatSample()
 
@@ -4368,26 +4368,26 @@ Class C
         ' Problem with ! dictionary access operator
 
         Dim dict As New Dictionary(Of String, String)
-        dict.Add("Apple", "Green")
-        dict.Add("Orange", "Orange")
-        dict.Add("Banana", "Yellow")
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
 
-        Dim x As String = (New Dictionary(Of String, String)(dict)) !Banana 'added space in front of "!"
+        Dim x As String = (New Dictionary(Of String, String)(dict)) !Banana 'added space in front of ""!""
 
         With dict
 
-            !Apple = "Red"
-            Dim multiColors = !Apple &amp;!Orange &amp;!Banana 'missing space between "&amp;" and "!"
-            If!Banana = "Yellow" Then 'missing space between "If" and "!"
-                !Banana = "Green"
+            !Apple = ""Red""
+            Dim multiColors = !Apple &!Orange &!Banana 'missing space between ""&"" and ""!""
+            If!Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
             End If
 
         End With
 
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>
+            Dim expected = "
 Class C
     Public Shared Sub AutoFormatSample()
 
@@ -4395,26 +4395,26 @@ Class C
         ' Problem with ! dictionary access operator
 
         Dim dict As New Dictionary(Of String, String)
-        dict.Add("Apple", "Green")
-        dict.Add("Orange", "Orange")
-        dict.Add("Banana", "Yellow")
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
 
-        Dim x As String = (New Dictionary(Of String, String)(dict))!Banana 'added space in front of "!"
+        Dim x As String = (New Dictionary(Of String, String)(dict))!Banana 'added space in front of ""!""
 
         With dict
 
-            !Apple = "Red"
-            Dim multiColors = !Apple &amp; !Orange &amp; !Banana 'missing space between "&amp;" and "!"
-            If !Banana = "Yellow" Then 'missing space between "If" and "!"
-                !Banana = "Green"
+            !Apple = ""Red""
+            Dim multiColors = !Apple & !Orange & !Banana 'missing space between ""&"" and ""!""
+            If !Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
             End If
 
         End With
 
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
     End Class
