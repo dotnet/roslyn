@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case UnmanagedType.Interface:
-                case Cci.Constants.UnmanagedType_IDispatch:
+                case UnmanagedType.IDispatch:
                 case UnmanagedType.IUnknown:
                     DecodeMarshalAsComInterface(ref arguments, unmanagedType, messageProvider);
                     break;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
                     break;
 
-                case Cci.Constants.UnmanagedType_SafeArray:
+                case UnmanagedType.SafeArray:
                     DecodeMarshalAsSafeArray(ref arguments, messageProvider);
                     break;
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
                     break;
 
-                case Cci.Constants.UnmanagedType_VBByRefStr:
+                case UnmanagedType.VBByRefStr:
                     if (target == AttributeTargets.Field)
                     {
                         messageProvider.ReportMarshalUnmanagedTypeNotValidForFields(arguments.Diagnostics, arguments.AttributeSyntaxOpt, 0, "VBByRefStr", arguments.Attribute);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            Cci.VarEnum? elementTypeVariant = null;
+            VarEnum? elementTypeVariant = null;
             ITypeSymbol elementTypeSymbol = null;
             int symbolIndex = -1;
             bool hasErrors = false;
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis
                 switch (namedArg.Key)
                 {
                     case "SafeArraySubType":
-                        elementTypeVariant = namedArg.Value.DecodeValue<Cci.VarEnum>(SpecialType.System_Enum);
+                        elementTypeVariant = namedArg.Value.DecodeValue<VarEnum>(SpecialType.System_Enum);
                         if (elementTypeVariant < 0 || (int)elementTypeVariant > MarshalPseudoCustomAttributeData.MaxMarshalInteger)
                         {
                             messageProvider.ReportInvalidNamedArgument(arguments.Diagnostics, arguments.AttributeSyntaxOpt, position, arguments.Attribute.AttributeClass, namedArg.Key);
@@ -320,9 +320,9 @@ namespace Microsoft.CodeAnalysis
 
             switch (elementTypeVariant)
             {
-                case Cci.VarEnum.VT_DISPATCH:
-                case Cci.VarEnum.VT_UNKNOWN:
-                case Cci.VarEnum.VT_RECORD:
+                case VarEnum.VT_DISPATCH:
+                case VarEnum.VT_UNKNOWN:
+                case VarEnum.VT_RECORD:
                     // only these variants accept specification of user defined subtype
                     break;
 

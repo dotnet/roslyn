@@ -478,8 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (interfaceType)
             {
                 case ClassInterfaceType.None:
-                case Cci.Constants.ClassInterfaceType_AutoDispatch:
-                case Cci.Constants.ClassInterfaceType_AutoDual:
+                case ClassInterfaceType.AutoDispatch:
+                case ClassInterfaceType.AutoDual:
                     break;
 
                 default:
@@ -503,8 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             switch (interfaceType)
             {
-                case Cci.Constants.ComInterfaceType_InterfaceIsDual:
-                case Cci.Constants.ComInterfaceType_InterfaceIsIDispatch:
+                case ComInterfaceType.InterfaceIsDual:
+                case ComInterfaceType.InterfaceIsIDispatch:
                 case ComInterfaceType.InterfaceIsIInspectable:
                 case ComInterfaceType.InterfaceIsIUnknown:
                     break;
