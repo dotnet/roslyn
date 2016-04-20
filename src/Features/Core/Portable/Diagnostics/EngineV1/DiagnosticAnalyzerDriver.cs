@@ -320,7 +320,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
-                var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                var compilationDiagnostics = analysisResult.CompilationDiagnostics.Count == 1 ? analysisResult.CompilationDiagnostics[analyzer] : ImmutableArray<Diagnostic>.Empty;
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 diagnostics.AddRange(compilationDiagnostics);
             }

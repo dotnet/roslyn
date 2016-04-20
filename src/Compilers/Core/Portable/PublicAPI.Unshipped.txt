@@ -16,6 +16,16 @@ Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze = 1 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
 Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 2 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AnalyzerTelemetryInfo.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.Analyzers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.CompilationDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.GetAllDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.GetAllDiagnostics(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SemanticDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
