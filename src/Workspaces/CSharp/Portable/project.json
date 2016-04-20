@@ -2,7 +2,8 @@
   "dependencies": { },
   "frameworks": {
     "netstandard1.3": {
-      "imports": [ "portable-net452" ]
+      // Microsoft.Composition isn't compat with netstandard
+      "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }
 }
