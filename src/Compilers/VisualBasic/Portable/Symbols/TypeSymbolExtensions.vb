@@ -654,7 +654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' first find all implementations of IEnumerable(Of T)
             If Binder.IsOrInheritsFromOrImplementsInterface(type, genericIEnumerable, useSiteDiagnostics, matchingInterfaces) Then
-                If matchingInterfaces.Count > 0 Then
+                If Not matchingInterfaces.IsEmpty Then
 
                     ' now check if the type argument is compatible with the given type
                     For Each matchingInterface In matchingInterfaces

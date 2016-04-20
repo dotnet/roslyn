@@ -11,14 +11,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Public Shared Function Main(args As String()) As Integer
             Try
-                Dim baseDirectory = PortableShim.BaseDirectory
-                Dim responseFile = Path.Combine(baseDirectory, InteractiveResponseFileName)
+                Dim responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName)
 
                 Dim compiler = New VisualBasicInteractiveCompiler(
                     responseFile,
-                    baseDirectory,
+                    AppContext.BaseDirectory,
                     CorLightup.Desktop.TryGetRuntimeDirectory(),
-                    baseDirectory,
+                    AppContext.BaseDirectory,
                     args,
                     New NotImplementedAnalyzerLoader())
 

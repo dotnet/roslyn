@@ -2,7 +2,6 @@
   "dependencies": { },
   "frameworks": {
     "netstandard1.3": {
-      // xunit isn't compat with netstandard
       "imports": [ "portable-net452", "dotnet5.4" ]
     }
   }

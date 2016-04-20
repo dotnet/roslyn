@@ -1,9 +1,7 @@
 ﻿{
   "dependencies": {
-    "System.Xml.XDocument": "4.0.11-rc3-24005-00",
-    "System.AppContext": "4.1.0-rc3-24005-00"
   },
   "frameworks": {
-    "netstandard1.3": {}
+    ".NETPortable,Version=v4.5,Profile=Profile7": {}
   }
 }
