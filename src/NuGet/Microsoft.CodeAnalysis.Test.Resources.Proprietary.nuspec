@@ -4,9 +4,6 @@
     <id>Microsoft.CodeAnalysis.Test.Resources.Proprietary</id>
     <description>
       Resources for Testing the .NET Compiler Platform ("Roslyn").
-
-Supported Platforms:
-- .NET Framework 4.5
     </description>
     <summary></summary>
     <language>en-US</language>
@@ -18,7 +15,12 @@ Supported Platforms:
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
   </metadata>
+  <dependencies>
+    <group targetFramework="netstandard1.3">
+      <dependency id="NETStandard.Library" version="1.5.0-rc3-24011-00" />
+    </group>
+  </dependencies>
   <files>
-    <file src="Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" target="lib\netstandard1.3" />
   </files>
 </package>
