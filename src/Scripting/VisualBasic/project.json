@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.VisualBasic": "10.0.1-rc3-24011-00"
+    "Microsoft.VisualBasic": "10.0.1-rc3-24005-00"
   },
   "frameworks": {
     "netstandard1.3": {}

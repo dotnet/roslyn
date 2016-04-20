@@ -1,10 +1,10 @@
 ﻿{
   "supports": {},
   "dependencies": {
-    "NETStandard.Library": "1.5.0-rc3-24011-00",
-    "System.Linq.Expressions": "4.0.11-rc3-24011-00",
-    "System.Threading.Tasks.Parallel": "4.0.1-rc3-24011-00",
-    "System.AppContext": "4.1.0-rc3-24011-00"
+    "NETStandard.Library": "1.5.0-rc3-24005-00",
+    "System.Linq.Expressions": "4.0.11-rc3-24005-00",
+    "System.Threading.Tasks.Parallel": "4.0.1-rc3-24005-00",
+    "System.AppContext": "4.1.0-rc3-24005-00"
   },
   "frameworks": {
     "netstandard1.3": {}
