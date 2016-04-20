@@ -19,6 +19,9 @@ call %NugetExe% restore "%~dp0src\Samples\Samples.sln" %NuGetAdditionalCommandLi
 echo Restoring packages: Roslyn (this may take some time)
 call %NugetExe% restore "%RoslynSolution%" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Dependencies
+call %NugetExe% restore "%~dp0src\Dependencies\Dependencies.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 exit /b 0
 
 :RestoreFailed
