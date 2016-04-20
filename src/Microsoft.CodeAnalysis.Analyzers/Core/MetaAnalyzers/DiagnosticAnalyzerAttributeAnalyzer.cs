@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
         {
-            private static readonly string s_csharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
-            private static readonly string s_basicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+            private const string CSharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+            private const string BasicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
             public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies, 
                     // then the analyzer is pretty likely a language-agnostic analyzer.
                     Compilation compilation = symbolContext.Compilation;
-                    string compilationTypeNameToCheck = supportsCSharp ? s_csharpCompilationFullName : s_basicCompilationFullName;
+                    string compilationTypeNameToCheck = supportsCSharp ? CSharpCompilationFullName : BasicCompilationFullName;
                     INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
                     if (compilationType == null)
                     {

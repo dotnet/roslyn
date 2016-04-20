@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             compilationContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(codeBlockContext =>
             {
                 RegisterActionCodeBlockAnalyzer analyzer = GetCodeBlockAnalyzer(compilation, analysisContext, compilationStartAnalysisContext,
-                    codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+                    codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind);
 
                 analyzer.CodeBlockStartAction(codeBlockContext);
             });
@@ -174,9 +174,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             INamedTypeSymbol compilationStartAnalysisContext,
             INamedTypeSymbol codeBlockStartAnalysisContext,
             INamedTypeSymbol operationBlockStartAnalysisContext,
-            INamedTypeSymbol symbolKind,
-            INamedTypeSymbol diagnosticAnalyzer,
-            INamedTypeSymbol diagnosticAnalyzerAttribute);
+            INamedTypeSymbol symbolKind);
 
         protected abstract class RegisterActionCodeBlockAnalyzer
         {
@@ -222,9 +220,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 INamedTypeSymbol compilationStartAnalysisContext,
                 INamedTypeSymbol codeBlockStartAnalysisContext,
                 INamedTypeSymbol operationBlockStartAnalysisContext,
-                INamedTypeSymbol symbolKind,
-                INamedTypeSymbol diagnosticAnalyzer,
-                INamedTypeSymbol diagnosticAnalyzerAttribute)
+                INamedTypeSymbol symbolKind)
             {
                 _analysisContext = analysisContext;
                 _compilationStartAnalysisContext = compilationStartAnalysisContext;

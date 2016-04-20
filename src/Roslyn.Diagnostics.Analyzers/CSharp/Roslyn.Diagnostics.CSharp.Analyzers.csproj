@@ -26,9 +26,9 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj">
+    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj">
       <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
-      <Name>Roslyn.Diagnostics.Analyzers</Name>
+      <Name>Roslyn.Diagnostics.Analyzers.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

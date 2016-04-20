@@ -10,21 +10,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     Public Class BasicRegisterActionAnalyzer
         Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind)
 
-        Private Shared ReadOnly s_basicSyntaxKindFullName As String = GetType(SyntaxKind).FullName
-        Private Shared ReadOnly s_CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"
+        Private Const BasicSyntaxKindFullName As String = "Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"
+        Private Const CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"
 
         Protected Overrides Function GetCodeBlockAnalyzer(compilation As Compilation,
                                                  analysisContext As INamedTypeSymbol,
                                                  compilationStartAnalysisContext As INamedTypeSymbol,
                                                  codeBlockStartAnalysisContext As INamedTypeSymbol,
                                                  operationBlockStartAnalysisContext As INamedTypeSymbol,
-                                                 symbolKind As INamedTypeSymbol,
-                                                 diagnosticAnalyzer As INamedTypeSymbol,
-                                                 diagnosticAnalyzerAttribute As INamedTypeSymbol) As RegisterActionCodeBlockAnalyzer
-            Dim basicSyntaxKind = compilation.GetTypeByMetadataName(s_basicSyntaxKindFullName)
-            Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(s_CSharpSyntaxKindFullName)
+                                                 symbolKind As INamedTypeSymbol) As RegisterActionCodeBlockAnalyzer
+            Dim basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindFullName)
+            Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindFullName)
             Return New BasicRegisterActionCodeBlockAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext,
-                                                            operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+                                                            operationBlockStartAnalysisContext, symbolKind)
         End Function
 
         Private NotInheritable Class BasicRegisterActionCodeBlockAnalyzer
@@ -39,10 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                            compilationStartAnalysisContext As INamedTypeSymbol,
                            codeBlockStartAnalysisContext As INamedTypeSymbol,
                            operationBlockStartAnalysisContext As INamedTypeSymbol,
-                           symbolKind As INamedTypeSymbol,
-                           diagnosticAnalyzer As INamedTypeSymbol,
-                           diagnosticAnalyzerAttribute As INamedTypeSymbol)
-                MyBase.New(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+                           symbolKind As INamedTypeSymbol)
+                MyBase.New(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind)
 
                 Me._basicSyntaxKind = basicSyntaxKind
                 Me._csharpSyntaxKind = csharpSyntaxKind
