@@ -43,7 +43,7 @@ Namespace TestHelper
             Get
 
                 If Me.innerlocations Is Nothing Then
-                    Return Array.Empty(Of DiagnosticResultLocation)
+                    Me.innerlocations = {}
                 End If
 
                 Return Me.innerlocations

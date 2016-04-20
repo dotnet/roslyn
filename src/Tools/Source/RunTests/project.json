@@ -4,7 +4,7 @@
     "RestSharp": "105.2.3"
   },
   "frameworks": {
-    "net46": { }
+    "net45": { }
   },
   "runtimes": {
     "win7": { },

@@ -4,7 +4,7 @@
     "Microsoft.DiaSymReader.Native": "1.3.3",    
   },
   "frameworks": {
-    "net46": { }
+    "net45": { }
   },
   "runtimes": {
     "win7-anycpu": { },

@@ -2,7 +2,7 @@
   "dependencies": {
   },
   "frameworks": {
-    "net46": {}
+    "net452": {}
   },
   "runtimes": {
     "win7": {},
