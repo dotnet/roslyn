@@ -2770,7 +2770,7 @@ class C
             var symbol2 = model.GetSymbolInfo(id).Symbol;
             Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
 
-            Assert.True(ReferenceEquals(symbol1, symbol2));
+            Assert.Same(symbol1, symbol2);
         }
 
         [Fact, WorkItem(7520, "https://github.com/dotnet/roslyn/issues/7520")]
@@ -2812,7 +2812,7 @@ class C
             var symbol2 = model.GetSymbolInfo(id).Symbol;
             Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
 
-            Assert.True(ReferenceEquals(symbol1, symbol2));
+            Assert.Same(symbol1, symbol2);
         }
 
         [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
