@@ -91,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Assert.Throws(Of InvalidOperationException)(
                 Sub()
-                    tree.GetDiagnostics(DirectCast(Nothing, SyntaxToken))
+                    Dim token As SyntaxToken = Nothing
+                    tree.GetDiagnostics(token)
                 End Sub)
 
             Assert.Throws(Of ArgumentNullException)(
@@ -101,7 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Assert.Throws(Of InvalidOperationException)(
                 Sub()
-                    tree.GetDiagnostics(DirectCast(Nothing, SyntaxTrivia))
+                    Dim trivia As SyntaxTrivia = Nothing
+                    tree.GetDiagnostics(trivia)
                 End Sub)
         End Sub
     End Class
