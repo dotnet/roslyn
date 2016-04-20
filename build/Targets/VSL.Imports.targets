@@ -132,11 +132,6 @@
         <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
         <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
       </PropertyGroup>
-
-      <PropertyGroup Condition="'$(OutputType)' != 'Exe'">
-        <!-- This is only needed for Update 1. Update 2 already defines the list. -->        
-        <NuGetTargetMoniker>.NETPlatform,Version=v5.0;.NETStandard,Version=v1.0;.NETStandard,Version=v1.1;.NETStandard,Version=v1.2;.NETStandard,Version=v1.3;.NETStandard,Version=v1.4;.NETStandard,Version=v1.5</NuGetTargetMoniker>
-      </PropertyGroup>
     </When>
   </Choose>
 

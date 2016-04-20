@@ -5,9 +5,6 @@
   
   <PropertyGroup>
     <TargetPath></TargetPath>    <!-- Prevent projects referencing this from trying to pass us to the compiler -->
-
-    <!-- This is only needed for Update 1. Update 2 already defines the list. -->        
-    <NuGetTargetMoniker>.NETPlatform,Version=v5.0;.NETStandard,Version=v1.0;.NETStandard,Version=v1.1;.NETStandard,Version=v1.2;.NETStandard,Version=v1.3;.NETStandard,Version=v1.4;.NETStandard,Version=v1.5</NuGetTargetMoniker>
   </PropertyGroup>
   
   <Target Name="CoreCompile" />                               <!-- Prevent Csc from being called -->  
