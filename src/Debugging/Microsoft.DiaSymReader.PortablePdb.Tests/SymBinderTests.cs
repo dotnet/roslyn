@@ -41,13 +41,13 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(tempDir, "Documents.pdb");
 
             Directory.CreateDirectory(tempDir);
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
 
             string searchPath = null;
 
@@ -68,15 +68,15 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(searchDir, "Documents.pdb");
 
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(searchDir);
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
 
             string searchPath = searchDir;
 
@@ -97,15 +97,15 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(searchDir, "dll", "Documents.pdb");
 
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(pdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
 
             string searchPath = searchDir;
 
@@ -126,15 +126,15 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(searchDir, "symbols", "dll", "Documents.pdb");
 
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(pdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
 
             string searchPath = searchDir;
 
@@ -157,7 +157,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(searchDir, "Documents.pdb");
@@ -166,9 +166,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(pdbFilePath));
             Directory.CreateDirectory(Path.GetDirectoryName(nativePdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
-            File.WriteAllBytes(nativePdbFilePath, TestResources.Documents.Pdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(nativePdbFilePath, TestResources.Documents.Pdb);
 
             string searchPath = searchDir;
 
@@ -189,7 +189,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir1 = Path.Combine(tempDir, "Dir1");
             string searchDir2 = Path.Combine(tempDir, "Dir2");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
@@ -199,9 +199,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(pdbFilePath));
             Directory.CreateDirectory(Path.GetDirectoryName(nativePdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
-            File.WriteAllBytes(nativePdbFilePath, TestResources.Documents.Pdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(nativePdbFilePath, TestResources.Documents.Pdb);
 
             string searchPath = searchDir1 + ";" + searchDir2;
 
@@ -222,7 +222,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string pdbFilePath = Path.Combine(searchDir, "Documents.pdb");
@@ -231,9 +231,9 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(pdbFilePath));
             Directory.CreateDirectory(Path.GetDirectoryName(anotherPdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
-            File.WriteAllBytes(anotherPdbFilePath, TestResources.Async.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(pdbFilePath, TestResources.Documents.PortablePdb);
+            PortableShim.File.WriteAllBytes(anotherPdbFilePath, TestResources.Async.PortablePdb);
 
             string searchPath = searchDir;
 
@@ -254,15 +254,15 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
 
-            string tempDir = Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), Guid.NewGuid().ToString());
+            string tempDir = Path.Combine(Path.GetDirectoryName(PortableShim.Path.GetTempFileName()), Guid.NewGuid().ToString());
             string searchDir = Path.Combine(tempDir, "Dir");
             string peFilePath = Path.Combine(tempDir, "Documents.dll");
             string anotherPdbFilePath = Path.Combine(searchDir, "symbols", "dll", "Documents.pdb");
 
             Directory.CreateDirectory(tempDir);
             Directory.CreateDirectory(Path.GetDirectoryName(anotherPdbFilePath));
-            File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
-            File.WriteAllBytes(anotherPdbFilePath, TestResources.Async.PortablePdb);
+            PortableShim.File.WriteAllBytes(peFilePath, TestResources.Documents.PortableDll);
+            PortableShim.File.WriteAllBytes(anotherPdbFilePath, TestResources.Async.PortablePdb);
 
             string searchPath = searchDir;
 
@@ -276,8 +276,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void GetReaderFromPdbFile()
         {
-            string filePath = Path.GetTempFileName();
-            File.WriteAllBytes(filePath, TestResources.Documents.PortablePdb);
+            string filePath = PortableShim.Path.GetTempFileName();
+            PortableShim.File.WriteAllBytes(filePath, TestResources.Documents.PortablePdb);
 
             ISymUnmanagedReader symReader;
             Assert.Equal(HResult.S_OK, SymBinder.GetReaderFromPdbFile(NotImplementedMetadataProvider.Instance, filePath, out symReader));
@@ -291,7 +291,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 
             Assert.Throws<ObjectDisposedException>(() => symReader.GetDocuments(0, out actualCount, null));
 
-            File.Delete(filePath);
+            PortableShim.File.Delete(filePath);
         }
 
         [Fact]

@@ -1,7 +1,9 @@
 ﻿{
   "dependencies": {
+    "System.Xml.XDocument": "4.0.11-rc3-24011-00",
+    "System.AppContext": "4.1.0-rc3-24011-00"
   },
   "frameworks": {
-    "netstandard1.1": {}
+    "netstandard1.3": {}
   }
 }
