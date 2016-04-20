@@ -17,14 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
         {
             try
             {
-                var responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName);
+                string baseDirectory = PortableShim.BaseDirectory;
+                var responseFile = Path.Combine(baseDirectory, InteractiveResponseFileName);
 
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
                     baseDirectory: Directory.GetCurrentDirectory(),
                     sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
                     args: args,
-                    clientDirectory: AppContext.BaseDirectory,
+                    clientDirectory: baseDirectory,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 
                 var runner = new CommandLineRunner(

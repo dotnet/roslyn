@@ -166,6 +166,12 @@ namespace TestResources.NetFX
         private static byte[] s_minasync;
         public static byte[] minasync => ResourceLoader.GetOrCreateResource(ref s_minasync, "NetFX.Minimal.minasync.dll");
     }
+
+    public static class NetStandard13
+    {
+        private static byte[] s_SystemRuntime;
+        public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref s_SystemRuntime, "NetFX.NetStandard13.System.Runtime.dll");
+    }
 }
 
 namespace TestResources

@@ -14,7 +14,7 @@
     <AssemblyName>ImplementNotifyPropertyChangedVB.UnitTests</AssemblyName>
     <VBRuntime>Default</VBRuntime>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Folder Include="My Project\" />

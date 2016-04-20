@@ -13,9 +13,8 @@
     <ProjectGuid>{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers</AssemblyName>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <RestorePackages>true</RestorePackages>

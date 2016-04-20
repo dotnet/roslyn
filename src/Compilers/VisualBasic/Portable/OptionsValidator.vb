@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return parsedImportList.ToArray()
             Else
-                Return New GlobalImport() {}
+                Return Array.Empty(Of GlobalImport)
             End If
         End Function
 

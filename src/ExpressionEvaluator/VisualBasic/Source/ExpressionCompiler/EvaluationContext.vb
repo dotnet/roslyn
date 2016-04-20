@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Using
         End Function
 
-        Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(New Byte() {})
+        Private Shared ReadOnly s_emptyBytes As New ReadOnlyCollection(Of Byte)(Array.Empty(Of Byte))
 
         Friend Overrides Function CompileGetLocals(
             locals As ArrayBuilder(Of LocalAndMethod),

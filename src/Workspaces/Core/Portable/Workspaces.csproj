@@ -13,9 +13,9 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -123,9 +123,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Array.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Array.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>

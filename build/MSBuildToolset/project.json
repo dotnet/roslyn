@@ -13,8 +13,8 @@
     "Microsoft.Build": "0.1.0-preview-00017",
     "Microsoft.Net.Compilers.netcore": "1.2.0-beta1-20160202-02",
     "Microsoft.Net.Compilers.Targets.netcore": "0.1.4-dev",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23811",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23811",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24011-00",
+    "Microsoft.NETCore.TestHost": "1.0.1-rc3-24011-00",
     "NETStandard.Library": "1.0.0-rc2-23811",
     "MSBuild": "0.1.0-preview-00017",
     "System.Security.Cryptography.X509Certificates": "4.0.0-rc2-23811",
@@ -23,9 +23,7 @@
   },
 
   "frameworks": {
-    "dnxcore50": {
-      "imports": "portable-net452"
-    }
+    "netstandard1.3": { }
   },
   "runtimes": {
     "win7-x64": { },
