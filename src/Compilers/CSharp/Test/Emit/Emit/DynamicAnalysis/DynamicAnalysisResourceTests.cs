@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Runtime
 {
     public static class Instrumentation
     {
-        public static void CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
+        public static bool[] CreatePayload(System.Guid mvid, int methodToken, ref bool[] payload, int payloadLength)
         {
+            return payload;
         }
 
         public static void FlushPayload()
@@ -53,7 +54,7 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' AE-D9-10-9C-B0-76-3E-8D-4B-C8-EC-29-65-B5-CE-AD-D3-04-5C-6B (SHA1)");
+                @"'C:\myproject\doc1.cs' B8-F7-5B-45-79-BC-51-18-00-2B-11-40-B6-E8-E2-85-28-D9-11-0C (SHA1)");
 
             Assert.Equal(5, reader.Methods.Length);
 
@@ -167,7 +168,7 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' 9D-F9-51-10-8D-40-2E-84-BA-96-61-EB-69-4D-34-9D-A5-12-31-2D (SHA1)");
+                @"'C:\myproject\doc1.cs' EE-A5-42-12-BD-ED-90-96-8D-12-54-DE-D0-F0-4F-EC-79-C6-2A-89 (SHA1)");
 
             Assert.Equal(5, reader.Methods.Length);
 

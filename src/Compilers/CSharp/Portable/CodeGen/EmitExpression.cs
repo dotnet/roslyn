@@ -220,11 +220,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
                     break;
 
-                case BoundKind.MethodDefinitionToken:
-                    if (used)
-                    {
-                        EmitMethodDefinitionTokenExpression((BoundMethodDefinitionToken)expression);
-                    }
+                case BoundKind.InstrumentationPayloadRoot:
+                    Debug.Assert(used);
+                    EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
+                case BoundKind.MethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMethodDefIndexExpression((BoundMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.MaximumMethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMaximumMethodDefIndexExpression((BoundMaximumMethodDefIndex)expression);
                     break;
 
                 case BoundKind.MethodInfo:
@@ -2325,6 +2333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdStore((BoundModuleVersionId)expression);
                     break;
 
+                case BoundKind.InstrumentationPayloadRoot:
+                    EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2678,12 +2690,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
         }
 
-        private void EmitMethodDefinitionTokenExpression(BoundMethodDefinitionToken node)
+        private void EmitMethodDefIndexExpression(BoundMethodDefIndex node)
         {
             Debug.Assert(node.Method.IsDefinition);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitGreatestMethodToken();
         }
 
         private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
@@ -2696,6 +2715,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.EmitOpCode(ILOpCode.Stsfld);
             _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+        
+        private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

@@ -1320,7 +1320,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return details.GetModuleVersionId(mvidType);
         }
-        
+
+        internal Cci.IFieldReference GetInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadType, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
+            EnsurePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics);
+
+            return details.GetOrAddInstrumentationPayloadRoot(analysisKind, payloadType);
+        }
+
         private void EnsurePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, CSharpSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)

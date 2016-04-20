@@ -43,15 +43,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
-        internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
+        internal void EmitToken(Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics, bool encodeAsRawToken = false)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
             // Setting the high bit indicates that the token value is to be interpreted literally rather than as a handle.
             if (encodeAsRawToken)
             {
-                token |= 0x80000000;
+                token |= Cci.MetadataWriter.LiteralMethodDefinitionToken;
             }
             this.GetCurrentWriter().WriteUInt32(token);
+        }
+
+        internal void EmitGreatestMethodToken()
+        {
+            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)

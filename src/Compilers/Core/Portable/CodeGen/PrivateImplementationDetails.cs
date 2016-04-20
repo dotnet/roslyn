@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
         private ModuleVersionIdField _mvidField;
+        // Dictionary that maps from analysis kind to instrumentation payload field.
+        private readonly ConcurrentDictionary<int, InstrumentationPayloadRootField> _instrumentationPayloadRootFields = new ConcurrentDictionary<int, InstrumentationPayloadRootField>();
 
         // synthesized methods
         private ImmutableArray<Cci.IMethodDefinition> _orderedSynthesizedMethods;
@@ -118,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 fieldsBuilder.Add(_mvidField);
             }
+            fieldsBuilder.AddRange(_instrumentationPayloadRootFields.Values);
             fieldsBuilder.Sort(FieldComparer.Instance);
             _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
 
@@ -163,11 +166,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             if (_mvidField == null)
             {
+                Debug.Assert(!IsFrozen);
                 Interlocked.CompareExchange(ref _mvidField, new ModuleVersionIdField(this, mvidType), null);
             }
 
             Debug.Assert(_mvidField.Type.Equals(mvidType));
             return _mvidField;
+        }
+
+        internal Cci.IFieldReference GetOrAddInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadRootType)
+        {
+            InstrumentationPayloadRootField payloadRootField;
+            if (!_instrumentationPayloadRootFields.TryGetValue(analysisKind, out payloadRootField))
+            {
+                Debug.Assert(!IsFrozen);
+                payloadRootField = _instrumentationPayloadRootFields.GetOrAdd(analysisKind, kind => new InstrumentationPayloadRootField(this, kind, payloadRootType));
+            }
+
+            Debug.Assert(payloadRootField.Type.Equals(payloadRootType));
+            return payloadRootField;
+        }
+
+        internal IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>> GetInstrumentationPayloadRoots()
+        {
+            Debug.Assert(IsFrozen);
+            return (IReadOnlyCollection<KeyValuePair<int, InstrumentationPayloadRootField>>)_instrumentationPayloadRootFields;
         }
 
         // Add a new synthesized method indexed by its name if the method isn't already present.
@@ -406,6 +429,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         internal ModuleVersionIdField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
             : base("MVID", containingType, type)
+        {
+        }
+
+        public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
+    }
+
+    internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField
+    {
+        internal InstrumentationPayloadRootField(Cci.INamedTypeDefinition containingType, int analysisIndex, Cci.ITypeReference payloadType)
+            : base("PayloadRoot" + analysisIndex.ToString(), containingType, payloadType)
         {
         }
 

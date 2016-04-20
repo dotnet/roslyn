@@ -977,9 +977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        public BoundExpression MethodDefinitionToken(MethodSymbol method)
+        public BoundExpression MethodDefIndex(MethodSymbol method)
         {
-            return new BoundMethodDefinitionToken(
+            return new BoundMethodDefIndex(
                 Syntax,
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
@@ -993,6 +993,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression ModuleVersionId()
         {
             return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
+        {
+            return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MaximumMethodDefIndex()
+        {
+            return new BoundMaximumMethodDefIndex(
+                Syntax,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
         }
 
         public BoundExpression MethodInfo(MethodSymbol method)
@@ -1125,6 +1138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
         
+        public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
+        {
+            return new BoundArrayCreation(
+               Syntax,
+               ImmutableArray.Create<BoundExpression>(length),
+               null,
+               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
+        }
+
         internal BoundExpression Default(TypeSymbol type)
         {
             return new BoundDefaultOperator(Syntax, type) { WasCompilerGenerated = true };

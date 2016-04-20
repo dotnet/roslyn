@@ -189,6 +189,12 @@ namespace Microsoft.CodeAnalysis
         Awaiter = 33,
 
         /// <summary>
+        /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
+        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// </summary>
+        InstrumentationPayload = 34,
+
+        /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
         /// (<see cref="EditAndContinueMethodDebugInformation"/>)
         /// </summary>
