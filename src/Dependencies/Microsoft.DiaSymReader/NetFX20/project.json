@@ -3,9 +3,6 @@
         "Microsoft.NetFX20": "1.0.3"
     },
     "frameworks": {
-        "net20": { }
+        "net46": {}
     },
-    "runtimes": {
-        "win7": { }
-    }
 }
