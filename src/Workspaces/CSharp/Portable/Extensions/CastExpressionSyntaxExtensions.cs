@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // Special case: When a cast and passed as the single argument to a params parameter,
+            // Special case: When a cast is passed as the single argument to a params parameter,
             // we can only remove the cast if it is implicitly convertible to the parameter's type,
             // but not the parameter's element type. Otherwise, we could end up changing the invocation
             // to pass a null array rather than an array with a null single element.
@@ -180,22 +180,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
                 if (parameter != null && parameter.IsParams)
                 {
-                    Debug.Assert(parameter.Type is IArrayTypeSymbol);
-
-                    var parameterType = (IArrayTypeSymbol)parameter.Type;
-
-                    var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
-                    if (conversion.Exists &&
-                        conversion.IsImplicit)
+                    var parameterType = parameter.Type as IArrayTypeSymbol;
+                    if (parameterType != null)
                     {
-                        return false;
-                    }
+                        var conversionToParameterType = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
+                        if (conversionToParameterType.Exists &&
+                            conversionToParameterType.IsImplicit)
+                        {
+                            return false;
+                        }
 
-                    var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
-                    if (conversionElementType.Exists &&
-                        conversionElementType.IsImplicit)
-                    {
-                        return true;
+                        var conversionToElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
+                        if (conversionToElementType.Exists &&
+                            conversionToElementType.IsImplicit)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
