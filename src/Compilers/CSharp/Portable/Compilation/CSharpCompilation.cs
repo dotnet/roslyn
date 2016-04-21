@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         // if that was the last tree, signal the end of compilation
-                        EnsureCompilationCompleted();
+                        CompleteCompilationEventQueue_NoLock();
                     }
                 }
             }
@@ -1949,9 +1949,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
 
-                if (this.EventQueue != null && this.SyntaxTrees.Length == 0)
+                if (EventQueue != null && SyntaxTrees.Length == 0)
                 {
-                    EnsureCompilationCompleted();
+                    EnsureCompilationEventQueueCompleted();
                 }
             }
 
