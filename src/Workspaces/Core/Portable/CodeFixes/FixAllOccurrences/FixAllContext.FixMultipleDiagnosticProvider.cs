@@ -9,15 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    /// <summary>
-    /// Context for "Fix multiple occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
-    /// </summary>
-    internal static partial class FixMultipleContext
+    public partial class FixAllContext
     {
         /// <summary>
-        /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixMultipleContext"/>.
+        /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </summary>
-        public sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
+        internal sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
             internal override bool IsFixMultiple => true;
 

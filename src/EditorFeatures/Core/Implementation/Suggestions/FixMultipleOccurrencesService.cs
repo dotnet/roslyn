@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var fixMultipleContext = FixAllContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
             var triggerDiagnostic = diagnosticsToFix.First().Value.First();
 
             var suggestedAction = GetSuggestedAction(fixMultipleContext, triggerDiagnostic, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var fixMultipleContext = FixAllContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
             var triggerDiagnostic = diagnosticsToFix.First().Value.First();
 
             var suggestedAction = GetSuggestedAction(fixMultipleContext, triggerDiagnostic, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
