@@ -7207,6 +7207,32 @@ class A
     );
         }
 
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        public void CS0201ERR_IllegalStatement2WithCSharp6()
+        {
+            var test = @"
+class A
+{
+    public static int Main()
+    {
+        (a) => a;
+        (a, b) =>
+        {
+        };
+        int x = 0; int y = 0;
+        x + y; x == 1;
+    }
+}";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { },
+                new ErrorDescription[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 6, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 7, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 16 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ReturnExpected, Line = 4, Column = 23 }
+                });
+        }
+
         [Fact()]
         public void CS0202ERR_BadGetEnumerator()
         {

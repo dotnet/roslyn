@@ -1071,6 +1071,41 @@ class C
     );
         }
 
+        /// <summary>
+        /// Currently parser error 1001, 1003.  Is that good enough?
+        /// </summary>
+        [Fact()]
+        public void CS0081ERR_TypeParamMustBeIdentifier01WithCSharp6()
+        {
+            var text = @"namespace NS
+{
+  class C
+  {
+    int F<int>() { }  // CS0081
+  }
+}";
+            // Triage decision was made to have this be a parse error as the grammar specifies it as such.
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+                // (5,11): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int"),
+                // (5,11): error CS1003: Syntax error, '>' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int"),
+                // (5,11): error CS1003: Syntax error, '(' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int"),
+                // (5,14): error CS1001: Identifier expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
+                // (5,14): error CS1003: Syntax error, ',' expected
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">"),
+                // (5,9): error CS0161: 'NS.C.F<>(int)': not all code paths return a value
+                //     int F<int>() { }  // CS0081
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int)"));
+        }
+
         [Fact]
         public void CS0082ERR_MemberReserved01()
         {

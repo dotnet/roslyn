@@ -2861,12 +2861,7 @@ class C1 {
             string expectedText,
             params SymbolDisplayPartKind[] expectedKinds)
         {
-            var comp = CreateCompilationWithMscorlib(source);
-            var global = comp.GlobalNamespace;
-            var symbol = findSymbol(global);
-            var description = symbol.ToDisplayParts(format);
-
-            Verify(description, expectedText, expectedKinds);
+            TestSymbolDescription(source, findSymbol, format, null, expectedText, expectedKinds);
         }
 
         private static void TestSymbolDescription(

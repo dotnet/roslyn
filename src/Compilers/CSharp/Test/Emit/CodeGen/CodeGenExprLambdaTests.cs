@@ -3597,6 +3597,52 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
     );
         }
 
+        [WorkItem(544546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
+        [Fact]
+        public void BadExprTreeLambdaInNSDeclWithCSharp6()
+        {
+            string source = @"
+namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+";
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (2,11): error CS7000: Unexpected use of an aliased name
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::"),
+                // (2,19): error CS1001: Identifier expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
+                // (2,70): error CS0116: A namespace does not directly contain members such as fields or methods
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">"),
+                // (2,79): error CS0116: A namespace does not directly contain members such as fields or methods
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B"),
+                // (2,19): error CS1514: { expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "("),
+                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
+                // (2,71): error CS1022: Type or namespace definition, or end-of-file expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")"),
+                // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")"),
+                // (2,84): error CS1520: Method must have a return type
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile"),
+                // (2,93): error CS1002: ; expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
+                // (2,93): error CS1022: Type or namespace definition, or end-of-file expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
+                // (2,84): error CS0501: '.<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()"));
+        }
+
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]
         [Fact]
         public void NSaliasSystemIsGlobal()
