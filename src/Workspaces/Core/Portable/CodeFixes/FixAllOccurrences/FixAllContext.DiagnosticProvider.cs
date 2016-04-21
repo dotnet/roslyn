@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+        internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
             BatchFixAllProvider batchFixer)
         {
             return _diagnosticProvider.GetDocumentDiagnosticsToFixAsync(batchFixer, this);
         }
 
-        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+        internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
             BatchFixAllProvider batchFixer)
         {
             return _diagnosticProvider.GetProjectDiagnosticsToFixAsync(batchFixer, this);
