@@ -4032,8 +4032,11 @@ tryAgain:
                 case SyntaxKind.ArgListKeyword:
                     return true;
                 case SyntaxKind.OpenParenToken:   // tuple
-                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples) || IsPredefinedType(this.CurrentToken.Kind);
-
+                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                    {
+                        return true;
+                    }
+                    goto default;
                 case SyntaxKind.ThisKeyword:
                     return allowThisKeyword;
                 case SyntaxKind.IdentifierToken:
@@ -9601,29 +9604,31 @@ tryAgain:
                 && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
                 && this.PeekToken(2).Kind == SyntaxKind.CommaToken)
             {
-                if (!IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                {
+                    int curTk = 3;
+                    while (true)
+                    {
+                        var tk = this.PeekToken(curTk++);
+
+                        // skip  identifiers commas and predefined types in any combination for error recovery
+                        if (tk.Kind != SyntaxKind.IdentifierToken
+                            && !SyntaxFacts.IsPredefinedType(tk.Kind)
+                            && tk.Kind != SyntaxKind.CommaToken
+                            && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
+                        {
+                            break;
+                        };
+                    }
+
+                    // ) =>
+                    return this.PeekToken(curTk - 1).Kind == SyntaxKind.CloseParenToken &&
+                           this.PeekToken(curTk).Kind == SyntaxKind.EqualsGreaterThanToken;
+                }
+                else
                 {
                     return true;
                 }
-
-                int curTk = 3;
-                while (true)
-                {
-                    var tk = this.PeekToken(curTk++);
-
-                    // skip  identifiers commas and predefined types in any combination for error recovery
-                    if (tk.Kind != SyntaxKind.IdentifierToken
-                        && !SyntaxFacts.IsPredefinedType(tk.Kind)
-                        && tk.Kind != SyntaxKind.CommaToken
-                        && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
-                    {
-                        break;
-                    };
-                }
-
-                // ) =>
-                return this.PeekToken(curTk - 1).Kind == SyntaxKind.CloseParenToken &&
-                       this.PeekToken(curTk).Kind == SyntaxKind.EqualsGreaterThanToken;
             }
 
             //  case 2:  ( x ) =>
@@ -10755,7 +10760,11 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                     return true;
                 case SyntaxKind.OpenParenToken:   // tuple
-                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples) || IsPredefinedType(this.CurrentToken.Kind);
+                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                    {
+                        return true;
+                    }
+                    goto default;
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
                 default:

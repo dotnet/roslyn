@@ -7173,7 +7173,7 @@ class A
         x + y; x == 1;
     }
 }";
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.ExperimentalParseOptions).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
     // (7,16): error CS1001: Identifier expected
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),

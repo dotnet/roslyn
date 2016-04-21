@@ -206,7 +206,7 @@ class C
 }
 
 class M<,> { }
-", options: TestOptions.ExperimentalParseOptions);
+", options: TestOptions.Regular.WithTuplesFeature());
 
             N(SyntaxKind.CompilationUnit);
             {

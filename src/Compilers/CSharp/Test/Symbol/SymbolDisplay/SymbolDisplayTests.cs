@@ -2869,6 +2869,22 @@ class C1 {
             Verify(description, expectedText, expectedKinds);
         }
 
+        private static void TestSymbolDescription(
+            string source,
+            Func<NamespaceSymbol, Symbol> findSymbol,
+            SymbolDisplayFormat format,
+            CSharpParseOptions parseOptions,
+            string expectedText,
+            params SymbolDisplayPartKind[] expectedKinds)
+        {
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
+            var global = comp.GlobalNamespace;
+            var symbol = findSymbol(global);
+            var description = symbol.ToDisplayParts(format);
+
+            Verify(description, expectedText, expectedKinds);
+        }
+
         private static void Verify(ImmutableArray<SymbolDisplayPart> actualParts, string expectedText, params SymbolDisplayPartKind[] expectedKinds)
         {
             Assert.Equal(expectedText, actualParts.ToDisplayString());
@@ -4487,6 +4503,7 @@ public class C
                 text,
                 findSymbol,
                 format,
+                TestOptions.Regular.WithTuplesFeature(),
                 "(Int32, String) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName, // Int32
@@ -4518,6 +4535,7 @@ public class C
                 text,
                 findSymbol,
                 format,
+                TestOptions.Regular.WithTuplesFeature(),
                 "(Int32 x, String y) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName, // Int32
@@ -4555,6 +4573,7 @@ public class C
                 text,
                 findSymbol,
                 format,
+                TestOptions.Regular.WithTuplesFeature(),
                 "(int, string, bool, byte, long, ulong, short, ushort) f",
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword, // int

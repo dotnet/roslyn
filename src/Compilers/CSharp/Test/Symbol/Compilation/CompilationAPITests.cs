@@ -433,7 +433,7 @@ namespace A.B {
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.ExperimentalParseOptions) },
+                    options: TestOptions.Regular.WithTuplesFeature()) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
