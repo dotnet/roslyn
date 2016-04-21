@@ -5,6 +5,7 @@ Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports OleInterop = Microsoft.VisualStudio.OLE.Interop
+Imports System.Threading
 
 Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
 
@@ -73,7 +74,7 @@ Namespace Microsoft.VisualStudio.Editors.ApplicationDesigner
                     End If
                 Catch ex As OutOfMemoryException
                     Throw
-                Catch ex As Threading.ThreadAbortException
+                Catch ex As ThreadAbortException
                     Throw
                 Catch ex As StackOverflowException
                     Throw
