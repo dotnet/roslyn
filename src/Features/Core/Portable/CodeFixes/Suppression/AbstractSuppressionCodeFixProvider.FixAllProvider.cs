@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var title = fixAllContext.CodeActionEquivalenceKey;
                 if (fixAllContext.Document != null)
                 {
-#if false
-                    var documentsAndDiagnosticsToFixMap = fixMultipleContext != null ?
-                        fixMultipleContext.DocumentDiagnosticsToFix :
-                        await batchFixer.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-#endif
-
                     var documentsAndDiagnosticsToFixMap = 
                         await fixAllContext.GetDocumentDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
 
@@ -52,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else
                 {
-#if false
-                    var projectsAndDiagnosticsToFixMap = fixMultipleContext != null ?
-                        fixMultipleContext.ProjectDiagnosticsToFix :
-                        await batchFixer.GetProjectDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-#endif
                     var projectsAndDiagnosticsToFixMap =
                         await fixAllContext.GetProjectDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
 
