@@ -1,0 +1,12 @@
+{
+  "supports": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.Text.Data": "14.1.24720",
+    "Microsoft.VisualStudio.Text.Logic": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI": "14.1.24720",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.1.24720"
+  },
+  "frameworks": {
+    ".NETFramework,Version=v4.5": { }
+  }
+}

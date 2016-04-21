@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Windows.Forms
 Imports VB = Microsoft.VisualBasic
 Imports System.Reflection
+Imports System.Threading
 
 Namespace Microsoft.VisualStudio.Editors.AppDesCommon
 
@@ -232,7 +233,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
             If TypeOf ex Is NullReferenceException _
                 OrElse (Not IgnoreOutOfMemory AndAlso TypeOf ex Is OutOfMemoryException) _
                 OrElse TypeOf ex Is StackOverflowException _
-                OrElse TypeOf ex Is Threading.ThreadAbortException _
+                OrElse TypeOf ex Is ThreadAbortException _
                 OrElse TypeOf ex Is AccessViolationException _
             Then
                 Return True
