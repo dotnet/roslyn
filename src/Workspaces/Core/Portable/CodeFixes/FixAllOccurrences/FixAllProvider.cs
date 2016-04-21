@@ -41,18 +41,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
 
-        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
-        {
-            return Task.FromResult(
-                ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty);
-        }
-
-        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(FixAllContext fixAllContext)
-        {
-            return Task.FromResult(
-                ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty);
-        }
-
         internal virtual Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext)

@@ -33,12 +33,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _documentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
             }
 
-            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllProvider batchFixer, FixAllContext context)
+            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+                FixAllContext context)
             {
                 return Task.FromResult(_documentDiagnosticsMap);
             }
 
-            internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(FixAllProvider batchFixer, FixAllContext context)
+            internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+                FixAllContext context)
             {
                 return Task.FromResult(_projectDiagnosticsMap);
             }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 if (fixAllContext.Document != null)
                 {
                     var documentsAndDiagnosticsToFixMap = 
-                        await fixAllContext.GetDocumentDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
+                        await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
 
                     return !isGlobalSuppression ?
                         await batchFixer.GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 else
                 {
                     var projectsAndDiagnosticsToFixMap =
-                        await fixAllContext.GetProjectDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
+                        await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
 
                     return !isGlobalSuppression ?
                         await batchFixer.GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
