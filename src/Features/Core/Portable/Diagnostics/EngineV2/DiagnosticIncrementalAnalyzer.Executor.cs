@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //       this can happen since caller could have created the driver with different set of analyzers that are different
                 //       than what we used to create the cache.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var analyzersToRun = ReduceAnalyzersToRun(analyzerDriverOpt, version, existing);
-                if (analyzersToRun != null)
+                ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
+                if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
-                        project, analyzersToRun.Value, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
@@ -207,19 +207,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            private ImmutableArray<DiagnosticAnalyzer>? ReduceAnalyzersToRun(
+            private bool TryReduceAnalyzersToRun(
                 CompilationWithAnalyzers analyzerDriverOpt, VersionStamp version,
-                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing)
+                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing,
+                out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
+                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+
                 // we don't have analyzer driver, nothing to reduce.
                 if (analyzerDriverOpt == null)
                 {
-                    return null;
+                    return false;
                 }
 
-                var analyzers = analyzerDriverOpt.Analyzers;
+                var existingAnalyzers = analyzerDriverOpt.Analyzers;
                 var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-                foreach (var analyzer in analyzers)
+                foreach (var analyzer in existingAnalyzers)
                 {
                     AnalysisResult analysisResult;
                     if (existing.TryGetValue(analyzer, out analysisResult) &&
@@ -237,12 +240,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfTrue(builder.Count == 0);
 
                 // all of analyzers are out of date.
-                if (builder.Count == analyzers.Length)
+                if (builder.Count == existingAnalyzers.Length)
                 {
-                    return null;
+                    return false;
                 }
 
-                return builder.ToImmutable();
+                analyzers = builder.ToImmutable();
+                return true;
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
