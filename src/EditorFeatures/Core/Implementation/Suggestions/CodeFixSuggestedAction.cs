@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeAction action,
             int actionCount,
             FixAllProvider fixAllProvider,
-            FixAllCodeActionContext fixAllCodeActionContext,
+            FixAllContext fixAllCodeActionContext,
             IEnumerable<FixAllScope> supportedScopes,
             Diagnostic firstDiagnostic,
             Workspace workspace,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// Transforms this context into the public <see cref="FixAllContext"/> to be used for <see cref="FixAllProvider.GetFixAsync(FixAllContext)"/> invocation.
         /// </summary>
         private static FixAllContext GetContextForScopeAndActionId(
-            FixAllCodeActionContext context,
+            FixAllContext context,
             FixAllScope scope, string codeActionEquivalenceKey)
         {
             if (context.Scope == scope && context.CodeActionEquivalenceKey == codeActionEquivalenceKey)

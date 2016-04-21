@@ -13,9 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// FixAll context with some additional information specifically for <see cref="FixAllCodeAction"/>.
     /// </summary>
-    internal partial class FixAllCodeActionContext : FixAllContext
+    internal partial class FixAllCodeActionContext
     {
-        internal class FixAllDiagnosticProvider : DiagnosticProvider
+        // Internal for testing purposes.
+        internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
             private readonly ImmutableHashSet<string> _diagnosticIds;
 

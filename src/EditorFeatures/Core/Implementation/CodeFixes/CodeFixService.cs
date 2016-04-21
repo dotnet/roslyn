@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var fixAllProviderInfo = extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
 
                 FixAllProvider fixAllProvider = null;
-                FixAllCodeActionContext fixAllContext = null;
+                FixAllContext fixAllContext = null;
                 IEnumerable<FixAllScope> supportedScopes = null;
                 if (fixAllProviderInfo != null)
                 {
