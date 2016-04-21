@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                     fixAllProvider = fixAllProviderInfo.FixAllProvider;
-                    fixAllContext = FixAllCodeActionContext.Create(
+                    fixAllContext = FixAllContext.Create(
                         document, fixAllProviderInfo, codeFixProvider, diagnostics,
                         this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
                     supportedScopes = fixAllProviderInfo.SupportedScopes;

@@ -271,5 +271,100 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _diagnosticProvider,
                 cancellationToken);
         }
+
+        internal static FixAllContext Create(
+            Document document,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
+            CancellationToken cancellationToken)
+        {
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllContext(
+                document: document,
+                codeFixProvider: originalFixProvider,
+                scope: FixAllScope.Document,
+                codeActionEquivalenceKey: null,
+                diagnosticIds: diagnosticIds,
+                fixAllDiagnosticProvider: diagnosticProvider,
+                cancellationToken: cancellationToken);
+        }
+
+        internal static FixAllContext Create(
+            Project project,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
+            CancellationToken cancellationToken)
+        {
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllContext(
+                project: project,
+                codeFixProvider: originalFixProvider,
+                scope: FixAllScope.Project,
+                codeActionEquivalenceKey: null, diagnosticIds: diagnosticIds,
+                fixAllDiagnosticProvider: diagnosticProvider,
+                cancellationToken: cancellationToken);
+        }
+
+        private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
+        {
+            return originalFixDiagnostics
+                .Where(fixAllProviderInfo.CanBeFixed)
+                .Select(d => d.Id);
+        }
+
+        // Internal for testing purposes.
+        internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+        {
+            private readonly ImmutableHashSet<string> _diagnosticIds;
+
+            /// <summary>
+            /// Delegate to fetch diagnostics for any given document within the given fix all scope.
+            /// This delegate is invoked by <see cref="GetDocumentDiagnosticsAsync(Document, CancellationToken)"/> with the given <see cref="_diagnosticIds"/> as arguments.
+            /// </summary>
+            private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getDocumentDiagnosticsAsync;
+
+            /// <summary>
+            /// Delegate to fetch diagnostics for any given project within the given fix all scope.
+            /// This delegate is invoked by <see cref="GetProjectDiagnosticsAsync(Project, CancellationToken)"/> and <see cref="GetAllDiagnosticsAsync(Project, CancellationToken)"/>
+            /// with the given <see cref="_diagnosticIds"/> as arguments.
+            /// The boolean argument to the delegate indicates whether or not to return location-based diagnostics, i.e.
+            /// (a) False => Return only diagnostics with <see cref="Location.None"/>.
+            /// (b) True => Return all project diagnostics, regardless of whether or not they have a location.
+            /// </summary>
+            private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> _getProjectDiagnosticsAsync;
+
+            public FixAllDiagnosticProvider(
+                ImmutableHashSet<string> diagnosticIds,
+                Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+                Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
+            {
+                _diagnosticIds = diagnosticIds;
+                _getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
+                _getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
+            }
+
+            public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            {
+                return _getDocumentDiagnosticsAsync(document, _diagnosticIds, cancellationToken);
+            }
+
+            public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            {
+                return _getProjectDiagnosticsAsync(project, true, _diagnosticIds, cancellationToken);
+            }
+
+            public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+            {
+                return _getProjectDiagnosticsAsync(project, false, _diagnosticIds, cancellationToken);
+            }
+        }
     }
 }
