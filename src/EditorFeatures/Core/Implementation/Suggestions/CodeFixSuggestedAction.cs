@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeAction action,
             int actionCount,
             FixAllCodeActionContext fixAllCodeActionContext,
+            IEnumerable<FixAllScope> supportedScopes,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
-            foreach (var scope in fixAllCodeActionContext.SupportedScopes)
+            foreach (var scope in supportedScopes)
             {
                 var fixAllContext = GetContextForScopeAndActionId(fixAllCodeActionContext, scope, action.EquivalenceKey);
                 var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);

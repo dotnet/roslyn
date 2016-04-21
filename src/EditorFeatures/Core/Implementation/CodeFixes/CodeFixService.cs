@@ -288,16 +288,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var fixAllProviderInfo = extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
 
                 FixAllCodeActionContext fixAllContext = null;
+                IEnumerable<FixAllScope> supportedScopes = null;
                 if (fixAllProviderInfo != null)
                 {
                     var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                     fixAllContext = FixAllCodeActionContext.Create(
                         document, fixAllProviderInfo, codeFixProvider, diagnostics,
                         this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
+                    supportedScopes = fixAllProviderInfo.SupportedScopes;
                 }
 
                 result = result ?? new List<CodeFixCollection>();
-                var codeFix = new CodeFixCollection(fixer, span, fixes, fixAllContext);
+                var codeFix = new CodeFixCollection(fixer, span, fixes, fixAllContext, supportedScopes);
                 result.Add(codeFix);
             }
 

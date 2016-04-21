@@ -91,9 +91,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             get { return _fixAllProviderInfo.FixAllProvider; }
         }
 
+#if false
         public IEnumerable<FixAllScope> SupportedScopes
         {
             get { return _fixAllProviderInfo.SupportedScopes; }
         }
+#endif
     }
 }

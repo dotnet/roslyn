@@ -142,7 +142,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await fixer.RegisterCodeFixesAsync(context);
                     if (fixes.Any())
                     {
-                        var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
+                        var codeFix = new CodeFixCollection(
+                            fixer, diagnostic.Location.SourceSpan, fixes,
+                            fixAllContext: null, supportedScopes: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -161,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     foreach (var diagnostic in diagnostics)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
+                        var codeFix = new CodeFixCollection(
+                            fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)),
+                            fixAllContext: null, supportedScopes: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }

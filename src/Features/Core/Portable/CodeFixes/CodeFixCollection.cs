@@ -21,18 +21,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
         /// </summary>
         public FixAllCodeActionContext FixAllContext { get; }
+        public IEnumerable<FixAllScope> SupportedScopes { get; }
 
-        public CodeFixCollection(object provider, TextSpan span, IEnumerable<CodeFix> fixes, FixAllCodeActionContext fixAllContext = null) :
-            this(provider, span, fixes.ToImmutableArray(), fixAllContext)
+        public CodeFixCollection(
+            object provider,
+            TextSpan span,
+            IEnumerable<CodeFix> fixes,
+            FixAllCodeActionContext fixAllContext,
+            IEnumerable<FixAllScope> supportedScopes) :
+            this(provider, span, fixes.ToImmutableArray(), fixAllContext, supportedScopes)
         {
         }
 
-        public CodeFixCollection(object provider, TextSpan span, ImmutableArray<CodeFix> fixes, FixAllCodeActionContext fixAllContext = null)
+        public CodeFixCollection(
+            object provider,
+            TextSpan span,
+            ImmutableArray<CodeFix> fixes,
+            FixAllCodeActionContext fixAllContext,
+            IEnumerable<FixAllScope> supportedScopes)
         {
             this.Provider = provider;
             this.TextSpan = span;
             this.Fixes = fixes;
             this.FixAllContext = fixAllContext;
+            this.SupportedScopes = supportedScopes;
         }
     }
 }
