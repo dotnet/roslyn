@@ -29,13 +29,14 @@ class C
         C local = this;
         M2(1, 2);
         local.M2(b: 2, a: 1);
-        M3(1, 2, 3);
+        int x = 1;
+        M3(x);
     }
 
     void M2(int a, int b) { }
-    static void M3(int a, params int[] c) { }
+    void M3(double d) { }
 }";
-          
+
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -69,6 +70,7 @@ class C
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             IOperation argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.False(argumentValue.IsInvalid);
@@ -84,6 +86,7 @@ class C
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.False(argumentValue.IsInvalid);
@@ -118,6 +121,7 @@ class C
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.False(argumentValue.IsInvalid);
@@ -133,6 +137,7 @@ class C
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.False(argumentValue.IsInvalid);
@@ -140,29 +145,80 @@ class C
             Assert.True(argumentValue.ConstantValue.HasValue);
             Assert.Equal(argumentValue.ConstantValue.Value, 2);
 
-            // M3(1, 2, 3)
+            // M3(x)
 
-            Assert.Equal("M3(1, 2, 3)", nodes[2].ToString());
+            Assert.Equal("M3(x)", nodes[2].ToString());
             operation = model.GetOperation(nodes[2]);
             Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
             Assert.False(operation.IsInvalid);
             invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
             Assert.Equal(invocation.TargetMethod.Name, "M3");
-            Assert.Null(invocation.Instance);
             arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
+            Assert.Equal(arguments.Length, 1);
 
-            // 1
+            // x
 
             argument = arguments[0];
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
+            Assert.Equal(argument.Parameter.Name, "d");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.ConversionExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Double);
+            IConversionExpression conversion = (IConversionExpression)argumentValue;
+            argumentValue = ((IConversionExpression)argumentValue).Operand;
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.Equal(argumentValue.Kind, OperationKind.LocalReferenceExpression);
+            Assert.Equal(((ILocalReferenceExpression)argumentValue).Local.Name, "x");
+        }
+
+        [Fact]
+        public void ParamArrayInvocations()
+        {
+            const string source = @"
+class C
+{
+    void M1()
+    {
+        M2(1, 2, 3);
+    }
+
+    static void M2(int a, params int[] c) { }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(nodes.Length, 1);
+
+            // M3(1, 2, 3)
+
+            Assert.Equal("M2(1, 2, 3)", nodes[0].ToString());
+            IOperation operation = model.GetOperation(nodes[0]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            IInvocationExpression invocation = (IInvocationExpression)operation;
+            Assert.False(invocation.ConstantValue.HasValue);
+            Assert.False(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            Assert.Null(invocation.Instance);
+            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
+            Assert.Equal(arguments.Length, 2);
+
+            // 1
+
+            IArgument argument = arguments[0];
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "a");
+            IOperation argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.False(argumentValue.IsInvalid);
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
@@ -204,6 +260,218 @@ class C
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
             Assert.True(argumentValue.ConstantValue.HasValue);
             Assert.Equal(argumentValue.ConstantValue.Value, 3);
+        }
+
+        [Fact]
+        public void VirtualInvocations()
+        {
+            const string source = @"
+class Base
+{
+    public virtual void M2() { }
+}
+
+class Derived : Base
+{
+    void M1()
+    {
+        M2();
+        this.M2();
+        base.M2();
+    }
+
+    public override void M2() { }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(nodes.Length, 3);
+
+            // M2()
+
+            Assert.Equal("M2()", nodes[0].ToString());
+            IOperation operation = model.GetOperation(nodes[0]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            IInvocationExpression invocation = (IInvocationExpression)operation;
+            Assert.True(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            Assert.NotNull(invocation.Instance);
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
+            IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)invocation.Instance;
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Implicit);
+            Assert.Equal(instanceReference.Type.Name, "Derived");
+
+            // this.M2()
+
+            Assert.Equal("this.M2()", nodes[1].ToString());
+            operation = model.GetOperation(nodes[1]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            invocation = (IInvocationExpression)operation;
+            Assert.True(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            Assert.NotNull(invocation.Instance);
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
+            instanceReference = (IInstanceReferenceExpression)invocation.Instance;
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Explicit);
+            Assert.Equal(instanceReference.Type.Name, "Derived");
+
+            // base.M2()
+
+            Assert.Equal("base.M2()", nodes[2].ToString());
+            operation = model.GetOperation(nodes[2]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            invocation = (IInvocationExpression)operation;
+            Assert.False(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            Assert.NotNull(invocation.Instance);
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
+            instanceReference = (IInstanceReferenceExpression)invocation.Instance;
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.BaseClass);
+            Assert.Equal(instanceReference.Type.Name, "Base");
+        }
+
+        [Fact]
+        public void DefaultArgumentInvocations()
+        {
+            const string source = @"
+class C
+{
+    void M1()
+    {
+        M2(1, c: 3);
+    }
+
+    void M2(int a = 10, int b = 20, int c = 30) { }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(nodes.Length, 1);
+
+            //  M2(1, c: 3)
+
+            Assert.Equal("M2(1, c: 3)", nodes[0].ToString());
+            IOperation operation = model.GetOperation(nodes[0]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            IInvocationExpression invocation = (IInvocationExpression)operation;
+            Assert.False(invocation.ConstantValue.HasValue);
+            Assert.False(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
+            Assert.Equal(arguments.Length, 3);
+
+            // 1
+
+            IArgument argument = arguments[0];
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "a");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            IOperation argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+
+            // 20
+
+            argument = arguments[1];
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "b");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 20);
+
+            // c: 3
+
+            argument = arguments[2];
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "c");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 3);
+        }
+
+        [Fact]
+        public void DelegateInvocations()
+        {
+            const string source = @"
+class Base
+{
+    public virtual void M2() { }
+}
+
+class Derived : Base
+{
+    void M1()
+    {
+        M2();
+        this.M2();
+        base.M2();
+    }
+
+    public override void M2() { }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(nodes.Length, 3);
+        }
+
+
+        [Fact]
+        public void RefAndOutInvocations()
+        {
+            const string source = @"
+class Base
+{
+    public virtual void M2() { }
+}
+
+class Derived : Base
+{
+    void M1()
+    {
+        M2();
+        this.M2();
+        base.M2();
+    }
+
+    public override void M2() { }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(nodes.Length, 3);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         bool IsVirtual { get; }
         /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order specified in source,
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order that they will be evaluated,
         /// and params/ParamArray arguments have been collected into arrays. Arguments are not present
         /// unless supplied in source.
         /// </summary>

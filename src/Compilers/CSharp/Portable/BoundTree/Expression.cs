@@ -218,10 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.ContainingSymbol == targetMethod)
             {
                 int parameterIndex = parameter.Ordinal;
-                ImmutableArray<int> parameterIndices = argumentsToParameters;
-                if (!parameterIndices.IsDefaultOrEmpty)
+                if (!argumentsToParameters.IsDefaultOrEmpty)
                 {
-                    return parameterIndices.IndexOf(parameterIndex);
+                    return argumentsToParameters.IndexOf(parameterIndex);
                 }
 
                 return parameterIndex;
