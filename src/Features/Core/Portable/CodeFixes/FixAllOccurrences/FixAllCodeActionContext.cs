@@ -86,12 +86,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             get { return _originalFixDiagnostics; }
         }
 
+#if false
+
         public FixAllProvider FixAllProvider
         {
             get { return _fixAllProviderInfo.FixAllProvider; }
         }
 
-#if false
         public IEnumerable<FixAllScope> SupportedScopes
         {
             get { return _fixAllProviderInfo.SupportedScopes; }

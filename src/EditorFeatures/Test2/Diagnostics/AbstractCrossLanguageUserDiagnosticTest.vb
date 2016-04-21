@@ -112,8 +112,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Dim context = New CodeFixContext(_document, diagnostic, Sub(a, d) fixes.Add(New CodeFix(_document.Project, a, d)), CancellationToken.None)
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
-                    result.Add(Tuple.Create(diagnostic, New CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes,
-                                                                              fixAllContext:=Nothing, supportedScopes:=Nothing)))
+                    result.Add(Tuple.Create(diagnostic, New CodeFixCollection(
+                                            fixer, diagnostic.Location.SourceSpan, fixes,
+                                            fixAllProvider:=Nothing, fixAllContext:=Nothing, supportedScopes:=Nothing)))
                 End If
             Next
 

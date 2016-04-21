@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
-                            collection.FixAllContext, collection.SupportedScopes);
+                            collection.FixAllProvider, collection.FixAllContext, collection.SupportedScopes);
             }
 
             private bool IsApplicable(CodeAction action, Workspace workspace)
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
                         codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllContext, fixCollection.SupportedScopes,
+                            codeAction, fixCount, fixCollection.FixAllProvider, fixCollection.FixAllContext, fixCollection.SupportedScopes,
                             workspace, _subjectBuffer, _owner._editHandler, _owner._waitIndicator, _owner._listener);
 
                     foreach (var fix in fixes)

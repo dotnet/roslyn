@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         var codeFix = new CodeFixCollection(
                             fixer, diagnostic.Location.SourceSpan, fixes,
-                            fixAllContext: null, supportedScopes: null);
+                            fixAllProvider: null, fixAllContext: null, supportedScopes: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
                         var codeFix = new CodeFixCollection(
                             fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)),
-                            fixAllContext: null, supportedScopes: null);
+                            fixAllProvider: null, fixAllContext: null, supportedScopes: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
