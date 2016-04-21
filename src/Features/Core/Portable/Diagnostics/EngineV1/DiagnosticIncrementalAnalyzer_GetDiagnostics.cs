@@ -398,7 +398,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return AppendDiagnosticsOfStateTypeAsync(project, StateType.Project, predicate, cancellationToken);
             }
 
-            protected async Task<DiagnosticAnalyzerDriver> GetDiagnosticAnalyzerDriverAsync(object documentOrProject, StateType stateType, CancellationToken cancellationToken)
+            protected async Task<DiagnosticAnalyzerDriver> GetDiagnosticAnalyzerDriverAsync(
+                object documentOrProject, IEnumerable<DiagnosticAnalyzer> analyzers, StateType stateType, CancellationToken cancellationToken)
             {
                 // We can run analysis concurrently for explicit diagnostic requests.
                 const bool concurrentAnalysis = true;
@@ -410,23 +411,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (document != null)
                 {
                     Contract.Requires(stateType != StateType.Project);
-                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(document.Project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(document.Project, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                     var root = document.SupportsSyntaxTree ? await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                    return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, Owner, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
+                    return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, Owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
 
                 var project = documentOrProject as Project;
                 if (project != null)
                 {
                     Contract.Requires(stateType == StateType.Project);
-                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(project, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                    return new DiagnosticAnalyzerDriver(project, Owner, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
+                    var compilationWithAnalyzersOpt = await GetCompilationWithAnalyzersAsync(project, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    return new DiagnosticAnalyzerDriver(project, Owner, analyzers, concurrentAnalysis, reportSuppressedDiagnostics, compilationWithAnalyzersOpt, cancellationToken);
                 }
 
                 return Contract.FailWithReturn<DiagnosticAnalyzerDriver>("Can't reach here");
             }
 
-            private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Project project, bool concurrentAnalysis, bool reportSuppressedDiagnostics, CancellationToken cancellationToken)
+            private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool reportSuppressedDiagnostics, CancellationToken cancellationToken)
             {
                 CompilationWithAnalyzers compilationWithAnalyzers;
                 lock (_compilationWithAnalyzersMap)
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (project.SupportsCompilation)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    compilationWithAnalyzers = Owner.GetCompilationWithAnalyzers(project, compilation, concurrentAnalysis, reportSuppressedDiagnostics);
+                    compilationWithAnalyzers = Owner.GetCompilationWithAnalyzers(project, analyzers, compilation, concurrentAnalysis, reportSuppressedDiagnostics);
                 }
                 else
                 {
@@ -495,7 +496,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var project = GetProject(documentOrProject);
                 var solution = project.Solution;
 
-                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, stateType, cancellationToken).ConfigureAwait(false);
+                var stateSets = this.StateManager.GetOrCreateStateSets(project);
+                var analyzers = stateSets.Select(s => s.Analyzer);
+                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, analyzers, stateType, cancellationToken).ConfigureAwait(false);
                 var versions = await GetVersionsAsync(documentOrProject, stateType, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in this.StateManager.GetOrCreateStateSets(project))
@@ -570,7 +573,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(object documentOrProject, ArgumentKey key, CancellationToken cancellationToken)
             {
-                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, key.StateType, cancellationToken).ConfigureAwait(false);
                 var versions = await GetVersionsAsync(documentOrProject, key.StateType, cancellationToken).ConfigureAwait(false);
 
                 var project = GetProject(documentOrProject);
@@ -579,6 +581,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
+
+                var analyzers = Owner._stateManager.GetAnalyzers(project);
+                var driver = await GetDiagnosticAnalyzerDriverAsync(documentOrProject, analyzers, key.StateType, cancellationToken).ConfigureAwait(false);
 
                 var analysisData = await GetDiagnosticAnalysisDataAsync(project.Solution, driver, stateSet, key.StateType, versions).ConfigureAwait(false);
                 if (key.StateType != StateType.Project)
