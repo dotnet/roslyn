@@ -17,8 +17,7 @@
 
   <!-- settings for strong name signing -->
   <PropertyGroup>
-    <RunningInMicroBuild Condition="Exists('$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll')">true</RunningInMicroBuild>
-    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
+    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</ShouldSignBuild>
   </PropertyGroup>
 
   <Choose>
