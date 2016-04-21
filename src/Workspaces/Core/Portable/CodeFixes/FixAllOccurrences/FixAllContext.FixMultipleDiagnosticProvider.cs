@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return Task.FromResult(_projectDiagnosticsMap);
             }
 
-            public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsToFix => _documentDiagnosticsMap;
-            public ImmutableDictionary<Project, ImmutableArray<Diagnostic>> ProjectDiagnosticsToFix => _projectDiagnosticsMap;
-
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
                 ImmutableArray<Diagnostic>.Builder allDiagnosticsBuilder = null;
