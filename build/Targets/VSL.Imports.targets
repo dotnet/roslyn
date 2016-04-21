@@ -362,12 +362,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FilesToSign Include="$(OutDir)\$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true'">
+    <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true'">
       <Authenticode>Microsoft402</Authenticode>
-      <StrongName>72</StrongName>
+      <StrongName>StrongName</StrongName>
     </FilesToSign>
 
-    <FilesToSign Include="$(OutDir)\$(TargetFileName)" Condition="'$(ProducingSignedVsix)' == 'true'">
+    <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' == 'true'">
       <Authenticode>VsixSHA2</Authenticode>
     </FilesToSign>
   </ItemGroup>
