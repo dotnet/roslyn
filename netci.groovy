@@ -45,7 +45,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
 }
 
 def branchNames = []
-['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest', 'microupdate'].each { branchName ->
   def shortBranchName = branchName.substring(0, 6)
   def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
   branchNames << jobBranchName
