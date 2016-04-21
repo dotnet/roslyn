@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     public partial class FixAllContext
-    {        // Internal for testing purposes.
+    {
+        // Internal for testing purposes.
         internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
             private readonly ImmutableHashSet<string> _diagnosticIds;

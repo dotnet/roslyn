@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.CancellationToken = cancellationToken;
         }
 
+        internal bool IsFixMultiple => _diagnosticProvider.IsFixMultiple;
+
         internal DiagnosticProvider GetDiagnosticProvider() => _diagnosticProvider;
 
         /// <summary>
@@ -249,13 +251,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
             // TODO: We should change this API to be a virtual method, as the class is not sealed.
-            //       For now, special case FixMultipleContext.
-            var fixMultipleContext = this as FixMultipleContext;
-            if (fixMultipleContext != null)
-            {
-                return fixMultipleContext.WithCancellationToken(cancellationToken);
-            }
-
             if (this.CancellationToken == cancellationToken)
             {
                 return this;

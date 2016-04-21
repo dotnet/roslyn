@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         private FixMultipleSuggestedAction GetSuggestedAction(
-            FixMultipleContext fixMultipleContext,
+            FixAllContext fixAllContext,
             Diagnostic triggerDiagnostic,
             Workspace workspace,
             FixAllProvider fixAllProvider,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
-            var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, triggerDiagnostic, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
+            var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllContext, triggerDiagnostic, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
             return new FixMultipleSuggestedAction(_listener, workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
         }
     }

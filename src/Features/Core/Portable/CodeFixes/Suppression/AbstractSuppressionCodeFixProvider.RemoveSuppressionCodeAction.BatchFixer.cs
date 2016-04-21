@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             var codeAction = removeSuppressionFix.Action as RemoveSuppressionCodeAction;
                             if (codeAction != null)
                             {
-                                if (fixAllContext is FixMultipleContext)
+                                if (fixAllContext.IsFixMultiple)
                                 {
                                     codeAction = codeAction.CloneForFixMultipleContext();
                                 }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var removeSuppressionCodeAction = removeSuppressionFixes.SingleOrDefault()?.Action as RemoveSuppressionCodeAction;
                         if (removeSuppressionCodeAction != null)
                         {
-                            if (fixAllContext is FixMultipleContext)
+                            if (fixAllContext.IsFixMultiple)
                             {
                                 removeSuppressionCodeAction = removeSuppressionCodeAction.CloneForFixMultipleContext();
                             }

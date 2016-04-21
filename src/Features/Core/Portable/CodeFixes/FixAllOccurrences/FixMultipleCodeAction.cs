@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly string _computingFixWaitDialogMessage;
 
         internal FixMultipleCodeAction(
-            FixMultipleContext fixMultipleContext,
+            FixAllContext fixAllContext,
             Diagnostic triggerDiagnostic,
             FixAllProvider fixAllProvider,
             string title,
             string computingFixWaitDialogMessage,
             bool showPreviewChangesDialog)
-            : base(fixMultipleContext, fixAllProvider, showPreviewChangesDialog)
+            : base(fixAllContext, fixAllProvider, showPreviewChangesDialog)
         {
             _triggerDiagnostic = triggerDiagnostic;
             _title = title;

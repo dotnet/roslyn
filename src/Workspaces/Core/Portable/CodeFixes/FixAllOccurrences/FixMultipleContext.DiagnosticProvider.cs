@@ -12,13 +12,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for "Fix multiple occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
     /// </summary>
-    internal partial class FixMultipleContext
+    internal static partial class FixMultipleContext
     {
         /// <summary>
         /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixMultipleContext"/>.
         /// </summary>
-        public sealed class FixMultipleDiagnosticProvider : DiagnosticProvider
+        public sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
+            internal override bool IsFixMultiple => true;
+
             private readonly ImmutableDictionary<Document, ImmutableArray<Diagnostic>> _documentDiagnosticsMap;
             private readonly ImmutableDictionary<Project, ImmutableArray<Diagnostic>> _projectDiagnosticsMap;
 
@@ -32,6 +34,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 _projectDiagnosticsMap = diagnosticsMap;
                 _documentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+            }
+
+            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(BatchFixAllProvider batchFixer, FixAllContext context)
+            {
+                return Task.FromResult(_documentDiagnosticsMap);
+            }
+
+            internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(BatchFixAllProvider batchFixer, FixAllContext context)
+            {
+                return Task.FromResult(_projectDiagnosticsMap);
             }
 
             public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsToFix => _documentDiagnosticsMap;

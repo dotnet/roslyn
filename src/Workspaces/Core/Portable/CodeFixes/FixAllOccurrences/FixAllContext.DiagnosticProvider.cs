@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public abstract class DiagnosticProvider
         {
+            internal virtual bool IsFixMultiple => false;
+
             /// <summary>
             /// Gets all the diagnostics to fix in the given document in a <see cref="FixAllContext"/>.
             /// </summary>
@@ -33,16 +35,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
+
+            internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+                BatchFixAllProvider batchFixer, FixAllContext context)
+            {
+                return batchFixer.GetDocumentDiagnosticsToFixAsync(context);
+            }
+
+            internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+                BatchFixAllProvider batchFixer, FixAllContext context)
+            {
+                return batchFixer.GetProjectDiagnosticsToFixAsync(context);
+            }
         }
 
-        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            BatchFixAllProvider batchFixer)
         {
-            return batchFixer.GetDocumentDiagnosticsToFixAsync(this);
+            return _diagnosticProvider.GetDocumentDiagnosticsToFixAsync(batchFixer, this);
         }
 
-        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+            BatchFixAllProvider batchFixer)
         {
-            return batchFixer.GetProjectDiagnosticsToFixAsync(this);
+            return _diagnosticProvider.GetProjectDiagnosticsToFixAsync(batchFixer, this);
         }
     }
 }
