@@ -37,26 +37,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
             internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-                BatchFixAllProvider batchFixer, FixAllContext context)
+                FixAllProvider batchFixer, FixAllContext context)
             {
                 return batchFixer.GetDocumentDiagnosticsToFixAsync(context);
             }
 
             internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
-                BatchFixAllProvider batchFixer, FixAllContext context)
+                FixAllProvider batchFixer, FixAllContext context)
             {
                 return batchFixer.GetProjectDiagnosticsToFixAsync(context);
             }
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-            BatchFixAllProvider batchFixer)
+            FixAllProvider batchFixer)
         {
             return _diagnosticProvider.GetDocumentDiagnosticsToFixAsync(batchFixer, this);
         }
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
-            BatchFixAllProvider batchFixer)
+            FixAllProvider batchFixer)
         {
             return _diagnosticProvider.GetProjectDiagnosticsToFixAsync(batchFixer, this);
         }

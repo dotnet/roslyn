@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -39,5 +40,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
         public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
+
+        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        {
+            return Task.FromResult(
+                ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty);
+        }
+
+        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        {
+            return Task.FromResult(
+                ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty);
+        }
+
+        internal virtual Task<CodeAction> GetFixAsync(
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
+            FixAllContext fixAllContext)
+        {
+            return Task.FromResult<CodeAction>(null);
+        }
+
+        internal virtual Task<CodeAction> GetFixAsync(
+            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
+            FixAllContext fixAllContext)
+        {
+            return Task.FromResult<CodeAction>(null);
+        }
     }
 }
