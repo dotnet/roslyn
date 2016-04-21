@@ -123,8 +123,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
                 }
 
-                var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
-                diagnosticDataMap.Add(args.Id, data);
+                if (args.Diagnostics.Length > 0)
+                {
+                    // save data only if there is a diagnostic
+                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                    diagnosticDataMap.Add(args.Id, data);
+                }
 
                 return true;
             }
