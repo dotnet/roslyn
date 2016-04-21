@@ -465,6 +465,9 @@
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="PopulateSwitch" xml:space="preserve">
+    <value>Populate switch</value>
+  </data>
   <data name="MemberAccessShouldBeQualified" xml:space="preserve">
     <value>Member access should be qualified.</value>
   </data>

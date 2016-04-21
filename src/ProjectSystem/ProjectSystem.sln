@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.ProjectSystem.CSharp", "Microsoft.VisualStudio.ProjectSystem.CSharp\Microsoft.VisualStudio.ProjectSystem.CSharp.csproj", "{7D150B7B-CE02-4CD4-8EC9-6A7C18727A36}"
 EndProject
@@ -35,6 +35,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTestDependencies", "DeployTestDependencies\DeployTestDependencies.csproj", "{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudio", "..\Dependencies\VisualStudio\VisualStudio.csproj", "{8DA861D8-0CCE-4334-B6C0-01A846C881EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Immutable", "..\Dependencies\Immutable\Immutable.csproj", "{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.net", "..\Dependencies\Moq.net\Moq.net.csproj", "{A32EAB7F-691C-4D00-98C4-F50C37BB4754}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xUnit.net", "..\Dependencies\xUnit.net\xUnit.net.csproj", "{8635CB8F-D210-41ED-B4FF-71502CDB475C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Composition", "..\Dependencies\Composition\Composition.csproj", "{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,8 +110,35 @@ Global
 		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DA861D8-0CCE-4334-B6C0-01A846C881EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DA861D8-0CCE-4334-B6C0-01A846C881EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DA861D8-0CCE-4334-B6C0-01A846C881EC}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DA861D8-0CCE-4334-B6C0-01A846C881EC}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{A32EAB7F-691C-4D00-98C4-F50C37BB4754}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{8635CB8F-D210-41ED-B4FF-71502CDB475C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8635CB8F-D210-41ED-B4FF-71502CDB475C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8635CB8F-D210-41ED-B4FF-71502CDB475C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{8635CB8F-D210-41ED-B4FF-71502CDB475C}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8DA861D8-0CCE-4334-B6C0-01A846C881EC} = {45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}
+		{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA} = {45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}
+		{A32EAB7F-691C-4D00-98C4-F50C37BB4754} = {45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}
+		{8635CB8F-D210-41ED-B4FF-71502CDB475C} = {45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}
+		{02ABB346-3CC8-4CC2-B6E4-72A60A3E1491} = {45E7E986-9065-4CB1-8F9D-59D2AAAA2FD5}
 	EndGlobalSection
 EndGlobal

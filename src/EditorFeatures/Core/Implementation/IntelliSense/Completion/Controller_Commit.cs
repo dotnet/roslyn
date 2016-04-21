@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -37,10 +38,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // NOTE(cyrusn): It is intentional that we get the undo history for the
             // surface buffer and not the subject buffer.
-            using (var transaction = _undoHistoryRegistry.GetHistory(this.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.IntelliSense))
+            // There have been some watsons where the ViewBuffer hadn't been registered,
+            // so use TryGetHistory instead.
+            ITextUndoHistory undoHistory;
+            _undoHistoryRegistry.TryGetHistory(this.TextView.TextBuffer, out undoHistory);
+
+            using (var transaction = undoHistory?.CreateTransaction(EditorFeaturesResources.IntelliSense))
             {
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
-                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
+                if (transaction != null)
+                {
+                    transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
+                }
 
                 // Check if the provider wants to perform custom commit itself.  Otherwise we will
                 // handle things.
@@ -111,13 +120,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
                     }
 
-                    transaction.Complete();
+                    transaction?.Complete();
                 }
                 else
                 {
                     // Let the provider handle this.
                     provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
-                    transaction.Complete();
+                    transaction?.Complete();
                 }
             }
 

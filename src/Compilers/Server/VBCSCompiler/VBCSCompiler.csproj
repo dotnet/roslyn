@@ -63,6 +63,7 @@
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
     <Compile Include="DesktopCompilerServerHost.cs" />
+    <Compile Include="DesktopBuildServerController.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
     <Compile Include="VBCSCompiler.cs" />
     <Compile Include="MemoryHelper.cs" />

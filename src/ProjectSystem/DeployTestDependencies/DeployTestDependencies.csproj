@@ -23,6 +23,34 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{02abb346-3cc8-4cc2-b6e4-72a60a3e1491}</Project>
+      <Name>Composition</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{dcda908d-ef5e-494b-addc-c26f5fd610ca}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Moq.net\Moq.net.csproj">
+      <Project>{a32eab7f-691c-4d00-98c4-f50c37bb4754}</Project>
+      <Name>Moq.net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.AppDesigner\Microsoft.VisualStudio.AppDesigner.vbproj">
+      <Project>{19725d6f-4690-412b-934a-fc48d752b802}</Project>
+      <Name>Microsoft.VisualStudio.AppDesigner</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Editors\Microsoft.VisualStudio.Editors.vbproj">
+      <Project>{cd6e5d00-7b0b-442d-9f5d-eaec1a71838a}</Project>
+      <Name>Microsoft.VisualStudio.Editors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.ProjectSystem.CSharp.VS\Microsoft.VisualStudio.ProjectSystem.CSharp.VS.csproj">
       <Project>{765ef6eb-9f36-4d68-8c3d-9e11cd49e0bc}</Project>
       <Name>Microsoft.VisualStudio.ProjectSystem.CSharp.VS</Name>

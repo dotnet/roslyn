@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryCastDiagnosticId = "IDE0004";
         public const string RemoveUnnecessaryImportsDiagnosticId = "IDE0005";
         public const string IntellisenseBuildFailedDiagnosticId = "IDE0006";
+        public const string PopulateSwitchDiagnosticId = "IDE0010";
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
         public const string AddQualificationDiagnosticId = "IDE0009";

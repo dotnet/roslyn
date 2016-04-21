@@ -19,12 +19,11 @@ namespace Roslyn.VisualStudio.Setup
         {
             // ProvideBindingRedirectionAttribute is sealed, so we can't inherit from it to provide defaults.
             // Instead, we'll do more of an aggregation pattern here.
+            // Note that PublicKeyToken, NewVersion and OldVersionUpperBound are read from the actual assembly version of the dll.
             _redirectionAttribute = new ProvideBindingRedirectionAttribute
             {
                 AssemblyName = Path.GetFileNameWithoutExtension(fileName),
-                PublicKeyToken = "31BF3856AD364E35",
-                OldVersionLowerBound = "0.7.0.0",
-                OldVersionUpperBound = "2.0.0.0",
+                OldVersionLowerBound = "0.0.0.0",
                 CodeBase = fileName,
             };
         }
