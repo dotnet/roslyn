@@ -19,41 +19,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            // Run all analyzers at once.
-            // REVIEW: why there are 2 different cancellation token? one that I can give to constructor and one I can give in to each method?
-            // REVIEW: we drop all those allocations for the diagnostics returned. can we avoid this?
-            await analyzerDriver.GetAnalyzerDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
+            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            // this is wierd, but now we iterate through each analyzer for each tree to get cached result.
-            // REVIEW: no better way to do this?
-            var noSpanFilter = default(TextSpan?);
             var analyzers = analyzerDriver.Analyzers;
             var compilation = analyzerDriver.Compilation;
 
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalysisResult>();
+
             foreach (var analyzer in analyzers)
             {
                 var result = new Builder(project, version);
 
-                // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
-                var oneAnalyzers = ImmutableArray.Create(analyzer);
-
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var model = compilation.GetSemanticModel(tree);
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> syntaxDiagnosticsByAnalyzer;
+                    ImmutableArray<Diagnostic> syntaxDiagnostics;
+                    if (analysisResult.SyntaxDiagnostics.TryGetValue(tree, out syntaxDiagnosticsByAnalyzer) &&
+                        syntaxDiagnosticsByAnalyzer.TryGetValue(analyzer, out syntaxDiagnostics))
+                    {
+                        Contract.Requires(syntaxDiagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(syntaxDiagnostics, analyzerDriver.Compilation).Count());
+                        result.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
+                    }
 
-                    var syntax = await analyzerDriver.GetAnalyzerSyntaxDiagnosticsAsync(tree, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-                    Contract.Requires(syntax.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(syntax, analyzerDriver.Compilation).Count());
-                    result.AddSyntaxDiagnostics(tree, syntax);
-
-                    var semantic = await analyzerDriver.GetAnalyzerSemanticDiagnosticsAsync(model, noSpanFilter, oneAnalyzers, cancellationToken).ConfigureAwait(false);
-                    Contract.Requires(semantic.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(semantic, analyzerDriver.Compilation).Count());
-                    result.AddSemanticDiagnostics(tree, semantic);
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> semanticDiagnosticsByAnalyzer;
+                    ImmutableArray<Diagnostic> semanticDiagnostics;
+                    if (analysisResult.SemanticDiagnostics.TryGetValue(tree, out semanticDiagnosticsByAnalyzer) &&
+                        semanticDiagnosticsByAnalyzer.TryGetValue(analyzer, out semanticDiagnostics))
+                    {
+                        Contract.Requires(semanticDiagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(semanticDiagnostics, analyzerDriver.Compilation).Count());
+                        result.AddSemanticDiagnostics(tree, semanticDiagnostics);
+                    }
                 }
 
-                var rest = await analyzerDriver.GetAnalyzerCompilationDiagnosticsAsync(oneAnalyzers, cancellationToken).ConfigureAwait(false);
-                Contract.Requires(rest.Count() == CompilationWithAnalyzers.GetEffectiveDiagnostics(rest, analyzerDriver.Compilation).Count());
-                result.AddCompilationDiagnostics(rest);
+                ImmutableArray<Diagnostic> compilationDiagnostics;
+                if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out compilationDiagnostics))
+                {
+                    Contract.Requires(compilationDiagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(compilationDiagnostics, analyzerDriver.Compilation).Count());
+                    result.AddCompilationDiagnostics(compilationDiagnostics);
+                }
 
                 builder.Add(analyzer, result.ToResult());
             }
