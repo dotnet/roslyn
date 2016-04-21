@@ -77,6 +77,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameterLocalFunction()
         {
             var src = @"
@@ -218,6 +219,7 @@ CallerMemberName();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void BadParams()
         {
             var source = @"
@@ -2292,6 +2294,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicArgument()
         {
             var source = @"
@@ -2307,15 +2310,6 @@ class Program
             Console.Write(capture1);
             Console.Write(x);
         }
-        void L3(int x, params int[] ys)
-        {
-            Console.Write(capture1);
-            Console.Write(x);
-            foreach (var y in ys)
-            {
-                Console.Write(y);
-            }
-        }
         dynamic L4(int x)
         {
             Console.Write(capture1);
@@ -2328,14 +2322,9 @@ class Program
         }
 
         dynamic val = 2;
-        int val2 = 3;
         Console.WriteLine();
         L1(val);
         L2(val);
-        Console.WriteLine();
-        L3(val, val2);
-        L3(val);
-        L3(val, val, val);
         Console.WriteLine();
         L2(L4(val));
         L5(val)(val);
@@ -2343,11 +2332,36 @@ class Program
 }
 ";
             VerifyOutput(source, output: @"202
-023020222
 00222");
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
+        public void DynamicArgsAndParams()
+        {
+            var src = @"
+int capture1 = 0;
+void L1(int x, params int[] ys)
+{
+    Console.Write(capture1);
+    Console.Write(x);
+    foreach (var y in ys)
+    {
+        Console.Write(y);
+    }
+}
+
+dynamic val = 2;
+int val2 = 3;
+L1(val, val2);
+L1(val);
+L1(val, val, val);
+";
+            VerifyOutputInMain(src, "023020222", "System");
+        }
+
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         [Fact]
         public void DynamicArgumentToParams()
         {
@@ -2357,16 +2371,24 @@ class C
 {
     static void Main()
     {
-        void L1(int x, params int[] ys) => Console.Write(x);
+        void L1(int x = 0, params int[] ys) => Console.Write(x);
 
         dynamic val = 2;
         L1(val, val);
+        L1(ys: val, x: val);
+        L1(ys: val);
     }
 }";
             VerifyDiagnostics(src,
                 // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
+                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val, x: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
+                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
         }
 
         [Fact]

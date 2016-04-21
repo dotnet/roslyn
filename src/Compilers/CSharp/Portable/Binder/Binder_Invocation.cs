@@ -592,7 +592,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because there is an ambiguity between an array target
             // and the params element target. See
             // https://github.com/dotnet/roslyn/issues/10708
+
             Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
+            Debug.Assert(queryClause == null);
+
             var validResult = resolution.OverloadResolutionResult.ValidResult;
 
             var args = resolution.AnalyzedArguments.Arguments;
@@ -605,10 +608,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // normal and expanded form i.e., there is exactly one dynamic
             // argument to a params parameter
             if (OverloadResolution.IsValidParams(localFunction) &&
-                args.Count == parameters.Length)
+                methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 Debug.Assert(parameters.Last().IsParams);
                 var lastParamIndex = parameters.Length - 1;
+
                 for (int i = 0; i < args.Count; ++i)
                 {
                     var arg = args[i];
