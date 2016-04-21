@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
             foreach (var scope in fixAllCodeActionContext.SupportedScopes)
             {
-                var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
+                var fixAllContext = GetContextForScopeAndActionId(fixAllCodeActionContext, scope, action.EquivalenceKey);
                 var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllCodeActionContext.FixAllProvider, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
                     workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction, fixAllCodeActionContext.FixAllProvider,
@@ -74,6 +74,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             return new SuggestedActionSet(fixAllSuggestedActions.ToImmutable(), title: EditorFeaturesResources.FixAllOccurrencesIn);
+        }
+
+        /// <summary>
+        /// Transforms this context into the public <see cref="FixAllContext"/> to be used for <see cref="FixAllProvider.GetFixAsync(FixAllContext)"/> invocation.
+        /// </summary>
+        private static FixAllContext GetContextForScopeAndActionId(
+            FixAllCodeActionContext context,
+            FixAllScope scope, string codeActionEquivalenceKey)
+        {
+            if (context.Scope == scope && context.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+            {
+                return context;
+            }
+
+            if (context.Document != null)
+            {
+                return new FixAllContext(context.Document, context.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    context.DiagnosticIds, context.GetDiagnosticProvider(), context.CancellationToken);
+            }
+
+            return new FixAllContext(context.Project, context.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    context.DiagnosticIds, context.GetDiagnosticProvider(), context.CancellationToken);
         }
 
         public string GetDiagnosticID()

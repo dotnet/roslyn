@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.CancellationToken = cancellationToken;
         }
 
+        internal DiagnosticProvider GetDiagnosticProvider() => _diagnosticProvider;
+
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
