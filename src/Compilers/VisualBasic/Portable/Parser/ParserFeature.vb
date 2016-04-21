@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.DigitSeparators
                     Return "digitSeparators"
 
-                Case feature.BinaryLiterals
+                Case Feature.BinaryLiterals
                     Return "binaryLiterals"
 
                 Case Else

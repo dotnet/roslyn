@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access">
+  <Font Name="Tahoma" Size="8.25" />
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.AddMyExtensionsDialog">
+    <Position X="3.25" Y="7.75" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\AddMyExtensionsDialog.vb</FileName>
+      <HashCode>BCAAAAgAAAAAAsACAAAABAAKAAAAIEIIgAAAAAEIAkA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Internal" Collapsed="true" />
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.AssemblyOptionDialog">
+    <Position X="0.5" Y="6" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\AssemblyOptionDialog.vb</FileName>
+      <HashCode>AAAAAAAgAAAAAAAIBACEAAACABAAAAAAQCCAEAAIkAA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Internal" Collapsed="true" />
+    </Compartments>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityProjectService" BaseTypeListCollapsed="true">
+    <Position X="0.5" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityProjectService.vb</FileName>
+      <HashCode>AAAqAABAqXCSoHABAAwgAEAIAAQABQFAQJYCAgQAUBA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Protected" Collapsed="true" />
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilitySettings">
+    <Position X="3.5" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilitySettings.vb</FileName>
+      <HashCode>AAQIQQgCISAAACAACCAAAAAFKCAAAAAAAYABABAAAoA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilitySettings.AssemblyDictionary(Of T)" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MyExtensibility\MyExtensibilitySettingsHelper.vb</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilitySettings.AssemblyAutoOption" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>MyExtensibility\MyExtensibilitySettingsHelper.vb</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilitySolutionService">
+    <Position X="0.5" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilitySolutionService.vb</FileName>
+      <HashCode>EAAAAAAAIEgAsAABgAgFIABAAQAAAAEAwAAAAAAAAMA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensibilityUtil">
+    <Position X="6.25" Y="7.75" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityUtil.vb</FileName>
+      <HashCode>AAAAAAEAAAAAAAAAIAAAAAAAAAIIAAAIAAAAAAAAAAE=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensionListView">
+    <Position X="3.25" Y="9.5" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensionListView.vb</FileName>
+      <HashCode>AAAQAgAARAAQAAACAAEAAAAAAAAAABQAEAAAAAAgAAg=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensionProjectFile" BaseTypeListCollapsed="true">
+    <Position X="2.75" Y="4.75" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensionProjectFile.vb</FileName>
+      <HashCode>AAAAEAACAAAIAAAAQAAAAAAAABAAABAgAAAAAABAgCA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.MyExtensionTemplate" BaseTypeListCollapsed="true">
+    <Position X="5.75" Y="3.75" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensionTemplate.vb</FileName>
+      <HashCode>JAAEFgEAMAAggAAAgAAAAIAAAEAAAAAAAABEAAAAAAA=</HashCode>
+    </TypeIdentifier>
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Microsoft.VisualStudio.Editors.MyExtensibility.VsStatusBarWrapper">
+    <Position X="0.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\VsStatusBarWrapper.vb</FileName>
+      <HashCode>AAACAAAAAAAAAAAAAIAAABAAQAAAACIAFAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Microsoft.VisualStudio.Editors.MyExtensibility.INamedDescribedObject" Collapsed="true">
+    <Position X="5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\INamedDescribedObject.vb</FileName>
+      <HashCode>AAAAEAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Microsoft.VisualStudio.Editors.MyExtensibility.EnvDTE90Interop.Template" Collapsed="true">
+    <Position X="6.25" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityUtil.vb</FileName>
+      <HashCode>AAACBAAAAAAggAgAAAAAAAQAAAAAAAAAAABAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Microsoft.VisualStudio.Editors.MyExtensibility.EnvDTE90Interop.Templates" Collapsed="true">
+    <Position X="6.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityUtil.vb</FileName>
+      <HashCode>AAAAAAAAAAAAABAAAAAAAAQEAAAAAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Microsoft.VisualStudio.Editors.MyExtensibility.EnvDTE90Interop.Solution3" Collapsed="true">
+    <Position X="6.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityUtil.vb</FileName>
+      <HashCode>IEQAAAIAAAAAIJAICQAMRAQkAAsgAEAARBAFCADCAQA=</HashCode>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Microsoft.VisualStudio.Editors.MyExtensibility.AddRemoveAction" Collapsed="true">
+    <Position X="8" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>MyExtensibility\MyExtensibilityUtil.vb</FileName>
+      <HashCode>AAIAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Enum>
+</ClassDiagram>

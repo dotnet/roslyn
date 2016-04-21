@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _dependencies = dependencies;
             }
 
-            public CompilationVerifier Clone()
-            {
-                return new CompilationVerifier(_test, _compilation, _dependencies);
-            }
-
             internal CompilationTestData TestData
             {
                 get { return _testData; }
@@ -94,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                     _allModuleData = testEnvironment.GetAllModuleData();
@@ -120,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
             public void EmitAndVerify(params string[] expectedPeVerifyOutput)
             {
-                using (var testEnvironment = new HostedRuntimeEnvironment(_dependencies))
+                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
                     string mainModuleName = Emit(testEnvironment, null, null);
                     string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
@@ -128,14 +123,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            private string Emit(HostedRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
+            private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
             {
                 testEnvironment.Emit(_compilation, manifestResources, emitOptions);
 
                 _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = testEnvironment.GetCompilationTestData();
+                _testData = ((IInternalRuntimeEnvironment) testEnvironment).GetCompilationTestData();
 
                 return _compilation.Assembly.Identity.GetDisplayName();
             }

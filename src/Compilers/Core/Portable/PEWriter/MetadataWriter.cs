@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.Cci
 {

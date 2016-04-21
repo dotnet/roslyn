@@ -52,7 +52,7 @@ namespace RunTests
             var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
-            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} chunks");
+            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
@@ -211,7 +211,7 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int chunkCount, CancellationToken cancellationToken)
+        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
         {
             var obj = new JObject();
             obj["Cache"] = dataStorage.Name;
@@ -220,7 +220,8 @@ namespace RunTests
             obj["Is32Bit"] = !options.Test64;
             obj["AssemblyCount"] = options.Assemblies.Count;
             obj["CacheCount"] = result.CacheCount;
-            obj["ChunkCount"] = chunkCount;
+            obj["ChunkCount"] = partitionCount;
+            obj["PartitionCount"] = partitionCount;
             obj["Succeeded"] = result.Succeeded;
 
             // During the transition from ellapsed to elapsed the client needs to provide both 

@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1727,6 +1731,89 @@ class X
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var analyzer = new ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer();
+            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll)
+                .VerifyAnalyzerOccurrenceCount(new[] { analyzer }, 0);
+
+            Assert.True(analyzer.ActionFired);
+        }
+
+        class ColorColorSymbolInfoInArrowExpressionClauseSyntaxAnalyzer : DiagnosticAnalyzer
+        {
+            public bool ActionFired { get; private set; }
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(HandleMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
+            }
+
+            private void HandleMemberAccessExpression(SyntaxNodeAnalysisContext context)
+            {
+                ActionFired = true;
+
+                var memberAccessExpression = context.Node as MemberAccessExpressionSyntax;
+
+                var actualSymbol = context.SemanticModel.GetSymbolInfo(memberAccessExpression.Expression);
+
+                Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
+            }
+        }
+
+        [WorkItem(5362, "https://github.com/dotnet/roslyn/issues/5362")]
+        [Fact]
+        public void TestColorColorSymbolInfoInArrowExpressionClauseSyntax_2()
+        {
+            const string source = @"public enum Lifetime
+{
+    Persistent,
+    Transient,
+    Scoped
+}
+public class Example
+{
+    public Lifetime Lifetime => Lifetime.Persistent;
+    //                          ^^^^^^^^
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var syntaxRoot = syntaxTree.GetRoot();
+
+            var semanticModel = comp.GetSemanticModel(syntaxTree, false);
+
+            var memberAccess = syntaxRoot.DescendantNodes().Single(node => node.IsKind(SyntaxKind.SimpleMemberAccessExpression)) as MemberAccessExpressionSyntax;
+            Assert.Equal("Lifetime", memberAccess.Expression.ToString());
+            Assert.Equal("Lifetime.Persistent", memberAccess.ToString());
+
+            var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression);
+
+            Assert.Equal("Lifetime", actualSymbol.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.NamedType, actualSymbol.Symbol.Kind);
         }
 
         #endregion Regression cases
