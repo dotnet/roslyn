@@ -27,17 +27,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #region "AbstractFixAllProvider methods"
 
-        public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override async Task<CodeAction> GetFixAsync(
+            FixAllContext fixAllContext, CancellationToken cancellationToken)
         {
             if (fixAllContext.Document != null)
             {
-                var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
+                var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext, cancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var projectsAndDiagnosticsToFixMap = await GetProjectDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
+                var projectsAndDiagnosticsToFixMap = await GetProjectDiagnosticsToFixAsync(fixAllContext, cancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllContext fixAllContext)
+            FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
             if (documentsAndDiagnosticsToFixMap != null && documentsAndDiagnosticsToFixMap.Any())
             {
@@ -53,22 +55,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 var fixesBag = new ConcurrentBag<CodeAction>();
 
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, fixAllContext.CancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
                 {
-                    fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var documents = documentsAndDiagnosticsToFixMap.Keys;
-                    var tasks = documents.Select(d => AddDocumentFixesAsync(d, documentsAndDiagnosticsToFixMap[d], fixesBag.Add, fixAllContext))
+                    var tasks = documents.Select(d => AddDocumentFixesAsync(d, documentsAndDiagnosticsToFixMap[d], fixesBag.Add, fixAllContext, cancellationToken))
                                          .ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
 
                 if (fixesBag.Any())
                 {
-                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, fixAllContext.CancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
                     {
                         FixAllLogger.LogFixesToMergeStats(fixesBag);
-                        return await TryGetMergedFixAsync(fixesBag, fixAllContext).ConfigureAwait(false);
+                        return await TryGetMergedFixAsync(fixesBag, fixAllContext, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -76,10 +78,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public async virtual Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public async virtual Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);
-            var cancellationToken = fixAllContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
             var fixerTasks = new Task[diagnostics.Length];
@@ -125,7 +128,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public virtual async Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllContext fixAllContext)
+            FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
@@ -133,20 +137,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 var fixesBag = new ConcurrentBag<CodeAction>();
 
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, fixAllContext.CancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
                 {
                     var projects = projectsAndDiagnosticsToFixMap.Keys;
-                    var tasks = projects.Select(p => AddProjectFixesAsync(p, projectsAndDiagnosticsToFixMap[p], fixesBag.Add, fixAllContext))
+                    var tasks = projects.Select(p => AddProjectFixesAsync(p, projectsAndDiagnosticsToFixMap[p], fixesBag.Add, fixAllContext, cancellationToken))
                                         .ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
 
                 if (fixesBag.Any())
                 {
-                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, fixAllContext.CancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
                     {
                         FixAllLogger.LogFixesToMergeStats(fixesBag);
-                        return await TryGetMergedFixAsync(fixesBag, fixAllContext).ConfigureAwait(false);
+                        return await TryGetMergedFixAsync(fixesBag, fixAllContext, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -154,10 +158,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public virtual async Task AddProjectFixesAsync(Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+        public virtual async Task AddProjectFixesAsync(
+            Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(!diagnostics.IsDefault);
-            var cancellationToken = fixAllContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
             var fixes = new List<CodeAction>();
@@ -189,13 +194,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public virtual async Task<CodeAction> TryGetMergedFixAsync(IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext)
+        public virtual async Task<CodeAction> TryGetMergedFixAsync(
+            IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext, 
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(batchOfFixes);
             Contract.ThrowIfFalse(batchOfFixes.Any());
 
             var solution = fixAllContext.Solution;
-            var cancellationToken = fixAllContext.CancellationToken;
             var newSolution = await TryMergeFixesAsync(solution, batchOfFixes, cancellationToken).ConfigureAwait(false);
             if (newSolution != null && newSolution != solution)
             {
@@ -240,9 +246,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        public virtual async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            FixAllContext fixAllContext, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, fixAllContext.CancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, cancellationToken))
             {
                 var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
                 var projectsToFix = ImmutableArray<Project>.Empty;
@@ -256,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     case FixAllScope.Document:
                         if (document != null && !generatedCodeServices.IsGeneratedCode(document))
                         {
-                            var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
+                            var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(
+                                document, cancellationToken).ConfigureAwait(false);
                             var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
                             return ImmutableDictionary.CreateRange(kvp);
                         }
@@ -265,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     case FixAllScope.Project:
                         projectsToFix = ImmutableArray.Create(project);
-                        allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                        allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case FixAllScope.Solution:
@@ -277,17 +285,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         var tasks = new Task[projectsToFix.Length];
                         for (int i = 0; i < projectsToFix.Length; i++)
                         {
-                            fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                            cancellationToken.ThrowIfCancellationRequested();
                             var projectToFix = projectsToFix[i];
                             tasks[i] = Task.Run(async () =>
                             {
-                                var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
+                                var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(
+                                    projectToFix, cancellationToken).ConfigureAwait(false);
                                 foreach (var diagnostic in projectDiagnostics)
                                 {
-                                    fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                    cancellationToken.ThrowIfCancellationRequested();
                                     diagnostics.Add(diagnostic);
                                 }
-                            }, fixAllContext.CancellationToken);
+                            }, cancellationToken);
                         }
 
                         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -300,7 +309,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
                 }
 
-                return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await GetDocumentDiagnosticsToFixAsync(
+                    allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -358,9 +368,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        public virtual async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+            FixAllContext fixAllContext, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, fixAllContext.CancellationToken))
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Diagnostics, cancellationToken))
             {
                 var project = fixAllContext.Project;
                 if (project != null)
@@ -368,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Project:
-                            var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
+                            var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                             var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(project, diagnostics));
                             return ImmutableDictionary.CreateRange(kvp);
 
@@ -378,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             var tasks = project.Solution.Projects.Select(async p => new
                             {
                                 Project = p,
-                                Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p).ConfigureAwait(false)
+                                Diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(p, cancellationToken).ConfigureAwait(false)
                             }).ToArray();
 
                             await Task.WhenAll(tasks).ConfigureAwait(false);

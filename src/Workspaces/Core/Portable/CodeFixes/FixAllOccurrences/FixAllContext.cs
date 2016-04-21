@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Document within which fix all occurrences was triggered.
-        /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
+        /// Can be null if the context was created using 
+        /// <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider)"/>.
         /// </summary>
         public Document Document { get; }
 
@@ -46,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Diagnostic Ids to fix.
-        /// Note that <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/> and <see cref="GetAllDiagnosticsAsync(Project)"/> methods
+        /// Note that <see cref="GetDocumentDiagnosticsAsync(Document, CancellationToken)"/>, 
+        /// <see cref="GetProjectDiagnosticsAsync(Project, CancellationToken)"/> and 
+        /// <see cref="GetAllDiagnosticsAsync(Project, CancellationToken)"/> methods
         /// return only diagnostics whose IDs are contained in this set of Ids.
         /// </summary>
         public ImmutableHashSet<string> DiagnosticIds { get; }
@@ -56,10 +59,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public string CodeActionEquivalenceKey { get; }
 
-        /// <summary>
-        /// CancellationToken for fix all session.
-        /// </summary>
+        [Obsolete("Do not use.  Always set to CancellationToken.None")]
         public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// <deprecated>Use <see cref="FixAllContext(Document, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider)"/>
+        /// instead. FixAllContext no longer uses an <see cref="CancellationToken"/></deprecated>
+        /// </summary>
+        [Obsolete("Use FixAllContext(Document, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider). FixAllContext no longer uses a CancellationToken")]
+        public FixAllContext(
+            Document document,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
+            : this(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
+        {
+        }
 
         /// <summary>
         /// Creates a new <see cref="FixAllContext"/>.
@@ -73,21 +91,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="fixAllDiagnosticProvider">
         /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
-        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         public FixAllContext(
             Document document,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
-            CancellationToken cancellationToken)
-            : this(document, document.Project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+            DiagnosticProvider fixAllDiagnosticProvider)
+            : this(document, document.Project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
         {
             if (document == null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
+        }
+
+        [Obsolete("Use FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider). FixAllContext no longer uses a CancellationToken")]
+        public FixAllContext(
+            Project project,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
+            : this(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
+        {
         }
 
         /// <summary>
@@ -102,16 +131,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="fixAllDiagnosticProvider">
         /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
-        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         public FixAllContext(
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
-            CancellationToken cancellationToken)
-            : this(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+            DiagnosticProvider fixAllDiagnosticProvider)
+            : this(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
         {
             if (project == null)
             {
@@ -126,8 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
-            CancellationToken cancellationToken)
+            DiagnosticProvider fixAllDiagnosticProvider)
         {
             Contract.ThrowIfNull(project);
 
@@ -158,13 +184,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
             _diagnosticProvider = fixAllDiagnosticProvider;
-            this.CancellationToken = cancellationToken;
         }
+
+        [Obsolete("Use GetDocumentDiagnosticsAsync(Document, CancellationToken) instead")]
+        public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+        {
+            return GetDocumentDiagnosticsAsync(document, CancellationToken.None);
+        }
+
 
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(
+            Document document, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -176,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = _diagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+            var getDiagnosticsTask = _diagnosticProvider.GetDocumentDiagnosticsAsync(document, cancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
@@ -194,31 +227,45 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return ImmutableArray<Diagnostic>.Empty;
         }
 
+        [Obsolete("Use GetProjectDiagnosticsAsync(Project, CancellationToken) instead")]
+        public Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+        {
+            return GetProjectDiagnosticsAsync(project, CancellationToken.None);
+        }
+
         /// <summary>
         /// Gets all the project-level diagnostics, i.e. diagnostics with no source location, in the given project filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(
+            Project project, CancellationToken cancellationToken)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false).ConfigureAwait(false);
+            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        [Obsolete("Use GetAllDiagnosticsAsync(Project, CancellationToken) instead")]
+        public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+        {
+            return GetAllDiagnosticsAsync(project, CancellationToken.None);
         }
 
         /// <summary>
         /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
         /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(
+            Project project, CancellationToken cancellationToken)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true).ConfigureAwait(false);
+            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -226,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// If <paramref name="includeAllDocumentDiagnostics"/> is false, then returns only project-level diagnostics which have no source location.
         /// Otherwise, returns all diagnostics in the project, including the document diagnostics for all documents in the given project.
         /// </summary>
-        private async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics)
+        private async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(
+            Project project, bool includeAllDocumentDiagnostics, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(project);
 
@@ -236,38 +284,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics ?
-                _diagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
-                _diagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
+                _diagnosticProvider.GetAllDiagnosticsAsync(project, cancellationToken) :
+                _diagnosticProvider.GetProjectDiagnosticsAsync(project, cancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
-        /// </summary>
+        [Obsolete("This function no longer does anything.  FixAllContext no longer contains a CancellationToken")]
         public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
-            // TODO: We should change this API to be a virtual method, as the class is not sealed.
-            //       For now, special case FixMultipleContext.
-            var fixMultipleContext = this as FixMultipleContext;
-            if (fixMultipleContext != null)
-            {
-                return fixMultipleContext.WithCancellationToken(cancellationToken);
-            }
-
-            if (this.CancellationToken == cancellationToken)
-            {
-                return this;
-            }
-
-            return new FixAllContext(
-                this.Document,
-                this.Project,
-                this.CodeFixProvider,
-                this.Scope,
-                this.CodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                _diagnosticProvider,
-                cancellationToken);
+            return this;
         }
     }
 }

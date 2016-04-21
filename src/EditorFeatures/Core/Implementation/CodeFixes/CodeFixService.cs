@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                     fixAllContext = FixAllCodeActionContext.Create(
                         document, fixAllProviderInfo, codeFixProvider, diagnostics,
-                        this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
+                        this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync);
                 }
 
                 result = result ?? new List<CodeFixCollection>();

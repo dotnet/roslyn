@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     _suppressionFixProvider = suppressionFixProvider;
                 }
 
-                public override async Task AddDocumentFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+                public override async Task AddDocumentFixesAsync(
+                    Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext,
+                    CancellationToken cancellationToken)
                 {
                     // Batch all the pragma remove suppression fixes by executing them sequentially for the document.
                     var pragmaActionsBuilder = ImmutableArray.CreateBuilder<IPragmaBasedCodeAction>();
@@ -40,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && d.IsSuppressed))
                     {
                         var span = diagnostic.Location.SourceSpan;
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllContext.CancellationToken).ConfigureAwait(false);
+                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
+                            document, span, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
                         {
@@ -76,11 +79,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                public async override Task AddProjectFixesAsync(Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext)
+                public async override Task AddProjectFixesAsync(
+                    Project project, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, FixAllContext fixAllContext,
+                    CancellationToken cancellationToken)
                 {
                     foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                     {
-                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllContext.CancellationToken).ConfigureAwait(false);
+                        var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
+                            project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
                         var removeSuppressionCodeAction = removeSuppressionFixes.SingleOrDefault()?.Action as RemoveSuppressionCodeAction;
                         if (removeSuppressionCodeAction != null)
                         {
@@ -94,13 +100,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                public override async Task<CodeAction> TryGetMergedFixAsync(IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext)
+                public override async Task<CodeAction> TryGetMergedFixAsync(
+                    IEnumerable<CodeAction> batchOfFixes, FixAllContext fixAllContext,
+                    CancellationToken cancellationToken)
                 {
                     // Batch all the attribute removal fixes into a single fix.
                     // Pragma removal fixes have already been batch for each document AddDocumentFixes method.
                     // This ensures no merge conflicts in merging all fixes by our base implementation.
 
-                    var cancellationToken = fixAllContext.CancellationToken;
                     var oldSolution = fixAllContext.Project.Solution;
                     var currentSolution = oldSolution;
 
@@ -145,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         newBatchOfFixes.Insert(0, batchAttributeRemoveFix);
                     }
 
-                    return await base.TryGetMergedFixAsync(newBatchOfFixes, fixAllContext).ConfigureAwait(false);
+                    return await base.TryGetMergedFixAsync(newBatchOfFixes, fixAllContext, cancellationToken).ConfigureAwait(false);
                 }
 
                 private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
