@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             bool allowUnsafe = false,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0,
-            string expectedOutput = null,
             CSharpParseOptions parseOptions = null)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
@@ -54,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // return null if ambiguous
             return (expectedUnoptimizedIL != null) ^ (expectedOptimizedIL != null) ? (unoptimizedVerifier ?? optimizedVerifier) : null;
         }
+
+        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
         #endregion
 
@@ -1517,11 +1518,12 @@ public class C
         l3(d);
     }
 }";
-            CompileAndVerifyExperimental(src,
+            CompileAndVerify(src,
                 expectedOutput: "2024",
+                parseOptions: _localFunctionParseOptions,
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
             CompileAndVerifyIL(src, "C.Main",
-                parseOptions: TestOptions.ExperimentalParseOptions,
+                parseOptions: _localFunctionParseOptions,
                 expectedOptimizedIL: @"
 {
   // Code size      250 (0xfa)

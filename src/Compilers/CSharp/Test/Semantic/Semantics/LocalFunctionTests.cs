@@ -100,7 +100,7 @@ class C
         a();
     }
 }";
-            CompileAndVerifyExperimental(src, additionalRefs: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, expectedOutput: "012");
+            VerifyOutput(src, "012");
         }
 
         [Fact]
@@ -2329,16 +2329,22 @@ class Program
 
         dynamic val = 2;
         int val2 = 3;
+        Console.WriteLine();
         L1(val);
         L2(val);
+        Console.WriteLine();
         L3(val, val2);
         L3(val);
+        L3(val, val, val);
+        Console.WriteLine();
         L2(L4(val));
         L5(val)(val);
     }
 }
 ";
-            VerifyOutput(source, output: "2020230200222");
+            VerifyOutput(source, output: @"202
+023020222
+00222");
         }
 
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]

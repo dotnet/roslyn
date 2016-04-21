@@ -516,8 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (resolution.IsLocalFunctionInvocation)
                         {
-                            result = BindDynamicArgToLocalFunction(syntax,
-                                expression, methodName, methodGroup, diagnostics, queryClause, resolution);
+                            result = BindLocalFunctionInvocationWithDynamicArgument(
+                                syntax, expression, methodName, methodGroup,
+                                diagnostics, queryClause, resolution);
                         }
                         else if (resolution.IsExtensionMethodGroup)
                         {
@@ -573,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindDynamicArgToLocalFunction(
+        private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
             CSharpSyntaxNode syntax,
             CSharpSyntaxNode expression,
             string methodName,
@@ -599,48 +600,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameters = localFunction.Parameters;
             var methodResult = validResult.Result;
 
-            bool hasErrors = false;
-
-            for (int i = 0; i < args.Count; ++i)
+            // We're only in trouble if a dynamic argument is passed to the
+            // params parameter and is ambiguous at compile time between
+            // normal and expanded form i.e., there is exactly one dynamic
+            // argument to a params parameter
+            if (OverloadResolution.IsValidParams(localFunction) &&
+                args.Count == parameters.Length)
             {
-                var arg = args[i];
-                if (arg.HasDynamicType())
+                Debug.Assert(parameters.Last().IsParams);
+                var lastParamIndex = parameters.Length - 1;
+                for (int i = 0; i < args.Count; ++i)
                 {
-                    var param = parameters[methodResult.ParameterFromArgument(i)];
-                    if (param.IsParams)
+                    var arg = args[i];
+                    if (arg.HasDynamicType() &&
+                        methodResult.ParameterFromArgument(i) == lastParamIndex)
                     {
                         Error(diagnostics,
                             ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
-                            syntax, param.Name, localFunction.Name);
-                        hasErrors = true;
+                            syntax, parameters.Last().Name, localFunction.Name);
+                        return BindDynamicInvocation(
+                            syntax,
+                            methodGroup,
+                            resolution.AnalyzedArguments,
+                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                            diagnostics,
+                            queryClause);
                     }
                 }
             }
 
-            if (!hasErrors)
-            {
-                return BindInvocationExpressionContinued(
-                    node: syntax,
-                    expression: expression,
-                    methodName: methodName,
-                    result: resolution.OverloadResolutionResult,
-                    analyzedArguments: resolution.AnalyzedArguments,
-                    methodGroup: resolution.MethodGroup,
-                    delegateTypeOpt: null,
-                    diagnostics: diagnostics,
-                    extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable,
-                    queryClause: queryClause);
-            }
-            else
-            {
-                return BindDynamicInvocation(
-                    syntax,
-                    methodGroup,
-                    resolution.AnalyzedArguments,
-                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                    diagnostics,
-                    queryClause);
-            }
+            return BindInvocationExpressionContinued(
+                node: syntax,
+                expression: expression,
+                methodName: methodName,
+                result: resolution.OverloadResolutionResult,
+                analyzedArguments: resolution.AnalyzedArguments,
+                methodGroup: resolution.MethodGroup,
+                delegateTypeOpt: null,
+                diagnostics: diagnostics,
+                extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable,
+                queryClause: queryClause);
         }
 
         private ImmutableArray<MethodSymbol> GetCandidatesPassingFinalValidation(CSharpSyntaxNode syntax, OverloadResolutionResult<MethodSymbol> overloadResolutionResult, BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
