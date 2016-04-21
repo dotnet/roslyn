@@ -163,7 +163,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal bool IsFixMultiple => _diagnosticProvider.IsFixMultiple;
 
-        internal DiagnosticProvider GetDiagnosticProvider() => _diagnosticProvider;
+        /// <summary>
+        /// Transforms this context into the public <see cref="FixAllContext"/> to be used for <see cref="FixAllProvider.GetFixAsync(FixAllContext)"/> invocation.
+        /// </summary>
+        internal FixAllContext GetContextForScopeAndActionId(
+            FixAllScope scope, string codeActionEquivalenceKey)
+        {
+            if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+            {
+                return this;
+            }
+
+            if (this.Document != null)
+            {
+                return new FixAllContext(this.Document, this.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    this.DiagnosticIds, this._diagnosticProvider, this.CancellationToken);
+            }
+
+            return new FixAllContext(this.Project, this.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    this.DiagnosticIds, this._diagnosticProvider, this.CancellationToken);
+        }
 
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
