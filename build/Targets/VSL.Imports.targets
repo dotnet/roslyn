@@ -355,7 +355,9 @@
     <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
              Targets="GetTargetPathWithAuthenticodeCertificateName"
              BuildInParallel="$(BuildInParallel)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)">
+             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false'"
+             >
 
       <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
     </MSBuild>
