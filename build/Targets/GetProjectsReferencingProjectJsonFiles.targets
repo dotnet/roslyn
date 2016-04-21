@@ -1,0 +1,51 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="ProjectReferencesTask" AssemblyFile="$(NuGetTasksAssemblyPath)" Condition=" $(MSBuildThisFileExtension) == '.xproj' " />
+  <Target Name="_NuGet_GetProjectsReferencingProjectJsonInternal"
+          DependsOnTargets="_SplitProjectReferencesByFileExistence"
+          Returns="@(_ProjectReferencingProjectJsonFile)">
+
+    <!-- Process xprojs with an external task to find xproj -> xproj references -->
+    <ProjectReferencesTask ProjectFile="$(MsBuildProjectFullPath)" Condition=" $(MSBuildThisFileExtension) == '.xproj' " >
+      <Output TaskParameter="ProjectClosureOutput" PropertyName="ProjectClosureOutput" />
+    </ProjectReferencesTask>
+
+    <ItemGroup>
+      <!-- Filter out project references that specify ReferenceOutputAssembly=false -->
+      <ValidProjectInputForNuGet Include="@(ProjectReference)"
+          Condition=" %(ProjectReference.ReferenceOutputAssembly) == '' OR %(ProjectReference.ReferenceOutputAssembly) == 'true' " />
+      <!-- Include all xproj -> xproj -->
+      <ValidProjectInputForNuGet Include="$(ProjectClosureOutput)" />
+    </ItemGroup>
+
+    <!-- Get the absolute paths to all projects -->
+    <ConvertToAbsolutePath Paths="@(ValidProjectInputForNuGet)">
+      <Output TaskParameter="AbsolutePaths" PropertyName="NuGetAbsoluteProjectPaths" />
+    </ConvertToAbsolutePath>
+    <ItemGroup>
+      <NuGetFullPathForOutput Include="$(NuGetAbsoluteProjectPaths)" />
+    </ItemGroup>
+
+    <!-- These entries are added to the results file -->
+    <ItemGroup>
+      <_ProjectReferencingProjectJsonFile
+          Include="#:$(MSBuildProjectFullPath)"
+          Condition=" '$(NuGetWriteEntryPoint)' == 'true' " />
+      <_ProjectReferencingProjectJsonFile 
+        Include="$(MsBuildProjectFullPath)|%(NuGetFullPathForOutput.Identity)" Condition=" %(NuGetFullPathForOutput.Identity) != '' " />
+    </ItemGroup>
+
+    <MSBuild
+      Projects="@(ValidProjectInputForNuGet)"
+      Targets="_NuGet_GetProjectsReferencingProjectJsonInternal"
+      Properties="
+            %(_MSBuildProjectReferenceExistent.SetConfiguration);
+            %(_MSBuildProjectReferenceExistent.SetPlatform);
+            NuGetWriteEntryPoint=false"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="_ProjectReferencingProjectJsonFile" />
+    </MSBuild>
+  </Target>
+</Project>

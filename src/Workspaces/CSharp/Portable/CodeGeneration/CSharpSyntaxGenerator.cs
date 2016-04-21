@@ -3392,6 +3392,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.AwaitExpression((ExpressionSyntax)expression);
         }
 
+        public override SyntaxNode NameOfExpression(SyntaxNode expression)
+        {
+            return InvocationExpression(
+                IdentifierName(SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
+                expression);
+        }
+
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);

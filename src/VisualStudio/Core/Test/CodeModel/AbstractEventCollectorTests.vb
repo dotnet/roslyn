@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -85,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End If
         End Sub
 
-        Friend Async Function TestAsync(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)()) As Threading.Tasks.Task
+        Friend Async Function TestAsync(code As XElement, change As XElement, ParamArray expectedEvents As Action(Of CodeModelEvent, ICodeModelService)()) As Task
             Dim definition =
 <Workspace>
     <Project Language=<%= LanguageName %> CommonReferences="true">

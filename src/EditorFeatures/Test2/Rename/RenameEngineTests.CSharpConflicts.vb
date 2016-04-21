@@ -1175,6 +1175,7 @@ class B
             <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
+            <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
             Public Sub RewriteConflictingExtensionMethodCallSite()
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -1198,7 +1199,7 @@ static class E
                     </Workspace>, renameTo:="Bar")
 
 
-                    result.AssertLabeledSpansAre("stmt1", "return E.Bar(E.Bar(this,1),2);", RelatedLocationType.ResolvedReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "return E.Bar(E.Bar(this, 1), 2);", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
 
@@ -1206,6 +1207,7 @@ static class E
             <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
             <WorkItem(528902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528902")>
             <WorkItem(645152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645152")>
+            <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
             Public Sub RewriteConflictingExtensionMethodCallSiteWithReturnTypeChange()
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -1228,7 +1230,7 @@ static class E
                     </Workspace>, renameTo:="Foo")
 
 
-                    result.AssertLabeledSpansAre("Resolved", "E.Foo(E.Foo(this,1),2);", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolved", "E.Foo(E.Foo(this, 1), 2);", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 

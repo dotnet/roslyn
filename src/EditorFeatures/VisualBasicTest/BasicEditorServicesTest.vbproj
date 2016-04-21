@@ -28,6 +28,10 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\Moq.net\Moq.net.csproj">
+      <Project>{a32eab7f-691c-4d00-98c4-f50c37bb4754}</Project>
+      <Name>Moq.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
       <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
       <Name>InteractiveEditorFeatures</Name>
@@ -87,27 +91,9 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -208,7 +194,7 @@
     <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
-    <Compile Include="Diagnostics\Spellcheck\SpellcheckTests.vb" />
+    <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.vb" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
@@ -343,6 +329,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\EraseKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\PreserveKeywordRecommenderTests.vb" />

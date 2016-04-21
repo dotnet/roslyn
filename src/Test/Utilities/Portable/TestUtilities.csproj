@@ -32,6 +32,10 @@
       <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
@@ -115,6 +119,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTestBase.cs" />
+    <Compile Include="CoreCLRRuntimeEnvironment.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="ModuleData.cs" />
@@ -136,9 +142,5 @@
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties project_1json__JSONSchema="http://json.schemastore.org/launchsettings" />
-    </VisualStudio>
-  </ProjectExtensions>
+  <ProjectExtensions />
 </Project>

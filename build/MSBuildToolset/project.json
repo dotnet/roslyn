@@ -1,6 +1,9 @@
 {
   "version": "1.0.0-*",
-  "compilationOptions": { },
+  "compilationOptions": {
+      "emitEntryPoint": true,
+      "outputName": "RoslynRestore"
+   },
 
   "dependencies": {
     "Microsoft.Build.Framework": "0.1.0-preview-00017",
@@ -15,6 +18,7 @@
     "NETStandard.Library": "1.0.0-rc2-23811",
     "MSBuild": "0.1.0-preview-00017",
     "System.Security.Cryptography.X509Certificates": "4.0.0-rc2-23811",
+    "System.Diagnostics.Process": "4.1.0-rc2-23811",
     "Newtonsoft.Json": "7.0.1"
   },
 

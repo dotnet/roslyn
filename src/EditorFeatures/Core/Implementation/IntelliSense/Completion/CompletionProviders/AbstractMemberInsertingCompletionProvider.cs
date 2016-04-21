@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         protected abstract SyntaxToken GetToken(MemberInsertionCompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
-        protected abstract ISymbol GenerateMember(ISymbol member, INamedTypeSymbol containingType, Document document, MemberInsertionCompletionItem item, CancellationToken cancellationToken);
+        protected abstract Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, MemberInsertionCompletionItem item, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
         protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
 
@@ -44,12 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 allowCancel: true,
                 action: c =>
             {
-                var newDocument = DetermineNewDocument((MemberInsertionCompletionItem)completionItem, currentSnapshot, c.CancellationToken);
+                var cancellationToken = c.CancellationToken;
+                var newDocument = DetermineNewDocumentAsync((MemberInsertionCompletionItem)completionItem, currentSnapshot, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // Apply the new document to workspace
-                newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, c.CancellationToken);
+                newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
 
-                var newRoot = newDocument.GetSyntaxRootAsync(c.CancellationToken).WaitAndGetResult(c.CancellationToken);
+                var newRoot = newDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // Attempt to find the inserted node and move the caret appropriately
                 if (newRoot != null)
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             });
         }
 
-        private Document DetermineNewDocument(MemberInsertionCompletionItem completionItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+        private async Task<Document> DetermineNewDocumentAsync(MemberInsertionCompletionItem completionItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             // The span we're going to replace
             var line = textSnapshot.GetLineFromLineNumber(completionItem.Line);
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
             document = document.WithSyntaxRoot(annotatedRoot);
 
-            Document memberContainingDocument = GenerateMemberAndUsings(document, completionItem, line, cancellationToken);
+            var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
 
             var insertionRoot = PrepareTreeForMemberInsertion(memberContainingDocument, cancellationToken);
             var insertionText = GenerateInsertionText(memberContainingDocument, cancellationToken);
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
-        private Document GenerateMemberAndUsings(
+        private async Task<Document> GenerateMemberAndUsingsAsync(
             Document document,
             MemberInsertionCompletionItem completionItem,
             ITextSnapshotLine line,
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // CodeGenerationOptions containing before and after
             var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
 
-            var generatedMember = GenerateMember(overriddenMember, containingType, document, completionItem, cancellationToken);
+            var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
             Document memberContainingDocument = null;
