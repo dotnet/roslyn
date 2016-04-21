@@ -57,16 +57,6 @@ namespace Microsoft.CodeAnalysis.Runtime
     }
 }
 ";
-        const string XunitFactAttributeSource = @"
-namespace Xunit
-{
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class FactAttribute : Attribute
-    {
-        public FactAttribute() { }
-    }
-}
-";
 
         [Fact]
         public void GotoCoverage()
@@ -79,9 +69,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         Console.WriteLine(""foo"");
@@ -128,6 +118,7 @@ public class Program
 bar
 Flushing
 1
+True
 True
 2
 True
@@ -207,7 +198,7 @@ True
   IL_0051:  ret
 }
 ";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
         }
 
@@ -242,9 +233,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         MyBox<object> x = new MyBox<object>(null);
@@ -268,6 +259,7 @@ True
 True
 True
 3
+True
 True
 4
 True
@@ -319,7 +311,7 @@ True
   IL_0053:  ldfld      ""T MyBox<T>._value""
   IL_0058:  ret
 }";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("MyBox<T>.GetValue", expectedGetValueIL);
         }
        
@@ -334,9 +326,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
-    [Xunit.Fact]
     static void TestMain()
     {
         int x = Count;
@@ -360,6 +352,7 @@ public class Program
             string expectedOutput = @"Flushing
 1
 True
+True
 2
 True
 True
@@ -377,7 +370,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -391,9 +384,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         int x;
@@ -427,6 +420,7 @@ public class Program
             string expectedOutput = @"Flushing
 1
 True
+True
 2
 True
 True
@@ -442,7 +436,7 @@ False
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -457,9 +451,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         using (var memoryStream = new MemoryStream())
@@ -496,6 +490,7 @@ public class Program
             string expectedOutput = @"Flushing
 1
 True
+True
 2
 True
 True
@@ -511,7 +506,7 @@ True
 True
 ";
            
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe,  emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -525,10 +520,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-
-    [Xunit.Fact]
     static void TestMain()
     {
         VariousStatements(2);
@@ -624,6 +618,7 @@ public class Program
 Flushing
 1
 True
+True
 2
 True
 3
@@ -661,7 +656,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -675,9 +670,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         int y = 5;
@@ -703,6 +698,7 @@ public class Program
 Flushing
 1
 True
+True
 2
 True
 True
@@ -715,7 +711,7 @@ False
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -730,9 +726,9 @@ public class Program
     public static void Main(string[] args)
     {
         TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    [Xunit.Fact]
     static void TestMain()
     {
         Console.WriteLine(Outer(""Goo"").Result);
@@ -770,6 +766,7 @@ public class Program
 Flushing
 1
 True
+True
 2
 True
 3
@@ -789,153 +786,7 @@ True
 True
 ";
 
-            CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void XunitFactAttribute()
-        {
-            string source = @"
-using System;
-
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        MethodWithFactAttribute(1);
-        MethodWithOutFactAttribute(1);
-        MethodWithFactAttribute(1);
-    }
-
-    [Xunit.Fact]
-    static int MethodWithFactAttribute(int x)
-    {
-        var y = x + 1;
-        var z = y + 1;
-        return z;
-    }
-
-    static int MethodWithOutFactAttribute(int x)
-    {
-        var y = x + 1;
-        var z = y + 1;
-        return z;
-    }
-}
-";
-            string expectedOutput = @"Flushing
-1
-True
-False
-False
-2
-True
-True
-True
-Flushing
-1
-False
-True
-True
-2
-True
-True
-True
-3
-True
-True
-True
-";
-
-            string expectedMethodWithFactAttributeIL = @"{
-  // Code size       75 (0x4b)
-  .maxstack  4
-  .locals init (bool[] V_0,
-                int V_1)
-  .try
-  {
-    IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-    IL_0005:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
-    IL_000a:  ldelem.ref
-    IL_000b:  stloc.0
-    IL_000c:  ldloc.0
-    IL_000d:  brtrue.s   IL_002f
-    IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-    IL_0014:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
-    IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-    IL_001e:  ldtoken    ""int Program.MethodWithFactAttribute(int)""
-    IL_0023:  ldelema    ""bool[]""
-    IL_0028:  ldc.i4.3
-    IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-    IL_002e:  stloc.0
-    IL_002f:  ldloc.0
-    IL_0030:  ldc.i4.0
-    IL_0031:  ldc.i4.1
-    IL_0032:  stelem.i1
-    IL_0033:  ldarg.0
-    IL_0034:  ldc.i4.1
-    IL_0035:  add
-    IL_0036:  ldloc.0
-    IL_0037:  ldc.i4.1
-    IL_0038:  ldc.i4.1
-    IL_0039:  stelem.i1
-    IL_003a:  ldc.i4.1
-    IL_003b:  add
-    IL_003c:  ldloc.0
-    IL_003d:  ldc.i4.2
-    IL_003e:  ldc.i4.1
-    IL_003f:  stelem.i1
-    IL_0040:  stloc.1
-    IL_0041:  leave.s    IL_0049
-  }
-  finally
-  {
-    IL_0043:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
-    IL_0048:  endfinally
-  }
-  IL_0049:  ldloc.1
-  IL_004a:  ret
-}";
-            string expectedMethodWithOutFactAttributeIL = @"{
-  // Code size       65 (0x41)
-  .maxstack  4
-  .locals init (bool[] V_0)
-  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_0005:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
-  IL_000a:  ldelem.ref
-  IL_000b:  stloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  brtrue.s   IL_002f
-  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_0014:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
-  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_001e:  ldtoken    ""int Program.MethodWithOutFactAttribute(int)""
-  IL_0023:  ldelema    ""bool[]""
-  IL_0028:  ldc.i4.3
-  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_002e:  stloc.0
-  IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.0
-  IL_0031:  ldc.i4.1
-  IL_0032:  stelem.i1
-  IL_0033:  ldarg.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  add
-  IL_0036:  ldloc.0
-  IL_0037:  ldc.i4.1
-  IL_0038:  ldc.i4.1
-  IL_0039:  stelem.i1
-  IL_003a:  ldc.i4.1
-  IL_003b:  add
-  IL_003c:  ldloc.0
-  IL_003d:  ldc.i4.2
-  IL_003e:  ldc.i4.1
-  IL_003f:  stelem.i1
-  IL_0040:  ret
-}";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource + XunitFactAttributeSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
-            verifier.VerifyIL("Program.MethodWithFactAttribute", expectedMethodWithFactAttributeIL);
-            verifier.VerifyIL("Program.MethodWithOutFactAttribute", expectedMethodWithOutFactAttributeIL);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
         private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
