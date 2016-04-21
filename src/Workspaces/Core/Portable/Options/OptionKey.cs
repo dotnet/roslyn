@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Options
         public IOption Option { get; }
         public string Language { get; }
 
+        internal object DefaultValue => ((IOption2)Option).GetDefaultValue(Language);
+
         public OptionKey(IOption option, string language = null)
         {
             if (option == null)
