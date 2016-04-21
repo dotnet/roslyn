@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
                 var batchFixer = (BatchFixAllProvider)WellKnownFixAllProviders.BatchFixer;
-                var fixMultipleContext = fixAllContext as FixMultipleContext;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);
                 if (!isGlobalSuppression)
@@ -38,9 +37,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var title = fixAllContext.CodeActionEquivalenceKey;
                 if (fixAllContext.Document != null)
                 {
+#if false
                     var documentsAndDiagnosticsToFixMap = fixMultipleContext != null ?
                         fixMultipleContext.DocumentDiagnosticsToFix :
                         await batchFixer.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+#endif
+
+                    var documentsAndDiagnosticsToFixMap = 
+                        await fixAllContext.GetDocumentDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
 
                     return !isGlobalSuppression ?
                         await batchFixer.GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
@@ -48,9 +52,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
                 else
                 {
+#if false
                     var projectsAndDiagnosticsToFixMap = fixMultipleContext != null ?
                         fixMultipleContext.ProjectDiagnosticsToFix :
                         await batchFixer.GetProjectDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+#endif
+                    var projectsAndDiagnosticsToFixMap =
+                        await fixAllContext.GetProjectDiagnosticsToFixAsync(batchFixer).ConfigureAwait(false);
 
                     return !isGlobalSuppression ?
                         await batchFixer.GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :

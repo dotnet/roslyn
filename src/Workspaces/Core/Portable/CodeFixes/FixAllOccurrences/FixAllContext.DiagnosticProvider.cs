@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -31,6 +33,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
             /// </summary>
             public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
+        }
+
+        internal virtual Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        {
+            return batchFixer.GetDocumentDiagnosticsToFixAsync(this);
+        }
+
+        internal virtual Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        {
+            return batchFixer.GetProjectDiagnosticsToFixAsync(this);
         }
     }
 }

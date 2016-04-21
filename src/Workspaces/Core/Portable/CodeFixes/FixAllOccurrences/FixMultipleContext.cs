@@ -96,19 +96,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return uniqueIds.ToImmutable();
         }
 
-        public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsToFix => _diagnosticProvider.DocumentDiagnosticsToFix;
-        public ImmutableDictionary<Project, ImmutableArray<Diagnostic>> ProjectDiagnosticsToFix => _diagnosticProvider.ProjectDiagnosticsToFix;
-
-        public Diagnostic GetTriggerDiagnostic()
-        {
-            if (Document != null)
-            {
-                return DocumentDiagnosticsToFix[Document].First();
-            }
-
-            return ProjectDiagnosticsToFix[Project].First();
-        }
-
         public new FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
             if (this.CancellationToken == cancellationToken)
@@ -119,6 +106,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return Document != null ?
                 new FixMultipleContext(Document, CodeFixProvider, CodeActionEquivalenceKey, DiagnosticIds, _diagnosticProvider, cancellationToken) :
                 new FixMultipleContext(Project, CodeFixProvider, CodeActionEquivalenceKey, DiagnosticIds, _diagnosticProvider, cancellationToken);
+        }
+
+        internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        {
+            return Task.FromResult(_diagnosticProvider.DocumentDiagnosticsToFix);
+        }
+
+        internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(BatchFixAllProvider batchFixer)
+        {
+            return Task.FromResult(_diagnosticProvider.ProjectDiagnosticsToFix);
         }
     }
 }
