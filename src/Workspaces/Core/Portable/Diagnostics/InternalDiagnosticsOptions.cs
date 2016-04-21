@@ -18,5 +18,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option<bool> PreferBuildErrorsOverLiveErrors = new Option<bool>(OptionName, "Errors from build will be preferred over live errors from same analyzer", defaultValue: true);
         public static readonly Option<bool> PutCustomTypeInBingSearch = new Option<bool>(OptionName, "PutCustomTypeInBingSearch", defaultValue: true);
         public static readonly Option<bool> CrashOnAnalyzerException = new Option<bool>(OptionName, "CrashOnAnalyzerException", defaultValue: false);
+        public static readonly Option<bool> ProcessHiddenDiagnostics = new Option<bool>(OptionName, "Process Hidden Diagnostics", defaultValue: false);
     }
 }

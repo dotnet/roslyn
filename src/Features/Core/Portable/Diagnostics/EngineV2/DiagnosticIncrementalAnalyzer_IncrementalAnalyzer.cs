@@ -68,9 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                // get stateSets that should be run for full analysis
-                // stateSet not included here will never be cached because result is unknown.
-                var stateSets = _stateManager.GetOrUpdateStateSets(project).Where(s => ShouldRunForFullProject(s.Analyzer, project));
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
 
                 // PERF: get analyzers that are not suppressed.
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
@@ -217,6 +215,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
             return document.IsOpen();
+        }
+
+        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        {
+            // Get stateSets that should be run for full analysis
+
+            // include all analyzers if option is on
+            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
+            {
+                return stateSets;
+            }
+
+            // Include only one we want to run for full solution analysis.
+            // stateSet not included here will never be saved because result is unknown.
+            return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
