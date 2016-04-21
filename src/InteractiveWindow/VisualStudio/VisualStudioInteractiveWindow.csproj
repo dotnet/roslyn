@@ -11,6 +11,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</ProjectGuid>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <UseCodebase>true</UseCodebase>
     <RootNamespace>Microsoft.VisualStudio</RootNamespace>
@@ -25,6 +26,11 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
       <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
       <Name>InteractiveWindow</Name>
