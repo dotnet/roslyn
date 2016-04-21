@@ -248,9 +248,6 @@
     <Reference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Design.dll">
-      <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.Shell.Design.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
