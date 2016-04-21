@@ -391,6 +391,7 @@
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
+    <Compile Include="Options\IOption2.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="Packaging\IPackageSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
