@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
 
                 // save last aggregated form of analysis result
-                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIds.Add(state.DocumentId), isEmpty: false);
+                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIdsOrEmpty.Add(state.DocumentId), isEmpty: false);
             }
 
             public bool OnDocumentRemoved(DocumentId id)
