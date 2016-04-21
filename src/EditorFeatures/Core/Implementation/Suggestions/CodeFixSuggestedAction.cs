@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             FixAllProvider fixAllProvider,
             FixAllCodeActionContext fixAllCodeActionContext,
             IEnumerable<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
@@ -71,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var fixAllContext = GetContextForScopeAndActionId(fixAllCodeActionContext, scope, action.EquivalenceKey);
                 var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllProvider, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
-                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction, fixAllProvider,
-                    fixAllCodeActionContext.OriginalDiagnostics.First(), operationListener);
+                    workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
+                    fixAllProvider, firstDiagnostic, operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 

@@ -301,7 +301,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
 
                 result = result ?? new List<CodeFixCollection>();
-                var codeFix = new CodeFixCollection(fixer, span, fixes, fixAllProvider, fixAllContext, supportedScopes);
+                var codeFix = new CodeFixCollection(
+                    fixer, span, fixes, fixAllProvider, fixAllContext,
+                    supportedScopes, diagnostics.First());
                 result.Add(codeFix);
             }
 

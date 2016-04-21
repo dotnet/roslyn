@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllProvider FixAllProvider { get; }
         public FixAllCodeActionContext FixAllContext { get; }
         public IEnumerable<FixAllScope> SupportedScopes { get; }
+        public Diagnostic FirstDiagnostic { get; }
 
         public CodeFixCollection(
             object provider,
@@ -30,8 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<CodeFix> fixes,
             FixAllProvider fixAllProvider,
             FixAllCodeActionContext fixAllContext,
-            IEnumerable<FixAllScope> supportedScopes) :
-            this(provider, span, fixes.ToImmutableArray(), fixAllProvider, fixAllContext, supportedScopes)
+            IEnumerable<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic) :
+            this(provider, span, fixes.ToImmutableArray(), fixAllProvider, fixAllContext, supportedScopes, firstDiagnostic)
         {
         }
 
@@ -41,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<CodeFix> fixes,
             FixAllProvider fixAllProvider,
             FixAllCodeActionContext fixAllContext,
-            IEnumerable<FixAllScope> supportedScopes)
+            IEnumerable<FixAllScope> supportedScopes,
+            Diagnostic firstDiagnostic)
         {
             this.Provider = provider;
             this.TextSpan = span;
@@ -49,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.FixAllProvider = fixAllProvider;
             this.FixAllContext = fixAllContext;
             this.SupportedScopes = supportedScopes;
+            this.FirstDiagnostic = firstDiagnostic;
         }
     }
 }

@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 .Select(d => d.Id);
         }
 
+#if false
+
         public IEnumerable<Diagnostic> OriginalDiagnostics
         {
             get { return _originalFixDiagnostics; }
         }
-
-#if false
 
         public FixAllProvider FixAllProvider
         {
