@@ -432,8 +432,8 @@ namespace A.B {
             comp = CSharpCompilation.Create("APP2",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
-                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}"
-                    ) },
+                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
+                    options: TestOptions.Regular.WithTuplesFeature()) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
@@ -457,6 +457,65 @@ namespace A.B {
     // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
     Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
 
+                );
+        }
+
+        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        public void MetadataReferenceWithInvalidAliasWithCSharp6()
+        {
+            var refcomp = CSharpCompilation.Create("DLL",
+                options: TestOptions.ReleaseDll,
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree("public class C {}", options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+                references: new MetadataReference[] { MscorlibRef });
+
+            var mtref = refcomp.EmitToImageReference(aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
+
+            // not use exported type
+            var comp = CSharpCompilation.Create("APP",
+                options: TestOptions.ReleaseDll,
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    @"class D {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+                references: new MetadataReference[] { MscorlibRef, mtref }
+                );
+
+            Assert.Empty(comp.GetDiagnostics());
+
+            // use exported type with partial alias
+            comp = CSharpCompilation.Create("APP1",
+             options: TestOptions.ReleaseDll,
+             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    @"extern alias Alias; class D : Alias::C {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+             references: new MetadataReference[] { MscorlibRef, mtref }
+             );
+
+            var errs = comp.GetDiagnostics();
+            //  error CS0430: The extern alias 'Alias' was not specified in a /reference option
+            Assert.Equal(430, errs.FirstOrDefault().Code);
+
+            // use exported type with invalid alias
+            comp = CSharpCompilation.Create("APP2",
+             options: TestOptions.ReleaseDll,
+             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+             references: new MetadataReference[] { MscorlibRef, mtref }
+             );
+
+            comp.VerifyDiagnostics(
+                // (1,19): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
+                // (1,19): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
+                // (1,20): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*"),
+                // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"),
+                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias"),
+                // (1,1): info CS8020: Unused extern alias.
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias")
                 );
         }
 

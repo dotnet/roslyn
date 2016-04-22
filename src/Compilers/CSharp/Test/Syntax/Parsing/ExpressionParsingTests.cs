@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoArguments()
         {
             var text = "(a, a2)";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options: TestOptions.Regular.WithTuplesFeature());
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoNamedArguments()
         {
             var text = "(arg1: (a, a2), arg2: a2)";
-            var expr = this.ParseExpression(text);
+            var expr = this.ParseExpression(text, options: TestOptions.Regular.WithTuplesFeature());
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());

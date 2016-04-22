@@ -7173,7 +7173,7 @@ class A
         x + y; x == 1;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
     // (7,16): error CS1001: Identifier expected
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
@@ -7205,6 +7205,32 @@ class A
     //     public static int Main()
     Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
     );
+        }
+
+        [Fact, WorkItem(536863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536863")]
+        public void CS0201ERR_IllegalStatement2WithCSharp6()
+        {
+            var test = @"
+class A
+{
+    public static int Main()
+    {
+        (a) => a;
+        (a, b) =>
+        {
+        };
+        int x = 0; int y = 0;
+        x + y; x == 1;
+    }
+}";
+            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(new[] { Parse(test, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) }, new MetadataReference[] { },
+                new ErrorDescription[] {
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 6, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 7, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 9 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 16 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_ReturnExpected, Line = 4, Column = 23 }
+                });
         }
 
         [Fact()]

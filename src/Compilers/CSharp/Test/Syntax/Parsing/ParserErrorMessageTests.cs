@@ -256,7 +256,7 @@ class A
 }
 ";
 
-            ParseAndValidate(test,
+            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
     // (7,16): error CS1001: Identifier expected
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
@@ -267,6 +267,28 @@ class A
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18)
 );
+        }
+
+        [WorkItem(862031, "DevDiv/Personal")]
+        [Fact]
+        public void CS0201ERR_IllegalStatementWithCSharp6()
+        {
+            var test = @"
+class A
+{
+    public static int Main()
+    {
+        (a) => a;
+        (a, b) =>
+        {
+        };
+        int x = 0; int y = 0;
+        x + y; x == 1;
+    }
+}
+";
+
+            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
         }
 
         [Fact]
@@ -2079,7 +2101,7 @@ namespace x
 }
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
-            ParseAndValidate(text,
+            ParseAndValidate(text, TestOptions.Regular.WithTuplesFeature(),
     // (7,21): error CS1031: Type expected
     //             e = new base;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
@@ -2104,6 +2126,48 @@ namespace x
     // (9,23): error CS1526: A new expression requires (), [], or {} after type
     //             e = new ();     // CS1031, too few tuple elements
     Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
+             );
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02WithCSharp6()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            e = new base;   // CS1031, not a type
+            e = new this;   // CS1031, not a type
+            e = new ();     // CS1031, not a type
+        }
+    }
+}
+";
+            // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
+            ParseAndValidate(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+    // (7,21): error CS1031: Type expected
+    //             e = new base;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_TypeExpected, "base"),
+    // (7,21): error CS1526: A new expression requires (), [], or {} after type
+    //             e = new base;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_BadNewExpr, "base"),
+    // (7,21): error CS1002: ; expected
+    //             e = new base;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "base"),
+    // (8,21): error CS1031: Type expected
+    //             e = new this;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_TypeExpected, "this"),
+    // (8,21): error CS1526: A new expression requires (), [], or {} after type
+    //             e = new this;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_BadNewExpr, "this"),
+    // (8,21): error CS1002: ; expected
+    //             e = new this;   // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "this"),
+    // (9,21): error CS1031: Type expected
+    //             e = new ();     // CS1031, not a type
+    Diagnostic(ErrorCode.ERR_TypeExpected, "(")
              );
         }
 
@@ -2158,7 +2222,7 @@ class A
         return null;
     }
 }";
-            ParseAndValidate(test,
+            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
     // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
     //     public static int explicit operator ()
     Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
@@ -2199,6 +2263,45 @@ class A
     // }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
 );
+        }
+
+        [Fact]
+        public void CS1037ERR_OvlOperatorExpectedWithCSharp6()
+        {
+            var test = @"
+class A
+{
+    public static int explicit operator ()
+    {
+        return 0;
+    }
+    public static A operator ()
+    {
+        return null;
+    }
+}";
+            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+                // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+"),
+                // (4,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit"),
+                // (4,23): error CS1037: Overloadable operator expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "explicit"),
+                // (4,32): error CS1003: Syntax error, '(' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator"),
+                // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator"),
+                // (8,30): error CS1037: Overloadable operator expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "("),
+                // (8,31): error CS1003: Syntax error, '(' expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")"));
         }
 
         // Preprocessor:
@@ -3481,7 +3584,7 @@ public class MainClass
     }
 ";
 
-            ParseAndValidate(test,
+            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
     // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
     //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
@@ -3516,6 +3619,41 @@ public class MainClass
     // }
     Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
 );
+        }
+
+        [Fact, WorkItem(535933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535933")] // ?
+        public void CS1553ERR_BadOperatorSyntaxWithCSharp6()
+        {
+            // Extra errors
+            var test = @"
+class foo {
+    public static int implicit operator (foo f) { return 6; }    // Error
+}
+public class MainClass
+    {
+    public static int Main ()
+        {
+        return 1;
+        }
+    }
+";
+
+            ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
+    // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+    //     public static int implicit operator (foo f) { return 6; }    // Error
+    Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+"),
+    // (3,23): error CS1003: Syntax error, 'operator' expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
+    Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit"),
+    // (3,23): error CS1019: Overloadable unary operator expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
+    Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit"),
+    // (3,32): error CS1003: Syntax error, '(' expected
+    //     public static int implicit operator (foo f) { return 6; }    // Error
+    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator"),
+    // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
+    //     public static int implicit operator (foo f) { return 6; }    // Error
+    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator"));
         }
 
         [Fact(), WorkItem(526995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526995")]

@@ -63,5 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("refLocalsAndReturns", "true");
         }
+
+        public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("tuples", "true");
+        }
     }
 }

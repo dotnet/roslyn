@@ -58,5 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("strict", "true");
         }
+
+        public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("tuples", "true");
+        }
     }
 }
