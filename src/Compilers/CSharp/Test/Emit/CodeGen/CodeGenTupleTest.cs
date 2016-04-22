@@ -3213,7 +3213,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 second
 first
 third
@@ -3251,7 +3251,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 third
 7
 ");
@@ -3287,7 +3287,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 third
 5
 ");
@@ -3320,7 +3320,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 first
 3
 second
@@ -3357,7 +3357,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 first
 2
 3
@@ -3391,7 +3391,7 @@ class Program
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 2
 ");
         }
@@ -3426,7 +3426,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 1
 1
 2
@@ -3469,7 +3469,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -3520,7 +3520,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -3553,7 +3553,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 System.ValueType
 ");
         }
@@ -3580,7 +3580,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test1(ref t, (ValueType)1);
@@ -3626,7 +3626,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (12,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test3(ref ab, ref cd);
@@ -3656,7 +3656,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 System.Object
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
@@ -3686,7 +3686,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 System.Object
 System.ValueTuple`2[System.Int32,System.Int32]
 System.ValueTuple`2[System.Int32,System.Int32]
@@ -3715,7 +3715,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
@@ -3748,7 +3748,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 System.String
 w
 ");

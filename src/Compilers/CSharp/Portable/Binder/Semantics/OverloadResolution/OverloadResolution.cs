@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
             }
 
-            Debug.Assert(tupleSource.Type == null, "should not need to dig into elements if tuple has natural type");
+            Debug.Assert((object)tupleSource.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = tupleSource.Arguments;
 
             // check if underlying type is actually a possible underlying type for a tuple of given arity
@@ -2756,12 +2756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MemberAnalysisResult error,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var argumentTypes = ArrayBuilder<TypeSymbol>.GetInstance();
-            for (int arg = 0; arg < arguments.Arguments.Count; arg++)
-            {
-                argumentTypes.Add(arguments.Argument(arg).Type);
-            }
-
             var args = arguments.Arguments.ToImmutable();
 
             // The reason why we pass the type parameters and formal parameter types
@@ -2775,7 +2769,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
-                argumentTypes.ToImmutableAndFree(),
                 args,
                 ref useSiteDiagnostics);
 
