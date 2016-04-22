@@ -90,9 +90,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnosticProvider = fixAllDiagnosticProvider;
         }
 
-        public FixAllState GetStateForScopeAndActionId(FixAllScope scope, string codeActionEquivalenceKey)
+        public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string codeActionEquivalenceKey)
         {
-            throw new NotImplementedException();
+            if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+            {
+                return this;
+            }
+
+            return new FixAllState(
+                this.Document, this.Project, this.CodeFixProvider, 
+                scope, codeActionEquivalenceKey,
+                this.DiagnosticIds, this._diagnosticProvider);
         }
 
         public FixAllContext CreateFixAllContext(CancellationToken cancellationToken)

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
             foreach (var scope in supportedScopes)
             {
-                var fixAllStateForScope = fixAllState.GetStateForScopeAndActionId(scope, action.EquivalenceKey);
+                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
                 var fixAllAction = new FixAllCodeAction(fixAllStateForScope, fixAllProvider, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
                     workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
