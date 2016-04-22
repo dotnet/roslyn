@@ -105,7 +105,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public FixAllContext CreateFixAllContext(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return new FixAllContext(
+                this.Document, this.Project, this.CodeFixProvider,
+                this.Scope, this.CodeActionEquivalenceKey,
+                this.DiagnosticIds, this._diagnosticProvider,
+                cancellationToken);
         }
 
         internal static FixAllState Create(

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private FixAllContext(
+        internal FixAllContext(
             Document document,
             Project project,
             CodeFixProvider codeFixProvider,
