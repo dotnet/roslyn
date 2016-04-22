@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public Document Document { get; }
         public Project Project { get; }
         public FixAllScope Scope { get; }
-        public Solution Solution { get; }
+        public Solution Solution => this.Project.Solution;
 
         internal FixAllState(
             FixAllProvider fixAllProvider,
