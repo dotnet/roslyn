@@ -217,6 +217,39 @@ class C
 }");
         }
 
+        [Fact(Skip = "PROTOTYPE(tuples): this should work, just found a bug while working on other stuff.")]
+        public void SimpleTupleNew()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = new (int, int)(1, 2);
+        System.Console.WriteLine(x.ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0) //x
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. ""System.ValueTuple<int, int>""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}");
+        }
+
         [Fact]
         public void SimpleTuple2()
         {
@@ -2320,7 +2353,7 @@ third
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE: type inference through tuples NYI")]
+        [Fact]
         public void TargetTypingOverload02()
         {
             var source = @"
@@ -3148,5 +3181,578 @@ class C
             CompileAndVerify(comp, expectedOutput: "{1, qq1}");
         }
 
+        [Fact]
+        public void Inference01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((null, null));
+        Test((1, 1));
+        Test((()=>7, ()=>8), 2);
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x, T y)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+second
+first
+third
+7
+");
+        }
+
+        [Fact]
+        public void Inference02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test((()=>7, ()=>8));
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<T>, Func<T>) x)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1().ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+third
+7
+");
+        }
+
+        [Fact]
+        public void Inference03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test(((x)=>x, (x)=>x));
+    }
+
+    static void Test<T>((T, T) x)
+    {
+        System.Console.WriteLine(""first"");
+    }
+
+    static void Test((object, object) x)
+    {
+        System.Console.WriteLine(""second"");
+    }
+
+    static void Test<T>((Func<int, T>, Func<T, T>) x)
+    {
+        System.Console.WriteLine(""third"");
+        System.Console.WriteLine(x.Item1(5).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+third
+5
+");
+        }
+
+        [Fact]
+        public void Inference04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test( (x)=>x.y );
+        Test( (x)=>x.bob );
+    }
+
+    static void Test<T>( Func<(byte x, byte y), T> x)
+    {
+        System.Console.WriteLine(""first"");
+        System.Console.WriteLine(x((2,3)).ToString());
+    }
+
+    static void Test<T>( Func<(int alice, int bob), T> x)
+    {
+        System.Console.WriteLine(""second"");
+        System.Console.WriteLine(x((4,5)).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+first
+3
+second
+5
+");
+        }
+
+        [Fact]
+        public void Inference05()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test( ((x)=>x.x, (x)=>x.Item2) );
+        Test( ((x)=>x.bob, (x)=>x.Item1) );
+    }
+
+    static void Test<T>( (Func<(byte x, byte y), T> f1, Func<(int, int), T> f2) x)
+    {
+        System.Console.WriteLine(""first"");
+        System.Console.WriteLine(x.f1((2,3)).ToString());
+        System.Console.WriteLine(x.f2((2,3)).ToString());
+    }
+
+    static void Test<T>( (Func<(int alice, int bob), T> f1, Func<(int, int), T> f2) x)
+    {
+        System.Console.WriteLine(""second"");
+        System.Console.WriteLine(x.f1((4,5)).ToString());
+        System.Console.WriteLine(x.f2((4,5)).ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+first
+2
+3
+second
+5
+4
+");
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples): this should work, fix overload resolution]")]
+        public void Inference06()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1((() => ""qq"", null));
+    }
+
+    static void M1((Func<object> f, object o) a)
+    {
+        System.Console.WriteLine(1);
+    }
+
+    static void M1((Func<string> f, object o) a)
+    {
+        System.Console.WriteLine(2);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+2
+");
+        }
+
+        [Fact]
+        public void Inference07()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Test((x) => (x, x), (t) => 1);
+        Test1((x) => (x, x), (t) => 1);
+        Test2((a: 1, b: 2), (t) => (t.a, t.b));
+    }
+
+    static void Test<U>(Func<int, ValueTuple<U, U>> f1, Func<ValueTuple<U, U>, int> f2)
+    {
+        System.Console.WriteLine(f2(f1(1)));
+    }
+    static void Test1<U>(Func<int, (U, U)> f1, Func<(U, U), int> f2)
+    {
+        System.Console.WriteLine(f2(f1(1)));
+    }
+    static void Test2<U, T>(U f1, Func<U, (T x, T y)> f2)
+    {
+        System.Console.WriteLine(f2(f1).y);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+1
+1
+2
+");
+        }
+
+        [Fact]
+        public void Inference08()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Test1((a: 1, b: 2), (c: 3, d: 4));
+        Test2((a: 1, b: 2), (c: 3, d: 4), t => t.Item2);
+        Test2((a: 1, b: 2), (a: 3, b: 4), t => t.a);
+        Test2((a: 1, b: 2), (c: 3, d: 4), t => t.a);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(""test1"");
+        System.Console.WriteLine(x);
+    }
+
+    static void Test2<T>(T x, T y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_1"");
+        System.Console.WriteLine(f(x));
+    }
+
+    static void Test2<T>(T x, object y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_2"");
+        System.Console.WriteLine(f(x));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+test1
+{1, 2}
+test2_1
+2
+test2_1
+1
+test2_2
+1
+");
+        }
+
+        [Fact]
+        public void Inference08t()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        var ab = (a: 1, b: 2);
+        var cd = (c: 3, d: 4);
+
+        Test1(ab, cd);
+        Test2(ab, cd, t => t.Item2);
+        Test2(ab, ab, t => t.a);
+        Test2(ab, cd, t => t.a);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(""test1"");
+        System.Console.WriteLine(x);
+    }
+
+    static void Test2<T>(T x, T y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_1"");
+        System.Console.WriteLine(f(x));
+    }
+
+    static void Test2<T>(T x, object y, Func<T, int> f)
+    {
+        System.Console.WriteLine(""test2_2"");
+        System.Console.WriteLine(f(x));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+test1
+{1, 2}
+test2_1
+2
+test2_1
+1
+test2_2
+1
+");
+        }
+
+        [Fact]
+        public void Inference09()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        // byval tuple, as a whole, sets a lower bound
+        Test1((a: 1, b: 2), (ValueType)1);
+    }
+
+    static void Test1<T>(T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+System.ValueType
+");
+        }
+
+        [Fact]
+        public void Inference10()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        // byref tuple, as a whole, sets an exact bound
+        var t = (a: 1, b: 2);
+        Test1(ref t, (ValueType)1);
+    }
+
+    static void Test1<T>(ref T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1(ref t, (ValueType)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T>(ref T, T)").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference11()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // byref tuple, as a whole, sets an exact bound, names are honored (just like in the case of dynamic
+        //PROTOTYPE(tuples): consider if honoring names is the right way to do for explicit bounds.
+        var ab = (a: 1, b: 2);
+        var cd = (c: 1, d: 2);
+
+        // this is an error  since we have two exact bounds
+        Test3(ref ab, ref cd);
+
+        // these are ok, since one of the bounds is a lower bound
+        Test1(ref ab, cd);
+        Test2(ab, ref cd);
+}
+
+    static void Test1<T>(ref T x, T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Test2<T>(T x, ref T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Test3<T>(ref T x, ref T y)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test3(ref ab, ref cd);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference12()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U) x, (T, U) y)
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Inference13()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U)? x, (T, U) y)
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Inference14()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        // nested tuple literals set lower bounds
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+        Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+}
+
+    static void Test1<T, U>((T, U)? x, (T, U?) y) where U: struct
+    {
+        System.Console.WriteLine(typeof(U));
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (1, 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(8, 9),
+                // (9,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (a: 1, b: 2)));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T, U>((T, U)?, (T, U?))").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void Inference15()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        Test1((a: ""q"", b: null), (a: null, b: ""w""), (x) => x.z);
+    }
+
+    static void Test1<T, U>((T, U) x, (T, U) y, System.Func<(T x, U z), T> f)
+    {
+        System.Console.WriteLine(typeof(U));
+        System.Console.WriteLine(f(y));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+System.String
+w
+");
+
+        }
     }
 }
