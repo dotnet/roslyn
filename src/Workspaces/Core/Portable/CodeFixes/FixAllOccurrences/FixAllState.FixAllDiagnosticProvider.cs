@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    public partial class FixAllContext
+    internal partial class FixAllState
     {
         // Internal for testing purposes.
         internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider

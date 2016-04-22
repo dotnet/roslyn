@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 If fixes.Any() Then
                     result.Add(Tuple.Create(diagnostic, New CodeFixCollection(
                                             fixer, diagnostic.Location.SourceSpan, fixes,
-                                            fixAllProvider:=Nothing, fixAllContext:=Nothing,
+                                            fixAllProvider:=Nothing, fixAllState:=Nothing,
                                             supportedScopes:=Nothing, firstDiagnostic:=Nothing)))
                 End If
             Next

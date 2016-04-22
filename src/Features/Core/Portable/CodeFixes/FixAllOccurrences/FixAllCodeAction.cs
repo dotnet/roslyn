@@ -15,14 +15,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal partial class FixAllCodeAction : CodeAction
     {
-        private readonly FixAllContext _fixAllContext;
+        private readonly FixAllState _fixAllState;
         private readonly FixAllProvider _fixAllProvider;
         private readonly bool _showPreviewChangesDialog;
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
-        internal FixAllCodeAction(FixAllContext fixAllContext, FixAllProvider fixAllProvider, bool showPreviewChangesDialog)
+        internal FixAllCodeAction(
+            FixAllState fixAllState, FixAllProvider fixAllProvider, bool showPreviewChangesDialog)
         {
-            _fixAllContext = fixAllContext;
+            _fixAllState = fixAllState;
             _fixAllProvider = fixAllProvider;
             _showPreviewChangesDialog = showPreviewChangesDialog;
         }
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             get
             {
-                switch (_fixAllContext.Scope)
+                switch (_fixAllState.Scope)
                 {
                     case FixAllScope.Document:
                         return FeaturesResources.FixAllTitle_Document;
@@ -47,28 +48,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal override string Message => FeaturesResources.ComputingFixAllOccurrences;
 
-        public FixAllContext FixAllContext => _fixAllContext;
+        public FixAllState FixAllState => _fixAllState;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
+            FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
 
-            var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = _fixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllOperationsAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken), _showPreviewChangesDialog).ConfigureAwait(false);
+            return await service.GetFixAllOperationsAsync(
+                _fixAllProvider, _fixAllState.CreateFixAllContext(cancellationToken),
+                _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
         protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FixAllLogger.LogContext(_fixAllContext, IsInternalCodeFixProvider(_fixAllContext.CodeFixProvider));
+            FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
 
-            var service = _fixAllContext.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = _fixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllChangedSolutionAsync(_fixAllProvider, _fixAllContext.WithCancellationToken(cancellationToken)).ConfigureAwait(false);
+            return await service.GetFixAllChangedSolutionAsync(
+                _fixAllProvider, _fixAllState.CreateFixAllContext(cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

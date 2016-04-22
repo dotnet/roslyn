@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
-                            collection.FixAllProvider, collection.FixAllContext, 
+                            collection.FixAllProvider, collection.FixAllState, 
                             collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
                         codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
                             codeAction, fixCount, fixCollection.FixAllProvider, 
-                            fixCollection.FixAllContext, fixCollection.SupportedScopes,
+                            fixCollection.FixAllState, fixCollection.SupportedScopes,
                             fixCollection.FirstDiagnostic, workspace, _subjectBuffer, 
                             _owner._editHandler, _owner._waitIndicator, _owner._listener);
 
