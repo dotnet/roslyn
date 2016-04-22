@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             var storageKey = GetStorageKeyForOption(optionKey.Option);
-            value = this.Manager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+            value = this.Manager.GetValueOrDefault(storageKey, optionKey.DefaultValue);
 
             return true;
         }

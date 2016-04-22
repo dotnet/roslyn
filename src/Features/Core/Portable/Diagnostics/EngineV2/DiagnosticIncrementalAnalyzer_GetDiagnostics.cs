@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
+                // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
                 var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
@@ -441,6 +442,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var stateSets = SpecializedCollections.SingletonCollection(stateSet);
+
+                // Here, we don't care what kind of analyzer (StateSet) is given. 
+                // We just create and use AnalyzerDriver with the given analyzer (StateSet). 
                 var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
