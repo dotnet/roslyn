@@ -58,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
       <Name>Immutable</Name>
     </ProjectReference>
   </ItemGroup>

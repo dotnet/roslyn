@@ -111,9 +111,6 @@
     <Compile Include="CodeFixes\Async\AbstractChangeToAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAsyncCodeFix.cs" />
     <Compile Include="CodeFixes\CodeFixCollection.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeActionContext.DiagnosticProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeActionContext.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
@@ -143,7 +140,6 @@
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.GlobalSuppressMessageFixAllCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
     <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\Suppression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoring.cs" />

@@ -743,6 +743,32 @@ class Container
             await VerifyItemExistsAsync(markup, "D");
         }
 
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
+        {
+            var markup = @"
+class Generic<T>
+{
+    public string Value { get; set; }
+}
+
+class Program
+{
+    private class InaccessibleToGeneric
+    {
+
+    }
+
+    static void Main(string[] args)
+    {
+        var g = new Generic<InaccessibleToGeneric> { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Value");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))

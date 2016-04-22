@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.MakeExclusive(true);
             }
-            var enclosing = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+            var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
-            members = members.Where(m => IsInitializable(m, initializedType) &&
+            members = members.Where(m => IsInitializable(m, enclosing) &&
                                          m.CanBeReferencedByName &&
                                          IsLegalFieldOrProperty(m, enclosing) &&
                                          !m.IsImplicitlyDeclared);

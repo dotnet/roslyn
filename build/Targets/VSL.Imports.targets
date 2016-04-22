@@ -241,6 +241,7 @@
       <ReferencePath Condition="
               '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
            or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'

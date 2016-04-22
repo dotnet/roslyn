@@ -4061,6 +4061,48 @@ End Class
             Assert.Equal(2, treeErrs.Length())
         End Sub
 
+        <Fact()>
+        <WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")>
+        Public Sub GetDependenceChainRegression_10211_working()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+                                Public Class Parent
+                                End Class
+
+                                Public Class Child
+                                    Inherits Parent
+                                End Class
+                            ]]></file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
+
+            ' Ensuring that this doesn't throw
+            semanticModel.GetMethodBodyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")>
+        Public Sub GetDependenceChainRegression_10211()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+                                Public Class Child
+                                    Inherits Parent
+                                End Class
+
+                                Public Class Parent
+                                End Class
+                            ]]></file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
+
+            ' Ensuring that this doesn't throw
+            semanticModel.GetMethodBodyDiagnostics()
+        End Sub
+
         <WorkItem(859721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859721")>
         <Fact()>
         Public Sub TestMethodBodyDiagnostics()
