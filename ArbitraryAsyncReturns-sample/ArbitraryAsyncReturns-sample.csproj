@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="FactoryTask.cs" />
     <Compile Include="IAsyncAction.cs" />
+    <Compile Include="IObservable.cs" />
     <Compile Include="ITask.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Tasklike.cs" />

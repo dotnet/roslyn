@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 class C
@@ -55,9 +52,6 @@ class C
             Console.WriteLine("o2b.done");
         }
 
-        var b = true;
-        if (b) return;
-
         // Test ValueTask
         var i1 = await g(0);
         Console.WriteLine(i1);
@@ -81,7 +75,6 @@ class C
         var t1 = factory.SpawnInstance();
         var t2 = factory.SpawnInstance();
         await Task.WhenAll(t1, t2);
-
 
     }
 
@@ -148,98 +141,16 @@ class C
     static async IObservableN<string> obs2()
     {
         // An instance of this "IObservable" will start running at the moment you subscribe to it.
-        // Inelegantly, we can't use "yield", and there's no compile-time type checking that you've
-        // called OnNext() with the correct argument type, and you're forced to put in a dummy
-        // return value that's ignored.
+        // Inelegantly, we can't use "yield return", so we await Yield(...) to fire an OnNext,
+        // and there's no compile-time type checking that you've called it with the right
+        // argument type, and you're forced to put in a dummy return value that's ignored.
         await Task.Delay(100);
-        await AsyncObservable.OnNext("hello");
+        await AsyncObservable.Yield("hello");
         await Task.Delay(200);
-        await AsyncObservable.OnNext("world");
+        await AsyncObservable.Yield("world");
         await Task.Delay(300);
         return null; // dummy
     }
 
-}
-
-namespace System
-{
-    [Tasklike(typeof(Observable1Builder<>))]
-    interface IObservable1<T> : IObservable<T> { }
-
-    [Tasklike(typeof(ObservableNBuilder<>))]
-    interface IObservableN<T> : IObservable<T> { }
-}
-
-
-
-namespace System.Runtime.CompilerServices
-{
-    class ConcreteObservable1<T> : IObservable1<T>
-    {
-        public Task<T> _task;
-        public IDisposable Subscribe(IObserver<T> observer) => _task.ToObservable().Subscribe(observer);
-    }
-
-    class Observable1Builder<T>
-    {
-        private AsyncTaskMethodBuilder<T> _builder;
-        private ConcreteObservable1<T> _task;
-
-        public static Observable1Builder<T> Create() => new Observable1Builder<T>() { _builder = AsyncTaskMethodBuilder<T>.Create() };
-        public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { _builder.Start(ref sm); }
-        public IObservable1<T> Task => (_task = _task ?? new ConcreteObservable1<T> { _task = _builder.Task });
-
-        public void SetStateMachine(IAsyncStateMachine sm) { }
-        public void SetResult(T result) => _builder.SetResult(result);
-        public void SetException(Exception ex) => _builder.SetException(ex);
-        public void AwaitOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : INotifyCompletion where TSM : IAsyncStateMachine => _builder.AwaitOnCompleted(ref a, ref sm);
-        public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM : IAsyncStateMachine => _builder.AwaitUnsafeOnCompleted(ref a, ref sm);
-    }
-
-    class ConcreteObservableN<T> : IObservableN<T>
-    {
-        public IAsyncStateMachine sm_original;
-        public IDisposable Subscribe(IObserver<T> observer)
-        {
-            // Create a copy of the state-machine struct
-            var sm = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sm_original, new object[] { }) as IAsyncStateMachine;
-
-            // create a new builder
-            var builder = new ObservableNBuilder<T>();
-            (sm.GetType().GetField("<>t__builder") ?? sm.GetType().GetField("$Builder")).SetValue(sm, builder);
-            //builder._builder.SetStateMachine(sm);
-
-            // kick off this instance of the async method
-            sm.MoveNext();
-
-            // return the task for this instance
-            //return builder._builder.Task;
-        }
-    }
-
-
-    class ObservableNBuilder<T>
-    {
-        // Like FactoryTask, the first few methods are about saving a copy of the state machine
-        public ConcreteObservableN<T> _task;
-
-        public static ObservableNBuilder<T> Create() => null;
-        public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { _task = new ConcreteObservableN<T> { sm_original = sm }; }
-        public IObservableN<T> Task => _task;
-
-
-        // Later on, each time the user calls .Subscribe(), that will create a fresh copy of the state machine struct
-        // with a fresh copy of this builder.
-        public void SetStateMachine(IAsyncStateMachine sm) { }
-        public void SetResult(T result) { }
-        public void SetException(Exception ex) { }
-        public void AwaitOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : INotifyCompletion where TSM : IAsyncStateMachine { }
-        public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM : IAsyncStateMachine { }
-    }
-
-    public static class AsyncObservable
-    {
-        public static Task OnNext<T>(T value) => null;
-    }
 }
 
