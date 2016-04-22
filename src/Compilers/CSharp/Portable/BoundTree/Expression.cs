@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -98,52 +99,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex = argumentsToParameters.IndexOf(parameterIndex);
                 }
 
-                if ((uint)argumentIndex >= (uint)boundArguments.Length)
-                {
-                    // No argument has been supplied for the parameter at `parameterIndex`:
-                    // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for parameter corresponding to `parameters[parameterIndex]`.
-                    // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
-
-                    Symbols.ParameterSymbol parameter = parameters[parameterIndex];
-                    if (parameter.HasExplicitDefaultValue)
-                    {
-                        // The parameter is optional with a default value.
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax)));
-                    }
-                    else
-                    {
-                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
-                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
-                        arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
-                    }
-                }
-                else
-                {
-                    arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
-                }
+                arguments.Add(DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
             }
 
             return arguments.ToImmutableAndFree();
         }
 
         private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
+        private static readonly ConditionalWeakTable<SyntaxNode, ConcurrentDictionary<Symbols.ParameterSymbol, IArgument>> s_omittedArgumentMappings = new ConditionalWeakTable<SyntaxNode, ConcurrentDictionary<Symbols.ParameterSymbol, IArgument>>();
 
         private static IArgument DeriveArgument(int parameterIndex, int argumentIndex, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
         {
             if ((uint)argumentIndex >= (uint)boundArguments.Length)
             {
-                // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0)
-                {
-                    Symbols.ParameterSymbol lastParameter = parameters[parameters.Length - 1];
-                    if (lastParameter.IsParams)
-                    {
-                        return new Argument(ArgumentKind.ParamArray, lastParameter, CreateParamArray(lastParameter, boundArguments, argumentIndex, invocationSyntax));
-                    }
-                }
+                ConcurrentDictionary<Symbols.ParameterSymbol, IArgument> omittedArguments = s_omittedArgumentMappings.GetValue(invocationSyntax, syntax => new ConcurrentDictionary<Symbols.ParameterSymbol, IArgument>());
 
-                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                return new SimpleArgument(null, new InvalidExpression(invocationSyntax));
+                return omittedArguments.GetOrAdd(
+                    parameters[parameterIndex],
+                    (parameter) =>
+                    {
+                        // No argument has been supplied for the parameter at `parameterIndex`:
+                        // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for the parameter corresponding to `parameters[parameterIndex]`.
+                        // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
+
+                        // Check for a parameter with a default value.
+                        if (parameter.HasExplicitDefaultValue)
+                        {
+                            return new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax));
+                        }
+
+                        // Check for an omitted argument that becomes an empty params array.
+                        if (parameter.IsParams)
+                        {
+                            return new Argument(ArgumentKind.ParamArray, parameter, CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax));
+                        }
+
+                        // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
+                        return new SimpleArgument(parameter, new InvalidExpression(invocationSyntax));
+                    });
             }
 
             return s_argumentMappings.GetValue(
@@ -205,12 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
         {
             int argumentIndex = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
-            if (argumentIndex >= 0)
-            {
-                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
-            }
-
-            return null;
+            return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
         }
 
         private static int ArgumentIndexMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ISymbol targetMethod, IParameterSymbol parameter)
