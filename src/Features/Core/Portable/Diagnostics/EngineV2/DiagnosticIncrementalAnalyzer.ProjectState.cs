@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -24,8 +25,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState(StateSet owner, ProjectId projectId)
             {
                 _owner = owner;
-                _lastResult = new AnalysisResult(projectId, VersionStamp.Default, documentIds: null, isEmpty: true);
+                _lastResult = new AnalysisResult(projectId, VersionStamp.Default, documentIds: null, isEmpty: true, fromBuild: false);
             }
+
+            public bool FromBuild => _lastResult.FromBuild;
 
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
             {
@@ -86,7 +89,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                     {
-                        Contract.Requires(false, "How this can happen?");
+                        Contract.Requires(lastResult.Version == VersionStamp.Default);
+
+                        // this can happen if we merged back active file diagnostics back to project state but
+                        // project state didn't have diagnostics for the file yet. (since project state was staled)
                         continue;
                     }
                 }
@@ -131,7 +137,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    Contract.Requires(lastResult.Version == VersionStamp.Default);
+
+                    // this can happen if we merged back active file diagnostics back to project state but
+                    // project state didn't have diagnostics for the file yet. (since project state was staled)
                 }
 
                 return builder.ToResult();
@@ -199,7 +208,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
             }
 
-            public async Task MergeAsync(ActiveFileState state, Document document)
+            public void ResetVersion()
+            {
+                _lastResult = new AnalysisResult(_lastResult.ProjectId, VersionStamp.Default, _lastResult.DocumentIds, _lastResult.IsEmpty, _lastResult.FromBuild);
+            }
+
+            public async Task MergeAsync(ActiveFileState state, Document document, bool forceMerge)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -209,8 +223,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
-                // if all versions are same, nothing to do
-                if (syntax.Version != VersionStamp.Default &&
+                var project = document.Project;
+                var fullAnalysis = project.Solution.Workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language);
+
+                // keep from build flag if full analysis is off
+                var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
+
+                // if it is allowed to keep project state, check versions and if they are same, bail out
+                // if full solution analysis is off or we are asked to reset document state, we always merge.
+                if (fullAnalysis && !forceMerge &&
+                    syntax.Version != VersionStamp.Default &&
                     syntax.Version == semantic.Version &&
                     syntax.Version == lastResult.Version)
                 {
@@ -218,17 +240,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // we have mixed versions, set it to default so that it can be re-calculated next time so data can be in sync.
+                // we have mixed versions or full analysis is off, set it to default so that it can be re-calculated next time so data can be in sync.
                 var version = VersionStamp.Default;
 
                 // serialization can't be cancelled.
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, version);
 
+                // save active file diagnostics back to project state
                 await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, syntax.Items).ConfigureAwait(false);
                 await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
 
                 // save last aggregated form of analysis result
-                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIdsOrEmpty.Add(state.DocumentId), isEmpty: false);
+                _lastResult = new AnalysisResult(_lastResult.ProjectId, version, _lastResult.DocumentIdsOrEmpty.Add(state.DocumentId), isEmpty: false, fromBuild: fromBuild);
             }
 
             public bool OnDocumentRemoved(DocumentId id)
@@ -262,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true);
+                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
                 }
 
                 return builder.ToResult();
@@ -279,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeDocumentAsync(serializer, document, builder, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true);
+                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
                 }
 
                 return builder.ToResult();
@@ -294,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true);
+                    return new AnalysisResult(project.Id, VersionStamp.Default, ImmutableHashSet<DocumentId>.Empty, isEmpty: true, fromBuild: false);
                 }
 
                 return builder.ToResult();
@@ -433,7 +456,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _others.IsDefault ? ImmutableArray<DiagnosticData>.Empty : _others,
-                        _documentIds);
+                        _documentIds,
+                        fromBuild: false);
                 }
             }
         }

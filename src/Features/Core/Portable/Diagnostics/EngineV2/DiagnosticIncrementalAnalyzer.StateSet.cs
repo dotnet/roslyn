@@ -113,6 +113,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _activeFileStates.ContainsKey(documentId);
             }
 
+            public bool FromBuild(ProjectId projectId)
+            {
+                ProjectState projectState;
+                if (!_projectStates.TryGetValue(projectId, out projectState))
+                {
+                    return false;
+                }
+
+                return projectState.FromBuild;
+            }
+
             public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
             {
                 return _activeFileStates.TryGetValue(documentId, out state);
@@ -136,24 +147,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public Task<bool> OnDocumentClosedAsync(Document document)
             {
                 // can not be cancelled
-                return OnDocumentResetAsync(document);
+                return OnDocumentResetAsync(document, forceReset: false);
             }
 
-            public async Task<bool> OnDocumentResetAsync(Document document)
+            public Task<bool> OnDocumentResetAsync(Document document)
+            {
+                return OnDocumentResetAsync(document, forceReset: true);
+            }
+
+            private async Task<bool> OnDocumentResetAsync(Document document, bool forceReset)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
+                ProjectState projectState;
                 ActiveFileState activeFileState;
-                if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
+                if (_activeFileStates.TryRemove(document.Id, out activeFileState))
                 {
-                    // no active file state
+                    // active file exist, put it in the project state
+                    projectState = GetProjectState(document.Project.Id);
+
+                    await projectState.MergeAsync(activeFileState, document, forceReset).ConfigureAwait(false);
+                    return true;
+                }
+
+                if (!_projectStates.TryGetValue(document.Project.Id, out projectState))
+                {
                     return false;
                 }
 
-                var projectState = GetProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                if (forceReset)
+                {
+                    projectState.ResetVersion();
+                    return true;
+                }
 
-                return true;
+                return false;
             }
 
             public bool OnDocumentRemoved(DocumentId id)
