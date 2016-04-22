@@ -3554,11 +3554,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to params parameter &apos;{0}&apos; of local function &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Cannot invoke the local function &apos;{0}&apos; with dynamic parameters..
         /// </summary>
-        internal static string ERR_DynamicLocalFunctionParamsParameter {
+        internal static string ERR_DynamicLocalFunctionParameter {
             get {
-                return ResourceManager.GetString("ERR_DynamicLocalFunctionParamsParameter", resourceCulture);
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionParameter", resourceCulture);
             }
         }
         
