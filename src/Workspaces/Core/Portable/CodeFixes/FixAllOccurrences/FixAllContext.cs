@@ -16,47 +16,47 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public sealed partial class FixAllContext
     {
-        private readonly FixAllState _state;
+        internal FixAllState State { get; }
 
-        internal FixAllProvider FixAllProvider => _state.FixAllProvider;
+        internal FixAllProvider FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Solution to fix all occurrences.
         /// </summary>
-        public Solution Solution => _state.Solution;
+        public Solution Solution => State.Solution;
 
         /// <summary>
         /// Project within which fix all occurrences was triggered.
         /// </summary>
-        public Project Project => _state.Project;
+        public Project Project => State.Project;
 
         /// <summary>
         /// Document within which fix all occurrences was triggered.
         /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
         /// </summary>
-        public Document Document => _state.Document;
+        public Document Document => State.Document;
 
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
         /// </summary>
-        public CodeFixProvider CodeFixProvider => _state.CodeFixProvider;
+        public CodeFixProvider CodeFixProvider => State.CodeFixProvider;
 
         /// <summary>
         /// <see cref="FixAllScope"/> to fix all occurrences.
         /// </summary>
-        public FixAllScope Scope => _state.Scope;
+        public FixAllScope Scope => State.Scope;
 
         /// <summary>
         /// Diagnostic Ids to fix.
         /// Note that <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/> and <see cref="GetAllDiagnosticsAsync(Project)"/> methods
         /// return only diagnostics whose IDs are contained in this set of Ids.
         /// </summary>
-        public ImmutableHashSet<string> DiagnosticIds => _state.DiagnosticIds;
+        public ImmutableHashSet<string> DiagnosticIds => State.DiagnosticIds;
 
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionEquivalenceKey => _state.CodeActionEquivalenceKey;
+        public string CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -125,11 +125,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllState state,
             CancellationToken cancellationToken)
         {
-            _state = state;
+            State = state;
             this.CancellationToken = cancellationToken;
         }
-
-        internal bool IsFixMultiple => _state.DiagnosticProvider.IsFixMultiple;
 
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = _state.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+            var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
@@ -206,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics ?
-                _state.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
-                _state.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
+                State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
+                State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
@@ -222,17 +220,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return this;
             }
 
-            return new FixAllContext(_state, cancellationToken);
+            return new FixAllContext(State, cancellationToken);
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
         {
-            return _state.DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
+            return State.DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
         }
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
         {
-            return _state.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
+            return State.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
         }
     }
 }

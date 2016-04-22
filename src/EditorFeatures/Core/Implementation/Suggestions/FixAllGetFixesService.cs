@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            return await GetFixAllOperationsAsync(codeAction, fixAllContext, showPreviewChangesDialog).ConfigureAwait(false);
+            return await GetFixAllOperationsAsync(
+                codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
@@ -83,13 +84,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, bool showPreviewChangesDialog)
+        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(
+            CodeAction codeAction, bool showPreviewChangesDialog,
+            FixAllState fixAllState, CancellationToken cancellationToken)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
 
-            var cancellationToken = fixAllContext.CancellationToken;
-            var workspace = fixAllContext.Project.Solution.Workspace;
+            var workspace = fixAllState.Project.Solution.Workspace;
 
             cancellationToken.ThrowIfCancellationRequested();
             var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
@@ -104,11 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (showPreviewChangesDialog)
             {
                 newSolution = PreviewChanges(
-                    fixAllContext.Project.Solution,
+                    fixAllState.Project.Solution,
                     newSolution,
                     FeaturesResources.FixAllOccurrences,
                     codeAction.Title,
-                    fixAllContext.Project.Language,
+                    fixAllState.Project.Language,
                     workspace,
                     cancellationToken);
                 if (newSolution == null)

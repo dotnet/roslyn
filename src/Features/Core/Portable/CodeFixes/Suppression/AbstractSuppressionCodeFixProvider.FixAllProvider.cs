@@ -37,18 +37,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var documentsAndDiagnosticsToFixMap = 
                         await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
 
-                    return !isGlobalSuppression ?
-                        await batchFixer.GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
-                        GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);
+                    return !isGlobalSuppression 
+                        ? await batchFixer.GetFixAsync(
+                            documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
+                        : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Document, documentsAndDiagnosticsToFixMap);
                 }
                 else
                 {
                     var projectsAndDiagnosticsToFixMap =
                         await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
 
-                    return !isGlobalSuppression ?
-                        await batchFixer.GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false) :
-                        GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Project, projectsAndDiagnosticsToFixMap);
+                    return !isGlobalSuppression
+                        ? await batchFixer.GetFixAsync(
+                            projectsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false)
+                        : GlobalSuppressMessageFixAllCodeAction.Create(title, suppressionFixer, fixAllContext.Project, projectsAndDiagnosticsToFixMap);
                 }
             }
         }
