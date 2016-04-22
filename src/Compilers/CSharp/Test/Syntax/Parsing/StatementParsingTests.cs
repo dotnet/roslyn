@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithTuple()
         {
             var text = "(int, int) a;";
-            var statement = this.ParseStatement(text);
+            var statement = this.ParseStatement(text, options: TestOptions.Regular.WithTuplesFeature());
 
             (text).ToString();
 
@@ -2624,7 +2624,7 @@ static void Test(int arg1, (byte, byte) arg2)
         }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 

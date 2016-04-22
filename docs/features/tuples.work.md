@@ -10,8 +10,8 @@ This is the TODO list for the development of the tuples language feature for C# 
 - [ ] OHI validation / fixing
 - [ ] Write spec
 - [ ] Honor feature flag
-- [ ] Publish short-term nuget package for tuples library
-- [ ] Get tuples library into corefx
+- [x] Publish short-term nuget package for tuples library
+- [x] Get tuples library into corefx
 - [ ] Add warning for re-using member names out of position
 
 - [ ] Control/data flow (mostly testing)
@@ -20,14 +20,15 @@ This is the TODO list for the development of the tuples language feature for C# 
 - [ ] Semantic info and other IDE stuff
     - [ ] Debugger / watch window / expression evaluation / EnC
 - [x] Update well-known tuple types to TN naming convention
-- [ ] Generating and loading metadata for user-defined member names
 - [ ] Figure out full behavior for reserved member names
 - [x] Support tuples 8+
+- [ ] Move tuples library into final corefx assembly/assemblies
 - [ ] Interop with System.Tuple, KeyValuePair
 - [ ] XML docs
 - [ ] Debugger bugs
     - [ ] Tuple debug display is {(1, 2)} because ValueTuple.ToString() returns "(1, 2)"
     - [ ] Tuple-returning method declaration shows values if names match local variables
+- [ ] Resolve [filed issues](https://github.com/issues?q=is%3Aopen+is%3Aissue+label%3A"New+Language+Feature+-+Tuples")
 
 # Interaction with other language features:
 
