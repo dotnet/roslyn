@@ -641,7 +641,7 @@ class C
             IInvocationExpression invocation = (IInvocationExpression)operation;
             Assert.False(invocation.ConstantValue.HasValue);
             Assert.True(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "f");
+            Assert.Equal(invocation.TargetMethod.Name, "Invoke");
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
