@@ -7,11 +7,11 @@ namespace System.Threading.Tasks
     [Tasklike(typeof(FactoryTaskMethodBuilder))]
     public class FactoryTask
     {
-        public IAsyncStateMachine original_sm;
+        public IAsyncStateMachine sm_original;
         public Task SpawnInstance()
         {
             // Create a copy of the state-machine struct
-            var sm = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(original_sm, new object[] { }) as IAsyncStateMachine;
+            var sm = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(sm_original, new object[] { }) as IAsyncStateMachine;
 
             // create a new builder
             var builder = new FactoryTaskMethodBuilder { _builder = AsyncTaskMethodBuilder.Create() };
@@ -37,7 +37,7 @@ namespace System.Runtime.CompilerServices
         public FactoryTask _task;
 
         public static FactoryTaskMethodBuilder Create() => new FactoryTaskMethodBuilder();
-        public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { _task = new FactoryTask { original_sm = sm }; }
+        public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine { _task = new FactoryTask { sm_original = sm }; }
         public FactoryTask Task => _task;
 
         // Later on, each time the user calls SpawnInstance, that creates a fresh copy of the state machine struct,
