@@ -15,7 +15,7 @@ namespace System.Threading.Tasks
 
             // create a new builder
             var builder = new FactoryTaskMethodBuilder { _builder = AsyncTaskMethodBuilder.Create() };
-            sm.GetType().GetField("<>t__builder").SetValue(sm, builder);
+            (sm.GetType().GetField("<>t__builder") ?? sm.GetType().GetField("$Builder")).SetValue(sm, builder);
             builder._builder.SetStateMachine(sm);
 
             // kick off this instance of the async method

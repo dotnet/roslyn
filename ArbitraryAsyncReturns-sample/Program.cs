@@ -49,7 +49,9 @@ class C
 
     static async ValueTask<int> g(int delay)
     {
-        if (delay > 0) await Task.Delay(delay);
+        Task t = null;
+        if (delay > 0) t = Task.Delay(delay);
+        if (delay > 0) await t;
         return delay;
     }
 

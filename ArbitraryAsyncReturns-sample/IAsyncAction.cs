@@ -14,7 +14,7 @@ namespace System.Runtime.CompilerServices
         public class ConcreteIAsyncAction : IAsyncAction { public Task Task; }
     }
 
-    class IAsyncActionBuilder
+    struct IAsyncActionBuilder
     {
 
         private AsyncTaskMethodBuilder _taskBuilder;
@@ -22,7 +22,7 @@ namespace System.Runtime.CompilerServices
 
         public static IAsyncActionBuilder Create() => new IAsyncActionBuilder() { _taskBuilder = AsyncTaskMethodBuilder.Create() };
         public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine => _taskBuilder.Start(ref stateMachine);
-        public void SetStateMachine(IAsyncStateMachine stateMachine) => _taskBuilder.SetStateMachine(stateMachine);
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { _taskBuilder.SetStateMachine(stateMachine); }
         public void SetResult() => _taskBuilder.SetResult();
         public void SetException(Exception exception) => _taskBuilder.SetException(exception);
         public IAsyncAction Task => (_task == null) ? _task = _taskBuilder.Task.AsAsyncAction() : _task;

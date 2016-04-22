@@ -38,7 +38,7 @@ namespace System.Threading.Tasks
 
 namespace System.Runtime.CompilerServices
 {
-    class ValueTaskMethodBuilder<TResult>
+    struct ValueTaskMethodBuilder<TResult>
     {
         // This builder contains *either* an AsyncTaskMethodBuilder, *or* a result.
         // At the moment someone retrieves its Task, that's when we collapse to the real AsyncTaskMethodBuilder
@@ -47,15 +47,22 @@ namespace System.Runtime.CompilerServices
         internal TResult _result; internal bool GotResult;
 
         public static ValueTaskMethodBuilder<TResult> Create() => new ValueTaskMethodBuilder<TResult>();
-        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine => stateMachine.MoveNext();
-        public void SetStateMachine(IAsyncStateMachine stateMachine) { EnsureTaskBuilder(); _taskBuilder.SetStateMachine(stateMachine); }
+        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
+        {
+            stateMachine.MoveNext();
+        }
+        public void SetStateMachine(IAsyncStateMachine stateMachine)
+        {
+            EnsureTaskBuilder();
+            _taskBuilder.SetStateMachine(stateMachine); // must be included if my builder is a struct; must be omitted if my builder is a class
+        }
         public void SetResult(TResult result)
         {
             if (GotBuilder) _taskBuilder.SetResult(result);
             else _result = result;
             GotResult = true;
         }
-        public void SetException(System.Exception exception)
+        public void SetException(Exception exception)
         {
             EnsureTaskBuilder();
             _taskBuilder.SetException(exception);
@@ -63,7 +70,7 @@ namespace System.Runtime.CompilerServices
         private void EnsureTaskBuilder()
         {
             if (!GotBuilder && GotResult) throw new InvalidOperationException();
-            if (!GotBuilder) _taskBuilder = new AsyncTaskMethodBuilder<TResult>();
+            if (!GotBuilder) _taskBuilder = AsyncTaskMethodBuilder<TResult>.Create();
             GotBuilder = true;
         }
         public ValueTask<TResult> Task
