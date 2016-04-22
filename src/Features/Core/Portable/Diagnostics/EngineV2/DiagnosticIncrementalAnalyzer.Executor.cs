@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
             /// </summary>
             public async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool ignoreOption, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
                 {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // perf optimization. check whether we want to analyze this project or not.
-                        if (!await FullAnalysisEnabledAsync(project, cancellationToken).ConfigureAwait(false))
+                        if (!await FullAnalysisEnabledAsync(project, ignoreOption, cancellationToken).ConfigureAwait(false))
                         {
                             return new ProjectAnalysisData(project.Id, version, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
                         }
@@ -402,10 +402,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static async Task<bool> FullAnalysisEnabledAsync(Project project, CancellationToken cancellationToken)
+            private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreOption, CancellationToken cancellationToken)
             {
                 var workspace = project.Solution.Workspace;
                 var language = project.Language;
+
+                if (ignoreOption)
+                {
+                    return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 if (!workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) ||
                     !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
