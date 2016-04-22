@@ -656,7 +656,7 @@ class C
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
+            Assert.Equal(argument.Parameter.Name, "arg1");
             Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             IOperation argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
@@ -670,10 +670,10 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "b");
+            Assert.Equal(argument.Parameter.Name, "arg2");
             Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
             argumentValue = argument.Value;
             Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
