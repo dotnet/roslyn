@@ -7,8 +7,9 @@ using System.IO;
 
 interface ITraceManager
 {
-    int Iterations { get; }
+    bool HasWarmUpIteration { get; }
 
+    void Initialize();
     void Cleanup();
     void EndEvent();
     void EndScenario();
@@ -18,24 +19,26 @@ interface ITraceManager
     void Start();
     void StartEvent();
     void StartScenario(string scenarioName, string processName);
+    void StartScenarios();
     void Stop();
+    void WriteScenarios(string[] scenarios);
     void WriteScenariosFileToDisk();
 }
 
 class TraceManagerFactory
 {
-    public static ITraceManager GetTraceManager(int iterations = 1)
+    public static ITraceManager GetTraceManager()
     {
         var directoryInfo = new RelativeDirectory();
         var cpcFullPath = Path.Combine(directoryInfo.CPCDirectoryPath, "CPC.exe");
         var scenarioPath = directoryInfo.CPCDirectoryPath;
         if (File.Exists(cpcFullPath))
         {
-            return new TraceManager(iterations, cpcFullPath, scenarioPath);
+            return new TraceManager(cpcFullPath, scenarioPath);
         }
         else
         {
-            return new NoOpTraceManager(iterations);
+            return new NoOpTraceManager();
         }
     }
 }
@@ -44,18 +47,20 @@ class TraceManagerFactory
 /// All operations are NoOp
 class NoOpTraceManager : ITraceManager
 {
-    private readonly int _iterations;
-    public NoOpTraceManager(int iterations)
+    public NoOpTraceManager()
     {
-        _iterations = iterations;
     }
 
-    public int Iterations
+    public bool HasWarmUpIteration
     {
         get
         {
-            return _iterations;
-        }
+            return false;  
+        }    
+    }
+    
+    public void Initialize()
+    {
     }
 
     public void Cleanup()
@@ -90,6 +95,10 @@ class NoOpTraceManager : ITraceManager
     {
     }
 
+    public void StartScenarios()
+    {
+    }
+
     public void StartScenario(string scenarioName, string processName)
     {
     }
@@ -98,6 +107,10 @@ class NoOpTraceManager : ITraceManager
     {
     }
 
+    public void WriteScenarios(string[] scenarios)
+    {
+    }
+    
     public void WriteScenariosFileToDisk()
     {
     }
@@ -106,7 +119,6 @@ class NoOpTraceManager : ITraceManager
 class TraceManager: ITraceManager
 {
     private readonly ScenarioGenerator _scenarioGenerator;
-    private readonly int _iterations;
     private readonly string _cpcPath;
     
     private RelativeDirectory _directoryInfo = new RelativeDirectory();
@@ -115,20 +127,37 @@ class TraceManager: ITraceManager
     private int _stopEventAbsoluteInstance = 1;
 
     public TraceManager(
-        int iterations,
         string cpcPath,
         string scenarioPath): base()
     {
-        _iterations = iterations;
         _cpcPath = cpcPath;
         _scenarioGenerator = new ScenarioGenerator(scenarioPath);
     }
 
-    public int Iterations
+    public bool HasWarmUpIteration
     {
         get
         {
-            return _iterations;
+            return true;
+        }    
+    }
+    
+    // Cleanup the results directory and files before every run
+    public void Initialize()
+    {
+        var consumptionTempResultsPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "ConsumptionTempResults.xml");
+        if (File.Exists(consumptionTempResultsPath))
+        {
+            File.Delete(consumptionTempResultsPath);
+        }
+        
+        if (Directory.Exists(_directoryInfo.CPCDirectoryPath))
+        {
+            var databackDirectories = Directory.GetDirectories(_directoryInfo.CPCDirectoryPath, "DataBackup*", SearchOption.AllDirectories);
+            foreach (var databackDirectory in databackDirectories)
+            {
+                Directory.Delete(databackDirectory, true);
+            }
         }
     }
 
@@ -145,13 +174,18 @@ class TraceManager: ITraceManager
     public void Stop()
     {
         var scenariosXmlPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "scenarios.xml");
-        var consumptionTempResultsPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "ConsumptionTempResultsPath.xml");
+        var consumptionTempResultsPath = Path.Combine(_directoryInfo.CPCDirectoryPath, "ConsumptionTempResults.xml");
         ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"");
     }
 
     public void Cleanup()
     {
         ShellOutVital(_cpcPath, "/Cleanup /DisableArchive");
+    }
+    
+    public void StartScenarios()
+    {
+        _scenarioGenerator.AddScenariosFileStart();
     }
 
     public void StartScenario(string scenarioName, string processName)
@@ -180,6 +214,14 @@ class TraceManager: ITraceManager
     {
         _scenarioGenerator.AddScenariosFileEnd();
     }
+    
+    public void WriteScenarios(string[] scenarios)
+    {
+        foreach (var line in scenarios)
+        {
+            _scenarioGenerator.AddLine(line);
+        }
+    }    
 
     public void WriteScenariosFileToDisk()
     {

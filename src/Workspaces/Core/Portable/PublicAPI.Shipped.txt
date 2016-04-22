@@ -235,6 +235,33 @@ Microsoft.CodeAnalysis.Editing.DocumentEditor.GetChangedDocument() -> Microsoft.
 Microsoft.CodeAnalysis.Editing.DocumentEditor.OriginalDocument.get -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.Editing.DocumentEditor.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.Editing.ImportAdder
+Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Addition = 2 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseAnd = 3 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseOr = 4 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Decrement = 5 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Division = 6 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Equality = 7 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ExclusiveOr = 8 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ExplicitConversion = 1 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.False = 9 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.GreaterThan = 10 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.GreaterThanOrEqual = 11 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ImplicitConversion = 0 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Increment = 12 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Inequality = 13 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LeftShift = 14 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LessThan = 15 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LessThanOrEqual = 16 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LogicalNot = 17 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Modulus = 18 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Multiply = 19 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.OnesComplement = 20 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.RightShift = 21 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.Subtraction = 22 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.True = 23 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.UnaryNegation = 24 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.UnaryPlus = 25 -> Microsoft.CodeAnalysis.Editing.OperatorKind
 Microsoft.CodeAnalysis.Editing.SolutionEditor
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetChangedSolution() -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Editing.SolutionEditor.GetDocumentEditorAsync(Microsoft.CodeAnalysis.DocumentId id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Editing.DocumentEditor>
@@ -338,6 +365,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NullLiteralExpression() -> Micros
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.ITypeSymbol type, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.ITypeSymbol type, params Microsoft.CodeAnalysis.SyntaxNode[] arguments) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxNode type, params Microsoft.CodeAnalysis.SyntaxNode[] arguments) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.OperatorDeclaration(Microsoft.CodeAnalysis.IMethodSymbol method, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ParameterDeclaration(Microsoft.CodeAnalysis.IParameterSymbol symbol, Microsoft.CodeAnalysis.SyntaxNode initializer = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.PropertyDeclaration(Microsoft.CodeAnalysis.IPropertySymbol property, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> getAccessorStatements = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> setAccessorStatements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveAllAttributes(Microsoft.CodeAnalysis.SyntaxNode declaration) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1160,6 +1188,7 @@ static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindCallersAsync(Microsof
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindCallersAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.FindSymbols.SymbolCallerInfo>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDeclarationsAsync(Microsoft.CodeAnalysis.Project project, string name, bool ignoreCase, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDeclarationsAsync(Microsoft.CodeAnalysis.Project project, string name, bool ignoreCase, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDerivedClassesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindImplementationsAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindImplementedInterfaceMembersAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindOverridesAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
@@ -1178,6 +1207,7 @@ static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsAsy
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDefinitionAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSymbolAtPosition(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSymbolAtPositionAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSymbolAtPositionAsync(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol>
 static Microsoft.CodeAnalysis.Formatting.Formatter.Annotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation
 static Microsoft.CodeAnalysis.Formatting.Formatter.Format(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxAnnotation annotation, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Formatting.Formatter.Format(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.Text.TextSpan span, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -1212,6 +1242,7 @@ static Microsoft.CodeAnalysis.ProjectReference.operator ==(Microsoft.CodeAnalysi
 static Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.FilterOutOfScopeLocals.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPosition(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>
+static Microsoft.CodeAnalysis.Recommendations.Recommender.GetRecommendedSymbolsAtPositionAsync(Microsoft.CodeAnalysis.SemanticModel semanticModel, int position, Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.Rename.RenameOptions.PreviewChanges.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInComments.get -> Microsoft.CodeAnalysis.Options.Option<bool>
 static Microsoft.CodeAnalysis.Rename.RenameOptions.RenameInStrings.get -> Microsoft.CodeAnalysis.Options.Option<bool>
@@ -1263,6 +1294,7 @@ virtual Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetSupportedFixAllDiagno
 virtual Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesAfter(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertNodesBefore(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> newDeclarations) -> Microsoft.CodeAnalysis.SyntaxNode
+virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.OperatorDeclaration(Microsoft.CodeAnalysis.Editing.OperatorKind kind, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> parameters = null, Microsoft.CodeAnalysis.SyntaxNode returnType = null, Microsoft.CodeAnalysis.Accessibility accessibility = Microsoft.CodeAnalysis.Accessibility.NotApplicable, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers = default(Microsoft.CodeAnalysis.Editing.DeclarationModifiers), System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements = null) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ReplaceNode(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.SyntaxNode newDeclaration) -> Microsoft.CodeAnalysis.SyntaxNode

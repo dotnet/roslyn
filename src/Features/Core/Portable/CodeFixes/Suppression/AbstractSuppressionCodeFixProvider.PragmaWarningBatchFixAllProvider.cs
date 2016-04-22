@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var pragmaSuppression = pragmaSuppressions.SingleOrDefault();
                     if (pragmaSuppression != null)
                     {
-                        if (fixAllContext is FixMultipleContext)
+                        if (fixAllContext.IsFixMultiple)
                         {
                             pragmaSuppression = pragmaSuppression.CloneForFixMultipleContext();
                         }

@@ -21,9 +21,14 @@ class HelloWorldTest: PerfTest
         ShellOutVital(ReleaseCscPath, _pathToHelloWorld + " /out:" + _pathToOutput);
     }
     
-    public override int Iterations => 1;
+    public override int Iterations => 2;
     public override string Name => "hello world";
-    public override string MeasuredProc => "csc.exe";
+    public override string MeasuredProc => "csc";
+    public override bool ProvidesScenarios => false;
+    public override string[] GetScenarios()
+    {
+        throw new System.NotImplementedException();
+    }
 }
 
 TestThisPlease(new HelloWorldTest());
