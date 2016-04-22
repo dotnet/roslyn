@@ -4,9 +4,10 @@
 #load "./util/test_util.csx"
 #load "./util/trace_manager_util.csx"
 
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System;
+using System.Linq;
 
 var directoryInfo = new RelativeDirectory();
 var testDirectory = Path.Combine(directoryInfo.MyWorkingDirectory, "tests");
@@ -16,7 +17,7 @@ Log("Starting Performance Test Run");
 Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0]);
 Log("time: " + DateTime.Now.ToString());
 
-var testInstances = new List<dynamic>();
+var testInstances = new List<object>();
 
 // Find all the tests from inside of the csx files.
 foreach (var script in GetAllCsxRecursive(testDirectory))
@@ -28,9 +29,11 @@ foreach (var script in GetAllCsxRecursive(testDirectory))
     testInstances.AddRange(tests);
 }
 
+var convertedTests = testInstances.Select(t => ConvertToPerfTestReflected(t));
+
 var traceManager = TraceManagerFactory.GetTraceManager();
 traceManager.Initialize();
-foreach (dynamic test in testInstances)
+foreach (var test in convertedTests)
 {
     test.Setup();
     traceManager.Setup();
