@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal static SuggestedActionSet GetFixAllSuggestedActionSet(
             CodeAction action,
             int actionCount,
-            FixAllProvider fixAllProvider,
             FixAllState fixAllState,
             IEnumerable<FixAllScope> supportedScopes,
             Diagnostic firstDiagnostic,
@@ -70,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             foreach (var scope in supportedScopes)
             {
                 var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
-                var fixAllAction = new FixAllCodeAction(fixAllStateForScope, fixAllProvider, showPreviewChangesDialog: true);
+                var fixAllAction = new FixAllCodeAction(fixAllStateForScope, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
                     workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
-                    fixAllProvider, firstDiagnostic, operationListener);
+                    fixAllStateForScope.FixAllProvider, firstDiagnostic, operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 

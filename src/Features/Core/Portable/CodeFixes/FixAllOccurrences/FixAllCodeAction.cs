@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal partial class FixAllCodeAction : CodeAction
     {
         private readonly FixAllState _fixAllState;
-        private readonly FixAllProvider _fixAllProvider;
         private readonly bool _showPreviewChangesDialog;
         private static readonly HashSet<string> s_predefinedCodeFixProviderNames = GetPredefinedCodeFixProviderNames();
 
         internal FixAllCodeAction(
-            FixAllState fixAllState, FixAllProvider fixAllProvider, bool showPreviewChangesDialog)
+            FixAllState fixAllState, bool showPreviewChangesDialog)
         {
             _fixAllState = fixAllState;
-            _fixAllProvider = fixAllProvider;
             _showPreviewChangesDialog = showPreviewChangesDialog;
         }
 
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllOperationsAsync(
-                _fixAllProvider, _fixAllState.CreateFixAllContext(cancellationToken),
+                _fixAllState.CreateFixAllContext(cancellationToken),
                 _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                _fixAllProvider, _fixAllState.CreateFixAllContext(cancellationToken)).ConfigureAwait(false);
+                _fixAllState.CreateFixAllContext(cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

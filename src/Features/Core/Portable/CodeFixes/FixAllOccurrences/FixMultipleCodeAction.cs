@@ -14,11 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         internal FixMultipleCodeAction(
             FixAllState fixAllState,
             Diagnostic triggerDiagnostic,
-            FixAllProvider fixAllProvider,
             string title,
             string computingFixWaitDialogMessage,
             bool showPreviewChangesDialog)
-            : base(fixAllState, fixAllProvider, showPreviewChangesDialog)
+            : base(fixAllState, showPreviewChangesDialog)
         {
             _triggerDiagnostic = triggerDiagnostic;
             _title = title;

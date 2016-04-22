@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         var codeFix = new CodeFixCollection(
                             fixer, diagnostic.Location.SourceSpan, fixes,
-                            fixAllProvider: null, fixAllState: null, supportedScopes: null, firstDiagnostic: null);
+                            fixAllState: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var fixAllProvider = fixer.GetFixAllProvider();
                 Assert.NotNull(fixAllProvider);
 
-                var fixAllState = GetFixAllState(diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
+                var fixAllState = GetFixAllState(fixAllProvider, diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
                 var fixAllContext = fixAllState.CreateFixAllContext(CancellationToken.None);
                 var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
                 if (fixAllFix != null)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
                         var codeFix = new CodeFixCollection(
                             fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)),
-                            fixAllProvider: null, fixAllState: null, supportedScopes: null, firstDiagnostic: null);
+                            fixAllState: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -176,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         private static FixAllState GetFixAllState(
+            FixAllProvider fixAllProvider,
             IEnumerable<Diagnostic> diagnostics,
             DiagnosticAnalyzer provider,
             CodeFixProvider fixer,
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics.ToImmutableArray())));
-                return FixAllState.Create(diagnosticsToFix, fixer, fixAllActionId);
+                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, fixAllActionId);
             }
 
             var diagnostic = diagnostics.First();
@@ -216,8 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
             var fixAllDiagnosticProvider = new FixAllState.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
             return diagnostic.Location.IsInSource
-                ? new FixAllState(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
-                : new FixAllState(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
+                ? new FixAllState(fixAllProvider, document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
+                : new FixAllState(fixAllProvider, document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
         }
 
         protected async Task TestEquivalenceKeyAsync(string initialMarkup, string equivalenceKey)

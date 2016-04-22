@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return this;
         }
 
-        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
+        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
         {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
+            var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
             {
                 return fixAllContext.Solution;
@@ -42,9 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, bool showPreviewChangesDialog)
+        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(
+            FixAllContext fixAllContext, bool showPreviewChangesDialog)
         {
-            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
+            var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
             {
                 return null;
@@ -53,14 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return await GetFixAllOperationsAsync(codeAction, fixAllContext, showPreviewChangesDialog).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
+        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, fixAllContext.CancellationToken))
             {
                 CodeAction action = null;
                 try
                 {
-                    action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+                    action = await fixAllContext.FixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         private readonly FixAllState _state;
 
+        internal FixAllProvider FixAllProvider => _state.FixAllProvider;
+
         /// <summary>
         /// Solution to fix all occurrences.
         /// </summary>
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
+            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
         {
             if (document == null)
             {
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
+            : this(new FixAllState(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
         {
             if (project == null)
             {
