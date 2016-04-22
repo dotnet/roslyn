@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInSourceOrder
+        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInEvaluationOrder
             Get
                 Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
             End Get

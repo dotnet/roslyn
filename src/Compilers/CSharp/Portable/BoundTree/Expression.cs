@@ -46,22 +46,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IInvocationExpression.IsVirtual => (object)this.Method != null && this.ReceiverOpt != null && (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
 
-        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInSourceOrder
+        ImmutableArray<IArgument> IInvocationExpression.ArgumentsInEvaluationOrder
         {
             get
             {
-                ArrayBuilder<IArgument> sourceOrderArguments = ArrayBuilder<IArgument>.GetInstance(this.Arguments.Length);
+                ImmutableArray<Symbols.ParameterSymbol> parameters = this.Method.Parameters;
+                HashSet<int> matchedParameters = new HashSet<int>();
+                ArrayBuilder<IArgument> evaluationOrderArguments = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
                 for (int argumentIndex = 0; argumentIndex < this.Arguments.Length; argumentIndex++)
                 {
-                    IArgument argument = DeriveArgument(this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex], argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-                    sourceOrderArguments.Add(argument);
+                    int parameterIndex = this.ArgsToParamsOpt.IsDefault ? argumentIndex : this.ArgsToParamsOpt[argumentIndex];
+                    IArgument argument = DeriveArgument(parameterIndex, argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameters, this.Syntax);
+                    evaluationOrderArguments.Add(argument);
+                    matchedParameters.Add(parameterIndex);
                     if (argument.ArgumentKind == ArgumentKind.ParamArray)
                     {
                         break;
                     }
                 }
 
-                return sourceOrderArguments.ToImmutableAndFree();
+                // Include implicit arguments after the explicit arguments.
+                foreach (Symbols.ParameterSymbol parameter in parameters)
+                {
+                    if (!matchedParameters.Contains(parameter.Ordinal))
+                    {
+                        evaluationOrderArguments.Add(DeriveArgument(parameter.Ordinal, -1, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameters, this.Syntax));
+                    }
+                }
+
+                return evaluationOrderArguments.ToImmutableAndFree();
             }
         }
 
@@ -180,13 +193,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.Type.TypeKind == TypeKind.Array)
             {
                 IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                ImmutableArray<IOperation> paramArrayArguments;
 
-                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
+                // If there are no matching arguments, then the argument index is negative.
+                if (firstArgumentElementIndex >= 0)
                 {
-                    builder.Add(boundArguments[index]);
+                    ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                    for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
+                    {
+                        builder.Add(boundArguments[index]);
+                    }
+                    paramArrayArguments = builder.ToImmutableAndFree();
                 }
-                var paramArrayArguments = builder.ToImmutableAndFree();
+                else
+                {
+                    paramArrayArguments = ImmutableArray<IOperation>.Empty;
+                }
 
                 // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
                 return new ArrayCreation(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);

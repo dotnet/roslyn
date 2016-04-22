@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
 
-                     foreach (IArgument argument in invocation.ArgumentsInSourceOrder)
+                     foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
                          if (argument.Parameter.IsParams)
                          {

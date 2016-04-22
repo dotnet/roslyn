@@ -62,9 +62,13 @@ class C
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
+            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 2);
+
             // 1
 
             IArgument argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -81,6 +85,7 @@ class C
             // 2
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -113,9 +118,13 @@ class C
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 2);
+
             // a: 1
 
             argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
@@ -132,6 +141,7 @@ class C
             // b: 2
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
@@ -156,9 +166,13 @@ class C
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 1);
 
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 1);
+
             // x
 
             argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -212,9 +226,13 @@ class C
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
+            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 2);
+
             // 1
 
             IArgument argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -230,6 +248,7 @@ class C
             // 2, 3
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
@@ -277,9 +296,13 @@ class C
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 2);
+
             // 1
 
             argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -295,6 +318,7 @@ class C
             // ()
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
@@ -324,9 +348,13 @@ class C
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 2);
+
             // ,
 
             argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.True(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -339,6 +367,7 @@ class C
             // ()
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
@@ -437,6 +466,7 @@ class C
     void M1()
     {
         M2(1, c: 3);
+        M2(b: 2);
     }
 
     void M2(int a = 10, int b = 20, int c = 30) { }
@@ -446,7 +476,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 1);
+            Assert.Equal(nodes.Length, 2);
 
             //  M2(1, c: 3)
 
@@ -461,9 +491,13 @@ class C
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 3);
 
+            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 3);
+
             // 1
 
             IArgument argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
@@ -480,6 +514,7 @@ class C
             // 20
 
             argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[2]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
             Assert.Null(argument.InConversion);
@@ -496,6 +531,7 @@ class C
             // c: 3
 
             argument = arguments[2];
+            Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
             Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
@@ -508,6 +544,73 @@ class C
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
             Assert.True(argumentValue.ConstantValue.HasValue);
             Assert.Equal(argumentValue.ConstantValue.Value, 3);
+
+            //  M2(b: 2)
+
+            Assert.Equal("M2(b: 2)", nodes[1].ToString());
+            operation = model.GetOperation(nodes[1]);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.False(operation.IsInvalid);
+            invocation = (IInvocationExpression)operation;
+            Assert.False(invocation.ConstantValue.HasValue);
+            Assert.False(invocation.IsVirtual);
+            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            arguments = invocation.ArgumentsInParameterOrder;
+            Assert.Equal(arguments.Length, 3);
+
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
+            Assert.Equal(evaluationOrderArguments.Length, 3);
+
+            // 10
+
+            argument = arguments[0];
+            Assert.True(argument == evaluationOrderArguments[1]);
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "a");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 10);
+
+            // b: 2
+
+            argument = arguments[1];
+            Assert.True(argument == evaluationOrderArguments[0]);
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "b");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 2);
+
+            // 30
+
+            argument = arguments[2];
+            Assert.True(argument == evaluationOrderArguments[2]);
+            Assert.False(argument.IsInvalid);
+            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
+            Assert.Null(argument.InConversion);
+            Assert.Null(argument.OutConversion);
+            Assert.Equal(argument.Parameter.Name, "c");
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
+            argumentValue = argument.Value;
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
+            Assert.False(argumentValue.IsInvalid);
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentValue.ConstantValue.Value, 30);
         }
 
         [Fact]
