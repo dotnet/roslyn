@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal partial class FixAllState
     {
-        private readonly FixAllContext.DiagnosticProvider _diagnosticProvider;
+        internal FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
         public string CodeActionEquivalenceKey { get; }
         public CodeFixProvider CodeFixProvider { get; }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.Scope = scope;
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            _diagnosticProvider = fixAllDiagnosticProvider;
+            this.DiagnosticProvider = fixAllDiagnosticProvider;
         }
 
         public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string codeActionEquivalenceKey)
@@ -100,16 +100,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllState(
                 this.Document, this.Project, this.CodeFixProvider, 
                 scope, codeActionEquivalenceKey,
-                this.DiagnosticIds, this._diagnosticProvider);
+                this.DiagnosticIds, this.DiagnosticProvider);
         }
 
         public FixAllContext CreateFixAllContext(CancellationToken cancellationToken)
         {
-            return new FixAllContext(
-                this.Document, this.Project, this.CodeFixProvider,
-                this.Scope, this.CodeActionEquivalenceKey,
-                this.DiagnosticIds, this._diagnosticProvider,
-                cancellationToken);
+            return new FixAllContext(this, cancellationToken);
         }
 
         internal static FixAllState Create(

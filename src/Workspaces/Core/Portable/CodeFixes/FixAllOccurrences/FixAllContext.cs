@@ -16,45 +16,45 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public sealed partial class FixAllContext
     {
-        private readonly DiagnosticProvider _diagnosticProvider;
+        private readonly FixAllState _state;
 
         /// <summary>
         /// Solution to fix all occurrences.
         /// </summary>
-        public Solution Solution { get { return this.Project.Solution; } }
+        public Solution Solution => _state.Solution;
 
         /// <summary>
         /// Project within which fix all occurrences was triggered.
         /// </summary>
-        public Project Project { get; }
+        public Project Project => _state.Project;
 
         /// <summary>
         /// Document within which fix all occurrences was triggered.
         /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
         /// </summary>
-        public Document Document { get; }
+        public Document Document => _state.Document;
 
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
         /// </summary>
-        public CodeFixProvider CodeFixProvider { get; }
+        public CodeFixProvider CodeFixProvider => _state.CodeFixProvider;
 
         /// <summary>
         /// <see cref="FixAllScope"/> to fix all occurrences.
         /// </summary>
-        public FixAllScope Scope { get; }
+        public FixAllScope Scope => _state.Scope;
 
         /// <summary>
         /// Diagnostic Ids to fix.
         /// Note that <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/> and <see cref="GetAllDiagnosticsAsync(Project)"/> methods
         /// return only diagnostics whose IDs are contained in this set of Ids.
         /// </summary>
-        public ImmutableHashSet<string> DiagnosticIds { get; }
+        public ImmutableHashSet<string> DiagnosticIds => _state.DiagnosticIds;
 
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionEquivalenceKey { get; }
+        public string CodeActionEquivalenceKey => _state.CodeActionEquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(document, document.Project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+            : this(new FixAllState(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
         {
             if (document == null)
             {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+            : this(new FixAllState(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
         {
             if (project == null)
             {
@@ -120,48 +120,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal FixAllContext(
-            Document document,
-            Project project,
-            CodeFixProvider codeFixProvider,
-            FixAllScope scope,
-            string codeActionEquivalenceKey,
-            IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
+            FixAllState state,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(project);
-
-            if (codeFixProvider == null)
-            {
-                throw new ArgumentNullException(nameof(codeFixProvider));
-            }
-
-            if (diagnosticIds == null)
-            {
-                throw new ArgumentNullException(nameof(diagnosticIds));
-            }
-
-            if (diagnosticIds.Any(d => d == null))
-            {
-                throw new ArgumentException(WorkspacesResources.DiagnosticCannotBeNull, nameof(diagnosticIds));
-            }
-
-            if (fixAllDiagnosticProvider == null)
-            {
-                throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
-            }
-
-            this.Document = document;
-            this.Project = project;
-            this.CodeFixProvider = codeFixProvider;
-            this.Scope = scope;
-            this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
-            this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            _diagnosticProvider = fixAllDiagnosticProvider;
+            _state = state;
             this.CancellationToken = cancellationToken;
         }
 
-        internal bool IsFixMultiple => _diagnosticProvider.IsFixMultiple;
+        internal bool IsFixMultiple => _state.DiagnosticProvider.IsFixMultiple;
 
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
@@ -178,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = _diagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
+            var getDiagnosticsTask = _state.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
@@ -238,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics ?
-                _diagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
-                _diagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
+                _state.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
+                _state.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
@@ -254,25 +220,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return this;
             }
 
-            return new FixAllContext(
-                this.Document,
-                this.Project,
-                this.CodeFixProvider,
-                this.Scope,
-                this.CodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                _diagnosticProvider,
-                cancellationToken);
+            return new FixAllContext(_state, cancellationToken);
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
         {
-            return _diagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
+            return _state.DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
         }
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
         {
-            return _diagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
+            return _state.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
         }
     }
 }
