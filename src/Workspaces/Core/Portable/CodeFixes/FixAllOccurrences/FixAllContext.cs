@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = includeAllDocumentDiagnostics ?
-                State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken) :
-                State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
+            var getDiagnosticsTask = includeAllDocumentDiagnostics
+                ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken)
+                : State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
 
