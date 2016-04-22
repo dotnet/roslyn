@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the delegate.
 
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
-            ImmutableArray<TypeSymbol> argumentTypes, // Required
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
             ref HashSet<DiagnosticInfo> useSiteDiagnostics
@@ -212,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodTypeParameters.Length > 0);
             Debug.Assert(!formalParameterTypes.IsDefault);
             Debug.Assert(formalParameterRefKinds.IsDefault || formalParameterRefKinds.Length == formalParameterTypes.Length);
-            Debug.Assert(!argumentTypes.IsDefault);
-            Debug.Assert(!arguments.IsDefault && arguments.Length == argumentTypes.Length);
+            Debug.Assert(!arguments.IsDefault);
 
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
@@ -592,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            if (argument.Kind == BoundKind.TupleLiteral)
+            else if (argument.Kind == BoundKind.TupleLiteral)
             {
                 MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics);
             }
@@ -641,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // try match up element-wise to the destination tuple (ur underlying type)
+            // try match up element-wise to the destination tuple (or underlying type)
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
             //      then T becomes int and U becomes string
