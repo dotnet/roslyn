@@ -142,7 +142,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await fixer.RegisterCodeFixesAsync(context);
                     if (fixes.Any())
                     {
-                        var codeFix = new CodeFixCollection(fixer, diagnostic.Location.SourceSpan, fixes);
+                        var codeFix = new CodeFixCollection(
+                            fixer, diagnostic.Location.SourceSpan, fixes,
+                            fixAllProvider: null, fixAllContext: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -161,7 +163,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     foreach (var diagnostic in diagnostics)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
+                        var codeFix = new CodeFixCollection(
+                            fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)),
+                            fixAllProvider: null, fixAllContext: null, supportedScopes: null, firstDiagnostic: null);
                         result.Add(Tuple.Create(diagnostic, codeFix));
                     }
                 }
@@ -185,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics.ToImmutableArray())));
-                return FixMultipleContext.Create(diagnosticsToFix, fixer, fixAllActionId, CancellationToken.None);
+                return FixAllContext.Create(diagnosticsToFix, fixer, fixAllActionId, CancellationToken.None);
             }
 
             var diagnostic = diagnostics.First();
@@ -209,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 };
 
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-            var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            var fixAllDiagnosticProvider = new FixAllContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
             return diagnostic.Location.IsInSource
                 ? new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None)
                 : new FixAllContext(document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);

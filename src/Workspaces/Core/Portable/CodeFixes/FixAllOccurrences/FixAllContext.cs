@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
     /// </summary>
-    public partial class FixAllContext
+    public sealed partial class FixAllContext
     {
         private readonly DiagnosticProvider _diagnosticProvider;
 
@@ -161,6 +161,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.CancellationToken = cancellationToken;
         }
 
+        internal bool IsFixMultiple => _diagnosticProvider.IsFixMultiple;
+
+        /// <summary>
+        /// Transforms this context into the public <see cref="FixAllContext"/> to be used for <see cref="FixAllProvider.GetFixAsync(FixAllContext)"/> invocation.
+        /// </summary>
+        internal FixAllContext GetContextForScopeAndActionId(
+            FixAllScope scope, string codeActionEquivalenceKey)
+        {
+            if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+            {
+                return this;
+            }
+
+            if (this.Document != null)
+            {
+                return new FixAllContext(this.Document, this.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    this.DiagnosticIds, this._diagnosticProvider, this.CancellationToken);
+            }
+
+            return new FixAllContext(this.Project, this.CodeFixProvider, scope, codeActionEquivalenceKey,
+                    this.DiagnosticIds, this._diagnosticProvider, this.CancellationToken);
+        }
+
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
@@ -247,13 +270,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
             // TODO: We should change this API to be a virtual method, as the class is not sealed.
-            //       For now, special case FixMultipleContext.
-            var fixMultipleContext = this as FixMultipleContext;
-            if (fixMultipleContext != null)
-            {
-                return fixMultipleContext.WithCancellationToken(cancellationToken);
-            }
-
             if (this.CancellationToken == cancellationToken)
             {
                 return this;
@@ -268,6 +284,123 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 this.DiagnosticIds,
                 _diagnosticProvider,
                 cancellationToken);
+        }
+
+        internal static FixAllContext Create(
+            Document document,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
+            CancellationToken cancellationToken)
+        {
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllContext(
+                document: document,
+                codeFixProvider: originalFixProvider,
+                scope: FixAllScope.Document,
+                codeActionEquivalenceKey: null,
+                diagnosticIds: diagnosticIds,
+                fixAllDiagnosticProvider: diagnosticProvider,
+                cancellationToken: cancellationToken);
+        }
+
+        internal static FixAllContext Create(
+            Project project,
+            FixAllProviderInfo fixAllProviderInfo,
+            CodeFixProvider originalFixProvider,
+            IEnumerable<Diagnostic> originalFixDiagnostics,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
+            CancellationToken cancellationToken)
+        {
+            var diagnosticIds = GetFixAllDiagnosticIds(fixAllProviderInfo, originalFixDiagnostics).ToImmutableHashSet();
+            var diagnosticProvider = new FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            return new FixAllContext(
+                project: project,
+                codeFixProvider: originalFixProvider,
+                scope: FixAllScope.Project,
+                codeActionEquivalenceKey: null, diagnosticIds: diagnosticIds,
+                fixAllDiagnosticProvider: diagnosticProvider,
+                cancellationToken: cancellationToken);
+        }
+
+        private static IEnumerable<string> GetFixAllDiagnosticIds(FixAllProviderInfo fixAllProviderInfo, IEnumerable<Diagnostic> originalFixDiagnostics)
+        {
+            return originalFixDiagnostics
+                .Where(fixAllProviderInfo.CanBeFixed)
+                .Select(d => d.Id);
+        }
+
+        #region FixMultiple
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/>.
+        /// Use this overload when applying fix multiple diagnostics with a source location.
+        /// </summary>
+        /// <param name="diagnosticsToFix">Specific set of diagnostics to fix. Must be a non-empty set.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        internal static FixAllContext Create(
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
+            CodeFixProvider codeFixProvider,
+            string codeActionEquivalenceKey,
+            CancellationToken cancellationToken)
+        {
+            var triggerDocument = diagnosticsToFix.First().Key;
+            var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
+            var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
+            return new FixAllContext(
+                triggerDocument, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/>.
+        /// Use this overload when applying fix multiple diagnostics with no source location.
+        /// </summary>
+        /// <param name="diagnosticsToFix">Specific set of diagnostics to fix. Must be a non-empty set.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        internal static FixAllContext Create(
+            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
+            CodeFixProvider codeFixProvider,
+            string codeActionEquivalenceKey,
+            CancellationToken cancellationToken)
+        {
+            var triggerProject = diagnosticsToFix.First().Key;
+            var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
+            var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
+            return new FixAllContext(triggerProject, codeFixProvider, FixAllScope.Custom, codeActionEquivalenceKey, diagnosticIds, diagnosticProvider, cancellationToken);
+        }
+
+        private static ImmutableHashSet<string> GetDiagnosticsIds(IEnumerable<ImmutableArray<Diagnostic>> diagnosticsCollection)
+        {
+            var uniqueIds = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var diagnostics in diagnosticsCollection)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    uniqueIds.Add(diagnostic.Id);
+                }
+            }
+
+            return uniqueIds.ToImmutable();
+        }
+
+        #endregion
+
+        internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
+        {
+            return _diagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
+        }
+
+        internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
+        {
+            return _diagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
         }
     }
 }
