@@ -103,6 +103,7 @@
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.Rewriter.cs" />
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
+    <Compile Include="CodeRefactorings\AddNamedArguments\CSharpAddNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />

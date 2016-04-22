@@ -961,4 +961,10 @@ This version used in: {2}</value>
   <data name="AddMissingSwitchCases" xml:space="preserve">
     <value>Add missing switch cases</value>
   </data>
+  <data name="AddNamedArguments" xml:space="preserve">
+    <value>Add named arguments</value>
+  </data>
+  <data name="AddNamedArgumentsLiteralsOnly" xml:space="preserve">
+    <value>Add named arguments (literals only)</value>
+  </data>
 </root>

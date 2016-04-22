@@ -206,6 +206,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add named arguments.
+        /// </summary>
+        internal static string AddNamedArguments {
+            get {
+                return ResourceManager.GetString("AddNamedArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add named arguments (literals only).
+        /// </summary>
+        internal static string AddNamedArgumentsLiteralsOnly {
+            get {
+                return ResourceManager.GetString("AddNamedArgumentsLiteralsOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}({1})&apos;.
         /// </summary>
         internal static string AddOptionalParametersTo {

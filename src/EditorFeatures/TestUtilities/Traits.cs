@@ -32,6 +32,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
+            public const string CodeActionsAddNamedArguments = "CodeActions.AddNamedArguments";
             public const string CodeActionsAddUsing = "CodeActions.AddUsing";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
