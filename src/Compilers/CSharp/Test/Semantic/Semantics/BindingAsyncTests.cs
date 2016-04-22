@@ -167,9 +167,6 @@ class MyTaskBuilder
 namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.f<T>(Func<MyTask<T>>)' and 'C.f<T>(Func<T>)'
-                //         f(async () => { await (Task)null; return 1; });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "f").WithArguments("C.f<T>(System.Func<MyTask<T>>)", "C.f<T>(System.Func<T>)").WithLocation(7, 9),
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
                 //         h(async () => { await (Task)null; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h(System.Func<MyTask>)", "C.h(System.Func<System.Threading.Tasks.Task>)").WithLocation(8, 9)

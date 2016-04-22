@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // implicit conversion from EX to PX, and for at least one argument, the conversion from
             // EX to PX is better than the conversion from EX to QX.
 
-            bool allSame = true; // Are all parameter types equivalent by identify conversions?
+            bool allSame = true; // Are all parameter types equivalent by identify conversions, up to tasklikeness?
             int i;
             for (i = 0; i < arguments.Count; ++i)
             {
@@ -1228,6 +1228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
                 var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
+                var type1tasklike = ReplaceTasklikeWithTask(type1);
+                var type2tasklike = ReplaceTasklikeWithTask(type2);
+
                 bool okToDowngradeToNeither;
                 var r = BetterConversionFromExpression(arguments[i],
                                                        type1,
@@ -1242,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (r == BetterResult.Neither)
                 {
-                    if (allSame && Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    if (allSame && Conversions.ClassifyImplicitConversion(type1tasklike, type2tasklike, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                     }
@@ -1251,12 +1254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1tasklike, type2tasklike, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
                     // If considerRefKinds is false, conversion between parameter types isn't classified by the if condition.
                     // This assert is here to verify the assumption that the conversion is never an identity in that case and
                     // we can skip classification as an optimization.
-                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
+                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1tasklike, type2tasklike, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
 
@@ -1324,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // In case the parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN} are
-            // equivalent (i.e. each Pi has an identity conversion to the corresponding Qi), the
+            // equivalent up to tasklikeness (i.e. each Pi has an identity conversion to the corresponding Qi), the
             // following tie-breaking rules are applied, in order, to determine the better function
             // member. 
 
@@ -1358,7 +1361,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
                     var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
 
-                    if (Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    var type1tasklike = ReplaceTasklikeWithTask(type1);
+                    var type2tasklike = ReplaceTasklikeWithTask(type2);
+
+                    if (Conversions.ClassifyImplicitConversion(type1tasklike, type2tasklike, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
                         allSame = false;
                         break;
@@ -1585,6 +1591,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private TypeSymbol ReplaceTasklikeWithTask(TypeSymbol type)
+        {
+            if (type.IsNongenericTaskOrTasklike(Compilation))
+            {
+                var task = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                return task;
+            }
+            else if (type.IsGenericTaskOrTasklike(Compilation))
+            {
+                var t = type as NamedTypeSymbol;
+                Debug.Assert(t.TypeArguments.Length == 1); // that's part of the definition of a generic tasklike
+                var targ = ReplaceTasklikeWithTask(t.TypeArguments[0]);
+                var task = Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                return task.Construct(targ);
+            }
+            else if (type.Kind == SymbolKind.NamedType)
+            {
+                var t = type as NamedTypeSymbol;
+                if (t.TypeArguments.Length == 0) return t;
+                var targs = t.TypeArguments.Select(ReplaceTasklikeWithTask);
+                return t.ConstructedFrom.Construct(targs);
+            }
+            else if (type.Kind == SymbolKind.ArrayType)
+            {
+                var t = type as ArrayTypeSymbol;
+                var targ = ReplaceTasklikeWithTask(t.ElementType);
+                return Compilation.CreateArrayTypeSymbol(targ, t.Rank);
+            }
+            else
+            {
+                return type;
+            }
+        }
+
         private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(t1.Count == t2.Count);
@@ -1690,9 +1730,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We should not have gotten here unless there were identity conversions between the
-            // two types.
-
-            Debug.Assert(n1.OriginalDefinition == n2.OriginalDefinition);
+            // two types, or they are tasklikes. But the code to assert this would require plumbing
+            // throught the "compilation" object (to retrieve the well known "Task" types) which
+            // isn't worth it.
+            //Debug.Assert(n1.OriginalDefinition == n2.OriginalDefinition
+            //    || (n1.IsNongenericTaskOrTasklike(compilation) && n2.IsNongenericTaskOrTasklike(compilation))
+            //    || (n1.IsGenericTaskOrTasklike(compilation) && n2.IsGenericTaskOrTasklike(compilation)));
 
             var allTypeArgs1 = ArrayBuilder<TypeSymbol>.GetInstance();
             var allTypeArgs2 = ArrayBuilder<TypeSymbol>.GetInstance();
