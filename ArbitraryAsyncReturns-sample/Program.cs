@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Windows.Foundation;
 
 class C
 {
@@ -28,7 +29,16 @@ class C
         await h();
 
         // IAsyncAction
-        //await uwp();
+        await uwp();
+
+        // Test FactoryTask
+        var factory = fac("hello");
+        var t1 = factory.SpawnInstance();
+        var t2 = factory.SpawnInstance();
+        await Task.WhenAll(t1, t2);
+
+        // Test IObservable
+
     }
 
     static async ITask<string> f()
@@ -65,8 +75,20 @@ class C
 
     static async IAsyncAction uwp()
     {
+        Console.WriteLine("uwp0");
         await Task.Delay(100);
+        Console.WriteLine("uwp1");
+    }
+
+    static int fid = 0;
+    static async FactoryTask fac(string msg)
+    {
+        var id = fid++;
+        Console.WriteLine($"Factory instance START {msg} - id {id}");
+        await Task.Delay(200 - id * 100);
+        Console.WriteLine($"Factory instance END {msg} - id {id}");
     }
 
 }
+
 

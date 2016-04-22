@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25029.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationCS", "ConsoleApplicationCS.csproj", "{3B4E6261-EE21-4F41-9212-37E5C843599D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArbitraryAsyncReturns-sample", "ArbitraryAsyncReturns-sample.csproj", "{3B4E6261-EE21-4F41-9212-37E5C843599D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
