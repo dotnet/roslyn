@@ -345,6 +345,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfRequiredAttributeAttribute = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signaturesOfAsyncStateMachineAttribute = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signaturesOfIteratorStateMachineAttribute = { s_signature_HasThis_Void_Type };
+        private static readonly byte[][] s_signaturesOfTasklikeAttribute = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signaturesOfRuntimeCompatibilityAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfTypeForwardedToAttribute = { s_signature_HasThis_Void_Type };
         private static readonly byte[][] s_signaturesOfSTAThreadAttribute = { s_signature_HasThis_Void };
@@ -466,6 +467,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription RequiredAttributeAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredAttributeAttribute", s_signaturesOfRequiredAttributeAttribute);
         internal static readonly AttributeDescription AsyncStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncStateMachineAttribute", s_signaturesOfAsyncStateMachineAttribute);
         internal static readonly AttributeDescription IteratorStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IteratorStateMachineAttribute", s_signaturesOfIteratorStateMachineAttribute);
+        internal static readonly AttributeDescription TasklikeAttribute = new AttributeDescription("System.Runtime.CompilerServices", "TasklikeAttribute", s_signaturesOfTasklikeAttribute);
         internal static readonly AttributeDescription CompilationRelaxationsAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilationRelaxationsAttribute", s_signaturesOfCompilationRelaxationsAttribute);
         internal static readonly AttributeDescription RuntimeCompatibilityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeCompatibilityAttribute", s_signaturesOfRuntimeCompatibilityAttribute);
         internal static readonly AttributeDescription DebuggableAttribute = new AttributeDescription("System.Diagnostics", "DebuggableAttribute", s_signaturesOfDebuggableAttribute);

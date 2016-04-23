@@ -213,9 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType),
                             ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
+                // return || return local.$Builder.Task
                 bodyBuilder.Add(method.IsVoidReturningAsync()
                     ? F.Return()
-                    : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)), "Task")));
+                    : F.Return(F.Property(F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)), "Task"))); 
 
                 return F.Block(
                     ImmutableArray.Create(builderVariable),

@@ -235,11 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// This instance is used as a key in the lambda return type inference.
         /// We basically only interested in parameters since inference will set the return type to null.
+        /// Except: the target return type "Func&lt;Task&lt;T&gt;&gt;" vs "Func&lt;Tasklike&lt;T&gt;&gt;"
+        /// will affect whether lambda inference infers Task&lt;int&gt; or Tasklike&lt;int&gt;
         /// </summary>
         public static readonly MemberSignatureComparer LambdaReturnInferenceCacheComparer = new MemberSignatureComparer(
             considerName: false,                // valid invoke is always called "Invoke"
             considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: false,          // do not care
+            considerReturnType: true,           // CONSIDER: can we make this more efficient by selecting Task vs Tasklike later?
             considerTypeConstraints: false,     // valid invoke is never generic
             considerCallingConvention: false,   // valid invoke is never static
             considerRefOutDifference: true,

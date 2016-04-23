@@ -3155,6 +3155,229 @@ class C
         }
 
         [Fact]
+        public void PresentAsyncTasklikeBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    async ValueTask f() { await Task.Delay(0); }
+    async ValueTask<int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(ValueTaskMethodBuilder))] struct ValueTask { }
+[Tasklike(typeof(ValueTaskMethodBuilder<>))] struct ValueTask<T> { }
+class ValueTaskMethodBuilder
+{
+    public ValueTask Task { get; }
+    public static ValueTaskMethodBuilder Create() => null;
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+class ValueTaskMethodBuilder<T>
+{
+    public ValueTask<T> Task { get; }
+    public static ValueTaskMethodBuilder<T> Create() => null;
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void SetException(System.Exception exception) { }
+    public void SetResult(T result) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.g", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.<g>d__1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""ValueTaskMethodBuilder<int> ValueTaskMethodBuilder<int>.Create()""
+  IL_0007:  stfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""int C.<g>d__1.<>1__state""
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  callvirt   ""void ValueTaskMethodBuilder<int>.Start<C.<g>d__1>(ref C.<g>d__1)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""ValueTaskMethodBuilder<int> C.<g>d__1.<>t__builder""
+  IL_0027:  callvirt   ""ValueTask<int> ValueTaskMethodBuilder<int>.Task.get""
+  IL_002c:  ret
+}");
+            v.VerifyIL("C.f", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (C.<f>d__0 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""ValueTaskMethodBuilder ValueTaskMethodBuilder.Create()""
+  IL_0007:  stfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""int C.<f>d__0.<>1__state""
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  callvirt   ""void ValueTaskMethodBuilder.Start<C.<f>d__0>(ref C.<f>d__0)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""ValueTaskMethodBuilder C.<f>d__0.<>t__builder""
+  IL_0027:  callvirt   ""ValueTask ValueTaskMethodBuilder.Task.get""
+  IL_002c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AsyncTasklikeLambdaOverloads()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        f(async () => { await (Task)null; });
+        g(async () => { await (Task)null; });
+        k(async () => { await (Task)null; });
+    }
+
+    static void f(Func<MyTask> lambda) { }
+    static void g(Func<Task> lambda) { }
+    static void k<T>(Func<T> lambda) { }
+}
+[Tasklike(typeof(MyTaskBuilder))]
+public class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => new MyTaskBuilder();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public MyTask Task => default(MyTask);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            v.VerifyIL("C.Main", @"
+{
+  // Code size      109 (0x6d)
+  .maxstack  2
+  IL_0000:  ldsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001f
+  IL_0008:  pop
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""MyTask C.<>c.<Main>b__0_0()""
+  IL_0014:  newobj     ""System.Func<MyTask>..ctor(object, System.IntPtr)""
+  IL_0019:  dup
+  IL_001a:  stsfld     ""System.Func<MyTask> C.<>c.<>9__0_0""
+  IL_001f:  call       ""void C.f(System.Func<MyTask>)""
+  IL_0024:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0043
+  IL_002c:  pop
+  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0032:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_1()""
+  IL_0038:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_003d:  dup
+  IL_003e:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_1""
+  IL_0043:  call       ""void C.g(System.Func<System.Threading.Tasks.Task>)""
+  IL_0048:  ldsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_004d:  dup
+  IL_004e:  brtrue.s   IL_0067
+  IL_0050:  pop
+  IL_0051:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0056:  ldftn      ""System.Threading.Tasks.Task C.<>c.<Main>b__0_2()""
+  IL_005c:  newobj     ""System.Func<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0061:  dup
+  IL_0062:  stsfld     ""System.Func<System.Threading.Tasks.Task> C.<>c.<>9__0_2""
+  IL_0067:  call       ""void C.k<System.Threading.Tasks.Task>(System.Func<System.Threading.Tasks.Task>)""
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void AsyncTasklikeIncompleteBuilder()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async ValueTask0 f() { await Task.Delay(0); }
+    async ValueTask1 g() { await Task.Delay(0); }
+    async ValueTask2 h() { await Task.Delay(0); }
+}
+[Tasklike(typeof(ValueTaskMethodBuilder0))] struct ValueTask0 { }
+[Tasklike(typeof(ValueTaskMethodBuilder1))] struct ValueTask1 { }
+[Tasklike(typeof(ValueTaskMethodBuilder2))] struct ValueTask2 { }
+class ValueTaskMethodBuilder0 { }
+class ValueTaskMethodBuilder1 { public ValueTask1 Task {get;} }
+class ValueTaskMethodBuilder2 { public ValueTask2 Task {get;} public void SetException(System.Exception ex) {} }
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder0.Task'
+                //     async ValueTask0 f() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder0", "Task").WithLocation(7, 26),
+                // (8,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder1.SetException'
+                //     async ValueTask1 g() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder1", "SetException").WithLocation(8, 26),
+                // (9,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder2.SetResult'
+                //     async ValueTask2 h() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.Delay(0); }").WithArguments("ValueTaskMethodBuilder2", "SetResult").WithLocation(9, 26)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeBuilderArityMismatch()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async Mismatch1<int> f() { await (Task)null; return 1; }
+    async Mismatch2<int> g() { await (Task)null; return 1; }
+}
+[Tasklike(typeof(Mismatch1MethodBuilder))] struct Mismatch1<T> { }
+[Tasklike(typeof(Mismatch2MethodBuilder<int>))] struct Mismatch2<T> { }
+class Mismatch1MethodBuilder { }
+class Mismatch2MethodBuilder<T> {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,30): error CS7002: Unexpected use of a generic name
+                //     async Mismatch1<int> f() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await (Task)null; return 1; }").WithLocation(5, 30),
+                // (6,30): error CS7002: Unexpected use of a generic name
+                //     async Mismatch2<int> g() { await (Task)null; return 1; }
+                Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "{ await (Task)null; return 1; }").WithLocation(6, 30)
+                );
+        }
+
+
+
+        [Fact]
         [WorkItem(868822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868822")]
         public void AsyncDelegates()
         {

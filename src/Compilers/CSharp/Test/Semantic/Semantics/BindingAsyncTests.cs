@@ -31,6 +31,172 @@ class C
         }
 
         [Fact]
+        public void AsyncTasklikeMethod()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async ValueTask f() { await Task.Delay(0); }
+    async ValueTask<int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(ValueTaskMethodBuilder))] struct ValueTask { }
+[Tasklike(typeof(ValueTaskMethodBuilder<>))] struct ValueTask<T> { }
+class ValueTaskMethodBuilder {}
+class ValueTaskMethodBuilder<T> {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var methodf = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("f").Single();
+            var methodg = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("g").Single();
+            Assert.True(methodf.IsAsync);
+            Assert.True(methodg.IsAsync);
+        }
+
+        [Fact]
+        public void NotTasklike()
+        {
+            var source1 = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async MyTask f() { await (Task)null; }
+}
+[Tasklike] public class MyTask { }
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute() { } } }
+";
+            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+                // (7,18): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(7, 18),
+                // (7,18): error CS0161: 'C.f()': not all code paths return a value
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(7, 18)
+                );
+
+            var source2 = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async MyTask f() { await (Task)null; }
+}
+[Tasklike(3)] public class MyTask { }
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(int i) { } } }
+";
+            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+                // (7,18): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(7, 18),
+                // (7,18): error CS0161: 'C.f()': not all code paths return a value
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(7, 18)
+                );
+
+            var source3 = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main() { }
+    async MyTask f() { await (Task)null; }
+}
+[Tasklike(typeof(MyTaskBuilder),3)] public class MyTask { }
+public class MyTaskBuilder { }
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(System.Type t, int i) { } } }
+";
+            CreateCompilationWithMscorlib45(source3).VerifyDiagnostics(
+                // (7,18): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(7, 18),
+                // (7,18): error CS0161: 'C.f()': not all code paths return a value
+                //     async MyTask f() { await (Task)null; }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(7, 18)
+                );
+
+        }
+
+        [Fact]
+        public void AsyncTasklikeOverloadLambdas()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    static void Main() {
+        f(async () => { await (Task)null; return 1; });
+        h(async () => { await (Task)null; });
+    }
+    static void f<T>(Func<MyTask<T>> lambda) { }
+    static void f<T>(Func<T> lambda) { }
+    static void f<T>(T arg) { }
+
+    static void h(Func<MyTask> lambda) { }
+    static void h(Func<Task> lambda) { }
+}
+
+[Tasklike(typeof(MyTaskBuilder<>))] public class MyTask<T> { }
+class MyTaskBuilder<T> {
+    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+[Tasklike(typeof(MyTaskBuilder))] public class MyTask { }
+class MyTaskBuilder
+{
+    public static MyTaskBuilder Create() => new MyTaskBuilder();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult() { }
+    public void SetException(Exception exception) { }
+    public MyTask Task => default(MyTask);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
+                //         h(async () => { await (Task)null; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h(System.Func<MyTask>)", "C.h(System.Func<System.Threading.Tasks.Task>)").WithLocation(8, 9)
+                );
+        }
+
+
+        [Fact]
+        public void AsyncTasklikeInadmissibleArity()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C {
+    async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
+}
+[Tasklike(typeof(Mismatch2MethodBuilder<>))] struct Mismatch2<T,U> { }
+class Mismatch2MethodBuilder<T> {}
+namespace System.Runtime.CompilerServices { class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "g").WithLocation(5, 30)
+                );
+        }
+
+
+        [Fact]
         public void AsyncLambdas()
         {
             var source = @"

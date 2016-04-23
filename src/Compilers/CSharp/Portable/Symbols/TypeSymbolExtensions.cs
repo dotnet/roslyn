@@ -1143,5 +1143,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
+
+        /// <summary>
+        /// Says whether this is specifically either the arity-1 generic Task&lt;T&gt; or
+        /// an arity-1 Tasklike&lt;T&gt; which has a [Tasklike] attribute on it.
+        /// </summary>
+        public static bool IsGenericTaskOrTasklike(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            if (type == null || type.Kind != SymbolKind.NamedType)
+            {
+                return false;
+            }
+            NamedTypeSymbol namedType = (NamedTypeSymbol)type;
+            return (namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+                || (namedType.Arity == 1 && namedType.GetCustomBuilderForTasklike() != null));
+        }
+
+        /// <summary>
+        /// Says whether this is specifically either the arity-0 nongeneric Task or
+        /// an arity-0 Tasklike which has a [Tasklike] attribute on it.
+        /// </summary>
+        public static bool IsNongenericTaskOrTasklike(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            return (type != null && type == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
+                || (type.GetArity() == 0 && type.GetCustomBuilderForTasklike() != null));
+        }
+
+        /// <summary>
+        /// Given a type, looks for a [Tasklike(typeof(Builder))] attribute on it, and if present then
+        /// returns that Builder. In the case of a generic builder e.g. typeof(Builder&lt;&gt;) or
+        /// or typeof(Builder&lt;int&gt;) it returns the argument of typeof as-is
+        /// </summary>
+        public static NamedTypeSymbol GetCustomBuilderForTasklike(this TypeSymbol type)
+        {
+            foreach (var attr in type.GetAttributes())
+            {
+                if (attr.IsTargetAttribute(type, AttributeDescription.TasklikeAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    return attr.CommonConstructorArguments[0].Value as NamedTypeSymbol;
+                }
+            }
+            return null;
+        }
+
+
     }
 }

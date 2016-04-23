@@ -472,6 +472,92 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.T
         }
 
         [Fact]
+        public void BetterTasklikeType()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        h(async () => { await (Task)null; return 1; });
+    }
+    static void h<T>(Func<Task<T>> lambda) { }
+    static void h<T>(Func<MyTask<T>> lambda) { }
+}
+[Tasklike(typeof(MyTaskBuilder<>))] public class MyTask<T> { }
+class MyTaskBuilder<T>
+{
+    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
+                //         h(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+
+            string source2 = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static void Main()
+    {
+        k(async () => { await (Task)null; return 1; });
+    }
+    static void k<T>(Func<YourTask<T>> lambda) { }
+    static void k<T>(Func<MyTask<T>> lambda) { }
+}
+[Tasklike(typeof(MyTaskBuilder<>))] public class MyTask<T> { }
+class MyTaskBuilder<T>
+{
+    public static MyTaskBuilder<T> Create() => new MyTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public MyTask<T> Task => default(MyTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+[Tasklike(typeof(YourTaskBuilder<>))] public class YourTask<T> { }
+class YourTaskBuilder<T>
+{
+    public static YourTaskBuilder<T> Create() => new YourTaskBuilder<T>();
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void SetResult(T result) { }
+    public void SetException(Exception exception) { }
+    public YourTask<T> Task => default(YourTask<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices { public class TasklikeAttribute : Attribute { public TasklikeAttribute(Type builderType) { } } }
+";
+            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
+                //         k(async () => { await (Task)null; return 1; });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
+                );
+        }
+
+
+        [Fact]
         public void BetterDelegateType_01()
         {
             string source1 = @"

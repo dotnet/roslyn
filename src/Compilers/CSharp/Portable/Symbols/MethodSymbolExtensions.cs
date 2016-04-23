@@ -274,23 +274,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a "nongeneric tasklike".
+        /// A "nongeneric tasklike" is defined as a type that either has [Tasklike] attribute
+        /// on it and has zero arity, or is System.Threading.Tasks.Task
         /// </summary>
-        public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsNongenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+            return (method.IsAsync && (object)method.ReturnType != null
+                && method.ReturnType.IsNongenericTaskOrTasklike(compilation));
         }
 
+
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Returns whether this method is async and returns a "generic tasklike".
+        /// A "generic tasklike" is defined as a type that either has [Tasklike] attribute
+        /// on it and has arity 1, or is System.Threading.Tasks.Task`1
         /// </summary>
-        public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsGenericTasklikeReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
-                && (object)method.ReturnType != null
-                && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            return (method.IsAsync && (object)method.ReturnType != null
+                    && method.ReturnType.IsGenericTaskOrTasklike(compilation));
         }
+
+
     }
 }

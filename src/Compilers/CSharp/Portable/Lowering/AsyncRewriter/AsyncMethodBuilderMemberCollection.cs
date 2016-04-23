@@ -3,15 +3,23 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.RuntimeMembers;
+using static Microsoft.CodeAnalysis.CSharp.CSharpCompilation;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Async methods have both a return type (void, Task, or Task&lt;T&gt;) and a 'result' type, which is the
+    /// Async methods have both a return type (void, nongeneric Tasklike, or generic Tasklike&lt;T&gt;)
+    /// and a 'result' type, which is the
     /// operand type of any return expressions in the async method. The result type is void in the case of
-    /// Task-returning and void-returning async methods, and T in the case of Task&lt;T&gt;-returning async
-    /// methods.
+    /// Nongeneric Tasklike-returning and void-returning async methods, and T in the case of 
+    /// generic Tasklike&lt;T&gt;-returning async     /// methods.
     /// 
+    /// The async method builder to be used is picked up by the compiler based on the [Tasklike]
+    /// attribute of the return type of the async method if it has one. If the return type
+    /// is void, or the return type lacks this attribute and is one of Task/Task&lt;T&gt; then
     /// System.Runtime.CompilerServices provides a collection of async method builders that are used in the
     /// generated code of async methods to create and manipulate the async method's task. There are three
     /// distinct async method builder types, one of each async return type: AsyncVoidMethodBuilder,
@@ -107,24 +115,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__Start_T,
                     setStateMachine: WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__SetStateMachine,
                     task: null,
+                    requireWellKnownType:true,
                     collection: out collection);
             }
 
-            if (method.IsTaskReturningAsync(F.Compilation))
+            // customBuilderType is what the user wrote in the attribute
+            NamedTypeSymbol customBuilderType = method.ReturnType.GetCustomBuilderForTasklike(); 
+            if (customBuilderType != null)
             {
-                NamedTypeSymbol builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
+                Debug.Assert(method.ReturnType.GetArity() <= 1, "By lowering-async-method time, arity of return type should be 0 or 1");
+                if (customBuilderType.Arity != method.ReturnType.GetArity()
+                    || (customBuilderType.Arity == 1 && !customBuilderType.TypeArgumentsNoUseSiteDiagnostics[0].IsErrorType()))
+                {
+                    // report an error if arity isn't right, or if it's not an open generic type
+                    CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedGenericName), F.Syntax.Location, false);
+                    throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
+                }
+            }
+
+
+            if (method.IsNongenericTasklikeReturningAsync(F.Compilation))
+            {
+                var builderType = customBuilderType ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
 
                 PropertySymbol task;
-                if (!TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task, builderType, out task))
+                if (customBuilderType != null)
+                {
+                    TryGetTaskPropertyAsMember(F, builderType, method.ReturnType, out task);
+                }
+                else
+                {
+                    TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task, builderType, out task);
+                }
+                if (task == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
                     return false;
                 }
 
+
                 return TryCreate(
                     F: F,
 
-                    builderType: F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder),
+                    builderType: builderType,
                     resultType: F.SpecialType(SpecialType.System_Void),
 
                     setException: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
@@ -134,10 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
                     setStateMachine: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
                     task: task,
+                    requireWellKnownType: ((object)customBuilderType == null),
                     collection: out collection);
             }
 
-            if (method.IsGenericTaskReturningAsync(F.Compilation))
+            if (method.IsGenericTasklikeReturningAsync(F.Compilation))
             {
                 TypeSymbol resultType = method.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single();
 
@@ -151,14 +185,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = typeMap.SubstituteType(resultType).Type;
                 }
 
-                NamedTypeSymbol builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(resultType);
+                var builderType = customBuilderType?.ConstructedFrom ?? F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
+                builderType = builderType.Construct(resultType);
 
                 PropertySymbol task;
-                if (!TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task, builderType, out task))
+                if (customBuilderType != null)
+                {
+                    TryGetTaskPropertyAsMember(F, builderType, method.ReturnType, out task);
+                }
+                else
+                {
+                    TryGetWellKnownPropertyAsMember(F, WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task, builderType, out task);
+                }
+                if (task == null)
                 {
                     collection = default(AsyncMethodBuilderMemberCollection);
                     return false;
                 }
+
 
                 return TryCreate(
                     F: F,
@@ -173,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T,
                     setStateMachine: WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine,
                     task: task,
+                    requireWellKnownType: ((object)customBuilderType == null),
                     collection: out collection);
             }
 
@@ -190,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             WellKnownMember start,
             WellKnownMember setStateMachine,
             PropertySymbol task,
+            bool requireWellKnownType,
             out AsyncMethodBuilderMemberCollection collection)
         {
             MethodSymbol setExceptionMethod;
@@ -199,12 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol startMethod;
             MethodSymbol setStateMachineMethod;
 
-            if (TryGetWellKnownMethodAsMember(F, setException, builderType, out setExceptionMethod) &&
-                TryGetWellKnownMethodAsMember(F, setResult, builderType, out setResultMethod) &&
-                TryGetWellKnownMethodAsMember(F, awaitOnCompleted, builderType, out awaitOnCompletedMethod) &&
-                TryGetWellKnownMethodAsMember(F, awaitUnsafeOnCompleted, builderType, out awaitUnsafeOnCompletedMethod) &&
-                TryGetWellKnownMethodAsMember(F, start, builderType, out startMethod) &&
-                TryGetWellKnownMethodAsMember(F, setStateMachine, builderType, out setStateMachineMethod))
+            if (TryGetWellKnownMethodAsMember(F, setException, builderType, requireWellKnownType, out setExceptionMethod) &&
+                TryGetWellKnownMethodAsMember(F, setResult, builderType, requireWellKnownType, out setResultMethod) &&
+                TryGetWellKnownMethodAsMember(F, awaitOnCompleted, builderType, requireWellKnownType, out awaitOnCompletedMethod) &&
+                TryGetWellKnownMethodAsMember(F, awaitUnsafeOnCompleted, builderType, requireWellKnownType, out awaitUnsafeOnCompletedMethod) &&
+                TryGetWellKnownMethodAsMember(F, start, builderType, requireWellKnownType, out startMethod) &&
+                TryGetWellKnownMethodAsMember(F, setStateMachine, builderType, requireWellKnownType, out setStateMachineMethod))
             {
                 collection = new AsyncMethodBuilderMemberCollection(
                     builderType,
@@ -224,9 +270,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool TryGetWellKnownMethodAsMember(SyntheticBoundNodeFactory F, WellKnownMember wellKnownMethod, NamedTypeSymbol containingType, out MethodSymbol methodSymbol)
+        private static bool TryGetWellKnownMethodAsMember(SyntheticBoundNodeFactory F, WellKnownMember wellKnownMethod, NamedTypeSymbol containingType, bool requireWellKnownType, out MethodSymbol methodSymbol)
         {
-            methodSymbol = F.WellKnownMember(wellKnownMethod) as MethodSymbol;
+            if (requireWellKnownType)
+            {
+                methodSymbol = F.WellKnownMember(wellKnownMethod) as MethodSymbol;
+            }
+            else
+            {
+                WellKnownMembersSignatureComparer comparer = new WellKnownMembersSignatureComparer(F.Compilation);
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMethod);
+                methodSymbol = GetRuntimeMember(containingType.ConstructedFrom, ref descriptor, comparer, null) as MethodSymbol;
+                if (methodSymbol == null)
+                {
+                    object[] args = new object[] { containingType.ConstructedFrom.MetadataName, descriptor.Name };
+                    CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, args), F.Syntax.Location, false);
+                    throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
+                }
+            }
+            Debug.Assert(methodSymbol != null, "null methodSymbol will have already thrown by this stage");
             if ((object)methodSymbol == null) return false;
 
             methodSymbol = methodSymbol.AsMember(containingType);
@@ -236,10 +298,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool TryGetWellKnownPropertyAsMember(SyntheticBoundNodeFactory F, WellKnownMember wellKnownProperty, NamedTypeSymbol containingType, out PropertySymbol propertySymbol)
         {
             propertySymbol = F.WellKnownMember(wellKnownProperty) as PropertySymbol;
+            Debug.Assert(propertySymbol != null, "null propertySymbol will have already thrown by this stage");
             if ((object)propertySymbol == null) return false;
 
             propertySymbol = propertySymbol.AsMember(containingType);
             return true;
         }
+
+        private static bool TryGetTaskPropertyAsMember(SyntheticBoundNodeFactory F, NamedTypeSymbol containingType, TypeSymbol expectedType, out PropertySymbol propertySymbol)
+        {
+            propertySymbol = containingType.GetMembers("Task").FirstOrDefault() as PropertySymbol;
+            if (propertySymbol == null || propertySymbol.IsStatic || propertySymbol.DeclaredAccessibility != Accessibility.Public || propertySymbol.IsIndexedProperty() || propertySymbol.Type != expectedType)
+            {
+                object[] args = new object[] { containingType.ConstructedFrom.MetadataName, "Task" };
+                CSDiagnostic error = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, args), F.Syntax.Location, false);
+                throw new SyntheticBoundNodeFactory.MissingPredefinedMember(error);
+            }
+            return true;
+        }
+
     }
 }
