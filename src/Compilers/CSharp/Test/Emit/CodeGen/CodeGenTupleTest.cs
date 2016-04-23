@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
 using System.Text;
@@ -217,7 +218,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples): this should work, just found a bug while working on other stuff.")]
+        [Fact]
         public void SimpleTupleNew()
         {
             var source = @"
@@ -227,15 +228,21 @@ class C
     {
         var x = new (int, int)(1, 2);
         System.Console.WriteLine(x.ToString());
+
+        x = new (int, int)();
+        System.Console.WriteLine(x.ToString());
     }
 }
 " + trivial2uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+{1, 2}
+{0, 0}
+");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       54 (0x36)
   .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0) //x
   IL_0000:  ldloca.s   V_0
@@ -246,7 +253,86 @@ class C
   IL_000b:  constrained. ""System.ValueTuple<int, int>""
   IL_0011:  callvirt   ""string object.ToString()""
   IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ret
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  initobj    ""System.ValueTuple<int, int>""
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  constrained. ""System.ValueTuple<int, int>""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+}");
+        }
+
+        [Fact]
+        public void SimpleTupleNew1()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        dynamic arg = 2;
+        var x = new (int, int)(1, arg);
+        System.Console.WriteLine(x.ToString());
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithTuplesFeature());
+
+            CompileAndVerify(comp, expectedOutput: @"
+{1, 2}
+").VerifyIL("C.Main", @"
+{
+  // Code size      129 (0x81)
+  .maxstack  7
+  .locals init (object V_0, //arg
+                System.ValueTuple<int, int> V_1) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.0
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
+  IL_000c:  brtrue.s   IL_004d
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldtoken    ""C""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  ldc.i4.3
+  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.s   33
+  IL_0023:  ldnull
+  IL_0024:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0029:  stelem.ref
+  IL_002a:  dup
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldc.i4.3
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  dup
+  IL_0035:  ldc.i4.2
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldnull
+  IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_003d:  stelem.ref
+  IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
+  IL_0052:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>> C.<>o__0.<>p__0""
+  IL_005c:  ldtoken    ""System.ValueTuple<int, int>""
+  IL_0061:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0066:  ldc.i4.1
+  IL_0067:  ldloc.0
+  IL_0068:  callvirt   ""(int, int) System.Func<System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic, (int, int)>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, int, dynamic)""
+  IL_006d:  stloc.1
+  IL_006e:  ldloca.s   V_1
+  IL_0070:  constrained. ""System.ValueTuple<int, int>""
+  IL_0076:  callvirt   ""string object.ToString()""
+  IL_007b:  call       ""void System.Console.WriteLine(string)""
+  IL_0080:  ret
 }");
         }
 
@@ -2603,69 +2689,6 @@ class C
             );
         }
 
-        // PROTOTYPE(tuples): this test is for a precedent reference 
-        //                    it does not test tuples and should be removed or moved to appropriate location
-        [Fact]
-        public void InterpolatedConvertedType()
-        {
-            var source = @"
-class C
-{
-    static void Main()
-    {
-        System.IFormattable x = (System.IFormattable)$""qq {1} qq"";
-    }
-}
-" + trivial2uple + trivial3uple;
-
-            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
-            var comp = CreateCompilationWithMscorlib(tree);
-
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var node = nodes.OfType<InterpolatedStringExpressionSyntax>().Single();
-
-            Assert.Equal(@"$""qq {1} qq""", node.ToString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
-            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
-
-            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
-            Assert.Equal("System.IFormattable x", model.GetDeclaredSymbol(x).ToTestDisplayString());
-        }
-
-        // PROTOTYPE(tuples): this test is for a precedent reference 
-        //                    it does not test tuples and should be removed or moved to appropriate location
-        [Fact]
-        public void InterpolatedConvertedTypeInSource()
-        {
-            var source = @"
-class C
-{
-    static void Main()
-    {
-        System.IFormattable x = $""qq {1} qq"";
-    }
-}
-" + trivial2uple + trivial3uple;
-
-            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
-            var comp = CreateCompilationWithMscorlib(tree);
-
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var node = nodes.OfType<InterpolatedStringExpressionSyntax>().Single();
-
-            Assert.Equal(@"$""qq {1} qq""", node.ToString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("System.IFormattable", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.InterpolatedString, model.GetConversion(node));
-
-            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
-            Assert.Equal("System.IFormattable x", model.GetDeclaredSymbol(x).ToTestDisplayString());
-        }
-
         [Fact]
         public void TupleConvertedType01()
         {
@@ -3367,7 +3390,8 @@ second
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples): this should work, fix overload resolution]")]
+        [WorkItem(10801, "https://github.com/dotnet/roslyn/issues/10801")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10801")]
         public void Inference06()
         {
             var source = @"
@@ -3588,6 +3612,7 @@ class C
                 );
         }
 
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
         [Fact]
         public void Inference11()
         {
@@ -3597,7 +3622,6 @@ class C
     static void Main()
     {
         // byref tuple, as a whole, sets an exact bound, names are honored (just like in the case of dynamic
-        //PROTOTYPE(tuples): consider if honoring names is the right way to do for explicit bounds.
         var ab = (a: 1, b: 2);
         var cd = (c: 1, d: 2);
 
@@ -3628,9 +3652,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (12,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // (11,9): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test3(ref ab, ref cd);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("C.Test3<T>(ref T, ref T)").WithLocation(11, 9)
                 );
         }
 
