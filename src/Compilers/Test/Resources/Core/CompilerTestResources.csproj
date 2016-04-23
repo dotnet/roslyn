@@ -137,6 +137,7 @@
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
