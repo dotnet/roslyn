@@ -313,9 +313,9 @@ class A
     // (5,46): error CS0102: The type 'A' already contains a definition for ''
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-    // (5,43): error CS8204: PROTOTYPE(tuples) This is not supported yet.
+    // (5,43): error CS8200: Tuple must contain at least two elements.
     //     protected virtual void Finalize const () { }
-    Diagnostic(ErrorCode.ERR_PrototypeNotYetImplemented, "()").WithLocation(5, 43),
+    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
     // (5,23): error CS0670: Field cannot have void type
     //     protected virtual void Finalize const () { }
     Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
