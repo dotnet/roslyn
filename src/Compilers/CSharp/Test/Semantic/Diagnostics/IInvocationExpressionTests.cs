@@ -34,7 +34,7 @@ class C
     }
 
     void M2(int a, int b) { }
-    void M3(double d) { }
+    double M3(double d) { return d; }
 }";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
@@ -53,6 +53,7 @@ class C
             Assert.False(invocation.ConstantValue.HasValue);
             Assert.False(invocation.IsVirtual);
             Assert.Equal(invocation.TargetMethod.Name, "M2");
+            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Void);
             Assert.NotNull(invocation.Instance);
             Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
             IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)invocation.Instance;
@@ -162,6 +163,7 @@ class C
             Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
             Assert.False(operation.IsInvalid);
             invocation = (IInvocationExpression)operation;
+            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Double);
             Assert.Equal(invocation.TargetMethod.Name, "M3");
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 1);
@@ -621,8 +623,8 @@ class C
 {
     void M1()
     {
-        System.Func<int, int, int> f = null;
-        int x = f(1, 2);
+        System.Func<int, int, bool> f = null;
+        bool b = f(1, 2);
     }
 }";
 
@@ -642,6 +644,7 @@ class C
             Assert.False(invocation.ConstantValue.HasValue);
             Assert.True(invocation.IsVirtual);
             Assert.Equal(invocation.TargetMethod.Name, "Invoke");
+            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Boolean);
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
 
@@ -688,28 +691,24 @@ class C
         public void RefAndOutInvocations()
         {
             const string source = @"
-class Base
-{
-    public virtual void M2() { }
-}
-
-class Derived : Base
+class C
 {
     void M1()
     {
-        M2();
-        this.M2();
-        base.M2();
+        int x = 10;
+        F(ref x);
+        O(out x);
     }
 
-    public override void M2() { }
+    void F(ref int x) { }
+    void O(out int x) { x = 12; }
 }";
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 3);
+            Assert.Equal(nodes.Length, 2);
         }
     }
 }
