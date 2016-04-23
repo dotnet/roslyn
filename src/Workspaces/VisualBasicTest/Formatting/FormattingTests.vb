@@ -4356,5 +4356,66 @@ End Class</Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(8258, "https://github.com/dotnet/roslyn/issues/8258")>
+        Public Async Function FormatDictionaryOperatorProperly() As Task
+            Dim code = "
+Class C
+    Public Shared Sub AutoFormatSample()
+
+        ' Automatic Code Formatting in VB.NET
+        ' Problem with ! dictionary access operator
+
+        Dim dict As New Dictionary(Of String, String)
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
+
+        Dim x As String = (New Dictionary(Of String, String)(dict)) !Banana 'added space in front of ""!""
+
+        With dict
+
+            !Apple = ""Red""
+            Dim multiColors = !Apple &!Orange &!Banana 'missing space between ""&"" and ""!""
+            If!Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
+            End If
+
+        End With
+
+    End Sub
+End Class"
+
+            Dim expected = "
+Class C
+    Public Shared Sub AutoFormatSample()
+
+        ' Automatic Code Formatting in VB.NET
+        ' Problem with ! dictionary access operator
+
+        Dim dict As New Dictionary(Of String, String)
+        dict.Add(""Apple"", ""Green"")
+        dict.Add(""Orange"", ""Orange"")
+        dict.Add(""Banana"", ""Yellow"")
+
+        Dim x As String = (New Dictionary(Of String, String)(dict))!Banana 'added space in front of ""!""
+
+        With dict
+
+            !Apple = ""Red""
+            Dim multiColors = !Apple & !Orange & !Banana 'missing space between ""&"" and ""!""
+            If !Banana = ""Yellow"" Then 'missing space between ""If"" and ""!""
+                !Banana = ""Green""
+            End If
+
+        End With
+
+    End Sub
+End Class"
+
+            Await AssertFormatAsync(code, expected)
+        End Function
+
     End Class
 End Namespace

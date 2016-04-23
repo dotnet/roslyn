@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 this.PresenterSession.ItemCommitted += OnPresenterSessionItemCommitted;
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
+                this.PresenterSession.FilterStateChanged += OnPresenterSessionCompletionItemFilterStateChanged;
             }
 
             private ITextBuffer SubjectBuffer
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 AssertIsForeground();
                 this.PresenterSession.ItemSelected -= OnPresenterSessionItemSelected;
                 this.PresenterSession.ItemCommitted -= OnPresenterSessionItemCommitted;
+                this.PresenterSession.FilterStateChanged -= OnPresenterSessionCompletionItemFilterStateChanged;
                 base.Stop();
             }
 
@@ -92,6 +94,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
                 SetModelSelectedItem(m => e.CompletionItem.IsBuilder ? m.DefaultBuilder : e.CompletionItem);
+            }
+
+            private void OnPresenterSessionCompletionItemFilterStateChanged(
+                object sender, CompletionItemFilterStateChangedEventArgs e)
+            {
+                AssertIsForeground();
+                Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
+
+                // Update the filter state for the model.  Note: if we end up filtering everything
+                // out we do *not* want to dismiss the completion list. 
+                this.FilterModel(CompletionFilterReason.ItemFiltersChanged,
+                    dismissIfEmptyAllowed: false, filterState: e.FilterState);
             }
         }
     }

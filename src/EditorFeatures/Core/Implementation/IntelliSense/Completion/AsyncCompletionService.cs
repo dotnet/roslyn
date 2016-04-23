@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
-using Microsoft.VisualStudio.Text.BraceCompletion.Implementation;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> _allCompletionProviders;
-        private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> _autoBraceCompletionChars;
+        private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
         [ImportingConstructor]
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> allCompletionProviders,
-            [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> autoBraceCompletionChars)
+            [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
             : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
                   asyncListeners, allCompletionProviders, autoBraceCompletionChars)
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             IEnumerable<Lazy<CompletionListProvider, OrderableLanguageAndRoleMetadata>> allCompletionProviders,
-            IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> autoBraceCompletionChars)
+            IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;

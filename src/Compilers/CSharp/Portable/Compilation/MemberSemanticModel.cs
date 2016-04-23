@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!alreadyInTree)
             {
-                if ((this.IsSpeculativeSemanticModel && syntax == _root) || syntax is StatementSyntax)
+                if (syntax == _root || syntax is StatementSyntax)
                 {
                     // Note: For speculative model we want to always cache the entire bound tree.
                     // If syntax is a statement, we need to add all its children.

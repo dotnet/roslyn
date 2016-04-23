@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal enum CompletionReason
     {
         /// <summary>
-        /// There was an error creating the <see cref="BuildRequest"/> object and a compilation was never 
+        /// There was an error creating the <see cref="BuildRequest"/> object and a compilation was never
         /// created.
         /// </summary>
         CompilationNotStarted,
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         CompilationCompleted,
 
         /// <summary>
-        /// The compilation process was initiated and the client disconnected before 
-        /// the results could be provided to them.  
+        /// The compilation process was initiated and the client disconnected before
+        /// the results could be provided to them.
         /// </summary>
         ClientDisconnect,
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Returns a Task that resolves if the client stream gets disconnected.  
+        /// Returns a Task that resolves if the client stream gets disconnected.
         /// </summary>
         protected abstract Task CreateMonitorDisconnectTask(CancellationToken cancellationToken);
 
@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var keepAlive = CheckForNewKeepAlive(request);
 
-            // Kick off both the compilation and a task to monitor the pipe for closing.  
+            // Kick off both the compilation and a task to monitor the pipe for closing.
             var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var compilationTask = ServeBuildRequest(request, buildCts.Token);
             var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
             await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
             // Do an 'await' on the completed task, preference being compilation, to force
-            // any exceptions to be realized in this method for logging.  
+            // any exceptions to be realized in this method for logging.
             CompletionReason reason;
             if (compilationTask.IsCompleted)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 reason = CompletionReason.ClientDisconnect;
             }
 
-            // Begin the tear down of the Task which didn't complete. 
+            // Begin the tear down of the Task which didn't complete.
             buildCts.Cancel();
             return new ConnectionData(reason, keepAlive);
         }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -49,8 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
+            var fixMultipleContext = FixAllContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var triggerDiagnostic = diagnosticsToFix.First().Value.First();
+
+            var suggestedAction = GetSuggestedAction(fixMultipleContext, triggerDiagnostic, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
 
@@ -64,13 +67,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
+            var fixMultipleContext = FixAllContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
+            var triggerDiagnostic = diagnosticsToFix.First().Value.First();
+
+            var suggestedAction = GetSuggestedAction(fixMultipleContext, triggerDiagnostic, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
 
         private FixMultipleSuggestedAction GetSuggestedAction(
-            FixMultipleContext fixMultipleContext,
+            FixAllContext fixAllContext,
+            Diagnostic triggerDiagnostic,
             Workspace workspace,
             FixAllProvider fixAllProvider,
             string title,
@@ -78,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
-            var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
+            var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllContext, triggerDiagnostic, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
             return new FixMultipleSuggestedAction(_listener, workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
         }
     }

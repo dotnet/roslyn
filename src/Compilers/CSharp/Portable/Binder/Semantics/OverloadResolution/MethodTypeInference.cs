@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 /*
 SPEC:
@@ -543,68 +544,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
-            // error type, then we want to set it to the generic error type 
-            // that has no name text. This is because of the following scenario:
-            //
-            // void M<T>(T t) { }
-            // void Foo()
-            // {
-            //     UnknownType t;
-            //     M(t);
-            //     M(undefinedVariable);
-            // }
-            //
-            // In the first call to M, we'll have an EXPRLOCAL with an error type,
-            // which is correct - we want the parameter help to display that we've
-            // got an inferred type of UnknownType, which is an error type since 
-            // its undefined.
-            //
-            // However, for the M in the second call, we DON'T want to display parameter
-            // help that gives undefinedVariable as the type parameter for T, because
-            // there is no parameter of that name, let alone that type. This appears
-            // as an EXPRTYPEORNAMESPACEERROR with an ErrorType. We create a new error sym
-            // without the type name.
+                // If the argument is a TYPEORNAMESPACEERROR and the pSource is an
+                // error type, then we want to set it to the generic error type 
+                // that has no name text. This is because of the following scenario:
+                //
+                // void M<T>(T t) { }
+                // void Foo()
+                // {
+                //     UnknownType t;
+                //     M(t);
+                //     M(undefinedVariable);
+                // }
+                //
+                // In the first call to M, we'll have an EXPRLOCAL with an error type,
+                // which is correct - we want the parameter help to display that we've
+                // got an inferred type of UnknownType, which is an error type since 
+                // its undefined.
+                //
+                // However, for the M in the second call, we DON'T want to display parameter
+                // help that gives undefinedVariable as the type parameter for T, because
+                // there is no parameter of that name, let alone that type. This appears
+                // as an EXPRTYPEORNAMESPACEERROR with an ErrorType. We create a new error sym
+                // without the type name.
 
-            // UNDONE: if (pExpr->isTYPEORNAMESPACEERROR() && pSource->IsErrorType())
-            // UNDONE:{
-            // UNDONE:    pSource = GetTypeManager().GetErrorSym();
-            // UNDONE:}
+                // UNDONE: if (pExpr->isTYPEORNAMESPACEERROR() && pSource->IsErrorType())
+                // UNDONE:{
+                // UNDONE:    pSource = GetTypeManager().GetErrorSym();
+                // UNDONE:}
 
-            // SPEC: * If Ei is an anonymous function, an explicit type parameter
-            // SPEC:   inference is made from Ei to Ti.
+                // SPEC: * If Ei is an anonymous function, an explicit type parameter
+                // SPEC:   inference is made from Ei to Ti.
 
-            // (We cannot make an output type inference from a method group
-            // at this time because we have no fixed types yet to use for
-            // overload resolution.)
+                // (We cannot make an output type inference from a method group
+                // at this time because we have no fixed types yet to use for
+                // overload resolution.)
 
-            // SPEC: * Otherwise, if Ei has a type U then a lower-bound inference 
-            // SPEC:   or exact inference is made from U to Ti.
+                // SPEC: * Otherwise, if Ei has a type U then a lower-bound inference 
+                // SPEC:   or exact inference is made from U to Ti.
 
-            // SPEC: * Otherwise, no inference is made for this argument
+                // SPEC: * Otherwise, no inference is made for this argument
 
             var source = argument.Type;
 
-            if (argument.Kind == BoundKind.UnboundLambda)
-            {
-                ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
-            }
+                if (argument.Kind == BoundKind.UnboundLambda)
+                {
+                    ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
+                }
             else if (argument.Kind == BoundKind.TupleLiteral)
             {
                 MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics);
             }
-            else if (IsReallyAType(source))
-            {
+                else if (IsReallyAType(source))
+                {
                 if (isExactInference)
-                {
-                    ExactInference(source, target, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    {
+                        ExactInference(source, target, ref useSiteDiagnostics);
+                    }
+                    else
+                    {
+                        LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    }
                 }
             }
-        }
 
         private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ExactTypeParameterInference(source, target))
                     {
                         return;
-                    }
+        }
                 }
                 else
                 {
@@ -868,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var destType = destTypes[i];
                     MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
                 }
-            }
+                }
             finally
             {
                 destTypes.Free();
@@ -2402,7 +2403,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var candidates = new HashSet<TypeSymbol>();
+            var candidates = PooledHashSet<TypeSymbol>.GetInstance();
+            try
+            {
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2495,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //PROTOTYPE(tuples): SPEC that when having a tuple candidate and another candidate that is a identity-convertable tuple
                     //                   SPEC or its underlying ValueTuple type, the underlying type is inferred
                     if (candidate.IsTupleType)
-                    {
+                {
                         best = ((TupleTypeSymbol)candidate).UnderlyingTupleType;
                         break;
                     }
@@ -2526,6 +2529,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _fixedResults[iParam] = best;
             UpdateDependenciesAfterFix(iParam);
             return true;
+        }
+            finally
+            {
+                candidates.Free();
+            }
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

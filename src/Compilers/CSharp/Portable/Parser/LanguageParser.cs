@@ -8345,6 +8345,8 @@ tryAgain:
             SyntaxToken refTokenOpt,
             out LocalFunctionStatementSyntax localFunction)
         {
+            allowLocalFunctions = allowLocalFunctions && IsFeatureEnabled(MessageID.IDS_FeatureLocalFunctions);
+
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
 
             VariableFlags flags = VariableFlags.Local;
@@ -8565,7 +8567,6 @@ tryAgain:
                 semicolon);
 
             decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
-            decl = CheckFeatureAvailability(decl, MessageID.IDS_FeatureLocalFunctions);
             return decl;
         }
 
