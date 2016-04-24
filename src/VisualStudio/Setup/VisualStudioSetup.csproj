@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup.Next" />
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
