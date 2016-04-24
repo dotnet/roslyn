@@ -88,17 +88,38 @@
     </PropertyGroup>
   </Target>
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
-          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
-          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
-          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
-          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
-
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+  <Choose>
+    <When Condition="'$(ProjectLanguage)' == 'VB'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  
+  <Choose>
+    <When Condition="'$(ProjectLanguage)' == 'C++'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(VCTargetsPath)\Microsoft.Cpp.targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <Import Project="$(MSBuildTargetsFilePath)" />
 
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
