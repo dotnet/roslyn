@@ -3908,6 +3908,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             BoundExpression boundInitializerOpt = null)
         {
+
+            var typeContainingConstructors = type;
+            if (type.IsTupleType)
+            {
+                typeContainingConstructors = ((TupleTypeSymbol)type).UnderlyingTupleType;
+            }
+
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)
@@ -3927,7 +3934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument)
             {
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(type, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 useSiteDiagnostics = null;
 
@@ -3959,7 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> candidateConstructors;
 
             if (TryPerformConstructorOverloadResolution(
-                type,
+                typeContainingConstructors,
                 analyzedArguments,
                 typeName,
                 typeNode.Location,
