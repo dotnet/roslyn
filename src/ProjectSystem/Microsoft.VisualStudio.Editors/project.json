@@ -3,5 +3,6 @@
     "net46": {}
   },
   "dependencies": {
+    "Microsoft.VisualStudio.LanguageServices" : "1.2.0"
   }
 }
