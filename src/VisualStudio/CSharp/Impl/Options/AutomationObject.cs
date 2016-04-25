@@ -36,10 +36,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
         }
 
+        // This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics.
         public int ClosedFileDiagnostics
         {
-            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
-            set { SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
+            get { return GetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
+            set
+            {
+                // Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
+                // So, we invoke the setter only for value = 0.
+                if (value == 0)
+                {
+                    SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value);
+                }
+            }
+        }
+
+        public int CSharpClosedFileDiagnostics
+        {
+            get { return GetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
+            set { SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
         }
 
         public int DisplayLineSeparators
@@ -518,6 +533,30 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var optionSet = _optionService.GetOptions();
             optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private int GetIntegerOption(Option<int> key)
+        {
+            return _optionService.GetOption(key);
+        }
+
+        private int GetIntegerOption(PerLanguageOption<int> key)
+        {
+            return _optionService.GetOption(key, LanguageNames.CSharp);
+        }
+
+        private void SetIntegerOption(Option<int> key, int value)
+        {
+            var optionSet = _optionService.GetOptions();
+            optionSet = optionSet.WithChangedOption(key, value);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private void SetIntegerOption(PerLanguageOption<int> key, int value)
+        {
+            var optionSet = _optionService.GetOptions();
+            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value);
             _optionService.SetOptions(optionSet);
         }
     }

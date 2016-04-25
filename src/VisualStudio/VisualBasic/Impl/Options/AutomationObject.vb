@@ -44,12 +44,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        ' This SettingStore option has now been deprecated in favor of BasicClosedFileDiagnostics.
         Public Property ClosedFileDiagnostics As Boolean
             Get
-                Return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService, LanguageNames.VisualBasic)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value)
+                ' Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
+                ' So, we invoke the setter only for value = False.
+                If Not value Then
+                    SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value:=0)
+                End If
+            End Set
+        End Property
+
+        Public Property BasicClosedFileDiagnostics As Integer
+            Get
+                Return GetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+            End Get
+            Set(value As Integer)
+                SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value)
             End Set
         End Property
 
@@ -167,6 +181,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Function
 
         Private Sub SetBooleanOption(key As [PerLanguageOption](Of Boolean), value As Boolean)
+            Dim optionSet = _optionService.GetOptions()
+            optionSet = optionSet.WithChangedOption(key, LanguageNames.VisualBasic, value)
+            _optionService.SetOptions(optionSet)
+        End Sub
+
+        Private Function GetIntegerOption(key As [Option](Of Integer)) As Integer
+            Return _optionService.GetOption(key)
+        End Function
+
+        Private Sub SetIntegerOption(key As [Option](Of Integer), value As Integer)
+            Dim optionSet = _optionService.GetOptions()
+            optionSet = optionSet.WithChangedOption(key, value)
+            _optionService.SetOptions(optionSet)
+        End Sub
+
+        Private Function GetIntegerOption(key As PerLanguageOption(Of Integer)) As Integer
+            Return _optionService.GetOption(key, LanguageNames.VisualBasic)
+        End Function
+
+        Private Sub SetIntegerOption(key As PerLanguageOption(Of Integer), value As Integer)
             Dim optionSet = _optionService.GetOptions()
             optionSet = optionSet.WithChangedOption(key, LanguageNames.VisualBasic, value)
             _optionService.SetOptions(optionSet)
