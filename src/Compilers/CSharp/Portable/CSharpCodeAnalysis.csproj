@@ -726,7 +726,13 @@
     <Compile Include="Symbols\UnboundGenericType.cs" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.cs" />
     <Compile Include="Symbols\VarianceSafety.cs" />
-    <Compile Include="Symbols\WrappedParameterSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperParameterSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperNamedTypeSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperEventSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperFieldSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperMethodSymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperPropertySymbol.cs" />
+    <Compile Include="Symbols\Wrappers\WrapperTypeParameterSymbol.cs" />
     <Compile Include="Syntax\AliasedQualifiedNameSyntax.cs" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
