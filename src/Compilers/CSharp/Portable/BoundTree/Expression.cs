@@ -497,8 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundTupleExpression 
     {
-        // PROTOTYPE(tuples): we need to make this its own OperationKind 
-        //                    and expose arguments and names via ITupleExpression
         protected override OperationKind ExpressionKind => OperationKind.None;
 
         public override void Accept(OperationVisitor visitor)

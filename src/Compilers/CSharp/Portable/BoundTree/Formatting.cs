@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            // PROTOTYPE(tuples): display should build a view from tuple arguments 
-            //                    when tuple is typeless
             get { return (object)this.Type ?? "<tuple>"; }
         }
     }

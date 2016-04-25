@@ -7379,15 +7379,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PROTOTYPE This is not supported yet..
-        /// </summary>
-        internal static string ERR_PrototypeNotYetImplemented {
-            get {
-                return ResourceManager.GetString("ERR_PrototypeNotYetImplemented", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The * or -&gt; operator must be applied to a pointer.
         /// </summary>
         internal static string ERR_PtrExpected {

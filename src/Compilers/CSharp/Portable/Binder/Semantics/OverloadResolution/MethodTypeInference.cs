@@ -1537,7 +1537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // SPEC: PROTOTYPE(tuples): spec quote here
             if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
@@ -1607,13 +1606,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        //PROTOTYPE(tuples): inference from tuple type is exact since tuples are non-variant.
         private bool ExactTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-
-            // SPEC: PROTOTYPE(tuples): would be nice to quote spec here
 
             // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
             //       that is ok, because we are inferring type parameters used in the matching elements, 
@@ -1637,6 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // NOTE: inference from tuple type is exact since tuples are non-variant.
             ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
             return true;
         }
@@ -1765,9 +1762,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // {
             //     return;
             // }
-
-
-            // SPEC: PROTOTYPE(tuples) spec quote here.
 
             if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
@@ -2132,8 +2126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // SPEC: PROTOTYPE(tuples): spec quote here
-
             if (ExactTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
@@ -2495,8 +2487,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (best.Equals(candidate, ignoreDynamic: true))
                 {
-                    //PROTOTYPE(tuples): SPEC that when having a tuple candidate and another candidate that is a identity-convertable tuple
-                    //                   SPEC or its underlying ValueTuple type, the underlying type is inferred
                     if (candidate.IsTupleType)
                     {
                         best = ((TupleTypeSymbol)candidate).UnderlyingTupleType;

@@ -4854,9 +4854,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleReservedMemberName" xml:space="preserve">
     <value>Tuple member name '{0}' is only allowed at position {1}.</value>
   </data>
-  <data name="ERR_PrototypeNotYetImplemented" xml:space="preserve">
-    <value>PROTOTYPE This is not supported yet.</value>
-  </data>
   <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
     <value>Tuple membername '{0}' is disallowed at any position.</value>
   </data>
