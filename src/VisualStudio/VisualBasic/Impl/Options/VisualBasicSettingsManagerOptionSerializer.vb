@@ -117,6 +117,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                         Return SettingStorageRoot + "AutoRequiredMemberInsert"
                     Case FeatureOnOffOptions.FormatOnPaste.Name
                         Return Nothing
+                    Case ServiceFeatureOnOffOptions.ClosedFileDiagnostic.Name
+                        ' ClosedFileDiagnostics has been deprecated in favor of BasicClosedFileDiagnostics
+                        Return SettingStorageRoot + NameOf(AutomationObject.BasicClosedFileDiagnostics)
                 End Select
             End If
 

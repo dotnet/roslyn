@@ -103,6 +103,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         protected override string SettingStorageRoot { get { return "TextEditor.CSharp.Specific."; } }
 
+        protected override string GetStorageKeyForOption(IOption option)
+        {
+            var name = option.Name;
+            if (option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+            {
+                // ClosedFileDiagnostics has been deprecated in favor of CSharpClosedFileDiagnostics
+                name = nameof(AutomationObject.CSharpClosedFileDiagnostics);
+            }
+
+            return SettingStorageRoot + name;
+        }
+
         protected override bool SupportsOption(IOption option, string languageName)
         {
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
