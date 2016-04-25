@@ -1,22 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
+    <IsPortable>false</IsPortable>
+    <IsDeployment>true</IsDeployment>
+  </PropertyGroup>
+  <Import Project="..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
+  <PropertyGroup>
     <ProjectGuid>{37BA82E6-9ABD-4ACA-AA26-2DFD39A359A5}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.VisualStudio</RootNamespace>
-    <AssemblyName>ProjectSystem</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
-    <NoDocumentationFile>true</NoDocumentationFile>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
-    <CopyReferencesByDefault>true</CopyReferencesByDefault>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -82,5 +74,5 @@
   <ItemGroup>
     <Content Include="Readme.txt" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\build\Targets\ProducesNoOutput.Imports.targets" />
 </Project>
