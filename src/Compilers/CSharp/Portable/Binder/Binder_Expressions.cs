@@ -730,12 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol expressionType = expression.Type;
 
-            // PROTOTYPE(tuples): we could, in theory, allow restricted field types here
-            //            since they might be target-typed to something safe
-            //            
-
-            // PROTOTYPE(tuples): regardless of the decision on the above, need to test this.
-
             if (!expression.HasAnyErrors)
             {
                 if (expression.HasExpressionType())
@@ -750,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (expressionType.IsRestrictedType())
                     {
                         hasError = true;
-                        Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, errorSyntax, expressionType);
+                        Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, errorSyntax, expressionType);
                     }
                 }
             }

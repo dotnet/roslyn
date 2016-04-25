@@ -3776,5 +3776,62 @@ w
 ");
 
         }
+
+        [Fact]
+        public void RestrictedTypes1()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (1, 2, new System.ArgIterator());
+        (int x, object y) y = (1, 2, new System.ArgIterator());
+        (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,24): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //         var x = (1, 2, new System.ArgIterator());
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "new System.ArgIterator()").WithArguments("System.ArgIterator").WithLocation(6, 24),
+                // (7,38): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //         (int x, object y) y = (1, 2, new System.ArgIterator());
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "new System.ArgIterator()").WithArguments("System.ArgIterator").WithLocation(7, 38),
+                // (8,17): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //         (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator y").WithArguments("System.ArgIterator").WithLocation(8, 17),
+                // (8,50): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //         (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "new System.ArgIterator()").WithArguments("System.ArgIterator").WithLocation(8, 50)
+                );
+        }
+
+        [Fact]
+        public void RestrictedTypes2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int x, System.ArgIterator y) y;
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //         (int x, System.ArgIterator y) y;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator y").WithArguments("System.ArgIterator").WithLocation(6, 17),
+                // (6,39): warning CS0168: The variable 'y' is declared but never used
+                //         (int x, System.ArgIterator y) y;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 39)
+                );
+        }
+
     }
 }
