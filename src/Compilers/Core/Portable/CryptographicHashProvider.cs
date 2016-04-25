@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Roslyn.Reflection;
+
     internal abstract class CryptographicHashProvider
     {
         private ImmutableArray<byte> _lazySHA1Hash;
@@ -158,6 +160,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
+        {
+            using (var hashProvider = new SHA1CryptoServiceProvider())
+            {
+                return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
+            }
+        }
+
+        internal static ImmutableArray<byte> ComputeSha1(BlobBuilder bytes)
         {
             using (var hashProvider = new SHA1CryptoServiceProvider())
             {
