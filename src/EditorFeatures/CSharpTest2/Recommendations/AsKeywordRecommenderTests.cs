@@ -114,5 +114,111 @@ $$");
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var x = .$$0;"));
         }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterCtor()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = new C()$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAnonymousType()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"var x = new { }$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterDelegateAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"System.Action a = delegate { };
+var x = a $$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterMethodWithOverloadResolutionFailure()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"class C
+{
+    void F()
+    {
+        var x = G() $$
+    }
+
+    void G() { }
+    int G() { }
+}"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodGroup1()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var b = System.Console.Beep $$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodGroup2()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var b = System.String.Empty.GetType $$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterVoidMethod()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var b = System.Console.Beep()$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAnonymousMethod1()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"System.Action a = delegate { }$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAnonymousMethod2()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"System.Func<int> a = delegate { return 0; }$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterLambda1()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"System.Action b = (() => { })$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterLambda2()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"System.Func<int> b = (() => { return 0; })$$"));
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterLambda3()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"System.Action b = (() => 0)$$"));
+        }
     }
 }

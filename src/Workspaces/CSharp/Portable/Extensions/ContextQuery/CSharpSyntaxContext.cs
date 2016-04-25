@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
-                syntaxTree.IsIsOrAsContext(position, leftToken, cancellationToken),
+                syntaxTree.IsIsOrAsContext(position, leftToken, semanticModel, cancellationToken),
                 syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),

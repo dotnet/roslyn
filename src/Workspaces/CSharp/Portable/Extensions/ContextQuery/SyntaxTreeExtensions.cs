@@ -2196,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsIsOrAsContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsIsOrAsContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // cases:
             //    expr |
@@ -2218,6 +2218,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // is/as are valid after expressions.
             if (token.IsLastTokenOfNode<ExpressionSyntax>())
             {
+                var expression = token.GetAncestor<ExpressionSyntax>();
+                var symbols = semanticModel.GetSymbolInfo(expression).GetBestOrAllSymbols();
+                var methodSymbols = symbols.OfType<IMethodSymbol>();
+                if (methodSymbols.Any())
+                {
+                    // Not after lambdas or anonymous methods
+                    if (methodSymbols.All(methodSymbol => methodSymbol.IsAnonymousFunction()))
+                    {
+                        return false;
+                    }
+                   
+                    // Not after expressions of type 'void'
+                    if (methodSymbols.All(methodSymbol => methodSymbol.ReturnsVoid && (methodSymbol.IsExtensionMethod() || methodSymbol.IsOrdinaryMethod())))
+                    {
+                        return false;
+                    }
+
+                    // Not after expressions of type 'method group'
+                    var typeInfo = semanticModel.GetTypeInfo(expression);
+                    if (typeInfo.Type == null)
+                    {
+                        return false;
+                    }
+                }
+
                 // However, many names look like expressions.  For example:
                 //    foreach (var |
                 // ('var' is a TypeSyntax which is an expression syntax.
