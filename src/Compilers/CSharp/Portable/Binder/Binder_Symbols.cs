@@ -412,6 +412,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
+                if (argumentType.IsRestrictedType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
+                }
+
                 string name = argumentSyntax.Name?.Identifier.ValueText;
 
                 // validate name if we have one
