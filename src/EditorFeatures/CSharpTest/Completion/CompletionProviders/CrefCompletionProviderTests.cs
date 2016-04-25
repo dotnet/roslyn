@@ -915,6 +915,16 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsIsPatternExpressionExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetPropertyPatternType(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

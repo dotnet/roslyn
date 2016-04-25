@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsAttributeNamedArgumentIdentifier(SyntaxNode node);
         bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node);
+        bool IsIsPatternExpressionExpression(SyntaxNode node);
 
         bool IsDirective(SyntaxNode node);
         bool IsForEachStatement(SyntaxNode node);
@@ -162,6 +163,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        SyntaxNode GetPropertyPatternType(SyntaxNode node);
     }
 
     [Flags]

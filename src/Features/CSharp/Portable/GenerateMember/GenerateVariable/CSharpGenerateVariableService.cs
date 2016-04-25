@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
+            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                return true;
+            }
+
             return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
         }
 

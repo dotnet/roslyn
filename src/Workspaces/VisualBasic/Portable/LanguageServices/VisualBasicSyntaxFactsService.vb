@@ -549,6 +549,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name), False)
         End Function
 
+        Public Function IsIsPatternExpressionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIsPatternExpressionExpression
+            Return False
+        End Function
+
+        Public Function GetPropertyPatternType(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetPropertyPatternType
+            Return Nothing
+        End Function
+
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
             ' VB doesn't have a specialized node for element access.  Instead, it just uses an
             ' invocation expression or dictionary access expression.

@@ -659,6 +659,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is ObjectCreationExpressionSyntax;
         }
 
+        public bool IsIsPatternExpressionExpression(SyntaxNode node)
+        {
+            return node.IsParentKind(SyntaxKind.IsPatternExpression) &&
+                ((IsPatternExpressionSyntax)node.Parent).Expression == node;
+        }
+
+        public SyntaxNode GetPropertyPatternType(SyntaxNode node)
+        {
+            return (node as PropertyPatternSyntax)?.Type;
+        }
+
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {
             var identifier = node as IdentifierNameSyntax;

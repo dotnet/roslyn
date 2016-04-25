@@ -120,6 +120,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 typeToGenerateIn = semanticModel.GetTypeInfo(objectCreationNode, cancellationToken).Type as INamedTypeSymbol;
                 isStatic = false;
             }
+            else if (syntaxFacts.IsIsPatternExpressionExpression(simpleNameOrMemberAccessExpression))
+            {
+                var propertyPattern = syntaxFacts.GetPropertyPatternType(simpleNameOrMemberAccessExpression.Parent.Parent);
+                typeToGenerateIn = semanticModel.GetTypeInfo(propertyPattern, cancellationToken).Type as INamedTypeSymbol;
+                isStatic = false;
+            }
             else
             {
                 // Generating into the containing type.
