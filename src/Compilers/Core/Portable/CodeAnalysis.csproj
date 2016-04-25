@@ -66,6 +66,7 @@
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
+    <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
     <Compile Include="Compilation\OperationVisitor.cs" />
     <Compile Include="Compilation\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
+    <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />

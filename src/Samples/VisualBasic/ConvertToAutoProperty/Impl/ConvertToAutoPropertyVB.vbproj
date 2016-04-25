@@ -26,7 +26,7 @@
       <Name>Microsoft.CodeAnalysis.Workspaces</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\Dependencies\Composition\Composition.csproj">
-      <Project>{02abb346-3cc8-4cc2-b6e4-72a60a3e1491}</Project>
+      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
       <Name>Composition</Name>
       <Private>False</Private>
     </ProjectReference>
@@ -41,7 +41,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>ConvertToAutoPropertyVB</RootNamespace>
     <AssemblyName>ConvertToAutoPropertyVB</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>

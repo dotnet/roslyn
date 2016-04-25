@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         AssemblyIdentity Cci.IAssemblyReference.Identity => _sourceAssembly.Identity;
+        Version Cci.IAssemblyReference.AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
 
         internal override string Name
         {
