@@ -437,12 +437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int IsMemberNameReserved(string name)
         {
-            // PROTOTYPE(tuples): handle others like "ToString"?
-
             if (String.Equals(name, "Rest", StringComparison.Ordinal))
             {
                 return 0;
             }
+
             if (name.StartsWith("Item", StringComparison.Ordinal))
             {
                 string tail = name.Substring(4);
@@ -563,7 +562,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(tuples): need to figure what is the right behavior when underlying is obsolete
                 return null;
             }
         }
@@ -575,8 +573,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            // PROTOTYPE(tuples): PERF do we need to have a dictionary here?
-            //                    tuples will be typically small 2 or 3 elements only
             return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
         }
 
@@ -657,8 +653,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ignoreDynamic)
             {
-                // PROTOTYPE(tuples): rename ignoreDynamic or introduce another "ignoreTuple" flag
-                //                    if ignoring dynamic, compare underlying tuple types
                 if (t2?.IsTupleType == true)
                 {
                     t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
