@@ -1503,7 +1503,6 @@ static class C
 }
 " + trivial2uple;
 
-            // PROTOTYPE(tuples): this should probably fail with diagnostics. No extension methods on tuple types (but you can on ValueTuple)
             CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"42 Alice", parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
@@ -1752,7 +1751,6 @@ class C3
             var comp2 = CreateCompilationWithMscorlib(source2, parseOptions: TestOptions.Regular.WithTuplesFeature());
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
 
-            // PROTOTYPE(tuples) this error is misleading or worse.
             comp.VerifyDiagnostics(
                 // (7,13): error CS0029: Cannot implicitly convert type '(int c, int d)' to '(int a, int b)'
                 //         x = C2.M();

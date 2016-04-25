@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typesArray.Length < 2)
             {
                 // PROTOTYPE(tuples):
-                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_PrototypeNotYetImplemented, syntax.Location));
+                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
             return TupleTypeSymbol.Create(
