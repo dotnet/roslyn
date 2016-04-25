@@ -1775,6 +1775,33 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(10742, "https://github.com/dotnet/roslyn/issues/10742")>
+        Public Async Function ReFormatWithTabsEnabled6() As Task
+            Dim code =
+                "Class SomeClass" + vbCrLf +
+                "    Sub Foo() ' Comment" + vbCrLf +
+                "        Foo()" + vbCrLf +
+                "    End Sub" + vbCrLf +
+                "End Class"
+
+            Dim expected =
+                "Class SomeClass" + vbCrLf +
+                vbTab + "Sub Foo() ' Comment" + vbCrLf +
+                vbTab + vbTab + "Foo()" + vbCrLf +
+                vbTab + "End Sub" + vbCrLf +
+                "End Class"
+
+            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            {
+                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
+                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
+                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+            }
+
+            Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function ReFormatWithTabsDisabled() As Task
             Dim code =
                 "Class SomeClass" + vbCrLf +
