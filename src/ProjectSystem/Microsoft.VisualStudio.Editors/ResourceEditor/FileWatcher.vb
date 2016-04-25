@@ -247,7 +247,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
                 Try
                     _fileSystemWatcher = New FileSystemWatcher(DirectoryPath)
-                Catch ex As Threading.ThreadAbortException
+                Catch ex As System.Threading.ThreadAbortException
                     Throw
                 Catch ex As StackOverflowException
                     Throw
@@ -633,7 +633,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             '''   in the thread from which it was created.  So no synchronization issues.
             ''' </remarks>
             Private Sub Timer_Elapsed(ByVal sender As Object, ByVal e As System.EventArgs) Handles _timer.Tick
-                Debug.WriteLineIf(Switches.RSEFileWatcher.TraceVerbose, "    FileWatcherEntry: Raising delayed FileChanged event: " & ToString() & ", Thread = " & Microsoft.VisualBasic.Hex(Threading.Thread.CurrentThread.GetHashCode) & ", Milliseconds = " & VB.Now.Millisecond)
+                Debug.WriteLineIf(Switches.RSEFileWatcher.TraceVerbose, "    FileWatcherEntry: Raising delayed FileChanged event: " & ToString() & ", Thread = " & Microsoft.VisualBasic.Hex(System.Threading.Thread.CurrentThread.GetHashCode) & ", Milliseconds = " & VB.Now.Millisecond)
 
                 'First thing to do is get rid of the timer - we don't need it anymore.
                 _timer.Dispose()
@@ -641,9 +641,9 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
 #If DEBUG Then
                 If _lastThreadHashCode <> 0 Then
-                    Debug.Assert(_lastThreadHashCode = Threading.Thread.CurrentThread.GetHashCode, "FileWatcherEntry: We're not firing on the same thread every time")
+                    Debug.Assert(_lastThreadHashCode = System.Threading.Thread.CurrentThread.GetHashCode, "FileWatcherEntry: We're not firing on the same thread every time")
                 End If
-                _lastThreadHashCode = Threading.Thread.CurrentThread.GetHashCode
+                _lastThreadHashCode = System.Threading.Thread.CurrentThread.GetHashCode
 #End If
                 Debug.WriteLineIf(Switches.RSEFileWatcher.TraceInfo, "FileWatcher: Notifying listeners: """ & PathAndFileName & """, " & ToString())
 

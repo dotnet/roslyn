@@ -45,7 +45,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
 }
 
 def branchNames = []
-['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest', 'microupdate'].each { branchName ->
   def shortBranchName = branchName.substring(0, 6)
   def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
   branchNames << jobBranchName
@@ -87,15 +87,14 @@ set TMP=%TEMP%
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
-                // Generic throttling for Windows, no category
                 break;
               case 'linux':
                 myJob.with {
-                  label('ubuntu-fast')
                   steps {
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
+                Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
                 break;
               case 'mac':
                 myJob.with {

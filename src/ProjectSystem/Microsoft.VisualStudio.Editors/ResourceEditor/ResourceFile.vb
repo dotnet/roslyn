@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
 
         'The main thread we're running on.  Used just to verify that idle time processing
         '  is always on the main thread.
-        Private _mainThread As Threading.Thread
+        Private _mainThread As System.Threading.Thread
 
         'Holds a set of tasks for each Resource that has any task list entries.
         'Hashes key=Resource to ResourceTaskSet.
@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
                 End If
             End If
 
-            _mainThread = Threading.Thread.CurrentThread
+            _mainThread = System.Threading.Thread.CurrentThread
         End Sub
 
 
@@ -1537,7 +1537,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         '''   resource per call.
         ''' </remarks>
         Private Sub OnDelayCheckForErrors(ByVal sender As Object, ByVal e As EventArgs)
-            If _mainThread IsNot Threading.Thread.CurrentThread Then
+            If _mainThread IsNot System.Threading.Thread.CurrentThread Then
                 Debug.Fail("Idle processing is supposed to occur on the main thread!")
                 Exit Sub
             End If

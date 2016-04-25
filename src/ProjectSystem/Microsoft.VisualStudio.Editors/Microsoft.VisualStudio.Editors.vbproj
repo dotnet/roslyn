@@ -37,34 +37,13 @@
     <Reference Include="EnvDTE" />
     <Reference Include="EnvDTE80" />
     <Reference Include="Microsoft.Build.Tasks.Core" />
-    <Reference Include="Microsoft.VisualStudio.Data.Core" />
-    <Reference Include="Microsoft.VisualStudio.Data.Services" />
     <Reference Include="Microsoft.VisualStudio.DataDesign.Common" />
     <Reference Include="Microsoft.VisualStudio.DataTools.Interop">
       <HintPath>$(DevEnvDir)\Microsoft.VisualStudio.DataTools.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Designer.Interfaces" />
-    <Reference Include="Microsoft.VisualStudio.ManagedInterfaces" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
-    <Reference Include="Microsoft.VisualStudio.ImageCatalog" />
-    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Utilities" />
-    <Reference Include="Microsoft.VisualStudio.Shell.14.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Design" />
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
     <Reference Include="Microsoft.VisualStudio.VSHelp" />
-    <Reference Include="Microsoft.VisualStudio.WCFReference.Interop" />
     <Reference Include="Microsoft.VisualStudio.XmlEditor" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -92,18 +71,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
-      <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.AppDesigner\Microsoft.VisualStudio.AppDesigner.vbproj">
       <Project>{19725D6F-4690-412B-934A-FC48D752B802}</Project>
       <Name>Microsoft.VisualStudio.AppDesigner</Name>

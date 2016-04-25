@@ -177,10 +177,10 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Function IsUnicodeEncoding(ByVal Encoding As Encoding) As Boolean
-            Return Encoding.Equals(Text.Encoding.BigEndianUnicode) _
-                OrElse Encoding.Equals(Text.Encoding.Unicode) _
-                OrElse Encoding.Equals(Text.Encoding.UTF7) _
-                OrElse Encoding.Equals(Text.Encoding.UTF8)
+            Return Encoding.Equals(System.Text.Encoding.BigEndianUnicode) _
+                OrElse Encoding.Equals(System.Text.Encoding.Unicode) _
+                OrElse Encoding.Equals(System.Text.Encoding.UTF7) _
+                OrElse Encoding.Equals(System.Text.Encoding.UTF8)
         End Function
 
 
@@ -199,7 +199,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
             End If
 
             'A few exceptions that we consider valid
-            If IsUnicodeEncoding(Encoding) OrElse Encoding.Equals(Text.Encoding.ASCII) Then
+            If IsUnicodeEncoding(Encoding) OrElse Encoding.Equals(System.Text.Encoding.ASCII) Then
                 Return True
             End If
 
