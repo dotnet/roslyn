@@ -138,6 +138,8 @@ abstract class PerfTest: RelativeDirectory {
         Log(description + ": " + value.ToString());
     }
     
+    public abstract bool ProvidesScenarios { get; }
+    public abstract string[] GetScenarios();
     public abstract void Setup();
     public abstract void Test();
     public abstract int Iterations { get; }
