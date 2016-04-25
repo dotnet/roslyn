@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -593,13 +594,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and the params element target. See
             // https://github.com/dotnet/roslyn/issues/10708
 
+            Debug.Assert(resolution.IsLocalFunctionInvocation);
             Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
             Debug.Assert(queryClause == null);
 
             var validResult = resolution.OverloadResolutionResult.ValidResult;
 
             var args = resolution.AnalyzedArguments.Arguments;
-            var localFunction = validResult.Member;
+            var localFunction = resolution.OverloadResolutionResult.ValidResult.Member;
             var parameters = localFunction.Parameters;
             var methodResult = validResult.Result;
 
