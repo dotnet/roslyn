@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly string _languageName;
 
         private readonly Option<bool> _fullSolutionAnalysis;
-        private readonly PerLanguageOption<int> _closedFileDiagnostics;
+        private readonly PerLanguageOption<bool?> _closedFileDiagnostics;
 
         public FullSolutionAnalysisOptionBinding(IOptionService optionService, string languageName)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var oldOptions = _optionService.GetOptions();
 
                 // set normal option first
-                var newOptions = oldOptions.WithChangedOption(_closedFileDiagnostics, _languageName, value ? 1 : 0);
+                var newOptions = oldOptions.WithChangedOption(_closedFileDiagnostics, _languageName, value);
 
                 // we only enable this option if it is disabled. we never disable this option here.
                 if (value)

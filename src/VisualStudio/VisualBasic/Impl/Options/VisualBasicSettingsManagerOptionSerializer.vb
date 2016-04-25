@@ -118,9 +118,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                     Case FeatureOnOffOptions.FormatOnPaste.Name
                         Return Nothing
                 End Select
-            ElseIf key.Feature = ServiceFeatureOnOffOptions.OptionName Then
-                ' ClosedFileDiagnostics has been deprecated in favor of BasicClosedFileDiagnostics
-                Return SettingStorageRoot + NameOf(AutomationObject.BasicClosedFileDiagnostics)
             End If
 
             Return MyBase.GetStorageKeyForOption(key)

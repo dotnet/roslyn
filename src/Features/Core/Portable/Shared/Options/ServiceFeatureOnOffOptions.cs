@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// this option doesn't mean we will show all diagnostics that belong to opened files when turned off,
         /// rather it means we will only show diagnostics that are cheap to calculate for small scope such as opened files.
         /// </summary>
-        public static readonly PerLanguageOption<int> ClosedFileDiagnostic = new PerLanguageOption<int>(OptionName, "Closed File Diagnostic", defaultValue: -1);
+        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(OptionName, "Closed File Diagnostic", defaultValue: null);
 
         public static bool IsClosedFileDiagnosticsEnabled(Workspace workspace, string language)
         {
@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         public static bool IsClosedFileDiagnosticsEnabled(IOptionService optionService, string language)
         {
             var option = optionService.GetOption(ClosedFileDiagnostic, language);
-            if (option == ClosedFileDiagnostic.DefaultValue)
+            if (!option.HasValue)
             {
                 return language == LanguageNames.CSharp ?
                     CSharpClosedFileDiagnosticsEnabledByDefault :
                     DefaultClosedFileDiagnosticsEnabledByDefault;
             }
 
-            return option != 0;
+            return option.Value;
         }
     }
 }
