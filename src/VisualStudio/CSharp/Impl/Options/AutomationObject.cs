@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -36,25 +37,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
         }
 
-        // This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics.
+        [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
         public int ClosedFileDiagnostics
         {
-            get { return GetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
+            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
             set
             {
                 // Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
                 // So, we invoke the setter only for value = 0.
                 if (value == 0)
                 {
-                    SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value);
+                    SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value);
                 }
             }
         }
 
         public int CSharpClosedFileDiagnostics
         {
-            get { return GetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
-            set { SetIntegerOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
+            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
+            set { SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
         }
 
         public int DisplayLineSeparators
@@ -536,27 +537,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             _optionService.SetOptions(optionSet);
         }
 
-        private int GetIntegerOption(Option<int> key)
+        private int GetBooleanOption(PerLanguageOption<bool?> key)
         {
-            return _optionService.GetOption(key);
+            var option = _optionService.GetOption(key, LanguageNames.CSharp);
+            if (!option.HasValue)
+            {
+                return -1;
+            }
+
+            return option.Value ? 1 : 0;
         }
 
-        private int GetIntegerOption(PerLanguageOption<int> key)
+        private void SetBooleanOption(PerLanguageOption<bool?> key, int value)
         {
-            return _optionService.GetOption(key, LanguageNames.CSharp);
-        }
-
-        private void SetIntegerOption(Option<int> key, int value)
-        {
+            bool? boolValue = (value < 0) ? (bool?)null : (value > 0);
             var optionSet = _optionService.GetOptions();
-            optionSet = optionSet.WithChangedOption(key, value);
-            _optionService.SetOptions(optionSet);
-        }
-
-        private void SetIntegerOption(PerLanguageOption<int> key, int value)
-        {
-            var optionSet = _optionService.GetOptions();
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value);
+            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, boolValue);
             _optionService.SetOptions(optionSet);
         }
     }
