@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Equivalence()
         {
-            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbol>.MetadataReferenceEqualityComparer.Instance;
+            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbolInternal>.MetadataReferenceEqualityComparer.Instance;
 
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void PortableReference_Display()
         {
-            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbol>.MetadataReferenceEqualityComparer.Instance;
+            var comparer = CommonReferenceManager<CS.CSharpCompilation, IAssemblySymbolInternal>.MetadataReferenceEqualityComparer.Instance;
 
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
