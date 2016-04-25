@@ -14,6 +14,11 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
+      <Name>Composition</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>Microsoft.CodeAnalysis.EditorFeatures</Name>

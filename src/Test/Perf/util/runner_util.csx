@@ -21,7 +21,10 @@ async Task<ScriptState<object>> RunFile(string fileName)
     var prelude = "System.Collections.Generic.List<string> Args = null;";
     var state = await CSharpScript.RunAsync(prelude);
     var args = state.GetVariable("Args");
-    args.Value = Args;
+    
+    var newArgs = new List<string>(Args);
+    newArgs.Add("--from-runner");
+    args.Value = newArgs;
     return await state.ContinueWithAsync<object>(text, scriptOptions);
 }
 

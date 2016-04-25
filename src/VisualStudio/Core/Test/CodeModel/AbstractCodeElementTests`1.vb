@@ -145,7 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub
         End Function
 
-        Protected Delegate Sub SetterAction(Of T)(newValue As T, valueSetter As Action(Of T))
+        Protected Friend Delegate Sub SetterAction(Of T)(newValue As T, valueSetter As Action(Of T))
 
         Protected Function NoThrow(Of T)() As SetterAction(Of T)
             Return _

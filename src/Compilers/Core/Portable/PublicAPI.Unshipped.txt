@@ -1,21 +1,15 @@
-Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
-Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
-Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
-Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
-Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AnalyzerTelemetryInfo.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.Analyzers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.CompilationDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.GetAllDiagnostics() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.GetAllDiagnostics(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SemanticDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.SyntaxTree, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>>
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
-Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.AnalyzerExceptionFilter.get -> System.Func<System.Exception, bool>
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions.CompilationWithAnalyzersOptions(Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<System.Exception, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostic> onAnalyzerException, bool concurrentAnalysis, bool logAnalyzerExecutionTime, bool reportSuppressedDiagnostics, System.Func<System.Exception, bool> analyzerExceptionFilter) -> void
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.Analyze = 1 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.None = 0 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
-Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags.ReportDiagnostics = 2 -> Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
+Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
@@ -40,21 +34,10 @@ Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationB
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
-Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>
-Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue>.SourceTextValueProvider(System.Func<Microsoft.CodeAnalysis.Text.SourceText, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.Text.SourceText> sourceTextComparer = null) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.SyntaxNodeAnalysisContext(Microsoft.CodeAnalysis.SyntaxNode node, Microsoft.CodeAnalysis.ISymbol containingSymbol, Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue>.SyntaxTreeValueProvider(System.Func<Microsoft.CodeAnalysis.SyntaxTree, TValue> computeValue, System.Collections.Generic.IEqualityComparer<Microsoft.CodeAnalysis.SyntaxTree> syntaxTreeComparer = null) -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
-Microsoft.CodeAnalysis.IAssemblySymbol.GetMetadata() -> Microsoft.CodeAnalysis.AssemblyMetadata
-Microsoft.CodeAnalysis.ICompilationUnitSyntax
-Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata() -> Microsoft.CodeAnalysis.ModuleMetadata
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Semantics.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
@@ -63,10 +46,6 @@ Microsoft.CodeAnalysis.IOperation.IsInvalid.get -> bool
 Microsoft.CodeAnalysis.IOperation.Kind.get -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
-Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax
-Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAnalysis.SyntaxTokenList
-Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
-Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOfExpression = 515 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Argument = 1031 -> Microsoft.CodeAnalysis.OperationKind
@@ -675,12 +654,9 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixDecrement = 7
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixIncrement = 771 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixDecrement = 774 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 773 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.SyntaxNode.FindTrivia(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxTrivia
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
-override Microsoft.CodeAnalysis.CompilationReference.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.CompilationReference.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitAddressOfExpression(Microsoft.CodeAnalysis.Semantics.IAddressOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
@@ -770,8 +746,6 @@ static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetSim
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(Microsoft.CodeAnalysis.Semantics.UnaryOperationKind kind) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IIncrementExpression increment) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
 static Microsoft.CodeAnalysis.Semantics.UnaryAndBinaryOperationExtensions.GetUnaryOperandKind(this Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression unary) -> Microsoft.CodeAnalysis.Semantics.UnaryOperandKind
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.ConfigureGeneratedCodeAnalysis(Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags analysisMode) -> void
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution() -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void
