@@ -77,6 +77,34 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicParameterLocalFunction()
+        {
+            var src = @"
+using System;
+
+class C
+{
+    static void Main(string[] args) => M(0);
+
+    static void M(int x)
+    {
+        dynamic y = x + 1;
+        Action a;
+        Action local(dynamic z) 
+        {
+            Console.Write(z);
+            Console.Write(y);
+            return () => Console.Write(y + z + 1);
+        }
+        a = local(x);
+        a();
+    }
+}";
+            VerifyOutput(src, "012");
+        }
+
+        [Fact]
         public void EndToEnd()
         {
             var source = @"
@@ -191,6 +219,7 @@ CallerMemberName();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void BadParams()
         {
             var source = @"
@@ -2265,6 +2294,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicArgument()
         {
             var source = @"
@@ -2273,20 +2303,161 @@ class Program
 {
     static void Main()
     {
-        void Local(int x)
+        int capture1 = 0;
+        void L1(int x) => Console.Write(x);
+        void L2(int x)
         {
+            Console.Write(capture1);
             Console.Write(x);
         }
+        dynamic L4(int x)
+        {
+            Console.Write(capture1);
+            return x;
+        }
+        Action<int> L5(int x)
+        {
+            Console.Write(x);
+            return L1;
+        }
+
         dynamic val = 2;
-        Local(val);
+        Console.WriteLine();
+        L1(val);
+        L2(val);
+        Console.WriteLine();
+        L2(L4(val));
+        L5(val)(val);
     }
 }
 ";
-            VerifyDiagnostics(source,
-    // (12,9): error CS8098: Cannot invoke the local function 'Local' with dynamic parameters.
-    //         Local(val);
-    Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParameter, "Local(val)").WithArguments("Local").WithLocation(12, 9)
-    );
+            VerifyOutput(source, output: @"202
+00222");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
+        public void DynamicArgsAndParams()
+        {
+            var src = @"
+int capture1 = 0;
+void L1(int x, params int[] ys)
+{
+    Console.Write(capture1);
+    Console.Write(x);
+    foreach (var y in ys)
+    {
+        Console.Write(y);
+    }
+}
+
+dynamic val = 2;
+int val2 = 3;
+L1(val, val2);
+L1(val);
+L1(val, val, val);
+";
+            VerifyOutputInMain(src, "023020222", "System");
+        }
+
+        [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
+        [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
+        [Fact]
+        public void DynamicArgumentToParams()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void L1(int x = 0, params int[] ys) => Console.Write(x);
+
+        dynamic val = 2;
+        L1(val, val);
+        L1(ys: val, x: val);
+        L1(ys: val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(val, val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
+                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val, x: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
+                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                //         L1(ys: val);
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgShadowing()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Shadow(int x) => Console.Write(x + 1);
+
+    static void Main()
+    {
+        void Shadow(int x) => Console.Write(x);
+
+        dynamic val = 2;
+        Shadow(val);
+    }
+}";
+            VerifyOutput(src, "2");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgOverload()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Overload(int i) => Console.Write(i);
+        void Overload(string s) => Console.Write(s);
+
+        dynamic val = 2;
+        Overload(val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,14): error CS0128: A local variable named 'Overload' is already defined in this scope
+                //         void Overload(string s) => Console.Write(s);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Overload").WithArguments("Overload").WithLocation(8, 14),
+                // (8,14): warning CS0168: The variable 'Overload' is declared but never used
+                //         void Overload(string s) => Console.Write(s);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Overload").WithArguments("Overload").WithLocation(8, 14));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWrongArity()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local(int i) => Console.Write(i);
+
+        dynamic val = 2;
+        Local(val, val);
+    }
+}";
+            VerifyDiagnostics(src,
+                // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
+                //         Local(val, val);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
         }
 
         [Fact]
@@ -2338,12 +2509,24 @@ class Program
         {
             return x;
         }
+        dynamic L2(int x)
+        {
+            void L2_1(int y)
+            {
+                Console.Write(x);
+                Console.Write(y);
+            }
+            dynamic z = x + 1;
+            void L2_2() => L2_1(z);
+            return (Action)L2_2;
+        } 
         dynamic local = (Func<dynamic, dynamic>)Local;
         Console.Write(local(2));
+        L2(3)();
     }
 }
 ";
-            VerifyOutput(source, "2");
+            VerifyOutput(source, "234");
         }
 
         [Fact]
@@ -2371,6 +2554,7 @@ Console.Write(Local(x => x));
             VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
         }
 
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
         [Fact]
         public void ExpressionTreeLocfuncUsage()
         {
@@ -2392,9 +2576,7 @@ class Program
         Console.Write(Local(() => Id(2)));
         Console.Write(Local<Func<int, int>>(() => Id));
         Console.Write(Local(() => new Func<int, int>(Id)));
-        // Disabled because of https://github.com/dotnet/roslyn/issues/3923
-        // Should produce a diagnostic once uncommented.
-        //Console.Write(Local(() => nameof(Id)));
+        Console.Write(Local(() => nameof(Id)));
     }
 }
 ";
