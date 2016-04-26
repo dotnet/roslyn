@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public static class LocalFunctionTestsExt
+    public static class LocalFunctionTestsUtil
     {
         public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
         {
@@ -32,21 +32,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : CSharpTestBase
     {
-        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
-        CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        private CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        CompilationVerifier VerifyOutput(string source, string output)
+        private CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
+        private CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -66,13 +66,13 @@ class Program
 
         private void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
         private void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -3732,6 +3732,111 @@ class Program
                 //         int Add(int x, int y) => x + y;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9)
                 );
+        }
+
+        [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Var)]
+        public sealed class VarTests : CSharpTestBase
+        {
+            [Fact]
+            public void IllegalAsReturn()
+            {
+                var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        var f() => 42;
+        Console.WriteLine(f());
+    }
+}";
+                var comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
+                comp.VerifyDiagnostics(
+                    // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                    //         var f() => 42;
+                    Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9));
+            }
+
+            [Fact]
+            public void RealTypeAsReturn()
+            {
+                var source = @"
+using System;
+class var 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        var f() => new var();
+        Console.WriteLine(f());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void RealTypeParameterAsReturn()
+            {
+                var source = @"
+using System;
+class test 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Test<var>(var x)
+    {
+        var f() => x;
+        Console.WriteLine(f());
+    }
+
+    static void Main()
+    {
+        Test(new test());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void IdentifierAndTypeNamedVar()
+            {
+                var source = @"
+using System;
+class var 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        int var = 42;
+        var f() => new var();
+        Console.WriteLine($""{f()}-{var}"");
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog-42");
+            }
         }
     }
 }
