@@ -1329,6 +1329,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Assign(pat, null, RefKind.None, false);
                         break;
                     }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Subpatterns)
+                        {
+                            AssignPatternVariables(prop.Pattern);
+                        }
+                        break;
+                    }
+                case BoundKind.PositionalPattern:
+                    {
+                        var pat = (BoundPositionalPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+
                 case BoundKind.WildcardPattern:
                 case BoundKind.ConstantPattern:
                 default:
@@ -1370,6 +1389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
+        public override BoundNode VisitLetStatement(BoundLetStatement node)
+        {
+            CreateSlots(node.Pattern);
+            return base.VisitLetStatement(node);
+        }
+
         private void CreateSlots(BoundPattern pattern)
         {
             switch (pattern.Kind)
@@ -1379,6 +1404,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int slot = GetOrCreateSlot(((BoundDeclarationPattern)pattern).LocalSymbol);
                         break;
                     }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Subpatterns)
+                        {
+                            CreateSlots(prop.Pattern);
+                        }
+                        break;
+                    }
+                case BoundKind.PositionalPattern:
+                    {
+                        var pat = (BoundPositionalPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            CreateSlots(prop);
+                        }
+                        break;
+                    }
+
+                case BoundKind.WildcardPattern:
                 case BoundKind.ConstantPattern:
                 default:
                     break;

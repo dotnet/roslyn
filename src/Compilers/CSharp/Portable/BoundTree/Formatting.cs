@@ -70,4 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { throw ExceptionUtilities.Unreachable; }
         }
     }
+
+    internal sealed partial class BoundThrowExpression
+    {
+        public override object Display
+        {
+            get { return MessageID.IDS_ThrowExpression.Localize(); }
+        }
+    }
 }

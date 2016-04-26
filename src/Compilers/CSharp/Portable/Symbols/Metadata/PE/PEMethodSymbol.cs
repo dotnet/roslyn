@@ -875,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ImplicitConversionName:
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
+                        case WellKnownMemberNames.IsOperatorName:
+                            return IsValidUserDefinedOperatorIs() ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
 
                         //case WellKnownMemberNames.ConcatenateOperatorName:
                         //case WellKnownMemberNames.ExponentOperatorName:

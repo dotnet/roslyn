@@ -1918,6 +1918,38 @@ internal class Z
             await TestAsync(code, expected, index: 1);
         }
 
+        [WorkItem(9089, "https://github.com/dotnet/roslyn/issues/9089")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestWithPattern1()
+        {
+            var code = @"
+class C
+{
+    void M(object x)
+    {
+        if (x is [|D|] { X is int i, Y is ""constant"" }) { }
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    void M(object x)
+    {
+        if (x is D { X is int i, Y is ""constant"" }) { }
+    }
+}
+
+internal class D
+{
+    public int X { get; set; }
+    public string Y { get; set; }
+}";
+
+            await TestAsync(code, expected, index: 1);
+        }
+
         [WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem(1073099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestWithNameOf2()
