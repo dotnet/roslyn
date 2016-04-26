@@ -865,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 ' TODO: Partial methods currently only show the location where the rename happens As a conflict.
                 '       Consider showing both locations as a conflict.
 
-                Dim baseType = renamedSymbol.ContainingType.GetBaseTypes().FirstOrDefault()
+                Dim baseType = renamedSymbol.ContainingType?.GetBaseTypes().FirstOrDefault()
                 If baseType IsNot Nothing Then
                     Dim implicitSymbols = semanticModel.LookupSymbols(
                             newDeclarationLocationStartingPosition,
