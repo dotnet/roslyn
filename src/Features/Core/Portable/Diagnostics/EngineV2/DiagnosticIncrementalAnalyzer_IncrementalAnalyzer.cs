@@ -224,7 +224,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // Get stateSets that should be run for full analysis
 
             // if full analysis is off, remove state that is from build.
-            if (!project.Solution.Workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language))
+            // this will make sure diagnostics (converted from build to live) from build will never be cleared
+            // until next build.
+            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project.Solution.Workspace, project.Language))
             {
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }

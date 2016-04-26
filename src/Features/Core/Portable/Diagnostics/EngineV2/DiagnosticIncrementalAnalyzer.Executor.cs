@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // perf optimization. check whether we want to analyze this project or not.
                         if (!await FullAnalysisEnabledAsync(project, ignoreOption, cancellationToken).ConfigureAwait(false))
                         {
-                            return new ProjectAnalysisData(project.Id, version, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
+                            return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
                         }
 
                         var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (!workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) ||
+                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
                     !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return false;
