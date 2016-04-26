@@ -69,6 +69,126 @@ namespace System
     }
         ";
 
+        private static readonly string trivalRemainingTuples = @"
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1)
+        {
+            this.Item1 = item1;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + '}';
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+        }
+    }
+
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            Rest = rest;
+        }
+    }
+}
+";
+
         [Fact]
         public void SimpleTuple()
         {
@@ -907,9 +1027,9 @@ class C
         return x.f8;
     }
 }
-";
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
-            CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
         [Fact]
@@ -1137,7 +1257,7 @@ class C
         System.Console.WriteLine($""{x.Item1} {x.Item2} {x.Item3} {x.Item4} {x.Item5} {x.Item6} {x.Item7} {x.Item8} {x.Item9} {x.Item10} {x.Item11} {x.Item12}"");
     }
 }
-";
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1154,7 +1274,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -2729,7 +2849,6 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) the ValueTuple.ToString below seems wrong. Let's not put the extra parenthesis.
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput:
 @"1
 8
