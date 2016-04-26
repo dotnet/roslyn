@@ -58,7 +58,7 @@ Code:
 - [ ] Unsafe code
 - [ ] LINQ
 - [ ] constructors, properties, indexers, events, operators, and destructors.
-- [ ] Async
+- [X] Async
 - [X] Var
 
 Misc:

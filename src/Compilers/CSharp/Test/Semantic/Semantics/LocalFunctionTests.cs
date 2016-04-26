@@ -3838,5 +3838,98 @@ class Program
                     expectedOutput: "dog-42");
             }
         }
+
+        [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Async)]
+        public sealed class AsyncTests : CSharpTestBase
+        {
+            [Fact]
+            public void RealTypeAsReturn()
+            {
+                var source = @"
+using System;
+class async 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        async f() => new async();
+        Console.WriteLine(f());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void RealTypeParameterAsReturn()
+            {
+                var source = @"
+using System;
+class test 
+{
+    public override string ToString() => ""dog"";
+}
+
+class Program
+{
+    static void Test<async>(async x)
+    {
+        async f() => x;
+        Console.WriteLine(f());
+    }
+
+    static void Main()
+    {
+        Test(new test());
+    }
+}";
+
+                CompileAndVerify(
+                    source,
+                    parseOptions: DefaultParseOptions,
+                    expectedOutput: "dog");
+            }
+
+            [Fact]
+            public void ManyMeaningsType()
+            {
+                var source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class async 
+{
+    public override string ToString() => ""async"";
+}
+
+class Program
+{
+    static void Main()
+    {
+        async Task<async> Test(Task<async> t)
+        {
+            async local = await t;
+            Console.WriteLine(local);
+            return local;
+        }
+
+        Test(Task.FromResult<async>(new async())).Wait();
+    }
+}";
+
+                var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+                CompileAndVerify(
+                    comp,
+                    expectedOutput: "async");
+            }
+        }
     }
 }
