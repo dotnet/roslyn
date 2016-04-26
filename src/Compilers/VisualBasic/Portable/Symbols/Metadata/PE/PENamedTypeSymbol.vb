@@ -1421,7 +1421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' Is interface marked with 'InterfaceTypeAttribute( flags with ComInterfaceType.InterfaceIsIDispatch )' attribute
             Dim interfaceType As ComInterfaceType = Nothing
             If metadataModule.HasInterfaceTypeAttribute(Me._handle, interfaceType) AndAlso
-                (interfaceType And ComInterfaceType.InterfaceIsIDispatch) <> 0 Then
+                (interfaceType And Cci.Constants.ComInterfaceType_InterfaceIsIDispatch) <> 0 Then
                 Return True
             End If
 
