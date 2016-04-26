@@ -65,24 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<BoundStatement> newStatements = ImmutableArray.Create<BoundStatement>(payloadInitialization, payloadIf).AddRange(newMethodBody.Statements);
                     newMethodBody = newMethodBody.Update(newMethodBody.Locals.Add(methodPayload), newMethodBody.LocalFunctions, newStatements);
 
-                    if (IsTestMethod(method))
-                    {
-                        // If the method is a test method, wrap the body in:
-                        //
-                        // try
-                        // {
-                        //     ... body ...
-                        // }
-                        // finally
-                        // {
-                        //     Instrumentation.FlushPayload();
-                        // }
-
-                        BoundStatement flush = factory.ExpressionStatement(factory.Call(null, flushPayload));
-                        BoundStatement tryFinally = factory.Try(newMethodBody, ImmutableArray<BoundCatchBlock>.Empty, factory.Block(ImmutableArray.Create(flush)));
-                        newMethodBody = factory.Block(ImmutableArray.Create(tryFinally));
-                    }
-
                     return newMethodBody;
                 }
             }
@@ -110,20 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetFlushPayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics, syntax: syntax);
-        }
-
-        private static bool IsTestMethod(MethodSymbol method)
-        {
-            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/9811): Make this real. 
-            var attributes = method.GetAttributes();
-            foreach (var attribute in attributes)
-            {
-                if (attribute.IsTargetAttribute("Xunit", "FactAttribute"))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 
