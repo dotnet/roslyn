@@ -2,13 +2,28 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  
+
   <PropertyGroup>
+    <IsDeployment Condition="'$(IsDeployment)' == ''">false</IsDeployment>
+    <IsPortable Condition="'$(IsPortable)' == ''">true</IsPortable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsDeployment)' == 'false'">
+    <!-- While UseCommonOutputDirectory will prevent NuGet implementations from being
+         copied, we still need to turn off CopyNuGetImplementations to prevent the build
+         task from complaining about a lack of a runtime section in our dependencies 
+         projects -->
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <OutputPath>bin</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <OutputType>Library</OutputType>
-    <IsPortable Condition="'$(IsPortable)' == ''">true</IsPortable>
+    <OutputPath Condition="'$(OutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\$(Configuration)'))\</OutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsPortable)' == 'true'">
