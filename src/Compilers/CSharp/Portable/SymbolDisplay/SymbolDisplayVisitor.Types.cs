@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -385,18 +385,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
         {
-            var tupleType = symbol as TupleTypeSymbol;
-            if (tupleType == null)
-            {
-                return;
-            }
+            Debug.Assert(symbol.IsTupleType);
 
-            bool hasNames = tupleType.HasFriendlyNames;
+            ImmutableArray<ITypeSymbol> elementTypes = symbol.TupleElementTypes;
+            ImmutableArray<string> elementNames = symbol.TupleElementNames;
+            bool hasNames = !elementNames.IsDefault;
 
             AddPunctuation(SyntaxKind.OpenParenToken);
 
             bool first = true;
-            foreach (var field in tupleType.Fields)
+            for (int i = 0; i < elementTypes.Length; i++)
             {
                 if (!first)
                 {
@@ -406,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 first = false;
 
-                field.Type.Accept(this.NotFirstVisitor);
+                elementTypes[i].Accept(this.NotFirstVisitor);
                 if (hasNames)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, field.Name));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));
                 }
             }
 
