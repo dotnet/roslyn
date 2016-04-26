@@ -310,11 +310,12 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.FixAllDiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.FixMultipleDiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllLogger.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.DiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.cs" />
     <Compile Include="CodeFixes\Supression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchFixAllProvider.cs" />
