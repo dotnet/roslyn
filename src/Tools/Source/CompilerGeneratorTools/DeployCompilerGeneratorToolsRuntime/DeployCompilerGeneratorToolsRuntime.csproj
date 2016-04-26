@@ -30,6 +30,10 @@
     <Compile Include="Class1.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj">
+      <Project>{1b665337-9d6a-451a-aeac-f7bf1af95ffb}</Project>
+      <Name>CommonCoreClrRuntime</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj">
       <Project>{02459936-cd2c-4f61-b671-5c518f2a3ddc}</Project>
       <Name>CompilersBoundTreeGenerator</Name>

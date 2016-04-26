@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -1085,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     originalNode.ArgumentList.WithArguments(arguments));
 
                 // This Annotation copy is for the InvocationExpression
-                return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation);
+                return originalNode.CopyAnnotationsTo(replacementNode).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
             }
         }
     }

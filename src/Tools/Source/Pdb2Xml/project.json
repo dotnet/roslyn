@@ -1,9 +1,8 @@
 ﻿{
   "dependencies": {
-    "Microsoft.DiaSymReader": "1.0.7"
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win7": { },

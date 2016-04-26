@@ -14,17 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text);
-        }
-
-        private CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
-        }
-
-        private CompilationUnitSyntax ParseFileExperimental(string text)
-        {
-            return ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            return SyntaxFactory.ParseSyntaxTree(text, options);
         }
 
         [Fact]

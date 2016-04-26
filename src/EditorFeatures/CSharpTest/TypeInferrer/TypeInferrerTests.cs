@@ -790,6 +790,12 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestPrefixExpression5()
+        {
+            await TestInMethodAsync(@"var q = System.DayOfWeek.Monday & ~[|Foo()|];", "global::System.DayOfWeek");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestArrayRankSpecifier()
         {
             await TestInMethodAsync(@"var q = new string[[|Foo()|]];", "System.Int32");

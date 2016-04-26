@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Friend NotInheritable Class CodeGenerator

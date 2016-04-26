@@ -3,12 +3,13 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    static class LocalFunctionTestsExt
+    public static class LocalFunctionTestsExt
     {
         public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
         {
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : CSharpTestBase
     {
         private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
@@ -62,13 +64,13 @@ class Program
             return VerifyOutput(source, output);
         }
 
-        void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
+        private void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
-        void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
+        private void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
             comp.VerifyDiagnostics(expected);
@@ -96,6 +98,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBody()
         {
             var source = @"
@@ -122,6 +125,7 @@ Local();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Params)]
         public void Params()
         {
             var source = @"
@@ -1261,6 +1265,7 @@ Console.Write(x);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorBasic()
         {
             var source = @"
@@ -1274,6 +1279,7 @@ Console.Write(string.Join("","", Local()));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorGeneric()
         {
             var source = @"
@@ -1287,6 +1293,7 @@ Console.Write(string.Join("","", LocalGeneric(2)));
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorNonGeneric()
         {
             var source = @"
@@ -1303,6 +1310,7 @@ foreach (int x in LocalNongen())
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Iterator)]
         public void IteratorEnumerator()
         {
             var source = @"
@@ -1318,6 +1326,7 @@ Console.Write(y.Current);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncBasic()
         {
             var source = @"
@@ -1344,6 +1353,7 @@ Console.Write(LocalParam(2).Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncGeneric()
         {
             var source = @"
@@ -1357,6 +1367,7 @@ Console.Write(LocalGeneric(2).Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncVoid()
         {
             var source = @"
@@ -1372,6 +1383,7 @@ LocalVoid();
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncAwaitAwait()
         {
             var source = @"
@@ -1391,6 +1403,7 @@ Console.WriteLine(AwaitAwait().Result);
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncKeyword()
         {
             var source = @"
@@ -1459,6 +1472,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Async)]
         public void AsyncUnsafeKeyword()
         {
             var source = @"
@@ -2276,6 +2290,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameter()
         {
             var source = @"
@@ -2296,6 +2311,7 @@ class Program
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicReturn()
         {
             var source = @"
@@ -2309,6 +2325,7 @@ Console.Write(RetDyn());
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicDelegate()
         {
             var source = @"
@@ -3667,11 +3684,53 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-    // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-    //         void Local()
-    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
+                // (6,9): error CS1547: Keyword 'void' cannot be used in this context
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 9),
+                // (6,19): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"()
+").WithLocation(6, 19),
+                // (6,19): error CS1003: Syntax error, '[' expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(6, 19),
+                // (6,20): error CS1525: Invalid expression term ')'
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 20),
+                // (6,21): error CS1003: Syntax error, ']' expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "{").WithLocation(6, 21),
+                // (6,21): error CS1002: ; expected
+                //         void Local()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 21),
+                // (9,9): error CS0149: Method name expected
+                //         Local();
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "Local").WithLocation(9, 9),
+                // (9,9): error CS0165: Use of unassigned local variable 'Local'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(9, 9));
+        }
+
+        [Fact, WorkItem(10521, "https://github.com/dotnet/roslyn/issues/10521")]
+        public void LocalFunctionInIf()
         {
-        }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        if () // typing at this point
+        int Add(int x, int y) => x + y;
+    }
+}
+";
+            VerifyDiagnostics(source,
+                // (6,13): error CS1525: Invalid expression term ')'
+                //         if () // typing at this point
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 13),
+                // (7,9): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         int Add(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int Add(int x, int y) => x + y;").WithLocation(7, 9)
                 );
         }
     }

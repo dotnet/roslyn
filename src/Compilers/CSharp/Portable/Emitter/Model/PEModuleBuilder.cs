@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (_lazyExportedTypes.Length > 0)
                 {
-                    var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>();
+                    var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
                     // Report name collisions.
                     foreach (var exportedType in _lazyExportedTypes)

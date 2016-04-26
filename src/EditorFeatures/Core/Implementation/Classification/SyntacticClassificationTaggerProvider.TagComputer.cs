@@ -95,9 +95,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private void OnWorkspaceRegistrationChanged(object sender, EventArgs e)
             {
-                DisconnectFromWorkspace();
-
+                // We both try to connect synchronously, and register for workspace registration events.
+                // It's possible (particularly in tests), to connect in the startup path, but then get a
+                // previously scheduled, but not yet delivered event.  Don't bother connecting to the
+                // same workspace again in that case.
                 var newWorkspace = _workspaceRegistration.Workspace;
+                if (newWorkspace == _workspace)
+                {
+                    return;
+                }
+
+                DisconnectFromWorkspace();
 
                 if (newWorkspace != null)
                 {

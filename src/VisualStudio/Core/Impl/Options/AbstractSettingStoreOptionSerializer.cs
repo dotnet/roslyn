@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return TryPersist(optionKey, value, (r, k, o, v) => r.SetValue(k, (bool)v ? 1 : 0, RegistryValueKind.DWord));
         }
 
-        protected bool TryFetch(OptionKey optionKey, Func<RegistryKey, string, IOption, object> valueGetter, out object value)
+        protected bool TryFetch(OptionKey optionKey, Func<RegistryKey, string, OptionKey, object> valueGetter, out object value)
         {
             if (this.RegistryKey == null)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return false;
                     }
 
-                    value = valueGetter(subKey, collectionPathAndPropertyName.Item2, optionKey.Option);
+                    value = valueGetter(subKey, collectionPathAndPropertyName.Item2, optionKey);
                     return true;
                 }
             }

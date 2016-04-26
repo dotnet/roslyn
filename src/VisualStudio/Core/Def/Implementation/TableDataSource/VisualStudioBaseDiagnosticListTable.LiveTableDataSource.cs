@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return true;
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key.DocumentIds == documents;
             }
 
@@ -123,14 +123,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var argumentKey = args.Id as DiagnosticIncrementalAnalyzer.ArgumentKey;
-                if (argumentKey == null)
+                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
+                if (liveArgsId == null)
                 {
                     return GetItemKey(data);
                 }
 
-                var documents = args.Solution.GetRelatedDocumentIds(args.DocumentId);
-                return new AggregatedKey(documents, argumentKey.Analyzer, argumentKey.StateType);
+                var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)

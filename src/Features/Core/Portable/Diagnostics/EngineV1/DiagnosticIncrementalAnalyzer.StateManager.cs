@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -70,16 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s that are added as the given <see cref="Project"/>'s AnalyzerReferences.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public ImmutableArray<StateSet> GetBuildOnlyStateSets(object cache, Project project)
-            {
-                var stateSetCache = (IDictionary<Project, ImmutableArray<StateSet>>)cache;
-                return stateSetCache.GetOrAdd(project, CreateBuildOnlyProjectStateSet);
-            }
-
-            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
             /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
             /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
@@ -127,7 +116,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _projectStates.RemoveStateSet(projectId);
             }
 
-            private ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
+            /// <summary>
+            /// Return <see cref="StateSet"/>s that are added as the given <see cref="Project"/>'s AnalyzerReferences.
+            /// This will never create new <see cref="StateSet"/> but will return ones already created.
+            /// </summary>
+            public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
                 var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
                 var stateSetMap = GetStateSets(project).ToDictionary(s => s.Analyzer, s => s);

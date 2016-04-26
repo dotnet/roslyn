@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#load "../util/tools_util.csx"
 
 using System;
 using System.IO;
@@ -46,13 +47,4 @@ bool SanityTestPassesForBuild(string buildPath)
     var logfileNodes = doc.SelectNodes("//BuildInformationNode[@Type='BuildError']");
 
     return logfileNodes.Count == 0;
-}
-
-void CopyDirectory(string source, string destination)
-{
-    var result = ShellOut("Robocopy", $"/s {source} {destination}");
-    if (!result.Succeeded)
-    {
-        throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
-    }
 }
