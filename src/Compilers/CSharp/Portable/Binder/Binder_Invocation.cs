@@ -1,16 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -579,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             CSharpSyntaxNode expression,
             string methodName,
-            BoundMethodGroup methodGroup,
+            BoundMethodGroup boundMethodGroup,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             MethodGroupResolution resolution)
@@ -601,8 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var validResult = resolution.OverloadResolutionResult.ValidResult;
 
             var args = resolution.AnalyzedArguments.Arguments;
-            var localFunction = resolution.OverloadResolutionResult.ValidResult.Member;
-            var parameters = localFunction.Parameters;
+            var localFunction = validResult.Member;
             var methodResult = validResult.Result;
 
             // We're only in trouble if a dynamic argument is passed to the
@@ -612,7 +607,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (OverloadResolution.IsValidParams(localFunction) &&
                 methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
+                var parameters = localFunction.Parameters;
+
                 Debug.Assert(parameters.Last().IsParams);
+
                 var lastParamIndex = parameters.Length - 1;
 
                 for (int i = 0; i < args.Count; ++i)
@@ -626,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax, parameters.Last().Name, localFunction.Name);
                         return BindDynamicInvocation(
                             syntax,
-                            methodGroup,
+                            boundMethodGroup,
                             resolution.AnalyzedArguments,
                             resolution.OverloadResolutionResult.GetAllApplicableMembers(),
                             diagnostics,
