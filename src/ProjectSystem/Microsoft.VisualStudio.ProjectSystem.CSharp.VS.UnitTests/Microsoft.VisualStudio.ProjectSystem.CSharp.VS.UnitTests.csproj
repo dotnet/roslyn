@@ -12,8 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>true</SignAssembly>
     <Nonshipping>true</Nonshipping>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />

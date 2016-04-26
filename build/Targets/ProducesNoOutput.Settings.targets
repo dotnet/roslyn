@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsDeployment)' == 'false'">
-    <!-- While UseCommonOutputDirectory will prevent NuGet implementations from being
-         copied, we still need to turn off CopyNuGetImplementations to prevent the build
-         task from complaining about a lack of a runtime section in our dependencies 
-         projects -->
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <OutputPath>bin</OutputPath>
   </PropertyGroup>
