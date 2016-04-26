@@ -4080,7 +4080,6 @@ class C
 System.String
 w
 ");
-
         }
 
         [Fact]
@@ -4139,5 +4138,87 @@ class C
                 );
         }
 
+        [Fact, WorkItem(10569, "https://github.com/dotnet/roslyn/issues/10569")]
+        public void IncompleteInterfaceMethod()
+        {
+            var source = @"
+public interface MyInterface {
+    (int, int) Foo()
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1002: ; expected
+                //     (int, int) Foo()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 21),
+                // (3,5): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     (int, int) Foo()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void ImplementInterface()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        var c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+    }
+
+    public (int, string) M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+");
+        }
+
+        [Fact]
+        public void ImplementInterfaceExplicitly()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        I c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(x.Alice);
+    }
+
+    (int, string) I.M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+1");
+        }
     }
 }
