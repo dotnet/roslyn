@@ -376,7 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // With the introduction of pattern-matching, many nodes now contain top-level
                 // expressions that may introduce pattern variables.
                 case SyntaxKind.EqualsValueClause:
-                case SyntaxKind.MatchSection:
                     return true;
 
                 // Due to pattern-matching, any statement that contains an expression may introduce a scope.

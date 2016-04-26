@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private readonly static CSharpParseOptions patternParseOptions =
             TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true")
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching2.RequiredFeature(), "true");
+                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
 
         [Fact]
         public void EmptyArrayCSharp()
@@ -159,32 +158,25 @@ class C
     {
         switch (o)
         {
-            case string { Length is 2 }:
-                break;
+            //case string { Length is 2 }:
+            //    break;
             case string s:
                 break;
-            case System.Collections.ArrayList(2):
-                break;
+            //case System.Collections.ArrayList(2):
+            //    break;
         }
-        let x = o is object t ? t : null;
-        o = o match (
-            case string { Length is 2 }: null
-            case string s: s
-            case System.Collections.ArrayList(2): x
-            case *: throw null
-        );
+        //let x = o is object t ? t : null;
+        //o = o match (
+        //    case string { Length is 2 }: null
+        //    case string s: s
+        //    case System.Collections.ArrayList(2): x
+        //    case *: throw null
+        //);
     }
 }
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions)
-            .VerifyDiagnostics(
-                // (13,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameter(s)
-                //             case System.Collections.ArrayList(2):
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "System.Collections.ArrayList(2)").WithArguments("System.Collections.ArrayList", "1").WithLocation(13, 18),
-                // (20,18): error CS8157: No 'operator is' declaration in 'ArrayList' was found with 1 out parameter(s)
-                //             case System.Collections.ArrayList(2): x
-                Diagnostic(ErrorCode.ERR_OperatorIsParameterCount, "System.Collections.ArrayList(2)").WithArguments("System.Collections.ArrayList", "1").WithLocation(20, 18)
-                )
+            .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new BadStuffTestAnalyzer() }, null, null, false
                 );
         }

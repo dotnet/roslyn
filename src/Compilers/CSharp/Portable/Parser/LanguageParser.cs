@@ -3153,48 +3153,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
 
-            bool isKeywordOverloaded = opKind == SyntaxKind.IsKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2);
-            if (!isKeywordOverloaded)
+            switch (paramList.Parameters.Count)
             {
-                switch (paramList.Parameters.Count)
-                {
-                    case 1:
-                        if (opToken.IsMissing || !SyntaxFacts.IsOverloadableUnaryOperator(opKind))
-                        {
-                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlUnaryOperatorExpected);
-                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                        }
+                case 1:
+                    if (opToken.IsMissing || !SyntaxFacts.IsOverloadableUnaryOperator(opKind))
+                    {
+                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlUnaryOperatorExpected);
+                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                    }
 
-                        break;
-                    case 2:
-                        if (opToken.IsMissing || !SyntaxFacts.IsOverloadableBinaryOperator(opKind))
-                        {
-                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlBinaryOperatorExpected);
-                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                        }
+                    break;
+                case 2:
+                    if (opToken.IsMissing || !SyntaxFacts.IsOverloadableBinaryOperator(opKind))
+                    {
+                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlBinaryOperatorExpected);
+                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                    }
 
-                        break;
-                    default:
-                        if (opToken.IsMissing)
-                        {
-                            SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlOperatorExpected);
-                            opToken = WithAdditionalDiagnostics(opToken, diagInfo);
-                        }
-                        else if (SyntaxFacts.IsOverloadableBinaryOperator(opKind))
-                        {
-                            opToken = this.AddError(opToken, ErrorCode.ERR_BadBinOpArgs, SyntaxFacts.GetText(opKind));
-                        }
-                        else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
-                        {
-                            opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
-                        }
-                        else
-                        {
-                            opToken = this.AddError(opToken, ErrorCode.ERR_OvlOperatorExpected);
-                        }
+                    break;
+                default:
+                    if (opToken.IsMissing)
+                    {
+                        SyntaxDiagnosticInfo diagInfo = MakeError(opTokenErrorOffset, opTokenErrorWidth, ErrorCode.ERR_OvlOperatorExpected);
+                        opToken = WithAdditionalDiagnostics(opToken, diagInfo);
+                    }
+                    else if (SyntaxFacts.IsOverloadableBinaryOperator(opKind))
+                    {
+                        opToken = this.AddError(opToken, ErrorCode.ERR_BadBinOpArgs, SyntaxFacts.GetText(opKind));
+                    }
+                    else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
+                    {
+                        opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                    }
+                    else
+                    {
+                        opToken = this.AddError(opToken, ErrorCode.ERR_OvlOperatorExpected);
+                    }
 
-                        break;
-                }
+                    break;
             }
 
             BlockSyntax blockBody;
@@ -6703,14 +6699,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // compiler it would simple call IsLocalDeclaration.
 
             var tk = this.CurrentToken.ContextualKind;
-            if (tk == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
-            {
-                // Accept a let statement if it begins with the contextual keyword 'let'.
-                // It is understood that this may break compatiblity with a hypothetical user-defined
-                // type named 'let'.
-                return true;
-            }
-
             if (tk == SyntaxKind.RefKeyword ||
                 (SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken) || IsDeclarationModifier(tk) || IsAdditionalLocalFunctionModifier(tk) &&
                 (tk != SyntaxKind.AsyncKeyword || (this.PeekToken(1).Kind != SyntaxKind.DelegateKeyword && !ScanAsyncLambda(0))))
@@ -7258,7 +7246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.LetStatement:
                     statement = this.AddError(statement, ErrorCode.ERR_BadEmbeddedStmt);
                     break;
             }
@@ -8130,12 +8117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <returns></returns>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
-            // First, check if it is a "let" statement.
-            if (this.CurrentToken.ContextualKind == SyntaxKind.LetKeyword && IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
-            {
-                return ParseLetStatement();
-            }
-
             var mods = _pool.Allocate();
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -8178,27 +8159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _pool.Free(variables);
                 _pool.Free(mods);
             }
-        }
-
-        private StatementSyntax ParseLetStatement()
-        {
-            var letKeyword = this.EatContextualToken(SyntaxKind.LetKeyword);
-            PatternSyntax pattern = null;
-            SyntaxToken identifier = default(SyntaxToken);
-            if (CurrentToken.Kind == SyntaxKind.IdentifierToken && PeekToken(1).Kind == SyntaxKind.EqualsToken)
-            {
-                identifier = this.EatToken(SyntaxKind.IdentifierToken);
-            }
-            else
-            {
-                pattern = ParsePattern();
-            }
-            var equalsToken = this.EatToken(SyntaxKind.EqualsToken);
-            var expression = this.ParseExpressionCore();
-            var whenClause = ParseWhenClauseOpt();
-            var elseClause = ParseElseClauseOpt();
-            var semicolonToken = (elseClause == null) ? this.EatToken(SyntaxKind.SemicolonToken) : default(SyntaxToken);
-            return _syntaxFactory.LetStatement(letKeyword, pattern, identifier, equalsToken, expression, whenClause, elseClause, semicolonToken);
         }
 
         private WhenClauseSyntax ParseWhenClauseOpt()
@@ -8657,7 +8617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.MatchExpression:
                     return Precedence.Relational;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
@@ -8789,11 +8748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
             }
 
-            if (precedence <= Precedence.Coalescing && tk == SyntaxKind.ThrowKeyword)
-            {
-                return ParseThrowExpression();
-            }
-
             // No left operand, so we need to parse one -- possibly preceded by a
             // unary operator.
             if (IsExpectedPrefixUnaryOperator(tk))
@@ -8846,10 +8800,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     opKind = SyntaxFacts.GetAssignmentExpression(tk);
                     isAssignmentOperator = true;
-                }
-                else if (tk == SyntaxKind.MatchKeyword)
-                {
-                    opKind = SyntaxKind.MatchExpression;
                 }
                 else
                 {
@@ -8913,11 +8863,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     leftOperand = ParseIsExpression(leftOperand, opToken);
                 }
-                else if (opKind == SyntaxKind.MatchExpression)
-                {
-                    leftOperand = ParseMatchExpression(leftOperand, opToken);
-                    leftOperand = CheckFeatureAvailability(leftOperand, MessageID.IDS_FeaturePatternMatching2);
-                }
                 else
                 {
                     if (isAssignmentOperator)
@@ -8957,21 +8902,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return leftOperand;
-        }
-
-        private ExpressionSyntax ParseThrowExpression()
-        {
-            var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
-            var thrown = this.ParseSubExpression(Precedence.Coalescing);
-            var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
-
-            if (!IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching2))
-            {
-                // use the existing error message if the throw expression is not supported
-                result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, throwToken.Text);
-            }
-
-            return result;
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)

@@ -834,22 +834,4 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-
-    partial class BoundLetStatement
-    {
-        // TODO: this may need its own OperationKind.
-        protected override OperationKind StatementKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
 }

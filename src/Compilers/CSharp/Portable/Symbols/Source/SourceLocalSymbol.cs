@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case LocalDeclarationKind.PatternVariable:
-                        Debug.Assert(node is DeclarationPatternSyntax || node is LetStatementSyntax);
+                        Debug.Assert(node is DeclarationPatternSyntax);
                         break;
 
                     default:

@@ -1332,16 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // diagnostics for pattern-matching
         ERR_PatternNullableType = 8150,
         ERR_BadIsPatternExpression = 8151,
-        ERR_AmbigMatch0 = 8152,
-        ERR_AmbigMatch1 = 8153,
-        ERR_ThrowMisplaced = 8154,
-        ERR_ElseClauseRequiredWithWhenClause = 8155,
-        ERR_AmbiguousOperatorIs = 8156,
-        ERR_OperatorIsParameterCount = 8157,
-        ERR_OperatorIsNullable = 8158,
-        ERR_OperatorIsRequiresOut = 8159,
-        ERR_OperatorIsMustReturnBoolOrVoid = 8160,
-        ERR_OperatorIsNoParameters = 8161,
+        // Please reserve IDs up to 8199 for pattern-matching
 
         // huge gap here???
 

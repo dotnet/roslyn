@@ -453,19 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
             }
 
-            if (nameOrMemberAccessExpression.Parent is PropertyPatternSyntax)
-            {
-                var propertyPattern = nameOrMemberAccessExpression.Parent as PropertyPatternSyntax;
-                foreach (var subPattern in propertyPattern.SubPatterns)
-                {
-                    var patternName = (subPattern as IsPatternExpressionSyntax)?.Expression as IdentifierNameSyntax;
-                    if (patternName != null)
-                    {
-                        generateTypeServiceStateOptions.PropertiesToGenerate.Add(patternName);
-                    }
-                }
-            }
-
             return true;
         }
 
